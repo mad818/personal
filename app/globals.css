@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ──────────────────────────────────────────────────────────── */
+:root {
+  --bg:      #07080d;
+  --surf:    #0c0e14;
+  --surf2:   #111318;
+  --surf3:   #171a24;
+  --border:  #1a1e2e;
+  --border2: #252a40;
+  --text:    #e2e6f5;
+  --text2:   #5d6a96;
+  --text3:   #2e3454;
+  --accent:  #4f6ef7;
+  --accent2: #7c3aed;
+  --r:       10px;
+  --rs:      6px;
+  --t:       .18s cubic-bezier(.4,0,.2,1);
+  --fhi:     #10b981;
+  --fmd:     #f59e0b;
+  --flo:     #ef4444;
+
+  /* glow colours */
+  --glow-accent:  rgba(79, 110, 247, 0.18);
+  --glow-green:   rgba(16, 185, 129, 0.18);
+  --glow-red:     rgba(239,  68,  68, 0.18);
+  --glow-purple:  rgba(124,  58, 237, 0.18);
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Body ───────────────────────────────────────────────────────────────────── */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  /* subtle animated noise texture for depth */
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79,110,247,.06) 0%, transparent 60%);
+}
+
+/* ── Links ──────────────────────────────────────────────────────────────────── */
+a { color: var(--accent); text-decoration: none; transition: opacity var(--t); }
+a:hover { opacity: .75; }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+/* ── Card glow on hover ─────────────────────────────────────────────────────── */
+.card-hover {
+  transition: border-color var(--t), box-shadow var(--t), transform var(--t);
+}
+.card-hover:hover {
+  border-color: var(--border2) !important;
+  box-shadow: 0 0 0 1px var(--border2), 0 4px 24px rgba(0,0,0,.5);
+  transform: translateY(-1px);
+}
+
+/* ── Pulse animation for live indicators ────────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.85); }
+}
+.pulse-live {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ── Fade-in for loaded content ─────────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fade-up 0.28s ease both;
+}
+
+/* ── Number glow for KPI values ─────────────────────────────────────────────── */
+.num-glow-green { color: var(--fhi); text-shadow: 0 0 16px rgba(16,185,129,.4); }
+.num-glow-red   { color: var(--flo); text-shadow: 0 0 16px rgba(239,68,68,.4); }
+.num-glow-blue  { color: var(--accent); text-shadow: 0 0 16px rgba(79,110,247,.4); }
+
+/* ── Gradient border utility ────────────────────────────────────────────────── */
+.grad-border {
+  position: relative;
+  border-radius: var(--r) !important;
+}
+.grad-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(79,110,247,.35), rgba(124,58,237,.2), transparent 60%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ── Shimmer loading skeleton ───────────────────────────────────────────────── */
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--surf2) 25%, var(--surf3) 50%, var(--surf2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}

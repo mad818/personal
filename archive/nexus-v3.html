@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nexus v3 · Command Intelligence Dashboard</title>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg:#07080d;--surf:#0f1117;--surf2:#151820;--surf3:#1b1e2b;
+  --border:#1e2233;--border2:#2a2f48;
+  --text:#dde1f0;--text2:#6875a0;--text3:#353c5e;
+  --accent:#4f6ef7;--accent2:#7c3aed;--glow:rgba(79,110,247,.18);
+  --geo:#4f6ef7;--crypto:#f59e0b;--sec:#10b981;--threat:#ef4444;
+  --left:#3b82f6;--center:#8b5cf6;--right:#ef4444;
+  --fhi:#10b981;--fmd:#f59e0b;--flo:#ef4444;
+  --chat-user:#1e2e55;--chat-ai:#151820;
+  --r:10px;--rs:6px;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --shadow:0 8px 32px rgba(0,0,0,.5);--t:.18s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="light"]{
+  --bg:#eef0f7;--surf:#fff;--surf2:#f5f6fc;--surf3:#edf0f9;
+  --border:#dde0ef;--border2:#c8ccdf;
+  --text:#111827;--text2:#6b7280;--text3:#9ca3af;
+  --glow:rgba(79,110,247,.1);--shadow:0 4px 16px rgba(0,0,0,.1);
+  --chat-user:#dbeafe;--chat-ai:#f5f6fc;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;
+  transition:background var(--t),color var(--t);-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--font);cursor:pointer;border:none;background:none}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ── HEADER ───────────────────────────────── */
+header{position:sticky;top:0;z-index:400;height:54px;display:flex;align-items:center;gap:12px;
+  padding:0 20px;background:rgba(7,8,13,.88);backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+[data-theme="light"] header{background:rgba(238,240,247,.9)}
+.logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;
+  letter-spacing:-.5px;white-space:nowrap;flex-shrink:0;}
+.logo-hex{width:28px;height:28px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;
+  box-shadow:0 0 12px rgba(79,110,247,.4);}
+.logo-word{background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.search-wrap{flex:1;max-width:320px;position:relative}
+.si{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text2);
+  font-size:13px;pointer-events:none}
+.search-input{width:100%;height:32px;background:var(--surf2);border:1px solid var(--border);
+  border-radius:var(--rs);padding:0 30px 0 28px;font-size:12.5px;color:var(--text);outline:none;
+  transition:border-color var(--t),box-shadow var(--t);}
+.search-input::placeholder{color:var(--text2)}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.sk{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:10px;
+  color:var(--text3);background:var(--border);padding:1px 5px;border-radius:3px;}
+.nav-pills{display:flex;gap:2px}
+.np{padding:4px 11px;border-radius:99px;font-size:12px;font-weight:500;color:var(--text2);
+  transition:all var(--t);}
+.np.active{background:var(--surf3);color:var(--accent);border:1px solid var(--border2)}
+.np:not(.active):hover{color:var(--text);background:var(--surf2)}
+.hdr-r{display:flex;align-items:center;gap:7px;margin-left:auto}
+#clock{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hbtn{width:32px;height:32px;border-radius:var(--rs);background:var(--surf2);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:var(--text2);transition:all var(--t);}
+.hbtn:hover{background:var(--surf3);color:var(--text);border-color:var(--border2)}
+.hbtn.spinning svg{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-fab{
+  position:fixed;bottom:24px;right:24px;z-index:500;
+  width:50px;height:50px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  box-shadow:0 4px 20px rgba(79,110,247,.5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:#fff;transition:transform var(--t),box-shadow var(--t);}
+.ai-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(79,110,247,.65)}
+
+/* ── TICKER ───────────────────────────────── */
+.ticker-wrap{height:32px;overflow:hidden;background:var(--surf);
+  border-bottom:1px solid var(--border);position:relative;}
+.ticker-wrap::before,.ticker-wrap::after{content:"";position:absolute;top:0;bottom:0;
+  width:30px;z-index:1;}
+.ticker-wrap::before{left:0;background:linear-gradient(90deg,var(--surf),transparent)}
+.ticker-wrap::after{right:0;background:linear-gradient(-90deg,var(--surf),transparent)}
+.ticker-track{display:flex;align-items:center;height:100%;width:max-content;
+  animation:slide 55s linear infinite;}
+.ticker-wrap:hover .ticker-track{animation-play-state:paused}
+@keyframes slide{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ti{display:flex;align-items:center;gap:6px;padding:0 18px;font-size:11.5px;
+  border-right:1px solid var(--border);white-space:nowrap;}
+.tsym{font-weight:700;font-size:10.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.tprice{font-weight:600;font-variant-numeric:tabular-nums}
+.tchg{font-size:11px;font-weight:600}
+.up{color:#10b981}.down{color:#ef4444}
+
+/* ── STAT BAND ────────────────────────────── */
+.stat-band{display:flex;gap:1px;background:var(--border);border-bottom:1px solid var(--border);overflow-x:auto}
+.sc{flex:1;min-width:110px;padding:9px 14px;background:var(--surf);display:flex;flex-direction:column;gap:3px}
+.sclbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.scval{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.scchg{font-size:11px;font-weight:500}
+.fg-pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
+.fg-extreme-fear{background:rgba(239,68,68,.15);color:#ef4444}
+.fg-fear{background:rgba(245,158,11,.15);color:#f59e0b}
+.fg-neutral{background:rgba(139,92,246,.15);color:#8b5cf6}
+.fg-greed{background:rgba(16,185,129,.15);color:#10b981}
+.fg-extreme-greed{background:rgba(16,185,129,.25);color:#059669}
+
+/* ── CONTROL BAR ──────────────────────────── */
+.ctrl-bar{display:flex;align-items:center;gap:8px;padding:9px 20px;
+  background:var(--surf);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.clbl{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.bfs{display:flex;gap:3px}
+.bf{padding:3px 9px;border-radius:99px;font-size:11px;font-weight:500;
+  border:1px solid var(--border);color:var(--text2);transition:all var(--t);}
+.bf:hover{border-color:var(--accent);color:var(--accent)}
+.bf.a-all{background:var(--surf3);border-color:var(--border2);color:var(--text)}
+.bf.a-left{background:rgba(59,130,246,.14);border-color:var(--left);color:var(--left)}
+.bf.a-center{background:rgba(139,92,246,.14);border-color:var(--center);color:var(--center)}
+.bf.a-right{background:rgba(239,68,68,.14);border-color:var(--right);color:var(--right)}
+.vd{width:1px;height:18px;background:var(--border)}
+.sort-sel{font-size:11.5px;color:var(--text2);background:var(--surf2);
+  border:1px solid var(--border);border-radius:var(--rs);padding:3px 8px;cursor:pointer;outline:none;}
+.sort-sel option{background:var(--surf)}
+.live-pill{display:flex;align-items:center;gap:5px;margin-left:auto;
+  font-size:11px;font-weight:600;color:var(--sec);
+  background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);
+  padding:3px 9px;border-radius:99px;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--sec);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.tip-wrap{position:relative;display:inline-flex;align-items:center}
+.tip-icon{font-size:10px;color:var(--text3);cursor:default;margin-left:3px}
+.tip-box{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:var(--surf3);border:1px solid var(--border2);border-radius:var(--rs);
+  padding:7px 10px;font-size:11px;color:var(--text2);line-height:1.5;width:220px;
+  z-index:600;pointer-events:none;box-shadow:var(--shadow);}
+.tip-wrap:hover .tip-box{display:block}
+
+/* ── MAIN PANELS ──────────────────────────── */
+.main{padding:16px 20px 120px}
+.articles-grid{columns:3 280px;column-gap:12px}
+
+/* article card */
+.ac{break-inside:avoid;display:block;background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--r);padding:13px;margin-bottom:12px;cursor:pointer;position:relative;overflow:hidden;
+  transition:border-color var(--t),box-shadow var(--t),transform var(--t);}
+.ac::before{content:"";position:absolute;inset:0;border-radius:var(--r);
+  background:linear-gradient(135deg,var(--glow),transparent 60%);opacity:0;
+  transition:opacity var(--t);pointer-events:none;}
+.ac:hover{border-color:var(--border2);box-shadow:var(--shadow);transform:translateY(-2px)}
+.ac:hover::before{opacity:1}
+.ac.alerted{border-color:#fbbf24;box-shadow:0 0 0 2px rgba(251,191,36,.2)}
+.ct{display:flex;align-items:center;gap:5px;margin-bottom:8px}
+.sd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sn{font-size:10.5px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--text2)}
+.ctag{margin-left:auto;font-size:9.5px;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;padding:2px 6px;border-radius:99px;}
+.cg{background:rgba(79,110,247,.13);color:var(--geo)}
+.cc{background:rgba(245,158,11,.13);color:var(--crypto)}
+.cage{font-size:10px;color:var(--text3);flex-shrink:0}
+.atitle{font-size:13px;font-weight:600;line-height:1.45;color:var(--text);margin-bottom:5px}
+.adesc{font-size:11.5px;color:var(--text2);line-height:1.55;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:11px;}
+.afoot{padding-top:9px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.bblock{flex:1;min-width:0}
+.btrack{height:4px;border-radius:2px;
+  background:linear-gradient(to right,var(--left),var(--center),var(--right));position:relative;margin-bottom:4px;}
+.bneedle{position:absolute;top:-4px;width:2px;height:12px;border-radius:1px;background:#fff;
+  box-shadow:0 0 4px rgba(0,0,0,.6);transform:translateX(-50%);transition:left .5s cubic-bezier(.4,0,.2,1);}
+.brow{display:flex;justify-content:space-between;align-items:center}
+.bend{font-size:9px;color:var(--text3)}
+.bval{font-size:10px;font-weight:700}
+.fbadge{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:700;
+  padding:3px 7px;border-radius:var(--rs);flex-shrink:0;white-space:nowrap;}
+.fh{background:rgba(16,185,129,.14);color:var(--fhi)}
+.fm{background:rgba(245,158,11,.14);color:var(--fmd)}
+.fl{background:rgba(239,68,68,.14);color:var(--flo)}
+.sum-btn{font-size:10px;color:var(--text2);padding:3px 7px;border-radius:var(--rs);
+  border:1px solid var(--border);transition:all var(--t);flex-shrink:0;}
+.sum-btn:hover{border-color:var(--accent);color:var(--accent)}
+.sum-result{font-size:11.5px;color:var(--text2);line-height:1.55;
+  margin-top:9px;padding:8px;background:var(--surf2);border-radius:var(--rs);
+  border-left:2px solid var(--accent);}
+
+/* skeleton */
+#skeleton-grid{columns:3 280px;column-gap:12px}
+.sk-card{break-inside:avoid;background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--r);padding:13px;margin-bottom:12px;}
+.sk-line{background:var(--surf3);border-radius:3px;animation:shim 1.4s ease-in-out infinite}
+@keyframes shim{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* security panel */
+.cve-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.cve-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.cve-hdr{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.cve-id{font-size:12px;font-weight:700;color:var(--accent);font-family:monospace}
+.cvss{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;margin-left:auto}
+.cvss-critical{background:rgba(239,68,68,.2);color:#ef4444}
+.cvss-high{background:rgba(245,158,11,.2);color:#f59e0b}
+.cvss-medium{background:rgba(139,92,246,.2);color:#8b5cf6}
+.cvss-low{background:rgba(16,185,129,.2);color:#10b981}
+.cve-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.cve-meta{font-size:10.5px;color:var(--text3)}
+
+/* signals panel */
+.signals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.sig-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.sig-title{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.sig-val{font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+.sig-sub{font-size:12px;color:var(--text2)}
+.gauge-wrap{height:8px;border-radius:4px;background:linear-gradient(to right,#ef4444,#f59e0b,#10b981);
+  position:relative;margin:10px 0 4px;}
+.gauge-needle{position:absolute;top:-3px;width:3px;height:14px;border-radius:2px;
+  background:#fff;box-shadow:0 0 4px rgba(0,0,0,.5);transform:translateX(-50%);}
+.defi-row{display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.defi-row:last-child{border-bottom:none}
+
+/* map placeholder */
+.map-placeholder{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);
+  height:400px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  color:var(--text2);font-size:13px;}
+.map-icon{font-size:40px;margin-bottom:6px}
+
+/* ── CHAT DRAWER ──────────────────────────── */
+.chat-drawer{
+  position:fixed;right:0;top:0;bottom:0;width:380px;
+  background:var(--surf);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:450;
+  transform:translateX(100%);transition:transform var(--t);
+  box-shadow:-8px 0 32px rgba(0,0,0,.3);}
+.chat-drawer.open{transform:translateX(0)}
+.cdh{display:flex;align-items:center;gap:8px;padding:13px 16px;
+  border-bottom:1px solid var(--border);flex-shrink:0;}
+.cdh-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
+.ai-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:blink 2s infinite}
+.ctx-sel{font-size:11px;color:var(--text2);background:var(--surf2);
+  border:1px solid var(--border);border-radius:var(--rs);padding:2px 7px;margin-left:auto;outline:none;}
+.ctx-sel option{background:var(--surf)}
+.chat-close{margin-left:6px}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:90%;border-radius:var(--r);padding:10px 12px;font-size:12.5px;line-height:1.6}
+.msg-user{background:var(--chat-user);color:var(--text);align-self:flex-end;
+  border-bottom-right-radius:3px;}
+.msg-ai{background:var(--chat-ai);border:1px solid var(--border);color:var(--text2);
+  align-self:flex-start;border-bottom-left-radius:3px;}
+.msg-ai strong{color:var(--text)}
+.msg-meta{font-size:10px;color:var(--text3);margin-top:4px}
+.msg-actions{display:flex;gap:5px;margin-top:5px}
+.msg-action-btn{font-size:10px;padding:2px 7px;border:1px solid var(--border);
+  border-radius:var(--rs);color:var(--text2);transition:all var(--t);}
+.msg-action-btn:hover{border-color:var(--accent);color:var(--accent)}
+.chat-input-area{padding:12px;border-top:1px solid var(--border);flex-shrink:0}
+.chat-input-row{display:flex;gap:7px;align-items:flex-end}
+.chat-input{flex:1;min-height:36px;max-height:100px;
+  background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);
+  padding:8px 12px;font-size:12.5px;color:var(--text);resize:none;outline:none;font-family:var(--font);
+  transition:border-color var(--t);}
+.chat-input:focus{border-color:var(--accent)}
+.chat-input::placeholder{color:var(--text2)}
+.chat-send{width:36px;height:36px;border-radius:var(--rs);
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;
+  transition:opacity var(--t);}
+.chat-send:hover{opacity:.85}
+.chat-hint{font-size:10.5px;color:var(--text3);margin-top:6px;text-align:center}
+.typing-indicator{display:flex;gap:4px;padding:10px 14px;align-items:center}
+.typing-indicator span{width:7px;height:7px;border-radius:50%;background:var(--text2);
+  animation:typing .8s infinite}
+.typing-indicator span:nth-child(2){animation-delay:.15s}
+.typing-indicator span:nth-child(3){animation-delay:.3s}
+@keyframes typing{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
+
+/* ── SETTINGS OVERLAY ─────────────────────── */
+.overlay-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;
+  backdrop-filter:blur(4px);}
+.overlay-bg.open{display:flex;align-items:flex-start;justify-content:flex-end}
+.settings-panel{width:420px;height:100vh;background:var(--surf);
+  border-left:1px solid var(--border);overflow-y:auto;padding:20px;}
+.sp-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.sp-title{font-size:16px;font-weight:700}
+.sp-close{font-size:20px;color:var(--text2);width:32px;height:32px;
+  display:flex;align-items:center;justify-content:center;border-radius:var(--rs);}
+.sp-close:hover{background:var(--surf2);color:var(--text)}
+.sp-section{margin-bottom:22px}
+.sp-sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--text2);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.sp-row{margin-bottom:10px}
+.sp-label{font-size:12px;color:var(--text2);margin-bottom:4px;display:block}
+.sp-input{width:100%;height:34px;background:var(--surf2);border:1px solid var(--border);
+  border-radius:var(--rs);padding:0 10px;font-size:12.5px;color:var(--text);outline:none;
+  transition:border-color var(--t);}
+.sp-input:focus{border-color:var(--accent)}
+.sp-input.mono{font-family:monospace;letter-spacing:.5px}
+.sp-textarea{width:100%;height:70px;background:var(--surf2);border:1px solid var(--border);
+  border-radius:var(--rs);padding:8px 10px;font-size:12px;color:var(--text);outline:none;resize:vertical;
+  font-family:var(--font);}
+.sp-textarea:focus{border-color:var(--accent)}
+.sp-toggle-row{display:flex;align-items:center;justify-content:space-between;
+  padding:6px 0;border-bottom:1px solid var(--border);}
+.sp-toggle-row:last-child{border-bottom:none}
+.sp-toggle-label{font-size:12px;color:var(--text)}
+.toggle{width:34px;height:18px;border-radius:9px;background:var(--border2);cursor:pointer;
+  position:relative;transition:background var(--t);}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:12px;height:12px;
+  border-radius:50%;background:#fff;transition:transform var(--t);}
+.toggle.on::after{transform:translateX(16px)}
+.sp-save-btn{width:100%;height:38px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:var(--r);color:#fff;font-size:13px;font-weight:600;transition:opacity var(--t);}
+.sp-save-btn:hover{opacity:.88}
+.sp-note{font-size:11px;color:var(--text3);margin-top:5px}
+
+/* ── DROP OVERLAY ─────────────────────────── */
+.drop-overlay{display:none;position:fixed;inset:0;z-index:700;
+  background:rgba(7,8,13,.88);backdrop-filter:blur(8px);
+  flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+.drop-overlay.show{display:flex}
+.drop-zone-box{border:2px dashed var(--accent);border-radius:16px;padding:48px 60px;
+  text-align:center;color:var(--text2);}
+.drop-icon{font-size:48px;margin-bottom:12px;display:block}
+.drop-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px}
+.drop-sub{font-size:13px}
+
+/* ── DEVICE SECTION ───────────────────────── */
+.dev-section{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;margin-top:4px;}
+.dev-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background var(--t);}
+.dev-hdr:hover{background:var(--surf2)}
+.dev-hdr-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.dev-chev{margin-left:auto;color:var(--text2);font-size:11px;transition:transform var(--t)}
+.dev-chev.open{transform:rotate(180deg)}
+.dev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px;padding:14px}
+.dcard{border:1px solid var(--border);border-radius:var(--rs);padding:12px}
+.dcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.dname{font-size:12px;font-weight:700}
+.dpill{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700}
+.d-on{background:rgba(16,185,129,.14);color:#10b981}
+.d-off{background:rgba(239,68,68,.14);color:#ef4444}
+.d-pnd{background:rgba(245,158,11,.14);color:#f59e0b}
+.ddetail{font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:7px}
+.dbar{height:3px;border-radius:2px;background:var(--border);overflow:hidden;margin-bottom:7px}
+.dbar-fill{height:100%;border-radius:2px;transition:width .5s}
+.dconn-btn{width:100%;font-size:10.5px;padding:5px;border:1px dashed var(--border);
+  border-radius:var(--rs);color:var(--text2);transition:all var(--t);}
+.dconn-btn:hover{border-color:var(--sec);color:var(--sec)}
+.dconn-badge{font-size:10px;color:var(--text3);font-style:italic}
+
+/* ── EMPTY/ERROR ──────────────────────────── */
+.empty{text-align:center;padding:60px;color:var(--text2);font-size:13px}
+.empty-icon{font-size:32px;margin-bottom:10px;display:block}
+
+/* ── ALERT BANNER ─────────────────────────── */
+#alert-tray{position:fixed;top:60px;right:16px;z-index:800;display:flex;flex-direction:column;gap:6px;
+  max-width:340px;}
+.alert-toast{background:var(--surf);border:1px solid #fbbf24;border-radius:var(--r);
+  padding:10px 14px;font-size:12px;color:var(--text);box-shadow:var(--shadow);
+  display:flex;align-items:flex-start;gap:8px;animation:slideIn .3s ease;}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.toast-close{margin-left:auto;color:var(--text2);font-size:14px;flex-shrink:0;cursor:pointer}
+
+/* ── RESPONSIVE ───────────────────────────── */
+@media(max-width:900px){.articles-grid{columns:2 250px}#skeleton-grid{columns:2 250px}}
+@media(max-width:640px){
+  header{padding:0 12px}.nav-pills{display:none}
+  .main{padding:10px 10px 100px}
+  .ctrl-bar{padding:8px 12px}.stat-band{display:none}
+  .articles-grid{columns:1}#skeleton-grid{columns:1}
+  .chat-drawer{width:100vw}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-hex">⬡</div>
+    <span class="logo-word">NEXUS</span>
+  </div>
+  <div class="search-wrap">
+    <span class="si">⌕</span>
+    <input class="search-input" id="search" type="search" placeholder="Search articles, CVEs, signals…" autocomplete="off"/>
+    <span class="sk">/</span>
+  </div>
+  <nav class="nav-pills">
+    <button class="np active" data-tab="articles">All News</button>
+    <button class="np" data-tab="security">Security</button>
+    <button class="np" data-tab="signals">Signals</button>
+    <button class="np" data-tab="map">Map</button>
+  </nav>
+  <div class="hdr-r">
+    <span id="clock"></span>
+    <button class="hbtn" id="theme-btn" title="Toggle theme">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+    <button class="hbtn" id="refresh-btn" title="Refresh">
+      <svg id="ri" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    </button>
+    <button class="hbtn" id="settings-btn" title="Settings">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="ticker-wrap"><div class="ticker-track" id="ticker-track">
+  <div class="ti"><span class="tsym">Loading</span><span class="tprice">…</span></div>
+</div></div>
+
+<!-- STAT BAND -->
+<div class="stat-band">
+  <div class="sc"><div class="sclbl">Bitcoin</div><div class="scval" id="s-btc">—</div><div class="scchg" id="s-btcC">—</div></div>
+  <div class="sc"><div class="sclbl">Ethereum</div><div class="scval" id="s-eth">—</div><div class="scchg" id="s-ethC">—</div></div>
+  <div class="sc"><div class="sclbl">Solana</div><div class="scval" id="s-sol">—</div><div class="scchg" id="s-solC">—</div></div>
+  <div class="sc"><div class="sclbl">Fear &amp; Greed</div><div class="scval" id="s-fg">—</div><div class="scchg" id="s-fgC">—</div></div>
+  <div class="sc"><div class="sclbl">Mkt Cap</div><div class="scval" id="s-mcap">—</div><div class="scchg" id="s-mcapC">—</div></div>
+  <div class="sc"><div class="sclbl">BTC Dom.</div><div class="scval" id="s-dom">—</div><div class="scchg" style="font-size:10px;color:var(--text2)">of total</div></div>
+  <div class="sc"><div class="sclbl">Articles</div><div class="scval" id="s-arts">—</div><div class="scchg" style="font-size:10px;color:var(--text2)">loaded</div></div>
+  <div class="sc"><div class="sclbl">CVEs</div><div class="scval" id="s-cves">—</div><div class="scchg" style="font-size:10px;color:var(--text2)">critical/high</div></div>
+</div>
+
+<!-- CONTROL BAR -->
+<div class="ctrl-bar">
+  <span class="clbl">Bias</span>
+  <div class="bfs">
+    <button class="bf a-all" data-bias="all">All</button>
+    <button class="bf" data-bias="left">Left</button>
+    <button class="bf" data-bias="center">Center</button>
+    <button class="bf" data-bias="right">Right</button>
+  </div>
+  <div class="vd"></div>
+  <span class="clbl">Sort</span>
+  <select class="sort-sel" id="sort-sel">
+    <option value="latest">Latest</option>
+    <option value="factual">Most factual</option>
+    <option value="bias-extreme">Most biased</option>
+    <option value="bias-neutral">Most neutral</option>
+  </select>
+  <div class="vd"></div>
+  <div class="tip-wrap">
+    <span class="clbl">Bias method</span>
+    <span class="tip-icon">ⓘ</span>
+    <div class="tip-box">Score = source rating (AllSides/MBFC, 75%) + headline keyword analysis (25%). For reference only — not a definitive political rating.</div>
+  </div>
+  <div class="live-pill"><div class="live-dot"></div>Live</div>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- ARTICLES TAB -->
+  <div id="tab-articles">
+    <div id="skeleton-grid">
+      <div class="sk-card"><div class="sk-line" style="height:10px;width:50%;margin-bottom:10px"></div><div class="sk-line" style="height:13px;width:100%;margin-bottom:5px"></div><div class="sk-line" style="height:13px;width:85%;margin-bottom:5px"></div><div class="sk-line" style="height:11px;width:70%;margin-bottom:12px"></div><div class="sk-line" style="height:5px"></div></div>
+      <div class="sk-card"><div class="sk-line" style="height:10px;width:60%;margin-bottom:10px"></div><div class="sk-line" style="height:13px;width:100%;margin-bottom:5px"></div><div class="sk-line" style="height:11px;width:75%;margin-bottom:12px"></div><div class="sk-line" style="height:5px"></div></div>
+      <div class="sk-card"><div class="sk-line" style="height:10px;width:45%;margin-bottom:10px"></div><div class="sk-line" style="height:13px;width:100%;margin-bottom:5px"></div><div class="sk-line" style="height:13px;width:90%;margin-bottom:5px"></div><div class="sk-line" style="height:11px;width:65%;margin-bottom:12px"></div><div class="sk-line" style="height:5px"></div></div>
+      <div class="sk-card"><div class="sk-line" style="height:10px;width:55%;margin-bottom:10px"></div><div class="sk-line" style="height:13px;width:100%;margin-bottom:5px"></div><div class="sk-line" style="height:11px;width:80%;margin-bottom:12px"></div><div class="sk-line" style="height:5px"></div></div>
+      <div class="sk-card"><div class="sk-line" style="height:10px;width:40%;margin-bottom:10px"></div><div class="sk-line" style="height:13px;width:100%;margin-bottom:5px"></div><div class="sk-line" style="height:13px;width:88%;margin-bottom:5px"></div><div class="sk-line" style="height:11px;width:72%;margin-bottom:12px"></div><div class="sk-line" style="height:5px"></div></div>
+      <div class="sk-card"><div class="sk-line" style="height:10px;width:65%;margin-bottom:10px"></div><div class="sk-line" style="height:13px;width:100%;margin-bottom:5px"></div><div class="sk-line" style="height:11px;width:78%;margin-bottom:12px"></div><div class="sk-line" style="height:5px"></div></div>
+    </div>
+    <div id="articles-out" style="display:none"></div>
+  </div>
+
+  <!-- SECURITY TAB -->
+  <div id="tab-security" style="display:none">
+    <div id="cve-out"><div class="empty"><span class="empty-icon">🔒</span>Loading CVE data…</div></div>
+  </div>
+
+  <!-- SIGNALS TAB -->
+  <div id="tab-signals" style="display:none">
+    <div id="signals-out"><div class="empty"><span class="empty-icon">📊</span>Loading signals…</div></div>
+  </div>
+
+  <!-- MAP TAB -->
+  <div id="tab-map" style="display:none">
+    <div class="map-placeholder">
+      <span class="map-icon">🗺️</span>
+      <strong>Live Event Map — Coming in v4</strong>
+      <span style="font-size:12px">Leaflet.js world map with geolocated article pins.<br>Country extraction engine in development.</span>
+    </div>
+  </div>
+
+  <!-- DEVICE SECTION (always visible at bottom) -->
+  <div class="dev-section" id="dev-section" style="margin-top:16px">
+    <div class="dev-hdr" onclick="toggleDev()">
+      <div class="dev-hdr-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--sec)" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Security &amp; Device Monitoring
+        <span class="dpill d-on" style="font-size:10px">2 Online · 3 Pending</span>
+      </div>
+      <span class="dev-chev open" id="dev-chev">▼</span>
+    </div>
+    <div id="dev-grid" class="dev-grid"></div>
+  </div>
+</main>
+
+<!-- AI CHAT FAB -->
+<button class="ai-fab" id="chat-fab" title="Open AI Assistant">💬</button>
+
+<!-- AI CHAT DRAWER -->
+<div class="chat-drawer" id="chat-drawer">
+  <div class="cdh">
+    <div class="cdh-title">
+      <div class="ai-dot"></div>
+      Nexus AI
+    </div>
+    <select class="ctx-sel" id="ctx-sel">
+      <option value="articles">From loaded articles</option>
+      <option value="document">From dropped document</option>
+      <option value="free">Open chat</option>
+    </select>
+    <button class="hbtn chat-close" id="chat-close">✕</button>
+  </div>
+  <div class="chat-msgs" id="chat-msgs">
+    <div class="msg msg-ai">
+      <strong>Nexus AI ready.</strong><br>
+      Ask me anything about today's articles, drop a document to analyze it, or ask a general intelligence question.
+      <div class="msg-meta" id="api-status">No API key set — open Settings to add your Anthropic key.</div>
+    </div>
+  </div>
+  <div class="chat-input-area">
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chat-input" placeholder="Ask about articles, drop a file, or type a question…" rows="1"></textarea>
+      <button class="chat-send" id="chat-send">➤</button>
+    </div>
+    <div class="chat-hint">Drop a file anywhere to analyze it · Shift+Enter for new line</div>
+  </div>
+</div>
+
+<!-- SETTINGS OVERLAY -->
+<div class="overlay-bg" id="settings-overlay">
+  <div class="settings-panel">
+    <div class="sp-hdr">
+      <span class="sp-title">Settings</span>
+      <button class="sp-close" id="settings-close">✕</button>
+    </div>
+
+    <div class="sp-section">
+      <div class="sp-sec-title">AI Integration</div>
+      <div class="sp-row">
+        <label class="sp-label">Anthropic API Key</label>
+        <input class="sp-input mono" id="cfg-apikey" type="password" placeholder="sk-ant-…"/>
+        <div class="sp-note">Stored locally. Used for AI chat and article summaries.</div>
+      </div>
+      <div class="sp-row">
+        <label class="sp-label">AI Model</label>
+        <select class="sp-input" id="cfg-model">
+          <option value="claude-haiku-4-5-20251001">Claude Haiku (fast, low cost)</option>
+          <option value="claude-sonnet-4-5-20250929">Claude Sonnet (balanced)</option>
+          <option value="claude-opus-4-5-20251101">Claude Opus (most capable)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sp-section">
+      <div class="sp-sec-title">Keyword Alerts</div>
+      <div class="sp-row">
+        <label class="sp-label">Alert keywords (comma separated)</label>
+        <textarea class="sp-textarea" id="cfg-keywords" placeholder="nuclear, cyberattack, bitcoin, oil price, your company name…"></textarea>
+        <div class="sp-note">Browser notification fires when any loaded article matches.</div>
+      </div>
+    </div>
+
+    <div class="sp-section">
+      <div class="sp-sec-title">Crypto Watchlist</div>
+      <div class="sp-row">
+        <label class="sp-label">Token symbols (comma separated)</label>
+        <input class="sp-input" id="cfg-watchlist" type="text" placeholder="BTC, ETH, SOL, LINK…"/>
+      </div>
+    </div>
+
+    <div class="sp-section">
+      <div class="sp-sec-title">Device Endpoints (Placeholders)</div>
+      <div class="sp-row">
+        <label class="sp-label">Camera 1 — MJPEG or HLS URL</label>
+        <input class="sp-input mono" id="cfg-cam1" type="text" placeholder="http://192.168.1.x/video.mjpeg"/>
+      </div>
+      <div class="sp-row">
+        <label class="sp-label">Server metrics WebSocket</label>
+        <input class="sp-input mono" id="cfg-ws1" type="text" placeholder="ws://192.168.1.x:9000/metrics"/>
+      </div>
+      <div class="sp-row">
+        <label class="sp-label">IoT Sensor Hub (REST endpoint)</label>
+        <input class="sp-input mono" id="cfg-iot" type="text" placeholder="http://192.168.1.x:8080/sensors"/>
+      </div>
+    </div>
+
+    <div class="sp-section">
+      <div class="sp-sec-title">Active Sources</div>
+      <div id="source-toggles"></div>
+    </div>
+
+    <button class="sp-save-btn" id="settings-save">Save Settings</button>
+    <div class="sp-note" style="text-align:center;margin-top:8px">Settings saved to browser localStorage</div>
+  </div>
+</div>
+
+<!-- DROP OVERLAY -->
+<div class="drop-overlay" id="drop-overlay">
+  <div class="drop-zone-box">
+    <span class="drop-icon">📄</span>
+    <div class="drop-title">Drop to Analyze</div>
+    <div class="drop-sub">Supports images, PDFs, text files, and HTML</div>
+  </div>
+</div>
+
+<!-- ALERT TRAY -->
+<div id="alert-tray"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   NEXUS COMMAND DASHBOARD  v3.0
+   Phase 1 + Phase 2: Intelligence · Security · Signals · AI Chat · Screen Reader
+   Device integration: architecture ready, placeholders active
+═══════════════════════════════════════════════════════════════ */
+
+// ── CONFIG ─────────────────────────────────────────────────────
+const CFG = {
+  PROXY:   'https://api.rss2json.com/v1/api.json?count=20&rss_url=',
+  CACHE_TTL: 5*60*1000,
+  AUTO_REFRESH: 5*60*1000,
+  PER_SOURCE: 15,
+  AI_ENDPOINT: 'https://api.anthropic.com/v1/messages',
+  AI_VERSION:  '2023-06-01',
+};
+
+// ── SOURCE REGISTRY ────────────────────────────────────────────
+const SOURCES = {
+  bbc:          {name:'BBC World',       url:'http://feeds.bbci.co.uk/news/world/rss.xml',             cat:'geo',    color:'#cc0000',bias:-18,factual:8.5},
+  reuters:      {name:'Reuters',         url:'https://feeds.reuters.com/reuters/worldNews',             cat:'geo',    color:'#f39c12',bias: -5,factual:9.2},
+  guardian:     {name:'The Guardian',    url:'https://www.theguardian.com/world/rss',                  cat:'geo',    color:'#0084c6',bias:-38,factual:7.8},
+  aljazeera:    {name:'Al Jazeera',      url:'https://www.aljazeera.com/xml/rss/all.xml',              cat:'geo',    color:'#009b77',bias:-15,factual:7.2},
+  bellingcat:   {name:'Bellingcat',      url:'https://www.bellingcat.com/feed/',                       cat:'geo',    color:'#6d28d9',bias:-10,factual:9.0},
+  defnews:      {name:'Defense News',    url:'https://www.defensenews.com/rss/',                       cat:'geo',    color:'#475569',bias:  5,factual:8.0},
+  coindesk:     {name:'CoinDesk',        url:'https://www.coindesk.com/arc/outboundfeeds/rss/',        cat:'crypto', color:'#f7931a',bias:  0,factual:7.5},
+  cointelegraph:{name:'CoinTelegraph',   url:'https://cointelegraph.com/rss',                          cat:'crypto', color:'#2b73d2',bias:  0,factual:6.8},
+  decrypt:      {name:'Decrypt',         url:'https://decrypt.co/feed',                               cat:'crypto', color:'#e040fb',bias:  0,factual:7.0},
+  darkreading:  {name:'Dark Reading',    url:'https://www.darkreading.com/rss.xml',                   cat:'security',color:'#ef4444',bias:  0,factual:8.2},
+  bleepcomp:    {name:'Bleeping Computer',url:'https://www.bleepingcomputer.com/feed/',                cat:'security',color:'#f97316',bias:  0,factual:8.5},
+};
+
+// ── BIAS LEXICON ───────────────────────────────────────────────
+const LEX = {
+  L:[['systemic racism',3],['climate crisis',2.5],['social justice',2],['marginalized',2],
+     ['income inequality',1.5],['reproductive rights',2],['gun control',1.5],['universal healthcare',1.5],
+     ['undocumented immigrant',1.5],['corporate greed',1.5],['disinformation',1],['equity',1]],
+  R:[['illegal alien',3],['radical left',3],['deep state',3],['election fraud',2.5],
+     ['woke',2.5],['border crisis',2],['socialist',2],['big government',1.5],['mainstream media',1.5],
+     ['second amendment',1],['religious freedom',1],['globalist',2],['antifa',2]],
+};
+
+// ── STATE ──────────────────────────────────────────────────────
+const S = {
+  articles:[],cves:[],signals:{},
+  filter:{tab:'articles',bias:'all',search:'',sort:'latest'},
+  cache:{},docContext:null,chatHistory:[],
+  settings:{apiKey:'',model:'claude-haiku-4-5-20251001',keywords:[],watchlist:[],
+    cam1:'',ws1:'',iot:'',sources:{}},
+};
+
+// ── CACHE ──────────────────────────────────────────────────────
+const cache={
+  get(k){const e=S.cache[k];if(!e||Date.now()-e.ts>CFG.CACHE_TTL){delete S.cache[k];return null}return e.d},
+  set(k,d){S.cache[k]={d,ts:Date.now()}},
+  bust(){S.cache={}},
+};
+
+// ── HELPERS ────────────────────────────────────────────────────
+const strip  = s=>(s||'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#39;/g,"'").replace(/&quot;/g,'"').trim();
+const clamp  = (v,lo,hi)=>Math.min(hi,Math.max(lo,v));
+const fmt    = (n,d=0)=>Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const sign   = n=>n>=0?'+':'';
+const esc    = s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function timeAgo(s){
+  const m=Math.floor((Date.now()-new Date(s))/60000);
+  if(m<1)return'just now';if(m<60)return`${m}m ago`;
+  if(m<1440)return`${Math.floor(m/60)}h ago`;return`${Math.floor(m/1440)}d ago`;
+}
+
+function analyzeBias(text,sid){
+  const src=SOURCES[sid];if(!src)return 0;
+  const t=(text||'').toLowerCase();
+  let l=0,r=0;
+  LEX.L.forEach(([w,v])=>{if(t.includes(w))l+=v});
+  LEX.R.forEach(([w,v])=>{if(t.includes(w))r+=v});
+  const kw=clamp((r-l)*12,-100,100);
+  return Math.round(clamp(src.bias*0.75+kw*0.25,-100,100));
+}
+
+function biasInfo(sc){
+  if(sc<-50)return{label:'Left',col:'var(--left)'};
+  if(sc<-15)return{label:'Center-Left',col:'#5b9cf6'};
+  if(sc< 15)return{label:'Center',col:'var(--center)'};
+  if(sc< 50)return{label:'Center-Right',col:'#e8775c'};
+  return{label:'Right',col:'var(--right)'};
+}
+function factInfo(s){
+  if(s>=8)return{label:`${s.toFixed(1)} High`,cls:'fh'};
+  if(s>=6)return{label:`${s.toFixed(1)} Med`,cls:'fm'};
+  return{label:`${s.toFixed(1)} Low`,cls:'fl'};
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────
+function loadSettings(){
+  try{
+    const raw=localStorage.getItem('nexus_v3_settings');
+    if(raw) Object.assign(S.settings,JSON.parse(raw));
+  }catch(e){}
+  document.getElementById('cfg-apikey').value=S.settings.apiKey||'';
+  document.getElementById('cfg-model').value=S.settings.model||'claude-haiku-4-5-20251001';
+  document.getElementById('cfg-keywords').value=(S.settings.keywords||[]).join(', ');
+  document.getElementById('cfg-watchlist').value=(S.settings.watchlist||[]).join(', ');
+  document.getElementById('cfg-cam1').value=S.settings.cam1||'';
+  document.getElementById('cfg-ws1').value=S.settings.ws1||'';
+  document.getElementById('cfg-iot').value=S.settings.iot||'';
+  const tray=document.getElementById('source-toggles');
+  tray.innerHTML=Object.entries(SOURCES).map(([id,src])=>{
+    const on=S.settings.sources[id]!==false;
+    return`<div class="sp-toggle-row">
+      <span class="sp-toggle-label">${src.name} <span style="font-size:10px;color:var(--text2)">(${src.cat})</span></span>
+      <div class="toggle ${on?'on':''}" data-src="${id}" onclick="this.classList.toggle('on')"></div>
+    </div>`;
+  }).join('');
+  updateAPIStatus();
+}
+
+function saveSettings(){
+  S.settings.apiKey=document.getElementById('cfg-apikey').value.trim();
+  S.settings.model=document.getElementById('cfg-model').value;
+  S.settings.keywords=document.getElementById('cfg-keywords').value.split(',').map(s=>s.trim()).filter(Boolean);
+  S.settings.watchlist=document.getElementById('cfg-watchlist').value.split(',').map(s=>s.trim()).filter(Boolean);
+  S.settings.cam1=document.getElementById('cfg-cam1').value.trim();
+  S.settings.ws1=document.getElementById('cfg-ws1').value.trim();
+  S.settings.iot=document.getElementById('cfg-iot').value.trim();
+  document.querySelectorAll('[data-src]').forEach(t=>{
+    S.settings.sources[t.dataset.src]=t.classList.contains('on');
+  });
+  localStorage.setItem('nexus_v3_settings',JSON.stringify(S.settings));
+  document.getElementById('settings-overlay').classList.remove('open');
+  updateAPIStatus();
+  cache.bust();loadAll();
+  renderDevices();
+}
+
+function updateAPIStatus(){
+  const el=document.getElementById('api-status');
+  if(!el)return;
+  el.textContent=S.settings.apiKey
+    ?`API key set · Model: ${S.settings.model.split('-').slice(1,3).join(' ')}`
+    :'No API key — open Settings (⚙) to add your Anthropic key.';
+}
+
+// ── FEED FETCHER ───────────────────────────────────────────────
+async function fetchSource(sid){
+  if(S.settings.sources[sid]===false)return[];
+  const ck=`feed_${sid}`;const hit=cache.get(ck);if(hit)return hit;
+  const src=SOURCES[sid];
+  const res=await fetch(CFG.PROXY+encodeURIComponent(src.url));
+  const data=await res.json();
+  if(data.status!=='ok')throw new Error(`Bad feed: ${sid}`);
+  const arts=data.items.slice(0,CFG.PER_SOURCE).map(item=>{
+    const combo=`${item.title} ${strip(item.description)}`;
+    const bias=analyzeBias(combo,sid);
+    const bi=biasInfo(bias);const fi=factInfo(src.factual);
+    return{id:`${sid}_${item.guid||item.link}`,sid,cat:src.cat,
+      src:src.name,srcColor:src.color,
+      title:strip(item.title),
+      desc:strip(item.description).slice(0,150)+'…',
+      link:item.link,pubDate:item.pubDate,
+      bias,biasLabel:bi.label,biasCol:bi.col,
+      factual:src.factual,factLabel:fi.label,factCls:fi.cls};
+  });
+  cache.set(ck,arts);return arts;
+}
+
+async function loadFeeds(){
+  setSpin(true);
+  const res=await Promise.allSettled(Object.keys(SOURCES).map(fetchSource));
+  S.articles=res.filter(r=>r.status==='fulfilled').flatMap(r=>r.value);
+  document.getElementById('s-arts').textContent=S.articles.length;
+  checkAlerts(S.articles);
+  renderArticles();
+  setSpin(false);
+}
+
+// ── CVE LOADER ─────────────────────────────────────────────────
+async function loadCVEs(){
+  const ck='cve_data';const hit=cache.get(ck);if(hit){S.cves=hit;renderSecurity();return;}
+  try{
+    const url='https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=20&cvssV3Severity=CRITICAL';
+    const res=await fetch(url);const data=await res.json();
+    const cves=(data.vulnerabilities||[]).map(v=>{
+      const c=v.cve;
+      const desc=(c.descriptions||[]).find(d=>d.lang==='en')?.value||'No description available.';
+      const metrics=c.metrics?.cvssMetricV31?.[0]?.cvssData||c.metrics?.cvssMetricV30?.[0]?.cvssData||{};
+      return{id:c.id,desc,score:metrics.baseScore||0,severity:metrics.baseSeverity||'UNKNOWN',
+        product:((c.configurations?.[0]?.nodes?.[0]?.cpeMatch?.[0]?.criteria)||'').split(':').slice(3,5).join(' ')||'Multiple products',
+        published:c.published};
+    });
+    S.cves=cves;cache.set(ck,cves);
+    document.getElementById('s-cves').textContent=cves.length;
+    renderSecurity();
+  }catch(e){
+    document.getElementById('cve-out').innerHTML=`<div class="empty"><span class="empty-icon">⚠️</span>CVE data temporarily unavailable.<br><small style="font-size:11px">NVD API may be rate-limiting. Try refreshing in a minute.</small></div>`;
+  }
+}
+
+// ── SIGNALS LOADER ─────────────────────────────────────────────
+async function loadSignals(){
+  const COINS=[{id:'bitcoin',sym:'BTC'},{id:'ethereum',sym:'ETH'},{id:'solana',sym:'SOL'},
+    {id:'ripple',sym:'XRP'},{id:'binancecoin',sym:'BNB'},{id:'cardano',sym:'ADA'},
+    {id:'dogecoin',sym:'DOGE'},{id:'avalanche-2',sym:'AVAX'},{id:'chainlink',sym:'LINK'},{id:'polkadot',sym:'DOT'}];
+  try{
+    const ids=COINS.map(c=>c.id).join(',');
+    const data=await(await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`)).json();
+    const items=COINS.map(c=>{const d=data[c.id];if(!d)return'';
+      const chg=d.usd_24h_change;
+      return`<div class="ti"><span class="tsym">${c.sym}</span><span class="tprice">$${fmt(d.usd,c.id==='dogecoin'||c.id==='cardano'?4:2)}</span><span class="tchg ${chg>=0?'up':'down'}">${sign(chg)}${chg.toFixed(2)}%</span></div>`;
+    }).join('');
+    const tr=document.getElementById('ticker-track');tr.innerHTML=items+items;
+    const btc=data.bitcoin,eth=data.ethereum,sol=data.solana;
+    if(btc){setVal('s-btc','$'+fmt(btc.usd));setChg('s-btcC',btc.usd_24h_change)}
+    if(eth){setVal('s-eth','$'+fmt(eth.usd));setChg('s-ethC',eth.usd_24h_change)}
+    if(sol){setVal('s-sol','$'+fmt(sol.usd,2));setChg('s-solC',sol.usd_24h_change)}
+    S.signals.prices=data;
+  }catch(e){}
+  try{
+    const g=await(await fetch('https://api.coingecko.com/api/v3/global')).json();
+    const d=g.data;const mc=d.total_market_cap.usd;
+    setVal('s-mcap',mc>=1e12?'$'+(mc/1e12).toFixed(2)+'T':'$'+(mc/1e9).toFixed(0)+'B');
+    setChg('s-mcapC',d.market_cap_change_percentage_24h_usd);
+    setVal('s-dom',d.market_cap_percentage.btc.toFixed(1)+'%');
+    S.signals.global=d;
+  }catch(e){}
+  try{
+    const fg=await(await fetch('https://api.alternative.me/fng/')).json();
+    const v=Number(fg.data[0].value),lbl=fg.data[0].value_classification;
+    setVal('s-fg',v);
+    const cls=v<25?'extreme-fear':v<45?'fear':v<55?'neutral':v<75?'greed':'extreme-greed';
+    document.getElementById('s-fgC').innerHTML=`<span class="fg-pill fg-${cls}">${lbl}</span>`;
+    S.signals.fg={value:v,label:lbl};
+  }catch(e){setVal('s-fg','N/A')}
+  try{
+    const mp=await(await fetch('https://mempool.space/api/v1/fees/recommended')).json();
+    S.signals.mempool=mp;
+  }catch(e){}
+  try{
+    const chains=await(await fetch('https://api.llama.fi/v2/chains')).json();
+    S.signals.defi=chains.slice(0,8);
+  }catch(e){}
+  renderSignals();
+}
+
+function setVal(id,v){const el=document.getElementById(id);if(el)el.textContent=v}
+function setChg(id,v){const el=document.getElementById(id);if(!el)return;
+  el.textContent=sign(v)+Number(v).toFixed(2)+'%';el.className='scchg '+(v>=0?'up':'down');}
+
+// ── FILTER + SORT ──────────────────────────────────────────────
+function applyFilters(arts){
+  const{bias,search,sort}=S.filter;let out=[...arts];
+  if(S.filter.tab==='security')out=arts.filter(a=>a.cat==='security');
+  else if(S.filter.tab==='articles'){out=arts.filter(a=>a.cat!=='security')}
+  if(bias==='left')  out=out.filter(a=>a.bias<-15);
+  if(bias==='center')out=out.filter(a=>a.bias>=-15&&a.bias<=15);
+  if(bias==='right') out=out.filter(a=>a.bias>15);
+  if(search){const q=search.toLowerCase();
+    out=out.filter(a=>a.title.toLowerCase().includes(q)||a.src.toLowerCase().includes(q)||a.desc.toLowerCase().includes(q));}
+  if(sort==='latest')      out.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
+  if(sort==='factual')     out.sort((a,b)=>b.factual-a.factual);
+  if(sort==='bias-extreme')out.sort((a,b)=>Math.abs(b.bias)-Math.abs(a.bias));
+  if(sort==='bias-neutral')out.sort((a,b)=>Math.abs(a.bias)-Math.abs(b.bias));
+  return out;
+}
+
+// ── RENDER ARTICLES ────────────────────────────────────────────
+function renderArticles(){
+  document.getElementById('skeleton-grid').style.display='none';
+  const el=document.getElementById('articles-out');el.style.display='';
+  const filtered=applyFilters(S.articles);
+  if(!filtered.length){el.innerHTML=`<div class="empty"><span class="empty-icon">◌</span>No articles match your filters.</div>`;return;}
+  el.innerHTML=`<div class="articles-grid">${filtered.map(a=>{
+    const np=((a.bias+100)/200*100).toFixed(1);
+    return`<a class="ac" href="${a.link}" target="_blank" rel="noopener">
+      <div class="ct">
+        <div class="sd" style="background:${a.srcColor}"></div>
+        <span class="sn">${esc(a.src)}</span>
+        <span class="ctag ${a.cat==='security'?'':''}${a.cat==='geo'?'cg':a.cat==='crypto'?'cc':''}" style="${a.cat==='security'?'background:rgba(239,68,68,.13);color:var(--threat)':''}">
+          ${a.cat==='geo'?'Geo':a.cat==='crypto'?'Crypto':'Sec'}
+        </span>
+        <span class="cage">${timeAgo(a.pubDate)}</span>
+      </div>
+      <div class="atitle">${esc(a.title)}</div>
+      ${a.desc?`<div class="adesc">${esc(a.desc)}</div>`:''}
+      <div class="afoot">
+        <div class="bblock">
+          <div class="btrack"><div class="bneedle" style="left:${np}%"></div></div>
+          <div class="brow">
+            <span class="bend">◀ L</span>
+            <span class="bval" style="color:${a.biasCol}">${a.biasLabel}</span>
+            <span class="bend">R ▶</span>
+          </div>
+        </div>
+        <div class="fbadge ${a.factCls}">✓ ${a.factLabel}</div>
+        <button class="sum-btn" onclick="summarizeArticle(event,this,'${esc(a.title)}','${esc(a.src)}','${a.biasLabel}','${a.factual}','${esc(a.desc.replace(/'/g,"\\'"))}')">✦ AI</button>
+      </div>
+    </a>`;
+  }).join('')}</div>`;
+}
+
+// ── RENDER SECURITY ────────────────────────────────────────────
+function renderSecurity(){
+  const el=document.getElementById('cve-out');
+  if(!S.cves.length){el.innerHTML=`<div class="empty"><span class="empty-icon">🔒</span>No CVE data loaded.</div>`;return;}
+  const secArts=S.articles.filter(a=>a.cat==='security');
+  el.innerHTML=`
+    ${secArts.length?`<h3 style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text2)">Security News</h3>
+    <div class="articles-grid" style="margin-bottom:24px">${secArts.map(a=>{
+      const np=((a.bias+100)/200*100).toFixed(1);
+      return`<a class="ac" href="${a.link}" target="_blank" rel="noopener">
+        <div class="ct"><div class="sd" style="background:${a.srcColor}"></div><span class="sn">${esc(a.src)}</span>
+        <span class="ctag" style="background:rgba(239,68,68,.13);color:var(--threat)">Sec</span>
+        <span class="cage">${timeAgo(a.pubDate)}</span></div>
+        <div class="atitle">${esc(a.title)}</div>
+        <div class="afoot"><div class="bblock"><div class="btrack"><div class="bneedle" style="left:${np}%"></div></div>
+        <div class="brow"><span class="bend">◀ L</span><span class="bval" style="color:${a.biasCol}">${a.biasLabel}</span><span class="bend">R ▶</span></div></div>
+        <div class="fbadge ${a.factCls}">✓ ${a.factLabel}</div></div></a>`;
+    }).join('')}</div>`:''}
+    <h3 style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text2)">Critical CVEs — NVD Feed</h3>
+    <div class="cve-grid">${S.cves.map(c=>{
+      const sc=c.score;
+      const scls=sc>=9?'cvss-critical':sc>=7?'cvss-high':sc>=4?'cvss-medium':'cvss-low';
+      const slbl=sc>=9?'CRITICAL':sc>=7?'HIGH':sc>=4?'MEDIUM':'LOW';
+      return`<div class="cve-card">
+        <div class="cve-hdr">
+          <span class="cve-id">${c.id}</span>
+          <span class="cvss ${scls}">${slbl} ${sc.toFixed(1)}</span>
+        </div>
+        <div class="cve-desc">${esc(c.desc)}</div>
+        <div class="cve-meta">${c.product||'Multiple products'} · ${timeAgo(c.published)}</div>
+      </div>`;
+    }).join('')}</div>`;
+}
+
+// ── RENDER SIGNALS ─────────────────────────────────────────────
+function renderSignals(){
+  const el=document.getElementById('signals-out');
+  const fg=S.signals.fg;const mp=S.signals.mempool;const defi=S.signals.defi;
+  const fgPos=fg?((fg.value)/100*100).toFixed(1):'50';
+  const fgCls=fg?`fg-${fg.value<25?'extreme-fear':fg.value<45?'fear':fg.value<55?'neutral':fg.value<75?'greed':'extreme-greed'}`:'' ;
+  el.innerHTML=`<div class="signals-grid">
+    <div class="sig-card">
+      <div class="sig-title">Crypto Fear &amp; Greed</div>
+      <div class="sig-val">${fg?fg.value:'—'}</div>
+      ${fg?`<div class="gauge-wrap"><div class="gauge-needle" style="left:${fgPos}%"></div></div>
+      <div><span class="fg-pill ${fgCls}">${fg.label}</span></div>`:''}
+      <div class="sig-sub" style="margin-top:6px">0 = Extreme Fear · 100 = Extreme Greed</div>
+    </div>
+    <div class="sig-card">
+      <div class="sig-title">Bitcoin Mempool Fees</div>
+      ${mp?`<div class="sig-val" style="font-size:20px">${mp.fastestFee} <span style="font-size:13px;font-weight:400;color:var(--text2)">sat/vB fast</span></div>
+      <div class="defi-row"><span>Fast (next block)</span><span style="font-weight:700">${mp.fastestFee} sat/vB</span></div>
+      <div class="defi-row"><span>Medium (~30 min)</span><span style="font-weight:700">${mp.halfHourFee} sat/vB</span></div>
+      <div class="defi-row"><span>Slow (~1 hour)</span><span style="font-weight:700">${mp.hourFee} sat/vB</span></div>`
+      :'<div class="sig-sub">Loading mempool data…</div>'}
+    </div>
+    <div class="sig-card" style="grid-column:span 1">
+      <div class="sig-title">Top DeFi Chains by TVL</div>
+      ${defi?defi.map(c=>`<div class="defi-row">
+        <span>${c.name||c.gecko_id}</span>
+        <span style="font-weight:700;color:var(--sec)">$${c.tvl>=1e9?(c.tvl/1e9).toFixed(2)+'B':(c.tvl/1e6).toFixed(0)+'M'}</span>
+      </div>`).join(''):'<div class="sig-sub">Loading DeFi data…</div>'}
+    </div>
+    <div class="sig-card">
+      <div class="sig-title">Regulatory &amp; On-Chain Alerts</div>
+      <div class="sig-sub" style="margin-bottom:10px">Connect Whale Alert and SEC feeds in Settings for live data.</div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.8">
+        🐋 Whale Alert RSS — configurable<br>
+        📋 SEC litigation RSS — configurable<br>
+        ⚖️ CFTC enforcement — configurable<br>
+        🔗 On-chain metrics — Phase 3
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── KEYWORD ALERTS ─────────────────────────────────────────────
+const firedAlerts=new Set();
+function checkAlerts(arts){
+  const kws=S.settings.keywords;if(!kws.length)return;
+  arts.forEach(a=>{
+    kws.forEach(kw=>{
+      const key=`${a.id}_${kw}`;
+      if(firedAlerts.has(key))return;
+      if(a.title.toLowerCase().includes(kw.toLowerCase())||a.desc.toLowerCase().includes(kw.toLowerCase())){
+        firedAlerts.add(key);
+        showToast(`🔔 Alert: "${kw}"`,a.title,a.link);
+        if(Notification.permission==='granted'){
+          new Notification('Nexus Alert',{body:`"${kw}" — ${a.title}`,icon:''});
+        }
+      }
+    });
+  });
+  if(kws.length&&Notification.permission==='default')Notification.requestPermission();
+}
+
+function showToast(title,body,link){
+  const tray=document.getElementById('alert-tray');
+  const el=document.createElement('div');el.className='alert-toast';
+  el.innerHTML=`<span class="toast-icon">🔔</span>
+    <div><strong>${esc(title)}</strong><br><span style="font-size:11px;color:var(--text2)">${esc(body.slice(0,80))}…</span></div>
+    <span class="toast-close" onclick="this.parentElement.remove()">✕</span>`;
+  el.style.cursor='pointer';
+  el.onclick=e=>{if(!e.target.classList.contains('toast-close'))window.open(link,'_blank');};
+  tray.appendChild(el);
+  setTimeout(()=>el.remove&&el.remove(),8000);
+}
+
+// ── AI CHAT ────────────────────────────────────────────────────
+function buildSystemPrompt(){
+  const ctx=document.getElementById('ctx-sel').value;
+  if(ctx==='document'&&S.docContext){
+    return`You are Nexus Intelligence, an AI analyst. Analyze the following document the user has provided. Be concise, identify key claims, note any bias or spin, extract named entities (people, organizations, places).\n\nDOCUMENT:\n${S.docContext.slice(0,8000)}`;
+  }
+  if(ctx==='articles'||ctx==='free'){
+    const arts=S.articles.slice(0,30).map((a,i)=>`[${i+1}] ${a.src} · ${timeAgo(a.pubDate)} — ${a.title}`).join('\n');
+    return`You are Nexus Intelligence, a geopolitical and crypto analyst embedded in a live dashboard. ${arts.length?`\n\nARTICLES CURRENTLY LOADED (${S.articles.length} total, showing first 30):\n${arts}\n\nAnswer questions based on these articles when relevant, citing article numbers. Flag when drawing from general knowledge vs. loaded articles.`:'Answer based on your general knowledge.'}`;
+  }
+  return'You are Nexus Intelligence, a geopolitical and crypto intelligence analyst. Be concise, accurate, and analytical.';
+}
+
+async function sendChatMessage(text,imageData=null){
+  if(!text.trim()&&!imageData)return;
+  const apiKey=S.settings.apiKey;
+  if(!apiKey){addMsg('assistant','No API key configured. Open Settings (⚙ in the top bar) and add your Anthropic API key.');return;}
+  addMsg('user',text||(imageData?'[Image attached]':''));
+  const msgContent=[];
+  if(imageData)msgContent.push({type:'image',source:{type:'base64',media_type:imageData.type,data:imageData.data}});
+  if(text)msgContent.push({type:'text',text});
+  S.chatHistory.push({role:'user',content:msgContent.length===1&&!imageData?text:msgContent});
+  const typingEl=addTyping();
+  try{
+    const res=await fetch(CFG.AI_ENDPOINT,{
+      method:'POST',
+      headers:{'x-api-key':apiKey,'anthropic-version':CFG.AI_VERSION,
+        'anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},
+      body:JSON.stringify({model:S.settings.model,max_tokens:1024,stream:true,
+        system:buildSystemPrompt(),
+        messages:S.chatHistory.slice(-20)}),
+    });
+    if(!res.ok){const err=await res.json();throw new Error(err.error?.message||`API error ${res.status}`);}
+    typingEl.remove();
+    const aiEl=addMsg('assistant','');
+    const textEl=aiEl.querySelector('.msg-text');
+    let full='';
+    const reader=res.body.getReader();const dec=new TextDecoder();let buf='';
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n');buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data: '))continue;
+        const raw=line.slice(6);if(raw==='[DONE]')continue;
+        try{const ev=JSON.parse(raw);
+          if(ev.type==='content_block_delta'&&ev.delta.type==='text_delta'){
+            full+=ev.delta.text;
+            textEl.innerHTML=renderMD(full);
+            aiEl.scrollIntoView({block:'end'});
+          }
+        }catch(e){}
+      }
+    }
+    S.chatHistory.push({role:'assistant',content:full});
+  }catch(e){
+    typingEl&&typingEl.remove&&typingEl.remove();
+    addMsg('assistant',`Error: ${e.message}. Check your API key in Settings.`);
+  }
+}
+
+function renderMD(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/`([^`]+)`/g,'<code style="background:var(--surf3);padding:1px 4px;border-radius:3px;font-family:monospace;font-size:11px">$1</code>')
+    .replace(/\n/g,'<br>');
+}
+
+function addMsg(role,text){
+  const msgs=document.getElementById('chat-msgs');
+  const el=document.createElement('div');
+  el.className=`msg msg-${role==='user'?'user':'ai'}`;
+  el.innerHTML=`<div class="msg-text">${renderMD(text)}</div>
+    ${role==='assistant'?`<div class="msg-actions">
+      <button class="msg-action-btn" onclick="navigator.clipboard.writeText(this.closest('.msg').querySelector('.msg-text').textContent)">Copy</button>
+    </div>`:''}`;
+  msgs.appendChild(el);el.scrollIntoView({block:'end'});return el;
+}
+
+function addTyping(){
+  const msgs=document.getElementById('chat-msgs');
+  const el=document.createElement('div');el.className='msg msg-ai';
+  el.innerHTML='<div class="typing-indicator"><span></span><span></span><span></span></div>';
+  msgs.appendChild(el);el.scrollIntoView({block:'end'});return el;
+}
+
+// ── ARTICLE SUMMARIZER ─────────────────────────────────────────
+async function summarizeArticle(e,btn,title,src,biasLabel,factual,desc){
+  e.preventDefault();e.stopPropagation();
+  const card=btn.closest('.ac');
+  let sumEl=card.querySelector('.sum-result');
+  if(sumEl){sumEl.remove();return;}
+  if(!S.settings.apiKey){
+    sumEl=document.createElement('div');sumEl.className='sum-result';
+    sumEl.textContent='Add your Anthropic API key in Settings to use AI summaries.';
+    card.appendChild(sumEl);return;
+  }
+  btn.textContent='…';btn.disabled=true;
+  const prompt=`Analyze this news article:\n\nTitle: ${title}\nSource: ${src} (Bias: ${biasLabel}, Factual: ${factual}/10)\nExcerpt: ${desc}\n\nRespond with:\n1. Summary (2 sentences)\n2. Main claim\n3. Bias signals (if any)\n4. Confidence: High/Medium/Low`;
+  try{
+    const res=await fetch(CFG.AI_ENDPOINT,{method:'POST',
+      headers:{'x-api-key':S.settings.apiKey,'anthropic-version':CFG.AI_VERSION,
+        'anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},
+      body:JSON.stringify({model:S.settings.model,max_tokens:400,
+        messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    sumEl=document.createElement('div');sumEl.className='sum-result';
+    sumEl.innerHTML=renderMD(data.content?.[0]?.text||'No response received.');
+    card.appendChild(sumEl);
+  }catch(err){
+    sumEl=document.createElement('div');sumEl.className='sum-result';
+    sumEl.textContent=`Error: ${err.message}`;card.appendChild(sumEl);
+  }
+  btn.textContent='✦ AI';btn.disabled=false;
+}
+
+// ── DOCUMENT ANALYZER ─────────────────────────────────────────
+async function analyzeFile(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  const chatDrawer=document.getElementById('chat-drawer');
+  chatDrawer.classList.add('open');
+  addMsg('user',`Analyzing: ${file.name}`);
+
+  if(['png','jpg','jpeg','webp','gif'].includes(ext)){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const b64=e.target.result.split(',')[1];
+      const mtype=e.target.result.split(':')[1].split(';')[0];
+      S.docContext=`[Image: ${file.name}]`;
+      document.getElementById('ctx-sel').value='document';
+      sendChatMessage('Analyze this image. Describe what you see, extract any text, identify any bias or claims, and provide key insights.',{type:mtype,data:b64});
+    };
+    reader.readAsDataURL(file);
+  }else if(ext==='pdf'){
+    addMsg('assistant','Loading PDF.js to extract text…');
+    try{
+      if(!window.pdfjsLib){
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+        pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+      const ab=await file.arrayBuffer();
+      const pdf=await pdfjsLib.getDocument(ab).promise;
+      let text='';
+      for(let i=1;i<=Math.min(pdf.numPages,10);i++){
+        const pg=await pdf.getPage(i);const tc=await pg.getTextContent();
+        text+=tc.items.map(it=>it.str).join(' ')+'\n\n';
+      }
+      S.docContext=text;document.getElementById('ctx-sel').value='document';
+      sendChatMessage(`Summarize this PDF document (${pdf.numPages} pages). Identify: main topic, key claims, any bias, and the most important facts.`);
+    }catch(er){addMsg('assistant',`PDF error: ${er.message}`);}
+  }else{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      S.docContext=strip(e.target.result);
+      document.getElementById('ctx-sel').value='document';
+      sendChatMessage('Analyze this document. Identify: main topic, key claims, political bias (if any), factual confidence, and key takeaways.');
+    };
+    reader.readAsText(file);
+  }
+}
+
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+// ── DEVICE PANEL ───────────────────────────────────────────────
+const DEVICES=[
+  {name:'Primary Server',  status:'online',  detail:'WebSocket ready · configure in Settings',metric:0, note:'ws://…:9000',type:'server'},
+  {name:'Firewall Node',   status:'online',  detail:'Placeholder · connect via REST API',      metric:0, note:'REST',     type:'server'},
+  {name:'Camera Feed #1',  status:'pending', detail:'MJPEG/HLS URL not configured',            metric:0, type:'camera'},
+  {name:'Camera Feed #2',  status:'pending', detail:'MJPEG/HLS URL not configured',            metric:0, type:'camera'},
+  {name:'Sensor Hub',      status:'pending', detail:'IoT REST endpoint not configured',        metric:0, type:'iot'},
+  {name:'Alert System',    status:'offline', detail:'Webhook not configured',                  metric:0, type:'alert'},
+  {name:'Add Device',      status:'add'},
+];
+
+function renderDevices(){
+  const g=document.getElementById('dev-grid');
+  g.innerHTML=DEVICES.map(d=>{
+    if(d.status==='add')return`<div class="dcard" style="display:flex;align-items:center;justify-content:center;border-style:dashed;min-height:100px">
+      <button class="dconn-btn" onclick="document.getElementById('settings-btn').click()">+ Add via Settings</button></div>`;
+    const pcls={online:'d-on',offline:'d-off',pending:'d-pnd'}[d.status];
+    const ptxt=d.status.charAt(0).toUpperCase()+d.status.slice(1);
+    const icon=d.type==='camera'?'📷':d.type==='iot'?'📡':d.type==='alert'?'🔔':'🖥️';
+    return`<div class="dcard">
+      <div class="dcard-top"><span class="dname">${icon} ${d.name}</span><span class="dpill ${pcls}">${ptxt}</span></div>
+      <div class="ddetail">${d.detail}</div>
+      ${d.metric>0?`<div class="dbar"><div class="dbar-fill" style="width:${d.metric}%;background:var(--sec)"></div></div>`:''}
+      <div class="dconn-badge">${d.note||'Configure in Settings'}</div>
+      ${d.status!=='online'?`<button class="dconn-btn" style="margin-top:6px" onclick="document.getElementById('settings-btn').click()">
+        ${d.status==='pending'?'+ Connect':'↺ Reconnect'}</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+function toggleDev(){
+  const g=document.getElementById('dev-grid'),c=document.getElementById('dev-chev');
+  const open=g.style.display!=='none';g.style.display=open?'none':'';c.classList.toggle('open',!open);
+}
+
+// ── PANEL SWITCHING ────────────────────────────────────────────
+function switchTab(tab){
+  ['articles','security','signals','map'].forEach(t=>{
+    const el=document.getElementById(`tab-${t}`);if(el)el.style.display=t===tab?'':'none';
+  });
+  document.querySelectorAll('.np').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  S.filter.tab=tab;
+  if(tab==='security')renderSecurity();
+  if(tab==='signals')renderSignals();
+}
+
+// ── REFRESH SPIN ───────────────────────────────────────────────
+function setSpin(on){document.getElementById('refresh-btn').classList.toggle('spinning',on)}
+
+// ── CLOCK ──────────────────────────────────────────────────────
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.toUTCString().replace(' GMT','')+' UTC';
+}
+setInterval(tick,1000);tick();
+
+// ── DRAG & DROP ────────────────────────────────────────────────
+let dragCount=0;
+document.addEventListener('dragenter',e=>{if(e.dataTransfer.types.includes('Files')){dragCount++;document.getElementById('drop-overlay').classList.add('show');}});
+document.addEventListener('dragleave',()=>{dragCount--;if(dragCount<=0){dragCount=0;document.getElementById('drop-overlay').classList.remove('show');}});
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{
+  e.preventDefault();dragCount=0;document.getElementById('drop-overlay').classList.remove('show');
+  const file=e.dataTransfer.files[0];if(file)analyzeFile(file);
+});
+
+// ── KEYBOARD ───────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){
+    e.preventDefault();document.getElementById('search').focus();}
+  if(e.key==='Escape'){document.getElementById('search').blur();
+    document.getElementById('settings-overlay').classList.remove('open');}
+  if(e.key==='Enter'&&e.target===document.getElementById('chat-input')&&!e.shiftKey){
+    e.preventDefault();fireChat();}
+});
+
+// ── CHAT INPUT AUTO-RESIZE ─────────────────────────────────────
+document.getElementById('chat-input').addEventListener('input',function(){
+  this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';
+});
+
+function fireChat(){
+  const inp=document.getElementById('chat-input');
+  const text=inp.value.trim();if(!text)return;
+  inp.value='';inp.style.height='auto';
+  sendChatMessage(text);
+}
+
+// ── THEME ──────────────────────────────────────────────────────
+(function(){
+  const t=localStorage.getItem('nexus_theme')||'dark';
+  document.documentElement.dataset.theme=t;
+})();
+
+// ── EVENT BINDINGS ─────────────────────────────────────────────
+document.getElementById('theme-btn').addEventListener('click',()=>{
+  const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';
+  h.dataset.theme=n;localStorage.setItem('nexus_theme',n);
+});
+document.getElementById('refresh-btn').addEventListener('click',()=>{cache.bust();loadAll();});
+document.getElementById('settings-btn').addEventListener('click',()=>{
+  loadSettings();document.getElementById('settings-overlay').classList.add('open');});
+document.getElementById('settings-close').addEventListener('click',()=>{
+  document.getElementById('settings-overlay').classList.remove('open');});
+document.getElementById('settings-save').addEventListener('click',saveSettings);
+document.getElementById('chat-fab').addEventListener('click',()=>{
+  document.getElementById('chat-drawer').classList.toggle('open');});
+document.getElementById('chat-close').addEventListener('click',()=>{
+  document.getElementById('chat-drawer').classList.remove('open');});
+document.getElementById('chat-send').addEventListener('click',fireChat);
+
+let sT;document.getElementById('search').addEventListener('input',e=>{
+  clearTimeout(sT);sT=setTimeout(()=>{S.filter.search=e.target.value.trim();renderArticles();},200);});
+
+document.querySelectorAll('.np').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+document.querySelectorAll('[data-bias]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('[data-bias]').forEach(x=>x.className='bf');
+  const v=b.dataset.bias;b.className=`bf a-${v}`;S.filter.bias=v;renderArticles();
+}));
+document.getElementById('sort-sel').addEventListener('change',e=>{S.filter.sort=e.target.value;renderArticles();});
+
+// ── INIT ───────────────────────────────────────────────────────
+loadSettings();
+renderDevices();
+
+async function loadAll(){
+  await Promise.allSettled([loadFeeds(),loadSignals(),loadCVEs()]);
+}
+loadAll();
+setInterval(()=>{cache.bust();loadAll();},CFG.AUTO_REFRESH);
+setInterval(loadSignals,60*1000);
+</script>
+</body>
+</html>

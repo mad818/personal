@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Command Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --border: #e2e5ea;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --accent-geo: #1a56db;
+      --accent-crypto: #f59e0b;
+      --accent-security: #10b981;
+      --badge-bg: #eef2ff;
+      --badge-text: #3730a3;
+      --radius: 10px;
+      --shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text-primary);
+    }
+
+    .logo span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-geo);
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    #clock {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .refresh-btn {
+      font-size: 12px;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: background 0.15s;
+    }
+
+    .refresh-btn:hover { background: var(--bg); }
+
+    /* ── Status bar ── */
+    .status-bar {
+      display: flex;
+      gap: 12px;
+      padding: 14px 32px;
+      overflow-x: auto;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      min-width: 140px;
+      box-shadow: var(--shadow);
+      flex-shrink: 0;
+    }
+
+    .stat-card .label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .value {
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-card .change {
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .up { color: #10b981; }
+    .down { color: #ef4444; }
+
+    /* ── Main grid ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 20px;
+      padding: 0 32px 32px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-geo      { background: var(--accent-geo); }
+    .dot-crypto   { background: var(--accent-crypto); }
+    .dot-security { background: var(--accent-security); }
+
+    .panel-meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* ── News feed ── */
+    .feed {
+      max-height: 440px;
+      overflow-y: auto;
+    }
+
+    .feed::-webkit-scrollbar { width: 4px; }
+    .feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .article {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      color: inherit;
+    }
+
+    .article:last-child { border-bottom: none; }
+    .article:hover { background: var(--bg); }
+
+    .article-title {
+      font-size: 13.5px;
+      font-weight: 500;
+      line-height: 1.45;
+      margin-bottom: 5px;
+      color: var(--text-primary);
+    }
+
+    .article-meta {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .source-tag {
+      font-size: 10.5px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-weight: 500;
+    }
+
+    .loading, .error-msg {
+      padding: 40px 18px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent-geo);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Security panel (full width) ── */
+    .panel-full { grid-column: 1 / -1; }
+
+    .security-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .device-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .device-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .device-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .status-pill {
+      font-size: 10.5px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 500;
+    }
+
+    .status-online  { background: #d1fae5; color: #065f46; }
+    .status-offline { background: #fee2e2; color: #991b1b; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+
+    .device-detail {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .device-bar {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .device-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--accent-security);
+      transition: width 0.4s;
+    }
+
+    .connect-btn {
+      font-size: 11.5px;
+      padding: 5px 10px;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      background: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      width: 100%;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .connect-btn:hover {
+      border-color: var(--accent-security);
+      color: var(--accent-security);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .main-grid { grid-template-columns: 1fr; padding: 0 16px 24px; }
+      .status-bar { padding: 12px 16px; }
+      header { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo"><span></span>Command Dashboard</div>
+  <div class="header-right">
+    <span id="clock"></span>
+    <button class="refresh-btn" onclick="loadAll()">Refresh feeds</button>
+  </div>
+</header>
+
+<!-- Market stat bar (live via CoinGecko) -->
+<div class="status-bar" id="stats-bar">
+  <div class="stat-card">
+    <div class="label">Bitcoin</div>
+    <div class="value" id="btc-price">--</div>
+    <div class="change" id="btc-change">Loading...</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Ethereum</div>
+    <div class="value" id="eth-price">--</div>
+    <div class="change" id="eth-change">Loading...</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Solana</div>
+    <div class="value" id="sol-price">--</div>
+    <div class="change" id="sol-change">Loading...</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Market Cap</div>
+    <div class="value" id="total-mcap">--</div>
+    <div class="change" id="mcap-change">Loading...</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">BTC Dominance</div>
+    <div class="value" id="btc-dom">--</div>
+    <div class="change" style="color: var(--text-secondary); font-size:11px">of total market</div>
+  </div>
+</div>
+
+<!-- Main content -->
+<div class="main-grid">
+
+  <!-- Geopolitical News -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot dot-geo"></div>
+        Geopolitical News
+      </div>
+      <span class="panel-meta" id="geo-updated"></span>
+    </div>
+    <div class="feed" id="geo-feed">
+      <div class="loading"><div class="spinner"></div>Loading articles...</div>
+    </div>
+  </div>
+
+  <!-- Crypto News -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot dot-crypto"></div>
+        Crypto News
+      </div>
+      <span class="panel-meta" id="crypto-updated"></span>
+    </div>
+    <div class="feed" id="crypto-feed">
+      <div class="loading"><div class="spinner"></div>Loading articles...</div>
+    </div>
+  </div>
+
+  <!-- Security & Devices panel -->
+  <div class="panel panel-full">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot dot-security"></div>
+        Security &amp; Device Monitoring
+      </div>
+      <span class="panel-meta">Integration-ready — connect via API or local socket</span>
+    </div>
+    <div class="security-grid" id="device-grid">
+
+      <!-- Placeholder devices — replace with real API calls when ready -->
+      <div class="device-card">
+        <div class="device-top">
+          <div class="device-name">Main Server</div>
+          <span class="status-pill status-online">Online</span>
+        </div>
+        <div class="device-detail">CPU 34% &nbsp;·&nbsp; RAM 6.1 GB</div>
+        <div class="device-bar"><div class="device-bar-fill" style="width:34%"></div></div>
+      </div>
+
+      <div class="device-card">
+        <div class="device-top">
+          <div class="device-name">Firewall Node</div>
+          <span class="status-pill status-online">Online</span>
+        </div>
+        <div class="device-detail">Blocked today: 142 &nbsp;·&nbsp; Uptime 99.8%</div>
+        <div class="device-bar"><div class="device-bar-fill" style="width:80%; background:#1a56db"></div></div>
+      </div>
+
+      <div class="device-card">
+        <div class="device-top">
+          <div class="device-name">Camera Feed #1</div>
+          <span class="status-pill status-pending">Pending</span>
+        </div>
+        <div class="device-detail">Awaiting stream endpoint</div>
+        <button class="connect-btn" onclick="alert('Connect your RTSP/API endpoint here')">+ Connect device</button>
+      </div>
+
+      <div class="device-card">
+        <div class="device-top">
+          <div class="device-name">Sensor Hub</div>
+          <span class="status-pill status-offline">Offline</span>
+        </div>
+        <div class="device-detail">Last seen: 2h ago</div>
+        <button class="connect-btn" onclick="alert('Connect your MQTT or REST endpoint here')">+ Reconnect</button>
+      </div>
+
+      <div class="device-card">
+        <div class="device-top">
+          <div class="device-name">Alert System</div>
+          <span class="status-pill status-online">Online</span>
+        </div>
+        <div class="device-detail">Alerts today: 3 &nbsp;·&nbsp; Level: Low</div>
+        <div class="device-bar"><div class="device-bar-fill" style="width:15%; background:#f59e0b"></div></div>
+      </div>
+
+      <div class="device-card" style="border-style:dashed; align-items:center; justify-content:center; min-height:110px;">
+        <button class="connect-btn" onclick="alert('Add device: provide an API URL or WebSocket endpoint')">+ Add device or integration</button>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /main-grid -->
+
+<script>
+  // ── Clock ──────────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toUTCString().replace(' GMT','') + ' UTC';
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── Helpers ────────────────────────────────────────────
+  function timeAgo(dateStr) {
+    const diff = Math.floor((Date.now() - new Date(dateStr)) / 60000);
+    if (diff < 1)  return 'just now';
+    if (diff < 60) return diff + 'm ago';
+    if (diff < 1440) return Math.floor(diff/60) + 'h ago';
+    return Math.floor(diff/1440) + 'd ago';
+  }
+
+  function fmt(n, dec=0) {
+    return Number(n).toLocaleString('en-US', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+  }
+
+  function changeEl(val, id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const sign = val >= 0 ? '+' : '';
+    el.textContent = sign + val.toFixed(2) + '%';
+    el.className = 'change ' + (val >= 0 ? 'up' : 'down');
+  }
+
+  // ── RSS feed loader ────────────────────────────────────
+  // Uses rss2json.com free tier — no API key needed for public feeds
+  async function loadFeed(rssUrl, containerId, updatedId, sourceLabel) {
+    const container = document.getElementById(containerId);
+    const api = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl) + '&count=20';
+    try {
+      const res  = await fetch(api);
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error('Feed error');
+
+      const items = data.items;
+      container.innerHTML = items.map(item => `
+        <a class="article" href="${item.link}" target="_blank" rel="noopener">
+          <div class="article-title">${item.title}</div>
+          <div class="article-meta">
+            <span class="source-tag">${sourceLabel}</span>
+            <span>${timeAgo(item.pubDate)}</span>
+          </div>
+        </a>
+      `).join('');
+
+      const updated = document.getElementById(updatedId);
+      if (updated) updated.textContent = 'Updated ' + new Date().toLocaleTimeString();
+    } catch(e) {
+      container.innerHTML = `<div class="error-msg">Could not load feed.<br><small>Check network or try refreshing.</small></div>`;
+    }
+  }
+
+  // ── Crypto prices (CoinGecko public API) ──────────────
+  async function loadPrices() {
+    try {
+      const url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true';
+      const data = await (await fetch(url)).json();
+
+      document.getElementById('btc-price').textContent = '$' + fmt(data.bitcoin.usd);
+      changeEl(data.bitcoin.usd_24h_change, 'btc-change');
+
+      document.getElementById('eth-price').textContent = '$' + fmt(data.ethereum.usd);
+      changeEl(data.ethereum.usd_24h_change, 'eth-change');
+
+      document.getElementById('sol-price').textContent = '$' + fmt(data.solana.usd, 2);
+      changeEl(data.solana.usd_24h_change, 'sol-change');
+    } catch(e) {
+      ['btc-price','eth-price','sol-price'].forEach(id => {
+        document.getElementById(id).textContent = 'N/A';
+      });
+    }
+
+    try {
+      const g = await (await fetch('https://api.coingecko.com/api/v3/global')).json();
+      const d = g.data;
+      const mcap = d.total_market_cap.usd;
+      document.getElementById('total-mcap').textContent =
+        '$' + (mcap >= 1e12 ? (mcap/1e12).toFixed(2) + 'T' : (mcap/1e9).toFixed(0) + 'B');
+      changeEl(d.market_cap_change_percentage_24h_usd, 'mcap-change');
+      document.getElementById('btc-dom').textContent =
+        d.market_cap_percentage.btc.toFixed(1) + '%';
+    } catch(e) {}
+  }
+
+  // ── Load everything ────────────────────────────────────
+  function loadAll() {
+    // Geopolitical sources: BBC World, Reuters, Al Jazeera
+    loadFeed(
+      'http://feeds.bbci.co.uk/news/world/rss.xml',
+      'geo-feed', 'geo-updated', 'BBC World'
+    );
+    // Crypto sources: CoinDesk
+    loadFeed(
+      'https://feeds.feedburner.com/CoinDesk',
+      'crypto-feed', 'crypto-updated', 'CoinDesk'
+    );
+    loadPrices();
+  }
+
+  loadAll();
+  // Auto-refresh every 5 minutes
+  setInterval(loadAll, 5 * 60 * 1000);
+</script>
+</body>
+</html>

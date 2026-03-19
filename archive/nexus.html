@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nexus · Command Dashboard</title>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg:          #07080d;
+  --surf:        #0f1117;
+  --surf2:       #151820;
+  --surf3:       #1b1e2b;
+  --border:      #1e2233;
+  --border2:     #2a2f48;
+  --text:        #dde1f0;
+  --text2:       #6875a0;
+  --text3:       #353c5e;
+  --accent:      #4f6ef7;
+  --accent2:     #7c3aed;
+  --glow:        rgba(79,110,247,0.18);
+  --geo:         #4f6ef7;
+  --crypto:      #f59e0b;
+  --sec:         #10b981;
+  --left:        #3b82f6;
+  --center:      #8b5cf6;
+  --right:       #ef4444;
+  --fact-hi:     #10b981;
+  --fact-md:     #f59e0b;
+  --fact-lo:     #ef4444;
+  --r:           10px;
+  --rs:          6px;
+  --font:        -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --shadow:      0 8px 32px rgba(0,0,0,0.5);
+  --t:           0.18s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="light"] {
+  --bg:     #eef0f7;
+  --surf:   #ffffff;
+  --surf2:  #f5f6fc;
+  --surf3:  #edf0f9;
+  --border: #dde0ef;
+  --border2:#c8ccdf;
+  --text:   #111827;
+  --text2:  #6b7280;
+  --text3:  #9ca3af;
+  --glow:   rgba(79,110,247,0.1);
+  --shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+/* ═══════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  transition:background var(--t),color var(--t);
+  -webkit-font-smoothing:antialiased;
+}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--font);cursor:pointer;border:none;background:none}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+header{
+  position:sticky;top:0;z-index:300;
+  height:54px;
+  display:flex;align-items:center;gap:14px;
+  padding:0 22px;
+  background:rgba(7,8,13,0.82);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+[data-theme="light"] header{background:rgba(238,240,247,0.88)}
+
+.logo{
+  display:flex;align-items:center;gap:9px;
+  font-size:15px;font-weight:800;letter-spacing:-0.5px;
+  white-space:nowrap;flex-shrink:0;
+}
+.logo-hex{
+  width:28px;height:28px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:#fff;
+  box-shadow:0 0 12px rgba(79,110,247,0.4);
+}
+.logo-word{
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.search-wrap{flex:1;max-width:340px;position:relative}
+.search-input{
+  width:100%;height:32px;
+  background:var(--surf2);
+  border:1px solid var(--border);
+  border-radius:var(--rs);
+  padding:0 34px 0 30px;
+  font-size:12.5px;color:var(--text);
+  outline:none;
+  transition:border-color var(--t),box-shadow var(--t);
+}
+.search-input::placeholder{color:var(--text2)}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.s-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:13px;pointer-events:none}
+.s-key{
+  position:absolute;right:7px;top:50%;transform:translateY(-50%);
+  font-size:10px;color:var(--text3);background:var(--border);
+  padding:1px 5px;border-radius:3px;pointer-events:none;
+}
+
+.nav-pills{display:flex;gap:2px;flex-shrink:0}
+.nav-pill{
+  padding:4px 13px;border-radius:99px;
+  font-size:12px;font-weight:500;color:var(--text2);
+  transition:all var(--t);
+}
+.nav-pill.active{background:var(--surf3);color:var(--accent);border:1px solid var(--border2)}
+.nav-pill:not(.active):hover{color:var(--text);background:var(--surf2)}
+
+.hdr-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+#clock{font-size:11.5px;color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hdr-btn{
+  width:32px;height:32px;border-radius:var(--rs);
+  background:var(--surf2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:var(--text2);
+  transition:all var(--t);
+}
+.hdr-btn:hover{background:var(--surf3);color:var(--text);border-color:var(--border2)}
+.hdr-btn.spinning svg{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══════════════════════════════════════════
+   TICKER
+═══════════════════════════════════════════ */
+.ticker-wrap{
+  height:32px;overflow:hidden;
+  background:var(--surf);
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+.ticker-wrap::before,.ticker-wrap::after{
+  content:"";position:absolute;top:0;bottom:0;width:40px;z-index:1;
+}
+.ticker-wrap::before{left:0;background:linear-gradient(90deg,var(--surf),transparent)}
+.ticker-wrap::after{right:0;background:linear-gradient(-90deg,var(--surf),transparent)}
+.ticker-track{
+  display:flex;align-items:center;
+  height:100%;width:max-content;
+  animation:slide 50s linear infinite;
+}
+.ticker-wrap:hover .ticker-track{animation-play-state:paused}
+@keyframes slide{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.t-item{
+  display:flex;align-items:center;gap:7px;
+  padding:0 20px;font-size:11.5px;
+  border-right:1px solid var(--border);white-space:nowrap;
+}
+.t-sym{font-weight:700;font-size:10.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.t-price{font-weight:600;font-variant-numeric:tabular-nums}
+.t-chg{font-size:11px;font-weight:600}
+.up{color:#10b981}.down{color:#ef4444}
+
+/* ═══════════════════════════════════════════
+   CONTROL BAR
+═══════════════════════════════════════════ */
+.ctrl-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 22px;
+  background:var(--surf);
+  border-bottom:1px solid var(--border);
+  flex-wrap:wrap;
+}
+.ctrl-label{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.bias-filters{display:flex;gap:4px}
+.bf{
+  padding:3px 10px;border-radius:99px;
+  font-size:11.5px;font-weight:500;
+  border:1px solid var(--border);
+  color:var(--text2);
+  transition:all var(--t);
+}
+.bf:hover{border-color:var(--accent);color:var(--accent)}
+.bf.a-all   {background:var(--surf3);border-color:var(--border2);color:var(--text)}
+.bf.a-left  {background:rgba(59,130,246,.14);border-color:var(--left);color:var(--left)}
+.bf.a-center{background:rgba(139,92,246,.14);border-color:var(--center);color:var(--center)}
+.bf.a-right {background:rgba(239,68,68,.14);border-color:var(--right);color:var(--right)}
+.vdiv{width:1px;height:18px;background:var(--border)}
+.sort-sel{
+  font-size:11.5px;color:var(--text2);background:var(--surf2);
+  border:1px solid var(--border);border-radius:var(--rs);
+  padding:3px 8px;cursor:pointer;outline:none;
+  transition:border-color var(--t);
+}
+.sort-sel:hover{border-color:var(--border2);color:var(--text)}
+.sort-sel option{background:var(--surf)}
+.live-pill{
+  display:flex;align-items:center;gap:5px;
+  margin-left:auto;
+  font-size:11px;font-weight:600;color:var(--sec);
+  background:rgba(16,185,129,.1);
+  border:1px solid rgba(16,185,129,.2);
+  padding:3px 9px;border-radius:99px;
+}
+.live-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--sec);
+  animation:blink 2s infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ═══════════════════════════════════════════
+   STAT BAND
+═══════════════════════════════════════════ */
+.stat-band{
+  display:flex;gap:1px;
+  background:var(--border);
+  border-bottom:1px solid var(--border);
+  overflow-x:auto;
+}
+.stat-cell{
+  flex:1;min-width:120px;
+  padding:10px 16px;
+  background:var(--surf);
+  display:flex;flex-direction:column;gap:3px;
+}
+.sc-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.sc-value{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+.sc-change{font-size:11px;font-weight:500}
+
+/* ═══════════════════════════════════════════
+   MAIN / ARTICLE GRID
+═══════════════════════════════════════════ */
+.main{padding:18px 22px 36px}
+.articles-grid{columns:3 300px;column-gap:14px}
+.article-card{
+  break-inside:avoid;
+  display:block;
+  background:var(--surf);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:14px;
+  margin-bottom:14px;
+  transition:border-color var(--t),box-shadow var(--t),transform var(--t);
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+}
+.article-card::before{
+  content:"";
+  position:absolute;inset:0;
+  border-radius:var(--r);
+  background:linear-gradient(135deg,var(--glow),transparent 60%);
+  opacity:0;
+  transition:opacity var(--t);
+  pointer-events:none;
+}
+.article-card:hover{
+  border-color:var(--border2);
+  box-shadow:var(--shadow);
+  transform:translateY(-2px);
+}
+.article-card:hover::before{opacity:1}
+
+.card-top{display:flex;align-items:center;gap:6px;margin-bottom:9px}
+.src-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.src-name{font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--text2)}
+.cat-tag{
+  margin-left:auto;
+  font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:2px 7px;border-radius:99px;
+}
+.cat-geo   {background:rgba(79,110,247,.13);color:var(--geo)}
+.cat-crypto{background:rgba(245,158,11,.13);color:var(--crypto)}
+.card-age{font-size:10px;color:var(--text3);flex-shrink:0}
+.card-title{font-size:13.5px;font-weight:600;line-height:1.45;color:var(--text);margin-bottom:6px}
+.card-desc{
+  font-size:12px;color:var(--text2);line-height:1.55;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  margin-bottom:12px;
+}
+
+/* bias meter */
+.card-foot{
+  padding-top:10px;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.bias-block{flex:1;min-width:0}
+.bias-track{
+  height:4px;border-radius:2px;
+  background:linear-gradient(to right,var(--left),var(--center),var(--right));
+  position:relative;margin-bottom:5px;
+}
+.bias-needle{
+  position:absolute;top:-4px;width:2px;height:12px;
+  border-radius:1px;background:#fff;
+  box-shadow:0 0 4px rgba(0,0,0,.6);
+  transform:translateX(-50%);
+  transition:left .5s cubic-bezier(.4,0,.2,1);
+}
+.bias-row{display:flex;justify-content:space-between;align-items:center}
+.bias-end{font-size:9.5px;color:var(--text3)}
+.bias-val{font-size:10.5px;font-weight:700}
+
+/* factual badge */
+.fact-badge{
+  display:flex;align-items:center;gap:3px;
+  font-size:10.5px;font-weight:700;
+  padding:3px 7px;border-radius:var(--rs);
+  flex-shrink:0;white-space:nowrap;
+}
+.fh{background:rgba(16,185,129,.14);color:var(--fact-hi)}
+.fm{background:rgba(245,158,11,.14);color:var(--fact-md)}
+.fl{background:rgba(239,68,68,.14);color:var(--fact-lo)}
+
+.open-btn{
+  font-size:11px;color:var(--accent);flex-shrink:0;
+  padding:3px 8px;border-radius:var(--rs);
+  border:1px solid rgba(79,110,247,.22);
+  transition:background var(--t),border-color var(--t);
+}
+.open-btn:hover{background:var(--glow);border-color:var(--accent)}
+
+/* ═══════════════════════════════════════════
+   SKELETON
+═══════════════════════════════════════════ */
+#skeleton-grid{columns:3 300px;column-gap:14px}
+.sk-card{
+  break-inside:avoid;
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px;margin-bottom:14px;
+}
+.sk{background:var(--surf3);border-radius:3px;animation:shim 1.4s ease-in-out infinite}
+@keyframes shim{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* ═══════════════════════════════════════════
+   EMPTY / ERROR
+═══════════════════════════════════════════ */
+.empty-msg{
+  text-align:center;padding:60px 20px;
+  color:var(--text2);font-size:13px;
+  grid-column:1/-1;
+}
+.empty-msg .ei{font-size:28px;margin-bottom:10px;display:block}
+
+/* ═══════════════════════════════════════════
+   SECTION HEADER (device panel)
+═══════════════════════════════════════════ */
+.section{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;margin-top:4px;
+}
+.sec-hdr{
+  display:flex;align-items:center;gap:10px;
+  padding:13px 18px;border-bottom:1px solid var(--border);
+  cursor:pointer;
+  transition:background var(--t);
+}
+.sec-hdr:hover{background:var(--surf2)}
+.sec-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.sec-sub{font-size:11px;color:var(--text2);margin-left:4px;font-weight:400}
+.sec-chev{margin-left:auto;color:var(--text2);font-size:11px;transition:transform var(--t)}
+.sec-chev.open{transform:rotate(180deg)}
+
+/* ═══════════════════════════════════════════
+   DEVICE CARDS
+═══════════════════════════════════════════ */
+.dev-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  gap:12px;padding:16px;
+}
+.dev-card{border:1px solid var(--border);border-radius:var(--rs);padding:13px}
+.dev-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.dev-name{font-size:12.5px;font-weight:700}
+.sp{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700}
+.s-on {background:rgba(16,185,129,.14);color:#10b981}
+.s-off{background:rgba(239,68,68,.14);color:#ef4444}
+.s-pnd{background:rgba(245,158,11,.14);color:#f59e0b}
+.dev-detail{font-size:11.5px;color:var(--text2);line-height:1.6;margin-bottom:8px}
+.metric-bar{height:3px;border-radius:2px;background:var(--border);overflow:hidden;margin-bottom:8px}
+.metric-fill{height:100%;border-radius:2px;transition:width .6s}
+.conn-btn{
+  width:100%;font-size:11px;padding:5px;
+  border:1px dashed var(--border);border-radius:var(--rs);
+  color:var(--text2);transition:all var(--t);
+}
+.conn-btn:hover{border-color:var(--sec);color:var(--sec)}
+
+/* ═══════════════════════════════════════════
+   TOOLTIP
+═══════════════════════════════════════════ */
+.tip-wrap{position:relative;display:inline-flex;align-items:center}
+.tip-icon{font-size:10px;color:var(--text3);cursor:default;margin-left:3px}
+.tip-box{
+  display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:var(--surf3);border:1px solid var(--border2);border-radius:var(--rs);
+  padding:7px 10px;font-size:11px;color:var(--text2);line-height:1.5;
+  width:220px;z-index:200;pointer-events:none;
+  box-shadow:var(--shadow);
+}
+.tip-wrap:hover .tip-box{display:block}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media(max-width:900px){.articles-grid{columns:2 260px}}
+@media(max-width:640px){
+  header{padding:0 14px}
+  .nav-pills{display:none}
+  .main{padding:12px 12px 28px}
+  .ctrl-bar{padding:8px 12px}
+  .stat-band{display:none}
+  .s-key{display:none}
+  .articles-grid{columns:1}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-hex">⬡</div>
+    <span class="logo-word">NEXUS</span>
+  </div>
+
+  <div class="search-wrap">
+    <span class="s-icon">⌕</span>
+    <input class="search-input" id="search" type="search"
+      placeholder="Search articles, sources…" autocomplete="off" spellcheck="false"/>
+    <span class="s-key">/</span>
+  </div>
+
+  <nav class="nav-pills">
+    <button class="nav-pill active" data-tab="all">All</button>
+    <button class="nav-pill" data-tab="geo">Geopolitical</button>
+    <button class="nav-pill" data-tab="crypto">Crypto</button>
+  </nav>
+
+  <div class="hdr-right">
+    <span id="clock"></span>
+    <button class="hdr-btn" id="theme-btn" title="Toggle theme" aria-label="Toggle theme">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+    <button class="hdr-btn" id="refresh-btn" title="Refresh all feeds" aria-label="Refresh">
+      <svg id="refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- PRICE TICKER -->
+<div class="ticker-wrap"><div class="ticker-track" id="ticker-track">
+  <div class="t-item"><span class="t-sym">BTC</span><span class="t-price">Loading…</span></div>
+</div></div>
+
+<!-- STAT BAND -->
+<div class="stat-band" id="stat-band">
+  <div class="stat-cell"><div class="sc-label">Bitcoin</div><div class="sc-value" id="sc-btc">—</div><div class="sc-change" id="sc-btc-c">—</div></div>
+  <div class="stat-cell"><div class="sc-label">Ethereum</div><div class="sc-value" id="sc-eth">—</div><div class="sc-change" id="sc-eth-c">—</div></div>
+  <div class="stat-cell"><div class="sc-label">Solana</div><div class="sc-value" id="sc-sol">—</div><div class="sc-change" id="sc-sol-c">—</div></div>
+  <div class="stat-cell"><div class="sc-label">Total Mkt Cap</div><div class="sc-value" id="sc-mcap">—</div><div class="sc-change" id="sc-mcap-c">—</div></div>
+  <div class="stat-cell"><div class="sc-label">BTC Dominance</div><div class="sc-value" id="sc-dom">—</div><div class="sc-change" style="font-size:10px;color:var(--text2)">of total market</div></div>
+  <div class="stat-cell"><div class="sc-label">Articles loaded</div><div class="sc-value" id="sc-arts">—</div><div class="sc-change" style="font-size:10px;color:var(--text2)">across all sources</div></div>
+</div>
+
+<!-- CONTROL BAR -->
+<div class="ctrl-bar">
+  <span class="ctrl-label">Bias</span>
+  <div class="bias-filters">
+    <button class="bf a-all" data-bias="all">All</button>
+    <button class="bf" data-bias="left">Left</button>
+    <button class="bf" data-bias="center">Center</button>
+    <button class="bf" data-bias="right">Right</button>
+  </div>
+  <div class="vdiv"></div>
+  <span class="ctrl-label">Sort</span>
+  <select class="sort-sel" id="sort-sel">
+    <option value="latest">Latest first</option>
+    <option value="factual">Most factual</option>
+    <option value="bias-extreme">Most biased</option>
+    <option value="bias-neutral">Most neutral</option>
+  </select>
+  <div class="vdiv"></div>
+  <div class="tip-wrap">
+    <span class="ctrl-label">Bias method</span>
+    <span class="tip-icon">ⓘ</span>
+    <div class="tip-box">
+      Bias score = source rating (AllSides / MBFC, 75%) + headline keyword analysis (25%).
+      Factual score from Media Bias / Fact Check. For reference only — not a definitive rating.
+    </div>
+  </div>
+  <div class="live-pill"><div class="live-dot"></div>Live</div>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- Skeleton (shown while loading) -->
+  <div id="skeleton-grid">
+    <div class="sk-card"><div class="sk" style="height:10px;width:55%;margin-bottom:10px"></div><div class="sk" style="height:14px;width:100%;margin-bottom:6px"></div><div class="sk" style="height:14px;width:85%;margin-bottom:6px"></div><div class="sk" style="height:12px;width:70%;margin-bottom:12px"></div><div class="sk" style="height:5px;width:100%"></div></div>
+    <div class="sk-card"><div class="sk" style="height:10px;width:45%;margin-bottom:10px"></div><div class="sk" style="height:14px;width:100%;margin-bottom:6px"></div><div class="sk" style="height:14px;width:90%;margin-bottom:6px"></div><div class="sk" style="height:12px;width:80%;margin-bottom:12px"></div><div class="sk" style="height:5px;width:100%"></div></div>
+    <div class="sk-card"><div class="sk" style="height:10px;width:60%;margin-bottom:10px"></div><div class="sk" style="height:14px;width:100%;margin-bottom:6px"></div><div class="sk" style="height:12px;width:75%;margin-bottom:12px"></div><div class="sk" style="height:5px;width:100%"></div></div>
+    <div class="sk-card"><div class="sk" style="height:10px;width:50%;margin-bottom:10px"></div><div class="sk" style="height:14px;width:100%;margin-bottom:6px"></div><div class="sk" style="height:14px;width:88%;margin-bottom:6px"></div><div class="sk" style="height:12px;width:72%;margin-bottom:12px"></div><div class="sk" style="height:5px;width:100%"></div></div>
+    <div class="sk-card"><div class="sk" style="height:10px;width:40%;margin-bottom:10px"></div><div class="sk" style="height:14px;width:100%;margin-bottom:6px"></div><div class="sk" style="height:14px;width:80%;margin-bottom:12px"></div><div class="sk" style="height:5px;width:100%"></div></div>
+    <div class="sk-card"><div class="sk" style="height:10px;width:65%;margin-bottom:10px"></div><div class="sk" style="height:14px;width:100%;margin-bottom:6px"></div><div class="sk" style="height:14px;width:92%;margin-bottom:6px"></div><div class="sk" style="height:12px;width:68%;margin-bottom:12px"></div><div class="sk" style="height:5px;width:100%"></div></div>
+  </div>
+
+  <!-- Articles (populated by JS) -->
+  <div id="articles-out" style="display:none"></div>
+
+  <!-- Device & Security Panel -->
+  <div class="section" id="dev-section">
+    <div class="sec-hdr" onclick="toggleDevPanel()">
+      <div class="sec-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sec)" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Security &amp; Device Monitoring
+        <span class="sec-sub">Integration-ready · expand to manage</span>
+      </div>
+      <span class="sp s-on">3 Online</span>
+      <span class="sec-chev open" id="dev-chev">▼</span>
+    </div>
+    <div id="dev-grid" class="dev-grid"></div>
+  </div>
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   NEXUS COMMAND DASHBOARD  v2.0
+   Architecture: source registry · bias analyzer · feed manager ·
+   filter engine · render layer · device panel · price ticker
+═══════════════════════════════════════════════════════════════ */
+
+// ── CONFIG ─────────────────────────────────────────────────────
+const CFG = {
+  PROXY:        'https://api.rss2json.com/v1/api.json?count=20&rss_url=',
+  CACHE_TTL:    5 * 60 * 1000,
+  PRICE_TTL:    60 * 1000,
+  AUTO_REFRESH: 5 * 60 * 1000,
+  PER_SOURCE:   15,
+};
+
+// ── SOURCE REGISTRY ────────────────────────────────────────────
+// bias: -100 (far left) → 0 (center) → +100 (far right)
+// factual: 0–10 based on AllSides / Media Bias Fact Check
+const SOURCES = {
+  bbc:          { name:'BBC World',      url:'http://feeds.bbci.co.uk/news/world/rss.xml',           cat:'geo',    color:'#cc0000', bias:-18, factual:8.5 },
+  reuters:      { name:'Reuters',        url:'https://feeds.reuters.com/reuters/worldNews',           cat:'geo',    color:'#f39c12', bias: -5, factual:9.2 },
+  guardian:     { name:'The Guardian',   url:'https://www.theguardian.com/world/rss',                cat:'geo',    color:'#0084c6', bias:-38, factual:7.8 },
+  aljazeera:    { name:'Al Jazeera',     url:'https://www.aljazeera.com/xml/rss/all.xml',            cat:'geo',    color:'#009b77', bias:-15, factual:7.2 },
+  coindesk:     { name:'CoinDesk',       url:'https://www.coindesk.com/arc/outboundfeeds/rss/',      cat:'crypto', color:'#f7931a', bias:  0, factual:7.5 },
+  cointelegraph:{ name:'CoinTelegraph',  url:'https://cointelegraph.com/rss',                        cat:'crypto', color:'#2b73d2', bias:  0, factual:6.8 },
+  decrypt:      { name:'Decrypt',        url:'https://decrypt.co/feed',                              cat:'crypto', color:'#e040fb', bias:  0, factual:7.0 },
+};
+
+// ── KEYWORD BIAS LEXICON ───────────────────────────────────────
+const LEX = {
+  L: [
+    ['systemic racism',3],['climate crisis',2.5],['social justice',2],
+    ['marginalized communities',2],['income inequality',1.5],['progressive',1],
+    ['reproductive rights',2],['gun control',1.5],['universal healthcare',1.5],
+    ['undocumented immigrant',1.5],['corporate greed',1.5],['equity',1],
+    ['disinformation',1],['white supremacy',2.5],['lived experience',1],
+  ],
+  R: [
+    ['illegal alien',3],['radical left',3],['deep state',3],
+    ['election fraud',2.5],['woke',2.5],['border crisis',2],
+    ['socialist',2],['big government',1.5],['mainstream media',1.5],
+    ['second amendment',1],['religious freedom',1],['globalist',2],
+    ['antifa',2],['political correctness',2],['patriot',1],
+  ],
+};
+
+// ── APPLICATION STATE ──────────────────────────────────────────
+const STATE = {
+  articles: [],
+  prices:   {},
+  filter:   { tab:'all', bias:'all', search:'', sort:'latest' },
+  cache:    {},
+  loading:  true,
+};
+
+// ── CACHE ──────────────────────────────────────────────────────
+const cache = {
+  get(k)    { const e=STATE.cache[k]; if(!e||Date.now()-e.ts>CFG.CACHE_TTL){delete STATE.cache[k];return null} return e.d },
+  set(k,d)  { STATE.cache[k]={d,ts:Date.now()} },
+  bust()    { STATE.cache={} },
+};
+
+// ── HELPERS ────────────────────────────────────────────────────
+const strip = s => (s||'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#39;/g,"'").replace(/&quot;/g,'"').trim();
+const clamp = (v,lo,hi) => Math.min(hi,Math.max(lo,v));
+const fmt   = (n,d=0)   => Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const sign  = n          => n>=0?'+':'';
+
+function timeAgo(s){
+  const m=Math.floor((Date.now()-new Date(s))/60000);
+  if(m<1)  return 'just now';
+  if(m<60) return `${m}m ago`;
+  if(m<1440) return `${Math.floor(m/60)}h ago`;
+  return `${Math.floor(m/1440)}d ago`;
+}
+
+// ── BIAS ANALYSIS ──────────────────────────────────────────────
+function analyzeBias(text, sid) {
+  const src = SOURCES[sid];
+  const t   = (text||'').toLowerCase();
+  let l=0, r=0;
+  LEX.L.forEach(([w,v])=>{ if(t.includes(w)) l+=v });
+  LEX.R.forEach(([w,v])=>{ if(t.includes(w)) r+=v });
+  const kw = clamp((r-l)*12,-100,100);
+  return Math.round(clamp(src.bias*0.75+kw*0.25,-100,100));
+}
+
+function biasInfo(score){
+  if(score<-50) return{label:'Left',        col:'var(--left)' };
+  if(score<-15) return{label:'Center-Left', col:'#5b9cf6'    };
+  if(score< 15) return{label:'Center',      col:'var(--center)'};
+  if(score< 50) return{label:'Center-Right',col:'#e8775c'    };
+  return               {label:'Right',       col:'var(--right)'};
+}
+
+function factInfo(s){
+  if(s>=8) return{label:`${s.toFixed(1)} High`, cls:'fh'};
+  if(s>=6) return{label:`${s.toFixed(1)} Med`,  cls:'fm'};
+  return         {label:`${s.toFixed(1)} Low`,  cls:'fl'};
+}
+
+// ── FEED FETCHER ───────────────────────────────────────────────
+async function fetchSource(sid){
+  const ck = `feed_${sid}`;
+  const hit = cache.get(ck);
+  if(hit) return hit;
+
+  const src = SOURCES[sid];
+  const res  = await fetch(CFG.PROXY + encodeURIComponent(src.url));
+  const data = await res.json();
+  if(data.status!=='ok') throw new Error(`Bad feed: ${sid}`);
+
+  const articles = data.items.slice(0,CFG.PER_SOURCE).map(item=>{
+    const combined = `${item.title} ${strip(item.description)}`;
+    const bias  = analyzeBias(combined,sid);
+    const bi    = biasInfo(bias);
+    const fi    = factInfo(src.factual);
+    return {
+      id:       `${sid}_${item.guid||item.link}`,
+      sid, cat: src.cat,
+      src:      src.name,
+      srcColor: src.color,
+      title:    strip(item.title),
+      desc:     strip(item.description).slice(0,140)+'…',
+      link:     item.link,
+      pubDate:  item.pubDate,
+      bias,
+      biasLabel:bi.label,
+      biasCol:  bi.col,
+      factual:  src.factual,
+      factLabel:fi.label,
+      factCls:  fi.cls,
+    };
+  });
+
+  cache.set(ck,articles);
+  return articles;
+}
+
+// ── LOAD ALL FEEDS ─────────────────────────────────────────────
+async function loadFeeds(){
+  setRefreshSpin(true);
+  const results = await Promise.allSettled(Object.keys(SOURCES).map(fetchSource));
+  STATE.articles = results
+    .filter(r=>r.status==='fulfilled')
+    .flatMap(r=>r.value);
+  STATE.loading = false;
+  document.getElementById('sc-arts').textContent = STATE.articles.length;
+  renderArticles();
+  setRefreshSpin(false);
+}
+
+// ── FILTER + SORT ──────────────────────────────────────────────
+function applyFilters(arts){
+  const {tab,bias,search,sort} = STATE.filter;
+  let out = [...arts];
+  if(tab!=='all') out=out.filter(a=>a.cat===tab);
+  if(bias==='left')   out=out.filter(a=>a.bias<-15);
+  if(bias==='center') out=out.filter(a=>a.bias>=-15&&a.bias<=15);
+  if(bias==='right')  out=out.filter(a=>a.bias>15);
+  if(search){
+    const q=search.toLowerCase();
+    out=out.filter(a=>a.title.toLowerCase().includes(q)||a.src.toLowerCase().includes(q)||a.desc.toLowerCase().includes(q));
+  }
+  if(sort==='latest')       out.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
+  if(sort==='factual')      out.sort((a,b)=>b.factual-a.factual);
+  if(sort==='bias-extreme') out.sort((a,b)=>Math.abs(b.bias)-Math.abs(a.bias));
+  if(sort==='bias-neutral') out.sort((a,b)=>Math.abs(a.bias)-Math.abs(b.bias));
+  return out;
+}
+
+// ── RENDER ARTICLES ────────────────────────────────────────────
+function renderArticles(){
+  document.getElementById('skeleton-grid').style.display='none';
+  const el = document.getElementById('articles-out');
+  el.style.display='';
+  const filtered = applyFilters(STATE.articles);
+
+  if(!filtered.length){
+    el.innerHTML=`<div class="empty-msg"><span class="ei">◌</span>No articles match your current filters.</div>`;
+    return;
+  }
+
+  el.innerHTML=`<div class="articles-grid">${filtered.map(a=>{
+    const np = ((a.bias+100)/200*100).toFixed(1);
+    return `<a class="article-card" href="${a.link}" target="_blank" rel="noopener noreferrer">
+      <div class="card-top">
+        <div class="src-dot" style="background:${a.srcColor}"></div>
+        <span class="src-name">${a.src}</span>
+        <span class="cat-tag ${a.cat==='geo'?'cat-geo':'cat-crypto'}">${a.cat==='geo'?'Geo':'Crypto'}</span>
+        <span class="card-age">${timeAgo(a.pubDate)}</span>
+      </div>
+      <div class="card-title">${a.title}</div>
+      ${a.desc?`<div class="card-desc">${a.desc}</div>`:''}
+      <div class="card-foot">
+        <div class="bias-block">
+          <div class="bias-track"><div class="bias-needle" style="left:${np}%"></div></div>
+          <div class="bias-row">
+            <span class="bias-end">◀ L</span>
+            <span class="bias-val" style="color:${a.biasCol}">${a.biasLabel}</span>
+            <span class="bias-end">R ▶</span>
+          </div>
+        </div>
+        <div class="fact-badge ${a.factCls}">✓ ${a.factLabel}</div>
+        <span class="open-btn">↗</span>
+      </div>
+    </a>`;
+  }).join('')}</div>`;
+}
+
+// ── PRICES ─────────────────────────────────────────────────────
+const COINS = [
+  {id:'bitcoin',      sym:'BTC'},
+  {id:'ethereum',     sym:'ETH'},
+  {id:'solana',       sym:'SOL'},
+  {id:'ripple',       sym:'XRP'},
+  {id:'binancecoin',  sym:'BNB'},
+  {id:'cardano',      sym:'ADA'},
+  {id:'dogecoin',     sym:'DOGE'},
+  {id:'avalanche-2',  sym:'AVAX'},
+  {id:'chainlink',    sym:'LINK'},
+  {id:'polkadot',     sym:'DOT'},
+];
+
+function fmtPrice(n, id){
+  const small = id==='dogecoin'||id==='cardano'||id==='ripple';
+  return '$'+fmt(n, small?4:2);
+}
+
+async function loadPrices(){
+  try{
+    const ids  = COINS.map(c=>c.id).join(',');
+    const url  = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`;
+    const data = await (await fetch(url)).json();
+    STATE.prices = data;
+
+    // ticker
+    const items = COINS.map(c=>{
+      const d=data[c.id];if(!d)return'';
+      const chg=d.usd_24h_change;
+      return `<div class="t-item"><span class="t-sym">${c.sym}</span><span class="t-price">${fmtPrice(d.usd,c.id)}</span><span class="t-chg ${chg>=0?'up':'down'}">${sign(chg)}${chg.toFixed(2)}%</span></div>`;
+    }).join('');
+    const tr=document.getElementById('ticker-track');
+    tr.innerHTML=items+items; // duplicate for seamless loop
+
+    // stat band
+    const btc=data.bitcoin, eth=data.ethereum, sol=data.solana;
+    if(btc){
+      document.getElementById('sc-btc').textContent='$'+fmt(btc.usd);
+      setChange('sc-btc-c',btc.usd_24h_change);
+    }
+    if(eth){
+      document.getElementById('sc-eth').textContent='$'+fmt(eth.usd);
+      setChange('sc-eth-c',eth.usd_24h_change);
+    }
+    if(sol){
+      document.getElementById('sc-sol').textContent='$'+fmt(sol.usd,2);
+      setChange('sc-sol-c',sol.usd_24h_change);
+    }
+  }catch(e){
+    document.getElementById('ticker-track').innerHTML=
+      '<div class="t-item" style="color:var(--text2)">Price data temporarily unavailable</div>';
+  }
+
+  try{
+    const g=await (await fetch('https://api.coingecko.com/api/v3/global')).json();
+    const d=g.data;
+    const mc=d.total_market_cap.usd;
+    document.getElementById('sc-mcap').textContent=mc>=1e12?'$'+(mc/1e12).toFixed(2)+'T':'$'+(mc/1e9).toFixed(0)+'B';
+    setChange('sc-mcap-c',d.market_cap_change_percentage_24h_usd);
+    document.getElementById('sc-dom').textContent=d.market_cap_percentage.btc.toFixed(1)+'%';
+  }catch(e){}
+}
+
+function setChange(id,v){
+  const el=document.getElementById(id);if(!el)return;
+  el.textContent=sign(v)+v.toFixed(2)+'%';
+  el.className='sc-change '+(v>=0?'up':'down');
+}
+
+// ── DEVICE PANEL ───────────────────────────────────────────────
+const DEVICES = [
+  {name:'Primary Server', status:'online',  detail:'CPU 34% · RAM 6.1 GB',          metric:34,  color:'var(--sec)'},
+  {name:'Firewall Node',  status:'online',  detail:'Blocked: 142 today · 99.8% up', metric:72,  color:'var(--geo)'},
+  {name:'Alert System',   status:'online',  detail:'3 alerts today · Level: Low',   metric:20,  color:'var(--crypto)'},
+  {name:'Camera Feed #1', status:'pending', detail:'Awaiting RTSP stream endpoint', metric:0},
+  {name:'Sensor Hub',     status:'offline', detail:'Last seen: 2h 14m ago',         metric:0},
+  {name:'API Gateway',    status:'pending', detail:'Webhook URL not configured',    metric:0},
+  {name:'Add device',     status:'add'},
+];
+
+function renderDevices(){
+  document.getElementById('dev-grid').innerHTML=DEVICES.map(d=>{
+    if(d.status==='add') return `<div class="dev-card" style="display:flex;align-items:center;justify-content:center;border-style:dashed;min-height:110px"><button class="conn-btn" onclick="alert('Provide an API URL, WebSocket, MQTT, or RTSP endpoint to connect')">+ Add integration or device</button></div>`;
+    const pcls={online:'s-on',offline:'s-off',pending:'s-pnd'}[d.status]||'s-pnd';
+    const ptxt=d.status.charAt(0).toUpperCase()+d.status.slice(1);
+    return `<div class="dev-card">
+      <div class="dev-top"><span class="dev-name">${d.name}</span><span class="sp ${pcls}">${ptxt}</span></div>
+      <div class="dev-detail">${d.detail}</div>
+      ${d.metric>0?`<div class="metric-bar"><div class="metric-fill" style="width:${d.metric}%;background:${d.color||'var(--sec)'}"></div></div>`:''}
+      ${d.status!=='online'?`<button class="conn-btn" onclick="alert('Connect your endpoint here')">${d.status==='pending'?'+ Connect':'↺ Reconnect'}</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+function toggleDevPanel(){
+  const grid=document.getElementById('dev-grid');
+  const chev=document.getElementById('dev-chev');
+  const open=grid.style.display!=='none';
+  grid.style.display=open?'none':'';
+  chev.classList.toggle('open',!open);
+}
+
+// ── REFRESH SPINNER ────────────────────────────────────────────
+function setRefreshSpin(on){
+  document.getElementById('refresh-btn').classList.toggle('spinning',on);
+}
+
+// ── CLOCK ──────────────────────────────────────────────────────
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    n.toUTCString().replace(' GMT','')+' UTC';
+}
+setInterval(tick,1000);tick();
+
+// ── THEME ──────────────────────────────────────────────────────
+(function(){
+  const saved=localStorage.getItem('nexus-theme')||'dark';
+  document.documentElement.dataset.theme=saved;
+})();
+
+document.getElementById('theme-btn').addEventListener('click',()=>{
+  const h=document.documentElement;
+  const next=h.dataset.theme==='dark'?'light':'dark';
+  h.dataset.theme=next;
+  localStorage.setItem('nexus-theme',next);
+});
+
+// ── EVENT BINDINGS ─────────────────────────────────────────────
+let searchT;
+document.getElementById('search').addEventListener('input',e=>{
+  clearTimeout(searchT);
+  searchT=setTimeout(()=>{STATE.filter.search=e.target.value.trim();renderArticles()},200);
+});
+
+document.querySelectorAll('.nav-pill').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.nav-pill').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  STATE.filter.tab=b.dataset.tab;
+  renderArticles();
+}));
+
+document.querySelectorAll('[data-bias]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('[data-bias]').forEach(x=>x.className='bf');
+  const v=b.dataset.bias;
+  b.className=`bf a-${v}`;
+  STATE.filter.bias=v;
+  renderArticles();
+}));
+
+document.getElementById('sort-sel').addEventListener('change',e=>{
+  STATE.filter.sort=e.target.value;renderArticles();
+});
+
+document.getElementById('refresh-btn').addEventListener('click',()=>{
+  cache.bust();loadAll();
+});
+
+// keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&document.activeElement.tagName!=='INPUT'){
+    e.preventDefault();document.getElementById('search').focus();
+  }
+  if(e.key==='Escape') document.getElementById('search').blur();
+  if(e.key==='r'&&e.ctrlKey&&document.activeElement.tagName!=='INPUT'){
+    e.preventDefault();cache.bust();loadAll();
+  }
+});
+
+// ── INIT ───────────────────────────────────────────────────────
+renderDevices();
+
+async function loadAll(){
+  await Promise.allSettled([loadFeeds(), loadPrices()]);
+}
+
+loadAll();
+setInterval(()=>{cache.bust();loadAll()}, CFG.AUTO_REFRESH);
+
+// auto-refresh prices every 60s independently
+setInterval(loadPrices, CFG.PRICE_TTL);
+</script>
+</body>
+</html>

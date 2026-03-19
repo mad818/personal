@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.env.local
+*.log
+.DS_Store
+.turbo/
+out/
+dist/
+node_modules/
+node_modules/
+.next/
+.DS_Store

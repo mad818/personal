@@ -1,3 +1,5 @@
+'use client'
+
 import PriceGrid        from '@/components/alpha/PriceGrid'
 import MomentumScanner  from '@/components/alpha/MomentumScanner'
 import BuyBot           from '@/components/alpha/BuyBot'
@@ -7,8 +9,14 @@ import FearGreedGauge   from '@/components/alpha/FearGreedGauge'
 import DefiOverview     from '@/components/alpha/DefiOverview'
 import PriceSparklines  from '@/components/alpha/PriceSparklines'
 import { PricesLoader } from '@/components/ui/DataLoader'
+import PageTransition   from '@/components/ui/PageTransition'
+import { useStore }     from '@/store/useStore'
+import DataLoadingState from '@/components/ui/DataLoadingState'
 
-export default function AlphaPage() {
+function AlphaContent() {
+  const prices = useStore((s) => s.prices)
+  const hasPrices = Object.keys(prices).length > 0
+
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '18px 16px 40px' }}>
       <PricesLoader />
@@ -22,7 +30,11 @@ export default function AlphaPage() {
 
       {/* Price Sparklines — new visualization */}
       <div style={{ marginBottom: '20px' }}>
-        <PriceSparklines />
+        {!hasPrices ? (
+          <DataLoadingState dataName="market data" height={120} />
+        ) : (
+          <PriceSparklines />
+        )}
       </div>
 
       {/* Watchlist manager — compact toggle */}
@@ -65,8 +77,20 @@ export default function AlphaPage() {
         }}>
           Price Overview
         </div>
-        <PriceGrid />
+        {!hasPrices ? (
+          <DataLoadingState dataName="prices" height={200} />
+        ) : (
+          <PriceGrid />
+        )}
       </div>
     </div>
+  )
+}
+
+export default function AlphaPage() {
+  return (
+    <PageTransition>
+      <AlphaContent />
+    </PageTransition>
   )
 }

@@ -207,3 +207,46 @@ a:hover { opacity: .75; }
   z-index: 1;
   pointer-events: none;
 }
+
+/* ── Page transition base ─────────────────────────────────────────────────── */
+main > div {
+  animation: nex-page-in 0.3s ease both;
+}
+
+@keyframes nex-page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Card hover micro-interaction upgrade ────────────────────────────────── */
+.card-hover {
+  will-change: transform;
+}
+.card-hover:active {
+  transform: scale(0.98) !important;
+}
+
+/* ── Focus ring for accessibility ────────────────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid rgba(196,72,90,0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Selection color ─────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(196,72,90,0.3);
+  color: #f5e6ea;
+}
+
+/* ── Smooth scroll ───────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Tab transition enhancement ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  a, button {
+    transition: all 0.15s cubic-bezier(.4,0,.2,1);
+  }
+}

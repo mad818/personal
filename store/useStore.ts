@@ -145,6 +145,21 @@ export interface SystemHealthEntry {
   message:   string
 }
 
+// ── Notification types ─────────────────────────────────────────────────────────
+export type NotificationType = 'threat' | 'market' | 'seismic' | 'weather' | 'system' | 'intel'
+export type NotificationSeverity = 'critical' | 'high' | 'medium' | 'low'
+
+export interface Notification {
+  id:        string
+  type:      NotificationType
+  title:     string
+  message:   string
+  severity:  NotificationSeverity
+  timestamp: number
+  read:      boolean
+  source:    string
+}
+
 // ── Full state interface ───────────────────────────────────────────────────────
 interface NexusState {
   // ── Persisted settings ─────────────────────────────────────────────────────
@@ -251,6 +266,14 @@ interface NexusState {
   setFlights:     (data: any[]) => void
   secFilings:     any[]
   setSecFilings:  (data: any[]) => void
+
+  // ── Notifications ──────────────────────────────────────────────────────────
+  notifications:      Notification[]
+  unreadCount:        number
+  addNotification:    (n: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void
+  markRead:           (id: string) => void
+  markAllRead:        () => void
+  dismissNotification:(id: string) => void
 }
 
 // ── Store ──────────────────────────────────────────────────────────────────────
@@ -461,6 +484,47 @@ export const useStore = create<NexusState>()(
       setFlights:     (data) => set({ flights: data }),
       secFilings:     [],
       setSecFilings:  (data) => set({ secFilings: data }),
+
+      // ── Notifications ──────────────────────────────────────────────────────
+      notifications: [],
+      unreadCount:   0,
+      addNotification: (n) =>
+        set((s) => {
+          const newNotif: Notification = {
+            ...n,
+            id:        Math.random().toString(36).slice(2, 10),
+            timestamp: Date.now(),
+            read:      false,
+          }
+          const updated = [newNotif, ...s.notifications].slice(0, 50)
+          return {
+            notifications: updated,
+            unreadCount:   updated.filter((x) => !x.read).length,
+          }
+        }),
+      markRead: (id) =>
+        set((s) => {
+          const updated = s.notifications.map((n) =>
+            n.id === id ? { ...n, read: true } : n
+          )
+          return {
+            notifications: updated,
+            unreadCount:   updated.filter((x) => !x.read).length,
+          }
+        }),
+      markAllRead: () =>
+        set((s) => ({
+          notifications: s.notifications.map((n) => ({ ...n, read: true })),
+          unreadCount:   0,
+        })),
+      dismissNotification: (id) =>
+        set((s) => {
+          const updated = s.notifications.filter((n) => n.id !== id)
+          return {
+            notifications: updated,
+            unreadCount:   updated.filter((x) => !x.read).length,
+          }
+        }),
     }),
     {
       name:       'nexus-settings',
@@ -479,6 +543,8 @@ export const useStore = create<NexusState>()(
         securityAlerts:  s.securityAlerts,
         vehicles:        s.vehicles,
         automationRules: s.automationRules,
+        // Notifications persisted
+        notifications:   s.notifications,
       }),
     }
   )

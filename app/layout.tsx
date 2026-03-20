@@ -6,7 +6,9 @@ import ErrorBoundary    from '@/components/system/ErrorBoundary'
 import HealthMonitor    from '@/components/system/HealthMonitor'
 import GlobalDataLoader from '@/components/ui/GlobalDataLoader'
 import ParticleBackground from '@/components/ui/ParticleBackground'
-import { PULSE_CSS }    from '@/lib/chartTheme'
+import ToastContainer       from '@/components/ui/Toast'
+import SystemStatusFooter   from '@/components/ui/SystemStatusFooter'
+import { PULSE_CSS }        from '@/lib/chartTheme'
 
 export const metadata: Metadata = {
   title: 'Nexus Prime',
@@ -29,11 +31,23 @@ export default function RootLayout({
           <Nav />
           <GlobalDataLoader />
           <ErrorBoundary>
-            <main style={{ paddingTop: '48px', minHeight: '100vh', position: 'relative', zIndex: 1 }}>
+            <main
+              id="nexus-main"
+              style={{
+                paddingLeft:     'var(--sidebar-width, 220px)',
+                paddingBottom:   '32px',
+                minHeight:       '100vh',
+                position:        'relative',
+                zIndex:          1,
+                transition:      'padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+            >
               {children}
             </main>
           </ErrorBoundary>
           <HealthMonitor />
+          <ToastContainer />
+          <SystemStatusFooter />
         </AuthGate>
       </body>
     </html>

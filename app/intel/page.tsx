@@ -13,6 +13,7 @@ import FlightTracker      from '@/components/intel/FlightTracker'
 import SECActivityChart   from '@/components/intel/SECActivityChart'
 import FlightPathViz      from '@/components/intel/FlightPathViz'
 import OddsDistribution   from '@/components/intel/OddsDistribution'
+import PageTransition     from '@/components/ui/PageTransition'
 
 type Tab = 'markets' | 'sec' | 'flights' | 'strategy'
 
@@ -23,7 +24,7 @@ const TABS: Array<{ id: Tab; label: string; icon: string; desc: string }> = [
   { id: 'strategy', label: 'Strategy Tools',     icon: '🧰', desc: 'Porter 5F · VRIO · BCG' },
 ]
 
-export default function IntelPage() {
+function IntelContent() {
   const [activeTab, setActiveTab] = useState<Tab>('markets')
 
   return (
@@ -134,5 +135,13 @@ export default function IntelPage() {
         </motion.div>
       </AnimatePresence>
     </div>
+  )
+}
+
+export default function IntelPage() {
+  return (
+    <PageTransition>
+      <IntelContent />
+    </PageTransition>
   )
 }

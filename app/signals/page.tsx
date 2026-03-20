@@ -7,6 +7,9 @@ import SentimentGauge     from '@/components/signals/SentimentGauge'
 import SourceDistribution from '@/components/signals/SourceDistribution'
 import TrendingTopics     from '@/components/signals/TrendingTopics'
 import { ArticlesLoader } from '@/components/ui/DataLoader'
+import PageTransition     from '@/components/ui/PageTransition'
+import DataLoadingState   from '@/components/ui/DataLoadingState'
+import { useStore }       from '@/store/useStore'
 
 type FeedTab = 'news' | 'hackernews'
 
@@ -15,8 +18,10 @@ const TABS: { id: FeedTab; label: string }[] = [
   { id: 'hackernews', label: '🟠 Hacker News' },
 ]
 
-export default function SignalsPage() {
+function SignalsContent() {
   const [activeTab, setActiveTab] = useState<FeedTab>('news')
+  const articles   = useStore((s) => s.articles)
+  const hackerNews = useStore((s) => s.hackerNews)
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '18px 16px 40px' }}>
@@ -58,9 +63,25 @@ export default function SignalsPage() {
         ))}
       </div>
 
-      {/* Feed content */}
-      {activeTab === 'news'       && <NewsFeed />}
-      {activeTab === 'hackernews' && <HackerNewsFeed />}
+      {/* Feed content with loading states */}
+      {activeTab === 'news' && (
+        articles.length === 0
+          ? <DataLoadingState dataName="news feed" height={300} />
+          : <NewsFeed />
+      )}
+      {activeTab === 'hackernews' && (
+        hackerNews.length === 0
+          ? <DataLoadingState dataName="Hacker News" height={300} />
+          : <HackerNewsFeed />
+      )}
     </div>
+  )
+}
+
+export default function SignalsPage() {
+  return (
+    <PageTransition>
+      <SignalsContent />
+    </PageTransition>
   )
 }

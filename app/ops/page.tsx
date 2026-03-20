@@ -5,6 +5,8 @@ import ConflictFeed         from '@/components/ops/ConflictFeed'
 import MarketRates          from '@/components/ops/MarketRates'
 import EarthquakeChart      from '@/components/ops/EarthquakeChart'
 import ConflictDensityBar   from '@/components/ops/ConflictDensityBar'
+import PageTransition       from '@/components/ui/PageTransition'
+import DataLoadingState     from '@/components/ui/DataLoadingState'
 import { useStore }         from '@/store/useStore'
 import { CHART }            from '@/lib/chartTheme'
 
@@ -147,30 +149,47 @@ function EarthquakePanel() {
   )
 }
 
+// ── Conflict content (with loading state) ─────────────────────────────────────
+function OpsContent() {
+  const gdeltEvents = useStore((s) => s.gdeltEvents)
+
+  return (
+    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '18px 16px 40px' }}>
+      <div style={{ fontSize: '18px', fontWeight: 900 }}>🌍 GEOPOLITICAL</div>
+      <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px', marginBottom: '16px' }}>
+        Conflict intelligence · Live earthquake map · FX rates · Commodities · OSINT
+      </div>
+
+      {/* New visualization row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+        <ConflictDensityBar />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* placeholder slot for future component */}
+        </div>
+      </div>
+
+      {/* Conflict feed with loading state */}
+      {gdeltEvents.length === 0 ? (
+        <DataLoadingState dataName="conflict events" height={200} />
+      ) : (
+        <ConflictFeed />
+      )}
+
+      <EarthquakePanel />
+      <MarketRates />
+      <OpsMap />
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function OpsPage() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: SEISMIC_CSS }} />
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '18px 16px 40px' }}>
-        <div style={{ fontSize: '18px', fontWeight: 900 }}>🌍 GEOPOLITICAL</div>
-        <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px', marginBottom: '16px' }}>
-          Conflict intelligence · Live earthquake map · FX rates · Commodities · OSINT
-        </div>
-
-        {/* New visualization row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-          <ConflictDensityBar />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* placeholder slot for future component */}
-          </div>
-        </div>
-
-        <ConflictFeed />
-        <EarthquakePanel />
-        <MarketRates />
-        <OpsMap />
-      </div>
+      <PageTransition>
+        <OpsContent />
+      </PageTransition>
     </>
   )
 }

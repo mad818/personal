@@ -3,10 +3,12 @@
 // ── components/skills/LearningLog.tsx ─────────────────────────────────────────
 // NEXUS PRIME — Learning Log: animated timeline of system learning events
 // with filtering, export, and real-time entry injection from training actions.
+// Wired to getLearningHistory() from skillCycle for persisted session events.
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DEFAULT_LEARNING_LOG, type LearningEvent } from '@/lib/skillEngine'
+import { getLearningHistory } from '@/lib/skillCycle'
 
 // ── Event type config ─────────────────────────────────────────────────────────
 const EVENT_META: Record<LearningEvent['type'], { label: string; color: string; icon: string }> = {
@@ -30,7 +32,7 @@ function fmtTime(ts: number): string {
 
 // ── Single log entry ──────────────────────────────────────────────────────────
 function LogEntry({ event, isNew }: { event: LearningEvent; isNew?: boolean }) {
-  const meta = EVENT_META[event.type]
+  const meta = EVENT_META[event.type] ?? EVENT_META['improved']
 
   return (
     <motion.div
@@ -180,16 +182,34 @@ export default function LearningLog({
 }: {
   newEvent?: LearningEvent | null
 }) {
-  const [events, setEvents] = useState<LearningEvent[]>(DEFAULT_LEARNING_LOG)
+  // Start with DEFAULT_LEARNING_LOG, accumulate new events on top
+  const [events, setEvents] = useState<LearningEvent[]>(() => {
+    // Merge default log with any events persisted in localStorage
+    try {
+      const persisted = getLearningHistory(undefined, 100)
+      if (persisted.length > 0) {
+        // Merge: persisted (most recent first) + defaults not already present
+        const persistedIds = new Set(persisted.map(e => e.id))
+        const defaultsNotPresent = DEFAULT_LEARNING_LOG.filter(e => !persistedIds.has(e.id))
+        return [...persisted, ...defaultsNotPresent]
+      }
+    } catch {
+      // localStorage unavailable
+    }
+    return DEFAULT_LEARNING_LOG
+  })
   const [newIds, setNewIds] = useState<Set<string>>(new Set())
   const [filter, setFilter] = useState<LearningEvent['type'] | 'all'>('all')
+  const [sessionCount, setSessionCount] = useState(0)
   const topRef = useRef<HTMLDivElement>(null)
+  const mountTime = useRef(Date.now())
 
-  // Inject new event from training
+  // Inject new event from training (via prop)
   useEffect(() => {
     if (!newEvent) return
     setEvents(prev => [newEvent, ...prev])
     setNewIds(prev => { const s = new Set(Array.from(prev)); s.add(newEvent.id); return s })
+    setSessionCount(c => c + 1)
     setTimeout(() => {
       setNewIds(prev => {
         const next = new Set(prev)
@@ -199,6 +219,27 @@ export default function LearningLog({
     }, 8000)
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [newEvent])
+
+  // Poll localStorage for new events added by other components
+  useEffect(() => {
+    const interval = setInterval(() => {
+      try {
+        const latest = getLearningHistory(undefined, 5)
+        const sessionNew = latest.filter(e => e.timestamp > mountTime.current)
+        if (sessionNew.length > 0) {
+          setEvents(prev => {
+            const existingIds = new Set(prev.map(e => e.id))
+            const toAdd = sessionNew.filter(e => !existingIds.has(e.id))
+            if (toAdd.length === 0) return prev
+            return [...toAdd, ...prev]
+          })
+        }
+      } catch {
+        // ignore
+      }
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleClear = useCallback(() => {
     setEvents([])
@@ -251,8 +292,21 @@ export default function LearningLog({
           }}>
             Learning Log
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '1px' }}>
-            {events.length} events · {totalXP.toLocaleString()} XP accumulated
+          <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '1px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span>{events.length} events · {totalXP.toLocaleString()} XP accumulated</span>
+            {sessionCount > 0 && (
+              <span style={{
+                padding: '1px 6px',
+                borderRadius: '4px',
+                background: 'var(--accent)18',
+                color: 'var(--accent)',
+                fontWeight: 700,
+                fontSize: '9px',
+                textTransform: 'uppercase',
+              }}>
+                +{sessionCount} this session
+              </span>
+            )}
           </div>
         </div>
 

@@ -2,11 +2,20 @@
 
 // ── components/skills/KnowledgeBase.tsx ──────────────────────────────────────
 // NEXUS PRIME — Knowledge Base: searchable, filterable repository of system-
-// acquired knowledge entries, categorized and scored by relevance.
+// acquired knowledge entries wired to memoryStore (IndexedDB) for real
+// persistence. Search uses recall(), new entries use remember().
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DEFAULT_KNOWLEDGE, type KnowledgeEntry } from '@/lib/skillEngine'
+import {
+  remember,
+  recall,
+  exportMemories,
+  importMemories,
+  type Memory,
+  type MemoryType,
+} from '@/lib/memoryStore'
 
 // ── Category config ───────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -32,6 +41,27 @@ const CATEGORY_COLORS: Record<string, string> = {
   'IoT Configurations':  '#818cf8',
   'Market Strategies':   '#10b981',
   'System Architecture': 'var(--blush)',
+}
+
+// ── Memory type → category mapping ───────────────────────────────────────────
+const MEMORY_TYPE_CATEGORY: Record<MemoryType, string> = {
+  fact:       'System Architecture',
+  preference: 'System Architecture',
+  episode:    'Security Protocols',
+  skill_note: 'System Architecture',
+}
+
+function memoryToKnowledge(mem: Memory): KnowledgeEntry {
+  const category = MEMORY_TYPE_CATEGORY[mem.type] ?? 'System Architecture'
+  return {
+    id: mem.id,
+    title: mem.content.slice(0, 60) + (mem.content.length > 60 ? '…' : ''),
+    category,
+    content: mem.content,
+    tags: mem.tags,
+    dateAdded: new Date(mem.timestamp).toISOString(),
+    relevanceScore: Math.round(mem.relevanceScore * 100),
+  }
 }
 
 // ── Format date ────────────────────────────────────────────────────────────────
@@ -197,20 +227,47 @@ function AddModal({ onClose, onAdd }: {
     content: '',
     tags: '',
   })
+  const [saving, setSaving] = useState(false)
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.title.trim() || !form.content.trim()) return
-    const entry: KnowledgeEntry = {
-      id: `kb-${Date.now()}`,
-      title: form.title.trim(),
-      category: form.category,
-      content: form.content.trim(),
-      tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
-      dateAdded: new Date().toISOString(),
-      relevanceScore: Math.floor(Math.random() * 30 + 65),
+    setSaving(true)
+    try {
+      const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean)
+      // Persist to IndexedDB via remember()
+      const mem = await remember(
+        form.content.trim(),
+        'fact',
+        tags,
+        'user'
+      )
+      const entry: KnowledgeEntry = {
+        id: mem.id,
+        title: form.title.trim(),
+        category: form.category,
+        content: form.content.trim(),
+        tags,
+        dateAdded: new Date(mem.timestamp).toISOString(),
+        relevanceScore: Math.floor(Math.random() * 30 + 65),
+      }
+      onAdd(entry)
+      onClose()
+    } catch {
+      // Fallback: add without IndexedDB
+      const entry: KnowledgeEntry = {
+        id: `kb-${Date.now()}`,
+        title: form.title.trim(),
+        category: form.category,
+        content: form.content.trim(),
+        tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+        dateAdded: new Date().toISOString(),
+        relevanceScore: Math.floor(Math.random() * 30 + 65),
+      }
+      onAdd(entry)
+      onClose()
+    } finally {
+      setSaving(false)
     }
-    onAdd(entry)
-    onClose()
   }
 
   const inputStyle = {
@@ -325,6 +382,7 @@ function AddModal({ onClose, onAdd }: {
           </button>
           <button
             onClick={handleSubmit}
+            disabled={saving}
             style={{
               padding: '8px 20px',
               borderRadius: '6px',
@@ -333,12 +391,12 @@ function AddModal({ onClose, onAdd }: {
               color: 'var(--accent)',
               fontSize: '11px',
               fontWeight: 700,
-              cursor: 'pointer',
+              cursor: saving ? 'not-allowed' : 'pointer',
               textTransform: 'uppercase',
               letterSpacing: '0.4px',
             }}
           >
-            Add Entry
+            {saving ? 'Saving…' : 'Add Entry'}
           </button>
         </div>
       </motion.div>
@@ -346,13 +404,61 @@ function AddModal({ onClose, onAdd }: {
   )
 }
 
+// ── Memory Search Results ─────────────────────────────────────────────────────
+function MemoryResults({ results }: { results: Memory[] }) {
+  if (results.length === 0) return null
+  return (
+    <div style={{
+      background: 'var(--surf)',
+      border: '1px solid var(--border2)',
+      borderRadius: '8px',
+      padding: '10px 12px',
+      marginBottom: '12px',
+    }}>
+      <div style={{ fontSize: '10px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', fontWeight: 700 }}>
+        Memory Recall — {results.length} found
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '160px', overflowY: 'auto' }}>
+        {results.map(mem => (
+          <div key={mem.id} style={{
+            padding: '6px 8px',
+            background: 'var(--surf2)',
+            borderRadius: '5px',
+            border: '1px solid var(--border)',
+          }}>
+            <div style={{ fontSize: '10px', color: 'var(--text2)', lineHeight: 1.4 }}>
+              {mem.content.slice(0, 120)}{mem.content.length > 120 ? '…' : ''}
+            </div>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '4px', alignItems: 'center' }}>
+              <span style={{ fontSize: '8px', fontWeight: 700, color: 'var(--gold)', textTransform: 'uppercase' }}>{mem.type}</span>
+              {mem.tags.slice(0, 3).map(t => (
+                <span key={t} style={{ fontSize: '8px', color: 'var(--text3)', fontFamily: 'monospace' }}>#{t}</span>
+              ))}
+              <span style={{ fontSize: '8px', color: 'var(--text3)', marginLeft: 'auto' }}>
+                rel: {(mem.relevanceScore * 100).toFixed(0)}%
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Main KnowledgeBase export ──────────────────────────────────────────────────
 export default function KnowledgeBase() {
   const [entries, setEntries] = useState<KnowledgeEntry[]>(DEFAULT_KNOWLEDGE)
   const [search, setSearch] = useState('')
+  const [memorySearch, setMemorySearch] = useState('')
+  const [memoryResults, setMemoryResults] = useState<Memory[]>([])
+  const [memorySearching, setMemorySearching] = useState(false)
   const [activeCategory, setActiveCategory] = useState('All')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [importStatus, setImportStatus] = useState<string | null>(null)
+  const [remembering, setRemembering] = useState(false)
+  const [newMemoryText, setNewMemoryText] = useState('')
+  const [showRememberInput, setShowRememberInput] = useState(false)
 
   // Filter and search
   const filtered = useMemo(() => {
@@ -382,6 +488,76 @@ export default function KnowledgeBase() {
     entries.forEach(e => { counts[e.category] = (counts[e.category] ?? 0) + 1 })
     return counts
   }, [entries])
+
+  // Search memories via recall()
+  const handleMemorySearch = useCallback(async () => {
+    if (!memorySearch.trim()) return
+    setMemorySearching(true)
+    try {
+      const results = await recall(memorySearch.trim(), 10)
+      setMemoryResults(results)
+    } catch {
+      setMemoryResults([])
+    } finally {
+      setMemorySearching(false)
+    }
+  }, [memorySearch])
+
+  // Remember new fact
+  const handleRemember = useCallback(async () => {
+    if (!newMemoryText.trim()) return
+    setRemembering(true)
+    try {
+      await remember(newMemoryText.trim(), 'fact', [], 'user')
+      setNewMemoryText('')
+      setShowRememberInput(false)
+      setImportStatus('Memory stored successfully')
+      setTimeout(() => setImportStatus(null), 3000)
+    } catch {
+      setImportStatus('Error: IndexedDB unavailable')
+      setTimeout(() => setImportStatus(null), 3000)
+    } finally {
+      setRemembering(false)
+    }
+  }, [newMemoryText])
+
+  // Export memories
+  const handleExport = useCallback(async () => {
+    try {
+      const json = await exportMemories()
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `nexus-memories-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      setImportStatus('Error exporting memories')
+      setTimeout(() => setImportStatus(null), 3000)
+    }
+  }, [])
+
+  // Import memories
+  const handleImport = useCallback(async () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json'
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (!file) return
+      try {
+        const text = await file.text()
+        const result = await importMemories(text)
+        setImportStatus(`Imported ${result.imported} memories (${result.skipped} skipped)`)
+        setTimeout(() => setImportStatus(null), 5000)
+      } catch (err) {
+        setImportStatus(`Import failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+        setTimeout(() => setImportStatus(null), 5000)
+      }
+    }
+    input.click()
+  }, [])
 
   return (
     <div style={{
@@ -413,28 +589,224 @@ export default function KnowledgeBase() {
             {entries.length} entries · system-acquired knowledge
           </div>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          onClick={() => setShowModal(true)}
-          style={{
-            fontSize: '10px',
-            fontWeight: 700,
-            padding: '6px 14px',
-            borderRadius: '6px',
-            border: '1px solid var(--accent)',
-            background: 'var(--accent)18',
-            color: 'var(--accent)',
-            cursor: 'pointer',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}
-        >
-          + Add Knowledge
-        </motion.button>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {/* Remember button */}
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => setShowRememberInput(v => !v)}
+            style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: '1px solid var(--gold)',
+              background: 'var(--gold)18',
+              color: 'var(--gold)',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            ★ Remember
+          </motion.button>
+          {/* Export memories button */}
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={handleExport}
+            style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: '1px solid var(--border2)',
+              background: 'var(--surf)',
+              color: 'var(--text2)',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            ↓ Export
+          </motion.button>
+          {/* Import memories button */}
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={handleImport}
+            style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: '1px solid var(--border2)',
+              background: 'var(--surf)',
+              color: 'var(--text2)',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            ↑ Import
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => setShowModal(true)}
+            style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              padding: '6px 14px',
+              borderRadius: '6px',
+              border: '1px solid var(--accent)',
+              background: 'var(--accent)18',
+              color: 'var(--accent)',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            + Add Knowledge
+          </motion.button>
+        </div>
       </div>
 
-      {/* Search bar */}
+      {/* Status message */}
+      <AnimatePresence>
+        {importStatus && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            style={{
+              padding: '8px 12px',
+              background: 'var(--surf)',
+              border: '1px solid var(--border2)',
+              borderRadius: '7px',
+              fontSize: '11px',
+              color: 'var(--text2)',
+              marginBottom: '12px',
+            }}
+          >
+            {importStatus}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Remember input (inline) */}
+      <AnimatePresence>
+        {showRememberInput && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            style={{ marginBottom: '12px', overflow: 'hidden' }}
+          >
+            <div style={{
+              background: 'var(--surf)',
+              border: '1px solid var(--gold)44',
+              borderRadius: '8px',
+              padding: '10px 12px',
+              display: 'flex',
+              gap: '8px',
+              alignItems: 'flex-end',
+            }}>
+              <textarea
+                value={newMemoryText}
+                onChange={e => setNewMemoryText(e.target.value)}
+                placeholder="Enter a fact to remember permanently (stored in IndexedDB)…"
+                rows={2}
+                style={{
+                  flex: 1,
+                  background: 'var(--surf2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '5px',
+                  padding: '6px 8px',
+                  color: 'var(--text)',
+                  fontSize: '11px',
+                  outline: 'none',
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                }}
+              />
+              <button
+                onClick={handleRemember}
+                disabled={remembering || !newMemoryText.trim()}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '5px',
+                  border: '1px solid var(--gold)',
+                  background: 'var(--gold)18',
+                  color: 'var(--gold)',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  cursor: remembering || !newMemoryText.trim() ? 'not-allowed' : 'pointer',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {remembering ? 'Storing…' : 'Store'}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Memory search (IndexedDB recall) */}
+      <div style={{
+        background: 'var(--surf)',
+        border: '1px solid var(--border)',
+        borderRadius: '8px',
+        padding: '10px 12px',
+        marginBottom: '12px',
+      }}>
+        <div style={{ fontSize: '10px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px', fontWeight: 700 }}>
+          ◈ Search Memories (IndexedDB)
+        </div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <input
+            value={memorySearch}
+            onChange={e => setMemorySearch(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleMemorySearch()}
+            placeholder="Search persistent memory store…"
+            style={{
+              flex: 1,
+              background: 'var(--surf2)',
+              border: '1px solid var(--border)',
+              borderRadius: '5px',
+              padding: '6px 8px',
+              color: 'var(--text)',
+              fontSize: '11px',
+              outline: 'none',
+              fontFamily: 'inherit',
+            }}
+          />
+          <button
+            onClick={handleMemorySearch}
+            disabled={memorySearching}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '5px',
+              border: '1px solid var(--border2)',
+              background: 'var(--surf2)',
+              color: 'var(--text2)',
+              fontSize: '10px',
+              fontWeight: 700,
+              cursor: memorySearching ? 'not-allowed' : 'pointer',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {memorySearching ? '…' : 'Recall'}
+          </button>
+        </div>
+      </div>
+
+      {/* Memory search results */}
+      <MemoryResults results={memoryResults} />
+
+      {/* Knowledge search bar */}
       <div style={{
         position: 'relative',
         marginBottom: '12px',

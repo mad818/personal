@@ -231,6 +231,26 @@ interface NexusState {
   removeRule:      (id: string) => void
   updateRule:      (id: string, updates: Partial<AutomationRule>) => void
   toggleRule:      (id: string) => void
+
+  // ── New live data ──────────────────────────────────────────────────────────
+  earthquakes:    any[]
+  setEarthquakes: (data: any[]) => void
+  threatIntel:    { threatfox: any[]; shodan: any | null }
+  setThreatIntel: (data: { threatfox: any[]; shodan: any | null }) => void
+  gdeltEvents:    any[]
+  setGdeltEvents: (data: any[]) => void
+  weather:        any | null
+  setWeather:     (data: any) => void
+  fearGreed:      { current: any; history: any[] } | null
+  setFearGreed:   (data: { current: any; history: any[] }) => void
+  defiData:       { protocols: any[]; stablecoins: any[]; yields: any[] }
+  setDefiData:    (data: { protocols: any[]; stablecoins: any[]; yields: any[] }) => void
+  hackerNews:     any[]
+  setHackerNews:  (data: any[]) => void
+  flights:        any[]
+  setFlights:     (data: any[]) => void
+  secFilings:     any[]
+  setSecFilings:  (data: any[]) => void
 }
 
 // ── Store ──────────────────────────────────────────────────────────────────────
@@ -421,6 +441,26 @@ export const useStore = create<NexusState>()(
             r.id === id ? { ...r, enabled: !r.enabled } : r
           ),
         })),
+
+      // ── New live data defaults & setters ───────────────────────────────
+      earthquakes:    [],
+      setEarthquakes: (data) => set({ earthquakes: data }),
+      threatIntel:    { threatfox: [], shodan: null },
+      setThreatIntel: (data) => set({ threatIntel: data }),
+      gdeltEvents:    [],
+      setGdeltEvents: (data) => set({ gdeltEvents: data }),
+      weather:        null,
+      setWeather:     (data) => set({ weather: data }),
+      fearGreed:      null,
+      setFearGreed:   (data) => set({ fearGreed: data }),
+      defiData:       { protocols: [], stablecoins: [], yields: [] },
+      setDefiData:    (data) => set({ defiData: data }),
+      hackerNews:     [],
+      setHackerNews:  (data) => set({ hackerNews: data }),
+      flights:        [],
+      setFlights:     (data) => set({ flights: data }),
+      secFilings:     [],
+      setSecFilings:  (data) => set({ secFilings: data }),
     }),
     {
       name:       'nexus-settings',

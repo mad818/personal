@@ -1,6 +1,7 @@
-import CVEFeed   from '@/components/cyber/CVEFeed'
-import OTXFeed   from '@/components/cyber/OTXFeed'
-import CISAFeed  from '@/components/cyber/CISAFeed'
+import CVEFeed         from '@/components/cyber/CVEFeed'
+import OTXFeed         from '@/components/cyber/OTXFeed'
+import CISAFeed        from '@/components/cyber/CISAFeed'
+import ThreatIntelFeed from '@/components/cyber/ThreatIntelFeed'
 import { CVEsLoader, OTXLoader } from '@/components/ui/DataLoader'
 
 export default function CyberPage() {
@@ -49,6 +50,17 @@ export default function CyberPage() {
           CISA Known Exploited Vulnerabilities (KEV)
         </div>
         <CISAFeed />
+      </div>
+
+      {/* ThreatFox IOC Intelligence */}
+      <div style={{ marginTop: '20px' }}>
+        <div style={{
+          fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
+          letterSpacing: '0.8px', marginBottom: '10px',
+        }}>
+          ThreatFox IOC Intelligence
+        </div>
+        <ThreatIntelFeed />
       </div>
 
     </div>

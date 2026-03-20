@@ -31,11 +31,15 @@ function quickScore(spark: number[], chg24h: number, vol: number, mcap: number):
 }
 
 export default function KPICards() {
-  const prices     = useStore((s) => s.prices)
-  const sparklines = useStore((s) => s.sparklines)
-  const signals    = useStore((s) => s.signals)
-  const cves       = useStore((s) => s.cves)
-  const worldRisk  = useStore((s) => s.worldRisk)
+  const prices      = useStore((s) => s.prices)
+  const sparklines  = useStore((s) => s.sparklines)
+  const signals     = useStore((s) => s.signals)
+  const cves        = useStore((s) => s.cves)
+  const worldRisk   = useStore((s) => s.worldRisk)
+  const earthquakes = useStore((s) => s.earthquakes)
+  const threatIntel = useStore((s) => s.threatIntel)
+  const weather     = useStore((s) => s.weather)
+  const fearGreed   = useStore((s) => s.fearGreed)
 
   const btc = prices['bitcoin']
   const fg  = signals?.fg
@@ -47,6 +51,25 @@ export default function KPICards() {
       return score >= 60
     }).length
   }, [prices, sparklines])
+
+  // Prefer store.fearGreed (live), fall back to signals.fg (legacy)
+  const fgVal   = fearGreed?.current?.value != null
+    ? Number(fearGreed.current.value)
+    : fg?.value ?? null
+  const fgLabel = fearGreed?.current?.value_classification
+    ?? fg?.label
+    ?? 'Market mood'
+
+  // Weather display helpers
+  const weatherTemp = weather?.current?.temperature_2m
+    ?? weather?.current?.temp
+    ?? weather?.temp
+    ?? null
+  const weatherDesc = weather?.current?.weathercode != null
+    ? `Code ${weather.current.weathercode}`
+    : weather?.description
+    ?? weather?.current?.condition?.text
+    ?? ''
 
   const cards: KPICard[] = [
     {
@@ -74,14 +97,28 @@ export default function KPICards() {
       cls: cves.length > 20 ? 'dn' : cves.length > 10 ? 'neutral' : 'up',
     },
     {
-      icon: '🔔', label: 'Alerts',
-      val: '—', sub: 'No alerts',
+      icon: '🌊', label: 'Seismic Events',
+      val: earthquakes.length ? String(earthquakes.length) : '—',
+      sub: earthquakes.length ? 'Recent earthquakes' : 'Loading…',
+      cls: earthquakes.length > 30 ? 'dn' : earthquakes.length > 10 ? 'neutral' : 'up',
     },
     {
+      icon: '🦠', label: 'Active Threats',
+      val: threatIntel.threatfox.length ? String(threatIntel.threatfox.length) : '—',
+      sub: threatIntel.threatfox.length ? 'ThreatFox IOCs' : 'Loading…',
+      cls: threatIntel.threatfox.length > 50 ? 'dn' : threatIntel.threatfox.length > 20 ? 'neutral' : 'up',
+    },
+    ...(weatherTemp != null ? [{
+      icon: '🌡️', label: 'Weather',
+      val: `${Math.round(weatherTemp)}°`,
+      sub: weatherDesc || 'Current conditions',
+      cls: 'neutral' as const,
+    }] : []),
+    {
       icon: '😱', label: 'Fear & Greed',
-      val: fg?.value != null ? String(fg.value) : '—',
-      sub: fg?.label ?? 'Market mood',
-      cls: fg?.value != null ? (fg.value >= 60 ? 'up' : fg.value <= 35 ? 'dn' : 'neutral') : 'neutral',
+      val: fgVal != null ? String(fgVal) : '—',
+      sub: fgLabel,
+      cls: fgVal != null ? (fgVal >= 60 ? 'up' : fgVal <= 35 ? 'dn' : 'neutral') : 'neutral',
     },
   ]
 
@@ -134,7 +171,7 @@ export default function KPICards() {
           <div style={{ fontSize: '10px', color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px' }}>{c.label}</div>
           <div style={{ fontSize: '20px', fontWeight: 900, color: color(c.cls), fontFamily: 'monospace', margin: '2px 0' }}>{c.val}</div>
           <div style={{ fontSize: '10.5px', color: 'var(--text3)' }}>{c.sub}</div>
-          {c.label === 'Fear & Greed' && fg?.value != null && <FGMeter value={fg.value} />}
+          {c.label === 'Fear & Greed' && fgVal != null && <FGMeter value={fgVal} />}
           {c.label === 'World Risk' && worldRisk > 0 && <RiskMeter value={worldRisk} />}
         </div>
       ))}

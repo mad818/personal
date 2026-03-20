@@ -2,14 +2,15 @@
 
 // ── components/skills/SystemBrain.tsx ─────────────────────────────────────────
 // NEXUS PRIME — System Brain: neural network visualization, central system
-// metrics, and self-improvement queue for the intelligence subsystem.
+// metrics, knowledge graph hubs, and skill clusters from real knowledgeGraph lib.
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   DEFAULT_SKILLS,
   getSystemHealthFromSkills,
 } from '@/lib/skillEngine'
+import { buildGraph, getHubSkills, getSkillClusters } from '@/lib/knowledgeGraph'
 
 // ── Neural network node data ──────────────────────────────────────────────────
 const INPUT_NODES = [
@@ -27,54 +28,30 @@ const PROC_NODES = [
 ]
 
 const OUTPUT_NODES = [
-  { id: 'out-alerts',  label: 'Alerts',    icon: '🔔', active: true },
-  { id: 'out-actions', label: 'Actions',   icon: '▶',  active: false },
+  { id: 'out-alerts',    label: 'Alerts',    icon: '🔔', active: true },
+  { id: 'out-actions',   label: 'Actions',   icon: '▶',  active: false },
   { id: 'out-knowledge', label: 'Knowledge', icon: '💡', active: true },
-]
-
-// ── Improvement queue ─────────────────────────────────────────────────────────
-const IMPROVEMENT_QUEUE = [
-  {
-    id: 'imp-001',
-    task: 'Optimize camera detection model — current accuracy 73%',
-    priority: 'High' as const,
-    improvement: '+12%',
-    category: 'PHYSICAL SECURITY',
-  },
-  {
-    id: 'imp-002',
-    task: 'Update threat intel feeds — 3 new sources identified',
-    priority: 'High' as const,
-    improvement: '+8%',
-    category: 'CYBERSECURITY',
-  },
-  {
-    id: 'imp-003',
-    task: 'Retrain sentiment model with recent market data',
-    priority: 'Medium' as const,
-    improvement: '+6%',
-    category: 'MARKET INTELLIGENCE',
-  },
-  {
-    id: 'imp-004',
-    task: 'Calibrate sensor fusion weights for new thermal camera',
-    priority: 'Medium' as const,
-    improvement: '+9%',
-    category: 'AUTONOMOUS VEHICLES',
-  },
-  {
-    id: 'imp-005',
-    task: 'Expand automation rule coverage for nighttime scenarios',
-    priority: 'Low' as const,
-    improvement: '+4%',
-    category: 'IoT & AUTOMATION',
-  },
 ]
 
 const PRIORITY_COLORS = {
   High:   'var(--accent)',
   Medium: 'var(--gold)',
   Low:    'var(--text3)',
+}
+
+// ── Improvement queue — derived from skill success rates ──────────────────────
+function buildImprovementQueue(skills: typeof DEFAULT_SKILLS) {
+  return skills
+    .filter(s => s.successRate < 0.80)
+    .sort((a, b) => a.successRate - b.successRate)
+    .slice(0, 5)
+    .map((s, i) => ({
+      id: `imp-${s.id}`,
+      task: `Improve ${s.name} — current success rate ${Math.round(s.successRate * 100)}%`,
+      priority: i === 0 ? 'High' as const : i <= 2 ? 'Medium' as const : 'Low' as const,
+      improvement: `+${Math.round((0.90 - s.successRate) * 100)}%`,
+      category: s.category,
+    }))
 }
 
 // ── Simulated live metrics ─────────────────────────────────────────────────────
@@ -150,7 +127,6 @@ function NeuralNode({
         }}
       >
         {icon}
-        {/* Active indicator dot */}
         {active && (
           <motion.div
             animate={{ opacity: [1, 0.3, 1] }}
@@ -272,20 +248,29 @@ function MetricTile({
 export default function SystemBrain() {
   const { uptimeStr, memUsed } = useSystemMetrics()
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
-  const [activeQueue, setActiveQueue] = useState<typeof IMPROVEMENT_QUEUE[0] | null>(null)
+  const [activeQueue, setActiveQueue] = useState<{ id: string; task: string; priority: 'High' | 'Medium' | 'Low'; improvement: string; category: string } | null>(null)
 
   const skills = DEFAULT_SKILLS
   const totalSkills = skills.length
   const avgLevel = Math.round(skills.reduce((s, sk) => s + sk.level, 0) / skills.length)
   const healthScore = getSystemHealthFromSkills(skills)
-
-  const pendingImprovements = IMPROVEMENT_QUEUE.filter(i => !dismissedIds.has(i.id))
-
-  // Last learning event: 18m ago
-  const lastEvent = '18m ago'
-  const learningRate = '3.2 skills/day'
-
   const healthColor = healthScore >= 75 ? 'var(--gold)' : healthScore >= 50 ? 'var(--accent)' : 'var(--text3)'
+
+  // Build real knowledge graph
+  const graph = useMemo(() => buildGraph(skills), [skills])
+  const hubSkills = useMemo(() => getHubSkills(graph, skills, 5, 2), [graph, skills])
+  const clusters = useMemo(() => getSkillClusters(graph, skills, 5), [graph, skills])
+
+  // Build improvement queue from real skill data
+  const improvementQueue = useMemo(() => buildImprovementQueue(skills), [skills])
+  const pendingImprovements = improvementQueue.filter(i => !dismissedIds.has(i.id))
+
+  // Last learning event timing
+  const lastEvent = '18m ago'
+  const learningRate = `${(skills.filter(s => s.totalRuns > 100).length / skills.length * 5).toFixed(1)} skills/day`
+
+  // Graph stats
+  const totalEdges = Array.from(graph.values()).reduce((sum, neighbors) => sum + neighbors.size, 0) / 2
 
   return (
     <div style={{
@@ -424,7 +409,7 @@ export default function SystemBrain() {
             <MetricTile
               label="Total Skills"
               value={String(totalSkills)}
-              sub="across 6 domains"
+              sub={`across ${new Set(skills.map(s => s.category)).size} domains`}
               color="var(--text)"
             />
             <MetricTile
@@ -434,8 +419,9 @@ export default function SystemBrain() {
               color="var(--accent)"
             />
             <MetricTile
-              label="Learning Rate"
-              value={learningRate}
+              label="Graph Edges"
+              value={String(Math.round(totalEdges))}
+              sub={`${clusters.length} clusters`}
               color="var(--gold)"
             />
             <MetricTile
@@ -476,6 +462,125 @@ export default function SystemBrain() {
               CVE Analysis optimized — {lastEvent}
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Knowledge Hubs section */}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{
+          fontSize: '11px',
+          fontWeight: 700,
+          color: 'var(--text3)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.7px',
+          marginBottom: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          Knowledge Hubs
+          <span style={{
+            fontSize: '10px',
+            fontFamily: 'monospace',
+            color: 'var(--gold)',
+            fontWeight: 700,
+          }}>
+            {hubSkills.length} most connected
+          </span>
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+          gap: '6px',
+        }}>
+          {hubSkills.map((hub, i) => (
+            <div key={hub.skillId} style={{
+              background: 'var(--surf)',
+              border: `1px solid ${i === 0 ? 'var(--gold)44' : 'var(--border)'}`,
+              borderRadius: '8px',
+              padding: '8px 10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}>
+              <div style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
+                background: i === 0 ? 'var(--gold)22' : 'var(--surf2)',
+                border: `1px solid ${i === 0 ? 'var(--gold)66' : 'var(--border2)'}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '10px',
+                fontWeight: 900,
+                fontFamily: 'monospace',
+                color: i === 0 ? 'var(--gold)' : 'var(--text3)',
+                flexShrink: 0,
+              }}>
+                {hub.connections}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2 }}>
+                  {hub.skillName}
+                </div>
+                <div style={{ fontSize: '8px', color: 'var(--text3)', marginTop: '1px' }}>
+                  centrality {(hub.centrality * 100).toFixed(0)}%
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Skill Clusters section */}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{
+          fontSize: '11px',
+          fontWeight: 700,
+          color: 'var(--text3)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.7px',
+          marginBottom: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          Skill Clusters
+          <span style={{
+            fontSize: '10px',
+            fontFamily: 'monospace',
+            color: 'var(--blush)',
+            fontWeight: 700,
+          }}>
+            {clusters.length} detected
+          </span>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          gap: '6px',
+          flexWrap: 'wrap',
+        }}>
+          {clusters.slice(0, 8).map(cluster => (
+            <div key={cluster.id} style={{
+              padding: '4px 10px',
+              borderRadius: '5px',
+              background: 'var(--surf)',
+              border: '1px solid var(--border)',
+              fontSize: '10px',
+              color: 'var(--text2)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}>
+              <span style={{ color: 'var(--blush)', fontWeight: 700, fontFamily: 'monospace', fontSize: '9px' }}>
+                {cluster.skillIds.length}
+              </span>
+              <span>{cluster.label}</span>
+            </div>
+          ))}
         </div>
       </div>
 

@@ -28,13 +28,50 @@ const SEV_LABEL = (n: number) =>
   n >= 3 ? 'HIGH' : n >= 2 ? 'MED' : 'LOW'
 
 export default function EventRadar() {
-  const articles  = useStore((s) => s.articles)
+  const articles    = useStore((s) => s.articles)
+  const gdeltEvents = useStore((s) => s.gdeltEvents)
+  const earthquakes = useStore((s) => s.earthquakes)
 
-  const events = articles
+  // Merge standard articles with GDELT events into a unified event list
+  const gdeltArticles: Article[] = gdeltEvents.slice(0, 30).map((g: any, i: number) => ({
+    id:    `gdelt-${i}`,
+    title: g.title ?? '',
+    desc:  g.domain ?? '',
+    link:  g.url ?? '#',
+    date:  g.seendate ?? g.publishdate ?? '',
+    src:   'GDELT',
+    cat:   'world',
+  }))
+
+  // Top earthquakes as events (M5+)
+  const quakeEvents: Article[] = earthquakes
+    .filter((eq: any) => {
+      const mag = eq.magnitude ?? eq.mag ?? eq.properties?.mag ?? 0
+      return mag >= 5
+    })
+    .slice(0, 10)
+    .map((eq: any, i: number) => {
+      const mag   = eq.magnitude ?? eq.mag ?? eq.properties?.mag ?? 0
+      const place = eq.place ?? eq.location ?? eq.properties?.place ?? 'Unknown'
+      const ts    = eq.time ?? eq.properties?.time ?? ''
+      return {
+        id:    `quake-${i}`,
+        title: `M${typeof mag === 'number' ? mag.toFixed(1) : mag} earthquake — ${place}`,
+        desc:  '',
+        link:  '#',
+        date:  ts ? new Date(typeof ts === 'number' ? ts : ts).toISOString() : '',
+        src:   'USGS',
+        cat:   'world',
+      }
+    })
+
+  const allSources = [...articles, ...gdeltArticles, ...quakeEvents]
+
+  const events = allSources
     .map((a: Article) => ({ ...a, risk: riskScore(a.title) }))
     .filter((a) => a.risk >= 1)
     .sort((a, b) => b.risk - a.risk)
-    .slice(0, 8)
+    .slice(0, 10)
 
   if (!events.length) return null
 

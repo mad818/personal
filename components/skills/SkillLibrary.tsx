@@ -2,19 +2,25 @@
 
 // ── components/skills/SkillLibrary.tsx ────────────────────────────────────────
 // NEXUS PRIME — Skill Library: category grid of skills with level bars,
-// status badges, and interactive "Train" button that simulates learning.
+// status badges, and interactive "Train" button wired to real observeSkill().
+// Route Task search input uses routeTask() to highlight matching skills.
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   DEFAULT_SKILLS,
   getSkillStatus,
   getStatusColor,
   getSkillBarGradient,
-  simulateLearning,
+  getSkillTier,
   type Skill,
   type LearningEvent,
 } from '@/lib/skillEngine'
+import {
+  observeSkill,
+  routeTask,
+  configureSkillCycle,
+} from '@/lib/skillCycle'
 
 // ── Category icons ─────────────────────────────────────────────────────────────
 const CATEGORY_ICONS: Record<string, string> = {
@@ -65,10 +71,12 @@ function SkillCard({
   skill,
   onTrain,
   training,
+  highlighted,
 }: {
   skill: Skill
   onTrain: (skill: Skill) => void
   training: boolean
+  highlighted: boolean
 }) {
   const status = getSkillStatus(skill.level)
   const statusColor = getStatusColor(skill.level)
@@ -78,19 +86,23 @@ function SkillCard({
     : hoursAgo < 24
     ? `${hoursAgo}h ago`
     : `${Math.round(hoursAgo / 24)}d ago`
+  const successPct = Math.round((skill.successRate ?? 0) * 100)
+  const srColor = successPct >= 85 ? 'var(--fhi)' : successPct >= 65 ? 'var(--gold)' : 'var(--flo)'
 
   return (
     <motion.div
       layout
       style={{
-        background: 'var(--surf)',
-        border: `1px solid var(--border)`,
+        background: highlighted ? 'var(--surf3)' : 'var(--surf)',
+        border: `1px solid ${highlighted ? 'var(--accent)' : 'var(--border)'}`,
         borderRadius: '8px',
         padding: '12px 14px',
         position: 'relative',
         overflow: 'hidden',
+        boxShadow: highlighted ? '0 0 10px var(--accent)33' : 'none',
+        transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s',
       }}
-      whileHover={{ borderColor: 'var(--border2)' }}
+      whileHover={{ borderColor: highlighted ? 'var(--accent)' : 'var(--border2)' }}
       transition={{ duration: 0.15 }}
     >
       {/* Glow for mastery/expert */}
@@ -115,6 +127,18 @@ function SkillCard({
           }}>
             {skill.name}
           </div>
+          {/* abstract subtitle */}
+          {skill.abstract && (
+            <div style={{
+              fontSize: '10px',
+              color: 'var(--text3)',
+              lineHeight: 1.35,
+              marginBottom: '2px',
+              fontStyle: 'italic',
+            }}>
+              {skill.abstract}
+            </div>
+          )}
           <div style={{
             fontSize: '10.5px',
             color: 'var(--text2)',
@@ -124,29 +148,65 @@ function SkillCard({
           </div>
         </div>
 
-        {/* Level badge */}
-        <div style={{
-          fontSize: '13px',
-          fontWeight: 900,
-          fontFamily: 'monospace',
-          color: statusColor,
-          minWidth: '32px',
-          textAlign: 'right',
-          flexShrink: 0,
-        }}>
-          {skill.level}
+        {/* Level badge + version */}
+        <div style={{ flexShrink: 0, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
+          <div style={{
+            fontSize: '13px',
+            fontWeight: 900,
+            fontFamily: 'monospace',
+            color: statusColor,
+            minWidth: '32px',
+          }}>
+            {skill.level}
+          </div>
+          {skill.version && (
+            <span style={{
+              fontSize: '8px',
+              fontWeight: 700,
+              fontFamily: 'monospace',
+              color: 'var(--text3)',
+              background: 'var(--surf2)',
+              padding: '1px 4px',
+              borderRadius: '3px',
+            }}>
+              v{skill.version}
+            </span>
+          )}
         </div>
       </div>
 
       <SkillBar level={skill.level} animate={training} />
 
+      {/* Tags row */}
+      {skill.tags && skill.tags.length > 0 && (
+        <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', marginBottom: '6px' }}>
+          {skill.tags.slice(0, 5).map(tag => (
+            <span
+              key={tag}
+              style={{
+                fontSize: '8px',
+                fontWeight: 600,
+                padding: '1px 5px',
+                borderRadius: '3px',
+                background: 'var(--surf2)',
+                color: 'var(--text3)',
+                border: '1px solid var(--border)',
+                fontFamily: 'monospace',
+              }}
+            >
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginTop: '6px',
+        marginTop: '4px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           <span style={{
             fontSize: '9px',
             fontWeight: 700,
@@ -158,6 +218,18 @@ function SkillCard({
             letterSpacing: '0.5px',
           }}>
             {status}
+          </span>
+          {/* Success rate badge */}
+          <span style={{
+            fontSize: '9px',
+            fontWeight: 700,
+            padding: '2px 6px',
+            borderRadius: '4px',
+            background: `${srColor}18`,
+            color: srColor,
+            fontFamily: 'monospace',
+          }}>
+            {successPct}% SR
           </span>
           <span style={{ fontSize: '9px', color: 'var(--text3)' }}>
             {lastUsedStr}
@@ -214,11 +286,13 @@ function CategoryCard({
   skills,
   onTrain,
   trainingIds,
+  highlightedIds,
 }: {
   category: string
   skills: Skill[]
   onTrain: (skill: Skill) => void
   trainingIds: Set<string>
+  highlightedIds: Set<string>
 }) {
   const avgLevel = Math.round(skills.reduce((s, sk) => s + sk.level, 0) / skills.length)
   const icon = CATEGORY_ICONS[category] ?? '⚙️'
@@ -289,6 +363,7 @@ function CategoryCard({
             skill={skill}
             onTrain={onTrain}
             training={trainingIds.has(skill.id)}
+            highlighted={highlightedIds.has(skill.id)}
           />
         ))}
       </div>
@@ -331,6 +406,120 @@ function XPToast({ event, onDone }: { event: LearningEvent; onDone: () => void }
   )
 }
 
+// ── Route Task search input ────────────────────────────────────────────────────
+function RouteTaskSearch({
+  skills,
+  onHighlight,
+}: {
+  skills: Skill[]
+  onHighlight: (ids: Set<string>) => void
+}) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<Array<{ skillId: string; skillName: string; score: number; matchedBy: string }>>([])
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleChange = (val: string) => {
+    setQuery(val)
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    if (!val.trim()) {
+      setResults([])
+      onHighlight(new Set())
+      return
+    }
+    timeoutRef.current = setTimeout(() => {
+      const res = routeTask(val.trim(), 5)
+      setResults(res)
+      onHighlight(new Set(res.map(r => r.skillId)))
+    }, 250)
+  }
+
+  const handleClear = () => {
+    setQuery('')
+    setResults([])
+    onHighlight(new Set())
+  }
+
+  return (
+    <div style={{
+      background: 'var(--surf2)',
+      border: '1px solid var(--border)',
+      borderRadius: '10px',
+      padding: '12px 14px',
+      marginBottom: '14px',
+    }}>
+      <div style={{
+        fontSize: '10px',
+        fontWeight: 700,
+        color: 'var(--text3)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.7px',
+        marginBottom: '8px',
+      }}>
+        ⊕ Route Task — Find Best Skills
+      </div>
+      <div style={{ position: 'relative' }}>
+        <input
+          value={query}
+          onChange={e => handleChange(e.target.value)}
+          placeholder="Describe a task to find matching skills…"
+          style={{
+            width: '100%',
+            background: 'var(--surf)',
+            border: '1px solid var(--border)',
+            borderRadius: '7px',
+            padding: '8px 32px 8px 12px',
+            color: 'var(--text)',
+            fontSize: '12px',
+            outline: 'none',
+            boxSizing: 'border-box',
+            fontFamily: 'inherit',
+            transition: 'border-color 0.15s',
+          }}
+          onFocus={e => { e.target.style.borderColor = 'var(--border2)' }}
+          onBlur={e => { e.target.style.borderColor = 'var(--border)' }}
+        />
+        {query && (
+          <button
+            onClick={handleClear}
+            style={{
+              position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer',
+              fontSize: '12px', padding: '2px 4px',
+            }}
+          >
+            ✕
+          </button>
+        )}
+      </div>
+      {results.length > 0 && (
+        <div style={{ marginTop: '8px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {results.map((r, i) => (
+            <div key={r.skillId} style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '3px 8px',
+              borderRadius: '5px',
+              background: 'var(--accent)18',
+              border: '1px solid var(--accent)44',
+              fontSize: '10px',
+            }}>
+              <span style={{ fontWeight: 900, color: 'var(--accent)', fontFamily: 'monospace' }}>
+                #{i + 1}
+              </span>
+              <span style={{ fontWeight: 700, color: 'var(--text)' }}>{r.skillName}</span>
+              <span style={{ color: 'var(--text3)', fontSize: '9px' }}>via {r.matchedBy}</span>
+              <span style={{ fontFamily: 'monospace', color: 'var(--gold)', fontSize: '9px' }}>
+                {r.score.toFixed(0)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main SkillLibrary export ───────────────────────────────────────────────────
 export default function SkillLibrary({
   onNewEvent,
@@ -340,6 +529,19 @@ export default function SkillLibrary({
   const [skills, setSkills] = useState<Skill[]>(DEFAULT_SKILLS)
   const [trainingIds, setTrainingIds] = useState<Set<string>>(new Set())
   const [activeToast, setActiveToast] = useState<LearningEvent | null>(null)
+  const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set())
+
+  // Configure skillCycle with our local skill store
+  useEffect(() => {
+    configureSkillCycle({
+      updateSkill: (skillId, updates) => {
+        setSkills(prev => prev.map(s => s.id === skillId ? { ...s, ...updates } : s))
+      },
+      getSkill: (skillId) => skills.find(s => s.id === skillId),
+      getSkills: () => skills,
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skills])
 
   const handleTrain = useCallback((skill: Skill) => {
     if (trainingIds.has(skill.id)) return
@@ -349,20 +551,13 @@ export default function SkillLibrary({
     // Simulate async training delay (1-2.5s)
     const delay = 1000 + Math.random() * 1500
     setTimeout(() => {
-      const event = simulateLearning(skill)
-      const levelGain = Math.floor(Math.random() * 3) + 1
-
-      setSkills(prev => prev.map(s =>
-        s.id === skill.id
-          ? {
-              ...s,
-              level: Math.min(100, s.level + levelGain),
-              experience: s.experience + event.xpGained,
-              lastUsed: Date.now(),
-              improvements: [...s.improvements, event.description.slice(0, 60)],
-            }
-          : s
-      ))
+      // Use real observeSkill — success 85% of the time
+      const outcome = Math.random() > 0.15 ? 'success' : 'failure'
+      const event = observeSkill({
+        skillId: skill.id,
+        taskInput: 'manual_training',
+        outcome,
+      })
 
       setTrainingIds(prev => {
         const next = new Set(prev)
@@ -387,9 +582,15 @@ export default function SkillLibrary({
   const totalSkills = skills.length
   const avgLevel = Math.round(skills.reduce((s, sk) => s + sk.level, 0) / skills.length)
   const trainingCount = trainingIds.size
+  const avgSuccessRate = Math.round(
+    skills.reduce((s, sk) => s + (sk.successRate ?? 0), 0) / skills.length * 100
+  )
 
   return (
     <div>
+      {/* Route Task search */}
+      <RouteTaskSearch skills={skills} onHighlight={setHighlightedIds} />
+
       {/* Summary bar */}
       <div style={{
         display: 'flex',
@@ -413,9 +614,27 @@ export default function SkillLibrary({
         </div>
         <div style={{ width: '1px', height: '16px', background: 'var(--border)' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Avg Success</span>
+          <span style={{ fontSize: '14px', fontWeight: 900, fontFamily: 'monospace', color: avgSuccessRate >= 80 ? 'var(--fhi)' : 'var(--gold)' }}>
+            {avgSuccessRate}%
+          </span>
+        </div>
+        <div style={{ width: '1px', height: '16px', background: 'var(--border)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '10px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Categories</span>
           <span style={{ fontSize: '14px', fontWeight: 900, fontFamily: 'monospace', color: 'var(--text)' }}>{CATEGORY_ORDER.length}</span>
         </div>
+        {highlightedIds.size > 0 && (
+          <>
+            <div style={{ width: '1px', height: '16px', background: 'var(--border)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)' }} />
+              <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 700 }}>
+                {highlightedIds.size} matched
+              </span>
+            </div>
+          </>
+        )}
         {trainingCount > 0 && (
           <>
             <div style={{ width: '1px', height: '16px', background: 'var(--border)' }} />
@@ -450,6 +669,7 @@ export default function SkillLibrary({
             skills={grouped[cat] ?? []}
             onTrain={handleTrain}
             trainingIds={trainingIds}
+            highlightedIds={highlightedIds}
           />
         ))}
       </div>

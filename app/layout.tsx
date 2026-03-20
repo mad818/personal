@@ -4,6 +4,7 @@ import Nav from '@/components/nav/Nav'
 import AuthGate from '@/components/auth/AuthGate'
 import ErrorBoundary from '@/components/system/ErrorBoundary'
 import HealthMonitor from '@/components/system/HealthMonitor'
+import GlobalDataLoader from '@/components/ui/GlobalDataLoader'
 
 export const metadata: Metadata = {
   title: 'Nexus Prime',
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body>
         <AuthGate>
           <Nav />
+          <GlobalDataLoader />
           <ErrorBoundary>
             <main style={{ paddingTop: '48px', minHeight: '100vh' }}>
               {children}

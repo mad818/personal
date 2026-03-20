@@ -3,6 +3,8 @@ import MomentumScanner  from '@/components/alpha/MomentumScanner'
 import BuyBot           from '@/components/alpha/BuyBot'
 import PositionSizer    from '@/components/alpha/PositionSizer'
 import WatchlistManager from '@/components/alpha/WatchlistManager'
+import FearGreedGauge   from '@/components/alpha/FearGreedGauge'
+import DefiOverview     from '@/components/alpha/DefiOverview'
 import { PricesLoader } from '@/components/ui/DataLoader'
 
 export default function AlphaPage() {
@@ -41,6 +43,12 @@ export default function AlphaPage() {
       {/* Position Sizer */}
       <div style={{ marginBottom: '28px' }}>
         <PositionSizer />
+      </div>
+
+      {/* Fear & Greed + DeFi Overview */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
+        <FearGreedGauge />
+        <DefiOverview />
       </div>
 
       {/* Price Grid — full card view with sparklines */}

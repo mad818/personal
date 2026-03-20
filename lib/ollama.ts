@@ -78,12 +78,16 @@ export interface OllamaChatOptions {
 }
 
 export type OllamaTaskType =
-  | 'quick'        // Fast response, small model (phi3, mistral)
-  | 'analysis'     // Deep reasoning (qwen2.5:14b, llama3:8b Q8)
-  | 'code'         // Code generation (qwen2.5:7b, deepseek-coder)
-  | 'embedding'    // Vector embeddings (nomic-embed-text)
-  | 'summarize'    // Summarization (fast model)
-  | 'default'      // Balanced (qwen2.5:7b)
+  | 'quick'        // Fast response, small model
+  | 'analysis'     // Deep reasoning
+  | 'code'         // Code generation
+  | 'embedding'    // Vector embeddings
+  | 'summarize'    // Summarization
+  | 'vision'       // Vision/multimodal tasks
+  | 'iot_edge'     // Lightweight IoT/edge tasks
+  | 'long_context' // Long document processing
+  | 'markets'      // Market/financial analysis
+  | 'default'      // Balanced
 
 export interface OllamaHookReturn {
   available:   boolean
@@ -102,17 +106,21 @@ const OLLAMA_TAGS_URL    = `${OLLAMA_BASE}/api/tags`
 const OLLAMA_GENERATE    = `${OLLAMA_BASE}/api/generate`
 const OLLAMA_CHAT        = `${OLLAMA_BASE}/api/chat`
 const OLLAMA_OPENAI_URL  = `${OLLAMA_BASE}/v1/chat/completions`
-const DEFAULT_MODEL      = 'qwen2.5:7b'
+const DEFAULT_MODEL      = 'qwen3.5:9b'
 const AVAILABILITY_TTL   = 60_000 // 1 minute cache
 
 // ── Model selection map (task → preferred models in priority order) ─────────────
 const TASK_MODEL_MAP: Record<OllamaTaskType, string[]> = {
-  quick:     ['phi3:mini', 'phi3', 'mistral:7b', 'qwen2.5:7b', DEFAULT_MODEL],
-  analysis:  ['qwen2.5:14b', 'llama3:8b', 'mistral:7b', 'qwen2.5:7b', DEFAULT_MODEL],
-  code:      ['qwen2.5:7b', 'deepseek-coder', 'codellama', 'llama3:8b', DEFAULT_MODEL],
-  embedding: ['nomic-embed-text', 'mxbai-embed-large', DEFAULT_MODEL],
-  summarize: ['mistral:7b', 'phi3', 'qwen2.5:7b', DEFAULT_MODEL],
-  default:   [DEFAULT_MODEL, 'mistral:7b', 'llama3:8b'],
+  quick:        ['nemotron-3-nano:4b', 'qwen3.5:4b', 'phi3:mini', DEFAULT_MODEL],
+  analysis:     ['deepseek-r1:14b', 'qwen3:14b', 'qwen2.5:14b', DEFAULT_MODEL],
+  code:         ['qwen3-coder-next', 'qwen2.5-coder:7b', 'qwen2.5:7b', DEFAULT_MODEL],
+  embedding:    ['mxbai-embed-large', 'nomic-embed-text', DEFAULT_MODEL],
+  summarize:    ['qwen3.5:9b', 'mistral-nemo:12b', 'mistral:7b', DEFAULT_MODEL],
+  vision:       ['qwen3-vl:8b', 'qwen3.5:9b', 'llama3.2-vision:11b', DEFAULT_MODEL],
+  iot_edge:     ['nemotron-3-nano:4b', 'qwen3.5:4b', 'phi:3.8b', DEFAULT_MODEL],
+  long_context: ['llama4:scout', 'qwen3.5:9b', DEFAULT_MODEL],
+  markets:      ['phi4:14b', 'qwen3:14b', DEFAULT_MODEL],
+  default:      [DEFAULT_MODEL, 'qwen3:14b', 'mistral:7b', 'llama3:8b'],
 }
 
 // ── Availability cache ─────────────────────────────────────────────────────────

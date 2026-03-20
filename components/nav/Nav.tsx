@@ -6,14 +6,18 @@ import { useState } from 'react'
 import SettingsDrawer from '@/components/settings/SettingsDrawer'
 
 const TABS = [
-  { href: '/command', label: '🏠 DASHBOARD'    },
-  { href: '/home',    label: '🤖 AGENT'        },
-  { href: '/signals', label: '📰 NEWS'         },
-  { href: '/alpha',   label: '📈 MARKETS'      },
-  { href: '/ops',     label: '🌍 GEOPOLITICAL' },
-  { href: '/cyber',   label: '🔒 CYBER'        },
-  { href: '/intel',   label: '🧰 TOOLS'        },
-  { href: '/vault',   label: '📁 VAULT'        },
+  { href: '/command',  label: '🏠 DASHBOARD'    },
+  { href: '/home',     label: '🤖 AGENT'        },
+  { href: '/signals',  label: '📰 NEWS'         },
+  { href: '/alpha',    label: '📈 MARKETS'      },
+  { href: '/ops',      label: '🌍 GEOPOLITICAL' },
+  { href: '/cyber',    label: '🔒 CYBER'        },
+  { href: '/security', label: '📹 SECURITY'     },
+  { href: '/iot',      label: '📡 IoT'          },
+  { href: '/vehicle',  label: '🚗 VEHICLE'      },
+  { href: '/skills',   label: '🧠 SKILLS'       },
+  { href: '/intel',    label: '🧰 TOOLS'        },
+  { href: '/vault',    label: '📁 VAULT'        },
 ]
 
 export default function Nav() {

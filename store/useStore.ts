@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { NexusPlugin } from '@/lib/plugins'
 
 // ── Default settings (mirrors DEFAULT_CFG from nexus-final.html) ──────────────
 export const DEFAULT_SETTINGS = {
@@ -83,22 +84,84 @@ export interface OTXPulse {
   references:      string[]
 }
 
+// ── New domain types ───────────────────────────────────────────────────────────
+
+export interface NexusDevice {
+  id:       string
+  name:     string
+  type:     string
+  status:   string
+  lastSeen: number
+  data:     Record<string, unknown>
+}
+
+export interface NexusSkill {
+  id:          string
+  name:        string
+  category:    string
+  level:       number
+  lastUsed:    number
+  description: string
+  learned:     string
+}
+
+export interface NexusCamera {
+  id:     string
+  name:   string
+  url:    string
+  type:   string
+  status: string
+}
+
+export interface SecurityAlert {
+  id:           string
+  type:         string
+  camera:       string
+  confidence:   number
+  ts:           number
+  acknowledged: boolean
+}
+
+export interface NexusVehicle {
+  id:        string
+  name:      string
+  type:      string
+  status:    string
+  telemetry: Record<string, unknown>
+}
+
+export interface AutomationRule {
+  id:        string
+  name:      string
+  trigger:   string
+  condition: string
+  action:    string
+  enabled:   boolean
+}
+
+export interface SystemHealthEntry {
+  status:    string
+  lastCheck: number
+  message:   string
+}
+
+// ── Full state interface ───────────────────────────────────────────────────────
 interface NexusState {
-  // Persisted settings
+  // ── Persisted settings ─────────────────────────────────────────────────────
   settings: Settings
   updateSettings: (patch: Partial<Settings>) => void
 
-  // AI mode — auto detects rate limits and falls back to local
-  aiMode:        AIMode
-  setAIMode:     (mode: AIMode) => void
+  // ── AI mode — auto detects rate limits and falls back to local ─────────────
+  aiMode:    AIMode
+  setAIMode: (mode: AIMode) => void
 
-  // Pending drafts written by local model, awaiting Claude finalization
-  pendingDrafts:       PendingDraft[]
-  addPendingDraft:     (draft: Omit<PendingDraft, 'id' | 'createdAt' | 'status'>) => void
-  updateDraftStatus:   (id: string, status: PendingDraft['status']) => void
+  // ── Pending drafts written by local model, awaiting Claude finalization ────
+  pendingDrafts:        PendingDraft[]
+  addPendingDraft:      (draft: Omit<PendingDraft, 'id' | 'createdAt' | 'status'>) => void
+  updateDraftStatus:    (id: string, status: PendingDraft['status']) => void
   clearFinalizedDrafts: () => void
 
-  // Live data (session only)
+  // ── Live data (session only) ───────────────────────────────────────────────
   tab:           string
   prices:        Record<string, PriceData>
   sparklines:    Record<string, number[]>
@@ -106,12 +169,12 @@ interface NexusState {
   savedArticles: Article[]
   signals:       { fg: { value: number; label: string } | null }
   cves:          unknown[]
-  cvesLoaded:    boolean  // true once fetch completes (success or fail)
+  cvesLoaded:    boolean
   otxPulses:     OTXPulse[]
-  worldRisk:     number   // count of critical+high conflict items (0 = unknown)
+  worldRisk:     number
   chatHistory:   { role: string; content: string }[]
 
-  // Live data setters
+  // ── Live data setters ──────────────────────────────────────────────────────
   setTab:            (tab: string) => void
   setWorldRisk:      (n: number) => void
   setPrices:         (prices: Record<string, PriceData>) => void
@@ -124,21 +187,66 @@ interface NexusState {
   addChatMessage:    (msg: { role: string; content: string }) => void
   clearChat:         () => void
   toggleSaveArticle: (article: Article) => void
+
+  // ── Plugin system ──────────────────────────────────────────────────────────
+  plugins:        NexusPlugin[]
+  registerPlugin: (plugin: NexusPlugin) => void
+  removePlugin:   (id: string) => void
+  setPluginEnabled: (id: string, enabled: boolean) => void
+
+  // ── System health map ──────────────────────────────────────────────────────
+  systemHealth: Record<string, SystemHealthEntry>
+  updateHealth: (component: string, status: string, message: string) => void
+
+  // ── IoT devices ───────────────────────────────────────────────────────────
+  devices:      NexusDevice[]
+  addDevice:    (device: NexusDevice) => void
+  updateDevice: (id: string, data: Partial<NexusDevice>) => void
+  removeDevice: (id: string) => void
+
+  // ── Skills ────────────────────────────────────────────────────────────────
+  skills:      NexusSkill[]
+  addSkill:    (skill: NexusSkill) => void
+  updateSkill: (id: string, updates: Partial<NexusSkill>) => void
+  removeSkill: (id: string) => void
+
+  // ── Security ──────────────────────────────────────────────────────────────
+  cameras:           NexusCamera[]
+  securityAlerts:    SecurityAlert[]
+  addCamera:         (camera: NexusCamera) => void
+  removeCamera:      (id: string) => void
+  addSecurityAlert:  (alert: SecurityAlert) => void
+  acknowledgeAlert:  (id: string) => void
+  clearAcknowledged: () => void
+
+  // ── Vehicles ──────────────────────────────────────────────────────────────
+  vehicles:              NexusVehicle[]
+  addVehicle:            (vehicle: NexusVehicle) => void
+  removeVehicle:         (id: string) => void
+  updateVehicleTelemetry: (id: string, telemetry: Record<string, unknown>) => void
+
+  // ── Automation rules ──────────────────────────────────────────────────────
+  automationRules: AutomationRule[]
+  addRule:         (rule: AutomationRule) => void
+  removeRule:      (id: string) => void
+  updateRule:      (id: string, updates: Partial<AutomationRule>) => void
+  toggleRule:      (id: string) => void
 }
 
+// ── Store ──────────────────────────────────────────────────────────────────────
 export const useStore = create<NexusState>()(
   persist(
     (set) => ({
-      // Settings
+      // ── Settings ──────────────────────────────────────────────────────────
       settings: DEFAULT_SETTINGS,
       updateSettings: (patch) =>
         set((s) => ({ settings: { ...s.settings, ...patch } })),
 
-      // AI mode — default to local (Ollama qwen2.5:7b) to preserve Claude API credits
+      // ── AI mode — default to local (Ollama qwen2.5:7b) ────────────────────
       aiMode:    'local',
       setAIMode: (mode) => set({ aiMode: mode }),
 
-      // Pending drafts
+      // ── Pending drafts ─────────────────────────────────────────────────────
       pendingDrafts: [],
       addPendingDraft: (draft) =>
         set((s) => ({
@@ -163,7 +271,7 @@ export const useStore = create<NexusState>()(
           pendingDrafts: s.pendingDrafts.filter((d) => d.status === 'pending'),
         })),
 
-      // Live data defaults
+      // ── Live data defaults ─────────────────────────────────────────────────
       tab:           'home',
       prices:        {},
       sparklines:    {},
@@ -176,7 +284,7 @@ export const useStore = create<NexusState>()(
       worldRisk:     0,
       chatHistory:   [],
 
-      // Setters
+      // ── Live data setters ──────────────────────────────────────────────────
       setTab:        (tab)        => set({ tab }),
       setWorldRisk:  (worldRisk)  => set({ worldRisk }),
       setPrices:     (prices)     => set({ prices }),
@@ -198,14 +306,139 @@ export const useStore = create<NexusState>()(
               : [article, ...s.savedArticles],
           }
         }),
+
+      // ── Plugin system ──────────────────────────────────────────────────────
+      plugins: [],
+      registerPlugin: (plugin) =>
+        set((s) => {
+          const exists = s.plugins.some((p) => p.id === plugin.id)
+          return exists ? {} : { plugins: [...s.plugins, plugin] }
+        }),
+      removePlugin: (id) =>
+        set((s) => ({ plugins: s.plugins.filter((p) => p.id !== id) })),
+      setPluginEnabled: (id, enabled) =>
+        set((s) => ({
+          plugins: s.plugins.map((p) => p.id === id ? { ...p, enabled } : p),
+        })),
+
+      // ── System health ──────────────────────────────────────────────────────
+      systemHealth: {},
+      updateHealth: (component, status, message) =>
+        set((s) => ({
+          systemHealth: {
+            ...s.systemHealth,
+            [component]: { status, lastCheck: Date.now(), message },
+          },
+        })),
+
+      // ── IoT devices ───────────────────────────────────────────────────────
+      devices: [],
+      addDevice: (device) =>
+        set((s) => {
+          const exists = s.devices.some((d) => d.id === device.id)
+          return exists ? {} : { devices: [...s.devices, device] }
+        }),
+      updateDevice: (id, data) =>
+        set((s) => ({
+          devices: s.devices.map((d) => d.id === id ? { ...d, ...data } : d),
+        })),
+      removeDevice: (id) =>
+        set((s) => ({ devices: s.devices.filter((d) => d.id !== id) })),
+
+      // ── Skills ────────────────────────────────────────────────────────────
+      skills: [],
+      addSkill: (skill) =>
+        set((s) => {
+          const exists = s.skills.some((sk) => sk.id === skill.id)
+          return exists ? {} : { skills: [...s.skills, skill] }
+        }),
+      updateSkill: (id, updates) =>
+        set((s) => ({
+          skills: s.skills.map((sk) => sk.id === id ? { ...sk, ...updates } : sk),
+        })),
+      removeSkill: (id) =>
+        set((s) => ({ skills: s.skills.filter((sk) => sk.id !== id) })),
+
+      // ── Security ──────────────────────────────────────────────────────────
+      cameras:        [],
+      securityAlerts: [],
+      addCamera: (camera) =>
+        set((s) => {
+          const exists = s.cameras.some((c) => c.id === camera.id)
+          return exists ? {} : { cameras: [...s.cameras, camera] }
+        }),
+      removeCamera: (id) =>
+        set((s) => ({ cameras: s.cameras.filter((c) => c.id !== id) })),
+      addSecurityAlert: (alert) =>
+        set((s) => ({
+          securityAlerts: [alert, ...s.securityAlerts].slice(0, 500), // cap at 500
+        })),
+      acknowledgeAlert: (id) =>
+        set((s) => ({
+          securityAlerts: s.securityAlerts.map((a) =>
+            a.id === id ? { ...a, acknowledged: true } : a
+          ),
+        })),
+      clearAcknowledged: () =>
+        set((s) => ({
+          securityAlerts: s.securityAlerts.filter((a) => !a.acknowledged),
+        })),
+
+      // ── Vehicles ──────────────────────────────────────────────────────────
+      vehicles: [],
+      addVehicle: (vehicle) =>
+        set((s) => {
+          const exists = s.vehicles.some((v) => v.id === vehicle.id)
+          return exists ? {} : { vehicles: [...s.vehicles, vehicle] }
+        }),
+      removeVehicle: (id) =>
+        set((s) => ({ vehicles: s.vehicles.filter((v) => v.id !== id) })),
+      updateVehicleTelemetry: (id, telemetry) =>
+        set((s) => ({
+          vehicles: s.vehicles.map((v) =>
+            v.id === id ? { ...v, telemetry: { ...v.telemetry, ...telemetry } } : v
+          ),
+        })),
+
+      // ── Automation rules ──────────────────────────────────────────────────
+      automationRules: [],
+      addRule: (rule) =>
+        set((s) => {
+          const exists = s.automationRules.some((r) => r.id === rule.id)
+          return exists ? {} : { automationRules: [...s.automationRules, rule] }
+        }),
+      removeRule: (id) =>
+        set((s) => ({ automationRules: s.automationRules.filter((r) => r.id !== id) })),
+      updateRule: (id, updates) =>
+        set((s) => ({
+          automationRules: s.automationRules.map((r) =>
+            r.id === id ? { ...r, ...updates } : r
+          ),
+        })),
+      toggleRule: (id) =>
+        set((s) => ({
+          automationRules: s.automationRules.map((r) =>
+            r.id === id ? { ...r, enabled: !r.enabled } : r
+          ),
+        })),
     }),
     {
       name:       'nexus-settings',
       partialize: (s) => ({
+        // Original persisted fields
         settings:      s.settings,
         savedArticles: s.savedArticles,
         pendingDrafts: s.pendingDrafts,
         aiMode:        s.aiMode,
+        // New persisted fields
+        plugins:         s.plugins,
+        systemHealth:    s.systemHealth,
+        devices:         s.devices,
+        skills:          s.skills,
+        cameras:         s.cameras,
+        securityAlerts:  s.securityAlerts,
+        vehicles:        s.vehicles,
+        automationRules: s.automationRules,
       }),
     }
   )

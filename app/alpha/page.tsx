@@ -11,9 +11,9 @@ export default function AlphaPage() {
       <PricesLoader />
 
       <div style={{ marginBottom: '20px' }}>
-        <div style={{ fontSize: '18px', fontWeight: 900 }}>🎯 ALPHA</div>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
-          Buy Bot · Momentum scanner · Position sizing · 7-day trend
+        <div style={{ fontSize: '18px', fontWeight: 900 }}>📈 MARKETS</div>
+        <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px' }}>
+          Crypto · Momentum scanner · Buy signals · Position sizing · Price tracking
         </div>
       </div>
 

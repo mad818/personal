@@ -404,7 +404,7 @@ export default function HomeChat() {
                 width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%',
               }} />
             </div>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--blush, #e8a0aa)' }}>Nexus Agent — Ready</div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--blush, #e8a0aa)' }}>Agent — Ready</div>
             <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', maxWidth: '340px' }}>
               Give me a task. I can search the web, read URLs, write files, and reason across multiple steps to get it done.
             </div>

@@ -6,14 +6,14 @@ import { useState } from 'react'
 import SettingsDrawer from '@/components/settings/SettingsDrawer'
 
 const TABS = [
-  { href: '/home',    label: '🤖 HOME'    },
-  { href: '/command', label: '⚡ COMMAND' },
-  { href: '/signals', label: '📡 SIGNALS' },
-  { href: '/alpha',   label: '🎯 ALPHA'   },
-  { href: '/ops',     label: '🌍 OPS'     },
-  { href: '/intel',   label: '📊 INTEL'   },
-  { href: '/cyber',   label: '🔒 CYBER'   },
-  { href: '/vault',   label: '🗂 VAULT'   },
+  { href: '/command', label: '🏠 DASHBOARD'    },
+  { href: '/home',    label: '🤖 AGENT'        },
+  { href: '/signals', label: '📰 NEWS'         },
+  { href: '/alpha',   label: '📈 MARKETS'      },
+  { href: '/ops',     label: '🌍 GEOPOLITICAL' },
+  { href: '/cyber',   label: '🔒 CYBER'        },
+  { href: '/intel',   label: '🧰 TOOLS'        },
+  { href: '/vault',   label: '📁 VAULT'        },
 ]
 
 export default function Nav() {
@@ -42,7 +42,7 @@ export default function Nav() {
         overflowX:    'auto',
       }}>
         {TABS.map((tab) => {
-          const active = pathname === tab.href || (pathname === '/' && tab.href === '/home')
+          const active = pathname === tab.href || (pathname === '/' && tab.href === '/command')
           return (
             <Link
               key={tab.href}

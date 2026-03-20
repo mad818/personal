@@ -11,8 +11,8 @@ export default function CommandPage() {
       <FearGreedLoader />
       <WorldRiskLoader />
       <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '-.3px' }}>⚡ COMMAND</div>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
+        <div style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '-.3px' }}>🏠 DASHBOARD</div>
+        <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px' }}>
           Live overview — market signals, world risk, alerts, AI briefing
         </div>
       </div>

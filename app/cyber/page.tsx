@@ -10,8 +10,8 @@ export default function CyberPage() {
       <OTXLoader />
 
       <div style={{ fontSize: '18px', fontWeight: 900 }}>🔒 CYBER</div>
-      <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px', marginBottom: '20px' }}>
-        CVEs · CISA KEV · OTX threat pulses · live adversary intel
+      <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px', marginBottom: '20px' }}>
+        CVE vulnerabilities · CISA KEV catalog · OTX threat pulses · Adversary intelligence
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

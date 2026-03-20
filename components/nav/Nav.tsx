@@ -28,12 +28,12 @@ export default function Nav() {
         left:         0,
         right:        0,
         height:       '48px',
-        // Glassmorphism: semi-transparent blur panel
-        background:   'rgba(9, 10, 15, 0.82)',
+        /* Dark warm glassmorphism */
+        background:   'rgba(10, 7, 8, 0.88)',
         backdropFilter: 'blur(18px) saturate(180%)',
         WebkitBackdropFilter: 'blur(18px) saturate(180%)',
-        borderBottom: '1px solid rgba(255,255,255,0.04)',
-        boxShadow:    '0 1px 0 rgba(255,255,255,0.03), 0 2px 20px rgba(0,0,0,.6)',
+        borderBottom: '1px solid rgba(196,72,90,0.08)',
+        boxShadow:    '0 1px 0 rgba(212,149,106,0.04), 0 2px 20px rgba(0,0,0,.6)',
         display:      'flex',
         alignItems:   'center',
         gap:          '2px',
@@ -54,15 +54,15 @@ export default function Nav() {
                 fontSize:       '11.5px',
                 fontWeight:     700,
                 whiteSpace:     'nowrap',
-                background:     active ? 'rgba(79,110,247,0.18)' : 'transparent',
-                color:          active ? '#c5d2ff' : 'var(--text2)',
+                background:     active ? 'rgba(196,72,90,0.18)' : 'transparent',
+                color:          active ? '#f5d0d6' : 'var(--text2)',
                 transition:     'all 0.15s ease',
                 textDecoration: 'none',
                 letterSpacing:  '0.2px',
               }}
             >
               {tab.label}
-              {/* Active underline glow */}
+              {/* Active underline glow — rose */}
               {active && (
                 <span style={{
                   position:     'absolute',
@@ -72,8 +72,8 @@ export default function Nav() {
                   width:        '60%',
                   height:       '2px',
                   borderRadius: '2px 2px 0 0',
-                  background:   'linear-gradient(90deg, transparent, #4f6ef7, transparent)',
-                  boxShadow:    '0 0 8px 1px rgba(79,110,247,.7)',
+                  background:   'linear-gradient(90deg, transparent, #c4485a, transparent)',
+                  boxShadow:    '0 0 8px 1px rgba(196,72,90,.7)',
                 }} />
               )}
             </Link>

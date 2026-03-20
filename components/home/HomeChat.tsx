@@ -395,8 +395,16 @@ export default function HomeChat() {
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', height: '100%', gap: '8px',
           }}>
-            <div style={{ fontSize: '38px', opacity: .5 }}>🤖</div>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text2)' }}>Nexus Agent — Ready</div>
+            <div style={{
+              width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden',
+              border: '2px solid rgba(196,72,90,0.3)',
+              boxShadow: '0 0 30px rgba(196,72,90,.15)',
+            }}>
+              <img src="/theme/sadie-armani.jpg" alt="" style={{
+                width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%',
+              }} />
+            </div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--blush, #e8a0aa)' }}>Nexus Agent — Ready</div>
             <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', maxWidth: '340px' }}>
               Give me a task. I can search the web, read URLs, write files, and reason across multiple steps to get it done.
             </div>
@@ -466,7 +474,7 @@ export default function HomeChat() {
           />
           <button onClick={() => send(input)} disabled={loading} style={{
             width: '46px', height: '46px', borderRadius: '12px', border: 'none',
-            background: loading ? 'var(--surf3)' : 'linear-gradient(135deg, var(--accent), var(--accent2))',
+            background: loading ? 'var(--surf3)' : 'linear-gradient(135deg, #c4485a, #d4956a)',
             color: '#fff', fontSize: '16px', cursor: loading ? 'not-allowed' : 'pointer', flexShrink: 0,
           }}>
             {loading ? '⏳' : '➤'}

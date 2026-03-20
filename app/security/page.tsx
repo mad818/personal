@@ -3,9 +3,12 @@
 // app/security/page.tsx — NEXUS PRIME Security Operations tab
 // Physical security monitoring, surveillance, and threat detection
 
-import CameraGrid     from '@/components/security/CameraGrid'
-import SecurityAlerts from '@/components/security/SecurityAlerts'
-import DronePanel     from '@/components/security/DronePanel'
+import CameraGrid            from '@/components/security/CameraGrid'
+import SecurityAlerts        from '@/components/security/SecurityAlerts'
+import DronePanel            from '@/components/security/DronePanel'
+import ThreatLevelIndicator  from '@/components/security/ThreatLevelIndicator'
+import PerimeterSweep        from '@/components/security/PerimeterSweep'
+import AlertTimeline         from '@/components/security/AlertTimeline'
 
 export default function SecurityPage() {
   return (
@@ -16,19 +19,26 @@ export default function SecurityPage() {
         Physical security monitoring, surveillance, and threat detection
       </div>
 
-      {/* 2-column layout: cameras left, alerts + drone right */}
+      {/* Threat Level Indicator — full width at top */}
+      <ThreatLevelIndicator />
+
+      {/* 2-column layout */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}>
 
-        {/* Left — Camera Grid */}
-        <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px' }}>
-          <CameraGrid />
+        {/* Left — Camera Grid + Perimeter Sweep */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px' }}>
+            <CameraGrid />
+          </div>
+          <PerimeterSweep />
         </div>
 
-        {/* Right — Alerts + Drone stacked */}
+        {/* Right — Alerts + AlertTimeline + Drone */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px' }}>
             <SecurityAlerts />
           </div>
+          <AlertTimeline />
           <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px' }}>
             <DronePanel />
           </div>

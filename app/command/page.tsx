@@ -1,7 +1,9 @@
-import KPICards   from '@/components/command/KPICards'
-import FocusPanel  from '@/components/command/FocusPanel'
-import AIBriefing  from '@/components/command/AIBriefing'
-import EventRadar  from '@/components/command/EventRadar'
+import KPICards         from '@/components/command/KPICards'
+import FocusPanel        from '@/components/command/FocusPanel'
+import AIBriefing        from '@/components/command/AIBriefing'
+import EventRadar        from '@/components/command/EventRadar'
+import ThreatHeatmap     from '@/components/command/ThreatHeatmap'
+import SystemStatusRing  from '@/components/command/SystemStatusRing'
 import { PricesLoader, FearGreedLoader, WorldRiskLoader } from '@/components/ui/DataLoader'
 
 export default function CommandPage() {
@@ -17,6 +19,13 @@ export default function CommandPage() {
         </div>
       </div>
       <KPICards />
+
+      {/* New visualization row: Threat Heatmap + System Status Ring */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+        <ThreatHeatmap />
+        <SystemStatusRing />
+      </div>
+
       <FocusPanel />
       <AIBriefing />
       <EventRadar />

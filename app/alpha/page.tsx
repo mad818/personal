@@ -5,6 +5,7 @@ import PositionSizer    from '@/components/alpha/PositionSizer'
 import WatchlistManager from '@/components/alpha/WatchlistManager'
 import FearGreedGauge   from '@/components/alpha/FearGreedGauge'
 import DefiOverview     from '@/components/alpha/DefiOverview'
+import PriceSparklines  from '@/components/alpha/PriceSparklines'
 import { PricesLoader } from '@/components/ui/DataLoader'
 
 export default function AlphaPage() {
@@ -17,6 +18,11 @@ export default function AlphaPage() {
         <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px' }}>
           Crypto · Momentum scanner · Buy signals · Position sizing · Price tracking
         </div>
+      </div>
+
+      {/* Price Sparklines — new visualization */}
+      <div style={{ marginBottom: '20px' }}>
+        <PriceSparklines />
       </div>
 
       {/* Watchlist manager — compact toggle */}

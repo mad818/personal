@@ -3,10 +3,13 @@
 // app/iot/page.tsx — NEXUS PRIME IoT Command Center tab
 // Device management, sensor networks, and home automation
 
-import MQTTStatus      from '@/components/iot/MQTTStatus'
-import SensorDashboard from '@/components/iot/SensorDashboard'
-import DeviceRegistry  from '@/components/iot/DeviceRegistry'
-import AutomationRules from '@/components/iot/AutomationRules'
+import MQTTStatus         from '@/components/iot/MQTTStatus'
+import SensorDashboard    from '@/components/iot/SensorDashboard'
+import DeviceRegistry     from '@/components/iot/DeviceRegistry'
+import AutomationRules    from '@/components/iot/AutomationRules'
+import SensorGauges       from '@/components/iot/SensorGauges'
+import WeatherTimeline    from '@/components/iot/WeatherTimeline'
+import DeviceStatusMatrix from '@/components/iot/DeviceStatusMatrix'
 
 export default function IoTPage() {
   return (
@@ -20,8 +23,17 @@ export default function IoTPage() {
       {/* MQTT status bar — top of page */}
       <MQTTStatus />
 
-      {/* Sensor grid — top section */}
-      <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px', marginBottom: '16px' }}>
+      {/* Sensor Gauges — animated SVG semicircles */}
+      <SensorGauges />
+
+      {/* Weather Timeline — 24h forecast */}
+      <WeatherTimeline />
+
+      {/* Device Status Matrix */}
+      <DeviceStatusMatrix />
+
+      {/* Sensor grid — existing */}
+      <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px', marginBottom: '16px', marginTop: '16px' }}>
         <SensorDashboard />
       </div>
 

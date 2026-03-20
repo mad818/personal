@@ -1,7 +1,9 @@
-import CVEFeed         from '@/components/cyber/CVEFeed'
-import OTXFeed         from '@/components/cyber/OTXFeed'
-import CISAFeed        from '@/components/cyber/CISAFeed'
-import ThreatIntelFeed from '@/components/cyber/ThreatIntelFeed'
+import CVEFeed              from '@/components/cyber/CVEFeed'
+import OTXFeed              from '@/components/cyber/OTXFeed'
+import CISAFeed             from '@/components/cyber/CISAFeed'
+import ThreatIntelFeed      from '@/components/cyber/ThreatIntelFeed'
+import ThreatSeverityDonut  from '@/components/cyber/ThreatSeverityDonut'
+import AttackVectorChart    from '@/components/cyber/AttackVectorChart'
 import { CVEsLoader, OTXLoader } from '@/components/ui/DataLoader'
 
 export default function CyberPage() {
@@ -13,6 +15,12 @@ export default function CyberPage() {
       <div style={{ fontSize: '18px', fontWeight: 900 }}>🔒 CYBER</div>
       <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px', marginBottom: '20px' }}>
         CVE vulnerabilities · CISA KEV catalog · OTX threat pulses · Adversary intelligence
+      </div>
+
+      {/* New visualization row: Threat Severity Donut + Attack Vector Chart */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+        <ThreatSeverityDonut />
+        <AttackVectorChart />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

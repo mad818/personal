@@ -10,6 +10,9 @@ import PolymarketFeed     from '@/components/intel/PolymarketFeed'
 import StrategyFrameworks from '@/components/intel/StrategyFrameworks'
 import SECFilingsFeed     from '@/components/intel/SECFilingsFeed'
 import FlightTracker      from '@/components/intel/FlightTracker'
+import SECActivityChart   from '@/components/intel/SECActivityChart'
+import FlightPathViz      from '@/components/intel/FlightPathViz'
+import OddsDistribution   from '@/components/intel/OddsDistribution'
 
 type Tab = 'markets' | 'sec' | 'flights' | 'strategy'
 
@@ -109,9 +112,24 @@ export default function IntelPage() {
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.2 }}
         >
-          {activeTab === 'markets'  && <PolymarketFeed />}
-          {activeTab === 'sec'      && <SECFilingsFeed />}
-          {activeTab === 'flights'  && <FlightTracker />}
+          {activeTab === 'markets' && (
+            <>
+              <OddsDistribution />
+              <PolymarketFeed />
+            </>
+          )}
+          {activeTab === 'sec' && (
+            <>
+              <SECActivityChart />
+              <SECFilingsFeed />
+            </>
+          )}
+          {activeTab === 'flights' && (
+            <>
+              <FlightPathViz />
+              <FlightTracker />
+            </>
+          )}
           {activeTab === 'strategy' && <StrategyFrameworks />}
         </motion.div>
       </AnimatePresence>

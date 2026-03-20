@@ -1,13 +1,14 @@
 'use client'
 
 import { useStore } from '@/store/useStore'
+import { CHART } from '@/lib/chartTheme'
 
 // ── Confidence colour coding ───────────────────────────────────────────────────
 function confColor(confidence: number): string {
-  if (confidence >= 100) return '#ef4444'        // red
-  if (confidence >= 75)  return '#f59e0b'        // orange
-  if (confidence >= 50)  return '#d4956a'        // gold
-  return 'var(--text3)'                          // gray
+  if (confidence >= 100) return CHART.red
+  if (confidence >= 75)  return CHART.orange
+  if (confidence >= 50)  return CHART.gold
+  return CHART.text3
 }
 
 function confLabel(confidence: number): string {
@@ -15,6 +16,60 @@ function confLabel(confidence: number): string {
   if (confidence >= 75)  return 'HIGH'
   if (confidence >= 50)  return 'MEDIUM'
   return 'LOW'
+}
+
+// ── Pulsing LIVE dot ──────────────────────────────────────────────────────────
+function LiveDot() {
+  return (
+    <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', marginRight: '2px' }}>
+      {/* Outer ping ring */}
+      <span style={{
+        position: 'absolute',
+        width: '10px', height: '10px',
+        borderRadius: '50%',
+        background: CHART.red,
+        opacity: 0.4,
+        animation: 'nex-pulse 1.5s ease-in-out infinite',
+      }} />
+      {/* Inner solid dot */}
+      <span style={{
+        position: 'relative',
+        width: '6px', height: '6px',
+        borderRadius: '50%',
+        background: CHART.red,
+        display: 'inline-block',
+        boxShadow: `0 0 6px ${CHART.red}`,
+      }} />
+    </span>
+  )
+}
+
+// ── Confidence visual bar ─────────────────────────────────────────────────────
+function ConfBar({ confidence }: { confidence: number }) {
+  const col = confColor(confidence)
+  const pct = Math.min(100, confidence)
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+      <span style={{ fontSize: '9px', color: CHART.text3, fontWeight: 700, minWidth: '44px', fontFamily: 'monospace' }}>
+        CONF
+      </span>
+      <div style={{
+        flex: 1, height: '4px', background: CHART.surf3, borderRadius: '2px', overflow: 'hidden',
+        position: 'relative',
+      }}>
+        <div style={{
+          width: `${pct}%`, height: '100%',
+          background: `linear-gradient(to right, ${col}aa, ${col})`,
+          borderRadius: '2px',
+          transition: 'width 0.6s ease-out',
+          boxShadow: `0 0 4px ${col}88`,
+        }} />
+      </div>
+      <span style={{ fontSize: '9px', fontWeight: 700, color: col, minWidth: '28px', textAlign: 'right', fontFamily: 'monospace' }}>
+        {confidence}
+      </span>
+    </div>
+  )
 }
 
 // ── IOC card ──────────────────────────────────────────────────────────────────
@@ -33,7 +88,7 @@ function IOCCard({ ioc }: IOCCardProps) {
 
   return (
     <div style={{
-      background: 'var(--surf2)', border: '1px solid var(--border)',
+      background: CHART.surf2, border: '1px solid var(--border)',
       borderRadius: '10px', padding: '11px 13px',
     }}>
       {/* Top row */}
@@ -47,7 +102,7 @@ function IOCCard({ ioc }: IOCCardProps) {
         {type && (
           <span style={{
             fontSize: '9.5px', fontWeight: 700, padding: '1px 6px', borderRadius: '5px',
-            background: 'var(--surf3)', color: 'var(--text3)',
+            background: CHART.surf3, color: CHART.text3,
           }}>
             {type}
           </span>
@@ -55,19 +110,19 @@ function IOCCard({ ioc }: IOCCardProps) {
         {malware && (
           <span style={{
             fontSize: '9.5px', fontWeight: 700, padding: '1px 6px', borderRadius: '5px',
-            background: 'rgba(196,72,90,.12)', color: 'var(--accent)',
+            background: 'rgba(196,72,90,.12)', color: CHART.rose,
           }}>
             {malware}
           </span>
         )}
-        <span style={{ fontSize: '10px', color: 'var(--text3)', marginLeft: 'auto' }}>
+        <span style={{ fontSize: '10px', color: CHART.text3, marginLeft: 'auto' }}>
           {conf}% confidence
         </span>
       </div>
 
       {/* IOC value */}
       <div style={{
-        fontSize: '11.5px', fontWeight: 700, color: 'var(--text)',
+        fontSize: '11.5px', fontWeight: 700, color: CHART.text,
         fontFamily: 'monospace', wordBreak: 'break-all', lineHeight: 1.45, marginBottom: '4px',
       }}>
         {iocVal}
@@ -75,24 +130,13 @@ function IOCCard({ ioc }: IOCCardProps) {
 
       {/* First seen */}
       {seen && (
-        <div style={{ fontSize: '10px', color: 'var(--text3)' }}>
+        <div style={{ fontSize: '10px', color: CHART.text3 }}>
           First seen: {seen}
         </div>
       )}
 
-      {/* Confidence bar */}
-      <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <span style={{ fontSize: '9px', color: 'var(--text3)', fontWeight: 700, minWidth: '44px' }}>CONF</span>
-        <div style={{ flex: 1, height: '3px', background: 'var(--surf3)', borderRadius: '2px', overflow: 'hidden' }}>
-          <div style={{
-            width: `${Math.min(100, conf)}%`, height: '100%',
-            background: col, borderRadius: '2px',
-          }} />
-        </div>
-        <span style={{ fontSize: '9px', fontWeight: 700, color: col, minWidth: '28px', textAlign: 'right' }}>
-          {conf}
-        </span>
-      </div>
+      {/* Confidence visual bar */}
+      <ConfBar confidence={conf} />
     </div>
   )
 }
@@ -105,14 +149,14 @@ export default function ThreatIntelFeed() {
   if (!iocs.length) {
     return (
       <div style={{
-        background: 'var(--surf2)', border: '1px solid var(--border)',
+        background: CHART.surf2, border: '1px solid var(--border)',
         borderRadius: '10px', padding: '24px 20px', textAlign: 'center',
       }}>
         <div style={{ fontSize: '24px', marginBottom: '8px' }}>🦠</div>
-        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 700, color: CHART.text, marginBottom: '4px' }}>
           ThreatFox IOC Intelligence
         </div>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', lineHeight: 1.5 }}>
+        <div style={{ fontSize: '12px', color: CHART.text3, lineHeight: 1.5 }}>
           Loading threat indicators…
         </div>
       </div>
@@ -121,15 +165,22 @@ export default function ThreatIntelFeed() {
 
   return (
     <div>
-      {/* Header */}
+      {/* Header with LIVE pulsing dot */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
+        <LiveDot />
         <span style={{
-          fontSize: '11px', fontWeight: 700, color: 'var(--text3)',
+          fontSize: '11px', fontWeight: 700, color: CHART.text3,
+          textTransform: 'uppercase', letterSpacing: '.5px',
+        }}>
+          LIVE
+        </span>
+        <span style={{
+          fontSize: '11px', fontWeight: 700, color: CHART.text3,
           textTransform: 'uppercase', letterSpacing: '.5px',
         }}>
           🦠 ThreatFox IOCs
         </span>
-        <span style={{ fontSize: '10px', color: 'var(--text3)' }}>
+        <span style={{ fontSize: '10px', color: CHART.text3 }}>
           {iocs.length} indicators
         </span>
       </div>

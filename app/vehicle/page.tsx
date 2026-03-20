@@ -3,10 +3,13 @@
 // app/vehicle/page.tsx — NEXUS PRIME Autonomous Vehicle Command tab
 // Multi-spectrum sensor fusion, navigation, and autonomous operations
 
-import CameraArray   from '@/components/vehicle/CameraArray'
-import TelemetryPanel from '@/components/vehicle/TelemetryPanel'
-import ControlPanel  from '@/components/vehicle/ControlPanel'
-import SensorFusion  from '@/components/vehicle/SensorFusion'
+import CameraArray        from '@/components/vehicle/CameraArray'
+import TelemetryPanel     from '@/components/vehicle/TelemetryPanel'
+import ControlPanel       from '@/components/vehicle/ControlPanel'
+import SensorFusion       from '@/components/vehicle/SensorFusion'
+import RadarSweep         from '@/components/vehicle/RadarSweep'
+import TelemetryChart     from '@/components/vehicle/TelemetryChart'
+import SensorHealthRadial from '@/components/vehicle/SensorHealthRadial'
 
 export default function VehiclePage() {
   return (
@@ -17,26 +20,33 @@ export default function VehiclePage() {
         Multi-spectrum sensor fusion, navigation, and autonomous operations
       </div>
 
-      {/* Camera feeds — full width top strip */}
-      <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px', marginBottom: '16px' }}>
-        <CameraArray />
+      {/* Camera feeds + RadarSweep — top row 2-col */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px', marginBottom: '16px', alignItems: 'start' }}>
+        <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px' }}>
+          <CameraArray />
+        </div>
+        <RadarSweep />
       </div>
 
-      {/* Telemetry + Controls — 2 column bottom */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}>
+      {/* Telemetry Chart — full width */}
+      <TelemetryChart />
 
-        {/* Left — Telemetry + Sensor Fusion */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px' }}>
-            <TelemetryPanel />
-          </div>
+      {/* Bottom row: Telemetry + Controls + SensorHealthRadial */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', alignItems: 'start', marginTop: '16px' }}>
+
+        {/* Telemetry Panel */}
+        <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px' }}>
+          <TelemetryPanel />
         </div>
 
-        {/* Right — Controls + Sensor Fusion */}
+        {/* Control Panel */}
+        <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px' }}>
+          <ControlPanel />
+        </div>
+
+        {/* Sensor Health Radial */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px' }}>
-            <ControlPanel />
-          </div>
+          <SensorHealthRadial />
           <div style={{ background: 'var(--surf)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px' }}>
             <SensorFusion />
           </div>

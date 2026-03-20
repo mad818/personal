@@ -1,8 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import NewsFeed       from '@/components/signals/NewsFeed'
-import HackerNewsFeed from '@/components/signals/HackerNewsFeed'
+import NewsFeed           from '@/components/signals/NewsFeed'
+import HackerNewsFeed     from '@/components/signals/HackerNewsFeed'
+import SentimentGauge     from '@/components/signals/SentimentGauge'
+import SourceDistribution from '@/components/signals/SourceDistribution'
+import TrendingTopics     from '@/components/signals/TrendingTopics'
 import { ArticlesLoader } from '@/components/ui/DataLoader'
 
 type FeedTab = 'news' | 'hackernews'
@@ -24,6 +27,15 @@ export default function SignalsPage() {
         <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px' }}>
           Live news feed · bias detection · Hacker News · sentiment analysis
         </div>
+      </div>
+
+      {/* Sentiment gauge — full width at top */}
+      <SentimentGauge />
+
+      {/* Source Distribution + Trending Topics — 2-column grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+        <SourceDistribution />
+        <TrendingTopics />
       </div>
 
       {/* Tab switcher */}

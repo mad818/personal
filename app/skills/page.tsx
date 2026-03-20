@@ -6,10 +6,13 @@
 
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import SkillLibrary from '@/components/skills/SkillLibrary'
-import LearningLog from '@/components/skills/LearningLog'
-import SystemBrain from '@/components/skills/SystemBrain'
-import KnowledgeBase from '@/components/skills/KnowledgeBase'
+import SkillLibrary        from '@/components/skills/SkillLibrary'
+import LearningLog         from '@/components/skills/LearningLog'
+import SystemBrain         from '@/components/skills/SystemBrain'
+import KnowledgeBase       from '@/components/skills/KnowledgeBase'
+import SkillRadarChart     from '@/components/skills/SkillRadarChart'
+import LearningProgressRing from '@/components/skills/LearningProgressRing'
+import KnowledgeGraphViz   from '@/components/skills/KnowledgeGraphViz'
 import type { LearningEvent } from '@/lib/skillEngine'
 
 // ── Animated section title ─────────────────────────────────────────────────────
@@ -125,11 +128,40 @@ export default function SkillsPage() {
         }} />
       </motion.div>
 
-      {/* ── Section 1: Skill Library ── */}
+      {/* ── NEW: Radar Chart + Progress Rings (2-column grid) ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.05 }}
+        style={{ marginBottom: '28px' }}
+      >
+        <SectionLabel>Intelligence Metrics — Proficiency & Learning</SectionLabel>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '14px',
+        }}>
+          <SkillRadarChart />
+          <LearningProgressRing />
+        </div>
+      </motion.div>
+
+      {/* ── NEW: Knowledge Graph (full width) ── */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
+        style={{ marginBottom: '28px' }}
+      >
+        <SectionLabel>Knowledge Graph — Domain Connections</SectionLabel>
+        <KnowledgeGraphViz />
+      </motion.div>
+
+      {/* ── Section 1: Skill Library ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.15 }}
         style={{ marginBottom: '28px' }}
       >
         <SectionLabel>Skill Library — All Capabilities</SectionLabel>

@@ -1,9 +1,13 @@
 'use client'
-import { useEffect } from 'react'
-import { useGlobalData } from '@/hooks/useGlobalData'
+import { useEffect }         from 'react'
+import { useGlobalData }     from '@/hooks/useGlobalData'
+import { useKeywordAlerts }  from '@/hooks/useKeywordAlerts'
 
 export default function GlobalDataLoader() {
   const { fetchAll } = useGlobalData()
+
+  // Keyword alert engine — fires notifications when articles match user keywords
+  useKeywordAlerts()
 
   useEffect(() => {
     fetchAll()

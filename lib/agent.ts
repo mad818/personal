@@ -14,11 +14,21 @@
  *  When running on local Ollama due to rate limit or user choice, write_file
  *  is replaced by draft_file. Drafts are queued in pendingDrafts for Claude
  *  to finalize when the limit resets.
+ *
+ * Self-learning:
+ *  remember/recall tools are intercepted client-side and use IndexedDB via
+ *  memoryStore. After each completed conversation, autoLearn() extracts facts
+ *  and preferences from the exchange and stores them automatically.
  */
 
 import { DEFAULT_SETTINGS, type Settings, type AIMode } from '@/store/useStore'
 import { useStore } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
+import {
+  remember  as memRemember,
+  recall    as memRecall,
+  recallByType,
+} from '@/lib/memoryStore'
 
 // ── Tool definitions (shown to the model) ────────────────────────────────────
 export const AGENT_TOOLS = [
@@ -204,7 +214,59 @@ function getSettings(): Settings {
   }
 }
 
+// ── Client-side memory intercepts ────────────────────────────────────────────
+// remember/recall use IndexedDB directly — no round-trip to the server needed.
+
+async function handleRemember(note: string): Promise<string> {
+  try {
+    // Classify the note automatically based on simple heuristics
+    const lower = note.toLowerCase()
+    const type =
+      lower.includes('prefer') || lower.includes('always') || lower.includes('never') || lower.includes('want')
+        ? 'preference'
+        : lower.includes('happened') || lower.includes('detected') || lower.includes('noticed') || lower.includes('observed')
+          ? 'episode'
+          : 'fact'
+
+    // Extract simple tags: capitalized words, numbers with units
+    const rawTags = note.match(/\b[A-Z][a-z]{2,}\b|\b[A-Z]{2,}\b|\b\d+[%kKmMbB]+\b/g) ?? []
+    const tags = Array.from(new Set(rawTags.map(t => t.toLowerCase()))).slice(0, 8)
+
+    await memRemember(note, type, tags, 'agent')
+    return `Remembered (${type}): "${note.slice(0, 80)}${note.length > 80 ? '…' : ''}"`
+  } catch {
+    return `Failed to save memory — IndexedDB may be unavailable.`
+  }
+}
+
+async function handleRecall(query: string): Promise<string> {
+  try {
+    const q = query.trim()
+
+    // No query → return recent facts + preferences
+    if (!q) {
+      const [facts, prefs] = await Promise.all([
+        recallByType('fact', 12),
+        recallByType('preference', 8),
+      ])
+      const all = [...prefs, ...facts]
+      if (!all.length) return 'No memories saved yet.'
+      return all.map(m => `[${m.type}] ${m.content}`).join('\n')
+    }
+
+    const memories = await memRecall(q, 10)
+    if (!memories.length) return `No memories found matching "${q}".`
+    return memories.map(m => `[${m.type}] ${m.content}`).join('\n')
+  } catch {
+    return 'Failed to read memory — IndexedDB may be unavailable.'
+  }
+}
+
 async function executeTool(name: string, input: Record<string, string>): Promise<string> {
+  // Intercept memory tools client-side — IndexedDB, no server round-trip
+  if (name === 'remember') return handleRemember(input.note ?? '')
+  if (name === 'recall')   return handleRecall(input.query ?? input.note ?? '')
+
   try {
     const r = await apiFetch('/api/tools', {
       method:  'POST',
@@ -238,6 +300,109 @@ const OLLAMA_TIMEOUT_MS  = 90_000
 const CLAUDE_TIMEOUT_MS  = 45_000
 // Tool execution: 15s (web search + fetch_url)
 const TOOL_TIMEOUT_MS    = 15_000
+
+// ── Memory context builder ────────────────────────────────────────────────────
+// Recalled before each agent run and injected into the system prompt.
+// Pulls top preferences (always relevant) + facts most relevant to the query.
+
+async function buildMemoryContext(userMessage: string): Promise<string> {
+  try {
+    const [prefs, relevant] = await Promise.all([
+      recallByType('preference', 6),
+      memRecall(userMessage, 8),
+    ])
+
+    const prefBlock = prefs.length
+      ? `User preferences:\n${prefs.map(m => `• ${m.content}`).join('\n')}`
+      : ''
+
+    // Filter out prefs already shown to avoid duplication
+    const prefIds = new Set(prefs.map(m => m.id))
+    const factBlock = relevant.filter(m => !prefIds.has(m.id)).length
+      ? `Relevant memory:\n${relevant.filter(m => !prefIds.has(m.id)).map(m => `• [${m.type}] ${m.content}`).join('\n')}`
+      : ''
+
+    const parts = [prefBlock, factBlock].filter(Boolean)
+    return parts.length
+      ? `\n\n== MEMORY ==\n${parts.join('\n\n')}\n== END MEMORY ==`
+      : ''
+  } catch {
+    return '' // memory unavailable — continue without it
+  }
+}
+
+// ── Auto-learning loop ────────────────────────────────────────────────────────
+// Called after each completed agent run. Uses a fast AI call to extract
+// learnable facts/preferences from the exchange and stores them in IndexedDB.
+// Runs silently in the background — never blocks the response.
+
+async function autoLearn(
+  userMessage: string,
+  agentAnswer: string,
+  settings:    Settings,
+): Promise<void> {
+  if (!agentAnswer || agentAnswer.length < 40) return
+
+  try {
+    const prompt = `You are a fact extractor. Extract up to 5 concise, standalone facts or preferences from this conversation that are worth remembering for future sessions.
+
+User said: "${userMessage.slice(0, 400)}"
+Agent replied: "${agentAnswer.slice(0, 600)}"
+
+Output ONLY a JSON array of strings. Each string is one fact (max 120 chars). If nothing is worth saving, output [].
+Example: ["User is analyzing BTC/USD 4h chart", "User prefers RSI(14) over MACD for entries"]`
+
+    let extracted: string[] = []
+
+    if (settings.aiProvider === 'anthropic') {
+      const res = await apiFetch('/api/ai', {
+        method: 'POST',
+        body: JSON.stringify({
+          provider:   'anthropic',
+          model:      'claude-haiku-4-5-20251001',
+          max_tokens: 256,
+          messages:   [{ role: 'user', content: prompt }],
+          task:       'fast',
+        }),
+        signal: AbortSignal.timeout(15_000),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const raw  = data.content?.[0]?.text ?? data.choices?.[0]?.message?.content ?? '[]'
+        const match = raw.match(/\[[\s\S]*\]/)
+        extracted = match ? JSON.parse(match[0]) : []
+      }
+    } else if (settings.localEndpoint && settings.localModel) {
+      const res = await fetch(settings.localEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(settings.localApiKey ? { Authorization: `Bearer ${settings.localApiKey}` } : {}),
+        },
+        body: JSON.stringify({
+          model:      settings.localModel,
+          max_tokens: 256,
+          messages:   [{ role: 'user', content: prompt }],
+        }),
+        signal: AbortSignal.timeout(30_000),
+      })
+      if (res.ok) {
+        const data  = await res.json()
+        const raw   = data.choices?.[0]?.message?.content ?? '[]'
+        const match = raw.match(/\[[\s\S]*\]/)
+        extracted = match ? JSON.parse(match[0]) : []
+      }
+    }
+
+    for (const fact of extracted) {
+      if (typeof fact === 'string' && fact.trim().length > 5) {
+        await handleRemember(fact.trim())
+      }
+    }
+  } catch {
+    // Silent — never block the main response
+  }
+}
 
 // ── Ollama agent loop (OpenAI-compat function calling) ────────────────────────
 async function runOllamaAgent(opts: AgentOptions): Promise<string> {
@@ -370,16 +535,25 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
   const { settings, systemPrompt, messages, onStep, maxIterations = 8 } = opts
   const s = settings ?? getSettings()
 
+  // ── Auto-recall: inject relevant memories into system prompt ─────────────
+  const userMessage     = messages.findLast(m => m.role === 'user')?.content ?? ''
+  const memoryContext   = await buildMemoryContext(userMessage)
+  const enrichedPrompt  = systemPrompt + memoryContext
+
   // Read current AI mode from store (outside React — getState() is safe)
   const storeAiMode: AIMode =
     typeof window !== 'undefined' ? useStore.getState().aiMode : 'auto'
+
+  const enrichedOpts = { ...opts, systemPrompt: enrichedPrompt }
 
   // No API key in settings AND not anthropic provider → Ollama in regular mode
   // Note: the actual key now lives server-side. If aiProvider is 'anthropic' we
   // try /api/ai regardless — the server will return a clear error if key is missing.
   if (s.aiProvider !== 'anthropic' && !s.apiKey) {
     try {
-      return await runOllamaAgent({ ...opts, draftMode: false })
+      const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: false })
+      void autoLearn(userMessage, answer, s)
+      return answer
     } catch {
       const err = 'Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.'
       onStep({ type: 'answer', content: err })
@@ -390,7 +564,9 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
   // User forced local/draft mode explicitly
   if (storeAiMode === 'local') {
     try {
-      return await runOllamaAgent({ ...opts, draftMode: true })
+      const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: true })
+      void autoLearn(userMessage, answer, s)
+      return answer
     } catch {
       const err = 'Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.'
       onStep({ type: 'answer', content: err })
@@ -416,7 +592,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
           provider:   'anthropic',
           model:      'claude-opus-4-5',
           max_tokens: 1024,
-          system:     systemPrompt,
+          system:     enrichedPrompt,
           tools:      AGENT_TOOLS,
           messages:   conv,
         }),
@@ -429,7 +605,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
         : 'Network error reaching Claude API.'
       // On timeout, try Ollama as fallback
       if (isTimeout) {
-        try { return await runOllamaAgent({ ...opts, draftMode: false }) } catch { /* ignore */ }
+        try { return await runOllamaAgent({ ...enrichedOpts, draftMode: false }) } catch { /* ignore */ }
       }
       onStep({ type: 'answer', content: finalAnswer })
       break
@@ -445,7 +621,9 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
       })
       useStore.getState().setAIMode('local')
       try {
-        return await runOllamaAgent({ ...opts, draftMode: true })
+        const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: true })
+        void autoLearn(userMessage, answer, s)
+        return answer
       } catch {
         const err = 'Claude rate limited and Ollama is not reachable. Try again later.'
         onStep({ type: 'answer', content: err })
@@ -494,6 +672,9 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
 
     conv.push({ role: 'user', content: toolResults })
   }
+
+  // Auto-learn from completed conversation — runs silently in background
+  if (finalAnswer) void autoLearn(userMessage, finalAnswer, s)
 
   return finalAnswer
 }

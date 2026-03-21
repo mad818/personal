@@ -21,8 +21,19 @@ type ChatMsg = UserMsg | AiMsg
 
 // ── Tool step icons ───────────────────────────────────────────────────────────
 const TOOL_ICON: Record<string, string> = {
-  web_search: '🔍', fetch_url: '🌐', write_file: '💾',
-  draft_file: '📝', read_file: '📂', list_files: '📋', calculate: '🧮',
+  web_search:         '🔍',
+  fetch_url:          '🌐',
+  write_file:         '💾',
+  draft_file:         '📝',
+  read_file:          '📂',
+  list_files:         '📋',
+  calculate:          '🧮',
+  remember:           '🧠',
+  recall:             '🧠',
+  read_project_file:  '🗂️',
+  list_project_files: '📁',
+  patch_project_file: '✏️',
+  ask_max:            '🤖',
 }
 
 // ── Mode badge ────────────────────────────────────────────────────────────────

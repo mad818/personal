@@ -238,6 +238,117 @@ async function calculate(expression: string): Promise<string> {
   }
 }
 
+// ── Project file access ───────────────────────────────────────────────────────
+// Gives the agent read + targeted-edit access to the actual project source code.
+// Security rules:
+//  - No path traversal (../ blocked)
+//  - .env* files always blocked
+//  - node_modules, .git, .next, archive blocked
+//  - Write only allowed inside safe source dirs
+//  - Max read: 60,000 chars (~1,500 lines)
+
+const PROJECT_ROOT = process.cwd()
+
+// Extensions the agent is allowed to read
+const READABLE_EXTS = new Set([
+  '.tsx', '.ts', '.js', '.jsx', '.css', '.json', '.md', '.txt', '.svg',
+  '.html', '.sh', '.bat', '.ps1',
+])
+
+// Prefixes blocked for both read and write
+const BLOCKED_PREFIXES = [
+  'node_modules', '.git', '.next', 'archive', '.env',
+]
+
+// Directories where the agent is allowed to write/patch
+const WRITABLE_DIRS = [
+  'app', 'components', 'lib', 'store', 'public', 'docs', 'specs', 'hooks',
+]
+
+function resolveProjectPath(relPath: string): { safe: string; blocked: string | null } {
+  // Strip any leading slashes or backslashes
+  const cleaned = relPath.replace(/^[/\\]+/, '').replace(/\\/g, '/')
+  // Block path traversal
+  if (cleaned.includes('..')) return { safe: '', blocked: 'Path traversal is not allowed.' }
+  // Block .env files
+  const basename = path.basename(cleaned)
+  if (basename.startsWith('.env')) return { safe: '', blocked: '.env files are protected.' }
+  // Block known directories
+  const topLevel = cleaned.split('/')[0]
+  if (BLOCKED_PREFIXES.some((p) => topLevel === p || cleaned.startsWith(p + '/')))
+    return { safe: '', blocked: `"${topLevel}" is off-limits.` }
+  const full = path.join(PROJECT_ROOT, cleaned)
+  return { safe: full, blocked: null }
+}
+
+async function readProjectFile(relPath: string): Promise<string> {
+  const { safe, blocked } = resolveProjectPath(relPath)
+  if (blocked) return `Blocked: ${blocked}`
+  const ext = path.extname(relPath).toLowerCase()
+  if (!READABLE_EXTS.has(ext)) return `Cannot read file type "${ext}". Allowed: ${Array.from(READABLE_EXTS).join(', ')}`
+  try {
+    const content = await fs.readFile(safe, 'utf-8')
+    const preview = content.slice(0, 60_000)
+    const truncated = content.length > 60_000 ? `\n\n[Truncated — showing first 60,000 of ${content.length} chars]` : ''
+    return preview + truncated
+  } catch {
+    return `File not found: ${relPath}`
+  }
+}
+
+async function listProjectFiles(relDir: string): Promise<string> {
+  const cleanDir = relDir.replace(/^[/\\]+/, '').replace(/\\/g, '/') || '.'
+  const { safe, blocked } = resolveProjectPath(cleanDir === '.' ? '_root_sentinel' : cleanDir)
+  // For root listing, bypass the sentinel trick
+  const targetPath = cleanDir === '.'
+    ? PROJECT_ROOT
+    : (blocked ? null : safe)
+
+  if (!targetPath) return `Blocked: ${blocked}`
+
+  try {
+    const entries = await fs.readdir(targetPath, { withFileTypes: true })
+    const lines = entries
+      .filter((e) => !BLOCKED_PREFIXES.some((b) => e.name === b || e.name.startsWith('.env')))
+      .map((e) => `${e.isDirectory() ? '📁' : '📄'} ${e.name}`)
+    return lines.length ? lines.join('\n') : 'Directory is empty.'
+  } catch {
+    return `Directory not found: ${relDir}`
+  }
+}
+
+async function patchProjectFile(relPath: string, oldStr: string, newStr: string): Promise<string> {
+  const { safe, blocked } = resolveProjectPath(relPath)
+  if (blocked) return `Blocked: ${blocked}`
+
+  // Only allow writes in approved directories
+  const topLevel = relPath.replace(/^[/\\]+/, '').split('/')[0]
+  if (!WRITABLE_DIRS.includes(topLevel)) {
+    return `Write blocked: "${topLevel}" is not a writable directory. Allowed: ${WRITABLE_DIRS.join(', ')}`
+  }
+
+  const ext = path.extname(relPath).toLowerCase()
+  if (!READABLE_EXTS.has(ext)) return `Cannot edit file type "${ext}".`
+
+  // Read current content
+  let content: string
+  try {
+    content = await fs.readFile(safe, 'utf-8')
+  } catch {
+    return `File not found: ${relPath}. Use write_file to create a new file in the workspace instead.`
+  }
+
+  if (!content.includes(oldStr)) {
+    return `Patch failed: the exact text was not found in ${relPath}. Read the file first and copy the exact string you want to replace.`
+  }
+
+  // Only replace the first occurrence (safer — prevents mass replacement)
+  const updated = content.replace(oldStr, newStr)
+  await fs.writeFile(safe, updated, 'utf-8')
+  const linesChanged = Math.abs(newStr.split('\n').length - oldStr.split('\n').length)
+  return `Patched: ${relPath} — ${linesChanged} line(s) changed.`
+}
+
 // ── Route handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
@@ -272,6 +383,15 @@ export async function POST(req: NextRequest) {
         break
       case 'ask_max':
         result = await askMax(input.message ?? '')
+        break
+      case 'read_project_file':
+        result = await readProjectFile(input.path ?? '')
+        break
+      case 'list_project_files':
+        result = await listProjectFiles(input.directory ?? '.')
+        break
+      case 'patch_project_file':
+        result = await patchProjectFile(input.path ?? '', input.old_string ?? '', input.new_string ?? '')
         break
       default:
         result = `Unknown tool: ${tool}`

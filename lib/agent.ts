@@ -118,6 +118,43 @@ export const AGENT_TOOLS = [
       required: ['message'],
     },
   },
+
+  // ── Project source code access ─────────────────────────────────────────────
+  {
+    name:        'read_project_file',
+    description: 'Read a source file from the Nexus Prime project. Use this to understand the codebase before making changes — always read a file before editing it. Examples: "app/home/page.tsx", "components/home/HomeChat.tsx", "lib/agent.ts", "store/useStore.ts".',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: 'Relative path from project root, e.g. "components/home/HomeChat.tsx"' },
+      },
+      required: ['path'],
+    },
+  },
+  {
+    name:        'list_project_files',
+    description: 'List files and folders in a project directory. Use this to explore the codebase structure. Examples: list "components" to see all component folders, list "app" to see all routes, list "lib" to see all utility files. Use "." to list the project root.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        directory: { type: 'string', description: 'Relative directory path, e.g. "components/home" or "app" or "." for root' },
+      },
+      required: ['directory'],
+    },
+  },
+  {
+    name:        'patch_project_file',
+    description: 'Make a targeted edit to a source file. Finds an exact string and replaces it with new content. IMPORTANT: Always read_project_file first to get the exact current text. Only edits files in: app/, components/, lib/, store/, public/, docs/, specs/. Returns an error if the old_string is not found exactly.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path:       { type: 'string', description: 'Relative path to the file, e.g. "components/home/HomeChat.tsx"' },
+        old_string: { type: 'string', description: 'The exact text currently in the file that you want to replace. Must match character-for-character.' },
+        new_string: { type: 'string', description: 'The new text to replace it with.' },
+      },
+      required: ['path', 'old_string', 'new_string'],
+    },
+  },
 ]
 
 // Draft-mode replacement for write_file

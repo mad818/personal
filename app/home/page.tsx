@@ -1,4 +1,4 @@
-import HomeChat from '@/components/home/HomeChat'
+import AgentOffice from '@/components/home/AgentOffice'
 import { PricesLoader, FearGreedLoader, ArticlesLoader } from '@/components/ui/DataLoader'
 
 export default function HomePage() {
@@ -7,7 +7,7 @@ export default function HomePage() {
       <PricesLoader />
       <FearGreedLoader />
       <ArticlesLoader />
-      <HomeChat />
+      <AgentOffice />
     </>
   )
 }

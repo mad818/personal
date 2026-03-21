@@ -221,8 +221,23 @@ lib/helpers.ts        ← fmtPrice, fmtVol, timeAgo, esc
 
 ---
 
+## Project Skills
+These skills live in `.claude/skills/` and must be read before the relevant work begins.
+
+| Skill | File | Use when |
+|-------|------|----------|
+| add-feature | `.claude/skills/add-feature/SKILL.md` | Building any new self-contained feature into nexus-final.html |
+| add-tab | `.claude/skills/add-tab/SKILL.md` | Adding a new top-level tab to nexus-final.html |
+| add-api | `.claude/skills/add-api/SKILL.md` | Wiring any new external data source or API key |
+| fix-bug | `.claude/skills/fix-bug/SKILL.md` | Debugging any issue in nexus-final.html |
+
+Read the matching skill file first — before writing any code.
+
+---
+
 ## Project Structure
 ```
+.claude/skills/  — project-level skills (add-feature, add-tab, add-api, fix-bug)
 tasks/
   todo.md        — active task list, written before any work starts
   lessons.md     — updated after every correction

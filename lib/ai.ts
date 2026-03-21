@@ -63,31 +63,46 @@ async function streamRequest(
   return full
 }
 
+// ── Task → local model map (mirrors server-side TASK_MODELS) ─────────────────
+const TASK_MODELS: Record<string, string> = {
+  chat:      'qwen2.5:14b',
+  code:      'qwen2.5-coder:14b',
+  vision:    'llama3.2-vision:11b',
+  reasoning: 'deepseek-r1:14b',
+  fast:      'qwen2.5:7b',
+  embed:     'nomic-embed-text',
+}
+
 // ── Main AI call (non-streaming) ──────────────────────────────────────────────
 export async function callAI(
   prompt: string,
-  maxTokens = 1024
+  maxTokens = 1024,
+  task?: string
 ): Promise<string> {
   const s = getSettings()
   if (!aiReady(s)) throw new Error('No AI configured')
 
   // Route through /api/ai — key never leaves the server
+  // Anthropic provider → cloud path; task hint uses RESEARCH_CHAIN server-side
   if (s.aiProvider === 'anthropic') {
     const res = await apiFetch('/api/ai', {
       method: 'POST',
       body: JSON.stringify({
         provider:   'anthropic',
-        model:      'claude-opus-4-5-20251101',
+        model:      'claude-opus-4-5',
         max_tokens: maxTokens,
         messages:   [{ role: 'user', content: prompt }],
+        ...(task ? { task } : {}),
       }),
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.error?.message ?? `API error ${res.status}`)
-    return data.content?.[0]?.text ?? ''
+    // Anthropic returns content array; OpenAI-compat returns choices
+    return data.content?.[0]?.text ?? data.choices?.[0]?.message?.content ?? ''
   }
 
-  // OpenAI-compatible (local Ollama or OpenRouter)
+  // Local Ollama — pick model by task hint
+  const model = task ? (TASK_MODELS[task] ?? s.localModel) : s.localModel
   const res = await fetch(s.localEndpoint, {
     method: 'POST',
     headers: {
@@ -95,7 +110,7 @@ export async function callAI(
       ...(s.localApiKey ? { Authorization: `Bearer ${s.localApiKey}` } : {}),
     },
     body: JSON.stringify({
-      model:      s.localModel,
+      model,
       max_tokens: maxTokens,
       messages:   [{ role: 'user', content: prompt }],
     }),
@@ -109,7 +124,8 @@ export async function streamAI(
   messages: { role: string; content: string }[],
   systemPrompt: string,
   onChunk: (text: string) => void,
-  maxTokens = 1024
+  maxTokens = 1024,
+  task?: string
 ): Promise<string> {
   const s = getSettings()
   if (!aiReady(s)) throw new Error('No AI configured')
@@ -120,22 +136,25 @@ export async function streamAI(
       {},
       {
         provider:   'anthropic',
-        model:      'claude-opus-4-5-20251101',
+        model:      'claude-opus-4-5',
         max_tokens: maxTokens,
         system:     systemPrompt,
         messages,
         stream:     true,
+        ...(task ? { task } : {}),
       },
       onChunk,
       true // use apiFetch
     )
   }
 
+  // Local Ollama — pick model by task hint
+  const model = task ? (TASK_MODELS[task] ?? s.localModel) : s.localModel
   return streamRequest(
     s.localEndpoint,
     s.localApiKey ? { Authorization: `Bearer ${s.localApiKey}` } : {},
     {
-      model:      s.localModel,
+      model,
       max_tokens: maxTokens,
       messages:   [{ role: 'system', content: systemPrompt }, ...messages],
       stream:     true,

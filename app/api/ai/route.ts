@@ -138,10 +138,12 @@ async function callProvider(
   maxTokens:    number,
   system:       string | undefined,
   stream:       boolean,
+  tools?:       unknown,
+  toolChoice?:  unknown,
 ): Promise<Response | null> {
   const p   = PROVIDERS[providerName]
   const key = p.key()
-  if (!key || key === 'ollama' && providerName !== 'ollama') return null
+  if (!key || (key === 'ollama' && providerName !== 'ollama')) return null
   if (!key && providerName !== 'ollama') return null
 
   const resolvedModel = model ?? p.model
@@ -149,13 +151,15 @@ async function callProvider(
   let body: Record<string, unknown>
 
   if (p.format === 'anthropic') {
-    // Anthropic Messages format
+    // Anthropic Messages format — pass tools through for agent tool-use
     body = {
       model:      resolvedModel,
       max_tokens: maxTokens,
       messages,
-      ...(system ? { system } : {}),
-      ...(stream ? { stream: true } : {}),
+      ...(system     ? { system }              : {}),
+      ...(tools      ? { tools }               : {}),
+      ...(toolChoice ? { tool_choice: toolChoice } : {}),
+      ...(stream     ? { stream: true }         : {}),
     }
   } else {
     // OpenAI-compatible format
@@ -166,7 +170,9 @@ async function callProvider(
       model:      resolvedModel,
       max_tokens: maxTokens,
       messages:   msgs,
-      ...(stream ? { stream: true } : {}),
+      ...(tools      ? { tools }               : {}),
+      ...(toolChoice ? { tool_choice: toolChoice } : {}),
+      ...(stream     ? { stream: true }         : {}),
     }
   }
 
@@ -189,13 +195,15 @@ async function callProvider(
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as {
-      provider?:   string
-      task?:       string
-      model?:      string
-      messages?:   unknown[]
-      system?:     string
-      max_tokens?: number
-      stream?:     boolean
+      provider?:    string
+      task?:        string
+      model?:       string
+      messages?:    unknown[]
+      system?:      string
+      max_tokens?:  number
+      stream?:      boolean
+      tools?:       unknown
+      tool_choice?: unknown
       [key: string]: unknown
     }
 
@@ -207,6 +215,8 @@ export async function POST(req: NextRequest) {
       system,
       max_tokens,
       stream = false,
+      tools,
+      tool_choice,
     } = body
 
     // Clamp tokens
@@ -250,6 +260,8 @@ export async function POST(req: NextRequest) {
         safeMaxTokens,
         system,
         stream,
+        tools,
+        tool_choice,
       )
 
       if (r) {

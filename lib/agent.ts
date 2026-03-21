@@ -170,13 +170,15 @@ function getSettings(): Settings {
 async function executeTool(name: string, input: Record<string, string>): Promise<string> {
   try {
     const r = await apiFetch('/api/tools', {
-      method: 'POST',
-      body:   JSON.stringify({ tool: name, input }),
+      method:  'POST',
+      body:    JSON.stringify({ tool: name, input }),
+      signal:  AbortSignal.timeout(TOOL_TIMEOUT_MS),
     })
     const d = await r.json()
     return d.result ?? 'No result.'
-  } catch {
-    return 'Tool execution failed.'
+  } catch (e) {
+    const isTimeout = e instanceof Error && e.name === 'TimeoutError'
+    return isTimeout ? `Tool "${name}" timed out after ${TOOL_TIMEOUT_MS / 1000}s.` : `Tool "${name}" failed.`
   }
 }
 
@@ -192,11 +194,19 @@ function toOAITools(tools: typeof AGENT_TOOLS) {
   }))
 }
 
+// ── Timeouts ──────────────────────────────────────────────────────────────────
+// Local Ollama: 90s per call (14b model can be slow on first token)
+const OLLAMA_TIMEOUT_MS  = 90_000
+// Cloud Claude: 45s (should respond much faster)
+const CLAUDE_TIMEOUT_MS  = 45_000
+// Tool execution: 15s (web search + fetch_url)
+const TOOL_TIMEOUT_MS    = 15_000
+
 // ── Ollama agent loop (OpenAI-compat function calling) ────────────────────────
 async function runOllamaAgent(opts: AgentOptions): Promise<string> {
-  const { settings: s, systemPrompt, messages, onStep, maxIterations = 8, draftMode = false } = opts
+  const { settings: s, systemPrompt, messages, onStep, maxIterations = 6, draftMode = false } = opts
   const endpoint = s.localEndpoint || 'http://localhost:11434/v1/chat/completions'
-  const model    = s.localModel    || 'qwen3:14b'
+  const model    = s.localModel    || 'qwen2.5:14b'
 
   // In draft mode, swap write_file out for draft_file
   const tools = draftMode
@@ -238,25 +248,41 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
         },
         body: JSON.stringify({
           model,
-          max_tokens:  1024,
+          max_tokens:  768,
           messages:    conv,
           tools:       toOAITools(tools),
           tool_choice: 'auto',
         }),
+        signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
       })
+    } catch (e) {
+      const isTimeout = e instanceof Error && e.name === 'TimeoutError'
+      finalAnswer = isTimeout
+        ? `Ollama took too long to respond (${OLLAMA_TIMEOUT_MS / 1000}s). The model may still be loading — try again in a moment.`
+        : `Could not reach Ollama at ${endpoint}. Make sure Ollama is running: open a terminal and run \`ollama serve\`.`
+      onStep({ type: 'answer', content: finalAnswer })
+      break
+    }
+
+    let data: Record<string, unknown>
+    try {
+      data = await res.json()
     } catch {
-      finalAnswer = `Could not reach Ollama at ${endpoint}. Make sure Ollama is running (ollama serve).`
+      finalAnswer = 'Ollama returned an unreadable response. Try again.'
+      onStep({ type: 'answer', content: finalAnswer })
       break
     }
 
-    const data = await res.json()
     if (!res.ok) {
-      finalAnswer = data?.error?.message ?? 'Ollama error.'
+      finalAnswer = (data?.error as { message?: string })?.message ?? `Ollama error (HTTP ${res.status}).`
+      onStep({ type: 'answer', content: finalAnswer })
       break
     }
 
-    const msg        = data.choices?.[0]?.message
-    const stopReason = data.choices?.[0]?.finish_reason as string
+    type OAIChoice = { message?: { content?: string | null; tool_calls?: { id: string; function: { name: string; arguments: string } }[] }; finish_reason?: string }
+    const choices    = data.choices as OAIChoice[] | undefined
+    const msg        = choices?.[0]?.message
+    const stopReason = choices?.[0]?.finish_reason ?? ''
 
     // No tool calls → final answer
     if (!msg?.tool_calls?.length) {
@@ -269,7 +295,7 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     conv.push({ role: 'assistant', content: msg.content ?? null, tool_calls: msg.tool_calls })
 
     // Execute tool calls sequentially
-    for (const tc of msg.tool_calls as { id: string; function: { name: string; arguments: string } }[]) {
+    for (const tc of msg.tool_calls) {
       const name = tc.function.name
       let   input: Record<string, string> = {}
       try { input = JSON.parse(tc.function.arguments) } catch { /* ignore parse errors */ }
@@ -351,15 +377,24 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
         method: 'POST',
         body: JSON.stringify({
           provider:   'anthropic',
-          model:      'claude-opus-4-5-20251101',
+          model:      'claude-opus-4-5',
           max_tokens: 1024,
           system:     systemPrompt,
           tools:      AGENT_TOOLS,
           messages:   conv,
         }),
+        signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
       })
-    } catch {
-      finalAnswer = 'Network error reaching Claude API.'
+    } catch (e) {
+      const isTimeout = e instanceof Error && e.name === 'TimeoutError'
+      finalAnswer = isTimeout
+        ? 'Claude took too long to respond. Switching to local model…'
+        : 'Network error reaching Claude API.'
+      // On timeout, try Ollama as fallback
+      if (isTimeout) {
+        try { return await runOllamaAgent({ ...opts, draftMode: false }) } catch { /* ignore */ }
+      }
+      onStep({ type: 'answer', content: finalAnswer })
       break
     }
 

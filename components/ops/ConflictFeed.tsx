@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useStore } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
-import { timeAgo } from '@/lib/helpers'
 
 interface ConflictItem {
   title:    string
@@ -50,65 +49,6 @@ function scoreImpact(title: string): ConflictItem['impact'] {
   if (HIGH_KW.some((k) => t.includes(k)))     return 'high'
   if (MEDIUM_KW.some((k) => t.includes(k)))   return 'medium'
   return 'low'
-}
-
-// ── GDELT Intelligence section ───────────────────────────────────────────────
-
-function GdeltSection() {
-  const gdeltEvents = useStore((s) => s.gdeltEvents)
-
-  if (!gdeltEvents.length) return null
-
-  return (
-    <div style={{ marginTop: '24px' }}>
-      <div style={{
-        fontSize: '11px', fontWeight: 700, color: 'var(--text3)',
-        textTransform: 'uppercase', letterSpacing: '.6px', marginBottom: '10px',
-      }}>
-        🛰️ GDELT Intelligence
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-        {gdeltEvents.slice(0, 20).map((article: any, i: number) => {
-          const domain = article.domain ?? (article.url ? (() => {
-            try { return new URL(article.url).hostname.replace('www.', '') } catch { return '' }
-          })() : '')
-          const ts = article.seendate ?? article.publishdate ?? ''
-          return (
-            <a
-              key={i}
-              href={article.url ?? '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'flex', flexDirection: 'column', gap: '4px',
-                background: 'var(--surf2)', border: '1px solid var(--border)',
-                borderRadius: '8px', padding: '10px 12px', textDecoration: 'none',
-              }}
-            >
-              <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text)', lineHeight: 1.4 }}>
-                {article.title}
-              </div>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {domain && (
-                  <span style={{
-                    fontSize: '9.5px', fontWeight: 700, padding: '1px 6px', borderRadius: '5px',
-                    background: 'var(--surf3)', color: 'var(--text3)',
-                  }}>
-                    {domain}
-                  </span>
-                )}
-                {ts && (
-                  <span style={{ fontSize: '10px', color: 'var(--text3)' }}>
-                    {timeAgo(ts)}
-                  </span>
-                )}
-              </div>
-            </a>
-          )
-        })}
-      </div>
-    </div>
-  )
 }
 
 export default function ConflictFeed() {
@@ -217,9 +157,6 @@ export default function ConflictFeed() {
           )
         })}
       </div>
-
-      {/* GDELT real-time intelligence — from global store */}
-      <GdeltSection />
     </div>
   )
 }

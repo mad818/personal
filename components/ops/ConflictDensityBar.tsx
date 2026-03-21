@@ -33,7 +33,7 @@ export default function ConflictDensityBar() {
 
     const counts: Record<string, number> = {}
     for (const ev of gdeltEvents) {
-      const source = ev.domain ?? ev.source ?? ev.sourcedomain ?? 'Unknown'
+      const source = String(ev.domain ?? ev.source ?? ev.sourcedomain ?? 'Unknown')
       // Normalize: take domain root
       const key = source.replace(/^www\./, '').slice(0, 22)
       counts[key] = (counts[key] ?? 0) + 1

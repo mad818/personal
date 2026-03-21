@@ -32,7 +32,7 @@ export default function AlertTimeline() {
     if (securityAlerts.length > 0) {
       const byHour: Record<number, number> = {}
       for (const a of securityAlerts) {
-        const h = new Date(a.ts).getHours()
+        const h = new Date(a.timestamp).getHours()
         byHour[h] = (byHour[h] || 0) + 1
       }
       return Array.from({ length: 24 }, (_, h) => ({

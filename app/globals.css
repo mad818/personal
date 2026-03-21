@@ -132,64 +132,6 @@ a:hover { opacity: .75; }
   animation: warm-pulse 4s ease-in-out infinite;
 }
 
-/* ── Sensor pulse — ripple effect for IoT device indicators ─────────────────── */
-@keyframes sensor-pulse {
-  0%   { transform: scale(1);   opacity: 1;   box-shadow: 0 0 0 0 rgba(212,149,106,.6); }
-  50%  { transform: scale(1.1); opacity: 0.9; box-shadow: 0 0 0 6px rgba(212,149,106,.15); }
-  100% { transform: scale(1);   opacity: 1;   box-shadow: 0 0 0 12px rgba(212,149,106,0); }
-}
-.sensor-pulse {
-  animation: sensor-pulse 2.4s ease-out infinite;
-}
-
-/* ── Camera scan line — horizontal sweep for security feed overlays ──────────── */
-@keyframes scan-line {
-  0%   { top: -2px;    opacity: 0; }
-  5%   { opacity: 0.6; }
-  95%  { opacity: 0.4; }
-  100% { top: 100%;    opacity: 0; }
-}
-.scan-line {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(196,72,90,.5), rgba(212,149,106,.8), rgba(196,72,90,.5), transparent);
-  animation: scan-line 3s linear infinite;
-  pointer-events: none;
-  z-index: 10;
-}
-
-/* ── Status beacon — pulsing glow ring for health indicators ─────────────────── */
-@keyframes status-beacon {
-  0%   { box-shadow: 0 0 0 0   rgba(212,149,106,.8), 0 0 4px rgba(212,149,106,.4); }
-  40%  { box-shadow: 0 0 0 6px rgba(212,149,106,0),  0 0 8px rgba(212,149,106,.6); }
-  100% { box-shadow: 0 0 0 0   rgba(212,149,106,.8), 0 0 4px rgba(212,149,106,.4); }
-}
-.status-beacon {
-  animation: status-beacon 2s ease-out infinite;
-}
-
-/* ── Data flow — animated gradient for data pipeline / stream indicators ─────── */
-@keyframes data-flow {
-  0%   { background-position: 200% center; }
-  100% { background-position: -200% center; }
-}
-.data-flow {
-  background: linear-gradient(90deg,
-    var(--border)  0%,
-    var(--accent2) 25%,
-    var(--accent)  50%,
-    var(--accent2) 75%,
-    var(--border)  100%
-  );
-  background-size: 200% auto;
-  animation: data-flow 2.5s linear infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 /* ── Background image overlay helper ───────────────────────────────────────── */
 .bg-sadie {
   position: relative;
@@ -206,47 +148,4 @@ a:hover { opacity: .75; }
     rgba(10,7,8,1) 100%);
   z-index: 1;
   pointer-events: none;
-}
-
-/* ── Page transition base ─────────────────────────────────────────────────── */
-main > div {
-  animation: nex-page-in 0.3s ease both;
-}
-
-@keyframes nex-page-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Card hover micro-interaction upgrade ────────────────────────────────── */
-.card-hover {
-  will-change: transform;
-}
-.card-hover:active {
-  transform: scale(0.98) !important;
-}
-
-/* ── Focus ring for accessibility ────────────────────────────────────────── */
-*:focus-visible {
-  outline: 2px solid rgba(196,72,90,0.5);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* ── Selection color ─────────────────────────────────────────────────────── */
-::selection {
-  background: rgba(196,72,90,0.3);
-  color: #f5e6ea;
-}
-
-/* ── Smooth scroll ───────────────────────────────────────────────────────── */
-html {
-  scroll-behavior: smooth;
-}
-
-/* ── Tab transition enhancement ─────────────────────────────────────────── */
-@media (prefers-reduced-motion: no-preference) {
-  a, button {
-    transition: all 0.15s cubic-bezier(.4,0,.2,1);
-  }
 }

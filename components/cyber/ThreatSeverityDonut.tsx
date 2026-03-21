@@ -55,7 +55,7 @@ export default function ThreatSeverityDonut() {
   const pieData = useMemo(() => {
     const counts: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0 }
     for (const ioc of iocs) {
-      const conf = ioc.confidence_level ?? ioc.confidence ?? 0
+      const conf = Number(ioc.confidence_level ?? ioc.confidence ?? 0)
       counts[confToSeverity(conf)]++
     }
     return (['critical', 'high', 'medium', 'low'] as const)

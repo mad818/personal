@@ -1,22 +1,11 @@
-'use client'
-
 import PriceGrid        from '@/components/alpha/PriceGrid'
 import MomentumScanner  from '@/components/alpha/MomentumScanner'
 import BuyBot           from '@/components/alpha/BuyBot'
 import PositionSizer    from '@/components/alpha/PositionSizer'
 import WatchlistManager from '@/components/alpha/WatchlistManager'
-import FearGreedGauge   from '@/components/alpha/FearGreedGauge'
-import DefiOverview     from '@/components/alpha/DefiOverview'
-import PriceSparklines  from '@/components/alpha/PriceSparklines'
 import { PricesLoader } from '@/components/ui/DataLoader'
-import PageTransition   from '@/components/ui/PageTransition'
-import { useStore }     from '@/store/useStore'
-import DataLoadingState from '@/components/ui/DataLoadingState'
 
-function AlphaContent() {
-  const prices = useStore((s) => s.prices)
-  const hasPrices = Object.keys(prices).length > 0
-
+export default function AlphaPage() {
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '18px 16px 40px' }}>
       <PricesLoader />
@@ -26,15 +15,6 @@ function AlphaContent() {
         <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px' }}>
           Crypto · Momentum scanner · Buy signals · Position sizing · Price tracking
         </div>
-      </div>
-
-      {/* Price Sparklines — new visualization */}
-      <div style={{ marginBottom: '20px' }}>
-        {!hasPrices ? (
-          <DataLoadingState dataName="market data" height={120} />
-        ) : (
-          <PriceSparklines />
-        )}
       </div>
 
       {/* Watchlist manager — compact toggle */}
@@ -63,12 +43,6 @@ function AlphaContent() {
         <PositionSizer />
       </div>
 
-      {/* Fear & Greed + DeFi Overview */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
-        <FearGreedGauge />
-        <DefiOverview />
-      </div>
-
       {/* Price Grid — full card view with sparklines */}
       <div>
         <div style={{
@@ -77,20 +51,8 @@ function AlphaContent() {
         }}>
           Price Overview
         </div>
-        {!hasPrices ? (
-          <DataLoadingState dataName="prices" height={200} />
-        ) : (
-          <PriceGrid />
-        )}
+        <PriceGrid />
       </div>
     </div>
-  )
-}
-
-export default function AlphaPage() {
-  return (
-    <PageTransition>
-      <AlphaContent />
-    </PageTransition>
   )
 }

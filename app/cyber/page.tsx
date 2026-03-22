@@ -1,6 +1,7 @@
-import CVEFeed   from '@/components/cyber/CVEFeed'
-import OTXFeed   from '@/components/cyber/OTXFeed'
-import CISAFeed  from '@/components/cyber/CISAFeed'
+import CVEFeed       from '@/components/cyber/CVEFeed'
+import OTXFeed       from '@/components/cyber/OTXFeed'
+import CISAFeed      from '@/components/cyber/CISAFeed'
+import CyberHeatmap  from '@/components/cyber/CyberHeatmap'
 import { CVEsLoader, OTXLoader } from '@/components/ui/DataLoader'
 
 export default function CyberPage() {
@@ -12,6 +13,11 @@ export default function CyberPage() {
       <div style={{ fontSize: '18px', fontWeight: 900 }}>🔒 CYBER</div>
       <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px', marginBottom: '20px' }}>
         CVE vulnerabilities · CISA KEV catalog · OTX threat pulses · Adversary intelligence
+      </div>
+
+      {/* Heatmap overview — click any cell to drill down */}
+      <div style={{ marginBottom: '28px' }}>
+        <CyberHeatmap />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

@@ -30,9 +30,9 @@ const P: Record<string, string> = {
   // Orbit — purple hoodie + headphones
   p: '#6b2fa0', o: '#3d1a5e',
   q: '#1a1a1a',
-  // Nova — red hair + white coat
+  // Nova — red hair + blue-grey lab coat (white was invisible on dark bg)
   r: '#9b2020', R: '#c0392b',
-  w: '#f5f5f5', W: '#c8c8c8',
+  w: '#7ba7d4', W: '#4a6fa5',   // blue-grey coat — visible on dark bg
   l: '#87ceeb',
   // Crab
   c: '#d04020', C: '#8a2010',
@@ -216,7 +216,7 @@ function CrabMascot({ emotion }: { emotion: Emotion }) {
           : emotion === 'success' ? 'crabBob .25s ease-in-out 4' : 'none',
         transition:'background .3s, border .3s',
       }}>
-        <Sprite rows={CRAB[blink && emotion === 'thinking' ? 'idle' : emotion]} scale={1.1} />
+        <Sprite rows={CRAB[blink && emotion === 'thinking' ? 'idle' : emotion]} scale={1.3} />
       </div>
       <span style={{ fontSize:'8px', color:'var(--text3)', fontWeight:700, whiteSpace:'nowrap' }}>
         {label[emotion]}
@@ -250,8 +250,8 @@ function AgentAvatar({ id, active, routing, dispatched, dispatch }: AvatarProps)
 
   return (
     <div style={{
-      display:'flex', flexDirection:'column', alignItems:'center', gap:'5px',
-      padding:'10px 8px 8px', borderRadius:'12px', position:'relative',
+      display:'flex', flexDirection:'column', alignItems:'center', gap:'6px',
+      padding:'12px 12px 10px', borderRadius:'12px', position:'relative',
       background: (routing || active || dispatched)
         ? `color-mix(in srgb, ${cfg.color} ${dispatched ? 12 : 7}%, var(--surf2))`
         : 'var(--surf2)',
@@ -262,37 +262,36 @@ function AgentAvatar({ id, active, routing, dispatched, dispatch }: AvatarProps)
         : active
         ? `0 0 14px ${cfg.color}33`
         : 'none',
-      minWidth:'82px',
+      minWidth:'100px',
       // Sway when working or dispatched
       animation: (active || dispatched) ? 'agentWork .55s ease-in-out infinite alternate'
         : routing ? 'agentLean .4s ease-in-out infinite alternate' : 'none',
     }}>
       {/* Pixel monitor */}
-      <div style={{ position:'relative', width:'48px', height:'38px' }}>
+      <div style={{ position:'relative', width:'60px', height:'48px' }}>
         <div style={{
           position:'absolute', top:0, left:0, right:0,
-          height:'34px', background:'#080a10',
-          border:`1px solid ${cfg.color}44`, borderRadius:'4px',
+          height:'42px', background:'#080a10',
+          border:`1px solid ${cfg.color}55`, borderRadius:'5px',
           display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden',
         }}>
           {/* Scanlines */}
           <div style={{ position:'absolute', inset:0, background:`repeating-linear-gradient(0deg, transparent, transparent 3px, ${cfg.color}08 3px, ${cfg.color}08 4px)`, pointerEvents:'none' }} />
-          <div style={{ fontSize:'7px', color:`${cfg.color}99`, fontWeight:700, fontFamily:'monospace', zIndex:1, letterSpacing:'.1em' }}>
+          <div style={{ fontSize:'8px', color:`${cfg.color}99`, fontWeight:700, fontFamily:'monospace', zIndex:1, letterSpacing:'.1em' }}>
             {routing ? '▶▶▶' : dispatched ? '◉ RUN' : active ? '● RDY' : '───'}
           </div>
         </div>
         {/* Monitor stand */}
-        <div style={{ width:'6px', height:'4px', background:'#1e2233', margin:'0 auto', marginTop:'34px' }} />
-        <div style={{ width:'20px', height:'2px', background:'#1e2233', margin:'0 auto' }} />
-        {/* Character sitting at desk */}
+        <div style={{ width:'7px', height:'5px', background:'#1e2233', margin:'0 auto', marginTop:'42px' }} />
+        <div style={{ width:'22px', height:'2px', background:'#1e2233', margin:'0 auto' }} />
+        {/* Character — larger sprites, visible at desk */}
         <div style={{
-          position:'absolute', bottom:'8px', left:'50%',
+          position:'absolute', bottom:'10px', left:'50%',
           transform: 'translateX(-50%)',
-          // Walking side-to-side when active
           animation: dispatched ? 'agentWalk .3s ease-in-out infinite alternate'
             : active ? 'agentWalk .6s ease-in-out infinite alternate' : 'none',
         }}>
-          <Sprite rows={cfg.frames[frame]} scale={1.05} />
+          <Sprite rows={cfg.frames[frame]} scale={1.3} />
         </div>
       </div>
 
@@ -406,16 +405,20 @@ function SystemMonitor({ activeAgent }: { activeAgent: AgentId | null }) {
 
   return (
     <div style={{
-      display:'flex', flexDirection:'column', gap:'7px',
-      padding:'10px 14px', borderRadius:'10px',
-      background:'var(--surf2)', border:'1px solid var(--border)',
-      minWidth:'140px', flexShrink:0,
+      display:'flex', alignItems:'center', gap:'0',
+      padding:'6px 12px', borderRadius:'8px',
+      background:'var(--surf3)', border:'1px solid var(--border)',
+      width:'100%', overflowX:'auto',
     }}>
-      <div style={{ fontSize:'8px', fontWeight:900, color:'var(--text3)', letterSpacing:'.12em', marginBottom:'2px' }}>
-        SYS MONITOR
-      </div>
-      {rows.map(([label, val, color]) => (
-        <div key={String(label)} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'10px' }}>
+      <span style={{ fontSize:'7px', fontWeight:900, color:'var(--text3)', letterSpacing:'.14em', marginRight:'16px', flexShrink:0 }}>
+        SYS
+      </span>
+      {rows.map(([label, val, color], i) => (
+        <div key={String(label)} style={{
+          display:'flex', alignItems:'center', gap:'5px',
+          paddingRight:'16px', borderRight: i < rows.length-1 ? '1px solid var(--border)' : 'none',
+          marginRight:'16px', flexShrink:0,
+        }}>
           <span style={{ fontSize:'9px', color:'var(--text3)' }}>{label}</span>
           <span style={{ fontSize:'9px', fontWeight:700, color: color as string, fontFamily:'monospace' }}>
             {String(val)}
@@ -542,32 +545,42 @@ export default function AgentOffice() {
   }, [activeAgent, emotion])
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:'0', height:'100%', minHeight:'calc(100vh - 80px)' }}>
+    // height is explicit so flex child fills the screen regardless of parent
+    <div style={{ display:'flex', flexDirection:'column', height:'calc(100vh - 48px)', overflow:'hidden' }}>
 
       {/* ── Office header ──────────────────────────────────────────────────── */}
       <div style={{
-        padding:'10px 16px 8px',
+        padding:'8px 20px',
         borderBottom:'1px solid var(--border)',
         background:'var(--surf)',
-        display:'flex', alignItems:'center', gap:'10px',
+        display:'flex', alignItems:'center', gap:'12px',
+        flexShrink:0,
       }}>
-        <span style={{ fontSize:'10px', fontWeight:900, color:'var(--text3)', letterSpacing:'.15em' }}>
+        <span style={{ fontSize:'10px', fontWeight:900, color:'var(--text3)', letterSpacing:'.18em' }}>
           NEXUS PRIME HQ
         </span>
-        <span style={{ fontSize:'9px', color:'var(--text3)', marginLeft:'auto' }}>
+        <span style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#10b981', boxShadow:'0 0 6px #10b981', display:'inline-block' }} />
+        <span style={{ fontSize:'9px', color:'var(--text3)' }}>
           {AGENT_ORDER.length} agents online
+        </span>
+        <span style={{ marginLeft:'auto', fontSize:'9px', color:'var(--text3)', fontFamily:'monospace' }}>
+          {new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}
         </span>
       </div>
 
       {/* ── Pixel office floor ─────────────────────────────────────────────── */}
       <div style={{
-        padding:'12px 14px 8px',
+        padding:'16px 24px 12px',
         background:`linear-gradient(180deg, var(--surf) 0%, var(--surf2) 100%)`,
         borderBottom:'1px solid var(--border)',
         flexShrink:0,
       }}>
-        {/* Agent row */}
-        <div style={{ display:'flex', gap:'6px', alignItems:'flex-end', justifyContent:'center', flexWrap:'nowrap', overflowX:'auto' }}>
+        {/* Agents spread across full width with crab at right end */}
+        <div style={{
+          display:'flex', alignItems:'flex-end',
+          justifyContent:'space-evenly',
+          width:'100%', gap:'0',
+        }}>
           {AGENT_ORDER.map(id => (
             <AgentAvatar
               key={id}
@@ -578,26 +591,28 @@ export default function AgentOffice() {
               dispatch={id === 'jansky' ? dispatchBubble : null}
             />
           ))}
-          {/* Crab mascot at far right */}
-          <div style={{ marginLeft:'8px', marginBottom:'2px' }}>
+          {/* Crab mascot — right end of the desk */}
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', paddingBottom:'4px' }}>
             <CrabMascot emotion={emotion} />
           </div>
         </div>
 
         {/* Dispatch travel bar */}
         {dispatchBar && (
-          <DispatchBar from={dispatchBar.from} to={dispatchBar.to} />
+          <div style={{ padding:'0 40px' }}>
+            <DispatchBar from={dispatchBar.from} to={dispatchBar.to} />
+          </div>
         )}
 
-        {/* Floor line */}
+        {/* Desk floor line */}
         <div style={{
-          marginTop:'6px', height:'2px',
-          background:`linear-gradient(to right, transparent, var(--border2), transparent)`,
+          marginTop:'10px', height:'2px',
+          background:`linear-gradient(to right, transparent, var(--border2) 20%, var(--border2) 80%, transparent)`,
           borderRadius:'1px',
         }} />
 
-        {/* System monitor row */}
-        <div style={{ display:'flex', justifyContent:'center', marginTop:'10px' }}>
+        {/* System monitor — horizontal stats bar */}
+        <div style={{ marginTop:'10px' }}>
           <SystemMonitor activeAgent={activeAgent} />
         </div>
       </div>

@@ -28,6 +28,12 @@ const P: Record<string, string> = {
   y: '#f0c060',
   g: '#10b981',
   x: '#ef4444',
+  // CIPHER — teal
+  z: '#14b8a6', Z: '#0f766e',
+  v: '#042f2e',
+  // FLUX — gold/amber
+  F: '#f59e0b', f: '#b45309',
+  B: '#292524',
 }
 
 const PX = 3
@@ -59,6 +65,14 @@ const ORBIT_F = [
 const NOVA_F = [
   ['  rrrrr  ',' rrssrr  ',' rsleslr ',' rssssr  ','  sssss  ','  wwwww  ',' wwwwwww ',' wwwwwww ',' ww  ww  ',' ww  ww  ','  w   w  ','  W   W  ','  d   d  ','         '],
   ['  rrrrr  ',' rrssrr  ',' rsleslr ',' rssssr  ','  sssss  ','  wwwww  ',' wwwwwww ',' wwwwwww ','  ww  ww ',' ww  ww  ','  w   w  ','  W   W  ','   d  d  ','         '],
+]
+const CIPHER_F = [
+  [' qzzzzq  ',' qzsszzq ',' qvvvvsq ',' qzsssz  ','  sssss  ','  zZzzz  ',' zZzZzzz ',' zzZzzzz ',' zz  zz  ',' zz  zz  ','  z   z  ','  Z   Z  ','  d   d  ','         '],
+  [' qzzzzq  ',' qzsszzq ',' qvvvvsq ',' qzsssz  ','  sssss  ','  zZzzz  ',' zZzZzzz ',' zzZzzzz ','  zz zz  ','  zz zz  ','  z   z  ','  Z   Z  ','   d d   ','         '],
+]
+const FLUX_F = [
+  ['  BBBBB  ',' BssssBB ',' BsesssB ','  BssssB ','  sssss  ','  FfFFF  ',' FFFfFFF ',' FFFfFFF ',' FF  FF  ',' FF  FF  ','  F   F  ','  f   f  ','  d   d  ','         '],
+  ['  BBBBB  ',' BssssBB ',' BsesssB ','  BssssB ','  sssss  ','  FfFFF  ',' FFFfFFF ',' FFFfFFF ','  FF FF  ','  FF FF  ','  F   F  ','  f   f  ','   d d   ','         '],
 ]
 
 // ── Crab sprites ──────────────────────────────────────────────────────────────
@@ -97,13 +111,13 @@ type Emotion = 'idle' | 'thinking' | 'happy' | 'working' | 'excited' | 'error' |
 
 // ── Route → agent map ─────────────────────────────────────────────────────────
 const ROUTE_AGENT: Record<string, { name: string; color: string; frames: string[][] }> = {
-  '/home':     { name: 'JANSKY', color: '#4f6ef7', frames: JANSKY_F },
-  '/signals':  { name: 'NOVA',   color: '#10b981', frames: NOVA_F   },
-  '/alpha':    { name: 'ORBIT',  color: '#7c3aed', frames: ORBIT_F  },
-  '/ops':      { name: 'NOVA',   color: '#10b981', frames: NOVA_F   },
-  '/intel':    { name: 'NOVA',   color: '#10b981', frames: NOVA_F   },
-  '/cyber':    { name: 'ORBIT',  color: '#7c3aed', frames: ORBIT_F  },
-  '/vault':    { name: 'JANSKY', color: '#4f6ef7', frames: JANSKY_F },
+  '/home':    { name: 'JANSKY', color: '#4f6ef7', frames: JANSKY_F },
+  '/signals': { name: 'NOVA',   color: '#10b981', frames: NOVA_F   },
+  '/alpha':   { name: 'FLUX',   color: '#f59e0b', frames: FLUX_F   },
+  '/ops':     { name: 'NOVA',   color: '#10b981', frames: NOVA_F   },
+  '/intel':   { name: 'FLUX',   color: '#f59e0b', frames: FLUX_F   },
+  '/cyber':   { name: 'CIPHER', color: '#14b8a6', frames: CIPHER_F },
+  '/vault':   { name: 'JANSKY', color: '#4f6ef7', frames: JANSKY_F },
 }
 
 // ── Commentary templates per route ───────────────────────────────────────────
@@ -145,9 +159,9 @@ function buildComment(
       `Running scenario analysis.`,
     ],
     '/cyber': [
-      `${cveCount} CVEs indexed.`,
-      cveCount > 50 ? 'High patch volume — review critical tier.' : 'CVE queue nominal.',
-      `OTX pulses synced.`,
+      `${cveCount} CVEs indexed. CIPHER on watch.`,
+      cveCount > 50 ? 'High patch volume — critical tier needs review.' : 'CVE queue nominal.',
+      `OTX threat pulses active. No anomalies.`,
     ],
     '/vault': [
       `Saved articles loaded.`,

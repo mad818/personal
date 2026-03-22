@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import Nav           from '@/components/nav/Nav'
-import AuthGate      from '@/components/auth/AuthGate'
-import AgentStatusBar from '@/components/ui/AgentStatusBar'
+import Nav              from '@/components/nav/Nav'
+import AuthGate         from '@/components/auth/AuthGate'
+import AgentStatusBar   from '@/components/ui/AgentStatusBar'
+import GlobalDataLoader from '@/components/ui/GlobalDataLoader'
+import { ArticlesLoader } from '@/components/ui/DataLoader'
 
 export const metadata: Metadata = {
   title: 'Nexus Prime',
@@ -22,6 +24,9 @@ export default function RootLayout({
           <main style={{ paddingTop: '48px', minHeight: '100vh' }}>
             {children}
           </main>
+          {/* Global data — loads articles + keyword alerts on every page */}
+          <GlobalDataLoader />
+          <ArticlesLoader />
           {/* Global agent presence — persists across all tabs */}
           <AgentStatusBar />
         </AuthGate>

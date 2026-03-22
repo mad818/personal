@@ -28,6 +28,7 @@ import { usePathname } from 'next/navigation'
 import { useStore } from '@/store/useStore'
 import { buildSystemPrompt } from '@/lib/ai'
 import { runAgent, type AgentStep } from '@/lib/agent'
+import type { OperationalPhase } from '@/store/useStore'
 
 // ── Palette (mirrors AgentOffice) ─────────────────────────────────────────────
 const P: Record<string, string> = {
@@ -136,7 +137,7 @@ function detectAgent(msg: string): AgentId {
 function buildAgentPrompt(id: AgentId, base: string): string {
   const personas: Record<AgentId, string> = {
     jansky: `\n\n[AGENT: JANSKY — Command] Strategic. Decisive. Brief. Speak with authority.`,
-    orbit:  `\n\n[AGENT: ORBIT — Engineering] Precise. Technical. You own the Nexus Prime codebase.\n\nCRITICAL — You edit files DIRECTLY. Never output code blocks for the user to copy.\n\nWorkflow: list_project_files → read_project_file → patch_project_file (or create_project_file for new files) → read_project_file to verify. Make the change. Report what file you edited.`,
+    orbit:  `\n\n[AGENT: ORBIT — Engineering] Precise. Technical. You own the Nexus Prime codebase.\n\nCRITICAL — You edit files DIRECTLY. Never output code blocks for the user to copy.\n\nWorkflow: list_project_files → read_project_file → for small/simple changes use patch_project_file directly → for large/risky changes (core files, 30+ lines) use propose_project_edit so the user reviews the diff first → for new files use create_project_file → verify with read_project_file. Report only what changed.`,
     nova:   `\n\n[AGENT: NOVA — Research] Curious. Data-driven. Use web_search and fetch_url. Cite sources.`,
     cipher: `\n\n[AGENT: CIPHER — Security] Sharp. Methodical. CVE analysis, threat intel, secure coding. When fixing security issues in code: read_project_file then patch_project_file directly.`,
     flux:   `\n\n[AGENT: FLUX — Markets] Fast. Quantitative. Crypto/equity signals, macro, on-chain data.`,
@@ -265,9 +266,11 @@ interface ChatMessage {
 // ── CommandBar ─────────────────────────────────────────────────────────────────
 export default function CommandBar() {
   const pathname    = usePathname()
-  const settings    = useStore(s => s.settings)
-  const activityLog = useStore(s => s.activityLog)
-  const addLog      = useStore(s => s.addLog)
+  const settings       = useStore(s => s.settings)
+  const activityLog    = useStore(s => s.activityLog)
+  const addLog         = useStore(s => s.addLog)
+  const currentPhase   = useStore(s => s.currentPhase)
+  const pendingEdits   = useStore(s => s.pendingEdits)
 
   const systemPrompt = useMemo(() => buildSystemPrompt(settings), [settings])
 
@@ -346,6 +349,8 @@ export default function CommandBar() {
         messages:     history,
         maxIterations: 10,
         onStep: (step: AgentStep) => {
+          // phase + task_plan handled by PhaseStrip / TaskPlanPanel
+          if (step.type === 'phase' || step.type === 'task_plan') return
           if (step.type === 'tool_call') {
             const label = stepLabel(step)
             lastToolLabel = label
@@ -419,13 +424,38 @@ export default function CommandBar() {
             </span>
             <span style={{
               width: '5px', height: '5px', borderRadius: '50%',
-              background: '#10b981', boxShadow: '0 0 5px #10b981',
+              background: activeAgent ? '#00DDFF' : '#10b981',
+              boxShadow: `0 0 5px ${activeAgent ? '#00DDFF' : '#10b981'}`,
               display: 'inline-block', flexShrink: 0,
+              animation: activeAgent ? 'pulse-dot 1s ease-in-out infinite' : 'none',
             }} />
             <span style={{ fontSize: '8px', fontFamily: 'monospace', color: accentColor, fontWeight: 700 }}>
-              {AGENTS[dutyAgent].name}
+              {activeAgent ? AGENTS[activeAgent].name : AGENTS[dutyAgent].name}
             </span>
-            <span style={{ fontSize: '8px', color: 'var(--text3)', fontFamily: 'monospace' }}>on duty</span>
+            {/* Current operational phase */}
+            {currentPhase !== 'idle' && currentPhase !== 'done' && (
+              <span style={{
+                fontSize: '7px', fontFamily: "'VT323', monospace",
+                color: '#00DDFF88', letterSpacing: '1px',
+                padding: '0 4px', borderRadius: '3px',
+                background: 'rgba(0,221,255,0.06)',
+                border: '1px solid rgba(0,221,255,0.15)',
+              }}>
+                {currentPhase.toUpperCase()}
+              </span>
+            )}
+            {/* Pending edits badge */}
+            {pendingEdits.length > 0 && (
+              <span style={{
+                fontSize: '7px', fontFamily: "'VT323', monospace",
+                color: '#f59e0b', letterSpacing: '1px',
+                padding: '0 4px', borderRadius: '3px',
+                background: 'rgba(245,158,11,0.08)',
+                border: '1px solid rgba(245,158,11,0.3)',
+              }}>
+                {pendingEdits.length} EDITS
+              </span>
+            )}
 
             {/* Clear chat */}
             <button

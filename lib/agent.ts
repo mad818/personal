@@ -21,7 +21,13 @@
  *  and preferences from the exchange and stores them automatically.
  */
 
-import { DEFAULT_SETTINGS, type Settings, type AIMode } from '@/store/useStore'
+import {
+  DEFAULT_SETTINGS,
+  type Settings,
+  type AIMode,
+  type OperationalPhase,
+  type TaskItem,
+} from '@/store/useStore'
 import { useStore } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
 import {
@@ -177,6 +183,21 @@ export const AGENT_TOOLS = [
       required: ['path', 'content'],
     },
   },
+  {
+    name:        'propose_project_edit',
+    description: 'Propose a file change for the user to review BEFORE applying. Use this instead of patch_project_file when the change is large, risky, or touches critical logic. The user will see a diff with Approve/Reject buttons. Prefer this for changes over 30 lines or changes to core files like agent.ts, useStore.ts, layout.tsx.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path:       { type: 'string',  description: 'Relative path to the file' },
+        old_string: { type: 'string',  description: 'Exact text to replace' },
+        new_string: { type: 'string',  description: 'Replacement text' },
+        reason:     { type: 'string',  description: 'Why this change is needed (shown to user)' },
+        risk:       { type: 'string',  description: 'Estimated risk: low | medium | high' },
+      },
+      required: ['path', 'old_string', 'new_string', 'reason', 'risk'],
+    },
+  },
 ]
 
 // Draft-mode replacement for write_file
@@ -201,9 +222,66 @@ export interface ToolCall {
 }
 
 export interface AgentStep {
-  type:    'thinking' | 'tool_call' | 'tool_result' | 'answer'
+  type:    'thinking' | 'tool_call' | 'tool_result' | 'answer' | 'phase' | 'task_plan'
   content: string
   tool?:   string
+  phase?:  OperationalPhase
+  plan?:   TaskItem[]
+}
+
+// ── Heuristic task plan builder ───────────────────────────────────────────────
+// Decomposes the user message into visible steps shown in TaskPlanPanel.
+// No API call — purely heuristic for instant display.
+function buildTaskPlan(message: string): TaskItem[] {
+  const lower = message.toLowerCase()
+  const isCode = ['code','implement','build','fix','debug','write','create','component',
+    'function','patch','refactor','file','edit','typescript','react','next'].some(k => lower.includes(k))
+  const isEdit = ['edit','change','update','modify','patch','fix','refactor','improve',
+    'rewrite','restructure'].some(k => lower.includes(k))
+  const isResearch = ['research','find','search','what','how','why','news','latest',
+    'who','when','current','today','look up','summarize','explain','tell me'].some(k => lower.includes(k))
+  const isSecurity = ['security','cve','vulnerability','hack','exploit','threat',
+    'malware','breach','attack','encrypt'].some(k => lower.includes(k))
+  const isMarket = ['price','crypto','market','trade','btc','bitcoin','chart',
+    'signal','portfolio','momentum'].some(k => lower.includes(k))
+
+  if (isCode || isEdit) {
+    return [
+      { id: '1', label: 'Understand the request',       status: 'running' },
+      { id: '2', label: 'Read relevant source files',   status: 'pending' },
+      { id: '3', label: 'Apply changes to codebase',    status: 'pending' },
+      { id: '4', label: 'Verify changes compile',       status: 'pending' },
+    ]
+  }
+  if (isSecurity) {
+    return [
+      { id: '1', label: 'Interpret threat context',      status: 'running' },
+      { id: '2', label: 'Query threat intelligence',     status: 'pending' },
+      { id: '3', label: 'Assess risk level',             status: 'pending' },
+      { id: '4', label: 'Compile security brief',        status: 'pending' },
+    ]
+  }
+  if (isMarket) {
+    return [
+      { id: '1', label: 'Parse market intent',           status: 'running' },
+      { id: '2', label: 'Fetch current price data',      status: 'pending' },
+      { id: '3', label: 'Analyse signals + momentum',    status: 'pending' },
+      { id: '4', label: 'Generate market brief',         status: 'pending' },
+    ]
+  }
+  if (isResearch) {
+    return [
+      { id: '1', label: 'Understand the question',       status: 'running' },
+      { id: '2', label: 'Search for live information',   status: 'pending' },
+      { id: '3', label: 'Validate and cross-reference',  status: 'pending' },
+      { id: '4', label: 'Compose response',              status: 'pending' },
+    ]
+  }
+  return [
+    { id: '1', label: 'Interpret request',               status: 'running' },
+    { id: '2', label: 'Process and reason',              status: 'pending' },
+    { id: '3', label: 'Deliver response',                status: 'pending' },
+  ]
 }
 
 export interface AgentOptions {
@@ -278,6 +356,24 @@ async function executeTool(name: string, input: Record<string, string>): Promise
   // Intercept memory tools client-side — IndexedDB, no server round-trip
   if (name === 'remember') return handleRemember(input.note ?? '')
   if (name === 'recall')   return handleRecall(input.query ?? input.note ?? '')
+
+  // Intercept propose_project_edit — queue for user review, do NOT apply yet
+  if (name === 'propose_project_edit') {
+    try {
+      const store = useStore.getState()
+      store.addPendingEdit({
+        path:       input.path       ?? 'unknown',
+        old_string: input.old_string ?? '',
+        new_string: input.new_string ?? '',
+        reason:     input.reason     ?? 'No reason provided.',
+        risk:       (input.risk ?? 'medium') as 'low' | 'medium' | 'high',
+        agentId:    'orbit',
+      })
+      return `⏳ Edit proposed for "${input.path}". User will see a diff and must approve before the file is changed.`
+    } catch {
+      return 'Failed to queue proposed edit.'
+    }
+  }
 
   try {
     const r = await apiFetch('/api/tools', {
@@ -427,6 +523,9 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     ? [...AGENT_TOOLS.filter((t) => t.name !== 'write_file'), DRAFT_FILE_TOOL]
     : AGENT_TOOLS
 
+  if (typeof window !== 'undefined') useStore.getState().setCurrentPhase('executing')
+  onStep({ type: 'phase', content: 'executing', phase: 'executing' })
+
   if (draftMode) {
     onStep({
       type:    'thinking',
@@ -547,8 +646,23 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
   const { settings, systemPrompt, messages, onStep, maxIterations = 8 } = opts
   const s = settings ?? getSettings()
 
+  // ── Phase: interpreting ───────────────────────────────────────────────────
+  const userMessage = messages.findLast(m => m.role === 'user')?.content ?? ''
+  if (typeof window !== 'undefined') {
+    useStore.getState().setCurrentPhase('interpreting')
+  }
+  onStep({ type: 'phase', content: 'interpreting', phase: 'interpreting' })
+
+  // ── Task plan: heuristic decomposition ───────────────────────────────────
+  const plan = buildTaskPlan(userMessage)
+  if (typeof window !== 'undefined') {
+    useStore.getState().setTaskPlan(plan)
+    useStore.getState().setCurrentPhase('planning')
+  }
+  onStep({ type: 'task_plan', content: JSON.stringify(plan), plan })
+  onStep({ type: 'phase',     content: 'planning', phase: 'planning' })
+
   // ── Auto-recall: inject relevant memories into system prompt ─────────────
-  const userMessage     = messages.findLast(m => m.role === 'user')?.content ?? ''
   const memoryContext   = await buildMemoryContext(userMessage)
   const enrichedPrompt  = systemPrompt + memoryContext
 
@@ -671,6 +785,21 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     const toolUseBlocks = content.filter((b) => b.type === 'tool_use')
     const toolResults: object[] = []
 
+    // First tool call → transition to executing phase
+    if (toolUseBlocks.length > 0) {
+      if (typeof window !== 'undefined') useStore.getState().setCurrentPhase('executing')
+      onStep({ type: 'phase', content: 'executing', phase: 'executing' })
+      // Advance task plan: step 1 done, step 2 running
+      if (typeof window !== 'undefined') {
+        const store = useStore.getState()
+        const tp = store.taskPlan
+        if (tp.length >= 2) {
+          store.updateTaskItem(tp[0].id, 'done')
+          store.updateTaskItem(tp[1].id, 'running')
+        }
+      }
+    }
+
     await Promise.all(
       toolUseBlocks.map(async (b) => {
         const name  = b.name  ?? ''
@@ -683,6 +812,19 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     )
 
     conv.push({ role: 'user', content: toolResults })
+  }
+
+  // Final phase transition + mark task plan complete
+  if (finalAnswer) {
+    if (typeof window !== 'undefined') {
+      const store = useStore.getState()
+      store.setCurrentPhase('done')
+      // Mark all remaining plan items done
+      store.taskPlan.forEach(t => {
+        if (t.status !== 'failed') store.updateTaskItem(t.id, 'done')
+      })
+    }
+    onStep({ type: 'phase', content: 'done', phase: 'done' })
   }
 
   // Auto-learn from completed conversation — runs silently in background

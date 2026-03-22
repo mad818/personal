@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import Nav              from '@/components/nav/Nav'
-import AuthGate         from '@/components/auth/AuthGate'
-import CommandBar       from '@/components/ui/CommandBar'
-import GlobalDataLoader from '@/components/ui/GlobalDataLoader'
+import Nav               from '@/components/nav/Nav'
+import AuthGate          from '@/components/auth/AuthGate'
+import CommandBar        from '@/components/ui/CommandBar'
+import GlobalDataLoader  from '@/components/ui/GlobalDataLoader'
 import { ArticlesLoader } from '@/components/ui/DataLoader'
+import ProposedEditPanel from '@/components/ui/ProposedEditPanel'
+import ChangeLogPanel    from '@/components/ui/ChangeLogPanel'
 
 export const metadata: Metadata = {
   title: 'Nexus Prime',
@@ -29,6 +31,10 @@ export default function RootLayout({
           <ArticlesLoader />
           {/* Global command dock — persists across all tabs */}
           <CommandBar />
+          {/* Proposed edit overlay — agent proposes, user approves/rejects */}
+          <ProposedEditPanel />
+          {/* Audit trail — all applied/rejected changes */}
+          <ChangeLogPanel />
         </AuthGate>
       </body>
     </html>

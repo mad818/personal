@@ -14,6 +14,8 @@ import { useStore } from '@/store/useStore'
 import { buildSystemPrompt } from '@/lib/ai'
 import { runAgent, type AgentStep } from '@/lib/agent'
 import { getMemoryStats } from '@/lib/memoryStore'
+import PhaseStrip from '@/components/ui/PhaseStrip'
+import TaskPlanPanel from '@/components/ui/TaskPlanPanel'
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const P: Record<string, string> = {
@@ -125,7 +127,7 @@ const AGENT_ORDER: AgentId[] = ['cipher', 'orbit', 'jansky', 'nova', 'flux']
 function buildAgentPrompt(id: AgentId, base: string): string {
   const personas: Record<AgentId, string> = {
     jansky: `\n\n[AGENT: JANSKY — Command Intelligence]\nYou are JANSKY. Strategic. Decisive. Brief. You orchestrate the mission. Handle high-level analysis and delegation. Speak in short, punchy sentences with authority. You dispatch tasks to specialists when needed.`,
-    orbit:  `\n\n[AGENT: ORBIT — Engineering Intelligence]\nYou are ORBIT. Precise. Technical. You own the Nexus Prime codebase: Next.js 14, TypeScript, React, Zustand, Tailwind.\n\nCRITICAL — You edit files DIRECTLY. You never output code blocks for the user to copy.\n\nYour exact workflow for every code task:\n1. Call list_project_files on the relevant directory first to orient yourself.\n2. Call read_project_file to read the full file before touching it.\n3. Call patch_project_file to make the targeted change directly in the source file.\n4. For brand-new files, call create_project_file with the full content.\n5. After patching, call read_project_file again to confirm the change looks right.\n6. Tell the user what you changed and in which file — nothing more.\n\nNever describe what you "would" do. Do it. Make the change. The file is live.`,
+    orbit:  `\n\n[AGENT: ORBIT — Engineering Intelligence]\nYou are ORBIT. Precise. Technical. You own the Nexus Prime codebase: Next.js 14, TypeScript, React, Zustand, Tailwind.\n\nCRITICAL — You edit files DIRECTLY. You never output code blocks for the user to copy.\n\nYour exact workflow:\n1. list_project_files → orient in the relevant directory.\n2. read_project_file → read the full file before any edit.\n3. For SMALL changes (<30 lines, low-risk): use patch_project_file directly.\n4. For LARGE or RISKY changes (core files, architecture changes, 30+ lines): use propose_project_edit — the user will see a diff and approve or reject before anything is applied.\n5. For NEW files: create_project_file.\n6. After any patch, read_project_file to verify.\n7. Report: one sentence on what changed and where.\n\nRisky files that require propose_project_edit: lib/agent.ts, store/useStore.ts, app/layout.tsx, app/api/*, any file over 200 lines.\nNever describe what you "would" do. Do it. The file is live.`,
     nova:   `\n\n[AGENT: NOVA — Research Intelligence]\nYou are NOVA. Curious. Thorough. Data-driven. You use web_search and fetch_url aggressively to find current facts. You synthesise from multiple sources and always cite them.`,
     cipher: `\n\n[AGENT: CIPHER — Security Intelligence]\nYou are CIPHER. Sharp. Methodical. You specialise in cybersecurity: CVE analysis, threat modelling, OSINT, network security, and secure coding practices. You think like an attacker to defend like a guardian.\n\nWhen asked to fix security issues in the codebase: use read_project_file, then patch_project_file to apply the fix directly. Never just describe what to change.`,
     flux:   `\n\n[AGENT: FLUX — Market Intelligence]\nYou are FLUX. Fast. Quantitative. You specialise in financial markets: crypto, equities, macro economics, on-chain data, and trading signals. You read momentum and think in probabilities.`,
@@ -302,9 +304,9 @@ function AgentAvatar({ id, active, routing, dispatched, dispatch }: AvatarProps)
         padding: '8px 10px 6px',
         borderRadius: '7px 7px 0 0',
         background: isLive
-          ? `color-mix(in srgb, ${cfg.color} 32%, #0c1020)`
-          : `color-mix(in srgb, ${cfg.color} 18%, #0c1020)`,
-        border: `1px solid ${isLive ? cfg.color + '88' : cfg.color + '40'}`,
+          ? `color-mix(in srgb, ${cfg.color} 28%, #0D1220)`
+          : `color-mix(in srgb, ${cfg.color} 12%, #0D1220)`,
+        border: `1px solid ${isLive ? cfg.color + 'aa' : cfg.color + '33'}`,
         borderBottom: 'none',
         transition: 'background .25s, border .25s',
         boxShadow: isLive ? `inset 0 0 18px ${cfg.color}1a, 0 -2px 10px ${cfg.color}18` : 'none',
@@ -357,7 +359,7 @@ function AgentAvatar({ id, active, routing, dispatched, dispatch }: AvatarProps)
 
       {/* Name + status tab — sits on desk surface */}
       <div style={{
-        background: isLive ? `color-mix(in srgb, ${cfg.color} 22%, #0a0d18)` : '#0a0d18',
+        background: isLive ? `color-mix(in srgb, ${cfg.color} 18%, #0D1220)` : '#0D1220',
         border: `1px solid ${isLive ? cfg.color + '55' : cfg.color + '25'}`,
         borderTop: 'none',
         borderRadius: '0 0 5px 5px',
@@ -544,6 +546,8 @@ export default function AgentOffice() {
         systemPrompt: enrichedPrompt,
         messages:     [{ role: 'user', content: value }],
         onStep:       (step: AgentStep) => {
+          // phase + task_plan are handled by PhaseStrip / TaskPlanPanel via store
+          if (step.type === 'phase' || step.type === 'task_plan') return
           steps.push(step)
           setLiveSteps([...steps])
         },
@@ -585,98 +589,159 @@ export default function AgentOffice() {
     // height is explicit so flex child fills the screen regardless of parent
     <div style={{ display:'flex', flexDirection:'column', height:'calc(100vh - 48px)', overflow:'hidden' }}>
 
-      {/* ── Office header ──────────────────────────────────────────────────── */}
+      {/* ── Zone header — openclaw style ───────────────────────────────────── */}
       <div style={{
-        padding:'8px 20px',
-        borderBottom:'1px solid var(--border)',
-        background:'var(--surf)',
-        display:'flex', alignItems:'center', gap:'12px',
-        flexShrink:0,
+        padding: '6px 16px',
+        background: '#0D1220',
+        borderBottom: '1px solid #1A2040',
+        display: 'flex', alignItems: 'center', gap: '8px',
+        flexShrink: 0,
       }}>
-        <span style={{ fontSize:'10px', fontWeight:900, color:'var(--text3)', letterSpacing:'.18em' }}>
+        {/* Pulsing status dot */}
+        <span style={{
+          width: '6px', height: '6px', borderRadius: '50%',
+          background: '#00FF66', boxShadow: '0 0 8px #00FF66',
+          display: 'inline-block',
+          animation: 'pulse-dot 2s ease-in-out infinite',
+        }} />
+        <span style={{
+          fontSize: '12px', fontFamily: "'VT323', monospace",
+          color: '#00FF66', letterSpacing: '2px',
+        }}>
           NEXUS PRIME HQ
         </span>
-        <span style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#10b981', boxShadow:'0 0 6px #10b981', display:'inline-block' }} />
-        <span style={{ fontSize:'9px', color:'var(--text3)' }}>
-          {AGENT_ORDER.length} agents online
+        <span style={{
+          fontSize: '11px', fontFamily: "'VT323', monospace",
+          color: '#1A2040', marginLeft: '4px',
+        }}>
+          //
         </span>
-        <span style={{ marginLeft:'auto', fontSize:'9px', color:'var(--text3)', fontFamily:'monospace' }}>
-          {new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}
+        <span style={{
+          fontSize: '11px', fontFamily: "'VT323', monospace",
+          color: '#00DDFF', letterSpacing: '1px',
+        }}>
+          {AGENT_ORDER.length} AGENTS ONLINE
+        </span>
+        <span style={{ marginLeft: 'auto', fontSize: '11px', fontFamily: "'VT323', monospace", color: '#4a5568' }}>
+          {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
         </span>
       </div>
+
+      {/* ── Operational phase strip ────────────────────────────────────────── */}
+      <PhaseStrip />
+
+      {/* ── Task plan (decomposed intent) ──────────────────────────────────── */}
+      <TaskPlanPanel />
 
       {/* ── Pixel office room ──────────────────────────────────────────────── */}
       <div style={{
         position: 'relative',
-        // Distinct from page bg (#07080d) — room must read as a different space
-        background: 'linear-gradient(180deg, #0f1325 0%, #0c1020 50%, #080a14 100%)',
-        borderBottom: '2px solid #1a1f35',
+        background: '#0D1220',
+        border: '1px solid #1A2040',
+        borderTop: 'none',
         flexShrink: 0,
         overflow: 'hidden',
+        // Emotion-based inset glow (openclaw style)
+        boxShadow: emotion === 'happy'
+          ? 'inset 0 0 40px rgba(0, 255, 102, 0.08)'
+          : emotion === 'thinking'
+          ? 'inset 0 0 40px rgba(0, 221, 255, 0.08)'
+          : emotion === 'error'
+          ? 'inset 0 0 40px rgba(239, 68, 68, 0.10)'
+          : 'inset 0 0 40px rgba(0, 0, 0, 0.3)',
+        transition: 'box-shadow 0.6s ease',
       }}>
 
         {/* Ceiling light fixture */}
         <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: '8px',
-          background: 'linear-gradient(to right, transparent 5%, #4f6ef799 20%, #8899ffdd 50%, #4f6ef799 80%, transparent 95%)',
-          boxShadow: '0 0 0 1px #4f6ef744, 0 2px 30px 8px #4f6ef730',
+          position: 'absolute', top: 0, left: 0, right: 0, height: '4px',
+          background: 'linear-gradient(to right, transparent 5%, #00DDFF44 20%, #00DDFF99 50%, #00DDFF44 80%, transparent 95%)',
+          boxShadow: '0 2px 20px 6px #00DDFF18',
           zIndex: 3,
         }} />
 
-        {/* Ceiling glow spread — illuminates the back wall */}
+        {/* Ceiling glow spread */}
         <div style={{
-          position: 'absolute', top: 0, left: '5%', right: '5%', height: '120px',
-          background: 'radial-gradient(ellipse at 50% 0%, #4f6ef720 0%, transparent 65%)',
+          position: 'absolute', top: 0, left: '5%', right: '5%', height: '100px',
+          background: 'radial-gradient(ellipse at 50% 0%, #00DDFF12 0%, transparent 70%)',
           pointerEvents: 'none', zIndex: 1,
         }} />
 
-        {/* Wall grid — more visible, 3× the opacity of before */}
+        {/* Wall grid — openclaw #1A2040 lines */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
           backgroundImage: [
-            'linear-gradient(to right, #3040681a 1px, transparent 1px)',
-            'linear-gradient(to bottom, #3040681a 1px, transparent 1px)',
+            'linear-gradient(to right, #1A204033 1px, transparent 1px)',
+            'linear-gradient(to bottom, #1A204033 1px, transparent 1px)',
           ].join(', '),
           backgroundSize: '40px 40px',
         }} />
 
-        {/* Horizontal accent lines — wall panel seams */}
+        {/* Horizontal wall panel seams */}
         <div style={{
-          position: 'absolute', top: '30%', left: 0, right: 0, height: '1px',
-          background: 'linear-gradient(to right, transparent, #304068 20%, #304068 80%, transparent)',
-          opacity: 0.2, zIndex: 1,
-        }} />
-        <div style={{
-          position: 'absolute', top: '60%', left: 0, right: 0, height: '1px',
-          background: 'linear-gradient(to right, transparent, #304068 20%, #304068 80%, transparent)',
-          opacity: 0.15, zIndex: 1,
+          position: 'absolute', top: '33%', left: 0, right: 0, height: '1px',
+          background: 'linear-gradient(to right, transparent, #1A2040 15%, #1A2040 85%, transparent)',
+          opacity: 0.5, zIndex: 1,
         }} />
 
-        {/* Side wall depth gradients */}
+        {/* Side wall depth */}
         <div style={{
-          position: 'absolute', left: 0, top: 0, bottom: 0, width: '32px',
-          background: 'linear-gradient(to right, #06080f, transparent)',
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: '28px',
+          background: 'linear-gradient(to right, #080d18, transparent)',
           zIndex: 1, pointerEvents: 'none',
         }} />
         <div style={{
-          position: 'absolute', right: 0, top: 0, bottom: 0, width: '32px',
-          background: 'linear-gradient(to left, #06080f, transparent)',
+          position: 'absolute', right: 0, top: 0, bottom: 0, width: '28px',
+          background: 'linear-gradient(to left, #080d18, transparent)',
           zIndex: 1, pointerEvents: 'none',
         }} />
 
         {/* Wall callsign */}
         <div style={{
-          position: 'absolute', top: '10px', right: '44px',
-          fontSize: '7px', fontFamily: 'monospace', fontWeight: 900,
-          color: '#4f6ef735', letterSpacing: '.3em', zIndex: 2, userSelect: 'none',
+          position: 'absolute', top: '8px', left: '50%', transform: 'translateX(-50%)',
+          fontSize: '10px', fontFamily: "'VT323', monospace",
+          color: '#1A204088', letterSpacing: '4px', zIndex: 2, userSelect: 'none',
         }}>
-          NEXUS HQ
+          NEXUS HQ // INTEL CORPS
+        </div>
+
+        {/* Furniture — Server rack (right wall) */}
+        <div style={{
+          position: 'absolute', right: '36px', top: '16px',
+          zIndex: 1, opacity: 0.55,
+        }}>
+          <svg width="20" height="60" viewBox="0 0 20 60" style={{ imageRendering: 'pixelated' }}>
+            <rect x="0" y="0" width="20" height="60" fill="#0f1825" rx="2"/>
+            <rect x="1" y="0" width="18" height="60" fill="none" stroke="#1A2040" strokeWidth="1"/>
+            {[0,1,2,3,4,5].map(i => (
+              <g key={i}>
+                <rect x="2" y={4 + i*9} width="16" height="7" fill="#0a1020" rx="1"/>
+                <rect x="3" y={5 + i*9} width="4" height="5" fill="#1a2840" rx="1"/>
+                <rect x="14" y={6 + i*9} width="3" height="3" fill={i < 3 ? '#00FF66' : '#1A2040'} rx="1"/>
+              </g>
+            ))}
+          </svg>
+        </div>
+
+        {/* Furniture — Plant (left wall) */}
+        <div style={{
+          position: 'absolute', left: '40px', bottom: '38px',
+          zIndex: 1, opacity: 0.5,
+        }}>
+          <svg width="16" height="28" viewBox="0 0 16 28" style={{ imageRendering: 'pixelated' }}>
+            <rect x="5" y="20" width="6" height="8" fill="#2a1a0a"/>
+            <rect x="4" y="18" width="8" height="4" fill="#1a0e05"/>
+            <rect x="6" y="10" width="4" height="12" fill="#1a3a1a"/>
+            <rect x="2" y="8" width="6" height="6" fill="#0f4a0f" rx="3"/>
+            <rect x="8" y="6" width="7" height="6" fill="#0a3a0a" rx="3"/>
+            <rect x="4" y="2" width="8" height="8" fill="#105010" rx="4"/>
+          </svg>
         </div>
 
         {/* Agent row — avatars include their own wall-station panel */}
         <div style={{
           position: 'relative', zIndex: 2,
-          padding: '36px 24px 0',
+          padding: '48px 24px 0',
           display: 'flex', alignItems: 'flex-end', justifyContent: 'space-evenly', width: '100%',
         }}>
           {AGENT_ORDER.map(id => (
@@ -703,28 +768,28 @@ export default function AgentOffice() {
           </div>
         )}
 
-        {/* Continuous desk surface — full-width wood */}
+        {/* Continuous desk surface — full-width, openclaw wood tone */}
         <div style={{ position: 'relative', zIndex: 2 }}>
-          {/* Desk top — wood grain with highlight */}
+          {/* Desk top */}
           <div style={{
-            height: '14px',
-            background: 'linear-gradient(180deg, #8a5030 0%, #6b3d1a 25%, #4a2810 70%, #3d2210 100%)',
-            borderTop: '1px solid #a06040',
-            boxShadow: '0 -2px 12px rgba(0,0,0,.6)',
+            height: '12px',
+            background: 'linear-gradient(180deg, #3A2A1A 0%, #2a1e10 50%, #1e1508 100%)',
+            borderTop: '1px solid #4a3a2a',
+            boxShadow: '0 -2px 10px rgba(0,0,0,.7)',
           }} />
           {/* Desk front bevel */}
           <div style={{
-            height: '6px',
-            background: 'linear-gradient(180deg, #2e1a0a, #140905)',
+            height: '5px',
+            background: 'linear-gradient(180deg, #1a1008, #0d0904)',
             borderBottom: '1px solid #0a0604',
           }} />
         </div>
 
-        {/* Floor — darker than desk, subtle reflection */}
+        {/* Floor — openclaw dark with grid reflection */}
         <div style={{
-          position: 'relative', zIndex: 2, height: '18px',
-          background: 'linear-gradient(180deg, #050609 0%, #030405 100%)',
-          boxShadow: 'inset 0 1px 0 #1a1a2a',
+          position: 'relative', zIndex: 2, height: '16px',
+          background: 'linear-gradient(180deg, #060810 0%, #040608 100%)',
+          boxShadow: 'inset 0 1px 0 #1A2040',
         }} />
 
         {/* System monitor */}
@@ -745,9 +810,9 @@ export default function AgentOffice() {
               NEXUS PRIME INTEL CORPS
             </div>
             <div style={{ fontSize:'11px', lineHeight:1.7 }}>
-              Talk to <span style={{ color:'#4f6ef7', fontWeight:700 }}>JANSKY</span>. He routes your request to the right specialist.
+              Talk to <span style={{ color:'#00DDFF', fontWeight:700, fontFamily:"'VT323', monospace", fontSize:'14px' }}>JANSKY</span>. He routes your request to the right specialist.
               <br />
-              Code → <span style={{ color:'#7c3aed' }}>ORBIT</span> · Research → <span style={{ color:'#10b981' }}>NOVA</span> · Security → <span style={{ color:'#14b8a6' }}>CIPHER</span> · Markets → <span style={{ color:'#f59e0b' }}>FLUX</span>
+              Code → <span style={{ color:'#7c3aed' }}>ORBIT</span> · Research → <span style={{ color:'#00FF66' }}>NOVA</span> · Security → <span style={{ color:'#14b8a6' }}>CIPHER</span> · Markets → <span style={{ color:'#f59e0b' }}>FLUX</span>
             </div>
           </div>
         )}

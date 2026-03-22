@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── VT323 pixel font (openclaw style) ──────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
 /* ── Sadie Sink Theme — Design tokens ─────────────────────────────────────── */
 :root {
   --bg:      #0a0708;
@@ -33,6 +36,12 @@
   --gold:     #d4956a;
   --burgundy: #6b1d2a;
   --blush:    #e8a0aa;
+}
+
+/* ── Openclaw animations ─────────────────────────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px #00FF66; }
+  50%       { opacity: 0.4; box-shadow: 0 0 2px #00FF66; }
 }
 
 /* ── Reset ──────────────────────────────────────────────────────────────────── */

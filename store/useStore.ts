@@ -5,6 +5,44 @@ import { persist } from 'zustand/middleware'
 export type NotificationType     = 'threat' | 'market' | 'seismic' | 'weather' | 'system' | 'intel'
 export type NotificationSeverity = 'critical' | 'high' | 'medium' | 'low'
 
+// ── Operational phase model ───────────────────────────────────────────────────
+export type OperationalPhase =
+  | 'idle'
+  | 'interpreting'
+  | 'planning'
+  | 'executing'
+  | 'validating'
+  | 'responding'
+  | 'done'
+
+export interface TaskItem {
+  id:     string
+  label:  string
+  status: 'pending' | 'running' | 'done' | 'failed'
+}
+
+export interface PendingEdit {
+  id:         string
+  path:       string
+  old_string: string
+  new_string: string
+  reason:     string
+  risk:       'low' | 'medium' | 'high'
+  agentId:    string
+  createdAt:  string
+}
+
+export interface ChangeEntry {
+  id:           string
+  timestamp:    number
+  path:         string
+  agent:        string
+  summary:      string
+  type:         'patch' | 'create' | 'approved' | 'rejected'
+  linesAdded:   number
+  linesRemoved: number
+}
+
 // ── Activity log ──────────────────────────────────────────────────────────────
 export type LogEntryType = 'articles' | 'prices' | 'cves' | 'system' | 'agent' | 'world' | 'otx'
 
@@ -190,6 +228,25 @@ interface NexusState {
   flights:        GeoRecord[]
   securityAlerts: SecurityAlert[]
 
+  // Operational phase
+  currentPhase:      OperationalPhase
+  phaseStartedAt:    number
+  setCurrentPhase:   (phase: OperationalPhase) => void
+
+  // Task plan
+  taskPlan:        TaskItem[]
+  setTaskPlan:     (plan: TaskItem[]) => void
+  updateTaskItem:  (id: string, status: TaskItem['status']) => void
+
+  // Pending proposed edits (await user approval)
+  pendingEdits:       PendingEdit[]
+  addPendingEdit:     (edit: Omit<PendingEdit, 'id' | 'createdAt'>) => void
+  removePendingEdit:  (id: string) => void
+
+  // Change log (audit trail of applied edits)
+  changeLog:      ChangeEntry[]
+  addChangeEntry: (entry: Omit<ChangeEntry, 'id' | 'timestamp'>) => void
+
   // Activity log
   activityLog: LogEntry[]
   addLog:      (entry: Omit<LogEntry, 'id' | 'time'>) => void
@@ -291,6 +348,41 @@ export const useStore = create<NexusState>()(
       secFilings:     [],
       flights:        [],
       securityAlerts: [],
+
+      // Operational phase
+      currentPhase:    'idle',
+      phaseStartedAt:  Date.now(),
+      setCurrentPhase: (currentPhase) => set({ currentPhase, phaseStartedAt: Date.now() }),
+
+      // Task plan
+      taskPlan:       [],
+      setTaskPlan:    (taskPlan) => set({ taskPlan }),
+      updateTaskItem: (id, status) =>
+        set((s) => ({
+          taskPlan: s.taskPlan.map((t) => t.id === id ? { ...t, status } : t),
+        })),
+
+      // Pending edits
+      pendingEdits: [],
+      addPendingEdit: (edit) =>
+        set((s) => ({
+          pendingEdits: [
+            { ...edit, id: Math.random().toString(36).slice(2, 10), createdAt: new Date().toISOString() },
+            ...s.pendingEdits,
+          ],
+        })),
+      removePendingEdit: (id) =>
+        set((s) => ({ pendingEdits: s.pendingEdits.filter((e) => e.id !== id) })),
+
+      // Change log
+      changeLog: [],
+      addChangeEntry: (entry) =>
+        set((s) => ({
+          changeLog: [
+            { ...entry, id: Math.random().toString(36).slice(2, 10), timestamp: Date.now() },
+            ...s.changeLog,
+          ].slice(0, 200),
+        })),
 
       // Activity log defaults
       activityLog: [],

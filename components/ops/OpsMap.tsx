@@ -184,6 +184,18 @@ export default function OpsMap() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeLayers, firmsKey])
 
+  // Inject Leaflet CSS via useEffect — <link> in JSX is unreliable in Next.js
+  useEffect(() => {
+    const id = 'leaflet-css'
+    if (!document.getElementById(id)) {
+      const link = document.createElement('link')
+      link.id   = id
+      link.rel  = 'stylesheet'
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      document.head.appendChild(link)
+    }
+  }, [])
+
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -244,7 +256,6 @@ export default function OpsMap() {
 
   return (
     <div style={{ marginTop: '18px' }}>
-      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
       {/* Header + layer toggles */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>

@@ -165,6 +165,18 @@ export const AGENT_TOOLS = [
       required: ['path', 'old_string', 'new_string'],
     },
   },
+  {
+    name:        'create_project_file',
+    description: 'Create a new source file in the project. Use this to scaffold new components, hooks, pages, or utilities. Only creates files in: app/, components/, lib/, store/, public/, docs/, specs/, hooks/. Will fail if the file already exists — use patch_project_file to edit existing files.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path:    { type: 'string', description: 'Relative path for the new file, e.g. "components/ui/NewWidget.tsx"' },
+        content: { type: 'string', description: 'The full content of the new file.' },
+      },
+      required: ['path', 'content'],
+    },
+  },
 ]
 
 // Draft-mode replacement for write_file
@@ -450,7 +462,7 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
         },
         body: JSON.stringify({
           model,
-          max_tokens:  768,
+          max_tokens:  4096,
           messages:    conv,
           tools:       toOAITools(tools),
           tool_choice: 'auto',
@@ -591,7 +603,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
         body: JSON.stringify({
           provider:   'anthropic',
           model:      'claude-opus-4-5',
-          max_tokens: 1024,
+          max_tokens: 4096,
           system:     enrichedPrompt,
           tools:      AGENT_TOOLS,
           messages:   conv,

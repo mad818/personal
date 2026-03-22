@@ -125,9 +125,9 @@ const AGENT_ORDER: AgentId[] = ['cipher', 'orbit', 'jansky', 'nova', 'flux']
 function buildAgentPrompt(id: AgentId, base: string): string {
   const personas: Record<AgentId, string> = {
     jansky: `\n\n[AGENT: JANSKY — Command Intelligence]\nYou are JANSKY. Strategic. Decisive. Brief. You orchestrate the mission. Handle high-level analysis and delegation. Speak in short, punchy sentences with authority. You dispatch tasks to specialists when needed.`,
-    orbit:  `\n\n[AGENT: ORBIT — Engineering Intelligence]\nYou are ORBIT. Precise. Technical. You specialise in the Nexus Prime codebase: Next.js 14, TypeScript, React, Zustand, Tailwind. Always read files before editing. Always produce working code.`,
+    orbit:  `\n\n[AGENT: ORBIT — Engineering Intelligence]\nYou are ORBIT. Precise. Technical. You own the Nexus Prime codebase: Next.js 14, TypeScript, React, Zustand, Tailwind.\n\nCRITICAL — You edit files DIRECTLY. You never output code blocks for the user to copy.\n\nYour exact workflow for every code task:\n1. Call list_project_files on the relevant directory first to orient yourself.\n2. Call read_project_file to read the full file before touching it.\n3. Call patch_project_file to make the targeted change directly in the source file.\n4. For brand-new files, call create_project_file with the full content.\n5. After patching, call read_project_file again to confirm the change looks right.\n6. Tell the user what you changed and in which file — nothing more.\n\nNever describe what you "would" do. Do it. Make the change. The file is live.`,
     nova:   `\n\n[AGENT: NOVA — Research Intelligence]\nYou are NOVA. Curious. Thorough. Data-driven. You use web_search and fetch_url aggressively to find current facts. You synthesise from multiple sources and always cite them.`,
-    cipher: `\n\n[AGENT: CIPHER — Security Intelligence]\nYou are CIPHER. Sharp. Methodical. You specialise in cybersecurity: CVE analysis, threat modelling, OSINT, network security, and secure coding practices. You think like an attacker to defend like a guardian.`,
+    cipher: `\n\n[AGENT: CIPHER — Security Intelligence]\nYou are CIPHER. Sharp. Methodical. You specialise in cybersecurity: CVE analysis, threat modelling, OSINT, network security, and secure coding practices. You think like an attacker to defend like a guardian.\n\nWhen asked to fix security issues in the codebase: use read_project_file, then patch_project_file to apply the fix directly. Never just describe what to change.`,
     flux:   `\n\n[AGENT: FLUX — Market Intelligence]\nYou are FLUX. Fast. Quantitative. You specialise in financial markets: crypto, equities, macro economics, on-chain data, and trading signals. You read momentum and think in probabilities.`,
   }
   return base + personas[id]
@@ -230,15 +230,20 @@ interface AvatarProps {
   id:         AgentId
   active:     boolean
   routing:    boolean
-  dispatched: boolean   // just received a dispatch ping from JANSKY
-  dispatch:   string | null  // if this IS jansky, the bubble text to show
+  dispatched: boolean
+  dispatch:   string | null
+}
+
+// Desk decorations per agent
+const DESK_DECO: Record<AgentId, string> = {
+  jansky: '☕', orbit: '🎧', nova: '📚', cipher: '🔒', flux: '📈',
 }
 
 function AgentAvatar({ id, active, routing, dispatched, dispatch }: AvatarProps) {
   const [frame, setFrame] = useState(0)
-  const cfg = AGENTS[id]
+  const cfg    = AGENTS[id]
+  const isLive = routing || dispatched || active
 
-  // Faster frame swap when active/routing/dispatched — looks like they're moving
   useEffect(() => {
     const ms = (routing || dispatched) ? 150 : active ? 250 : 850
     const timer = setInterval(() => setFrame(f => (f + 1) % 2), ms)
@@ -246,96 +251,128 @@ function AgentAvatar({ id, active, routing, dispatched, dispatch }: AvatarProps)
   }, [routing, active, dispatched])
 
   const statusColor = routing ? '#f59e0b' : dispatched ? cfg.color : active ? cfg.color : '#353c5e'
-  const statusText  = routing ? 'thinking…' : dispatched ? 'on it!' : active ? 'working' : 'standby'
+  const statusText  = routing ? 'routing…' : dispatched ? 'on it!' : active ? 'working' : 'standby'
 
   return (
     <div style={{
-      display:'flex', flexDirection:'column', alignItems:'center', gap:'6px',
-      padding:'12px 12px 10px', borderRadius:'12px', position:'relative',
-      background: (routing || active || dispatched)
-        ? `color-mix(in srgb, ${cfg.color} ${dispatched ? 12 : 7}%, var(--surf2))`
-        : 'var(--surf2)',
-      border:`1px solid ${(routing || active || dispatched) ? cfg.color + (dispatched?'66':'33') : 'var(--border)'}`,
-      transition:'all .25s',
-      boxShadow: dispatched
-        ? `0 0 0 2px ${cfg.color}55, 0 0 22px ${cfg.color}33`
-        : active
-        ? `0 0 14px ${cfg.color}33`
-        : 'none',
-      minWidth:'100px',
-      // Sway when working or dispatched
+      position: 'relative',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      minWidth: '96px',
+      // Whole station sways when working
       animation: (active || dispatched) ? 'agentWork .55s ease-in-out infinite alternate'
         : routing ? 'agentLean .4s ease-in-out infinite alternate' : 'none',
     }}>
-      {/* Pixel monitor */}
-      <div style={{ position:'relative', width:'60px', height:'48px' }}>
+
+      {/* Dispatch bubble — floats above station */}
+      {dispatch && (
         <div style={{
-          position:'absolute', top:0, left:0, right:0,
-          height:'42px', background:'#080a10',
-          border:`1px solid ${cfg.color}55`, borderRadius:'5px',
-          display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden',
-        }}>
-          {/* Scanlines */}
-          <div style={{ position:'absolute', inset:0, background:`repeating-linear-gradient(0deg, transparent, transparent 3px, ${cfg.color}08 3px, ${cfg.color}08 4px)`, pointerEvents:'none' }} />
-          <div style={{ fontSize:'8px', color:`${cfg.color}99`, fontWeight:700, fontFamily:'monospace', zIndex:1, letterSpacing:'.1em' }}>
-            {routing ? '▶▶▶' : dispatched ? '◉ RUN' : active ? '● RDY' : '───'}
-          </div>
-        </div>
-        {/* Monitor stand */}
-        <div style={{ width:'7px', height:'5px', background:'#1e2233', margin:'0 auto', marginTop:'42px' }} />
-        <div style={{ width:'22px', height:'2px', background:'#1e2233', margin:'0 auto' }} />
-        {/* Character — larger sprites, visible at desk */}
-        <div style={{
-          position:'absolute', bottom:'10px', left:'50%',
+          position: 'absolute', bottom: 'calc(100% + 4px)', left: '50%',
           transform: 'translateX(-50%)',
+          background: 'var(--surf)',
+          border: `1px solid ${cfg.color}66`,
+          borderRadius: '8px', padding: '5px 10px',
+          fontSize: '9px', fontWeight: 700, color: cfg.color,
+          whiteSpace: 'nowrap', zIndex: 20,
+          animation: 'bubbleUp .2s ease',
+          boxShadow: '0 4px 12px rgba(0,0,0,.5)',
+        }}>
+          {dispatch}
+          <div style={{
+            position: 'absolute', bottom: '-5px', left: '50%', transform: 'translateX(-50%)',
+            width: 0, height: 0,
+            borderLeft: '5px solid transparent', borderRight: '5px solid transparent',
+            borderTop: `5px solid ${cfg.color}66`,
+          }} />
+        </div>
+      )}
+
+      {/* Dispatch ring */}
+      {dispatched && (
+        <div style={{
+          position: 'absolute', inset: '-4px', borderRadius: '10px',
+          border: `2px solid ${cfg.color}`,
+          animation: 'dispatchRing .6s ease-out infinite',
+          pointerEvents: 'none', zIndex: 10,
+        }} />
+      )}
+
+      {/* ── Wall station panel ── */}
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
+        padding: '8px 10px 6px',
+        borderRadius: '7px 7px 0 0',
+        background: isLive
+          ? `color-mix(in srgb, ${cfg.color} 32%, #0c1020)`
+          : `color-mix(in srgb, ${cfg.color} 18%, #0c1020)`,
+        border: `1px solid ${isLive ? cfg.color + '88' : cfg.color + '40'}`,
+        borderBottom: 'none',
+        transition: 'background .25s, border .25s',
+        boxShadow: isLive ? `inset 0 0 18px ${cfg.color}1a, 0 -2px 10px ${cfg.color}18` : 'none',
+        width: '100%',
+      }}>
+        {/* Role badge */}
+        <div style={{
+          fontSize: '6px', fontWeight: 900,
+          color: `${cfg.color}${isLive ? 'cc' : '66'}`,
+          letterSpacing: '.14em', textTransform: 'uppercase',
+          display: 'flex', alignItems: 'center', gap: '4px',
+        }}>
+          <span>{DESK_DECO[id]}</span>
+          <span>{AGENTS[id].role}</span>
+        </div>
+
+        {/* Wall-mounted monitor — SVG */}
+        <svg width="54" height="38" style={{ display: 'block', flexShrink: 0 }}>
+          {/* Outer bezel */}
+          <rect x="0" y="0" width="54" height="34" rx="3" fill="#06080f" stroke={cfg.color + (isLive ? '66' : '33')} strokeWidth="1"/>
+          {/* Screen scanlines */}
+          {[4,8,12,16,20,24,28].map(y => (
+            <line key={y} x1="2" y1={y} x2="52" y2={y} stroke={cfg.color} strokeOpacity="0.08" strokeWidth="1"/>
+          ))}
+          {/* Status text */}
+          <text
+            x="27" y="20"
+            textAnchor="middle" fontSize="6.5" fontFamily="monospace" fontWeight="bold"
+            fill={cfg.color + (isLive ? 'cc' : '55')} letterSpacing="1.5"
+          >
+            {routing ? '▶ ▶ ▶' : dispatched ? '◉ RUN' : active ? '● RDY' : '─ ─ ─'}
+          </text>
+          {/* Activity dot top-left */}
+          {isLive && <circle cx="6" cy="5" r="2" fill={cfg.color} opacity="0.9"/>}
+          {/* Monitor stand neck */}
+          <rect x="23" y="34" width="8" height="3" fill="#12162a"/>
+          {/* Monitor stand base */}
+          <rect x="17" y="36.5" width="20" height="1.5" rx="1" fill="#12162a"/>
+        </svg>
+
+        {/* Agent sprite — standing at the station */}
+        <div style={{
           animation: dispatched ? 'agentWalk .3s ease-in-out infinite alternate'
             : active ? 'agentWalk .6s ease-in-out infinite alternate' : 'none',
+          marginTop: '1px',
         }}>
           <Sprite rows={cfg.frames[frame]} scale={1.3} />
         </div>
       </div>
 
-      {/* Name tag */}
-      <div style={{ fontSize:'9px', fontWeight:900, color:(routing||active||dispatched) ? cfg.color : 'var(--text3)', letterSpacing:'.08em' }}>
-        {cfg.name}
-      </div>
-      <div style={{ fontSize:'7px', color: statusColor, fontWeight:700 }}>
-        {statusText}
-      </div>
-
-      {/* Dispatch bubble from JANSKY */}
-      {dispatch && (
-        <div style={{
-          position:'absolute', bottom:'calc(100% + 6px)', left:'50%',
-          transform:'translateX(-50%)',
-          background: 'var(--surf)',
-          border:`1px solid ${cfg.color}66`,
-          borderRadius:'8px', padding:'5px 10px',
-          fontSize:'9px', fontWeight:700, color: cfg.color,
-          whiteSpace:'nowrap', zIndex:10,
-          animation:'bubbleUp .2s ease',
-          boxShadow:`0 4px 12px rgba(0,0,0,.4)`,
-        }}>
-          {dispatch}
-          {/* Bubble tail */}
-          <div style={{
-            position:'absolute', bottom:'-5px', left:'50%', transform:'translateX(-50%)',
-            width:0, height:0,
-            borderLeft:'5px solid transparent', borderRight:'5px solid transparent',
-            borderTop:`5px solid ${cfg.color}66`,
-          }} />
+      {/* Name + status tab — sits on desk surface */}
+      <div style={{
+        background: isLive ? `color-mix(in srgb, ${cfg.color} 22%, #0a0d18)` : '#0a0d18',
+        border: `1px solid ${isLive ? cfg.color + '55' : cfg.color + '25'}`,
+        borderTop: 'none',
+        borderRadius: '0 0 5px 5px',
+        padding: '2px 10px 4px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
+        transition: 'background .25s',
+        width: '100%',
+      }}>
+        <div style={{ fontSize: '8px', fontWeight: 900, letterSpacing: '.08em', color: isLive ? cfg.color : 'var(--text3)' }}>
+          {cfg.name}
         </div>
-      )}
-
-      {/* Dispatch ring ping — animated ring when dispatched */}
-      {dispatched && (
-        <div style={{
-          position:'absolute', inset:'-4px', borderRadius:'14px',
-          border:`2px solid ${cfg.color}`,
-          animation:'dispatchRing .6s ease-out infinite',
-          pointerEvents:'none',
-        }} />
-      )}
+        <div style={{ fontSize: '7px', color: statusColor, fontWeight: 700 }}>
+          {statusText}
+        </div>
+      </div>
     </div>
   )
 }
@@ -568,18 +605,79 @@ export default function AgentOffice() {
         </span>
       </div>
 
-      {/* ── Pixel office floor ─────────────────────────────────────────────── */}
+      {/* ── Pixel office room ──────────────────────────────────────────────── */}
       <div style={{
-        padding:'16px 24px 12px',
-        background:`linear-gradient(180deg, var(--surf) 0%, var(--surf2) 100%)`,
-        borderBottom:'1px solid var(--border)',
-        flexShrink:0,
+        position: 'relative',
+        // Distinct from page bg (#07080d) — room must read as a different space
+        background: 'linear-gradient(180deg, #0f1325 0%, #0c1020 50%, #080a14 100%)',
+        borderBottom: '2px solid #1a1f35',
+        flexShrink: 0,
+        overflow: 'hidden',
       }}>
-        {/* Agents spread across full width with crab at right end */}
+
+        {/* Ceiling light fixture */}
         <div style={{
-          display:'flex', alignItems:'flex-end',
-          justifyContent:'space-evenly',
-          width:'100%', gap:'0',
+          position: 'absolute', top: 0, left: 0, right: 0, height: '8px',
+          background: 'linear-gradient(to right, transparent 5%, #4f6ef799 20%, #8899ffdd 50%, #4f6ef799 80%, transparent 95%)',
+          boxShadow: '0 0 0 1px #4f6ef744, 0 2px 30px 8px #4f6ef730',
+          zIndex: 3,
+        }} />
+
+        {/* Ceiling glow spread — illuminates the back wall */}
+        <div style={{
+          position: 'absolute', top: 0, left: '5%', right: '5%', height: '120px',
+          background: 'radial-gradient(ellipse at 50% 0%, #4f6ef720 0%, transparent 65%)',
+          pointerEvents: 'none', zIndex: 1,
+        }} />
+
+        {/* Wall grid — more visible, 3× the opacity of before */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
+          backgroundImage: [
+            'linear-gradient(to right, #3040681a 1px, transparent 1px)',
+            'linear-gradient(to bottom, #3040681a 1px, transparent 1px)',
+          ].join(', '),
+          backgroundSize: '40px 40px',
+        }} />
+
+        {/* Horizontal accent lines — wall panel seams */}
+        <div style={{
+          position: 'absolute', top: '30%', left: 0, right: 0, height: '1px',
+          background: 'linear-gradient(to right, transparent, #304068 20%, #304068 80%, transparent)',
+          opacity: 0.2, zIndex: 1,
+        }} />
+        <div style={{
+          position: 'absolute', top: '60%', left: 0, right: 0, height: '1px',
+          background: 'linear-gradient(to right, transparent, #304068 20%, #304068 80%, transparent)',
+          opacity: 0.15, zIndex: 1,
+        }} />
+
+        {/* Side wall depth gradients */}
+        <div style={{
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: '32px',
+          background: 'linear-gradient(to right, #06080f, transparent)',
+          zIndex: 1, pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', right: 0, top: 0, bottom: 0, width: '32px',
+          background: 'linear-gradient(to left, #06080f, transparent)',
+          zIndex: 1, pointerEvents: 'none',
+        }} />
+
+        {/* Wall callsign */}
+        <div style={{
+          position: 'absolute', top: '10px', right: '44px',
+          fontSize: '7px', fontFamily: 'monospace', fontWeight: 900,
+          color: '#4f6ef735', letterSpacing: '.3em', zIndex: 2, userSelect: 'none',
+        }}>
+          NEXUS HQ
+        </div>
+
+        {/* Agent row — avatars include their own wall-station panel */}
+        <div style={{
+          position: 'relative', zIndex: 2,
+          padding: '36px 24px 0',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'space-evenly', width: '100%',
         }}>
           {AGENT_ORDER.map(id => (
             <AgentAvatar
@@ -591,28 +689,46 @@ export default function AgentOffice() {
               dispatch={id === 'jansky' ? dispatchBubble : null}
             />
           ))}
-          {/* Crab mascot — right end of the desk */}
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', paddingBottom:'4px' }}>
+
+          {/* Crab mascot — right end of desk */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingBottom: '4px' }}>
             <CrabMascot emotion={emotion} />
           </div>
         </div>
 
         {/* Dispatch travel bar */}
         {dispatchBar && (
-          <div style={{ padding:'0 40px' }}>
+          <div style={{ position: 'relative', zIndex: 2, padding: '0 40px' }}>
             <DispatchBar from={dispatchBar.from} to={dispatchBar.to} />
           </div>
         )}
 
-        {/* Desk floor line */}
+        {/* Continuous desk surface — full-width wood */}
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          {/* Desk top — wood grain with highlight */}
+          <div style={{
+            height: '14px',
+            background: 'linear-gradient(180deg, #8a5030 0%, #6b3d1a 25%, #4a2810 70%, #3d2210 100%)',
+            borderTop: '1px solid #a06040',
+            boxShadow: '0 -2px 12px rgba(0,0,0,.6)',
+          }} />
+          {/* Desk front bevel */}
+          <div style={{
+            height: '6px',
+            background: 'linear-gradient(180deg, #2e1a0a, #140905)',
+            borderBottom: '1px solid #0a0604',
+          }} />
+        </div>
+
+        {/* Floor — darker than desk, subtle reflection */}
         <div style={{
-          marginTop:'10px', height:'2px',
-          background:`linear-gradient(to right, transparent, var(--border2) 20%, var(--border2) 80%, transparent)`,
-          borderRadius:'1px',
+          position: 'relative', zIndex: 2, height: '18px',
+          background: 'linear-gradient(180deg, #050609 0%, #030405 100%)',
+          boxShadow: 'inset 0 1px 0 #1a1a2a',
         }} />
 
-        {/* System monitor — horizontal stats bar */}
-        <div style={{ marginTop:'10px' }}>
+        {/* System monitor */}
+        <div style={{ position: 'relative', zIndex: 2, padding: '8px 24px 10px' }}>
           <SystemMonitor activeAgent={activeAgent} />
         </div>
       </div>

@@ -1,12 +1,44 @@
-import CVEFeed       from '@/components/cyber/CVEFeed'
-import OTXFeed       from '@/components/cyber/OTXFeed'
-import CISAFeed      from '@/components/cyber/CISAFeed'
-import CyberHeatmap  from '@/components/cyber/CyberHeatmap'
+'use client'
+
+import { useState } from 'react'
+import CVEFeed             from '@/components/cyber/CVEFeed'
+import OTXFeed             from '@/components/cyber/OTXFeed'
+import CISAFeed            from '@/components/cyber/CISAFeed'
+import CyberHeatmap        from '@/components/cyber/CyberHeatmap'
+import CyberArticleHeatmap from '@/components/cyber/CyberArticleHeatmap'
 import { CVEsLoader, OTXLoader } from '@/components/ui/DataLoader'
+
+function CollapsibleSection({ title, children, defaultOpen = false }: {
+  title: string; children: React.ReactNode; defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div style={{ marginBottom: '8px' }}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          width: '100%', background: 'var(--surf2)',
+          border: '1px solid var(--border)', borderRadius: open ? '8px 8px 0 0' : '8px',
+          padding: '9px 14px', cursor: 'pointer', textAlign: 'left',
+          transition: 'border-radius .15s',
+        }}
+      >
+        <span style={{ fontSize: '9px', color: 'var(--text3)', transition: 'transform .15s', display: 'inline-block', transform: open ? 'rotate(90deg)' : 'none' }}>▶</span>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text3)', letterSpacing: '.08em', textTransform: 'uppercase' }}>{title}</span>
+      </button>
+      {open && (
+        <div style={{ padding: '16px', background: 'var(--surf2)', border: '1px solid var(--border)', borderTop: 'none', borderRadius: '0 0 8px 8px' }}>
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function CyberPage() {
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '18px 16px 40px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '18px 16px 80px' }}>
       <CVEsLoader />
       <OTXLoader />
 
@@ -15,47 +47,38 @@ export default function CyberPage() {
         CVE vulnerabilities · CISA KEV catalog · OTX threat pulses · Adversary intelligence
       </div>
 
-      {/* Heatmap overview — click any cell to drill down */}
-      <div style={{ marginBottom: '28px' }}>
+      {/* ── Primary: article threat heat grid ── */}
+      <div style={{ marginBottom: '10px' }}>
+        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text3)', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
+          Threat Intelligence Signals
+        </div>
+        <CyberArticleHeatmap />
+      </div>
+
+      <div style={{ margin: '24px 0', height: '1px', background: 'var(--border)' }} />
+
+      {/* ── CVE + OTX severity matrix ── */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text3)', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
+          CVE + OTX Severity Matrix
+        </div>
         <CyberHeatmap />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div style={{ margin: '24px 0', height: '1px', background: 'var(--border)' }} />
 
-        {/* Left — NVD CVEs */}
-        <div>
-          <div style={{
-            fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
-            letterSpacing: '0.8px', marginBottom: '10px',
-          }}>
-            NVD Vulnerabilities
-          </div>
-          <CVEFeed />
-        </div>
+      {/* ── Collapsible raw feeds ── */}
+      <CollapsibleSection title="NVD Vulnerabilities (Raw CVE Feed)">
+        <CVEFeed />
+      </CollapsibleSection>
 
-        {/* Right — OTX Pulses */}
-        <div>
-          <div style={{
-            fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
-            letterSpacing: '0.8px', marginBottom: '10px',
-          }}>
-            AlienVault OTX · Threat Pulses
-          </div>
-          <OTXFeed />
-        </div>
+      <CollapsibleSection title="AlienVault OTX — Threat Pulses">
+        <OTXFeed />
+      </CollapsibleSection>
 
-      </div>
-
-      {/* CISA KEV — full width below the two-column grid */}
-      <div style={{ marginTop: '20px' }}>
-        <div style={{
-          fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
-          letterSpacing: '0.8px', marginBottom: '10px',
-        }}>
-          CISA Known Exploited Vulnerabilities (KEV)
-        </div>
+      <CollapsibleSection title="CISA Known Exploited Vulnerabilities (KEV)">
         <CISAFeed />
-      </div>
+      </CollapsibleSection>
 
     </div>
   )

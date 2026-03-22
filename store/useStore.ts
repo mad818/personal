@@ -5,6 +5,17 @@ import { persist } from 'zustand/middleware'
 export type NotificationType     = 'threat' | 'market' | 'seismic' | 'weather' | 'system' | 'intel'
 export type NotificationSeverity = 'critical' | 'high' | 'medium' | 'low'
 
+// ── Activity log ──────────────────────────────────────────────────────────────
+export type LogEntryType = 'articles' | 'prices' | 'cves' | 'system' | 'agent' | 'world' | 'otx'
+
+export interface LogEntry {
+  id:    string
+  time:  number
+  type:  LogEntryType
+  text:  string
+  color: string
+}
+
 export interface Notification {
   id:        string
   type:      NotificationType
@@ -179,6 +190,10 @@ interface NexusState {
   flights:        GeoRecord[]
   securityAlerts: SecurityAlert[]
 
+  // Activity log
+  activityLog: LogEntry[]
+  addLog:      (entry: Omit<LogEntry, 'id' | 'time'>) => void
+
   // Notifications
   notifications:       Notification[]
   unreadCount:         number
@@ -276,6 +291,16 @@ export const useStore = create<NexusState>()(
       secFilings:     [],
       flights:        [],
       securityAlerts: [],
+
+      // Activity log defaults
+      activityLog: [],
+      addLog: (entry) =>
+        set((s) => ({
+          activityLog: [
+            { ...entry, id: Math.random().toString(36).slice(2, 10), time: Date.now() },
+            ...s.activityLog,
+          ].slice(0, 200),
+        })),
 
       // Notifications defaults
       notifications: [],

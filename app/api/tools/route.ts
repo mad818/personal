@@ -317,6 +317,32 @@ async function listProjectFiles(relDir: string): Promise<string> {
   }
 }
 
+async function createProjectFile(relPath: string, content: string): Promise<string> {
+  const { safe, blocked } = resolveProjectPath(relPath)
+  if (blocked) return `Blocked: ${blocked}`
+
+  const topLevel = relPath.replace(/^[/\\]+/, '').split('/')[0]
+  if (!WRITABLE_DIRS.includes(topLevel)) {
+    return `Write blocked: "${topLevel}" is not a writable directory. Allowed: ${WRITABLE_DIRS.join(', ')}`
+  }
+
+  const ext = path.extname(relPath).toLowerCase()
+  if (!READABLE_EXTS.has(ext)) return `Cannot create file type "${ext}".`
+
+  // Refuse to overwrite — agent should use patch_project_file for that
+  try {
+    await fs.access(safe)
+    return `File already exists: ${relPath}. Use patch_project_file to edit it.`
+  } catch {
+    // File does not exist — good, proceed
+  }
+
+  // Create intermediate directories if needed
+  await fs.mkdir(path.dirname(safe), { recursive: true })
+  await fs.writeFile(safe, content, 'utf-8')
+  return `Created: ${relPath} (${content.length} chars, ${content.split('\n').length} lines)`
+}
+
 async function patchProjectFile(relPath: string, oldStr: string, newStr: string): Promise<string> {
   const { safe, blocked } = resolveProjectPath(relPath)
   if (blocked) return `Blocked: ${blocked}`
@@ -335,7 +361,7 @@ async function patchProjectFile(relPath: string, oldStr: string, newStr: string)
   try {
     content = await fs.readFile(safe, 'utf-8')
   } catch {
-    return `File not found: ${relPath}. Use write_file to create a new file in the workspace instead.`
+    return `File not found: ${relPath}. Use create_project_file to create it first.`
   }
 
   if (!content.includes(oldStr)) {
@@ -392,6 +418,9 @@ export async function POST(req: NextRequest) {
         break
       case 'patch_project_file':
         result = await patchProjectFile(input.path ?? '', input.old_string ?? '', input.new_string ?? '')
+        break
+      case 'create_project_file':
+        result = await createProjectFile(input.path ?? '', input.content ?? '')
         break
       default:
         result = `Unknown tool: ${tool}`

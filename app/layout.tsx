@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import Nav              from '@/components/nav/Nav'
 import AuthGate         from '@/components/auth/AuthGate'
-import AgentStatusBar   from '@/components/ui/AgentStatusBar'
+import CommandBar       from '@/components/ui/CommandBar'
 import GlobalDataLoader from '@/components/ui/GlobalDataLoader'
 import { ArticlesLoader } from '@/components/ui/DataLoader'
 
@@ -27,8 +27,8 @@ export default function RootLayout({
           {/* Global data — loads articles + keyword alerts on every page */}
           <GlobalDataLoader />
           <ArticlesLoader />
-          {/* Global agent presence — persists across all tabs */}
-          <AgentStatusBar />
+          {/* Global command dock — persists across all tabs */}
+          <CommandBar />
         </AuthGate>
       </body>
     </html>

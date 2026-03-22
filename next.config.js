@@ -40,9 +40,9 @@ module.exports = {
               "default-src 'self'",
               // Scripts: self + any CDN libs referenced in artifacts
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdnjs.cloudflare.com",
-              // Styles: self + inline (required for React style props)
-              "style-src 'self' 'unsafe-inline'",
-              // Images: self + data URIs + https sources
+              // Styles: self + inline (required for React style props) + unpkg for Leaflet CSS
+              "style-src 'self' 'unsafe-inline' https://unpkg.com",
+              // Images: self + data URIs + https sources (covers Leaflet map tiles + marker icons)
               "img-src 'self' data: https: blob:",
               // Fonts: self
               "font-src 'self'",

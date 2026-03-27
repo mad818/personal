@@ -1,7 +1,7 @@
 ## Nexus Prime — Claude Desktop Handoff (AUTO)
 
-**Generated from commit:** `2026-03-27T07:37:44-07:00`
-**Commit:** `58f4293` — Ship tab click fixes, CSP-safe news, and Claude handoff.
+**Generated from commit:** `2026-03-27T07:41:18-07:00`
+**Commit:** `49a3d0e` — Add auto-generated handoff doc and CI freshness check.
 
 ### Project purpose
 
@@ -12,6 +12,25 @@ It aggregates markets, geopolitics, cyber, ops, IoT, and includes an AI agent (C
 
 - Next.js 14 app is the active surface (`app/`, `components/`, `lib/`, `store/`).
 - `nexus-final.html` remains as legacy reference and should stay single-file.
+
+### OS / machine context (Windows or macOS)
+
+This repo is used on **Windows (PowerShell)** and **macOS (zsh)**. Start every new machine by confirming the basics:
+
+```bash
+# Where am I? (prints the repo root path)
+node -p "process.cwd()"
+
+# What OS is this Node running on? (win32 / darwin / linux)
+node -p "process.platform"
+
+# Confirm Node + npm
+node -v
+npm -v
+```
+
+- **Windows**: use PowerShell. Avoid Bash-only syntax like `&&` in one-liners; prefer separate commands.
+- **macOS**: use Terminal/zsh. Bash one-liners generally work.
 
 ### Run + verify
 
@@ -36,62 +55,10 @@ npm run verify
 
 Files touched in the latest commit:
 
-- `.env.example`
 - `.github/workflows/quality-gates.yml`
-- `README.md`
-- `app/alpha/page.tsx`
-- `app/api/ai/route.ts`
-- `app/api/metrics/runtime-eval/route.ts`
-- `app/api/metrics/runtime-eval/run/route.ts`
-- `app/api/news/route.ts`
-- `app/api/status/route.ts`
-- `app/api/verify/route.ts`
-- `app/cyber/page.tsx`
-- `app/intel/page.tsx`
-- `app/layout.tsx`
-- `app/reset/page.tsx`
-- `components/cyber/CyberArticleHeatmap.tsx`
-- `components/home/office/OfficeCommandCenter.tsx`
-- `components/home/office/OfficeRoom3D.tsx`
-- `components/home/office/constants.ts`
-- `components/home/office/palette.tsx`
-- `components/home/office/prompts.ts`
-- `components/home/office/sprites.ts`
-- `components/ops/WorldTopicHeatmap.tsx`
-- `components/settings/SettingsDrawer.tsx`
-- `components/signals/TopicHeatmap.tsx`
-- `components/ui/ClickDebug.tsx`
-- `components/ui/CronSchedulerPanel.tsx`
-- `components/ui/CronSchedulerRunner.tsx`
-- `components/ui/RuntimeEvalTrend.tsx`
-- `components/ui/TelemetryHUD.tsx`
 - `docs/CLAUDE_HANDOFF.md`
-- `docs/attribution.md`
-- `docs/ideas/agent-ecosystem-patterns-to-nexus-blueprint.md`
-- `docs/metrics/README.md`
-- `docs/metrics/agent-runtime-history.jsonl`
-- `docs/metrics/agent-runtime-latest.json`
-- `docs/releases/2026-03-27-secure-push-summary.md`
-- `docs/workflow.md`
-- `hooks/useArticles.ts`
-- `lib/agent.ts`
-- `lib/ai.ts`
-- `lib/aiModelRouting.ts`
-- `lib/apiCache.ts`
-- `lib/helpers.ts`
-- `lib/liveContext.ts`
-- `lib/runtimeConfig.ts`
-- `lib/runtimeTypes.ts`
-- `next.config.js`
 - `package.json`
-- `public/office/la-skyline.jpg`
-- `scripts/eval-agent-runtime.js`
-- `specs/features/multi-phase-agent-hardening-sprint.md`
-- `specs/features/release-hardening-phase1.md`
-- `store/useStore.ts`
-- `tasks/lessons.md`
-- `tasks/todo.md`
-- `tsconfig.tsbuildinfo`
+- `scripts/generate-handoff.js`
 
 ### What’s next (from `tasks/todo.md`)
 

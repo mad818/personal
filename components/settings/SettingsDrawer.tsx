@@ -15,8 +15,8 @@ const SENSITIVE_FIELD_MAP: Record<string, string> = {
   guardianKey:  'GUARDIAN_KEY',
   fredKey:      'FRED_KEY',
   otxKey:       'OTX_KEY',
-  aisstreamKey: 'AISSSTREAM_KEY',
-  firmsKey:     'FIRMS_KEY',
+  aisstreamKey: 'AISSTREAM_KEY',
+  firmsKey:     'FIRMS_MAP_KEY',
   firecrawlKey: 'FIRECRAWL_KEY',
 }
 
@@ -24,7 +24,7 @@ const SENSITIVE_FIELD_MAP: Record<string, string> = {
 const LOCAL_FIELDS: { key: keyof Settings; label: string; type?: string; placeholder?: string }[] = [
   { key: 'aiProvider',    label: 'AI Provider (openai | anthropic)' },
   { key: 'localEndpoint', label: 'Local LLM Endpoint',       placeholder: 'http://localhost:11434/v1/...' },
-  { key: 'localModel',    label: 'Local Model Name',         placeholder: 'qwen2.5:7b' },
+  { key: 'localModel',    label: 'Local Model Name',         placeholder: 'qwen3:8b' },
   { key: 'localApiKey',   label: 'Local / OpenRouter Key',   type: 'password' },
   { key: 'userName',      label: 'Your Name' },
   { key: 'userGoals',     label: 'Goals',                    placeholder: 'SaaS, $4K/mo, freelance…' },
@@ -44,8 +44,8 @@ const SENSITIVE_FIELDS: { key: keyof Settings; label: string; envKey: string; pl
   { key: 'guardianKey',  label: 'Guardian API Key',            envKey: 'GUARDIAN_KEY' },
   { key: 'fredKey',      label: 'FRED API Key',                envKey: 'FRED_KEY' },
   { key: 'otxKey',       label: 'AlienVault OTX Key',          envKey: 'OTX_KEY' },
-  { key: 'aisstreamKey', label: 'AISStream Key',               envKey: 'AISSSTREAM_KEY' },
-  { key: 'firmsKey',     label: 'NASA FIRMS Key',              envKey: 'FIRMS_KEY' },
+  { key: 'aisstreamKey', label: 'AISStream Key',               envKey: 'AISSTREAM_KEY' },
+  { key: 'firmsKey',     label: 'NASA FIRMS Key',              envKey: 'FIRMS_MAP_KEY' },
   { key: 'firecrawlKey', label: 'Firecrawl Key',               envKey: 'FIRECRAWL_KEY' },
 ]
 
@@ -243,6 +243,53 @@ export default function SettingsDrawer({ open, onClose }: Props) {
                   </label>
                 )
               })}
+            </div>
+
+            {/* Operational profiles: auto-jobs controls */}
+            <div style={{ marginTop: 14, padding: '10px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--surf2)' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>
+                Operational Auto Jobs
+              </div>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(settings.enableWarAutoJobs)}
+                  onChange={(e) => updateSettings({ enableWarAutoJobs: e.target.checked } as Partial<Settings>)}
+                />
+                <span style={{ fontSize: 12, color: 'var(--text)' }}>Enable War Room auto jobs</span>
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(settings.enableNightOpsAutoJobs)}
+                  onChange={(e) => updateSettings({ enableNightOpsAutoJobs: e.target.checked } as Partial<Settings>)}
+                />
+                <span style={{ fontSize: 12, color: 'var(--text)' }}>Enable Night Ops auto jobs</span>
+              </label>
+
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase' }}>
+                  Global Auto Job Cooldown (minutes)
+                </span>
+                <input
+                  type="number"
+                  min={10}
+                  max={180}
+                  value={Number(settings.autoOpsJobCooldownMin ?? 30)}
+                  onChange={(e) => {
+                    const n = Number(e.target.value)
+                    const safe = Number.isFinite(n) ? Math.max(10, Math.min(180, n)) : 30
+                    updateSettings({ autoOpsJobCooldownMin: safe } as Partial<Settings>)
+                  }}
+                  style={{
+                    background: 'var(--surf)', border: '1px solid var(--border2)',
+                    borderRadius: '6px', color: 'var(--text)', fontSize: '12px',
+                    padding: '7px 10px', outline: 'none', width: '100%', boxSizing: 'border-box',
+                  }}
+                />
+              </label>
             </div>
           </div>
         </div>

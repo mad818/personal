@@ -1,5 +1,10 @@
+// ── store/useStore ──────────────────────────────────────────
+// Zustand store: global state management for prices, articles, signals, CVEs.
+
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { OFFICE_OBJECT_DEFAULTS } from '@/components/home/office/constants'
+import type { OfficeObjectId, OfficeObjectPos } from '@/components/home/office/types'
 
 // ── Notification types ────────────────────────────────────────────────────────
 export type NotificationType     = 'threat' | 'market' | 'seismic' | 'weather' | 'system' | 'intel'
@@ -19,6 +24,17 @@ export interface TaskItem {
   id:     string
   label:  string
   status: 'pending' | 'running' | 'done' | 'failed'
+}
+
+export interface ScheduledJob {
+  id:            string
+  name:          string
+  prompt:        string
+  cron:          string     // 5-field cron expression (min hour dom mon dow)
+  enabled:       boolean
+  lastRunAt?:    number
+  lastStatus?:   'ok' | 'error'
+  lastSummary?:  string
 }
 
 export interface PendingEdit {
@@ -43,6 +59,14 @@ export interface ChangeEntry {
   linesRemoved: number
 }
 
+// ── Per-agent runtime stats ────────────────────────────────────────────────────
+export interface AgentStats {
+  totalTasks:     number
+  lastTask:       string
+  lastConfidence: number   // 0–100
+  lastActiveAt:   number   // epoch ms
+}
+
 // ── Activity log ──────────────────────────────────────────────────────────────
 export type LogEntryType = 'articles' | 'prices' | 'cves' | 'system' | 'agent' | 'world' | 'otx'
 
@@ -65,14 +89,26 @@ export interface Notification {
   read:      boolean
 }
 
+export interface ModeBriefing {
+  id: string
+  mode: 'normal' | 'war' | 'nightOps'
+  jobId: string
+  jobName: string
+  status: 'ok' | 'error'
+  summary: string
+  relatedTab: string
+  createdAt: number
+}
+
 // ── Default settings (mirrors DEFAULT_CFG from nexus-final.html) ──────────────
 export const DEFAULT_SETTINGS = {
   // AI
-  apiKey:        '',
-  aiProvider:    'openai' as 'openai' | 'anthropic',
-  localEndpoint: 'http://localhost:11434/v1/chat/completions',
-  localModel:    'qwen2.5:7b',
-  localApiKey:   '',
+  apiKey:            '',
+  aiProvider:        'openai' as 'openai' | 'anthropic',
+  localEndpoint:     'http://localhost:11434/v1/chat/completions',
+  localModel:        'qwen3:8b',
+  localApiKey:       '',
+  useLocalReasoning: true,   // Use local deepseek-r1:14b for Think mode
   // Data APIs
   cgKey:         '',
   finnhubKey:    '',
@@ -96,6 +132,19 @@ export const DEFAULT_SETTINGS = {
   botAlerts:     [] as unknown[],
   customFeeds:   [] as unknown[],
   alertKeywords: '',
+  officeSceneMode: 'auto' as 'auto' | 'morning' | 'afternoon' | 'night',
+  officeMotion: 1,
+  officeSplitHeightPx: 0,
+  officeCameraPreset: 'cinematic' as 'cinematic' | 'closeOps' | 'wallReadability',
+  officeOperationalMode: 'normal' as 'normal' | 'war' | 'nightOps',
+  enableWarAutoJobs: false,
+  enableNightOpsAutoJobs: false,
+  autoOpsJobCooldownMin: 30,
+  autoOpsLastRunAt: {} as Record<string, number>,
+  // If true, ProposedEditPanel will auto-apply agent edits whose path is
+  // limited to the HQ Prime office scene code (no manual APPROVE clicks).
+  autoApplyOfficeEdits: true,
+  scheduledJobs: [] as ScheduledJob[],
   _bbChecks:     '{}',
 }
 
@@ -187,6 +236,14 @@ export interface SecurityAlert {
   [key: string]: unknown
 }
 
+// ── Office chat message (persisted in-session) ────────────────────────────────
+export interface OfficeChatMessage {
+  role:   'user' | 'agent'
+  agent?: string   // AgentId
+  text:   string
+  // steps are NOT persisted (too large) — only shown live
+}
+
 // ── Store interface ───────────────────────────────────────────────────────────
 interface NexusState {
   // Persisted settings
@@ -247,9 +304,31 @@ interface NexusState {
   changeLog:      ChangeEntry[]
   addChangeEntry: (entry: Omit<ChangeEntry, 'id' | 'timestamp'>) => void
 
+  // Per-agent runtime stats
+  agentStats:       Record<string, AgentStats>
+  updateAgentStats: (agentId: string, patch: Partial<AgentStats>) => void
+
+  // Office chat history (in-session, survives tab switches)
+  officeMessages:      OfficeChatMessage[]
+  addOfficeMessage:    (msg: OfficeChatMessage) => void
+  clearOfficeMessages: () => void
+
+  // HQ Prime layout editor (Drawbridge-style)
+  officeEditMode:      boolean
+  setOfficeEditMode:   (v: boolean) => void
+  officeLayout:        Record<OfficeObjectId, OfficeObjectPos>
+  setOfficeLayout:     (layout: Record<OfficeObjectId, OfficeObjectPos>) => void
+  setOfficeObjectPos:  (id: OfficeObjectId, pos: OfficeObjectPos) => void
+  resetOfficeLayout:   () => void
+
   // Activity log
   activityLog: LogEntry[]
   addLog:      (entry: Omit<LogEntry, 'id' | 'time'>) => void
+
+  // Operational mode briefings
+  modeBriefings: ModeBriefing[]
+  addModeBriefing: (b: Omit<ModeBriefing, 'id' | 'createdAt'>) => void
+  clearModeBriefings: () => void
 
   // Notifications
   notifications:       Notification[]
@@ -384,6 +463,40 @@ export const useStore = create<NexusState>()(
           ].slice(0, 200),
         })),
 
+      // Per-agent stats
+      agentStats: {},
+      updateAgentStats: (agentId, patch) =>
+        set((s) => ({
+          agentStats: {
+            ...s.agentStats,
+            [agentId]: {
+              totalTasks:     (s.agentStats[agentId]?.totalTasks ?? 0) + (patch.totalTasks !== undefined ? 1 : 0),
+              lastTask:       patch.lastTask       ?? s.agentStats[agentId]?.lastTask       ?? '',
+              lastConfidence: patch.lastConfidence ?? s.agentStats[agentId]?.lastConfidence ?? 0,
+              lastActiveAt:   patch.lastActiveAt   ?? s.agentStats[agentId]?.lastActiveAt   ?? 0,
+            },
+          },
+        })),
+
+      // Office chat history
+      officeMessages:      [],
+      addOfficeMessage:    (msg) =>
+        set((s) => ({
+          officeMessages: [...s.officeMessages, msg].slice(-100),
+        })),
+      clearOfficeMessages: () => set({ officeMessages: [] }),
+
+      // HQ Prime layout editor
+      officeEditMode:    false,
+      setOfficeEditMode: (officeEditMode) => set({ officeEditMode }),
+      officeLayout:      { ...OFFICE_OBJECT_DEFAULTS },
+      setOfficeLayout:   (officeLayout) => set({ officeLayout }),
+      setOfficeObjectPos: (id, pos) =>
+        set((s) => ({
+          officeLayout: { ...s.officeLayout, [id]: { x: pos.x, y: pos.y, ax: pos.ax, ay: pos.ay } },
+        })),
+      resetOfficeLayout: () => set({ officeLayout: { ...OFFICE_OBJECT_DEFAULTS } }),
+
       // Activity log defaults
       activityLog: [],
       addLog: (entry) =>
@@ -393,6 +506,21 @@ export const useStore = create<NexusState>()(
             ...s.activityLog,
           ].slice(0, 200),
         })),
+
+      // Mode briefings
+      modeBriefings: [],
+      addModeBriefing: (b) =>
+        set((s) => ({
+          modeBriefings: [
+            {
+              ...b,
+              id: Math.random().toString(36).slice(2, 10),
+              createdAt: Date.now(),
+            },
+            ...s.modeBriefings,
+          ].slice(0, 40),
+        })),
+      clearModeBriefings: () => set({ modeBriefings: [] }),
 
       // Notifications defaults
       notifications: [],
@@ -470,6 +598,7 @@ export const useStore = create<NexusState>()(
         savedArticles: s.savedArticles,
         pendingDrafts: s.pendingDrafts,
         aiMode:        s.aiMode,
+        officeLayout:  s.officeLayout,
       }),
     }
   )

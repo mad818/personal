@@ -16,8 +16,8 @@ function getSettings(): Settings {
 }
 
 function aiReady(s: Settings): boolean {
-  // Provider is anthropic → /api/ai handles the key server-side
-  if (s.aiProvider === 'anthropic') return true
+  // Cloud providers route via /api/ai with server-side keys
+  if (s.aiProvider === 'anthropic' || s.aiProvider === 'openai') return true
   // Local Ollama — needs endpoint + model
   if (s.localEndpoint && s.localModel) return true
   return false
@@ -64,13 +64,20 @@ async function streamRequest(
 }
 
 // ── Task → local model map (mirrors server-side TASK_MODELS) ─────────────────
+// Tuned for RTX 5070 12GB GDDR7 — all models fit fully in VRAM at Q4_K_M
+// Pull commands:
+//   ollama pull qwen3:8b          (~5.5 GB) — chat + fast
+//   ollama pull qwen2.5-coder:14b (~9.5 GB) — code
+//   ollama pull gemma3:12b        (~8.1 GB) — vision
+//   ollama pull deepseek-r1:14b   (~9.5 GB) — reasoning (outputs <think> blocks)
+//   ollama pull nomic-embed-text  (~0.3 GB) — embeddings
 const TASK_MODELS: Record<string, string> = {
-  chat:      'qwen2.5:14b',
-  code:      'qwen2.5-coder:14b',
-  vision:    'llama3.2-vision:11b',
-  reasoning: 'deepseek-r1:14b',
-  fast:      'qwen2.5:7b',
-  embed:     'nomic-embed-text',
+  chat:      'qwen3:8b',              // ~55-65 tok/s — Qwen3 8B beats prior-gen 14B for chat
+  code:      'qwen2.5-coder:14b',     // ~40-50 tok/s — best coding model at 12GB
+  vision:    'gemma3:12b',            // ~45-55 tok/s — multimodal, vision + instruction
+  reasoning: 'deepseek-r1:14b',       // ~35-45 tok/s — think-trace reasoning, wired to R1 UI
+  fast:      'qwen3:8b',              // ~55-65 tok/s — same as chat, snappy responses
+  embed:     'nomic-embed-text',      // trivial VRAM — sentence embeddings
 }
 
 // ── Main AI call (non-streaming) ──────────────────────────────────────────────
@@ -82,14 +89,15 @@ export async function callAI(
   const s = getSettings()
   if (!aiReady(s)) throw new Error('No AI configured')
 
-  // Route through /api/ai — key never leaves the server
-  // Anthropic provider → cloud path; task hint uses RESEARCH_CHAIN server-side
-  if (s.aiProvider === 'anthropic') {
+  // Route cloud providers through /api/ai — key never leaves the server
+  if (s.aiProvider === 'anthropic' || s.aiProvider === 'openai') {
+    const cloudProvider = s.aiProvider
+    const cloudModel = cloudProvider === 'anthropic' ? 'claude-opus-4-5' : 'gpt-4o-mini'
     const res = await apiFetch('/api/ai', {
       method: 'POST',
       body: JSON.stringify({
-        provider:   'anthropic',
-        model:      'claude-opus-4-5',
+        provider:   cloudProvider,
+        model:      cloudModel,
         max_tokens: maxTokens,
         messages:   [{ role: 'user', content: prompt }],
         ...(task ? { task } : {}),
@@ -130,13 +138,15 @@ export async function streamAI(
   const s = getSettings()
   if (!aiReady(s)) throw new Error('No AI configured')
 
-  if (s.aiProvider === 'anthropic') {
+  if (s.aiProvider === 'anthropic' || s.aiProvider === 'openai') {
+    const cloudProvider = s.aiProvider
+    const cloudModel = cloudProvider === 'anthropic' ? 'claude-opus-4-5' : 'gpt-4o-mini'
     return streamRequest(
       '/api/ai',
       {},
       {
-        provider:   'anthropic',
-        model:      'claude-opus-4-5',
+        provider:   cloudProvider,
+        model:      cloudModel,
         max_tokens: maxTokens,
         system:     systemPrompt,
         messages,
@@ -164,8 +174,102 @@ export async function streamAI(
   )
 }
 
+// ── Streaming AI with reasoning trace (DeepSeek R1 / any <think> model) ───────
+// Splits the stream at <think>…</think> boundaries:
+//   onThink(text) — called for every thinking token (show as grey trace)
+//   onChunk(text) — called for every answer token (show as normal response)
+// Falls back gracefully: if localEndpoint is not set, routes to /api/ai.
+export async function streamAIWithThinking(
+  messages:     { role: string; content: string }[],
+  systemPrompt: string,
+  onThink:      (text: string) => void,
+  onChunk:      (text: string) => void,
+  maxTokens = 3000,
+): Promise<{ thinking: string; answer: string }> {
+  const s = getSettings()
+
+  let thinking = ''
+  let answer   = ''
+  let inThink  = false
+  let buf      = ''
+
+  // Incrementally parse <think>…</think> tags as chunks arrive
+  const handleToken = (token: string) => {
+    buf += token
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      if (!inThink) {
+        const start = buf.indexOf('<think>')
+        if (start === -1) {
+          // No open tag visible — flush all but last 6 chars (partial tag guard)
+          const safe = buf.length > 6 ? buf.slice(0, buf.length - 6) : ''
+          if (safe) { answer += safe; onChunk(safe); buf = buf.slice(safe.length) }
+          break
+        }
+        // Flush any content before <think> as answer
+        if (start > 0) { const pre = buf.slice(0, start); answer += pre; onChunk(pre) }
+        buf = buf.slice(start + 7) // consume '<think>'
+        inThink = true
+      } else {
+        const end = buf.indexOf('</think>')
+        if (end === -1) {
+          // Still inside think block — flush all but last 8 chars
+          const safe = buf.length > 8 ? buf.slice(0, buf.length - 8) : ''
+          if (safe) { thinking += safe; onThink(safe); buf = buf.slice(safe.length) }
+          break
+        }
+        const chunk = buf.slice(0, end)
+        if (chunk) { thinking += chunk; onThink(chunk) }
+        buf = buf.slice(end + 8) // consume '</think>'
+        inThink = false
+      }
+    }
+  }
+
+  if (s.localEndpoint) {
+    // Direct Ollama call — deepseek-r1:14b
+    await streamRequest(
+      s.localEndpoint,
+      s.localApiKey ? { Authorization: `Bearer ${s.localApiKey}` } : {},
+      {
+        model:      TASK_MODELS['reasoning'],
+        max_tokens: maxTokens,
+        messages:   [{ role: 'system', content: systemPrompt }, ...messages],
+        stream:     true,
+      },
+      handleToken,
+      false,
+    )
+  } else {
+    // Cloud fallback — Claude via /api/ai (no <think> blocks, onThink unused)
+    await streamRequest(
+      '/api/ai', {},
+      {
+        provider:   'anthropic',
+        model:      'claude-opus-4-5',
+        max_tokens: maxTokens,
+        system:     systemPrompt,
+        messages,
+        stream:     true,
+        task:       'reasoning',
+      },
+      handleToken,
+      true,
+    )
+  }
+
+  // Flush leftover buffer
+  if (buf) {
+    if (inThink) { thinking += buf; onThink(buf) } else { answer += buf; onChunk(buf) }
+  }
+
+  return { thinking, answer }
+}
+
 // ── System prompt builder ─────────────────────────────────────────────────────
-export function buildSystemPrompt(s: Settings): string {
+// liveContext is an optional pre-built block from lib/liveContext.ts.
+// When provided, agents reason from live dashboard data instead of stale memory.
+export function buildSystemPrompt(s: Settings, liveContext = ''): string {
   const name = s.userName || 'Mario'
   const parts: string[] = []
   if (s.userGoals)    parts.push(`Goals: ${s.userGoals}`)
@@ -181,11 +285,12 @@ You have full access to the Nexus Prime project source code through these tools:
 - list_project_files(directory) — explore the project structure
 - read_project_file(path) — read any source file before editing
 - patch_project_file(path, old_string, new_string) — make targeted edits to components, pages, or library files
+- fetch_url('/api/project') — read CLAUDE.md, active tasks, and lessons learned
 
 Project structure:
 - app/ — Next.js routes (one folder per tab: home, command, alpha, signals, ops, intel, cyber, security, skills, iot, vehicle, vault)
 - components/ — UI components grouped by tab
-- lib/ — utilities (agent.ts, ai.ts, helpers.ts, etc.)
+- lib/ — utilities (agent.ts, ai.ts, liveContext.ts, helpers.ts, etc.)
 - store/useStore.ts — all global state (Zustand)
 - public/ — static assets
 
@@ -193,5 +298,11 @@ Rules for editing:
 1. Always read_project_file before patching — never guess at the current content
 2. Use list_project_files to find the right file first
 3. Make small targeted patches — one logical change at a time
-4. After patching, confirm what changed and what the user should see in the browser${profile}`
+4. After patching, confirm what changed and what the user should see in the browser
+
+Reasoning standard — operate like a senior analyst:
+- When answering about markets, lead with the live numbers you can see right now
+- When researching, search → read sources → synthesize with citations (Perplexity style)
+- When coding, read the file first, understand context, then patch surgically
+- Never give generic answers when live data is available — use it${profile}${liveContext}`
 }

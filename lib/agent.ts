@@ -1,3 +1,6 @@
+// ── lib/agent ───────────────────────────────────────────────
+// Agent orchestration and tool execution framework for autonomous tasks.
+
 'use client'
 
 /**
@@ -198,6 +201,52 @@ export const AGENT_TOOLS = [
       required: ['path', 'old_string', 'new_string', 'reason', 'risk'],
     },
   },
+
+  // ── Browser tools (client-side, use the user's actual browser session) ──────
+  {
+    name:        'navigate_to',
+    description: 'Open a URL in the user\'s browser. Use this to navigate to a website, open a search result, or go to any page. The browser will navigate and the user can see it happen. After navigating, call read_current_tab to read the page content.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        url:       { type: 'string', description: 'Full URL to open, e.g. https://example.com' },
+        new_tab:   { type: 'string', description: 'Set to "true" to open in a new tab, "false" to navigate the current tab. Default: "true".' },
+      },
+      required: ['url'],
+    },
+  },
+  {
+    name:        'read_current_tab',
+    description: 'Read the text content of whatever page is currently open in the browser. Returns the page title, URL, and visible text. Use this after navigate_to to read what loaded, or to analyse any page the user currently has open.',
+    input_schema: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name:        'click_element',
+    description: 'Click an element on the current browser page by CSS selector or visible text. Use this to press buttons, follow links, open menus, or interact with any clickable element.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        selector: { type: 'string', description: 'CSS selector (e.g. "button.submit", "#login-btn") OR visible text content (e.g. "Sign in", "Submit")' },
+      },
+      required: ['selector'],
+    },
+  },
+  {
+    name:        'type_text',
+    description: 'Type text into a browser input, textarea, or form field. Use this to fill in search boxes, forms, or any text input on the current page.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        selector: { type: 'string', description: 'CSS selector for the input element, e.g. "input[name=q]" or "#search"' },
+        text:     { type: 'string', description: 'The text to type into the element' },
+      },
+      required: ['selector', 'text'],
+    },
+  },
 ]
 
 // Draft-mode replacement for write_file
@@ -289,6 +338,7 @@ export interface AgentOptions {
   systemPrompt:   string
   messages:       { role: string; content: string }[]
   onStep:         (step: AgentStep) => void
+  onToken?:       (token: string) => void   // optional streaming callback for final answer
   maxIterations?: number
   draftMode?:     boolean
 }
@@ -352,7 +402,75 @@ async function handleRecall(query: string): Promise<string> {
   }
 }
 
+// ── Browser tool helpers (all run in the user's browser window) ──────────────
+
+function browserNavigate(url: string, newTab = true): string {
+  try {
+    if (newTab) {
+      window.open(url, '_blank', 'noopener')
+    } else {
+      window.location.href = url
+    }
+    return `Navigated to: ${url}`
+  } catch (e) {
+    return `Could not navigate: ${e instanceof Error ? e.message : 'unknown error'}`
+  }
+}
+
+function browserReadCurrentTab(): string {
+  try {
+    const title = document.title
+    const url   = window.location.href
+    const text  = (document.body?.innerText ?? '').slice(0, 5000).trim()
+    return `PAGE: ${title}\nURL: ${url}\n\n${text || '(no readable text on this page)'}`
+  } catch (e) {
+    return `Could not read page: ${e instanceof Error ? e.message : 'unknown error'}`
+  }
+}
+
+function browserClick(selector: string): string {
+  try {
+    // Try as CSS selector first, then fall back to visible text match
+    let el = document.querySelector(selector) as HTMLElement | null
+    if (!el) {
+      // Walk all elements looking for matching innerText
+      const all = Array.from(document.querySelectorAll('button, a, [role="button"], input[type="submit"]')) as HTMLElement[]
+      el = all.find(e => e.innerText?.trim().toLowerCase() === selector.toLowerCase()) ?? null
+    }
+    if (!el) return `No element found for "${selector}"`
+    el.click()
+    return `Clicked: ${selector} (${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''})${el.innerText ? ' — "' + el.innerText.slice(0, 60) + '"' : ''}`
+  } catch (e) {
+    return `Click failed: ${e instanceof Error ? e.message : 'unknown error'}`
+  }
+}
+
+function browserType(selector: string, text: string): string {
+  try {
+    const el = document.querySelector(selector) as HTMLInputElement | HTMLTextAreaElement | null
+    if (!el) return `No input found for "${selector}"`
+    el.focus()
+    el.value = text
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+    return `Typed into ${selector}: "${text.slice(0, 80)}${text.length > 80 ? '…' : ''}"`
+  } catch (e) {
+    return `Type failed: ${e instanceof Error ? e.message : 'unknown error'}`
+  }
+}
+
 async function executeTool(name: string, input: Record<string, string>): Promise<string> {
+  // ── Browser tools — run entirely in the user's browser window ──────────────
+  if (typeof window !== 'undefined') {
+    if (name === 'navigate_to') {
+      const newTab = (input.new_tab ?? 'true') !== 'false'
+      return browserNavigate(input.url ?? '', newTab)
+    }
+    if (name === 'read_current_tab') return browserReadCurrentTab()
+    if (name === 'click_element')    return browserClick(input.selector ?? '')
+    if (name === 'type_text')        return browserType(input.selector ?? '', input.text ?? '')
+  }
+
   // Intercept memory tools client-side — IndexedDB, no server round-trip
   if (name === 'remember') return handleRemember(input.note ?? '')
   if (name === 'recall')   return handleRecall(input.query ?? input.note ?? '')
@@ -387,6 +505,75 @@ async function executeTool(name: string, input: Record<string, string>): Promise
     const isTimeout = e instanceof Error && e.name === 'TimeoutError'
     return isTimeout ? `Tool "${name}" timed out after ${TOOL_TIMEOUT_MS / 1000}s.` : `Tool "${name}" failed.`
   }
+}
+
+// ── Stream the final answer from /api/ai ─────────────────────────────────────
+// Used in the Claude path when the model's last turn has no tool_use blocks.
+// Calls /api/ai with stream:true and fires onToken for each text delta.
+// Returns the full accumulated text.
+
+async function streamFinalAnswer(
+  payload:  object,
+  onToken:  (token: string) => void,
+  signal?:  AbortSignal,
+): Promise<string> {
+  let res: Response
+  try {
+    res = await apiFetch('/api/ai', {
+      method: 'POST',
+      body:   JSON.stringify({ ...payload, stream: true }),
+      signal: signal ?? AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
+    })
+  } catch {
+    // Fall back to non-streaming if the call fails
+    const fallback = await apiFetch('/api/ai', {
+      method: 'POST',
+      body:   JSON.stringify(payload),
+      signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
+    })
+    if (!fallback.ok) return ''
+    const d = await fallback.json()
+    const txt = (d.content as { type: string; text?: string }[])
+      ?.filter(b => b.type === 'text').map(b => b.text ?? '').join('') ?? ''
+    onToken(txt)
+    return txt
+  }
+
+  if (!res.ok || !res.body) {
+    // Parse error body if possible
+    try {
+      const d = await res.json()
+      return d?.error?.message ?? ''
+    } catch { return '' }
+  }
+
+  const reader  = res.body.getReader()
+  const decoder = new TextDecoder()
+  let full = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    const chunk = decoder.decode(value, { stream: true })
+    for (const line of chunk.split('\n')) {
+      const trimmed = line.trim()
+      if (!trimmed.startsWith('data:')) continue
+      const data = trimmed.slice(5).trim()
+      if (data === '[DONE]') continue
+      try {
+        const json = JSON.parse(data)
+        // Anthropic SSE: { type: 'content_block_delta', delta: { text } }
+        // OpenAI SSE:    { choices: [{ delta: { content } }] }
+        const token =
+          json.delta?.text ??
+          json.choices?.[0]?.delta?.content ??
+          ''
+        if (token) { full += token; onToken(token) }
+      } catch { /* skip malformed lines */ }
+    }
+  }
+
+  return full
 }
 
 // ── OpenAI-format tools (for Ollama) ─────────────────────────────────────────
@@ -516,7 +703,7 @@ Example: ["User is analyzing BTC/USD 4h chart", "User prefers RSI(14) over MACD 
 async function runOllamaAgent(opts: AgentOptions): Promise<string> {
   const { settings: s, systemPrompt, messages, onStep, maxIterations = 6, draftMode = false } = opts
   const endpoint = s.localEndpoint || 'http://localhost:11434/v1/chat/completions'
-  const model    = s.localModel    || 'qwen2.5:14b'
+  const model    = s.localModel    || 'qwen3:8b'
 
   // In draft mode, swap write_file out for draft_file
   const tools = draftMode
@@ -643,7 +830,8 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
 
 // ── Main agent loop ───────────────────────────────────────────────────────────
 export async function runAgent(opts: AgentOptions): Promise<string> {
-  const { settings, systemPrompt, messages, onStep, maxIterations = 8 } = opts
+  const { settings, systemPrompt, messages, onStep, maxIterations = 8, onToken } = opts
+  void onToken // referenced via opts.onToken in loop body
   const s = settings ?? getSettings()
 
   // ── Phase: interpreting ───────────────────────────────────────────────────
@@ -672,16 +860,35 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
 
   const enrichedOpts = { ...opts, systemPrompt: enrichedPrompt }
 
+  const finalizeRunState = (ok: boolean) => {
+    if (typeof window === 'undefined') return
+    const store = useStore.getState()
+    if (ok) {
+      store.setCurrentPhase('done')
+      store.taskPlan.forEach((t) => {
+        if (t.status !== 'failed') store.updateTaskItem(t.id, 'done')
+      })
+      return
+    }
+    // Mark active/pending steps as failed so stale partial plans don't linger.
+    store.taskPlan.forEach((t) => {
+      if (t.status === 'pending' || t.status === 'running') store.updateTaskItem(t.id, 'failed')
+    })
+    store.setCurrentPhase('done')
+  }
+
   // No API key in settings AND not anthropic provider → Ollama in regular mode
   // Note: the actual key now lives server-side. If aiProvider is 'anthropic' we
   // try /api/ai regardless — the server will return a clear error if key is missing.
   if (s.aiProvider !== 'anthropic' && !s.apiKey) {
     try {
       const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: false })
+      finalizeRunState(Boolean(answer))
       void autoLearn(userMessage, answer, s)
       return answer
     } catch {
       const err = 'Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.'
+      finalizeRunState(false)
       onStep({ type: 'answer', content: err })
       return err
     }
@@ -691,10 +898,12 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
   if (storeAiMode === 'local') {
     try {
       const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: true })
+      finalizeRunState(Boolean(answer))
       void autoLearn(userMessage, answer, s)
       return answer
     } catch {
       const err = 'Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.'
+      finalizeRunState(false)
       onStep({ type: 'answer', content: err })
       return err
     }
@@ -731,8 +940,13 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
         : 'Network error reaching Claude API.'
       // On timeout, try Ollama as fallback
       if (isTimeout) {
-        try { return await runOllamaAgent({ ...enrichedOpts, draftMode: false }) } catch { /* ignore */ }
+        try {
+          const fallback = await runOllamaAgent({ ...enrichedOpts, draftMode: false })
+          finalizeRunState(Boolean(fallback))
+          return fallback
+        } catch { /* ignore */ }
       }
+      finalizeRunState(false)
       onStep({ type: 'answer', content: finalAnswer })
       break
     }
@@ -748,10 +962,12 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
       useStore.getState().setAIMode('local')
       try {
         const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: true })
+        finalizeRunState(Boolean(answer))
         void autoLearn(userMessage, answer, s)
         return answer
       } catch {
         const err = 'Claude rate limited and Ollama is not reachable. Try again later.'
+        finalizeRunState(false)
         onStep({ type: 'answer', content: err })
         return err
       }
@@ -759,6 +975,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
 
     if (!res.ok) {
       finalAnswer = data?.error?.message ?? 'Claude API error.'
+      finalizeRunState(false)
       break
     }
 
@@ -776,7 +993,21 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
 
     if (stopReason === 'end_turn' || !content.find((b) => b.type === 'tool_use')) {
       finalAnswer = textBlocks
-      onStep({ type: 'answer', content: textBlocks })
+
+      // ── Streaming delivery: push tokens progressively if caller wants it ────
+      // Splits the final text into ~4-char chunks and calls onToken with a small
+      // delay between each, giving a live-typing appearance without a second API call.
+      if (opts.onToken && textBlocks.length > 0) {
+        if (typeof window !== 'undefined') useStore.getState().setCurrentPhase('responding')
+        onStep({ type: 'phase', content: 'responding', phase: 'responding' })
+        const CHUNK = 4
+        for (let i = 0; i < textBlocks.length; i += CHUNK) {
+          opts.onToken(textBlocks.slice(i, i + CHUNK))
+          await new Promise(r => setTimeout(r, 8))
+        }
+      } else {
+        onStep({ type: 'answer', content: textBlocks })
+      }
       break
     }
 
@@ -816,14 +1047,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
 
   // Final phase transition + mark task plan complete
   if (finalAnswer) {
-    if (typeof window !== 'undefined') {
-      const store = useStore.getState()
-      store.setCurrentPhase('done')
-      // Mark all remaining plan items done
-      store.taskPlan.forEach(t => {
-        if (t.status !== 'failed') store.updateTaskItem(t.id, 'done')
-      })
-    }
+    finalizeRunState(true)
     onStep({ type: 'phase', content: 'done', phase: 'done' })
   }
 

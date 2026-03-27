@@ -1,3 +1,6 @@
+// ── api/ai ──────────────────────────────────────────────────
+// Multi-provider AI proxy: Ollama fallback chain, task-based model routing, hard token caps.
+
 import { NextRequest, NextResponse } from 'next/server'
 
 /**
@@ -7,11 +10,11 @@ import { NextRequest, NextResponse } from 'next/server'
  * Research chain: Anthropic → OpenRouter → Groq → Ollama → OpenAI
  *
  * Task routing maps task hints to the optimal local Ollama model:
- *   chat      → qwen2.5:14b          (fast, general purpose)
+ *   chat      → qwen3:8b             (fast, general purpose)
  *   code      → qwen2.5-coder:14b    (code-optimized)
- *   vision    → llama3.2-vision:11b  (multimodal)
+ *   vision    → gemma3:12b           (multimodal)
  *   reasoning → deepseek-r1:14b      (deep reasoning)
- *   fast      → qwen2.5:7b           (lowest latency)
+ *   fast      → qwen3:8b             (lowest latency)
  *   research  → cloud-first chain    (claude opus for depth)
  *   embed     → nomic-embed-text     (embeddings)
  *
@@ -33,11 +36,11 @@ const MAX_TOKENS_PER_REQUEST = Math.min(
 
 // ── Task → local Ollama model map ─────────────────────────────────────────────
 const TASK_MODELS: Record<string, string> = {
-  chat:      'qwen2.5:14b',
+  chat:      'qwen3:8b',
   code:      'qwen2.5-coder:14b',
-  vision:    'llama3.2-vision:11b',
+  vision:    'gemma3:12b',
   reasoning: 'deepseek-r1:14b',
-  fast:      'qwen2.5:7b',
+  fast:      'qwen3:8b',
   embed:     'nomic-embed-text',
   // default (no task hint) handled by TASK_MODELS['chat']
 }
@@ -58,7 +61,7 @@ const PROVIDERS: Record<string, Provider> = {
     url:    process.env.OLLAMA_ENDPOINT ?? 'http://localhost:11434/v1/chat/completions',
     key:    () => process.env.OLLAMA_API_KEY ?? 'ollama',
     format: 'openai',
-    model:  'qwen2.5:14b',
+    model:  'qwen3:8b',
     headers: (key) => ({
       'Content-Type':  'application/json',
       'Authorization': `Bearer ${key}`,

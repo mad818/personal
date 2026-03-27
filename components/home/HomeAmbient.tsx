@@ -1,3 +1,6 @@
+// ── components/home/HomeAmbient ────────────────────────────
+// Home page background: ambient charts and real-time data flows.
+
 'use client'
 
 import { useStore } from '@/store/useStore'

@@ -1,3 +1,6 @@
+// ── middleware ──────────────────────────────────────────────
+// Next.js middleware: authentication, redirects, request logging.
+
 import { NextRequest, NextResponse } from 'next/server'
 
 /**

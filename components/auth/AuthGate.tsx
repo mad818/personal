@@ -1,3 +1,6 @@
+// ── components/auth/AuthGate ───────────────────────────────
+// Authentication wrapper: redirects to /login if not authenticated.
+
 'use client'
 
 /**

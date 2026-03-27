@@ -36,6 +36,32 @@
   --gold:     #d4956a;
   --burgundy: #6b1d2a;
   --blush:    #e8a0aa;
+
+  /* spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+
+  /* radius scale */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  /* type scale */
+  --fs-xs: 10px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+  --fs-lg: 16px;
+  --lh-tight: 1.35;
+  --lh-base: 1.5;
+
+  /* elevation scale */
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --elev-2: 0 4px 14px rgba(0, 0, 0, 0.28);
+  --ring-subtle: 0 0 0 1px rgba(212,149,106,.18);
 }
 
 /* ── Openclaw animations ─────────────────────────────────────────────────────── */
@@ -52,14 +78,28 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--fs-md);
+  line-height: var(--lh-base);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   /* warm vignette glow */
   background-image:
     radial-gradient(ellipse 80% 50% at 50% -20%, rgba(196,72,90,.08) 0%, transparent 60%),
     radial-gradient(ellipse 60% 40% at 80% 100%, rgba(212,149,106,.04) 0%, transparent 50%);
+}
+
+/* compact card utility for dense dashboard modules */
+.ui-card-compact {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  box-shadow: var(--elev-1);
+}
+
+.ui-title-center {
+  text-align: center;
+  letter-spacing: 0.04em;
 }
 
 /* ── Links ──────────────────────────────────────────────────────────────────── */

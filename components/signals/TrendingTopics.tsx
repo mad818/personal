@@ -1,3 +1,6 @@
+// ── components/signals/TrendingTopics ──────────────────────
+// Live trending topics and keywords from news aggregation with frequency rank.
+
 'use client'
 
 import { useMemo } from 'react'

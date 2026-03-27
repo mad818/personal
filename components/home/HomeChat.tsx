@@ -1,9 +1,14 @@
+// ── components/home/HomeChat ───────────────────────────────
+// Home page chat interface: real-time conversation with AI assistant.
+
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { useStore } from '@/store/useStore'
 import { buildSystemPrompt } from '@/lib/ai'
 import { runAgent, type AgentStep } from '@/lib/agent'
+import { detectRouteFromPrompt, detectRouteFromTool } from '@/lib/chatCapabilityRouting'
 import HomeAmbient from './HomeAmbient'
 
 const QUICK_CHIPS = [
@@ -259,9 +264,12 @@ function ToolCallBadge({ step }: { step: AgentStep }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function HomeChat() {
+  const router         = useRouter()
+  const pathname       = usePathname()
   const settings       = useStore((s) => s.settings)
   const chatHistory    = useStore((s) => s.chatHistory)
   const addMsg         = useStore((s) => s.addChatMessage)
+  const setTab         = useStore((s) => s.setTab)
   const aiMode         = useStore((s) => s.aiMode)
   const setAIMode      = useStore((s) => s.setAIMode)
   const pendingDrafts  = useStore((s) => s.pendingDrafts)
@@ -272,6 +280,7 @@ export default function HomeChat() {
   const [loading,   setLoading]   = useState(false)
   const msgsRef  = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const lastRoutedRef = useRef<string>('')
 
   const hour  = new Date().getHours()
   const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
@@ -286,6 +295,13 @@ export default function HomeChat() {
 
   const send = useCallback(async (text: string) => {
     if (!text.trim() || loading) return
+    const routeFromPrompt = detectRouteFromPrompt(text)
+    if (routeFromPrompt && routeFromPrompt !== pathname && lastRoutedRef.current !== routeFromPrompt) {
+      lastRoutedRef.current = routeFromPrompt
+      setTab(routeFromPrompt.slice(1) || 'home')
+      router.push(routeFromPrompt)
+    }
+
     setInput('')
     setLiveSteps([])
 
@@ -308,6 +324,14 @@ export default function HomeChat() {
         messages:     history,
         onStep: (step) => {
           steps.push(step)
+          if (step.type === 'tool_call') {
+            const routeFromTool = detectRouteFromTool(step.tool)
+            if (routeFromTool && routeFromTool !== pathname && lastRoutedRef.current !== routeFromTool) {
+              lastRoutedRef.current = routeFromTool
+              setTab(routeFromTool.slice(1) || 'home')
+              router.push(routeFromTool)
+            }
+          }
           setLiveSteps([...steps])
           setMessages((m) => {
             const updated = [...m]
@@ -350,7 +374,7 @@ export default function HomeChat() {
       setLoading(false)
       setLiveSteps([])
     }
-  }, [loading, settings, chatHistory, addMsg])
+  }, [loading, settings, chatHistory, addMsg, pathname, router, setTab])
 
   return (
     <div style={{
@@ -411,6 +435,7 @@ export default function HomeChat() {
               border: '2px solid rgba(196,72,90,0.3)',
               boxShadow: '0 0 30px rgba(196,72,90,.15)',
             }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/theme/sadie-armani.jpg" alt="" style={{
                 width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%',
               }} />

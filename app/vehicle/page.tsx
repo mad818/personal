@@ -1,6 +1,7 @@
-'use client'
+// ── vehicle/page ────────────────────────────────────────────
+// Vehicle tab: autonomous vehicle telemetry, sensor fusion, radar, camera arrays.
 
-// app/vehicle/page.tsx — NEXUS PRIME Autonomous Vehicle Command tab
+'use client'
 // Multi-spectrum sensor fusion, navigation, and autonomous operations
 
 import CameraArray        from '@/components/vehicle/CameraArray'

@@ -1,3 +1,6 @@
+// ── components/security/AlertTimeline ──────────────────────
+// Security alert timeline with severity levels and response actions.
+
 'use client'
 
 import { useMemo } from 'react'

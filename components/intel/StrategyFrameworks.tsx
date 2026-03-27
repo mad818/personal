@@ -57,10 +57,6 @@ export default function StrategyFrameworks() {
   const [jtbdGain,  setJtbdGain]  = useState('')
   // ── AI analysis ──────────────────────────────────────────────────────────
   const analyse = useCallback(async () => {
-    if (!settings.apiKey) {
-      setAiOut('Add your API key in Settings to get AI analysis.')
-      return
-    }
     setLoading(true)
     setAiOut('')
 
@@ -84,11 +80,11 @@ export default function StrategyFrameworks() {
       const result = await callAI(prompt, 350)
       setAiOut(result)
     } catch {
-      setAiOut('Could not get AI analysis. Check your API key in Settings.')
+      setAiOut('Could not get AI analysis. Check your AI provider settings in Settings (Anthropic or local model).')
     } finally {
       setLoading(false)
     }
-  }, [active, settings.apiKey, company, porterScores, vrioChecks, vrioResource, bcgItems, jtbdJob, jtbdPain, jtbdGain])
+  }, [active, company, porterScores, vrioChecks, vrioResource, bcgItems, jtbdJob, jtbdPain, jtbdGain])
 
   // ── Render helpers ────────────────────────────────────────────────────────
   const inputStyle: React.CSSProperties = {

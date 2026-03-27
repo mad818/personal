@@ -1,6 +1,6 @@
+// ── lib/plugins ─────────────────────────────────────────────
+// Plugin loading and execution system for extensible functionality.
 /**
- * lib/plugins.ts
- * ─────────────────────────────────────────────────────────────────────────────
  * NEXUS PRIME extensible plugin architecture.
  * Provides the NexusPlugin interface, PluginManager class, and Zustand slice
  * integration for storing/retrieving plugin state across sessions.

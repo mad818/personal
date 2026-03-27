@@ -1,3 +1,6 @@
+// ── components/vault/VaultFolders ──────────────────────────
+// Folder hierarchy UI for organizing bookmarked articles and collections.
+
 'use client'
 
 import { motion } from 'framer-motion'

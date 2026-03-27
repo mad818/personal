@@ -1,3 +1,6 @@
+// ── hooks/useCVEs ───────────────────────────────────────────
+// Hook for fetching and caching CVE data with search and filtering.
+
 'use client'
 
 import { useCallback, useState } from 'react'

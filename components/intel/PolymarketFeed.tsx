@@ -1,3 +1,6 @@
+// ── components/intel/PolymarketFeed ────────────────────────
+// Prediction market odds feed with category filtering and probability ranges.
+
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'

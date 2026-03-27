@@ -1,3 +1,6 @@
+// ── components/ops/ConflictDensityBar ──────────────────────
+// Geographic conflict intensity distribution and hotspot visualization.
+
 'use client'
 
 import { useMemo } from 'react'

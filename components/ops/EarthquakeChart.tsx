@@ -1,3 +1,6 @@
+// ── components/ops/EarthquakeChart ─────────────────────────
+// Seismic activity timeline with USGS earthquake data and magnitude heatmap.
+
 'use client'
 
 import { useMemo } from 'react'

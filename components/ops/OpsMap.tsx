@@ -248,8 +248,8 @@ export default function OpsMap() {
         mapRef.current = null
         layerRefs.current = {}
       }
-      if (containerRef.current) {
-        delete (containerRef.current as any)._leaflet_id
+      if (container) {
+        delete (container as any)._leaflet_id
       }
     }
   }, [])

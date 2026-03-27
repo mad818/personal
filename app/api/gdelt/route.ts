@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+// ── api/gdelt ───────────────────────────────────────────────
+// GDELT news API: global event database with real-time news clustering.
 
-// GDELT DOC API v2 — FREE, no key required.
+import { NextRequest, NextResponse } from 'next/server'
 // https://api.gdeltproject.org/api/v2/doc/doc
 //
 // Usage:

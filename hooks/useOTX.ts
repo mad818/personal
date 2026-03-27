@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react'
 import { useStore } from '@/store/useStore'
 import type { OTXPulse } from '@/store/useStore'
+import { apiFetch } from '@/lib/apiFetch'
 
 // ── Raw API shape ─────────────────────────────────────────────────────────────
 interface OTXRawPulse {
@@ -37,45 +38,32 @@ function parseRaw(r: OTXRawPulse): OTXPulse {
 
 export function useOTX() {
   const setOtxPulses = useStore((s) => s.setOtxPulses)
-  const otxKey       = useStore((s) => s.settings.otxKey)
 
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
 
   const fetchOTX = useCallback(async () => {
-    if (!otxKey) return  // nothing to do without a key
-
     setLoading(true)
     setError('')
     try {
-      // Activity feed — pulses recently updated by subscriptions + community
-      const url = 'https://otx.alienvault.com/api/v1/pulses/activity?limit=20'
-      const r   = await fetch(url, {
-        headers: { 'X-OTX-API-KEY': otxKey },
-        signal:  AbortSignal.timeout(12_000),
-      })
-
-      if (r.status === 401) {
-        setError('OTX API key is invalid. Check your key in Settings.')
-        return
-      }
-      if (!r.ok) {
-        setError(`OTX API error: ${r.status}`)
-        return
-      }
-
+      // Read through server route so OTX key stays server-side.
+      const r = await apiFetch('/api/threat-intel', { signal: AbortSignal.timeout(12_000) })
       const d = await r.json()
-      const raw: OTXRawPulse[] = d?.results ?? []
+      const raw: OTXRawPulse[] = d?.otx_pulses ?? []
       const pulses = raw.map(parseRaw)
       // Sort: most recently modified first
       pulses.sort((a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime())
       setOtxPulses(pulses)
+
+      if (!d?.otx_available) {
+        setError('OTX key is not configured on the server.')
+      }
     } catch {
       setError('Could not reach AlienVault OTX.')
     } finally {
       setLoading(false)
     }
-  }, [otxKey, setOtxPulses])
+  }, [setOtxPulses])
 
   return { fetchOTX, loading, error }
 }

@@ -1,3 +1,6 @@
+// ── components/system/ErrorBoundary ────────────────────────
+// React error boundary for graceful error handling across components.
+
 'use client'
 
 /**

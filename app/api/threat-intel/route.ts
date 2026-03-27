@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+// ── api/threat-intel ────────────────────────────────────────
+// Threat intelligence API: OTX, CVE, and CISA KEV feeds aggregated.
 
-// Threat Intelligence aggregator — all free-first.
+import { NextRequest, NextResponse } from 'next/server'
 //
 // Sources:
 //   1. abuse.ch ThreatFox (no key required) — recent IOCs
@@ -96,7 +97,7 @@ async function fetchShodanInternetDB(ip: string): Promise<ShodanInternetDB | nul
 }
 
 async function fetchOTXPulses(): Promise<OTXPulse[]> {
-  const otxKey = process.env.OTX_API_KEY
+  const otxKey = process.env.OTX_KEY ?? process.env.OTX_API_KEY
   if (!otxKey) return []
 
   const r = await fetch(
@@ -131,7 +132,7 @@ export async function GET(req: NextRequest) {
 
     const iocs =
       threatFoxResult.status === 'fulfilled' ? threatFoxResult.value : []
-    const otxError =
+    const threatfoxError =
       threatFoxResult.status === 'rejected'
         ? (threatFoxResult.reason instanceof Error
             ? threatFoxResult.reason.message
@@ -154,11 +155,11 @@ export async function GET(req: NextRequest) {
       ioc_count: iocs.length,
       iocs,
       otx_pulses: pulses,
-      otx_available: Boolean(process.env.OTX_API_KEY),
+      otx_available: Boolean(process.env.OTX_KEY ?? process.env.OTX_API_KEY),
       sources: {
-        threatfox: threatFoxResult.status === 'fulfilled' ? 'ok' : otxError,
+        threatfox: threatFoxResult.status === 'fulfilled' ? 'ok' : threatfoxError,
         otx: otxResult.status === 'fulfilled'
-          ? (process.env.OTX_API_KEY ? 'ok' : 'no_key')
+          ? (process.env.OTX_KEY || process.env.OTX_API_KEY ? 'ok' : 'no_key')
           : 'error',
         shodan: ip
           ? (shodanResult.status === 'fulfilled' ? 'ok' : shodanError)

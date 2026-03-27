@@ -1,3 +1,6 @@
+// ── hooks/useArticles ───────────────────────────────────────
+// Hook for fetching and managing news articles with filtering and pagination.
+
 'use client'
 
 import { useCallback, useState } from 'react'

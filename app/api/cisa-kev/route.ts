@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+// ── api/cisa-kev ────────────────────────────────────────────
+// CISA KEV catalog API: fetch and cache CISA known exploited vulnerabilities.
 
-// Server-side proxy for CISA Known Exploited Vulnerabilities catalog
+import { NextResponse } from 'next/server'
 // Free JSON feed — no key required.
 
 export const dynamic = 'force-dynamic'

@@ -1,6 +1,7 @@
-'use client'
+// ── components/vehicle/CameraArray ─────────────────────────
+// Multi-camera feed display: front, sides, rear with lens distortion correction.
 
-// CameraArray.tsx — Horizontal strip of 6 vehicle camera feeds with visual
+'use client'
 // overlay effects for NV/Thermal/LiDAR, expandable to large view.
 
 import { useState } from 'react'

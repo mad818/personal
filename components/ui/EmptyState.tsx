@@ -1,3 +1,6 @@
+// ── components/ui/EmptyState ───────────────────────────────
+// Placeholder UI component for empty data states with icon and message.
+
 'use client'
 
 import { CSSProperties } from 'react'

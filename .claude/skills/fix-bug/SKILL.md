@@ -1,50 +1,46 @@
-# Skill: Fix a Bug in Nexus
+---
+name: fix-bug
+description: Debug and fix any issue in nexus-final.html or the React/Next.js app. Use for visual artifacts, broken data, failed fetches, TypeScript errors, or any behaviour that doesn't match intent. Read this before touching any code.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+---
 
-Use this skill when debugging any issue in nexus-final.html.
+# Fix Bug — Quick Reference
 
-## Diagnosis steps
+## Current build state
+!`npx tsc --noEmit 2>&1 | head -25 || echo "TypeScript: clean"`
 
-1. **Identify the symptom** — what exactly is wrong? Visual artifact, wrong value, broken interaction, API error?
+## Before touching any code
+1. Confirm the exact symptom — what is wrong vs. what should happen
+2. Locate the element: `grep -n "id\|function\|class" nexus-final.html | head -20`
+3. Read 20–30 lines of context around the match — never edit blind
+4. Make the smallest possible change
 
-2. **Find the element** — use grep to locate the relevant HTML/CSS/JS:
-```bash
-grep -n "element-id\|function-name\|className" nexus-final.html | head -20
-```
+## Surface-specific entry points
 
-3. **Read surrounding context** — always read 20-30 lines around the match before editing. Never edit blind.
+**HTML app bugs:**
+- Visual artifact → check CSS specificity, modernization layer at bottom of `<style>`
+- Wrong value → trace: fetch URL → `S.signals.X` / `S.prices.X` → render function
+- Broken interaction → check element id, null guard, event handler
 
-4. **Check data flow** — for display bugs, trace the data from source to render:
-   - Where is data fetched? (search for the API URL)
-   - Where is it stored? (usually `S.signals.X` or `S.prices.X`)
-   - Where is it rendered? (search for the element id)
+**React app bugs:**
+- TypeScript error → run `npx tsc --noEmit`, read the full error, fix the type
+- Component not rendering → check store selector, null guard, parent import
+- Stale data → check if Zustand selector is reactive (`useStore(s => s.field)` not `useStore().field`)
 
-## Common bug patterns
+## Non-negotiables
+- Read before edit — always
+- One change at a time — verify after each
+- After any edit to `.ts` or `.tsx`: run `npx tsc --noEmit`
+- After the fix: re-read the patched section to confirm it landed
 
-### [object Object] display
-Cause: reading an object as a string in `.textContent`.
-Fix: access the specific field, e.g. `S.signals.fg` → use `.value` and `.label`.
+## Checklist
+- [ ] Symptom confirmed with exact reproduction steps
+- [ ] Root cause identified (not just the symptom)
+- [ ] Minimal fix applied
+- [ ] No regressions in surrounding code
+- [ ] tsc passes (React app)
+- [ ] Lesson added to `tasks/lessons.md`
 
-### Data not showing on tab open
-Cause: async data loads after tab init runs.
-Fix: add `if(S.tab==='tabname') renderFunction();` in the data load callback.
-
-### API returns nothing
-Check: is the key set in settings? Log `S.settings.keyName` to verify.
-Check: CORS — browser may block the request. Use a CORS proxy or find a CORS-friendly endpoint.
-
-### CSS not applying
-Check: specificity — the modernization layer at bottom of `<style>` may need `!important`.
-Check: class name — use grep to confirm the exact class used in HTML vs CSS.
-
-### Feature works on first load but breaks on tab switch
-Cause: init function called before DOM is ready, or element id collision.
-Fix: add a null check `if(!el) return;` before accessing elements.
-
-## Before any edit
-- Confirm exact line number with grep
-- Read 20+ lines of context
-- Make the smallest possible change
-- Verify no duplicate function names after adding new functions:
-```bash
-grep -c "function functionName" nexus-final.html
-```
+## Deep guide
+For common bug patterns, data flow tracing, and known edge cases:
+@.claude/skills/fix-bug/GUIDE.md

@@ -1,3 +1,6 @@
+// ── components/iot/WeatherTimeline ─────────────────────────
+// Weather forecast timeline: temperature, precipitation, wind speed projections.
+
 'use client'
 
 import { useMemo } from 'react'

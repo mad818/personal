@@ -1,6 +1,7 @@
-'use client'
+// ── components/iot/SensorDashboard ─────────────────────────
+// Dashboard grid of live IoT sensor readings and environmental metrics.
 
-// SensorDashboard.tsx — Grid of IoT sensor cards with live-updating demo values,
+'use client'
 // threshold pulse glow animations, sparkline placeholders, and min/max ranges.
 // Also shows a Weather Station card from the Zustand store or /api/weather fallback.
 
@@ -245,19 +246,39 @@ export default function SensorDashboard() {
     }
   }, [storeWeather, localWeather])
 
-  // Simulate sensor value updates
+  // Live MQTT SSE → update sensor values (server is simulated today, but this is real wiring).
   useEffect(() => {
-    const id = setInterval(() => {
-      setSensors((prev) => prev.map((s) => {
-        if (s.unit === 'det' || s.unit === '') {
-          return Math.random() < 0.02 ? { ...s, value: s.value === 0 ? 1 : 0 } : s
-        }
-        const delta = (Math.random() - 0.5) * (s.max - s.min) * 0.01
-        const next  = Math.max(s.min, Math.min(s.max, s.value + delta))
-        return { ...s, value: next }
-      }))
-    }, 1200)
-    return () => clearInterval(id)
+    let es: EventSource | null = null
+    try {
+      es = new EventSource('/api/mqtt?topics=home/sensors')
+    } catch {
+      return
+    }
+
+    es.onmessage = (evt) => {
+      try {
+        const msg = JSON.parse(evt.data)
+        const payload = msg?.payload
+        const type = payload?.type
+        const value = payload?.value
+
+        if (typeof type !== 'string' || typeof value !== 'number') return
+
+        setSensors((prev) => prev.map((s) => {
+          if (type === 'temperature' && s.name === 'Temperature') return { ...s, value }
+          if (type === 'humidity' && s.name === 'Humidity') return { ...s, value }
+          if (type === 'motion' && s.name === 'Motion') return { ...s, value: value >= 0.5 ? 1 : 0 }
+          if (type === 'power' && s.name === 'Air Quality') return { ...s, value } // placeholder mapping
+          return s
+        }))
+      } catch {
+        // ignore malformed SSE payloads
+      }
+    }
+
+    return () => {
+      try { es?.close() } catch { /* ignore */ }
+    }
   }, [])
 
   const formatValue = (s: Sensor) => {

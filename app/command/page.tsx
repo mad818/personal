@@ -1,25 +1,8 @@
-import KPICards   from '@/components/command/KPICards'
-import FocusPanel  from '@/components/command/FocusPanel'
-import AIBriefing  from '@/components/command/AIBriefing'
-import EventRadar  from '@/components/command/EventRadar'
-import { PricesLoader, FearGreedLoader, WorldRiskLoader } from '@/components/ui/DataLoader'
+// ── command/page ────────────────────────────────────────────
+// COMMAND tab landing page: KPI cards, AI briefing, event predictor, deep research.
+
+import { redirect } from 'next/navigation'
 
 export default function CommandPage() {
-  return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '18px 16px 40px' }}>
-      <PricesLoader />
-      <FearGreedLoader />
-      <WorldRiskLoader />
-      <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '-.3px' }}>🏠 DASHBOARD</div>
-        <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px' }}>
-          Live overview — market signals, world risk, alerts, AI briefing
-        </div>
-      </div>
-      <KPICards />
-      <FocusPanel />
-      <AIBriefing />
-      <EventRadar />
-    </div>
-  )
+  redirect('/home')
 }

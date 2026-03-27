@@ -1,3 +1,6 @@
+// ── alpha/page.tsx ──────────────────────────────────────────
+// ALPHA tab landing page: crypto prices, momentum scanner, buy signals, position sizing.
+
 import PriceGrid        from '@/components/alpha/PriceGrid'
 import MomentumScanner  from '@/components/alpha/MomentumScanner'
 import BuyBot           from '@/components/alpha/BuyBot'

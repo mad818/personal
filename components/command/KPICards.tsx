@@ -1,3 +1,6 @@
+// ── components/command/KPICards ────────────────────────────
+// Key performance indicator cards: market sentiment, volatility, fear/greed.
+
 'use client'
 
 import { useMemo } from 'react'

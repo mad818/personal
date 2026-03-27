@@ -1971,6 +1971,185 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
 /* ── Page fade-in on load ── */
 @keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 #tab-home,#tab-superset,#tab-articles,#tab-buys,#tab-world,#tab-strategy,#tab-security,#tab-saved{animation:pageIn .25s ease both}
+
+/* ════════════════════════════════════════════════════════════
+   INTERACTION UPGRADES
+   ════════════════════════════════════════════════════════════ */
+
+/* ── cp- COMMAND PALETTE ─────────────────────────────────── */
+.cp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:9999;display:none;align-items:flex-start;justify-content:center;padding-top:80px}
+.cp-overlay.open{display:flex}
+.cp-box{background:var(--surf2);border:1px solid var(--border2);border-radius:var(--r);width:min(600px,96vw);max-height:62vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 28px 80px rgba(0,0,0,.65)}
+.cp-input-wrap{display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);gap:10px}
+.cp-sigil{color:var(--text3);font-size:15px;flex-shrink:0}
+.cp-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:14px;font-family:inherit}
+.cp-input::placeholder{color:var(--text3)}
+.cp-esc{font-size:10px;color:var(--text3);background:var(--surf3);border:1px solid var(--border);border-radius:4px;padding:2px 6px;white-space:nowrap;flex-shrink:0}
+.cp-list{overflow-y:auto;padding:6px;max-height:calc(62vh - 52px)}
+.cp-section{font-size:10px;color:var(--text3);letter-spacing:.1em;padding:8px 10px 4px;text-transform:uppercase;font-weight:700}
+.cp-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;transition:background var(--t)}
+.cp-item:hover,.cp-item.cp-active{background:var(--surf3)}
+.cp-item-icon{width:26px;text-align:center;font-size:14px;flex-shrink:0}
+.cp-item-label{flex:1;font-size:13px;color:var(--text)}
+.cp-item-sub{font-size:11px;color:var(--text3)}
+.cp-item-kbd{font-size:10px;color:var(--text3);background:var(--surf3);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:'Courier New',monospace}
+
+/* ── cve-sd- CVE CASE FILE SLIDE-OUT ────────────────────── */
+.cve-sd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);z-index:700;display:none}
+.cve-sd-overlay.open{display:block}
+.cve-sd-panel{position:fixed;top:0;right:-500px;width:min(500px,97vw);height:100%;background:var(--surf);border-left:2px solid var(--border2);overflow-y:auto;transition:right .3s cubic-bezier(.4,0,.2,1);z-index:701;display:flex;flex-direction:column}
+.cve-sd-panel.open{right:0}
+.cve-sd-hdr{padding:18px 20px;border-bottom:1px solid var(--border);background:var(--surf2);flex-shrink:0}
+.cve-sd-hdr-row{display:flex;align-items:center;gap:10px}
+.cve-sd-id{font-size:13px;font-family:'Courier New',monospace;color:var(--accent);font-weight:700}
+.cve-sd-sev{font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;letter-spacing:.06em}
+.cve-sd-sev.critical{color:#ef4444;border:1px solid #ef444466;background:rgba(239,68,68,.08)}
+.cve-sd-sev.high{color:#f59e0b;border:1px solid #f59e0b66;background:rgba(245,158,11,.08)}
+.cve-sd-sev.medium{color:#f97316;border:1px solid #f9731666;background:rgba(249,115,22,.08)}
+.cve-sd-sev.low{color:#6b7280;border:1px solid #6b728066;background:rgba(107,114,128,.08)}
+.cve-sd-close{margin-left:auto;background:transparent;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:0 2px;line-height:1}
+.cve-sd-close:hover{color:var(--text)}
+.cve-sd-desc{font-size:12px;color:var(--text2);margin-top:8px;line-height:1.55}
+.cve-sd-body{padding:18px 20px;flex:1}
+.cve-sd-section{margin-bottom:20px}
+.cve-sd-section-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:8px;font-weight:800}
+.cve-sd-prose{font-size:12.5px;color:var(--text2);line-height:1.62;white-space:pre-wrap}
+.cve-sd-thinking{color:var(--text3);font-size:12px;font-style:italic;animation:pulse 1.4s ease-in-out infinite}
+.cve-sd-action-btn{width:100%;padding:11px;background:var(--accent);border:none;border-radius:var(--rs);color:#fff;font-size:12px;font-weight:800;cursor:pointer;margin-top:10px;transition:opacity .15s;letter-spacing:.05em;text-transform:uppercase}
+.cve-sd-action-btn:hover{opacity:.85}
+.cve-card{cursor:pointer;transition:border-color var(--t),transform .12s}
+.cve-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+
+/* ── at- ALERT ENGINE ────────────────────────────────────── */
+.at-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);z-index:800;display:none;align-items:center;justify-content:center}
+.at-overlay.open{display:flex}
+.at-box{background:var(--surf2);border:1px solid var(--border2);border-radius:var(--r);width:min(500px,96vw);max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.65)}
+.at-hdr{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surf3);flex-shrink:0}
+.at-hdr-title{font-size:14px;font-weight:800;color:var(--text);flex:1}
+.at-close{background:transparent;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:0 2px}
+.at-list{padding:12px;overflow-y:auto;flex:1;min-height:60px}
+.at-empty{color:var(--text3);font-size:12px;padding:20px;text-align:center}
+.at-rule{background:var(--surf);border:1px solid var(--border);border-radius:var(--rs);padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.at-rule-icon{font-size:16px;flex-shrink:0}
+.at-rule-label{flex:1;font-size:12px;color:var(--text2)}
+.at-rule-del{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:15px;padding:0 4px;line-height:1}
+.at-rule-del:hover{color:#ef4444}
+.at-add{padding:14px 16px;border-top:1px solid var(--border);flex-shrink:0}
+.at-add-title{font-size:10px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.at-add-row{display:grid;grid-template-columns:1.4fr 1fr auto;gap:8px;align-items:end}
+.at-select,.at-thresh-inp{background:var(--surf3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-size:12px;padding:8px 10px;width:100%;outline:none}
+.at-btn{padding:8px 16px;background:var(--accent);border:none;border-radius:var(--rs);color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+
+/* ── db- DAILY BRIEF ─────────────────────────────────── */
+.db-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(7px);z-index:850;display:none;align-items:center;justify-content:center}
+.db-overlay.open{display:flex}
+.db-box{background:var(--surf2);border:1px solid var(--border2);border-radius:var(--r);width:min(700px,97vw);max-height:86vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 90px rgba(0,0,0,.72)}
+.db-hdr{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--surf3);flex-shrink:0}
+.db-title{font-size:15px;font-weight:900;color:var(--text);flex:1;letter-spacing:.04em;text-transform:uppercase}
+.db-date{font-size:11px;color:var(--text3)}
+.db-close{background:transparent;border:none;color:var(--text3);font-size:18px;cursor:pointer}
+.db-body{padding:22px 26px;overflow-y:auto;flex:1}
+.db-loading{display:flex;flex-direction:column;gap:12px;padding:10px 0}
+.db-loading-item{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--text3)}
+.db-loading-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .3s}
+.db-loading-dot.spin{background:var(--accent);animation:pulse 1.2s ease-in-out infinite}
+.db-loading-dot.done{background:#10b981;animation:none}
+.db-section{margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.db-section:last-child{border-bottom:none}
+.db-section-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.db-section-agent{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:99px;border:1px solid}
+.db-prose{font-size:13px;color:var(--text2);line-height:1.72}
+.db-prose strong{color:var(--text)}
+.db-footer{padding:14px 26px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0}
+.db-save-btn,.db-copy-btn{flex:1;padding:10px;background:var(--surf3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;transition:background var(--t);text-align:center}
+.db-save-btn:hover,.db-copy-btn:hover{background:var(--surf)}
+
+/* ── vc- VAULT CANVAS ─────────────────────────────────── */
+.vc-toggle{display:flex;gap:6px;margin-bottom:12px}
+.vc-mode-btn{padding:5px 16px;background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s}
+.vc-mode-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.vc-canvas-area{position:relative;min-height:420px;background:var(--surf);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background-image:radial-gradient(var(--border) 1px,transparent 1px);background-size:24px 24px}
+.vc-canvas-node{position:absolute;background:var(--surf2);border:1.5px solid var(--border2);border-radius:var(--rs);padding:10px 28px 10px 12px;max-width:210px;cursor:grab;user-select:none;box-shadow:0 4px 14px rgba(0,0,0,.35);transition:border-color .15s}
+.vc-canvas-node:hover{border-color:var(--accent)}
+.vc-canvas-node.dragging{cursor:grabbing;z-index:10;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.vc-node-type{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px;font-weight:700}
+.vc-node-text{font-size:11px;color:var(--text2);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.vc-node-del{position:absolute;top:4px;right:5px;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:13px;line-height:1;padding:2px}
+.vc-node-del:hover{color:#ef4444}
+.vc-canvas-toolbar{display:flex;gap:8px;padding:10px 0}
+.vc-synth-btn{padding:8px 20px;background:var(--accent);border:none;border-radius:var(--rs);color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.vc-synth-btn:hover{opacity:.85}
+.vc-clear-btn{padding:8px 14px;background:transparent;border:1px solid var(--border2);border-radius:var(--rs);color:var(--text2);font-size:12px;cursor:pointer}
+.vc-synth-out{margin-top:12px;padding:14px 16px;background:var(--surf2);border:1px solid var(--border2);border-radius:var(--rs);font-size:12.5px;color:var(--text2);line-height:1.65;display:none}
+.vc-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;pointer-events:none;letter-spacing:.04em;text-align:center;padding:20px}
+
+/* ── pm-spark POLYMARKET SPARKLINE + ROBIN BADGE ────────── */
+.pm-spark-wrap{margin:8px 0 4px}
+.pm-spark-svg{width:100%;height:30px;display:block;overflow:visible}
+.pm-robin-badge{display:flex;align-items:flex-start;gap:6px;margin-top:8px;padding:7px 9px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.22);border-radius:var(--rs)}
+.pm-robin-dot{width:6px;height:6px;background:#10b981;border-radius:50%;margin-top:3px;flex-shrink:0}
+.pm-robin-text{font-size:10.5px;color:#6ee7b7;line-height:1.45}
+.pm-robin-loading{font-size:10.5px;color:var(--text3);font-style:italic;animation:pulse 1.4s ease-in-out infinite}
+
+/* ── px- PRICE TICKER EXPAND ─────────────────────────── */
+.px-expand{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1)}
+.px-expand.open{max-height:180px}
+.px-body{padding:10px 14px 14px;background:var(--surf3);border-top:1px solid var(--border)}
+.px-chart-row{display:flex;align-items:flex-end;gap:2px;height:48px;margin-bottom:8px}
+.px-bar{flex:1;background:var(--accent);border-radius:2px 2px 0 0;min-height:3px;opacity:.7}
+.px-bar.down{background:#ef4444}
+.px-summary{font-size:11.5px;color:var(--text2);line-height:1.55}
+.px-summary-loading{font-size:11px;color:var(--text3);font-style:italic;animation:pulse 1.4s ease-in-out infinite}
+
+/* ── ah- ARTICLE HIGHLIGHT BRIEFING ────────────────────── */
+.ah-popover{position:fixed;background:var(--surf2);border:1.5px solid var(--border2);border-radius:var(--rs);padding:10px 13px;box-shadow:0 10px 35px rgba(0,0,0,.55);z-index:600;display:none;max-width:280px;pointer-events:auto}
+.ah-popover.show{display:block}
+.ah-sel-preview{font-size:10.5px;color:var(--text3);margin-bottom:7px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic}
+.ah-brief-btn{padding:6px 14px;background:var(--accent);border:none;border-radius:var(--rs);color:#fff;font-size:11px;font-weight:700;cursor:pointer;width:100%;transition:opacity .15s}
+.ah-brief-btn:hover{opacity:.85}
+.ah-result{margin-top:8px;font-size:11.5px;color:var(--text2);line-height:1.55;display:none;max-height:150px;overflow-y:auto}
+
+/* ── ms-addall ALPHA ADD-ALL-TO-WATCHLIST ───────────────── */
+.ms-addall-btn{padding:6px 16px;background:transparent;border:1px solid #10b981;border-radius:var(--rs);color:#10b981;font-size:11px;font-weight:700;cursor:pointer;transition:background .15s;letter-spacing:.04em}
+.ms-addall-btn:hover{background:rgba(16,185,129,.12)}
+
+/* ── ci- CHAT INTERACTIVITY ─────────────────────────────── */
+.ci-suggest-bar{display:flex;gap:6px;padding:8px 10px 4px;flex-wrap:wrap;border-top:1px solid var(--border)}
+.ci-suggest-chip{padding:4px 12px;background:var(--surf3);border:1px solid var(--border2);border-radius:99px;font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.ci-suggest-chip:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ci-typing-row{display:flex;align-items:center;gap:6px;padding:4px 14px 8px;font-size:11px;color:var(--text3)}
+.ci-typing-dots{display:inline-flex;gap:3px;align-items:center}
+.ci-typing-dot{width:4px;height:4px;background:var(--text3);border-radius:50%;animation:cidot 1.2s ease-in-out infinite}
+.ci-typing-dot:nth-child(2){animation-delay:.2s}
+.ci-typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes cidot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+/* ── supplemental interactive styles ───────────────────── */
+/* ci-chip (alias for ci-suggest-chip) */
+.ci-chip{padding:4px 12px;background:var(--surf3);border:1px solid var(--border2);border-radius:99px;font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.ci-chip:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* daily brief section headers */
+.db-sec-hdr{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(79,110,247,.2)}
+.db-sec-body{font-size:13px;line-height:1.65;color:var(--text2)}
+/* alert rule extras */
+.at-rule-thresh{font-size:12px;font-weight:700;color:var(--text);margin-left:auto}
+.at-del-btn{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 2px;line-height:1;flex-shrink:0}
+.at-del-btn:hover{color:#ef4444}
+.at-rule-fired{border-color:#ef4444;background:rgba(239,68,68,.05)}
+/* price expand row / stats */
+.px-expand{background:var(--surf3);border-top:1px solid var(--border);padding:10px 14px 12px;margin-bottom:2px}
+.px-row{display:flex;align-items:flex-start;gap:14px}
+.px-stats{display:flex;flex-direction:column;gap:4px;justify-content:center}
+.px-stat{display:flex;justify-content:space-between;gap:12px;font-size:11.5px}
+.px-stat span:first-child{color:var(--text3)}
+.px-stat span:last-child{color:var(--text);font-weight:700}
+.px-ai-out{margin-top:8px;font-size:11.5px;color:var(--text2);line-height:1.55}
+/* ops-popup OPS LAYER POPUPS ─────────────────────────── */
+.ops-popup{min-width:160px;max-width:250px;padding:2px;font-family:inherit}
+.ops-popup-title{font-size:12px;font-weight:700;color:#dde1f0;margin-bottom:5px}
+.ops-popup-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:#6875a0;padding:2px 0}
+.ops-popup-val{color:#dde1f0;font-weight:600}
+.ops-popup-hopper{margin-top:7px;padding:6px 8px;background:rgba(79,110,247,.09);border:1px solid rgba(79,110,247,.22);border-radius:4px;font-size:10.5px;color:#93c5fd;line-height:1.48}
 </style>
 </head>
 <body>
@@ -2244,6 +2423,22 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
 
   <!-- SAVED ARTICLES TAB -->
   <div id="tab-saved" style="display:none">
+    <div class="vc-toggle">
+      <button class="vc-mode-btn active" id="vc-list-btn" onclick="setVaultMode('list')">☰ List</button>
+      <button class="vc-mode-btn" id="vc-canvas-btn" onclick="setVaultMode('canvas')">⬡ Canvas</button>
+    </div>
+    <div id="vc-canvas-wrap" style="display:none">
+      <div class="vc-canvas-toolbar">
+        <button class="vc-synth-btn" onclick="vcSynthesize()">✦ Synthesize with AI</button>
+        <button class="vc-clear-btn" onclick="vcClear()">Clear canvas</button>
+        <span style="font-size:11px;color:var(--text3);margin-left:4px" id="vc-node-count">0 items</span>
+      </div>
+      <div class="vc-canvas-area" id="vc-canvas">
+        <div class="vc-hint" id="vc-hint">Drag saved articles here — or switch to List view and click ⬡ on any item</div>
+      </div>
+      <div class="vc-synth-out" id="vc-synth-out"></div>
+    </div>
+    <div id="vc-list-wrap">
     <div class="saved-hdr">
       <div class="saved-hdr-title">🔖 Saved Articles <span class="saved-count" id="saved-count">0</span></div>
       <div style="display:flex;gap:8px;align-items:center">
@@ -2255,6 +2450,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
       </div>
     </div>
     <div id="saved-out"><div class="saved-empty"><span class="empty-icon">🔖</span>Right-click any article to save it. Saved articles stay here.</div></div>
+    </div><!-- end vc-list-wrap -->
   </div>
 
 
@@ -2306,6 +2502,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
           </select>
         </div>
         <button class="ms-scan-btn" id="ms-scan-btn" onclick="runMomentumScan()">⚡ Scan Now</button>
+        <button class="ms-addall-btn" id="ms-addall-btn" onclick="addAllScanResults()" style="display:none" title="Add all qualifying results to watchlist">📌 Add All to Watchlist</button>
       </div>
     </div>
     <!-- Position Sizing Calculator -->
@@ -2667,6 +2864,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
         <button class="home-send" id="home-send">➤</button>
       </div>
       <div class="home-hint">Connected to your live data · market prices · news · and personal profile</div>
+      <div class="ci-suggest-bar" id="ci-suggest-bar"></div>
     </div>
 
   </div>
@@ -2682,6 +2880,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
     <div class="ss-header-right">
       <span class="ss-updated" id="ss-updated">—</span>
       <button class="ss-refresh-btn" onclick="runSuperset()">Refresh All</button>
+      <button class="ss-refresh-btn" onclick="runDailyBrief()" style="background:transparent;border:1px solid var(--border2);color:var(--text2);margin-left:4px" title="Generate AI morning brief for all agents">📋 Daily Brief</button>
+      <button class="ss-refresh-btn" onclick="openAlertsPanel()" style="background:transparent;border:1px solid var(--border2);color:var(--text2);margin-left:4px" title="Manage smart alerts">🔔 Alerts</button>
+      <button class="ss-refresh-btn" onclick="openCmdPalette()" style="background:transparent;border:1px solid var(--border2);color:var(--text2);margin-left:4px" title="Command palette (Ctrl+K)">⌘ Palette</button>
     </div>
   </div>
 
@@ -3353,6 +3554,101 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
     <button class="rdr-btn rdr-btn-primary" id="rdr-open-btn">↗ Open full article</button>
     <button class="rdr-btn rdr-btn-secondary" id="rdr-ai-btn">✦ Deeper analysis</button>
   </div>
+</div>
+
+<!-- ══ COMMAND PALETTE ══ -->
+<div class="cp-overlay" id="cp-overlay" onclick="if(event.target===this)closeCmdPalette()">
+  <div class="cp-box">
+    <div class="cp-input-wrap">
+      <span class="cp-sigil">⌘</span>
+      <input class="cp-input" id="cp-input" placeholder="Search tabs, agents, commands, articles…" autocomplete="off" spellcheck="false"/>
+      <span class="cp-esc">Esc</span>
+    </div>
+    <div class="cp-list" id="cp-list"></div>
+  </div>
+</div>
+
+<!-- ══ CVE CASE FILE SLIDE-OUT ══ -->
+<div class="cve-sd-overlay" id="cve-sd-overlay" onclick="if(event.target===this)closeCveSlideout()"></div>
+<div class="cve-sd-panel" id="cve-sd-panel">
+  <div class="cve-sd-hdr">
+    <div class="cve-sd-hdr-row">
+      <span class="cve-sd-id" id="cve-sd-id">CVE-0000-0000</span>
+      <span class="cve-sd-sev" id="cve-sd-sev"></span>
+      <button class="cve-sd-close" onclick="closeCveSlideout()">✕</button>
+    </div>
+    <div class="cve-sd-desc" id="cve-sd-desc"></div>
+  </div>
+  <div class="cve-sd-body">
+    <div class="cve-sd-section">
+      <div class="cve-sd-section-title">🎯 Threat Summary</div>
+      <div class="cve-sd-prose" id="cve-sd-threat"><span class="cve-sd-thinking">HOPPER is analyzing…</span></div>
+    </div>
+    <div class="cve-sd-section">
+      <div class="cve-sd-section-title">⚠ Affected Surface</div>
+      <div class="cve-sd-prose" id="cve-sd-surface"><span class="cve-sd-thinking">Identifying affected systems…</span></div>
+    </div>
+    <div class="cve-sd-section">
+      <div class="cve-sd-section-title">✅ Recommended Action</div>
+      <div class="cve-sd-prose" id="cve-sd-action"><span class="cve-sd-thinking">Generating remediation steps…</span></div>
+    </div>
+    <button class="cve-sd-action-btn" onclick="openCveInNVD()">🔗 View in NVD Database</button>
+  </div>
+</div>
+
+<!-- ══ ALERT ENGINE ══ -->
+<div class="at-overlay" id="at-overlay" onclick="if(event.target===this)closeAlertsPanel()">
+  <div class="at-box" onclick="event.stopPropagation()">
+    <div class="at-hdr">
+      <span style="font-size:18px">🔔</span>
+      <span class="at-hdr-title">Smart Alerts</span>
+      <button class="at-close" onclick="closeAlertsPanel()">✕</button>
+    </div>
+    <div class="at-list" id="at-list"></div>
+    <div class="at-add">
+      <div class="at-add-title">Add New Alert</div>
+      <div class="at-add-row">
+        <select class="at-select" id="at-type">
+          <option value="price_up">Price rises by %</option>
+          <option value="price_down">Price drops by %</option>
+          <option value="cve_critical">CVE — Critical drops</option>
+          <option value="cve_high">CVE — High severity</option>
+          <option value="quake">Earthquake ≥ magnitude</option>
+          <option value="fg_fear">Fear &amp; Greed below</option>
+          <option value="fg_greed">Fear &amp; Greed above</option>
+        </select>
+        <input class="at-thresh-inp" id="at-thresh" type="number" placeholder="Threshold…" step="any"/>
+        <button class="at-btn" onclick="addAlertRule()">+ Add</button>
+      </div>
+      <div id="at-ticker-row" style="margin-top:8px;display:none">
+        <input class="at-thresh-inp" id="at-ticker" placeholder="Ticker / coin id (e.g. bitcoin)"/>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DAILY BRIEF ══ -->
+<div class="db-overlay" id="db-overlay" onclick="if(event.target===this)closeDailyBrief()">
+  <div class="db-box" onclick="event.stopPropagation()">
+    <div class="db-hdr">
+      <span style="font-size:20px">📋</span>
+      <span class="db-title">Daily Intelligence Brief</span>
+      <span class="db-date" id="db-date"></span>
+      <button class="db-close" onclick="closeDailyBrief()">✕</button>
+    </div>
+    <div class="db-body" id="db-body"></div>
+    <div class="db-footer" id="db-footer" style="display:none">
+      <button class="db-save-btn" onclick="saveDailyBriefToVault()">🗂 Save to Vault</button>
+      <button class="db-copy-btn" onclick="copyDailyBrief()">📋 Copy Text</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ARTICLE HIGHLIGHT BRIEFING POPOVER ══ -->
+<div class="ah-popover" id="ah-popover">
+  <div class="ah-sel-preview" id="ah-sel-preview"></div>
+  <button class="ah-brief-btn" id="ah-brief-btn" onclick="runAhBrief()">✦ Brief this with AI</button>
+  <div class="ah-result" id="ah-result"></div>
 </div>
 
 <!-- KEYBOARD SHORTCUTS MODAL -->
@@ -4317,8 +4613,8 @@ function renderSecurity(){
   const out=$('cve-out');
   if(!S.cves.length){ out.innerHTML='<div class="empty"><span class="empty-icon">🔒</span>Loading CVE data…</div>'; return; }
   const sevCls=s=>s==='CRITICAL'?'cvss-c':s==='HIGH'?'cvss-h':s==='MEDIUM'?'cvss-m':'cvss-l';
-  out.innerHTML='<div class="cve-grid">'+S.cves.map(c=>`
-    <div class="cve-card">
+  out.innerHTML='<div class="cve-grid">'+S.cves.map((c,i)=>`
+    <div class="cve-card" onclick="openCveSlideout(${i})" title="Open case file for ${esc(c.id)}">
       <div class="cve-hdr">
         <span class="cve-id">${esc(c.id)}</span>
         <span class="cvss ${sevCls(c.sev)}">${c.sev}${c.score>0?' '+c.score.toFixed(1):''}</span>
@@ -7428,6 +7724,9 @@ async function fetchYahooBatchQuote(symbols){
 
 // ─── Render scanner results table ─────────────────────────────────────────────
 function renderScannerResults(results){
+  _lastScanResults=results||[];
+  const addAllBtn=document.getElementById('ms-addall-btn');
+  if(addAllBtn) addAllBtn.style.display=results&&results.length?'inline-block':'none';
   const tbody = document.getElementById('ms-tbody');
   if(!tbody) return;
   if(!results.length){
@@ -8161,7 +8460,7 @@ document.addEventListener('drop',e=>{ e.preventDefault(); $('drop-overlay').clas
 document.addEventListener('keydown',e=>{
   const inInput=document.activeElement===$('search')||document.activeElement===$('chat-input')||document.activeElement?.tagName==='INPUT'||document.activeElement?.tagName==='TEXTAREA';
   if(e.key==='/'&&!inInput){ e.preventDefault(); $('search').focus(); }
-  if((e.ctrlKey||e.metaKey)&&e.key==='k'){ e.preventDefault(); $('chat-drawer').classList.toggle('open'); }
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){ e.preventDefault(); openCmdPalette(); }
   if((e.ctrlKey||e.metaKey)&&e.key==='r'){ e.preventDefault(); $('refresh-btn').click(); }
   if((e.ctrlKey||e.metaKey)&&e.key===','){ e.preventDefault(); openSettings(); }
   if(e.key==='?'&&!inInput){ e.preventDefault(); showKeyboardHelp(); }
@@ -9925,7 +10224,7 @@ function renderSSSignals(){
     const scoreClass=r.score>=68?'high':r.score>=50?'mid':'low';
     const lbl=r.score>=68?'BUY':r.score>=50?'WATCH':'PASS';
     const price=S.prices&&S.prices[id]?'$'+Number(S.prices[id].price).toLocaleString('en',{maximumFractionDigits:2}):'—';
-    return `<div class="ss-sig-row">
+    return `<div class="ss-sig-row" id="ss-sig-${id}" onclick="togglePriceExpand('${id}')" style="cursor:pointer" title="Click to expand">
       <span class="ss-sig-name">${sym}</span>
       <span>${price}</span>
       <span class="ss-sig-score ${scoreClass}">${r.score}</span>
@@ -11989,11 +12288,20 @@ function renderPolymarket() {
         <span class="pm-pct ${cls}">${o.pct}%</span>
       </div>`;
     }).join('');
-    return `<div class="pm-card">
+    const evId=(ev.id||ev.slug||Math.random()).toString();
+    const robinId='pm-robin-'+evId.replace(/[^a-z0-9]/gi,'').slice(0,12);
+    const cardHtml=`<div class="pm-card" id="pmc-${robinId}">
       <div class="pm-card-title">${ev.title||ev.question||'Market'}</div>
       <div class="pm-outcomes">${outcomeHTML}</div>
       ${vol ? `<div class="pm-vol">Volume: ${vol}</div>` : ''}
+      <div class="pm-robin-badge" id="${robinId}">
+        <span class="pm-robin-dot"></span>
+        <span class="pm-robin-text pm-robin-loading">ROBIN is analyzing odds…</span>
+      </div>
     </div>`;
+    // Queue ROBIN badge load after render
+    if(outcomes.length) setTimeout(()=>loadPmRobinBadge(evId,outcomes,document.getElementById(robinId)),200+Math.random()*600);
+    return cardHtml;
   }).join('');
 }
 
@@ -12259,6 +12567,477 @@ Be direct. No filler. Speak like a founder who has done this before.`;
     body.innerHTML='<span style="color:#ef4444">Diagnosis failed — check AI settings.</span>';
   }
 }
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── INTERACTIVE FEATURES SUITE ────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ─── COMMAND PALETTE ──────────────────────────────────────────────────────────
+let _cpIdx=0;
+const CP_CMDS=[
+  {icon:'⚡',label:'Go to COMMAND',       action:()=>switchTab('superset')},
+  {icon:'📡',label:'Go to SIGNALS',       action:()=>switchTab('articles')},
+  {icon:'🎯',label:'Go to ALPHA',         action:()=>switchTab('buys')},
+  {icon:'🌍',label:'Go to OPS',           action:()=>switchTab('world')},
+  {icon:'📊',label:'Go to INTEL',         action:()=>switchTab('strategy')},
+  {icon:'🔒',label:'Go to CYBER',         action:()=>switchTab('security')},
+  {icon:'🗂',label:'Go to VAULT',         action:()=>switchTab('saved')},
+  {icon:'📋',label:'Run Daily Brief',     action:()=>runDailyBrief()},
+  {icon:'🔔',label:'Smart Alerts',        action:()=>openAlertsPanel()},
+  {icon:'⚙', label:'Settings',           action:()=>openSettings()},
+  {icon:'⚡',label:'Momentum Scan',       action:()=>{switchTab('buys');setTimeout(()=>document.getElementById('ms-scan-btn')?.click(),300);}},
+  {icon:'🔄',label:'Refresh All Feeds',   action:()=>document.getElementById('refresh-btn')?.click()},
+  {icon:'💬',label:'Open AI Chat',        action:()=>$('chat-drawer').classList.add('open')},
+  {icon:'❓',label:'Keyboard Shortcuts',  action:()=>showKeyboardHelp()},
+];
+
+function openCmdPalette(){
+  const o=$('cp-overlay'); if(!o) return;
+  o.classList.add('open');
+  _cpIdx=0;
+  renderCpList('');
+  requestAnimationFrame(()=>{ const i=$('cp-input'); if(i){i.value='';i.focus();} });
+}
+function closeCmdPalette(){ $('cp-overlay')?.classList.remove('open'); }
+
+function _cpItems(q){
+  const query=(q||'').toLowerCase();
+  const artCmds=(S.articles||[]).slice(0,8).map(a=>({
+    icon:'📰',label:a.title.slice(0,58),sub:a._sourceName||'',action:()=>openReader(a.id)
+  }));
+  const all=[...CP_CMDS,...artCmds];
+  if(!query) return all;
+  return all.filter(c=>(c.label+' '+(c.sub||'')).toLowerCase().includes(query));
+}
+
+function renderCpList(q){
+  const list=$('cp-list'); if(!list) return;
+  const items=_cpItems(q);
+  if(!items.length){ list.innerHTML='<div class="cp-empty">No commands match "'+esc(q)+'"</div>'; return; }
+  list.innerHTML=items.map((c,i)=>
+    `<div class="cp-item${i===_cpIdx?' active':''}" onmousedown="event.preventDefault();cpExec(${i})" onmouseenter="cpSetIdx(${i})">
+      <span class="cp-item-icon">${c.icon||'›'}</span>
+      <span class="cp-item-label">${esc(c.label)}</span>
+      ${c.sub?`<span class="cp-item-sub">${esc(c.sub)}</span>`:''}
+    </div>`).join('');
+}
+
+function cpSetIdx(i){ _cpIdx=i; renderCpList($('cp-input')?.value||''); }
+function cpExec(i){ const items=_cpItems($('cp-input')?.value||''); closeCmdPalette(); if(items[i]) items[i].action(); }
+
+document.addEventListener('keydown',e=>{
+  if(!$('cp-overlay')?.classList.contains('open')) return;
+  const q=$('cp-input')?.value||'';
+  const items=_cpItems(q);
+  if(e.key==='ArrowDown'){ e.preventDefault(); _cpIdx=Math.min(_cpIdx+1,items.length-1); renderCpList(q); $('cp-list')?.querySelector('.cp-item.active')?.scrollIntoView({block:'nearest'}); }
+  if(e.key==='ArrowUp')  { e.preventDefault(); _cpIdx=Math.max(_cpIdx-1,0);              renderCpList(q); $('cp-list')?.querySelector('.cp-item.active')?.scrollIntoView({block:'nearest'}); }
+  if(e.key==='Enter')    { e.preventDefault(); cpExec(_cpIdx); }
+  if(e.key==='Escape')   { e.preventDefault(); closeCmdPalette(); }
+});
+(()=>{ const inp=$('cp-input'); if(inp) inp.addEventListener('input',e=>{_cpIdx=0;renderCpList(e.target.value);}); })();
+
+// ─── CVE CASE-FILE SLIDE-OUT ──────────────────────────────────────────────────
+let _cveSdCurrent=null;
+
+function openCveSlideout(idx){
+  const cve=S.cves&&S.cves[idx]; if(!cve) return;
+  _cveSdCurrent=cve;
+  const sevCls=cve.sev==='CRITICAL'?'cvss-c':cve.sev==='HIGH'?'cvss-h':cve.sev==='MEDIUM'?'cvss-m':'cvss-l';
+  $('cve-sd-id').textContent=cve.id||'—';
+  $('cve-sd-sev').textContent=cve.sev+(cve.score>0?' '+cve.score.toFixed(1):'');
+  $('cve-sd-sev').className='cve-sd-sev '+sevCls;
+  $('cve-sd-desc').textContent=cve.desc||'No description available.';
+  $('cve-sd-threat').innerHTML ='<span class="cve-sd-thinking">HOPPER is analyzing…</span>';
+  $('cve-sd-surface').innerHTML='<span class="cve-sd-thinking">Identifying affected systems…</span>';
+  $('cve-sd-action').innerHTML ='<span class="cve-sd-thinking">Generating remediation steps…</span>';
+  $('cve-sd-panel').classList.add('open');
+  $('cve-sd-overlay').classList.add('open');
+  loadCveAnalysis(cve);
+}
+function closeCveSlideout(){ $('cve-sd-panel')?.classList.remove('open'); $('cve-sd-overlay')?.classList.remove('open'); }
+function openCveInNVD(){ if(_cveSdCurrent) window.open('https://nvd.nist.gov/vuln/detail/'+encodeURIComponent(_cveSdCurrent.id),'_blank','noopener,noreferrer'); }
+
+async function loadCveAnalysis(cve){
+  if(!aiReady()){
+    const msg='<span style="color:var(--text3)">Add an API key in Settings to enable AI analysis.</span>';
+    $('cve-sd-threat').innerHTML=msg; $('cve-sd-surface').innerHTML=msg; $('cve-sd-action').innerHTML=msg; return;
+  }
+  const prompt=`You are HOPPER, a cybersecurity analyst. Analyze this CVE concisely.
+
+CVE ID: ${cve.id}
+Severity: ${cve.sev} (CVSS: ${cve.score>0?cve.score.toFixed(1):'N/A'})
+Description: ${cve.desc}
+${cve.vector?'Vector: '+cve.vector:''}
+
+Respond with EXACTLY this format:
+---THREAT---
+(2-3 sentences: what this vulnerability does and how it is exploited)
+---SURFACE---
+(1-2 sentences: what systems or users are affected)
+---ACTION---
+(2-3 numbered remediation steps)`;
+  try{
+    const raw=await stratAICall(prompt);
+    const threat =raw.match(/---THREAT---([\s\S]*?)---SURFACE---/)?.[1]?.trim()||'Analysis unavailable.';
+    const surface=raw.match(/---SURFACE---([\s\S]*?)---ACTION---/)?.[1]?.trim()||'See CVE description.';
+    const action =raw.match(/---ACTION---([\s\S]*?)$/)?.[1]?.trim()||'Check vendor advisories.';
+    $('cve-sd-threat').innerHTML =esc(threat).replace(/\n/g,'<br>');
+    $('cve-sd-surface').innerHTML=esc(surface).replace(/\n/g,'<br>');
+    $('cve-sd-action').innerHTML =esc(action).replace(/\n/g,'<br>');
+  }catch(e){
+    const err='<span style="color:#ef4444">Analysis failed. Try again.</span>';
+    $('cve-sd-threat').innerHTML=err; $('cve-sd-surface').innerHTML=err; $('cve-sd-action').innerHTML=err;
+  }
+}
+
+// ─── ALERT ENGINE ─────────────────────────────────────────────────────────────
+let _alertRules=[];
+let _alertPriceBases={};
+function _loadAlertRules(){ try{ _alertRules=JSON.parse(localStorage.getItem('nexus_alerts')||'[]'); }catch(e){ _alertRules=[]; } }
+function _saveAlertRules(){ localStorage.setItem('nexus_alerts',JSON.stringify(_alertRules)); }
+_loadAlertRules();
+
+function openAlertsPanel(){ _renderAlertList(); $('at-overlay').classList.add('open'); }
+function closeAlertsPanel(){ $('at-overlay')?.classList.remove('open'); }
+
+function addAlertRule(){
+  const type=$('at-type')?.value;
+  const thresh=parseFloat($('at-thresh')?.value);
+  const ticker=($('at-ticker')?.value||'').trim().toLowerCase();
+  if(!type||isNaN(thresh)){ showToast('Enter a type and threshold value','warn'); return; }
+  if((type==='price_up'||type==='price_down')&&!ticker){ showToast('Enter a coin id for price alerts','warn'); return; }
+  _alertRules.push({type,thresh,ticker,triggered:false,id:Date.now()});
+  _saveAlertRules();
+  _renderAlertList();
+  if($('at-thresh')) $('at-thresh').value='';
+  if($('at-ticker')) $('at-ticker').value='';
+  showToast('Alert added','');
+}
+
+function deleteAlertRule(id){ _alertRules=_alertRules.filter(r=>r.id!==id); _saveAlertRules(); _renderAlertList(); }
+
+function _renderAlertList(){
+  const list=$('at-list'); if(!list) return;
+  if(!_alertRules.length){ list.innerHTML='<div class="at-empty">No alerts set. Add one below.</div>'; return; }
+  const typeLabel={price_up:'📈 Price up',price_down:'📉 Price down',cve_critical:'🔴 CVE Critical count ≥',cve_high:'🟠 CVE High count ≥',quake:'🌍 Quake M ≥',fg_fear:'😨 Fear &amp; Greed below',fg_greed:'🤑 Fear &amp; Greed above'};
+  list.innerHTML=_alertRules.map(r=>`
+    <div class="at-rule${r.triggered?' at-rule-fired':''}">
+      <span class="at-rule-label">${typeLabel[r.type]||r.type}${r.ticker?' — '+r.ticker.toUpperCase():''}</span>
+      <span class="at-rule-thresh">${r.thresh}${r.type.startsWith('price')?'%':''}</span>
+      <button class="at-del-btn" onclick="deleteAlertRule(${r.id})">✕</button>
+    </div>`).join('');
+}
+
+function checkAlerts(){
+  if(!_alertRules.length) return;
+  _alertRules.forEach(r=>{
+    if(r.triggered) return;
+    try{
+      if(r.type==='price_up'||r.type==='price_down'){
+        const pd=S.prices&&S.prices[r.ticker]; if(!pd) return;
+        const base=_alertPriceBases[r.ticker];
+        if(!base){ _alertPriceBases[r.ticker]=pd.price; return; }
+        const pct=((pd.price-base)/base)*100;
+        if(r.type==='price_up'&&pct>=r.thresh){   r.triggered=true; showToast('🔔 '+r.ticker.toUpperCase()+' up '+pct.toFixed(1)+'% — alert fired',''); }
+        if(r.type==='price_down'&&pct<=-r.thresh){ r.triggered=true; showToast('🔔 '+r.ticker.toUpperCase()+' down '+Math.abs(pct).toFixed(1)+'% — alert fired',''); }
+      }
+      if(r.type==='cve_critical'){ const n=(S.cves||[]).filter(c=>c.sev==='CRITICAL').length; if(n>=r.thresh){ r.triggered=true; showToast('🔴 '+n+' critical CVEs — alert fired',''); } }
+      if(r.type==='cve_high'){     const n=(S.cves||[]).filter(c=>c.sev==='HIGH'||c.sev==='CRITICAL').length; if(n>=r.thresh){ r.triggered=true; showToast('🟠 '+n+' high/critical CVEs — alert fired',''); } }
+      if(r.type==='fg_fear'){  const v=S.signals?.fg?.value; if(v!=null&&v<=r.thresh){ r.triggered=true; showToast('😨 Fear & Greed at '+v+' — fear alert fired',''); } }
+      if(r.type==='fg_greed'){ const v=S.signals?.fg?.value; if(v!=null&&v>=r.thresh){ r.triggered=true; showToast('🤑 Fear & Greed at '+v+' — greed alert fired',''); } }
+      if(r.type==='quake'){
+        const max=(window.SB_DATA?.quakes||[]).reduce((m,q)=>Math.max(m,q.mag||0),0);
+        if(max>=r.thresh){ r.triggered=true; showToast('🌍 Quake M'+max.toFixed(1)+' — alert fired',''); }
+      }
+    }catch(e){}
+  });
+}
+(()=>{ const sel=$('at-type'); if(sel) sel.addEventListener('change',()=>{ const row=$('at-ticker-row'); if(row) row.style.display=(sel.value==='price_up'||sel.value==='price_down')?'block':'none'; }); })();
+setInterval(checkAlerts,60000);
+
+// ─── DAILY BRIEF ──────────────────────────────────────────────────────────────
+let _dbContent='';
+
+async function runDailyBrief(){
+  if(!aiReady()){ showToast('Add an API key in Settings first','warn'); return; }
+  const dateStr=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  $('db-date').textContent=dateStr;
+  $('db-body').innerHTML='<div class="db-loading">✦ Five agents are preparing your brief…</div>';
+  $('db-footer').style.display='none';
+  $('db-overlay').classList.add('open');
+  const fg=S.signals?.fg||{value:'N/A',label:'Unknown'};
+  const btc=S.prices?.bitcoin;
+  const topArts=(S.articles||[]).slice(0,5).map(a=>'• '+a.title).join('\n');
+  const critCves=(S.cves||[]).filter(c=>c.sev==='CRITICAL').slice(0,3).map(c=>c.id+': '+c.desc.slice(0,70)).join('\n')||'None today';
+  const btcStr=btc?'$'+Number(btc.price).toLocaleString()+', '+(btc.chg>=0?'+':'')+btc.chg?.toFixed(2)+'% 24h':'unknown';
+  const sections=[
+    {agent:'JANSKY',icon:'🟦',topic:'Strategic Overview',
+     prompt:`As JANSKY (strategic generalist), write a 2-paragraph morning strategic overview for ${dateStr}. BTC: ${btcStr}. Fear & Greed: ${fg.value} (${fg.label}). Top headlines:\n${topArts}\n\nBe sharp, concise, and actionable. No filler.`},
+    {agent:'ORBIT',icon:'🟣',topic:'Engineering & Tech',
+     prompt:`As ORBIT (engineering analyst), write a morning tech brief for ${dateStr}. Focus on notable tech developments, infrastructure risks, and 1-2 engineering action items. Keep it under 150 words.`},
+    {agent:'NOVA',icon:'🟢',topic:'Market Research',
+     prompt:`As NOVA (research analyst), synthesize today's key intelligence:\n${topArts}\n\nIdentify 2-3 major themes and their implications. 2 paragraphs max.`},
+    {agent:'CIPHER',icon:'🔴',topic:'Cyber Threat Digest',
+     prompt:`As CIPHER (cyber analyst), write a morning threat digest for ${dateStr}. Critical CVEs:\n${critCves}\n\nSummarize the threat landscape, top risks, and one defensive action. 2 paragraphs max.`},
+    {agent:'FLUX',icon:'🟡',topic:'Markets & Macro',
+     prompt:`As FLUX (quant analyst), write a morning markets brief for ${dateStr}. BTC: ${btcStr}. Fear & Greed: ${fg.value} (${fg.label}). Give bull/base/bear outlook and one actionable signal. 2 paragraphs max.`},
+  ];
+  let html='';
+  _dbContent='NEXUS DAILY BRIEF — '+dateStr+'\n'+'='.repeat(50)+'\n\n';
+  for(const sec of sections){
+    $('db-body').innerHTML=html+`<div class="db-section" style="opacity:.5"><div class="db-sec-hdr">${sec.icon} ${sec.agent} — ${sec.topic}</div><div class="db-sec-body" style="color:var(--text3)">✦ Generating…</div></div>`;
+    try{
+      const raw=await callAI(sec.prompt,300);
+      const clean=raw.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+      html+=`<div class="db-section"><div class="db-sec-hdr">${sec.icon} ${sec.agent} — ${sec.topic}</div><div class="db-sec-body">${clean}</div></div>`;
+      _dbContent+=sec.agent.toUpperCase()+' — '+sec.topic+':\n'+raw+'\n\n';
+    }catch(e){
+      html+=`<div class="db-section"><div class="db-sec-hdr">${sec.icon} ${sec.agent} — ${sec.topic}</div><div class="db-sec-body" style="color:#ef4444">Generation failed.</div></div>`;
+    }
+    $('db-body').innerHTML=html;
+  }
+  $('db-footer').style.display='flex';
+}
+function closeDailyBrief(){ $('db-overlay')?.classList.remove('open'); }
+
+function saveDailyBriefToVault(){
+  if(!_dbContent){ showToast('Nothing to save','warn'); return; }
+  const id='db-'+Date.now();
+  S.articles.unshift({id,title:'📋 Daily Brief — '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),desc:_dbContent.slice(0,180)+'…',link:'#',sid:'__daily__',_customName:'Daily Brief',date:Date.now()});
+  S.savedArticles.add(id);
+  saveSavedArticles();
+  showToast('Brief saved to VAULT','');
+  closeDailyBrief();
+  if(S.tab==='saved') renderSavedTab();
+}
+function copyDailyBrief(){
+  if(!_dbContent){ showToast('Nothing to copy','warn'); return; }
+  navigator.clipboard.writeText(_dbContent).then(()=>showToast('Brief copied to clipboard','')).catch(()=>showToast('Copy failed — try selecting text manually','warn'));
+}
+
+// ─── VAULT CANVAS ─────────────────────────────────────────────────────────────
+let _vcNodes=[];
+let _vcDrag={el:null,idx:-1,ox:0,oy:0};
+
+function setVaultMode(mode){
+  const lw=$('vc-list-wrap'), cw=$('vc-canvas-wrap'), lb=$('vc-list-btn'), cb=$('vc-canvas-btn');
+  if(mode==='canvas'){
+    if(lw) lw.style.display='none'; if(cw) cw.style.display='block';
+    if(lb) lb.classList.remove('active'); if(cb) cb.classList.add('active');
+    // Auto-populate canvas from saved articles if empty
+    if(!_vcNodes.length){
+      const savedIds=[...S.savedArticles];
+      S.articles.filter(a=>savedIds.includes(a.id)).slice(0,6).forEach((a,i)=>{
+        _vcNodes.push({title:a.title,desc:a.desc||'',x:20+(i%3)*220,y:20+Math.floor(i/3)*100});
+      });
+    }
+    _vcRenderNodes();
+  } else {
+    if(lw) lw.style.display=''; if(cw) cw.style.display='none';
+    if(lb) lb.classList.add('active'); if(cb) cb.classList.remove('active');
+    renderSavedTab();
+  }
+}
+
+function _vcRenderNodes(){
+  const canvas=$('vc-canvas'); if(!canvas) return;
+  const hint=$('vc-hint'); if(hint) hint.style.display=_vcNodes.length?'none':'block';
+  canvas.querySelectorAll('.vc-canvas-node').forEach(n=>n.remove());
+  _vcNodes.forEach((node,i)=>{
+    const el=document.createElement('div');
+    el.className='vc-canvas-node';
+    el.style.cssText='left:'+node.x+'px;top:'+node.y+'px';
+    el.innerHTML=`<button onclick="vcRemoveNode(${i})" style="position:absolute;top:5px;right:6px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;line-height:1">✕</button>`
+      +`<div style="font-size:11.5px;font-weight:700;color:var(--text);line-height:1.35;padding-right:14px">${esc(node.title.slice(0,55))}</div>`
+      +(node.desc?`<div style="font-size:10.5px;color:var(--text2);margin-top:4px">${esc(node.desc.slice(0,80))}</div>`:'');
+    vcInitDrag(el,i);
+    canvas.appendChild(el);
+  });
+  const cnt=$('vc-node-count'); if(cnt) cnt.textContent=_vcNodes.length+' item'+(_vcNodes.length===1?'':'s');
+}
+
+function vcAddNode(title,desc){ _vcNodes.push({title,desc:desc||'',x:20+(_vcNodes.length%3)*220,y:20+Math.floor(_vcNodes.length/3)*110}); _vcRenderNodes(); }
+function vcRemoveNode(i){ _vcNodes.splice(i,1); _vcRenderNodes(); }
+function vcClear(){ _vcNodes=[]; _vcRenderNodes(); const o=$('vc-synth-out'); if(o) o.innerHTML=''; }
+
+async function vcSynthesize(){
+  const out=$('vc-synth-out'); if(!out) return;
+  if(!_vcNodes.length){ showToast('Add items to canvas first','warn'); return; }
+  if(!aiReady()){ showToast('Add an API key in Settings','warn'); return; }
+  out.innerHTML='<div style="color:var(--text3);font-size:12px;padding:12px 0">✦ Synthesizing '+_vcNodes.length+' items…</div>';
+  const items=_vcNodes.map((n,i)=>(i+1)+'. '+n.title+(n.desc?'\n   Context: '+n.desc.slice(0,120):'')).join('\n');
+  const prompt=`Synthesize these ${_vcNodes.length} intelligence items into a strategic picture:\n\n${items}\n\nProvide:\n1. KEY THEME — The main thread connecting these items (1-2 sentences)\n2. SIGNAL — What this pattern points to (1-2 sentences)\n3. ACTION — One concrete next step (1 sentence)\n\nBe sharp. No filler.`;
+  try{
+    const raw=await callAI(prompt,350);
+    const clean=raw.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+    out.innerHTML=`<div style="background:rgba(79,110,247,.07);border:1.5px solid rgba(79,110,247,.25);border-radius:var(--r);padding:14px 16px;margin-top:12px"><div style="font-size:11px;font-weight:800;color:var(--accent);letter-spacing:.06em;margin-bottom:8px">✦ AI SYNTHESIS</div><div style="font-size:12.5px;line-height:1.65;color:var(--text)">${clean}</div></div>`;
+  }catch(e){ out.innerHTML='<div style="color:#ef4444;font-size:12px;padding:10px 0">Synthesis failed — check your API key.</div>'; }
+}
+
+function vcInitDrag(el,idx){
+  el.addEventListener('mousedown',e=>{
+    if(e.target.tagName==='BUTTON') return;
+    _vcDrag={el,idx,ox:e.clientX-parseInt(el.style.left||0),oy:e.clientY-parseInt(el.style.top||0)};
+    el.classList.add('dragging'); e.preventDefault();
+  });
+}
+document.addEventListener('mousemove',e=>{
+  if(!_vcDrag.el) return;
+  const canvas=$('vc-canvas'); if(!canvas) return;
+  const rect=canvas.getBoundingClientRect();
+  const x=Math.max(0,Math.min(e.clientX-_vcDrag.ox,rect.width-220));
+  const y=Math.max(0,Math.min(e.clientY-_vcDrag.oy,rect.height-80));
+  _vcDrag.el.style.left=x+'px'; _vcDrag.el.style.top=y+'px';
+  if(_vcNodes[_vcDrag.idx]){_vcNodes[_vcDrag.idx].x=x;_vcNodes[_vcDrag.idx].y=y;}
+});
+document.addEventListener('mouseup',()=>{ if(_vcDrag.el) _vcDrag.el.classList.remove('dragging'); _vcDrag={el:null,idx:-1}; });
+
+// ─── PRICE TICKER EXPAND ──────────────────────────────────────────────────────
+let _pxOpen=null;
+
+function togglePriceExpand(coinId){
+  const existing=document.getElementById('px-'+coinId);
+  if(existing){ existing.remove(); _pxOpen=null; return; }
+  if(_pxOpen){ const prev=document.getElementById('px-'+_pxOpen); if(prev) prev.remove(); }
+  _pxOpen=coinId;
+  const sigRow=document.getElementById('ss-sig-'+coinId); if(!sigRow) return;
+  const sparks=S.sparklines&&S.sparklines[coinId];
+  let sparkHtml='';
+  if(sparks&&sparks.length>1){
+    const max=Math.max(...sparks), min=Math.min(...sparks), range=max-min||1;
+    const pts=sparks.map((v,i)=>Math.round((i/(sparks.length-1))*160)+','+Math.round(34-((v-min)/range)*30)).join(' ');
+    sparkHtml=`<svg width="164" height="38" style="display:block"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+  const p=S.prices&&S.prices[coinId];
+  const expand=document.createElement('div');
+  expand.id='px-'+coinId;
+  expand.className='px-expand';
+  expand.innerHTML=`<div class="px-row">`
+    +(sparkHtml||'<span style="color:var(--text3);font-size:11px">No sparkline data yet</span>')
+    +`<div class="px-stats">`
+    +(p?`<div class="px-stat"><span>Price</span><span>${fmtPrice(p.price)}</span></div>`
+       +`<div class="px-stat"><span>24h</span><span style="color:${(p.chg||0)>=0?'var(--fhi)':'var(--flo)'}">${(p.chg||0)>=0?'+':''}${(p.chg||0).toFixed(2)}%</span></div>`
+       +(p.vol?`<div class="px-stat"><span>Vol</span><span>${fmtVol(p.vol)}</span></div>`:'')
+       +(p.mcap?`<div class="px-stat"><span>Cap</span><span>${fmtVol(p.mcap)}</span></div>`:''):'')
+    +`</div></div><div class="px-ai-out" id="px-ai-${coinId}"><span style="color:var(--text3);font-size:11px">✦ Loading AI summary…</span></div>`;
+  sigRow.insertAdjacentElement('afterend',expand);
+  loadPriceExpandSummary(coinId);
+}
+
+async function loadPriceExpandSummary(coinId){
+  const out=document.getElementById('px-ai-'+coinId); if(!out) return;
+  if(!aiReady()){ out.innerHTML='<span style="color:var(--text3);font-size:11px">Add API key for AI summaries.</span>'; return; }
+  const p=S.prices&&S.prices[coinId]; if(!p){ out.textContent='No price data.'; return; }
+  const prompt=`In 1-2 sentences, give a sharp trading-relevant summary for ${coinId.toUpperCase()}: price $${Number(p.price).toLocaleString()}, ${((p.chg||0)>=0?'up':'down')} ${Math.abs(p.chg||0).toFixed(2)}% today. Fear & Greed: ${S.signals?.fg?.value||'?'} (${S.signals?.fg?.label||''}). Direct and concise — no filler.`;
+  try{
+    const raw=await callAI(prompt,130);
+    out.innerHTML='<span style="font-size:11.5px;color:var(--text2)">'+esc(raw.trim())+'</span>';
+  }catch(e){ out.innerHTML='<span style="color:#ef4444;font-size:11px">Summary failed.</span>'; }
+}
+
+// ─── ARTICLE HIGHLIGHT BRIEFING ───────────────────────────────────────────────
+let _ahSelection='';
+
+document.addEventListener('mouseup',e=>{
+  const popover=$('ah-popover'); if(!popover) return;
+  const sel=window.getSelection();
+  const text=sel?sel.toString().trim():'';
+  if(!text||text.length<20||text.length>800){
+    if(!popover.contains(e.target)) popover.classList.remove('show');
+    return;
+  }
+  const articlesArea=$('tab-articles');
+  if(!articlesArea||!articlesArea.contains(e.target)) return;
+  _ahSelection=text;
+  const prev=$('ah-sel-preview'); if(prev) prev.textContent='"'+text.slice(0,100)+(text.length>100?'…':'')+'"';
+  const result=$('ah-result'); if(result){result.innerHTML='';result.style.display='none';}
+  const btn=$('ah-brief-btn'); if(btn){btn.textContent='✦ Brief this with AI';btn.disabled=false;}
+  const range=sel.rangeCount?sel.getRangeAt(0):null; if(!range) return;
+  const rect=range.getBoundingClientRect();
+  popover.style.left=Math.min(rect.left,window.innerWidth-295)+'px';
+  popover.style.top=(rect.bottom+8+window.scrollY)+'px';
+  popover.classList.add('show');
+});
+
+async function runAhBrief(){
+  const result=$('ah-result'), btn=$('ah-brief-btn');
+  if(!_ahSelection||!result||!btn) return;
+  if(!aiReady()){ showToast('Add an API key in Settings','warn'); return; }
+  btn.textContent='✦ Analyzing…'; btn.disabled=true;
+  result.style.display='block';
+  result.innerHTML='<span style="color:var(--text3)">✦ Generating briefing…</span>';
+  const prompt=`Analyze this excerpt as a geopolitical/financial intelligence analyst. In 2-3 sentences, give the key takeaway, what it signals, and why it matters. Be sharp.\n\n"${_ahSelection}"`;
+  try{
+    const raw=await callAI(prompt,200);
+    result.innerHTML='<span style="font-size:12px;color:var(--text);line-height:1.6">'+esc(raw.trim()).replace(/\n/g,'<br>')+'</span>';
+  }catch(e){ result.innerHTML='<span style="color:#ef4444;font-size:11px">Analysis failed.</span>'; }
+  btn.textContent='✦ Brief this with AI'; btn.disabled=false;
+}
+
+// ─── CHAT SUGGEST BAR ─────────────────────────────────────────────────────────
+const CI_SUGGESTS={
+  superset:["What should I focus on today?","Summarize today's market signals","What's my biggest risk right now?"],
+  articles:["What are today's biggest stories?","Find geopolitical risks in the news","Summarize this week in markets"],
+  buys:    ["What's showing the strongest momentum?","Find me a BTC trade setup","Explain RSI for crypto"],
+  world:   ["What regions are highest risk?","Any active conflict escalations?","Analyze GPS jamming patterns"],
+  strategy:["Give me a macro outlook for this month","What does Fear & Greed mean for my portfolio?","Analyze top prediction market odds"],
+  security:["What's the most critical CVE today?","Explain this vulnerability to me","How do I protect against ransomware?"],
+  saved:   ["Synthesize my saved articles","Find patterns in what I've saved","What themes keep appearing?"],
+};
+function updateCiSuggestBar(){
+  const bar=$('ci-suggest-bar'); if(!bar) return;
+  const tab=S.tab||'superset';
+  const suggestions=CI_SUGGESTS[tab]||CI_SUGGESTS.superset;
+  bar.innerHTML=suggestions.map(s=>`<button class="ci-chip" onmousedown="event.preventDefault();ciChipClick(this.dataset.text)" data-text="${esc(s)}">${esc(s)}</button>`).join('');
+}
+function ciChipClick(text){
+  const input=$('chat-input'), drawer=$('chat-drawer');
+  if(drawer) drawer.classList.add('open');
+  if(input){ input.value=text; input.dispatchEvent(new Event('input')); input.focus(); }
+}
+(()=>{
+  document.querySelectorAll('.nav-pill').forEach(btn=>btn.addEventListener('click',()=>setTimeout(updateCiSuggestBar,60)));
+  setTimeout(updateCiSuggestBar,600);
+})();
+
+// ─── ALPHA ADD-ALL TO WATCHLIST ───────────────────────────────────────────────
+let _lastScanResults=[];
+function addAllScanResults(){
+  if(!_lastScanResults.length){ showToast('Run a scan first','warn'); return; }
+  let added=0;
+  _lastScanResults.forEach(r=>{
+    const assetId=r.assetType==='crypto'?(r.sym||'').toLowerCase():r.sym;
+    if(!_botAssets.find(a=>a.id===assetId||a.sym===r.sym)){
+      _botAssets.push({id:assetId,sym:r.sym,name:r.name||r.sym,type:r.assetType||'stock',addedAt:Date.now()});
+      added++;
+    }
+  });
+  if(added) saveBotAssets();
+  showToast(added?'Added '+added+' assets to watchlist':'All assets already in watchlist','');
+}
+
+// ─── POLYMARKET ROBIN BADGE ────────────────────────────────────────────────────
+async function loadPmRobinBadge(evId, outcomes, containerEl){
+  if(!aiReady()||!containerEl) return;
+  const badge=containerEl.querySelector('.pm-robin-text'); if(!badge) return;
+  const outcomeStr=outcomes.slice(0,3).map(o=>o.name+': '+o.pct+'%').join(', ');
+  const prompt=`You are ROBIN, a prediction market analyst. In 1 short sentence, give your edge: do you see any mispricing in these odds? Markets: ${outcomeStr}. Be specific — if odds look fair say so. No filler.`;
+  try{
+    const raw=await callAI(prompt,100);
+    badge.textContent=raw.trim().slice(0,160);
+  }catch(e){ badge.textContent='Analysis unavailable.'; }
+}
+
+// ─── ESCAPE HANDLER — close all overlays on Esc ───────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  closeCveSlideout();
+  closeAlertsPanel();
+  closeDailyBrief();
+  closeCmdPalette();
+  $('ah-popover')?.classList.remove('show');
+});
 
 </script>
 </body>

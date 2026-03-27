@@ -1,3 +1,6 @@
+// ── components/security/PerimeterSweep ─────────────────────
+// Animated perimeter scan visualization with sensor coverage mapping.
+
 'use client'
 
 import { useEffect, useRef, useState } from 'react'

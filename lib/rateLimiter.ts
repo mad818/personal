@@ -1,4 +1,5 @@
-// lib/rateLimiter.ts — server-side, no 'use client'
+// ── lib/rateLimiter ─────────────────────────────────────────
+// Rate limiter for API requests with token bucket algorithm.
 
 export interface RateLimitConfig {
   maxTokens: number        // bucket size

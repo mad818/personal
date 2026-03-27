@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+// ── api/metals ──────────────────────────────────────────────
+// Metals prices API: precious metals spot prices (gold, silver, platinum).
 
-// Precious metal spot prices via CoinGecko.
+import { NextResponse } from 'next/server'
 // PAXG (Pax Gold) is backed 1:1 by 1 troy oz of physical gold — price ≈ gold spot.
 // XAUT (Tether Gold) is the same concept but from Tether.
 // For silver we use a separate free endpoint from goldprice.org.

@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+// ── api/polymarket ──────────────────────────────────────────
+// Polymarket API: prediction market odds and event metadata.
 
-// Server-side proxy for Polymarket Gamma API — direct browser fetch hits CORS.
+import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 

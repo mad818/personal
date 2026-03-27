@@ -1,3 +1,6 @@
+// ── components/command/AIBriefing ──────────────────────────
+// AI-generated market briefing and real-time intelligence synthesis.
+
 'use client'
 
 import { useState } from 'react'

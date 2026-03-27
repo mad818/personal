@@ -1,3 +1,6 @@
+// ── components/system/HealthMonitor ────────────────────────
+// Application health status indicator: API availability, cache, resource usage.
+
 'use client'
 
 /**

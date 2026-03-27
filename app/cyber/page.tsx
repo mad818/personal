@@ -1,3 +1,6 @@
+// ── cyber/page ──────────────────────────────────────────────
+// CYBER tab: CVEs, OTX threat intel, CISA advisories, attack vectors.
+
 'use client'
 
 import { useState } from 'react'

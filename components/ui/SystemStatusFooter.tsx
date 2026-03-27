@@ -1,7 +1,11 @@
+// ── components/ui/SystemStatusFooter ───────────────────────
+// Footer bar showing system status: API health, uptime, active data sources.
+
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
 import { useStore } from '@/store/useStore'
+import { OFFICE_OPERATIONAL_PROFILES } from '@/components/home/office/constants'
 
 interface DataSource {
   key:   string
@@ -129,6 +133,8 @@ export default function SystemStatusFooter() {
   const defiData   = useStore((s) => s.defiData)
   const hackerNews = useStore((s) => s.hackerNews)
   const secFilings = useStore((s) => s.secFilings)
+  const officeOperationalMode = useStore((s) => s.settings.officeOperationalMode ?? 'normal')
+  const profile = OFFICE_OPERATIONAL_PROFILES[officeOperationalMode]
 
   const storeSnapshot = {
     prices, articles, cves, otxPulses, gdeltEvents,
@@ -149,7 +155,7 @@ export default function SystemStatusFooter() {
         display:         'flex',
         alignItems:      'center',
         justifyContent:  'space-between',
-        padding:         '0 14px',
+        padding:         '0 var(--space-3)',
         background:      'rgba(10,7,8,0.92)',
         backdropFilter:  'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
@@ -163,7 +169,7 @@ export default function SystemStatusFooter() {
       {/* Left: Branding + clock */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
         <span style={{
-          fontSize: '9px', fontWeight: 800, letterSpacing: '1.5px',
+          fontSize: 'var(--fs-xs)', fontWeight: 800, letterSpacing: '1.5px',
           color: 'rgba(196,72,90,0.8)', textTransform: 'uppercase',
           fontFamily: 'monospace',
         }}>
@@ -171,7 +177,7 @@ export default function SystemStatusFooter() {
         </span>
         <span style={{ color: 'rgba(74,51,56,0.6)', fontSize: '9px' }}>│</span>
         <span style={{
-          fontSize: '10px', fontFamily: 'monospace', fontWeight: 600,
+          fontSize: 'var(--fs-xs)', fontFamily: 'monospace', fontWeight: 600,
           color: 'rgba(212,149,106,0.7)', letterSpacing: '0.5px',
         }}>
           {formatTime(time)}
@@ -248,6 +254,9 @@ export default function SystemStatusFooter() {
 
       {/* Right: Last refresh + manual refresh button */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+        <span style={{ fontSize: '9px', color: 'rgba(212,149,106,0.9)', fontFamily: 'monospace' }} title="Operational behavior profile">
+          Mode: {profile.label}
+        </span>
         <span style={{ fontSize: '9px', color: 'rgba(74,51,56,0.8)', fontFamily: 'monospace' }}>
           Last refresh: {formatLastRefresh(Date.now() - lastRefresh)}
         </span>

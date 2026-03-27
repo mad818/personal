@@ -1,6 +1,6 @@
+// ── lib/eventBus ────────────────────────────────────────────
+// Pub/sub event system for cross-component communication.
 /**
- * lib/eventBus.ts
- * ─────────────────────────────────────────────────────────────────────────────
  * NEXUS PRIME typed pub/sub event bus for system-wide component communication.
  * Provides strongly-typed events, subscribe/unsubscribe/emit primitives, and a
  * React hook for declarative event consumption.

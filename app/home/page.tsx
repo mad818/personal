@@ -1,5 +1,8 @@
-import AgentOffice from '@/components/home/AgentOffice'
-import { PricesLoader, FearGreedLoader, ArticlesLoader } from '@/components/ui/DataLoader'
+// ── home/page ───────────────────────────────────────────────
+// Home page: landing view with ambient charts and navigation.
+
+import OfficeCommandCenter from '@/components/home/office/OfficeCommandCenter'
+import { PricesLoader, FearGreedLoader, ArticlesLoader, CVEsLoader, WorldRiskLoader } from '@/components/ui/DataLoader'
 
 export default function HomePage() {
   return (
@@ -7,7 +10,9 @@ export default function HomePage() {
       <PricesLoader />
       <FearGreedLoader />
       <ArticlesLoader />
-      <AgentOffice />
+      <CVEsLoader />
+      <WorldRiskLoader />
+      <OfficeCommandCenter />
     </>
   )
 }

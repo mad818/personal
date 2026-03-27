@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+// ── api/fx ──────────────────────────────────────────────────
+// Forex rates API: real-time currency exchange rates.
 
-// Server-side proxy for open.er-api.com (free, no key required)
+import { NextResponse } from 'next/server'
 // Returns major USD pairs so the client can derive FX rates.
 
 export const dynamic = 'force-dynamic'

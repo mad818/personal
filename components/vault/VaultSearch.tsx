@@ -1,3 +1,6 @@
+// ── components/vault/VaultSearch ───────────────────────────
+// Full-text search across bookmarked articles with real-time filtering.
+
 'use client'
 
 import { useState, useCallback } from 'react'

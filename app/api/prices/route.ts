@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+// ── api/prices ──────────────────────────────────────────────
+// Crypto prices API: CoinGecko and CEX price data with sparklines.
 
-// Server-side proxy for CoinGecko — avoids browser rate limits and
+import { NextResponse } from 'next/server'
 // lets us attach the API key server-side (never exposed to the browser).
 
 export const dynamic = 'force-dynamic'

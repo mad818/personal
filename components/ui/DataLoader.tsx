@@ -1,3 +1,6 @@
+// ── components/ui/DataLoader ───────────────────────────────
+// Client-side data fetchers: PricesLoader, ArticlesLoader, FearGreedLoader.
+
 'use client'
 
 /**

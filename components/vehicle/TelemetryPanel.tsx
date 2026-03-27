@@ -1,6 +1,7 @@
-'use client'
+// ── components/vehicle/TelemetryPanel ──────────────────────
+// Real-time vehicle telemetry display: metrics, status, diagnostics.
 
-// TelemetryPanel.tsx — Real-time autonomous vehicle telemetry dashboard:
+'use client'
 // speed, heading, GPS, battery, motor status, CPU/GPU temp, AI model, obstacles.
 
 import { useState, useEffect } from 'react'

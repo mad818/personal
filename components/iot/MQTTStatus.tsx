@@ -1,21 +1,71 @@
-'use client'
+// ── components/iot/MQTTStatus ──────────────────────────────
+// MQTT broker status and metrics: connection, message rate, topic subscriptions.
 
-// MQTTStatus.tsx — MQTT broker status bar: connection state, messages/sec,
+'use client'
 // active topics, connected devices, and animated data-flow indicator.
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
 export default function MQTTStatus() {
-  const [msgPerSec, setMsgPerSec]  = useState(14)
-  const [connected, setConnected]  = useState(true)
+  const [msgPerSec, setMsgPerSec]  = useState(0)
+  const [connected, setConnected]  = useState(false)
+  const [topicsCount, setTopicsCount] = useState(0)
+  const [devicesCount, setDevicesCount] = useState(0)
 
-  // Simulate fluctuating message rate
+  // Live MQTT SSE feed (currently simulated server-side, but real-time).
   useEffect(() => {
-    const id = setInterval(() => {
-      setMsgPerSec((prev) => Math.max(0, prev + Math.round((Math.random() - 0.5) * 6)))
-    }, 1200)
-    return () => clearInterval(id)
+    let es: EventSource | null = null
+    let tickId: number | null = null
+
+    const topics = new Set<string>()
+    const devices = new Set<string>()
+    let countThisSecond = 0
+
+    const start = () => {
+      try {
+        es = new EventSource('/api/mqtt?topics=home/#')
+      } catch {
+        setConnected(false)
+        return
+      }
+
+      setConnected(true)
+
+      es.onmessage = (evt) => {
+        countThisSecond++
+        try {
+          const msg = JSON.parse(evt.data)
+          if (typeof msg?.topic === 'string') topics.add(msg.topic)
+          const payload = msg?.payload
+          if (payload && typeof payload === 'object') {
+            const id = (payload as any).deviceId
+            if (typeof id === 'string') devices.add(id)
+          }
+          setTopicsCount(topics.size)
+          setDevicesCount(devices.size)
+        } catch {
+          // ignore malformed SSE line
+        }
+      }
+
+      es.onerror = () => {
+        setConnected(false)
+      }
+
+      // Compute msg/s
+      tickId = window.setInterval(() => {
+        setMsgPerSec(countThisSecond)
+        countThisSecond = 0
+      }, 1000)
+    }
+
+    start()
+
+    return () => {
+      try { es?.close() } catch { /* ignore */ }
+      if (tickId != null) window.clearInterval(tickId)
+    }
   }, [])
 
   return (
@@ -70,7 +120,7 @@ export default function MQTTStatus() {
       {/* Active topics */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
         <span style={{ fontSize: '9px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Topics</span>
-        <span style={{ fontSize: '14px', fontWeight: 900, color: 'var(--text)', fontFamily: 'monospace' }}>23</span>
+        <span style={{ fontSize: '14px', fontWeight: 900, color: 'var(--text)', fontFamily: 'monospace' }}>{topicsCount}</span>
       </div>
 
       <div style={{ width: '1px', height: '16px', background: 'var(--border)', flexShrink: 0 }} />
@@ -78,20 +128,24 @@ export default function MQTTStatus() {
       {/* Connected devices */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
         <span style={{ fontSize: '9px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Devices</span>
-        <span style={{ fontSize: '14px', fontWeight: 900, color: 'var(--text)', fontFamily: 'monospace' }}>5</span>
+        <span style={{ fontSize: '14px', fontWeight: 900, color: 'var(--text)', fontFamily: 'monospace' }}>{devicesCount}</span>
         <span style={{ fontSize: '9px', color: 'var(--text3)' }}>online</span>
       </div>
 
-      {/* Disconnect/reconnect toggle */}
-      <button
-        onClick={() => setConnected((v) => !v)}
-        style={{ marginLeft: 'auto', fontSize: '9px', fontWeight: 700, padding: '3px 10px', borderRadius: '4px', border: 'none',
-          background: connected ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
-          color:      connected ? '#ef4444' : '#10b981',
-          cursor:     'pointer' }}
+      {/* Status tag */}
+      <span
+        style={{
+          marginLeft: 'auto',
+          fontSize: '9px',
+          fontWeight: 700,
+          padding: '3px 10px',
+          borderRadius: '4px',
+          background: connected ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+          color: connected ? '#10b981' : '#ef4444',
+        }}
       >
-        {connected ? 'DISCONNECT' : 'RECONNECT'}
-      </button>
+        {connected ? 'LIVE' : 'OFFLINE'}
+      </span>
     </div>
   )
 }

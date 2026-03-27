@@ -1,10 +1,12 @@
-'use client'
+// ── components/security/CameraGrid ─────────────────────────
+// Multi-camera surveillance grid with motion detection and recording controls.
 
-// CameraGrid.tsx — 2x2 surveillance camera feed grid with RTSP placeholders,
+'use client'
 // detection alerts, fullscreen expand, and per-camera controls.
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useEventBus } from '@/lib/eventBus'
 
 interface Camera {
   id: string
@@ -59,17 +61,13 @@ export default function CameraGrid() {
   const [expanded, setExpanded]           = useState<string | null>(null)
   const [connected, setConnected]         = useState<Record<string, boolean>>({ 'cam-01': true, 'cam-02': true, 'cam-03': true })
 
-  // Listen for eventBus 'camera:alert' events
-  useEffect(() => {
-    const handler = (e: CustomEvent<{ cameraId: string }>) => {
-      const id = e.detail?.cameraId
-      if (!id) return
-      setAlertFlash((prev) => ({ ...prev, [id]: true }))
-      setTimeout(() => setAlertFlash((prev) => ({ ...prev, [id]: false })), 2000)
-    }
-    window.addEventListener('camera:alert', handler as EventListener)
-    return () => window.removeEventListener('camera:alert', handler as EventListener)
-  }, [])
+  // Listen for typed eventBus camera alerts (emitted by wsManager)
+  useEventBus('camera:alert', (data) => {
+    const id = data?.cameraId
+    if (!id) return
+    setAlertFlash((prev) => ({ ...prev, [id]: true }))
+    setTimeout(() => setAlertFlash((prev) => ({ ...prev, [id]: false })), 2000)
+  })
 
   const toggleRecording = useCallback((id: string) => {
     setRecording((prev) => ({ ...prev, [id]: !prev[id] }))

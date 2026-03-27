@@ -1,6 +1,6 @@
+// ── api/mqtt ────────────────────────────────────────────────
+// MQTT broker API: IoT sensor data ingestion and device state management.
 /**
- * app/api/mqtt/route.ts
- * ─────────────────────────────────────────────────────────────────────────────
  * NEXUS PRIME MQTT ↔ Browser bridge via Server-Sent Events (SSE).
  *
  * GET  /api/mqtt?topics=home/sensors,home/cameras&broker=localhost:1883
@@ -72,6 +72,11 @@ export async function GET(request: NextRequest): Promise<Response> {
 
   const encoder = new TextEncoder()
 
+  const reqOrigin = request.headers.get('origin') ?? ''
+  const sameOrigin = reqOrigin && (() => {
+    try { return new URL(reqOrigin).host === new URL(request.url).host } catch { return false }
+  })()
+
   const stream = new ReadableStream({
     start(controller) {
       // Send connection confirmation
@@ -125,7 +130,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       'Cache-Control':               'no-cache, no-transform',
       'Connection':                  'keep-alive',
       'X-Accel-Buffering':           'no',
-      'Access-Control-Allow-Origin': '*',
+      ...(sameOrigin ? { 'Access-Control-Allow-Origin': reqOrigin } : {}),
     },
   })
 }
@@ -153,8 +158,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // })
     // ─────────────────────────────────────────────────────────────────────────
 
-    // Simulated mode — log the publish and return success
-    console.log(`[MQTT SIM] Publish to ${broker} → ${topic}:`, payload)
+    // Simulated mode — return success without logging payload (could contain sensitive data)
 
     return NextResponse.json({
       ok:        true,

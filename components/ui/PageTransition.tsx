@@ -1,3 +1,6 @@
+// ── components/ui/PageTransition ───────────────────────────
+// Framer Motion page transition animations and layout effects.
+
 'use client'
 
 import { motion } from 'framer-motion'

@@ -419,7 +419,7 @@ function DispatchBar({ from, to }: { from: AgentId; to: AgentId }) {
 function SystemMonitor({ activeAgent }: { activeAgent: AgentId | null }) {
   const articles = useStore(s => s.articles.length)
   const prices   = useStore(s => Object.keys(s.prices).length)
-  const settings = useStore(s => s.settings)
+  const modelLabel = useStore(s => s.settings.localModel?.split(':')[0] ?? 'auto')
   const worldRisk = useStore(s => s.worldRisk)
   const [memCount, setMemCount] = useState(0)
 
@@ -430,8 +430,6 @@ function SystemMonitor({ activeAgent }: { activeAgent: AgentId | null }) {
     }, 10_000)
     return () => clearInterval(id)
   }, [])
-
-  const modelLabel = settings.localModel?.split(':')[0] ?? 'auto'
 
   const rows: [string, string | number, string][] = [
     ['📡 Signals',   articles,   articles > 0 ? '#10b981' : '#ef4444'],
@@ -477,9 +475,6 @@ interface ChatMessage {
 }
 
 export default function AgentOffice() {
-  const s          = useStore()
-  const systemPrompt = buildSystemPrompt(s.settings)
-
   const [messages,      setMessages]      = useState<ChatMessage[]>([])
   const [input,         setInput]         = useState('')
   const [activeAgent,   setActiveAgent]   = useState<AgentId | null>(null)
@@ -537,12 +532,13 @@ export default function AgentOffice() {
     setActiveAgent(target)
     setEmotion('working')
 
-    const enrichedPrompt = buildAgentPrompt(target, systemPrompt)
+    const currentSettings = useStore.getState().settings
+    const enrichedPrompt = buildAgentPrompt(target, buildSystemPrompt(currentSettings))
 
     try {
       const steps: AgentStep[] = []
       const result = await runAgent({
-        settings:     s.settings,
+        settings:     currentSettings,
         systemPrompt: enrichedPrompt,
         messages:     [{ role: 'user', content: value }],
         onStep:       (step: AgentStep) => {
@@ -571,7 +567,7 @@ export default function AgentOffice() {
       setEmotion('error')
       setTimeout(() => { setEmotion('idle'); setActiveAgent(null) }, 3000)
     }
-  }, [input, activeAgent, systemPrompt])
+  }, [input, activeAgent])
 
   const handleKey = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send() }
@@ -614,7 +610,7 @@ export default function AgentOffice() {
           fontSize: '11px', fontFamily: "'VT323', monospace",
           color: '#1A2040', marginLeft: '4px',
         }}>
-          //
+          {'//'}
         </span>
         <span style={{
           fontSize: '11px', fontFamily: "'VT323', monospace",

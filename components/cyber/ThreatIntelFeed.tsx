@@ -72,9 +72,24 @@ function ConfBar({ confidence }: { confidence: number }) {
   )
 }
 
+// ── ThreatFox IOC shape (fields vary by source — all optional beyond ioc_value) ──
+interface ThreatFoxIOC {
+  id?:                 string | number
+  ioc_value?:         string
+  ioc?:               string
+  threat_type?:       string
+  type?:              string
+  malware?:           string
+  malware_printable?: string
+  confidence_level?:  number
+  confidence?:        number
+  first_seen?:        string
+  date_added?:        string
+}
+
 // ── IOC card ──────────────────────────────────────────────────────────────────
 interface IOCCardProps {
-  ioc: any
+  ioc: ThreatFoxIOC
 }
 
 function IOCCard({ ioc }: IOCCardProps) {
@@ -186,7 +201,7 @@ export default function ThreatIntelFeed() {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-        {iocs.map((ioc: any, i: number) => (
+        {iocs.map((ioc: ThreatFoxIOC, i: number) => (
           <IOCCard key={ioc.id ?? i} ioc={ioc} />
         ))}
       </div>

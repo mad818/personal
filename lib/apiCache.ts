@@ -1,4 +1,5 @@
-// lib/apiCache.ts — server-side, no 'use client'
+// ── lib/apiCache ────────────────────────────────────────────
+// Server-side caching layer for API responses with TTL and invalidation.
 
 export interface CacheConfig {
   maxEntries: number   // default 200

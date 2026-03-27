@@ -1,3 +1,6 @@
+// ── components/cyber/ThreatSeverityDonut ───────────────────
+// CVE severity distribution pie chart with CVSS scoring.
+
 'use client'
 
 import { useMemo } from 'react'
@@ -50,9 +53,9 @@ function CenterLabel({ cx, cy, total }: { cx: number; cy: number; total: number 
 
 export default function ThreatSeverityDonut() {
   const threatIntel = useStore((s) => s.threatIntel)
-  const iocs = threatIntel?.threatfox ?? []
 
   const pieData = useMemo(() => {
+    const iocs = threatIntel?.threatfox ?? []
     const counts: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0 }
     for (const ioc of iocs) {
       const conf = Number(ioc.confidence_level ?? ioc.confidence ?? 0)
@@ -66,9 +69,9 @@ export default function ThreatSeverityDonut() {
         key,
       }))
       .filter((d) => d.value > 0)
-  }, [iocs])
+  }, [threatIntel])
 
-  const total = iocs.length
+  const total = (threatIntel?.threatfox ?? []).length
 
   if (total === 0) {
     return (

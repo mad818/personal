@@ -1,3 +1,6 @@
+// ── components/vehicle/RadarSweep ──────────────────────────
+// Animated radar visualization: obstacle detection and surrounding traffic.
+
 'use client'
 
 import { useEffect, useRef, useState } from 'react'

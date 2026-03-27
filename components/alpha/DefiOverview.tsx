@@ -1,3 +1,6 @@
+// ── components/alpha/DefiOverview ──────────────────────────
+// DeFi protocol overview widget: TVL, APY, risk metrics display.
+
 'use client'
 
 import { useMemo } from 'react'
@@ -196,6 +199,7 @@ export default function DefiOverview() {
               <span style={{ fontSize: '9.5px', color: CHART.text3, fontWeight: 700 }}>{i + 1}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
                 {p.logo && (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={p.logo} alt="" style={{ width: '14px', height: '14px', borderRadius: '50%', flexShrink: 0 }}
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
                 )}

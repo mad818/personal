@@ -1,3 +1,6 @@
+// ── api/fear-greed ──────────────────────────────────────────
+// Fear & Greed index API: crypto market sentiment indicator.
+
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'

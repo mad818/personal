@@ -1,12 +1,17 @@
 node_modules/
 .next/
-.env.local
-*.log
-.DS_Store
 .turbo/
 out/
 dist/
-node_modules/
-node_modules/
-.next/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
 .DS_Store
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+.env.local
+
+# Claude local overrides (personal, not committed)
+CLAUDE.local.md
+.claude/settings.local.json

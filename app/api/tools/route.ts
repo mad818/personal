@@ -1,3 +1,6 @@
+// ── api/tools ───────────────────────────────────────────────
+// Tools API: dynamic tool discovery and execution framework.
+
 import { NextRequest, NextResponse } from 'next/server'
 import * as fs from 'fs/promises'
 import * as path from 'path'
@@ -428,6 +431,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ result })
   } catch (err) {
-    return NextResponse.json({ result: 'Tool execution error.' }, { status: 200 })
+    return NextResponse.json(
+      { result: 'Tool execution error.', error: err instanceof Error ? err.message : 'Unknown error' },
+      { status: 500 }
+    )
   }
 }

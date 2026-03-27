@@ -1,6 +1,7 @@
-'use client'
+// ── components/security/DronePanel ─────────────────────────
+// Drone command and telemetry interface with waypoint planning and video feed.
 
-// DronePanel.tsx — Drone command and control panel with MAVLink status,
+'use client'
 // ArduPilot telemetry (pitch/roll/yaw), GPS, and flight mode controls.
 
 import { useState, useEffect } from 'react'

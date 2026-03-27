@@ -1,3 +1,6 @@
+// ── hooks/usePrices ─────────────────────────────────────────
+// Hook for fetching and subscribing to crypto price updates with caching.
+
 'use client'
 
 import { useCallback, useRef, useState } from 'react'

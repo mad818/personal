@@ -1,3 +1,6 @@
+// ── api/defi ────────────────────────────────────────────────
+// DeFi protocol data API: TVL, APY, risk metrics from Defillama and Curve.
+
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'

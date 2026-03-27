@@ -1,3 +1,6 @@
+// ── components/alpha/WatchlistManager ───────────────────────
+// Add/remove crypto assets from personalized watchlist with persistence.
+
 'use client'
 
 import { useState } from 'react'

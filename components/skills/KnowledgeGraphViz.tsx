@@ -3,7 +3,7 @@
 // ── components/skills/KnowledgeGraphViz.tsx ───────────────────────────────────
 // Custom SVG knowledge graph with circular node arrangement and hover effects
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { CHART } from '@/lib/chartTheme'
 
@@ -103,7 +103,10 @@ function getConnectedIds(nodeId: string): Set<string> {
 export default function KnowledgeGraphViz() {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
 
-  const connected = hoveredId ? getConnectedIds(hoveredId) : new Set<string>()
+  const connected = useMemo(
+    () => (hoveredId ? getConnectedIds(hoveredId) : new Set<string>()),
+    [hoveredId]
+  )
 
   const isEdgeHighlighted = useCallback((e: Edge): boolean => {
     if (!hoveredId) return false

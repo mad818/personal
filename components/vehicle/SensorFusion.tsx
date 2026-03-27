@@ -1,6 +1,7 @@
-'use client'
+// ── components/vehicle/SensorFusion ────────────────────────
+// Multi-sensor data fusion: LiDAR, radar, camera, GPS integration status.
 
-// SensorFusion.tsx — Multi-sensor fusion status panel showing active sensors,
+'use client'
 // object detection summary, confidence score, and processing pipeline latencies.
 
 import { useState, useEffect } from 'react'

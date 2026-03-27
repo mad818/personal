@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+// ── api/news ────────────────────────────────────────────────
+// News aggregation API: multi-source news with sentiment and bias filtering.
 
-// Server-side RSS feed aggregator — no CORS, no keys needed.
+import { NextResponse } from 'next/server'
 // Pulls from crypto, tech, finance, and world news for broad OSINT coverage.
 
 interface NewsItem {

@@ -1,6 +1,7 @@
-'use client'
+// ── components/iot/AutomationRules ─────────────────────────
+// IFTTT automation rules engine with trigger/action setup and state persistence.
 
-// AutomationRules.tsx — If-this-then-that automation rules with enable toggles,
+'use client'
 // Add Rule form, and 5 demo rules including drone patrol.
 
 import { useState } from 'react'

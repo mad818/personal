@@ -1,3 +1,6 @@
+// ── api/sec-filings ─────────────────────────────────────────
+// SEC filings API: 10-K, 10-Q, 8-K documents and corporate disclosures.
+
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'

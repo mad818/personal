@@ -1,6 +1,7 @@
-'use client'
+// ── components/iot/DeviceRegistry ──────────────────────────
+// IoT device registry: add, remove, configure sensors and actuators.
 
-// DeviceRegistry.tsx — Table of registered IoT devices with expandable rows,
+'use client'
 // status indicators, Add Device modal (UI only), and device management actions.
 
 import { useState } from 'react'

@@ -1,3 +1,6 @@
+// ── components/cyber/CVEFeed ───────────────────────────────
+// National Vulnerability Database feed with search and severity filters.
+
 'use client'
 
 import { useStore } from '@/store/useStore'

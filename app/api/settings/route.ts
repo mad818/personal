@@ -1,3 +1,6 @@
+// ── api/settings ────────────────────────────────────────────
+// Settings API: user configuration persistence (keys, watchlist, theme).
+
 import { NextRequest, NextResponse } from 'next/server'
 import * as fs   from 'fs/promises'
 import * as path from 'path'
@@ -25,12 +28,18 @@ const SENSITIVE_KEYS = [
   'NVD_KEY',
   'OTX_KEY',
   'FRED_KEY',
-  'AISSSTREAM_KEY',
-  'FIRMS_KEY',
+  'AISSTREAM_KEY',
+  'FIRMS_MAP_KEY',
   'FIRECRAWL_KEY',
   'OPENCLAW_TOKEN',
   'NEXUS_TOKEN',
 ]
+
+// Legacy keys accepted for backward compatibility while we normalize naming.
+const LEGACY_KEY_ALIASES: Record<string, string> = {
+  AISSSTREAM_KEY: 'AISSTREAM_KEY',
+  FIRMS_KEY:      'FIRMS_MAP_KEY',
+}
 
 const ENV_FILE = path.join(process.cwd(), '.env.local')
 
@@ -59,11 +68,13 @@ async function writeEnvFile(env: Record<string, string>): Promise<void> {
   try { content = await fs.readFile(ENV_FILE, 'utf-8') } catch { /* new file */ }
 
   for (const [key, value] of Object.entries(env)) {
+    // Basic hardening: keep env values single-line to prevent accidental key injection.
+    const safeValue = String(value).replace(/[\r\n]+/g, ' ').trim()
     const regex = new RegExp(`^(${key}=)(.*)$`, 'm')
     if (regex.test(content)) {
-      content = content.replace(regex, `$1${value}`)
+      content = content.replace(regex, `$1${safeValue}`)
     } else {
-      content += `\n${key}=${value}`
+      content += `\n${key}=${safeValue}`
     }
   }
 
@@ -75,7 +86,9 @@ export async function GET() {
   const env = await readEnvFile()
   const status: Record<string, boolean> = {}
   for (const key of SENSITIVE_KEYS) {
-    status[key] = !!(env[key] ?? process.env[key])
+    const legacyMatch = Object.entries(LEGACY_KEY_ALIASES)
+      .find(([, canonical]) => canonical === key)?.[0]
+    status[key] = !!(env[key] ?? process.env[key] ?? (legacyMatch ? (env[legacyMatch] ?? process.env[legacyMatch]) : ''))
   }
   return NextResponse.json({ status })
 }
@@ -91,8 +104,9 @@ export async function POST(req: NextRequest) {
     // Only allow updating known sensitive keys (minus internal tokens)
     const updates: Record<string, string> = {}
     for (const [k, v] of Object.entries(body)) {
-      if (SENSITIVE_KEYS.includes(k) && !READONLY_KEYS.has(k)) {
-        updates[k] = String(v)
+      const canonicalKey = LEGACY_KEY_ALIASES[k] ?? k
+      if (SENSITIVE_KEYS.includes(canonicalKey) && !READONLY_KEYS.has(canonicalKey)) {
+        updates[canonicalKey] = String(v)
       }
     }
 

@@ -1,3 +1,6 @@
+// ── components/security/ThreatLevelIndicator ───────────────
+// Overall threat level gauge with real-time risk assessment.
+
 'use client'
 
 import { useMemo } from 'react'

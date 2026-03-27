@@ -6,6 +6,7 @@
 // Auto-collapses when idle. Animates when active.
 
 import { useStore, type TaskItem } from '@/store/useStore'
+import { useEffect } from 'react'
 
 const STATUS_ICON: Record<TaskItem['status'], string> = {
   pending: '○',
@@ -24,10 +25,29 @@ const STATUS_COLOR: Record<TaskItem['status'], string> = {
 export default function TaskPlanPanel() {
   const currentPhase = useStore(s => s.currentPhase)
   const taskPlan     = useStore(s => s.taskPlan)
+  const setTaskPlan  = useStore(s => s.setTaskPlan)
+  const setCurrentPhase = useStore(s => s.setCurrentPhase)
+
+  // Auto-clear plan when a run is finished/interrupted so stale partial states don't persist.
+  useEffect(() => {
+    if (!taskPlan.length) return
+    const terminal = currentPhase === 'done' || currentPhase === 'idle'
+    if (!terminal) return
+    const id = window.setTimeout(() => {
+      setTaskPlan([])
+      // If we're still in "done", return to idle baseline after the plan clears.
+      if (useStore.getState().currentPhase === 'done') setCurrentPhase('idle')
+    }, 2200)
+    return () => window.clearTimeout(id)
+  }, [currentPhase, taskPlan, setTaskPlan, setCurrentPhase])
 
   // Only show when there is an active plan and the agent is running
   const isActive = currentPhase !== 'idle' && currentPhase !== 'done'
   if (!taskPlan.length || (!isActive && taskPlan.every(t => t.status === 'pending'))) return null
+
+  const doneCount = taskPlan.filter(t => t.status === 'done').length
+  const pendingItems = taskPlan.filter(t => t.status === 'pending' || t.status === 'running')
+  const pendingLabel = pendingItems[0]?.label ?? ''
 
   return (
     <div style={{
@@ -50,8 +70,45 @@ export default function TaskPlanPanel() {
         whiteSpace:  'nowrap',
         flexShrink:  0,
       }}>
-        PLAN:
+        PLAN {doneCount}/{taskPlan.length}:
       </span>
+
+      {pendingItems.length > 0 && (
+        <span
+          style={{
+            fontSize: '8px',
+            fontFamily: "'VT323', monospace",
+            color: '#00DDFFaa',
+            marginRight: '8px',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+          title={pendingItems.map((p) => p.label).join(' | ')}
+        >
+          NEXT: {pendingLabel}
+        </span>
+      )}
+
+      <button
+        type="button"
+        onClick={() => setTaskPlan([])}
+        style={{
+          fontSize: '8px',
+          fontFamily: "'VT323', monospace",
+          color: '#6875a0',
+          background: 'transparent',
+          border: '1px solid #1A2040',
+          borderRadius: '3px',
+          padding: '1px 5px',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+          flexShrink: 0,
+          marginRight: '8px',
+        }}
+        title="Clear current runtime plan"
+      >
+        CLEAR
+      </button>
 
       {taskPlan.map((step, i) => (
         <div key={step.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>

@@ -1,6 +1,6 @@
+// ── lib/ollama ──────────────────────────────────────────────
+// Ollama local LLM integration with fallback chain support.
 /**
- * lib/ollama.ts
- * ─────────────────────────────────────────────────────────────────────────────
  * NEXUS PRIME Ollama integration client.
  *
  * Features:

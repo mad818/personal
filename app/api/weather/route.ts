@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+// ── api/weather ─────────────────────────────────────────────
+// Weather API: real-time and forecast meteorological data.
 
-// Open-Meteo weather API — FREE, no key required.
+import { NextRequest, NextResponse } from 'next/server'
 // https://api.open-meteo.com/v1/forecast
 
 export const dynamic = 'force-dynamic'

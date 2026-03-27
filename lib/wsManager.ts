@@ -1,6 +1,6 @@
+// ── lib/wsManager ───────────────────────────────────────────
+// WebSocket connection manager for real-time data streaming.
 /**
- * lib/wsManager.ts
- * ─────────────────────────────────────────────────────────────────────────────
  * NEXUS PRIME WebSocket connection manager with:
  *  - Auto-reconnect using exponential backoff (1s → 2s → 4s → 8s → max 30s)
  *  - Connection state tracking (connecting | connected | disconnected | error)

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+// ── api/flights ─────────────────────────────────────────────
+// Flight tracking API: OpenSky network live aircraft positions.
 
-// OpenSky Network API — FREE, no auth required for basic access.
+import { NextRequest, NextResponse } from 'next/server'
 // https://opensky-network.org/api/states/all
 //
 // Optional: Set OPENSKY_USER and OPENSKY_PASS env vars for authenticated

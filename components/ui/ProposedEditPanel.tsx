@@ -196,6 +196,9 @@ export default function ProposedEditPanel() {
   const removePending  = useStore(s => s.removePendingEdit)
   const addChangeEntry = useStore(s => s.addChangeEntry)
   const settings       = useStore(s => s.settings)
+  const updateSettings = useStore(s => s.updateSettings)
+
+  const autoApplyOfficeEdits = settings.autoApplyOfficeEdits
 
   const [open,    setOpen]    = useState(false)
   const [busy,    setBusy]    = useState<string | null>(null)  // edit ID being applied
@@ -208,6 +211,28 @@ export default function ProposedEditPanel() {
   useEffect(() => {
     if (pendingEdits.length > 0) setOpen(true)
   }, [pendingEdits.length])
+
+  function isOfficeEdit(path: string): boolean {
+    return (
+      path.startsWith('components/home/office/') ||
+      path.startsWith('components/home/office') ||
+      path.includes('/components/home/office/')
+    )
+  }
+
+  // Auto-apply (office-only) so HQ Prime customization feels instant.
+  useEffect(() => {
+    if (!autoApplyOfficeEdits) return
+    if (busy) return
+    if (pendingEdits.length === 0) return
+
+    const eligible = pendingEdits.find((e) => isOfficeEdit(e.path))
+    if (!eligible) return
+
+    // Fire and forget — busy flag prevents concurrent applies.
+    void handleApprove(eligible)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoApplyOfficeEdits, pendingEdits, busy])
 
   if (!visible || pendingEdits.length === 0) return null
 
@@ -310,6 +335,27 @@ export default function ProposedEditPanel() {
             }}>
               {pendingEdits.length} pending
             </span>
+
+            <button
+              type="button"
+              onClick={() => updateSettings({ autoApplyOfficeEdits: !autoApplyOfficeEdits })}
+              style={{
+                marginLeft: 'auto',
+                fontSize: 7.5,
+                fontFamily: "'VT323', monospace",
+                padding: '3px 8px',
+                borderRadius: 999,
+                border: `1px solid ${autoApplyOfficeEdits ? '#00FF6655' : '#1A204033'}`,
+                background: autoApplyOfficeEdits ? 'rgba(0,255,102,0.10)' : 'rgba(26,32,64,0.12)',
+                color: autoApplyOfficeEdits ? '#00FF66' : '#7ba7d4',
+                cursor: 'pointer',
+                letterSpacing: '1px',
+              }}
+              title="When ON, agent edits limited to components/home/office/* auto-apply."
+            >
+              {autoApplyOfficeEdits ? 'AUTO-APPLY: ON' : 'AUTO-APPLY: OFF'}
+            </button>
+
             <button
               onClick={() => setOpen(false)}
               style={{

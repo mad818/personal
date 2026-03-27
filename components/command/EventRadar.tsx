@@ -1,3 +1,6 @@
+// ── components/command/EventRadar ──────────────────────────
+// Real-time geopolitical and market event detection with prediction.
+
 'use client'
 
 /**

@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+// ── api/cves ────────────────────────────────────────────────
+// CVE API: fetch and cache NVD CVE data with filtering and search.
 
-// Server-side proxy for NVD CVE API — browser fetch fails with CORS.
+import { NextResponse } from 'next/server'
 // Returns last 30 days of CVEs, sorted by severity.
 
 export const dynamic = 'force-dynamic'

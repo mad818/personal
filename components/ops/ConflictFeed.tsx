@@ -1,3 +1,6 @@
+// ── components/ops/ConflictFeed ────────────────────────────
+// Live geopolitical conflict feed with GDELT event clustering.
+
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
@@ -87,7 +90,7 @@ export default function ConflictFeed() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [setWorldRisk])
 
   // Auto-load on first mount
   useEffect(() => { load() }, [load])

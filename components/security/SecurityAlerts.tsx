@@ -1,6 +1,7 @@
-'use client'
+// ── components/security/SecurityAlerts ─────────────────────
+// Real-time security alert feed with filtering and dismissal actions.
 
-// SecurityAlerts.tsx — Scrollable detection alert feed with severity color coding,
+'use client'
 // filter controls, per-alert acknowledge functionality, and weather-based alerts.
 
 import { useState, useEffect } from 'react'
@@ -132,6 +133,7 @@ export default function SecurityAlerts() {
 
   // Read from Zustand store
   const storeWeather = useStore((s) => (s as any).weather as WeatherData | null ?? null)
+  const storeSecurityAlerts = useStore((s) => (s as any).securityAlerts as any[] ?? [])
 
   const weather = storeWeather ?? localWeather
 
@@ -153,7 +155,24 @@ export default function SecurityAlerts() {
     }
   }, [weather])
 
-  const allAlerts = [...weatherAlerts, ...baseAlerts]
+  // Prefer store-provided securityAlerts when present, otherwise fall back to demo list.
+  // Store alerts are normalized into this component's Alert shape.
+  const storeAlerts: Alert[] = (Array.isArray(storeSecurityAlerts) ? storeSecurityAlerts : []).map((a: any) => {
+    const ts = typeof a?.ts === 'number' ? new Date(a.ts) : new Date()
+    return {
+      id:           String(a?.id ?? `store-${ts.getTime()}-${Math.random().toString(36).slice(2, 7)}`),
+      timestamp:    ts.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      camera:       String(a?.camera ?? a?.cameraId ?? 'Unknown Camera'),
+      type:         (a?.type ?? 'Unknown') as DetectionType,
+      confidence:   typeof a?.confidence === 'number' ? Math.round(a.confidence) : 0,
+      detail:       String(a?.detail ?? a?.message ?? 'Security alert'),
+      acknowledged: Boolean(a?.acknowledged ?? false),
+      isNight:      Boolean(a?.isNight ?? false),
+    }
+  })
+
+  const effectiveBase = storeAlerts.length > 0 ? storeAlerts : baseAlerts
+  const allAlerts = [...weatherAlerts, ...effectiveBase]
 
   const acknowledge = (id: string) => {
     if (id.startsWith('weather-')) {

@@ -1,3 +1,6 @@
+// ── components/command/FocusPanel ──────────────────────────
+// Focused research panel with deep-dive capabilities and context.
+
 'use client'
 
 import { useState } from 'react'

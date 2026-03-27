@@ -1,3 +1,6 @@
+// ── components/iot/DeviceStatusMatrix ──────────────────────
+// Live grid view of all IoT device states, health, and connectivity.
+
 'use client'
 
 import { useMemo } from 'react'

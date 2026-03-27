@@ -1,3 +1,6 @@
+// ── layout ──────────────────────────────────────────────────
+// Root layout: global styles, auth gate, navigation, health monitor.
+
 import type { Metadata } from 'next'
 import './globals.css'
 import Nav               from '@/components/nav/Nav'
@@ -7,6 +10,8 @@ import GlobalDataLoader  from '@/components/ui/GlobalDataLoader'
 import { ArticlesLoader } from '@/components/ui/DataLoader'
 import ProposedEditPanel from '@/components/ui/ProposedEditPanel'
 import ChangeLogPanel    from '@/components/ui/ChangeLogPanel'
+import CronSchedulerRunner from '@/components/ui/CronSchedulerRunner'
+import ErrorBoundary     from '@/components/system/ErrorBoundary'
 
 export const metadata: Metadata = {
   title: 'Nexus Prime',
@@ -22,19 +27,22 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AuthGate>
-          <Nav />
-          <main style={{ paddingTop: '48px', minHeight: '100vh' }}>
-            {children}
-          </main>
-          {/* Global data — loads articles + keyword alerts on every page */}
-          <GlobalDataLoader />
-          <ArticlesLoader />
-          {/* Global command dock — persists across all tabs */}
-          <CommandBar />
-          {/* Proposed edit overlay — agent proposes, user approves/rejects */}
-          <ProposedEditPanel />
-          {/* Audit trail — all applied/rejected changes */}
-          <ChangeLogPanel />
+          <ErrorBoundary label="RootLayout">
+            <Nav />
+            <main style={{ paddingTop: '48px', minHeight: '100vh' }}>
+              {children}
+            </main>
+            {/* Global data — loads articles + keyword alerts on every page */}
+            <GlobalDataLoader />
+            <ArticlesLoader />
+            <CronSchedulerRunner />
+            {/* Global command dock — persists across all tabs */}
+            <CommandBar />
+            {/* Proposed edit overlay — agent proposes, user approves/rejects */}
+            <ProposedEditPanel />
+            {/* Audit trail — all applied/rejected changes */}
+            <ChangeLogPanel />
+          </ErrorBoundary>
         </AuthGate>
       </body>
     </html>

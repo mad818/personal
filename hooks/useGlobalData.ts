@@ -1,3 +1,6 @@
+// ── hooks/useGlobalData ─────────────────────────────────────
+// Hook for coordinating global data fetches across all data sources.
+
 'use client'
 import { useCallback, useState } from 'react'
 import { useStore } from '@/store/useStore'

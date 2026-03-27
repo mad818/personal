@@ -1,3 +1,6 @@
+// ── components/vehicle/TelemetryChart ──────────────────────
+// Time-series chart for vehicle telemetry: speed, acceleration, heading, GPS.
+
 'use client'
 
 import { useMemo } from 'react'

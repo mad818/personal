@@ -1,3 +1,6 @@
+// ── api/hacker-news ─────────────────────────────────────────
+// Hacker News API: top stories and activity from HN.
+
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'

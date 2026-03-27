@@ -1,6 +1,7 @@
-'use client'
+// ── iot/page ────────────────────────────────────────────────
+// IoT tab: sensor dashboard, device registry, automation rules, MQTT status.
 
-// app/iot/page.tsx — NEXUS PRIME IoT Command Center tab
+'use client'
 // Device management, sensor networks, and home automation
 
 import MQTTStatus         from '@/components/iot/MQTTStatus'

@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+// ── api/earthquakes ─────────────────────────────────────────
+// Earthquake API: USGS seismic data feed with location and magnitude.
 
-// USGS Earthquake API — FREE, no key required.
+import { NextResponse } from 'next/server'
 // Merges two feeds:
 //   - significant_week: significant earthquakes in the past week
 //   - 4.5_day: all M4.5+ in the past day

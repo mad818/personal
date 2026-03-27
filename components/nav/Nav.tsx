@@ -1,3 +1,6 @@
+// ── components/nav/Nav ─────────────────────────────────────
+// Top navigation bar with tab links, settings, and user menu.
+
 'use client'
 
 import Link from 'next/link'
@@ -6,14 +9,10 @@ import { useState } from 'react'
 import SettingsDrawer from '@/components/settings/SettingsDrawer'
 
 const TABS = [
-  { href: '/command', label: '🏠 DASHBOARD'    },
-  { href: '/home',    label: '🤖 AGENT'        },
-  { href: '/signals', label: '📰 NEWS'         },
-  { href: '/alpha',   label: '📈 MARKETS'      },
-  { href: '/ops',     label: '🌍 GEOPOLITICAL' },
-  { href: '/cyber',   label: '🔒 CYBER'        },
-  { href: '/intel',   label: '🧰 TOOLS'        },
-  { href: '/vault',   label: '📁 VAULT'        },
+  { href: '/home',  label: '🤖 NEXUS HQ' },
+  { href: '/intel', label: '📡 INTEL'    },
+  { href: '/alpha', label: '📈 MARKETS'  },
+  { href: '/cyber', label: '🔒 CYBER'   },
 ]
 
 export default function Nav() {
@@ -42,7 +41,7 @@ export default function Nav() {
         overflowX:    'auto',
       }}>
         {TABS.map((tab) => {
-          const active = pathname === tab.href || (pathname === '/' && tab.href === '/command')
+          const active = pathname === tab.href || (pathname === '/' && tab.href === '/home')
           return (
             <Link
               key={tab.href}

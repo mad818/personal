@@ -1,3 +1,6 @@
+// ── components/vehicle/SensorHealthRadial ──────────────────
+// Radial health indicator for vehicle sensors: signal quality, latency, accuracy.
+
 'use client'
 
 import {

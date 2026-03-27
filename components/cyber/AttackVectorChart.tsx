@@ -1,3 +1,6 @@
+// ── components/cyber/AttackVectorChart ─────────────────────
+// Visualization of CVE attack vectors and exploitation trends.
+
 'use client'
 
 import { useMemo } from 'react'
@@ -27,10 +30,10 @@ function AnimatedBar(props: any) {
 
 export default function AttackVectorChart() {
   const threatIntel = useStore((s) => s.threatIntel)
-  const iocs = threatIntel?.threatfox ?? []
 
   // Group by ioc_type or malware_type, top 8
   const chartData = useMemo(() => {
+    const iocs = threatIntel?.threatfox ?? []
     const counts: Record<string, number> = {}
 
     for (const ioc of iocs) {
@@ -50,7 +53,7 @@ export default function AttackVectorChart() {
         count,
         color: SERIES_COLORS[i % SERIES_COLORS.length],
       }))
-  }, [iocs])
+  }, [threatIntel])
 
   if (chartData.length === 0) {
     return (

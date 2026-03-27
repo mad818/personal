@@ -1,6 +1,7 @@
-'use client'
+// ── security/page ───────────────────────────────────────────
+// Security tab: camera grid, drone panel, perimeter sweep, alerts, threat level.
 
-// app/security/page.tsx — NEXUS PRIME Security Operations tab
+'use client'
 // Physical security monitoring, surveillance, and threat detection
 
 import CameraGrid            from '@/components/security/CameraGrid'

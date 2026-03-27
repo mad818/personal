@@ -222,14 +222,14 @@ All keys are optional. The app degrades gracefully when a key is absent.
 | `ANTHROPIC_API_KEY` | Claude AI (agent + chat) | Pay-per-token | [console.anthropic.com](https://console.anthropic.com) |
 | `GROQ_API_KEY` | Groq (fast inference) | Yes | [console.groq.com](https://console.groq.com/keys) |
 | `NEXUS_TOKEN` | Internal API auth | n/a | Set any string |
-| `CG_KEY` | CoinGecko (crypto prices) | Yes | [coingecko.com/api](https://www.coingecko.com/en/api) |
+| `COINGECKO_KEY` | CoinGecko (crypto prices) | Yes | [coingecko.com/api](https://www.coingecko.com/en/api) |
 | `FINNHUB_KEY` | Finnhub (stock quotes) | Yes | [finnhub.io](https://finnhub.io) |
 | `GUARDIAN_KEY` | The Guardian (news) | Yes | [open-platform.theguardian.com](https://open-platform.theguardian.com) |
 | `OTX_KEY` | AlienVault OTX (threat intel) | Yes | [otx.alienvault.com](https://otx.alienvault.com) |
 | `FIRECRAWL_KEY` | Firecrawl (web scraper) | Yes | [firecrawl.dev](https://firecrawl.dev) |
 | `NVD_KEY` | NVD (CVE feed) | Yes | [nvd.nist.gov/developers](https://nvd.nist.gov/developers/request-an-api-key) |
 | `AISSTREAM_KEY` | AISstream (live ship tracking) | Yes | [aisstream.io](https://aisstream.io) |
-| `NASA_FIRMS_KEY` | NASA FIRMS (fire hotspots) | Yes | [firms.modaps.eosdis.nasa.gov](https://firms.modaps.eosdis.nasa.gov/api/area/) |
+| `FIRMS_MAP_KEY` | NASA FIRMS (fire hotspots) | Yes | [firms.modaps.eosdis.nasa.gov](https://firms.modaps.eosdis.nasa.gov/api/area/) |
 
 ---
 

@@ -1,57 +1,64 @@
-# Skill: Add a New API to Nexus
+---
+name: add-api
+description: Wire any new external data source or API key into nexus-final.html. Use when adding a new third-party service, key-protected endpoint, or free data source. Read this before touching any code.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+context: fork
+---
 
-Use this skill when wiring any new external data source into nexus-final.html.
+# Add API — Quick Reference
 
-## Steps
+## Existing API keys (auto-loaded)
+!`grep -oP "(?<=  )[a-zA-Z]+Key(?=:)" nexus-final.html 2>/dev/null | sort -u || echo "Run from project root"`
 
-1. **Read CLAUDE.md first** — confirm the key naming convention and DEFAULT_CFG pattern.
+## 5-file touch points (in order)
+1. `DEFAULT_CFG` — add the key with a comment (~line 3414)
+2. Settings panel HTML — add the input field
+3. `loadSettings()` — wire the read
+4. `saveSettings()` — wire the write
+5. Fetch function — write the data loader with `try/catch`
 
-2. **Add the key to DEFAULT_CFG** (around line 3414):
+## Key naming convention
 ```javascript
+// camelCase, end with Key for user-supplied keys
 myServiceKey: '',  // MyService — myservice.com
 ```
 
-3. **Add the settings panel input** — find the relevant section in the settings panel HTML (search for `cfg-firms-key` to find the API keys section):
-```html
-<div class="sp-row">
-  <label class="sp-lbl">MyService API Key <a class="sp-link" href="https://myservice.com" target="_blank">Get free →</a></label>
-  <input class="sp-inp mono" id="cfg-myservice-key" type="password" placeholder="key…"/>
-  <div class="sp-note">Brief description of what this enables.</div>
-</div>
+## Finding anchor points
+```bash
+# Find DEFAULT_CFG location
+grep -n "DEFAULT_CFG\|otxKey\|firmsKey" nexus-final.html | head -10
+
+# Find settings panel (add your input near related keys)
+grep -n "cfg-firms-key\|cfg-otx-key" nexus-final.html | head -10
+
+# Find load/saveSettings
+grep -n "function loadSettings\|function saveSettings" nexus-final.html
 ```
 
-4. **Wire loadSettings()** — search for `cfg-firms-key` in loadSettings and add below it:
-```javascript
-if($('cfg-myservice-key')) $('cfg-myservice-key').value = S.settings.myServiceKey||'';
-```
-
-5. **Wire saveSettings()** — search for `cfg-firms-key` in saveSettings and add below it:
-```javascript
-if($('cfg-myservice-key')) S.settings.myServiceKey = $('cfg-myservice-key').value.trim();
-```
-
-6. **Write the fetch function** — place near related functions, always wrapped in try/catch:
+## Fetch function template
 ```javascript
 async function loadMyService() {
-  const key = (S.settings.myServiceKey||'').trim();
-  if(!key) return;
+  const key = (S.settings.myServiceKey || '').trim();
+  if (!key) return;
   try {
-    const r = await fetch(`https://api.myservice.com/endpoint?key=${key}`);
+    const r    = await fetch(`https://api.myservice.com/endpoint?key=${key}`);
     const data = await r.json();
-    // store in S.signals or render directly
+    S.signals.myService = data;
+    renderMyService(data);
   } catch(e) {}
 }
 ```
 
-7. **Call on tab init** if it belongs to a specific tab — add to the relevant init function.
-
-8. **Re-render COMMAND KPIs** if the data should appear there — add `if(S.tab==='superset') renderSSKPIs();` after storing data.
-
 ## Checklist
-- [ ] Added to DEFAULT_CFG
-- [ ] Added settings HTML input
-- [ ] Wired in loadSettings()
-- [ ] Wired in saveSettings()
-- [ ] Fetch function written with try/catch
-- [ ] Called on appropriate tab init
-- [ ] COMMAND tab updates if relevant
+- [ ] Added to `DEFAULT_CFG`
+- [ ] Settings HTML input added (type="password" for keys)
+- [ ] Wired in `loadSettings()`
+- [ ] Wired in `saveSettings()`
+- [ ] Fetch function written with `try/catch`
+- [ ] Called from appropriate tab init
+- [ ] COMMAND tab updated if the data is dashboard-level
+- [ ] Key never logged to console
+
+## Deep guide
+For full HTML templates, auth patterns, and CORS troubleshooting:
+@.claude/skills/add-api/GUIDE.md

@@ -1,3 +1,6 @@
+// ── components/alpha/PriceSparklines ───────────────────────
+// Miniature price charts for multiple crypto assets with 7-day sparklines.
+
 'use client'
 
 import { useMemo } from 'react'

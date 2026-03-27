@@ -1,3 +1,6 @@
+// ── components/vault/VaultExport ───────────────────────────
+// Export bookmarked articles to CSV, JSON, or PDF formats.
+
 'use client'
 
 import { useState } from 'react'

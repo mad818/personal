@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+// ── api/fires ───────────────────────────────────────────────
+// Active fires API: NASA FIRMS hotspot detection data.
 
-// NASA FIRMS Active Fire Data — requires a free MAP_KEY from NASA.
+import { NextResponse } from 'next/server'
 // Register at: https://firms.modaps.eosdis.nasa.gov/api/
 //
 // With FIRMS_MAP_KEY:   fetches live VIIRS SNPP NRT fire data (last 24h, world)

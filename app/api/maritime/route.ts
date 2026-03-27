@@ -1,3 +1,6 @@
+// ── api/maritime ────────────────────────────────────────────
+// Maritime tracking API: AIS stream for vessel positions and movements.
+
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -117,6 +120,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
-    return NextResponse.json({ vessels: [], error: msg }, { status: 200 })
+    return NextResponse.json({ vessels: [], error: msg }, { status: 500 })
   }
 }

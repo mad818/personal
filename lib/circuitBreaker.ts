@@ -1,4 +1,5 @@
-// lib/circuitBreaker.ts — server-side utility, no 'use client'
+// ── lib/circuitBreaker ──────────────────────────────────────
+// Circuit breaker pattern for fault tolerance in API calls.
 
 export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN'
 

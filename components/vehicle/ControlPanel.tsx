@@ -1,6 +1,7 @@
-'use client'
+// ── components/vehicle/ControlPanel ────────────────────────
+// Vehicle control interface: drive mode, acceleration, steering, emergency stop.
 
-// ControlPanel.tsx — Autonomous vehicle mode selector, emergency stop,
+'use client'
 // route controls, speed limiter, sensor toggles, and AI override.
 
 import { useState } from 'react'

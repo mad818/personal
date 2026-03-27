@@ -125,7 +125,7 @@ function detectAgent(msg: string): AgentId {
   if (!msg.trim()) return 'jansky'
   const lower = msg.toLowerCase()
   const code   = ['code','implement','build','fix','debug','write','create','component','function','patch','refactor','file','edit','typescript','react','next','bug','error'].filter(k => lower.includes(k)).length
-  const search = ['research','find','search','what','how','why','news','latest','who','when','current','today','look up','summarize'].filter(k => lower.includes(k)).length
+  const search = ['research','find','search','what','how','why','news','latest','who','when','current','today','look up','summarize','open','go to','navigate','visit','read this','read the page','browse','url','website','site','http'].filter(k => lower.includes(k)).length
   const sec    = ['security','cve','vulnerability','hack','exploit','threat','cyber','osint','malware','breach','attack','cipher','encrypt'].filter(k => lower.includes(k)).length
   const mkt    = ['price','crypto','market','trade','stock','btc','eth','bitcoin','chart','bull','bear','signal','portfolio','momentum','alpha','flux'].filter(k => lower.includes(k)).length
   const scores = { orbit: code, nova: search, cipher: sec, flux: mkt }
@@ -138,7 +138,7 @@ function buildAgentPrompt(id: AgentId, base: string): string {
   const personas: Record<AgentId, string> = {
     jansky: `\n\n[AGENT: JANSKY — Command] Strategic. Decisive. Brief. Speak with authority.`,
     orbit:  `\n\n[AGENT: ORBIT — Engineering] Precise. Technical. You own the Nexus Prime codebase.\n\nCRITICAL — You edit files DIRECTLY. Never output code blocks for the user to copy.\n\nWorkflow: list_project_files → read_project_file → for small/simple changes use patch_project_file directly → for large/risky changes (core files, 30+ lines) use propose_project_edit so the user reviews the diff first → for new files use create_project_file → verify with read_project_file. Report only what changed.`,
-    nova:   `\n\n[AGENT: NOVA — Research] Curious. Data-driven. Use web_search and fetch_url. Cite sources.`,
+    nova:   `\n\n[AGENT: NOVA — Research] Curious. Data-driven. Use web_search and fetch_url. Cite sources.\n\nBROWSER TOOLS: You can also control the user's browser directly.\n- navigate_to(url, new_tab?) — open a URL\n- read_current_tab() — read the active tab's title, URL, and page text\n- click_element(selector) — click a CSS selector or by visible text\n- type_text(selector, text) — type into an input\nUse these when asked to open, visit, browse, or read a website.`,
     cipher: `\n\n[AGENT: CIPHER — Security] Sharp. Methodical. CVE analysis, threat intel, secure coding. When fixing security issues in code: read_project_file then patch_project_file directly.`,
     flux:   `\n\n[AGENT: FLUX — Markets] Fast. Quantitative. Crypto/equity signals, macro, on-chain data.`,
   }
@@ -164,6 +164,10 @@ function stepLabel(step: AgentStep): string {
     case 'calculate':            return `🧮 ${inp.expression ?? ''}`
     case 'remember':             return `💾 saving to memory`
     case 'recall':               return `🧠 recalling memory`
+    case 'navigate_to':          return `🧭 navigating to ${inp.url?.slice(0, 40) ?? ''}…`
+    case 'read_current_tab':     return `👁️ reading current tab`
+    case 'click_element':        return `🖱️ clicking ${inp.selector ?? ''}…`
+    case 'type_text':            return `⌨️ typing into ${inp.selector ?? ''}…`
     default:                     return `🔧 ${step.tool ?? 'tool'}`
   }
 }

@@ -1,3 +1,6 @@
+// ── components/signals/SourceDistribution ──────────────────
+// Distribution chart of news sources with bias and reliability scores.
+
 'use client'
 
 import { useMemo } from 'react'

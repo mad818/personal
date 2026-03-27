@@ -1,3 +1,6 @@
+// ── components/ui/DataLoadingState ─────────────────────────
+// Loading skeleton and spinner UI for async data fetches.
+
 'use client'
 
 import { CSSProperties } from 'react'

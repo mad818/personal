@@ -1,3 +1,6 @@
+// ── components/signals/SentimentGauge ──────────────────────
+// Market sentiment gauge: positive/negative/neutral distribution from news.
+
 'use client'
 
 import { useMemo } from 'react'

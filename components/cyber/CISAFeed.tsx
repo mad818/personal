@@ -1,3 +1,6 @@
+// ── components/cyber/CISAFeed ──────────────────────────────
+// CISA known exploited vulnerabilities feed with advisory details.
+
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'

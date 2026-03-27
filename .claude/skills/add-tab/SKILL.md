@@ -1,56 +1,45 @@
-# Skill: Add a New Tab to Nexus
+---
+name: add-tab
+description: Add a new top-level tab to nexus-final.html. Use when creating a new major section of the dashboard. Read this before touching any code.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+context: fork
+---
 
-Use this skill when adding a new top-level tab to nexus-final.html.
+# Add Tab — Quick Reference
 
-## Steps
+## CSS prefix collision check
+!`grep -oP "(?<=\.)(ms|pm|sb|ss|mt|[a-z]{2,3})(?=-)" nexus-final.html 2>/dev/null | sort -u | head -20 || echo "Run from project root"`
 
-1. **Add the nav button** — find the `.nav-pills` section in the header HTML and insert:
-```html
-<button class="np" data-tab="mytab" data-tip="MYTAB — description." data-tip-pos="below">🔧 MYTAB</button>
-```
-
-2. **Add the tab panel HTML** — find the last `<div id="tab-...">` block and add after it:
-```html
-<!-- ── MYTAB ──────────────────────────────────────────────────────── -->
-<div id="tab-mytab" style="display:none">
-  <div style="max-width:1100px;margin:0 auto;padding:18px 16px 40px">
-    <!-- content here -->
-  </div>
-</div>
-```
-
-3. **Register in switchTab()** — find `function switchTab(tab)` and add `'mytab'` to the tabs array:
-```javascript
-['articles','security','saved','buys','world','superset','strategy','mytab'].forEach(t=>{
-```
-
-4. **Add tab init call** in switchTab():
-```javascript
-if(tab==='mytab') initMyTab();
-```
-
-5. **Write the init function**:
-```javascript
-function initMyTab() {
-  // render content, fetch data, etc.
-}
-```
-
-6. **Add CSS** near the top of `<style>`, grouped with related styles. Use a consistent prefix (e.g. `mt-` for my tab).
-
-7. **Update CLAUDE.md** tab structure table.
+## 7-step process (in order)
+1. Nav button — add to `.nav-pills` in header HTML
+2. HTML panel — add `<div id="tab-mytab" style="display:none">` after last tab panel
+3. Register — add `'mytab'` to the tabs array in `switchTab()`
+4. Init call — add `if(tab==='mytab') initMyTab();` in `switchTab()`
+5. Init function — write `function initMyTab() { ... }`
+6. CSS — add near top of `<style>`, unique prefix (e.g. `mt-`)
+7. Update CLAUDE.md tab map
 
 ## Naming conventions
-- Tab id: `tab-mytab`
-- CSS prefix: `mt-` (2-3 chars, unique)
-- Init function: `initMyTab()`
-- Data-tab value: `mytab`
+```
+Tab id:        tab-mytab
+CSS prefix:    mt-     (unique 2-3 chars across all tabs)
+Init fn:       initMyTab()
+data-tab:      mytab
+```
+
+## Existing prefixes (do not reuse)
+`ms-` momentum scanner, `pm-` polymarket, `sb-` shadowbroker, `ss-` superset/command
 
 ## Checklist
-- [ ] Nav button added
-- [ ] HTML panel added with display:none
+- [ ] Nav button added with data-tip
+- [ ] HTML panel added with `display:none`
 - [ ] Registered in switchTab() array
 - [ ] Init call added in switchTab()
 - [ ] Init function written
-- [ ] CSS added with consistent prefix
-- [ ] CLAUDE.md updated
+- [ ] CSS added with unique prefix
+- [ ] CLAUDE.md tab map updated
+- [ ] tsc passes if React surface was touched
+
+## Deep guide
+For full HTML/JS templates, advanced patterns, and nav styling:
+@.claude/skills/add-tab/GUIDE.md

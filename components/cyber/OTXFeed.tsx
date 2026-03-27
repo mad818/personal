@@ -1,3 +1,6 @@
+// ── components/cyber/OTXFeed ───────────────────────────────
+// AlienVault OTX threat intelligence feeds and IOC indicators.
+
 'use client'
 
 import { useStore } from '@/store/useStore'
@@ -104,41 +107,13 @@ function PulseCard({ pulse }: { pulse: OTXPulse }) {
 
 export default function OTXFeed() {
   const pulses = useStore((s) => s.otxPulses)
-  const otxKey = useStore((s) => s.settings.otxKey)
 
-  // No key configured
-  if (!otxKey) {
-    return (
-      <div style={{
-        background: 'var(--surf2)', border: '1px solid var(--border)', borderRadius: '10px',
-        padding: '24px 20px', textAlign: 'center',
-      }}>
-        <div style={{ fontSize: '24px', marginBottom: '8px' }}>🛡️</div>
-        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>
-          OTX Threat Intel
-        </div>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', lineHeight: 1.5 }}>
-          Add your AlienVault OTX API key in Settings to see live threat pulses.
-          <br />Free key at{' '}
-          <a
-            href="https://otx.alienvault.com/api"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: 'var(--accent)' }}
-          >
-            otx.alienvault.com
-          </a>
-        </div>
-      </div>
-    )
-  }
-
-  // Key set but no pulses yet
+  // No pulses yet (or no server key configured)
   if (!pulses.length) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text3)', fontSize: '13px' }}>
+      <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text3)', fontSize: '12px', lineHeight: 1.5 }}>
         <div style={{ fontSize: '24px', marginBottom: '8px' }}>🛡️</div>
-        Loading OTX pulses…
+        No OTX pulses yet. If this persists, set `OTX_KEY` in Settings and restart dev server.
       </div>
     )
   }

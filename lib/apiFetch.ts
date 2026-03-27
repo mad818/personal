@@ -1,3 +1,6 @@
+// ── lib/apiFetch ────────────────────────────────────────────
+// Authenticated fetch wrapper for all /api/* routes with error handling.
+
 /**
  * apiFetch — authenticated fetch for all /api/* routes.
  *

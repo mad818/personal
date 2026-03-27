@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+// ── api/commodities ─────────────────────────────────────────
+// Commodities API: real-time prices for oil, gold, metals via YFinance.
 
-// Server-side commodity prices.
+import { NextResponse } from 'next/server'
 // Precious metals + copper: metals.live (free, no key, real-time spot prices)
 // Energy (WTI crude, nat gas): FRED API if FRED_KEY is set
 //

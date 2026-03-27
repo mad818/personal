@@ -1,3 +1,6 @@
+// ── components/iot/SensorGauges ────────────────────────────
+// Circular gauge visualizations for temperature, humidity, pressure readings.
+
 'use client'
 
 import { useEffect, useRef } from 'react'

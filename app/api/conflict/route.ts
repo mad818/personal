@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+// ── api/conflict ────────────────────────────────────────────
+// Conflict tracker API: GDELT event feed with clustering and density analysis.
 
-// Server-side conflict/geopolitics feed.
+import { NextResponse } from 'next/server'
 // Parses RSS from BBC World News + Al Jazeera English — no API key needed,
 // no CORS issues, far more reliable than GDELT.
 

@@ -33,11 +33,45 @@ import {
 } from '@/store/useStore'
 import { useStore } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
+import { DEFAULT_LOCAL_MODEL } from '@/lib/aiModelRouting'
 import {
   remember  as memRemember,
   recall    as memRecall,
   recallByType,
 } from '@/lib/memoryStore'
+
+type ToolRiskTier = 'tier0' | 'tier1' | 'tier2'
+
+const TOOL_RISK: Record<string, ToolRiskTier> = {
+  // Tier 0: read/search/analysis actions
+  web_search: 'tier0',
+  fetch_url: 'tier0',
+  read_file: 'tier0',
+  list_files: 'tier0',
+  read_project_file: 'tier0',
+  list_project_files: 'tier0',
+  calculate: 'tier0',
+  recall: 'tier0',
+  read_current_tab: 'tier0',
+
+  // Tier 1: local/browser/session side-effects
+  remember: 'tier1',
+  ask_max: 'tier1',
+  navigate_to: 'tier1',
+  click_element: 'tier1',
+  type_text: 'tier1',
+  propose_project_edit: 'tier1',
+  draft_file: 'tier1',
+
+  // Tier 2: direct project mutation
+  write_file: 'tier2',
+  patch_project_file: 'tier2',
+  create_project_file: 'tier2',
+}
+
+function getToolRisk(name: string): ToolRiskTier {
+  return TOOL_RISK[name] ?? 'tier1'
+}
 
 // ── Tool definitions (shown to the model) ────────────────────────────────────
 export const AGENT_TOOLS = [
@@ -460,6 +494,27 @@ function browserType(selector: string, text: string): string {
 }
 
 async function executeTool(name: string, input: Record<string, string>): Promise<string> {
+  const risk = getToolRisk(name)
+
+  // High-risk write operations require explicit proposal/approval flow by default.
+  if (risk === 'tier2') {
+    const store = useStore.getState()
+    const requireApproval = store.settings.agentHighRiskWritesRequireApproval ?? true
+    if (requireApproval) {
+      const pathOrFile = input.path ?? input.filename ?? name
+      const blocked = `🔒 Blocked ${name} (${risk}). Use propose_project_edit first so the user can review and approve the change.`
+      store.addChangeEntry({
+        path: pathOrFile,
+        agent: 'orbit',
+        summary: `Policy blocked high-risk tool: ${name}`,
+        type: 'rejected',
+        linesAdded: 0,
+        linesRemoved: 0,
+      })
+      return blocked
+    }
+  }
+
   // ── Browser tools — run entirely in the user's browser window ──────────────
   if (typeof window !== 'undefined') {
     if (name === 'navigate_to') {
@@ -626,6 +681,31 @@ async function buildMemoryContext(userMessage: string): Promise<string> {
   }
 }
 
+type VerificationPayload = {
+  ok: boolean
+  adapters: { adapter: string; passed: boolean; summary: string }[]
+}
+
+async function runVerificationAdapters(): Promise<VerificationPayload> {
+  try {
+    const r = await apiFetch('/api/verify', {
+      method: 'POST',
+      body: JSON.stringify({ adapters: ['typecheck', 'lint', 'route_smoke'] }),
+      signal: AbortSignal.timeout(240_000),
+    })
+    const d = await r.json()
+    return {
+      ok: Boolean(r.ok && d?.ok),
+      adapters: Array.isArray(d?.adapters) ? d.adapters : [],
+    }
+  } catch {
+    return {
+      ok: false,
+      adapters: [{ adapter: 'route_smoke', passed: false, summary: 'Verification request failed' }],
+    }
+  }
+}
+
 // ── Auto-learning loop ────────────────────────────────────────────────────────
 // Called after each completed agent run. Uses a fast AI call to extract
 // learnable facts/preferences from the exchange and stores them in IndexedDB.
@@ -703,7 +783,7 @@ Example: ["User is analyzing BTC/USD 4h chart", "User prefers RSI(14) over MACD 
 async function runOllamaAgent(opts: AgentOptions): Promise<string> {
   const { settings: s, systemPrompt, messages, onStep, maxIterations = 6, draftMode = false } = opts
   const endpoint = s.localEndpoint || 'http://localhost:11434/v1/chat/completions'
-  const model    = s.localModel    || 'qwen3:8b'
+  const model    = s.localModel    || DEFAULT_LOCAL_MODEL
 
   // In draft mode, swap write_file out for draft_file
   const tools = draftMode
@@ -800,7 +880,12 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
       let   input: Record<string, string> = {}
       try { input = JSON.parse(tc.function.arguments) } catch { /* ignore parse errors */ }
 
-      onStep({ type: 'tool_call', content: JSON.stringify(input, null, 2), tool: name })
+      const risk = getToolRisk(name)
+      onStep({
+        type: 'tool_call',
+        content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
+        tool: name,
+      })
 
       let result: string
 
@@ -833,26 +918,43 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
   const { settings, systemPrompt, messages, onStep, maxIterations = 8, onToken } = opts
   void onToken // referenced via opts.onToken in loop body
   const s = settings ?? getSettings()
+  const runId = `run_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+  const phaseStart = new Map<OperationalPhase, number>()
+  const phaseDurations: Partial<Record<OperationalPhase, number>> = {}
+  const markPhase = (phase: OperationalPhase) => {
+    const now = Date.now()
+    const current = typeof window !== 'undefined' ? useStore.getState().currentPhase : undefined
+    if (current && phaseStart.has(current)) {
+      phaseDurations[current] = (phaseDurations[current] ?? 0) + Math.max(0, now - (phaseStart.get(current) ?? now))
+    }
+    phaseStart.set(phase, now)
+    if (typeof window !== 'undefined') {
+      const st = useStore.getState()
+      st.setCurrentPhase(phase)
+      st.markAgentPhase(phase)
+    }
+    onStep({ type: 'phase', content: phase, phase })
+  }
+
+  if (typeof window !== 'undefined') useStore.getState().beginAgentRun(runId)
 
   // ── Phase: interpreting ───────────────────────────────────────────────────
   const userMessage = messages.findLast(m => m.role === 'user')?.content ?? ''
-  if (typeof window !== 'undefined') {
-    useStore.getState().setCurrentPhase('interpreting')
-  }
-  onStep({ type: 'phase', content: 'interpreting', phase: 'interpreting' })
+  markPhase('interpreting')
 
   // ── Task plan: heuristic decomposition ───────────────────────────────────
   const plan = buildTaskPlan(userMessage)
   if (typeof window !== 'undefined') {
     useStore.getState().setTaskPlan(plan)
-    useStore.getState().setCurrentPhase('planning')
   }
   onStep({ type: 'task_plan', content: JSON.stringify(plan), plan })
-  onStep({ type: 'phase',     content: 'planning', phase: 'planning' })
+  markPhase('planning')
 
   // ── Auto-recall: inject relevant memories into system prompt ─────────────
   const memoryContext   = await buildMemoryContext(userMessage)
   const enrichedPrompt  = systemPrompt + memoryContext
+  const contextChars = memoryContext.length
+  const contextCompacted = memoryContext.includes('[CONTEXT COMPACTED')
 
   // Read current AI mode from store (outside React — getState() is safe)
   const storeAiMode: AIMode =
@@ -877,6 +979,33 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     store.setCurrentPhase('done')
   }
 
+  const finishDiagnostics = (args: { ok: boolean; failureCause?: string; verification?: VerificationPayload }) => {
+    if (typeof window === 'undefined') return
+    const v = args.verification
+    const verification = v
+      ? {
+          required: true,
+          attempted: true,
+          passed: v.ok,
+          adapters: v.adapters.map((a) => a.adapter),
+          details: v.adapters.map((a) => `${a.adapter}: ${a.summary}`),
+        }
+      : {
+          required: false,
+          attempted: false,
+          passed: true,
+          adapters: [],
+          details: [],
+        }
+    useStore.getState().finishAgentRun({
+      status: args.ok ? (verification.passed ? 'verified' : 'degraded') : 'failed',
+      failureCause: args.failureCause,
+      verification,
+      contextChars,
+      contextCompacted,
+    })
+  }
+
   // No API key in settings AND not anthropic provider → Ollama in regular mode
   // Note: the actual key now lives server-side. If aiProvider is 'anthropic' we
   // try /api/ai regardless — the server will return a clear error if key is missing.
@@ -884,11 +1013,13 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     try {
       const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: false })
       finalizeRunState(Boolean(answer))
+      finishDiagnostics({ ok: Boolean(answer) })
       void autoLearn(userMessage, answer, s)
       return answer
     } catch {
       const err = 'Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.'
       finalizeRunState(false)
+      finishDiagnostics({ ok: false, failureCause: err })
       onStep({ type: 'answer', content: err })
       return err
     }
@@ -899,11 +1030,13 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     try {
       const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: true })
       finalizeRunState(Boolean(answer))
+      finishDiagnostics({ ok: Boolean(answer) })
       void autoLearn(userMessage, answer, s)
       return answer
     } catch {
       const err = 'Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.'
       finalizeRunState(false)
+      finishDiagnostics({ ok: false, failureCause: err })
       onStep({ type: 'answer', content: err })
       return err
     }
@@ -943,10 +1076,12 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
         try {
           const fallback = await runOllamaAgent({ ...enrichedOpts, draftMode: false })
           finalizeRunState(Boolean(fallback))
+          finishDiagnostics({ ok: Boolean(fallback) })
           return fallback
         } catch { /* ignore */ }
       }
       finalizeRunState(false)
+      finishDiagnostics({ ok: false, failureCause: finalAnswer })
       onStep({ type: 'answer', content: finalAnswer })
       break
     }
@@ -963,11 +1098,13 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
       try {
         const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: true })
         finalizeRunState(Boolean(answer))
+        finishDiagnostics({ ok: Boolean(answer) })
         void autoLearn(userMessage, answer, s)
         return answer
       } catch {
         const err = 'Claude rate limited and Ollama is not reachable. Try again later.'
         finalizeRunState(false)
+        finishDiagnostics({ ok: false, failureCause: err })
         onStep({ type: 'answer', content: err })
         return err
       }
@@ -976,6 +1113,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     if (!res.ok) {
       finalAnswer = data?.error?.message ?? 'Claude API error.'
       finalizeRunState(false)
+      finishDiagnostics({ ok: false, failureCause: finalAnswer })
       break
     }
 
@@ -998,8 +1136,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
       // Splits the final text into ~4-char chunks and calls onToken with a small
       // delay between each, giving a live-typing appearance without a second API call.
       if (opts.onToken && textBlocks.length > 0) {
-        if (typeof window !== 'undefined') useStore.getState().setCurrentPhase('responding')
-        onStep({ type: 'phase', content: 'responding', phase: 'responding' })
+        markPhase('responding')
         const CHUNK = 4
         for (let i = 0; i < textBlocks.length; i += CHUNK) {
           opts.onToken(textBlocks.slice(i, i + CHUNK))
@@ -1018,8 +1155,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
 
     // First tool call → transition to executing phase
     if (toolUseBlocks.length > 0) {
-      if (typeof window !== 'undefined') useStore.getState().setCurrentPhase('executing')
-      onStep({ type: 'phase', content: 'executing', phase: 'executing' })
+      markPhase('executing')
       // Advance task plan: step 1 done, step 2 running
       if (typeof window !== 'undefined') {
         const store = useStore.getState()
@@ -1035,7 +1171,12 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
       toolUseBlocks.map(async (b) => {
         const name  = b.name  ?? ''
         const input = (b.input ?? {}) as Record<string, string>
-        onStep({ type: 'tool_call', content: JSON.stringify(input, null, 2), tool: name })
+        const risk = getToolRisk(name)
+        onStep({
+          type: 'tool_call',
+          content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
+          tool: name,
+        })
         const result = await executeTool(name, input)
         onStep({ type: 'tool_result', content: result, tool: name })
         toolResults.push({ type: 'tool_result', tool_use_id: b.id, content: result })
@@ -1047,12 +1188,24 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
 
   // Final phase transition + mark task plan complete
   if (finalAnswer) {
+    markPhase('validating')
+    let verification: VerificationPayload | undefined
+    if (!s.agentHighRiskWritesRequireApproval) {
+      verification = await runVerificationAdapters()
+      if (!verification.ok) {
+        onStep({ type: 'thinking', content: 'Verification failed: run marked DEGRADED (typecheck/lint/route smoke).' })
+      } else {
+        onStep({ type: 'thinking', content: 'Verification passed: typecheck, lint, route smoke.' })
+      }
+    }
     finalizeRunState(true)
-    onStep({ type: 'phase', content: 'done', phase: 'done' })
+    markPhase('done')
+    finishDiagnostics({ ok: true, verification })
   }
 
   // Auto-learn from completed conversation — runs silently in background
   if (finalAnswer) void autoLearn(userMessage, finalAnswer, s)
+  if (!finalAnswer) finishDiagnostics({ ok: false, failureCause: 'Run ended without final answer' })
 
   return finalAnswer
 }

@@ -12,6 +12,7 @@ import ProposedEditPanel from '@/components/ui/ProposedEditPanel'
 import ChangeLogPanel    from '@/components/ui/ChangeLogPanel'
 import CronSchedulerRunner from '@/components/ui/CronSchedulerRunner'
 import ErrorBoundary     from '@/components/system/ErrorBoundary'
+import ClickDebug        from '@/components/ui/ClickDebug'
 
 export const metadata: Metadata = {
   title: 'Nexus Prime',
@@ -38,6 +39,7 @@ export default function RootLayout({
             <CronSchedulerRunner />
             {/* Global command dock — persists across all tabs */}
             <CommandBar />
+            <ClickDebug />
             {/* Proposed edit overlay — agent proposes, user approves/rejects */}
             <ProposedEditPanel />
             {/* Audit trail — all applied/rejected changes */}

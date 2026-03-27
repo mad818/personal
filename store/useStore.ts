@@ -5,6 +5,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { OFFICE_OBJECT_DEFAULTS } from '@/components/home/office/constants'
 import type { OfficeObjectId, OfficeObjectPos } from '@/components/home/office/types'
+import { DEFAULT_LOCAL_MODEL } from '@/lib/aiModelRouting'
 
 // ── Notification types ────────────────────────────────────────────────────────
 export type NotificationType     = 'threat' | 'market' | 'seismic' | 'weather' | 'system' | 'intel'
@@ -67,6 +68,30 @@ export interface AgentStats {
   lastActiveAt:   number   // epoch ms
 }
 
+export type AgentRuntimeStatus = 'idle' | 'running' | 'verified' | 'degraded' | 'failed'
+
+export interface AgentRuntimeVerification {
+  required:  boolean
+  attempted: boolean
+  passed:    boolean
+  adapters:  string[]
+  details:   string[]
+}
+
+export interface AgentRuntime {
+  runId:          string
+  status:         AgentRuntimeStatus
+  currentPhase:   OperationalPhase
+  startedAt:      number
+  phaseStartedAt: number
+  finishedAt?:    number
+  phaseDurations: Partial<Record<OperationalPhase, number>>
+  failureCause?:  string
+  verification:   AgentRuntimeVerification
+  contextChars:   number
+  contextCompacted: boolean
+}
+
 // ── Activity log ──────────────────────────────────────────────────────────────
 export type LogEntryType = 'articles' | 'prices' | 'cves' | 'system' | 'agent' | 'world' | 'otx'
 
@@ -106,9 +131,10 @@ export const DEFAULT_SETTINGS = {
   apiKey:            '',
   aiProvider:        'openai' as 'openai' | 'anthropic',
   localEndpoint:     'http://localhost:11434/v1/chat/completions',
-  localModel:        'qwen3:8b',
+  localModel:        DEFAULT_LOCAL_MODEL,
   localApiKey:       '',
   useLocalReasoning: true,   // Use local deepseek-r1:14b for Think mode
+  agentHighRiskWritesRequireApproval: true,
   // Data APIs
   cgKey:         '',
   finnhubKey:    '',
@@ -137,6 +163,7 @@ export const DEFAULT_SETTINGS = {
   officeSplitHeightPx: 0,
   officeCameraPreset: 'cinematic' as 'cinematic' | 'closeOps' | 'wallReadability',
   officeOperationalMode: 'normal' as 'normal' | 'war' | 'nightOps',
+  officeVfxQuality: 'low' as 'off' | 'low' | 'high',
   enableWarAutoJobs: false,
   enableNightOpsAutoJobs: false,
   autoOpsJobCooldownMin: 30,
@@ -262,6 +289,10 @@ interface NexusState {
 
   // Core live data
   tab:           string
+  // Per-tab sub-tab selections (persisted)
+  intelView:     'news' | 'world' | 'markets'
+  marketsView:   'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices'
+  cyberView:     'triage' | 'matrix' | 'cves' | 'otx' | 'cisa'
   prices:        Record<string, PriceData>
   sparklines:    Record<string, number[]>
   articles:      Article[]
@@ -308,6 +339,12 @@ interface NexusState {
   agentStats:       Record<string, AgentStats>
   updateAgentStats: (agentId: string, patch: Partial<AgentStats>) => void
 
+  // Agent runtime diagnostics (run id, phase durations, verification status)
+  agentRuntime:      AgentRuntime
+  beginAgentRun:     (runId: string) => void
+  markAgentPhase:    (phase: OperationalPhase) => void
+  finishAgentRun:    (patch: Partial<Pick<AgentRuntime, 'status' | 'failureCause' | 'verification' | 'contextChars' | 'contextCompacted'>>) => void
+
   // Office chat history (in-session, survives tab switches)
   officeMessages:      OfficeChatMessage[]
   addOfficeMessage:    (msg: OfficeChatMessage) => void
@@ -340,6 +377,9 @@ interface NexusState {
 
   // Core setters
   setTab:            (tab: string) => void
+  setIntelView:      (view: NexusState['intelView']) => void
+  setMarketsView:    (view: NexusState['marketsView']) => void
+  setCyberView:      (view: NexusState['cyberView']) => void
   setWorldRisk:      (n: number) => void
   setPrices:         (prices: Record<string, PriceData>) => void
   setSparklines:     (sparklines: Record<string, number[]>) => void
@@ -405,6 +445,9 @@ export const useStore = create<NexusState>()(
 
       // Core live data defaults
       tab:           'home',
+      intelView:     'news',
+      marketsView:   'watchlist',
+      cyberView:     'triage',
       prices:        {},
       sparklines:    {},
       articles:      [],
@@ -478,6 +521,78 @@ export const useStore = create<NexusState>()(
           },
         })),
 
+      // Agent runtime diagnostics
+      agentRuntime: {
+        runId: '',
+        status: 'idle',
+        currentPhase: 'idle',
+        startedAt: 0,
+        phaseStartedAt: 0,
+        phaseDurations: {},
+        verification: {
+          required: false,
+          attempted: false,
+          passed: true,
+          adapters: [],
+          details: [],
+        },
+        contextChars: 0,
+        contextCompacted: false,
+      },
+      beginAgentRun: (runId) =>
+        set({
+          agentRuntime: {
+            runId,
+            status: 'running',
+            currentPhase: 'interpreting',
+            startedAt: Date.now(),
+            phaseStartedAt: Date.now(),
+            phaseDurations: {},
+            verification: {
+              required: false,
+              attempted: false,
+              passed: true,
+              adapters: [],
+              details: [],
+            },
+            contextChars: 0,
+            contextCompacted: false,
+          },
+        }),
+      markAgentPhase: (phase) =>
+        set((s) => {
+          const rt = s.agentRuntime
+          if (rt.status === 'idle' || !rt.startedAt) return { agentRuntime: { ...rt, currentPhase: phase } }
+          const now = Date.now()
+          const prevPhase = rt.currentPhase
+          const elapsed = Math.max(0, now - (rt.phaseStartedAt || now))
+          const phaseDurations = { ...rt.phaseDurations }
+          if (prevPhase) {
+            phaseDurations[prevPhase] = (phaseDurations[prevPhase] ?? 0) + elapsed
+          }
+          return {
+            agentRuntime: {
+              ...rt,
+              currentPhase: phase,
+              phaseStartedAt: now,
+              phaseDurations,
+            },
+          }
+        }),
+      finishAgentRun: (patch) =>
+        set((s) => ({
+          agentRuntime: {
+            ...s.agentRuntime,
+            status: patch.status ?? s.agentRuntime.status,
+            failureCause: patch.failureCause ?? s.agentRuntime.failureCause,
+            verification: patch.verification ?? s.agentRuntime.verification,
+            contextChars: patch.contextChars ?? s.agentRuntime.contextChars,
+            contextCompacted: patch.contextCompacted ?? s.agentRuntime.contextCompacted,
+            finishedAt: Date.now(),
+            currentPhase: 'done',
+          },
+        })),
+
       // Office chat history
       officeMessages:      [],
       addOfficeMessage:    (msg) =>
@@ -528,6 +643,9 @@ export const useStore = create<NexusState>()(
 
       // Core setters
       setTab:        (tab)        => set({ tab }),
+      setIntelView:   (intelView) => set({ intelView }),
+      setMarketsView: (marketsView) => set({ marketsView }),
+      setCyberView:   (cyberView) => set({ cyberView }),
       setWorldRisk:  (worldRisk)  => set({ worldRisk }),
       setPrices:     (prices)     => set({ prices }),
       setSparklines: (sparklines) => set({ sparklines }),
@@ -593,13 +711,25 @@ export const useStore = create<NexusState>()(
     }),
     {
       name:       'nexus-settings',
+      version:    1,
       partialize: (s) => ({
         settings:      s.settings,
         savedArticles: s.savedArticles,
         pendingDrafts: s.pendingDrafts,
         aiMode:        s.aiMode,
         officeLayout:  s.officeLayout,
+        intelView:     s.intelView,
+        marketsView:   s.marketsView,
+        cyberView:     s.cyberView,
       }),
+      migrate: (persisted: any) => {
+        // Ensure new persisted keys have safe defaults.
+        const next = { ...(persisted ?? {}) }
+        if (!next.intelView) next.intelView = 'news'
+        if (!next.marketsView) next.marketsView = 'watchlist'
+        if (!next.cyberView) next.cyberView = 'triage'
+        return next
+      },
     }
   )
 )

@@ -46,6 +46,22 @@
 35. Keep camera presets config-driven (single preset map + UI metadata) so new framing modes can be added without touching scene/render branching logic.
 36. Keep AI wiring contract-aligned across runtime/docs: inject capability blocks in active prompt path, keep `/api` route contracts real, and avoid model-map drift between client/server helpers.
 37. Add lightweight repository guardrails (path-collision checks + CI enforcement) when cross-platform path behavior can silently diverge.
+38. For large multi-batch pushes, publish a release summary doc with commit scopes, security checks, and rollback references to improve operational confidence.
+39. Keep AI model routing in one shared module used by both client and server to prevent silent behavior drift between `/api/ai`, chat wrappers, and store defaults.
+40. Default autonomous write tools to approval-gated mode (propose first, apply on review) and surface tool risk tier in traces so operators can audit decisions quickly.
+41. For permissive write-capable runs, enforce a post-run verification contract (type-check + lint + route smoke) and downgrade run status when validation fails.
+42. Agent runtime trust improves when run diagnostics are first-class state (run id, phase durations, verification, failure cause) and visible in the operator HUD.
+43. Add lightweight repo-native eval harness scripts early; they provide repeatable progress signals and can be CI-gated before full benchmark infrastructure exists.
+44. Eval gates should be threshold-driven (env/configurable) rather than hardcoded pass/fail so quality bars can tighten over time without script rewrites.
+45. For operator trust, pair CI eval gates with an in-app trend view so quality posture is visible without leaving the product surface.
+46. CI eval output must explicitly list failing checks and failing category thresholds; opaque "score below target" messages slow down triage.
+47. Route smoke checks should distinguish "endpoint unreachable" from "endpoint auth-protected"; 401/403 can still be healthy for protected APIs.
+48. Operational metrics should include freshness age/stale flags; score-only views can hide outdated health signals.
+49. Trigger endpoints for expensive health/eval jobs should enforce cooldown server-side; client-side throttling alone is insufficient.
+50. For operator-grade observability, summary badges should have a drilldown path (e.g., degraded reason list) plus a controlled force override for urgent revalidation.
+51. Pair runtime-grade badges with exportable diagnostics and history breadcrumbs so operators can escalate incidents with context in one step.
+52. Grade-drop alerts should include concise degraded-reason context; notifying without cause increases acknowledgement time.
+53. DraggableProp `y` is treated as the proxy mesh CENTER height; align it with the corresponding anchor group (or adjust by the floor/rug plane) to avoid floor clipping/overdraw.
 
 ---
 
@@ -86,3 +102,16 @@
 - Added a Wall Readability preset and moved camera handling to a centralized preset map to make future framing profiles low-risk and fast to extend.
 - Completed AI connection pass: wired capability injection in HQ, added `/api/health`, fixed `/api/project` tree fidelity, aligned local model maps/defaults, and updated `.claude` rules to match runtime architecture.
 - Added a cross-platform path-collision guard script + GitHub Actions workflow and published an interactive 90-day improvement plan map with gates, KPIs, and phased work packages.
+- Added a formal release summary for secure two-batch push flow, including commit IDs, verification checklist, and rollback commands.
+- Executed Phase 1 release hardening: centralized task-model routing, added sanitized `/api/status` diagnostics, introduced CI quality gates, and aligned env/docs defaults for local model and key naming.
+- Added Phase A guardrails: risk-tiered tool policy with default high-risk write blocking unless reviewed through proposed edits, plus status diagnostics for policy/routing visibility.
+- Executed multi-phase hardening slice: added `/api/verify` adapters, integrated verification/degraded run status into agent runtime, wired run diagnostics into store/HUD, added context-budget bundle helper, and introduced a reproducible runtime eval script + CI step.
+- Upgraded eval workflow with configurable min-score policy, CI enforcement at threshold, and persisted run artifacts/history in `docs/metrics` for trend visibility.
+- Added weighted eval scoring by category and surfaced runtime eval history through an API route plus a Settings-side trend panel for quick operator review.
+- Added category-threshold CI gating and a Telemetry HUD eval chip, plus explicit failure diagnostics output for faster remediation.
+- Extended route smoke to cover protected endpoint reachability and surfaced latest eval snapshot + category bars in status/settings diagnostics for faster operator triage.
+- Added a secure in-app eval trigger path and freshness-aware trend display, reducing operator friction for updating and validating runtime quality posture.
+- Added cooldown-governed eval runner state, `/api/status` rollup grade + degraded reasons, and HQ telemetry hints for stale/failing eval posture.
+- Added top-bar Eval Grade badge, force-run override in Settings, and explicit degraded reason lists so operators can move from signal -> diagnosis -> action quickly.
+- Added grade-drop notification signals plus copy/export diagnostics and recent-grade breadcrumb context to accelerate incident triage and reporting.
+- Added Open Status deep-link and compact severity iconography, plus reason-enriched drop alerts, to close the loop from detection to investigation.

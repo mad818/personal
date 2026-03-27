@@ -30,7 +30,7 @@ module.exports = {
           // Permissions policy — disable mic/cam/geoloc unless needed
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+            value: 'camera=(), microphone=(), geolocation=()',
           },
           // Content Security Policy
           // Allow: self, trusted CDNs used in the app, inline styles (for React inline styles)

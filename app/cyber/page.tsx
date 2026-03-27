@@ -3,13 +3,27 @@
 
 'use client'
 
-import { useState } from 'react'
-import CVEFeed             from '@/components/cyber/CVEFeed'
-import OTXFeed             from '@/components/cyber/OTXFeed'
-import CISAFeed            from '@/components/cyber/CISAFeed'
-import CyberHeatmap        from '@/components/cyber/CyberHeatmap'
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import CyberArticleHeatmap from '@/components/cyber/CyberArticleHeatmap'
 import { CVEsLoader, OTXLoader } from '@/components/ui/DataLoader'
+import { useStore } from '@/store/useStore'
+
+type CyberView = 'triage' | 'matrix' | 'cves' | 'otx' | 'cisa'
+const VIEWS: Array<{ id: CyberView; label: string }> = [
+  { id: 'triage', label: '🧠 TRIAGE' },
+  { id: 'matrix', label: '📊 MATRIX' },
+  { id: 'cves',   label: '⚠️ CVES' },
+  { id: 'otx',    label: '🛰 OTX' },
+  { id: 'cisa',   label: '🏛 CISA KEV' },
+]
+
+// Lazy-load heavy panels so only active view mounts.
+const LazyCyberHeatmap = dynamic(() => import('@/components/cyber/CyberHeatmap'), { ssr: false })
+const LazyCVEFeed = dynamic(() => import('@/components/cyber/CVEFeed'), { ssr: false })
+const LazyOTXFeed = dynamic(() => import('@/components/cyber/OTXFeed'), { ssr: false })
+const LazyCISAFeed = dynamic(() => import('@/components/cyber/CISAFeed'), { ssr: false })
 
 function CollapsibleSection({ title, children, defaultOpen = false }: {
   title: string; children: React.ReactNode; defaultOpen?: boolean
@@ -40,8 +54,32 @@ function CollapsibleSection({ title, children, defaultOpen = false }: {
 }
 
 export default function CyberPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const view = useStore((s) => s.cyberView) ?? 'triage'
+  const setView = useStore((s) => s.setCyberView)
+  const [lastTap, setLastTap] = useState<number>(0)
+
+  const urlView = useMemo(() => {
+    const v = (searchParams?.get('view') ?? '').toLowerCase()
+    return (['triage', 'matrix', 'cves', 'otx', 'cisa'] as CyberView[]).includes(v as CyberView) ? (v as CyberView) : null
+  }, [searchParams])
+
+  useEffect(() => {
+    if (!urlView) return
+    setView(urlView)
+  }, [urlView, setView])
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams?.toString() ?? '')
+    if ((params.get('view') ?? '').toLowerCase() === view) return
+    params.set('view', view)
+    router.replace(`/cyber?${params.toString()}`)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view])
+
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '18px 16px 80px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '18px 16px 80px', position: 'relative', zIndex: 5 }}>
       <CVEsLoader />
       <OTXLoader />
 
@@ -50,38 +88,81 @@ export default function CyberPage() {
         CVE vulnerabilities · CISA KEV catalog · OTX threat pulses · Adversary intelligence
       </div>
 
-      {/* ── Primary: article threat heat grid ── */}
-      <div style={{ marginBottom: '10px' }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text3)', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
-          Threat Intelligence Signals
-        </div>
-        <CyberArticleHeatmap />
+      {/* ── Sub-tabs ── */}
+      <div style={{
+        display: 'flex', gap: '4px', marginBottom: '16px',
+        background: 'var(--surf2)', border: '1px solid var(--border)',
+        borderRadius: '8px', padding: '3px', flexWrap: 'wrap',
+        position: 'relative', zIndex: 2001, pointerEvents: 'auto',
+      }}>
+        {VIEWS.map((v) => (
+          <button
+            key={v.id}
+            type="button"
+            onPointerDown={() => {
+              setView(v.id)
+              setLastTap(Date.now())
+            }}
+            style={{
+              flex: '1 1 140px',
+              padding: '6px 8px',
+              borderRadius: '6px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '11px',
+              fontWeight: 800,
+              letterSpacing: '0.3px',
+              transition: 'all .15s',
+              background: view === v.id ? 'var(--accent)' : 'transparent',
+              color: view === v.id ? '#fff' : 'var(--text2)',
+              minWidth: 120,
+            }}
+            aria-pressed={view === v.id}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: -10, marginBottom: 14 }}>
+        Active: <span style={{ color: 'var(--text2)', fontWeight: 700 }}>{String(view).toUpperCase()}</span>
+        {lastTap ? <span style={{ marginLeft: 10, opacity: 0.7 }}>· tapped {new Date(lastTap).toLocaleTimeString()}</span> : null}
       </div>
 
-      <div style={{ margin: '24px 0', height: '1px', background: 'var(--border)' }} />
-
-      {/* ── CVE + OTX severity matrix ── */}
-      <div style={{ marginBottom: '24px' }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text3)', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
-          CVE + OTX Severity Matrix
+      {view === 'triage' && (
+        <div style={{ marginBottom: '10px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text3)', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
+            Threat Intelligence Signals
+          </div>
+          <CyberArticleHeatmap />
         </div>
-        <CyberHeatmap />
-      </div>
+      )}
 
-      <div style={{ margin: '24px 0', height: '1px', background: 'var(--border)' }} />
+      {view === 'matrix' && (
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text3)', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
+            CVE + OTX Severity Matrix
+          </div>
+          <LazyCyberHeatmap />
+        </div>
+      )}
 
-      {/* ── Collapsible raw feeds ── */}
-      <CollapsibleSection title="NVD Vulnerabilities (Raw CVE Feed)">
-        <CVEFeed />
-      </CollapsibleSection>
+      {view === 'cves' && (
+        <CollapsibleSection title="NVD Vulnerabilities (Raw CVE Feed)" defaultOpen>
+          <LazyCVEFeed />
+        </CollapsibleSection>
+      )}
 
-      <CollapsibleSection title="AlienVault OTX — Threat Pulses">
-        <OTXFeed />
-      </CollapsibleSection>
+      {view === 'otx' && (
+        <CollapsibleSection title="AlienVault OTX — Threat Pulses" defaultOpen>
+          <LazyOTXFeed />
+        </CollapsibleSection>
+      )}
 
-      <CollapsibleSection title="CISA Known Exploited Vulnerabilities (KEV)">
-        <CISAFeed />
-      </CollapsibleSection>
+      {view === 'cisa' && (
+        <CollapsibleSection title="CISA Known Exploited Vulnerabilities (KEV)" defaultOpen>
+          <LazyCISAFeed />
+        </CollapsibleSection>
+      )}
 
     </div>
   )

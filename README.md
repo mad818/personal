@@ -214,10 +214,10 @@ Open [localhost:3000](http://localhost:3000). All tabs work — keys missing mea
 ## Local AI (fully offline)
 
 ```bash
-ollama pull qwen2.5:7b
+ollama pull qwen3:8b
 ```
 
-Then open **Settings** in the app, set provider to Local, endpoint to `http://localhost:11434/v1/chat/completions`, and model to `qwen2.5:7b`. No API key needed.
+Then open **Settings** in the app, set provider to Local, endpoint to `http://localhost:11434/v1/chat/completions`, and model to `qwen3:8b`. No API key needed.
 
 ---
 

@@ -98,6 +98,7 @@ function SlidePanel({
         width: 'min(480px, 92vw)',
         background: 'var(--surf)', borderLeft: '1px solid var(--border2)',
         zIndex: 50,
+        pointerEvents: open ? 'auto' : 'none',
         transform: open ? 'translateX(0)' : 'translateX(100%)',
         transition: 'transform .25s cubic-bezier(.4,0,.2,1)',
         display: 'flex', flexDirection: 'column',

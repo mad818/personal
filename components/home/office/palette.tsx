@@ -18,6 +18,13 @@ export const P: Record<string, string> = {
   e: '#1a1a2e',  // eye dark
   d: '#050607',  // shoe black / outline
 
+  // Extra accents for stronger character distinction
+  a: '#111827',  // near-black (hats/headbands)
+  u: '#3b5b7a',  // denim/blue jacket accent
+  U: '#274057',  // darker denim shadow
+  m: '#9ca3af',  // metal / plastic light (props)
+  M: '#6b7280',  // metal / plastic shadow (props)
+
   // JANSKY — navy suit, white shirt, red tie, dark brown hair
   h: '#2c1810', H: '#5a3520',  // hair body / highlight
   n: '#1e3a5f', N: '#0f1e35',  // navy suit body / shadow
@@ -46,6 +53,7 @@ export const P: Record<string, string> = {
   // FLUX — gold/amber trading jacket, chestnut brown hair (Robin)
   F: '#f59e0b', f: '#b45309',  // amber suit body / shadow
   B: '#7a3c18',                // chestnut brown hair
+  G: '#0b6b55',                // deep green shadow (Lucas jacket depth)
 }
 
 // ── PX ────────────────────────────────────────────────────────────────────────

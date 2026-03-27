@@ -6,6 +6,13 @@
 // Shows: BTC, ETH, Fear & Greed, World Risk, CVE count, news count.
 
 import { useStore } from '@/store/useStore'
+import { memo, useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/apiFetch'
+import { fetchJsonCached } from '@/lib/apiCache'
+import { evalGradeColor, gradeFromEvalScore } from '@/lib/helpers'
+import { RUNTIME_CACHE_TTL_MS, RUNTIME_POLL_MS, staggerDelayMs } from '@/lib/runtimeConfig'
+import { parseRuntimeEvalPayload } from '@/lib/runtimeTypes'
+import { shallow } from 'zustand/shallow'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -37,16 +44,17 @@ interface TickerItemProps {
   subColor?: string
   color?:    string
   dot?:      boolean
+  title?:    string
 }
 
-function TickerItem({ label, value, sub, subColor, color = '#dde1f0', dot }: TickerItemProps) {
+function TickerItem({ label, value, sub, subColor, color = '#dde1f0', dot, title }: TickerItemProps) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '6px',
       padding: '3px 10px',
       borderRight: '1px solid #1A2040',
       flexShrink: 0,
-    }}>
+    }} title={title}>
       {dot && (
         <span style={{
           width: '4px', height: '4px', borderRadius: '50%',
@@ -93,13 +101,60 @@ function Div() {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function TelemetryHUD() {
-  const prices    = useStore(s => s.prices)
-  const fg        = useStore(s => s.signals?.fg)
-  const worldRisk = useStore(s => s.worldRisk)
-  const cves      = useStore(s => s.cves)
-  const articles  = useStore(s => s.articles)
-  const agentStats = useStore(s => s.agentStats)
+function TelemetryHUD() {
+  const { prices, fg, worldRisk, cves, articles, agentStats, agentRuntime } = useStore(
+    (s) => ({
+      prices: s.prices,
+      fg: s.signals?.fg,
+      worldRisk: s.worldRisk,
+      cves: s.cves,
+      articles: s.articles,
+      agentStats: s.agentStats,
+      agentRuntime: s.agentRuntime,
+    }),
+    shallow,
+  )
+  const [evalLatest, setEvalLatest] = useState<{ score: number; minScore?: number; stale?: boolean; failures?: number; failureStreak?: number; effectiveCooldownMin?: number; fetchedAt?: number } | null>(null)
+
+  useEffect(() => {
+    let active = true
+    const load = async () => {
+      if (typeof document !== 'undefined' && document.hidden) return
+      try {
+        const raw = await fetchJsonCached('runtime-eval:limit=1', async () => {
+          const r = await apiFetch('/api/metrics/runtime-eval?limit=1')
+          return await r.json()
+        }, RUNTIME_CACHE_TTL_MS.runtimeEvalLimit1)
+        const d = parseRuntimeEvalPayload(raw)
+        if (!active) return
+        if (d?.latest && typeof d.latest.score === 'number') {
+          setEvalLatest({
+            score: d.latest.score,
+            minScore: d.latest.minScore,
+            stale: Boolean(d.freshness?.stale),
+            failures: (d.failures?.checks?.length ?? 0) + (d.failures?.categories?.length ?? 0),
+            failureStreak: Number(d.runner?.failureStreak ?? 0),
+            effectiveCooldownMin: typeof d.runner?.effectiveCooldownMin === 'number' ? d.runner.effectiveCooldownMin : undefined,
+            fetchedAt: Date.now(),
+          })
+        }
+      } catch {
+        // silent
+      }
+    }
+    const firstRun = window.setTimeout(() => { void load() }, staggerDelayMs('telemetry-hud-eval'))
+    const t = window.setInterval(() => { void load() }, RUNTIME_POLL_MS.telemetryEval)
+    const onVisible = () => {
+      if (!document.hidden) void load()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      active = false
+      window.clearTimeout(firstRun)
+      window.clearInterval(t)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [])
 
   const btc = prices['bitcoin']
   const eth = prices['ethereum']
@@ -220,8 +275,66 @@ export default function TelemetryHUD() {
         color="#00DDFF"
       />
 
+      <Div />
+
+      <TickerItem
+        label="RUN"
+        value={agentRuntime.status.toUpperCase()}
+        sub={agentRuntime.runId ? agentRuntime.runId.slice(-6) : undefined}
+        color={
+          agentRuntime.status === 'verified' ? '#00FF66'
+            : agentRuntime.status === 'degraded' ? '#f59e0b'
+            : agentRuntime.status === 'failed' ? '#ef4444'
+            : '#7ba7d4'
+        }
+        dot={agentRuntime.status !== 'idle'}
+      />
+
+      {evalLatest && (
+        <>
+          {(() => {
+            const evalGrade = gradeFromEvalScore(evalLatest.score, { stale: evalLatest.stale })
+            const evalColor = evalLatest.stale ? '#f59e0b' : evalGradeColor(evalGrade)
+            const evalSubColor = evalLatest.stale ? '#f59e0b' : (Number(evalLatest.failures ?? 0) > 0 ? '#ef4444' : evalColor)
+            return (
+              <>
+                <Div />
+                <TickerItem
+                  label="EVAL"
+                  value={`${evalLatest.score}`}
+                  sub={
+                    evalLatest.stale
+                      ? `STALE${evalLatest.failures ? ` · ${evalLatest.failures}x` : ''}`
+                      : (typeof evalLatest.minScore === 'number' ? `MIN ${evalLatest.minScore}${evalLatest.failures ? ` · ${evalLatest.failures}x` : ''}` : undefined)
+                  }
+                  subColor={evalSubColor}
+                  color={evalColor}
+                  dot
+                  title={evalLatest.fetchedAt ? `Updated ${new Date(evalLatest.fetchedAt).toLocaleTimeString()}` : undefined}
+                />
+              </>
+            )
+          })()}
+          {Number(evalLatest.failureStreak ?? 0) > 0 && (
+            <>
+              <Div />
+              <TickerItem
+                label="BACKOFF"
+                value={`x${2 ** Number(evalLatest.failureStreak ?? 0)}`}
+                sub={typeof evalLatest.effectiveCooldownMin === 'number' ? `${evalLatest.effectiveCooldownMin}m` : undefined}
+                subColor="#f59e0b"
+                color="#f59e0b"
+                dot
+              />
+            </>
+          )}
+        </>
+      )}
+
       {/* Right spacer */}
       <div style={{ flex: 1 }} />
     </div>
   )
 }
+
+export default memo(TelemetryHUD)

@@ -9,7 +9,12 @@
     "preview": "next build && next start",
     "seed": "node -r dotenv/config ./scripts/seed.mjs",
     "check:path-collisions": "node scripts/check-path-collisions.js",
+    "eval:agent-runtime": "node scripts/eval-agent-runtime.js",
+    "eval:agent-runtime:record": "node scripts/eval-agent-runtime.js --record --min-score 85",
+    "eval:agent-runtime:ci": "node scripts/eval-agent-runtime.js --min-score 85 --min-category safety=80 --min-category reliability=80 --min-category ux=70 --min-category observability=70",
     "type-check": "tsc --noEmit",
+    "verify": "npm run type-check && npm run lint && npm run check:path-collisions",
+    "verify:full": "npm run verify && npm run format:check",
     "format:write": "prettier --write \"{app,lib,components}/**/*.{ts,tsx,mdx}\" --cache",
     "format:check": "prettier --check \"{app,lib,components}**/*.{ts,tsx,mdx}\" --cache"
   },

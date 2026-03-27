@@ -18,17 +18,20 @@ import { usePathname, useRouter } from 'next/navigation'
 import PageTransition from '@/components/ui/PageTransition'
 import PhaseStrip from '@/components/ui/PhaseStrip'
 import TaskPlanPanel from '@/components/ui/TaskPlanPanel'
-import TelemetryHUD from '@/components/ui/TelemetryHUD'
 import MemoryPanel from '@/components/ui/MemoryPanel'
 import CronSchedulerPanel from '@/components/ui/CronSchedulerPanel'
 import { runAgent, type AgentStep } from '@/lib/agent'
 import { buildSystemPrompt } from '@/lib/ai'
+import { apiFetch } from '@/lib/apiFetch'
+import { fetchJsonCached } from '@/lib/apiCache'
+import { evalGradeColor, evalIndicatorIcon, gradeFromEvalScore } from '@/lib/helpers'
+import { RUNTIME_CACHE_TTL_MS, RUNTIME_POLL_MS } from '@/lib/runtimeConfig'
+import { parseRuntimeEvalPayload, parseStatusPayload } from '@/lib/runtimeTypes'
 import { useStore } from '@/store/useStore'
-import { buildCapabilitiesBlock, buildLiveContext } from '@/lib/liveContext'
+import { buildCapabilitiesBlock, buildLiveContextBundle } from '@/lib/liveContext'
 import { detectRouteFromPrompt, detectRouteFromTool } from '@/lib/chatCapabilityRouting'
 
 import { CrabMascot } from './CrabMascot'
-import { WelcomeHUD } from './WelcomeHUD'
 import { ToolCallBadge } from './ToolCallBadge'
 import { ModeBriefingPanel } from './ModeBriefingPanel'
 import { detectAgent, buildAgentPrompt } from './prompts'
@@ -50,7 +53,8 @@ type OfficeCameraPreset = 'cinematic' | 'closeOps' | 'wallReadability'
 
 const OFFICE_HEIGHT_MIN_PX = 300
 const OFFICE_HEIGHT_MAX_PX = 700
-const OFFICE_HEIGHT_DEFAULT_VH = 52
+// Default office height reduced so chat isn't starved on first load.
+const OFFICE_HEIGHT_DEFAULT_VH = 42
 const OFFICE_HEIGHT_STEP_PX = 20
 const SPLIT_LOCK_STORAGE_KEY = 'nexus_hq_split_drag_locked'
 const CAMERA_PRESET_OPTIONS: Array<{ id: OfficeCameraPreset; label: string; title: string }> = [
@@ -118,13 +122,16 @@ export default function OfficeCommandCenter() {
   const resetOfficeLayout = useStore((s) => s.resetOfficeLayout)
   const officeLayout = useStore((s) => s.officeLayout)
   const updateSettings = useStore((s) => s.updateSettings)
-  const officeSceneMode = useStore((s) => s.settings.officeSceneMode ?? 'auto')
-  const officeMotion = useStore((s) => s.settings.officeMotion ?? 1)
-  const officeCameraPreset = useStore((s) => (s.settings.officeCameraPreset ?? 'cinematic') as OfficeCameraPreset)
-  const officeSplitHeightPx = useStore((s) => s.settings.officeSplitHeightPx ?? 0)
-  const officeOperationalMode = useStore((s) => s.settings.officeOperationalMode ?? 'normal')
+  const officeSceneMode = settings.officeSceneMode ?? 'auto'
+  const officeMotion = settings.officeMotion ?? 1
+  const officeCameraPreset = (settings.officeCameraPreset ?? 'cinematic') as OfficeCameraPreset
+  const officeSplitHeightPx = settings.officeSplitHeightPx ?? 0
+  const officeOperationalMode = settings.officeOperationalMode ?? 'normal'
+  const officeVfxQuality = (settings.officeVfxQuality ?? 'low') as 'off' | 'low' | 'high'
   const setOfficeLayout = useStore((s) => s.setOfficeLayout)
   const setTab = useStore((s) => s.setTab)
+  const addNotification = useStore((s) => s.addNotification)
+  const addLog = useStore((s) => s.addLog)
 
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
@@ -146,10 +153,16 @@ export default function OfficeCommandCenter() {
   const [splitDragLocked, setSplitDragLocked] = useState(false)
   const [compactSplitControls, setCompactSplitControls] = useState(false)
   const [showSplitMore, setShowSplitMore] = useState(false)
+  const [evalGrade, setEvalGrade] = useState<'A' | 'B' | 'C' | 'unknown'>('unknown')
+  const [evalTrail, setEvalTrail] = useState<string>('')
+  const [evalStale, setEvalStale] = useState(false)
+  const [evalFailureCount, setEvalFailureCount] = useState(0)
+  const [evalUpdatedAt, setEvalUpdatedAt] = useState<number | null>(null)
 
   // Local scroll management for the terminal chat area.
   const bottomRef = useRef<HTMLDivElement>(null)
   const lastRoutedRef = useRef<string>('')
+  const prevEvalGradeRef = useRef<'A' | 'B' | 'C' | 'unknown'>('unknown')
 
   // Keep emotion in sync when we transition from thinking -> working -> done.
   useEffect(() => {
@@ -166,7 +179,9 @@ export default function OfficeCommandCenter() {
     const fromSettings = Number(officeSplitHeightPx || 0)
     const fallback = Math.round((window.innerHeight * OFFICE_HEIGHT_DEFAULT_VH) / 100)
     const initial = fromSettings > 0 ? fromSettings : fallback
-    setOfficeHeightPx(Math.max(OFFICE_HEIGHT_MIN_PX, Math.min(OFFICE_HEIGHT_MAX_PX, initial)))
+    const maxByViewport = Math.round(window.innerHeight * 0.62)
+    const maxAllowed = Math.max(OFFICE_HEIGHT_MIN_PX, Math.min(OFFICE_HEIGHT_MAX_PX, maxByViewport))
+    setOfficeHeightPx(Math.max(OFFICE_HEIGHT_MIN_PX, Math.min(maxAllowed, initial)))
   }, [officeHeightPx, officeSplitHeightPx])
 
   useEffect(() => {
@@ -183,6 +198,78 @@ export default function OfficeCommandCenter() {
       // silent fail
     }
   }, [])
+
+  useEffect(() => {
+    let active = true
+    const load = async () => {
+      if (typeof document !== 'undefined' && document.hidden) return
+      try {
+        const d = await fetchJsonCached('status:readiness', async () => {
+          const r = await apiFetch('/api/status')
+          return await r.json()
+        }, RUNTIME_CACHE_TTL_MS.statusReadiness)
+        const statusData = parseStatusPayload(d)
+        const trailRaw = await fetchJsonCached('runtime-eval:limit=5', async () => {
+          const trailRes = await apiFetch('/api/metrics/runtime-eval?limit=5')
+          return await trailRes.json()
+        }, RUNTIME_CACHE_TTL_MS.runtimeEvalLimit5)
+        const trailData = parseRuntimeEvalPayload(trailRaw)
+        if (!active) return
+        const nextGrade = statusData?.readiness?.evalPolicy?.rollup?.grade ?? 'unknown'
+        const prevGrade = prevEvalGradeRef.current
+        setEvalGrade(nextGrade)
+        setEvalUpdatedAt(Date.now())
+        const stale = Boolean(
+          statusData?.readiness?.evalPolicy?.rollup?.stale ??
+          trailData?.freshness?.stale
+        )
+        setEvalStale(stale)
+        const failureCount = (trailData?.failures?.checks?.length ?? 0) + (trailData?.failures?.categories?.length ?? 0)
+        setEvalFailureCount(failureCount)
+        const trail = (trailData.history ?? [])
+          .map((h) => {
+            const score = Number(h.score ?? 0)
+            return gradeFromEvalScore(score)
+          })
+          .join(' > ')
+        setEvalTrail(trail)
+
+        // Alert when quality posture drops from A/B to lower grade.
+        if ((prevGrade === 'A' || prevGrade === 'B') && (nextGrade === 'C' || nextGrade === 'unknown')) {
+          const reasons = statusData?.readiness?.evalPolicy?.rollup?.degradedReasons ?? []
+          const reasonHint = reasons.length ? reasons.slice(0, 3).join(', ') : 'unknown cause'
+          const incidentText = `Runtime eval grade ${prevGrade} -> ${nextGrade}${stale ? ' (stale)' : ''} · ${reasonHint}`
+          addNotification({
+            type: 'system',
+            severity: 'high',
+            title: 'Runtime eval grade dropped',
+            message: `Eval grade ${prevGrade} -> ${nextGrade}. ${reasonHint}${stale ? ' (stale)' : ''}`,
+            source: 'runtime-eval',
+          })
+          addLog({
+            type: 'system',
+            text: incidentText,
+            color: '#ef4444',
+          })
+        }
+        prevEvalGradeRef.current = nextGrade
+      } catch {
+        if (!active) return
+        setEvalGrade('unknown')
+      }
+    }
+    void load()
+    const timer = window.setInterval(() => { void load() }, RUNTIME_POLL_MS.hqStatus)
+    const onVisible = () => {
+      if (!document.hidden) void load()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [addNotification, addLog])
 
   useEffect(() => {
     const onResize = () => {
@@ -306,7 +393,8 @@ export default function OfficeCommandCenter() {
     }
 
     // Phase 3: run the agent (ground it in live dashboard state).
-    const liveContext = buildLiveContext(useStore.getState())
+    const liveBundle = buildLiveContextBundle(useStore.getState(), { maxChars: 3200 })
+    const liveContext = liveBundle.context
     const systemBase = buildSystemPrompt(settings, liveContext)
     const enrichedPrompt = buildAgentPrompt(target, systemBase) + buildCapabilitiesBlock(target)
 
@@ -388,7 +476,9 @@ export default function OfficeCommandCenter() {
 
   const applySplitHeight = useCallback(
     (next: number, announce?: string) => {
-      const clamped = Math.max(OFFICE_HEIGHT_MIN_PX, Math.min(OFFICE_HEIGHT_MAX_PX, Math.round(next)))
+      const maxByViewport = typeof window !== 'undefined' ? Math.round(window.innerHeight * 0.62) : OFFICE_HEIGHT_MAX_PX
+      const maxAllowed = Math.max(OFFICE_HEIGHT_MIN_PX, Math.min(OFFICE_HEIGHT_MAX_PX, maxByViewport))
+      const clamped = Math.max(OFFICE_HEIGHT_MIN_PX, Math.min(maxAllowed, Math.round(next)))
       setOfficeHeightPx(clamped)
       updateSettings({ officeSplitHeightPx: clamped })
       if (announce) setSplitNotice(announce)
@@ -431,7 +521,9 @@ export default function OfficeCommandCenter() {
         applySplitHeight(OFFICE_HEIGHT_MIN_PX, 'Layout minimized')
       } else if (e.key === 'End') {
         e.preventDefault()
-        applySplitHeight(OFFICE_HEIGHT_MAX_PX, 'Layout maximized')
+        const maxByViewport = typeof window !== 'undefined' ? Math.round(window.innerHeight * 0.62) : OFFICE_HEIGHT_MAX_PX
+        const maxAllowed = Math.max(OFFICE_HEIGHT_MIN_PX, Math.min(OFFICE_HEIGHT_MAX_PX, maxByViewport))
+        applySplitHeight(maxAllowed, 'Layout maximized')
       }
     },
     [officeHeightPx, applySplitHeight],
@@ -493,8 +585,25 @@ export default function OfficeCommandCenter() {
             style={{
               fontSize: '11px',
               fontFamily: "'VT323', monospace",
-              color: '#00DDFF',
+              color: evalGradeColor(evalGrade),
+              border: '1px solid #1A2040',
+              borderRadius: 999,
+              padding: '2px 8px',
               marginLeft: 'auto',
+              opacity: 0.9,
+            }}
+            title={[
+              evalTrail ? `Recent grades: ${evalTrail}` : 'No recent grade history',
+              evalUpdatedAt ? `Updated: ${new Date(evalUpdatedAt).toLocaleTimeString()}` : null,
+            ].filter(Boolean).join(' · ')}
+          >
+            {evalIndicatorIcon({ stale: evalStale, failures: evalFailureCount })} EVAL {evalGrade}
+          </span>
+          <span
+            style={{
+              fontSize: '11px',
+              fontFamily: "'VT323', monospace",
+              color: '#00DDFF',
               opacity: 0.9,
             }}
           >
@@ -503,7 +612,6 @@ export default function OfficeCommandCenter() {
         </div>
 
         {/* ── Operational UI ── */}
-        <TelemetryHUD />
         <PhaseStrip />
         <TaskPlanPanel />
 
@@ -611,261 +719,18 @@ export default function OfficeCommandCenter() {
               sceneMode={officeSceneMode}
               motionIntensity={officeMotion}
               cameraPreset={officeCameraPreset}
+              vfxQuality={officeVfxQuality}
+              onOpenMemory={() => setMemoryOpen(true)}
+              onOpenScheduler={() => setSchedulerOpen(true)}
+              onToggleEditMode={() => setOfficeEditMode(!officeEditMode)}
+              onResetLayout={() => resetOfficeLayout()}
+              onSetCameraPreset={(p) => updateSettings({ officeCameraPreset: p })}
+              onSetVfxQuality={(q) => updateSettings({ officeVfxQuality: q })}
               dispatchBar={dispatchBar}
             />
           </div>
 
-          {/* Layout editor controls */}
-          <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 60, display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              onClick={() => setMemoryOpen(true)}
-              style={{
-                fontSize: 9,
-                fontWeight: 800,
-                letterSpacing: '.08em',
-                padding: '6px 10px',
-                borderRadius: 999,
-                border: '1px solid rgba(79,110,247,0.55)',
-                background: 'rgba(79,110,247,0.10)',
-                color: '#4f6ef7',
-                cursor: 'pointer',
-              }}
-              title="Open agent memory panel"
-            >
-              MEMORY
-            </button>
-            <button
-              type="button"
-              onClick={() => setSchedulerOpen(true)}
-              style={{
-                fontSize: 9,
-                fontWeight: 800,
-                letterSpacing: '.08em',
-                padding: '6px 10px',
-                borderRadius: 999,
-                border: '1px solid rgba(16,185,129,0.55)',
-                background: 'rgba(16,185,129,0.10)',
-                color: '#10b981',
-                cursor: 'pointer',
-              }}
-              title="Open recurring task scheduler"
-            >
-              SCHEDULER
-            </button>
-            <button
-              type="button"
-              onClick={() => setOfficeEditMode(!officeEditMode)}
-              style={{
-                fontSize: 9,
-                fontWeight: 800,
-                letterSpacing: '.08em',
-                padding: '6px 10px',
-                borderRadius: 999,
-                border: `1px solid ${officeEditMode ? '#00FF66' : '#00DDFF'}55`,
-                background: officeEditMode ? 'rgba(0,255,102,0.12)' : 'rgba(0,221,255,0.10)',
-                color: officeEditMode ? '#00FF66' : '#00DDFF',
-                cursor: 'pointer',
-              }}
-              title="Toggle layout edit mode"
-            >
-              {officeEditMode ? 'EDIT MODE: ON' : 'EDIT MODE'}
-            </button>
-            {officeEditMode && (
-              <button
-                type="button"
-                onClick={() => resetOfficeLayout()}
-                style={{
-                  fontSize: 9,
-                  fontWeight: 800,
-                  letterSpacing: '.08em',
-                  padding: '6px 10px',
-                  borderRadius: 999,
-                  border: '1px solid rgba(239,68,68,0.55)',
-                  background: 'rgba(239,68,68,0.10)',
-                  color: '#ef4444',
-                  cursor: 'pointer',
-                }}
-                title="Reset object positions to defaults"
-              >
-                RESET
-              </button>
-            )}
-
-            <>
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 800,
-                  letterSpacing: '.08em',
-                  padding: '6px 10px',
-                  borderRadius: 999,
-                  border: '1px solid #10b98155',
-                  background: 'rgba(16,185,129,0.12)',
-                  color: '#10b981',
-                  userSelect: 'none',
-                }}
-                title="3D camera movement is intentionally locked"
-              >
-                CAM: LOCKED
-              </span>
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 800,
-                  letterSpacing: '.08em',
-                  padding: '6px 10px',
-                  borderRadius: 999,
-                  border: '1px solid #f59e0b55',
-                  background: 'rgba(245,158,11,0.12)',
-                  color: '#f59e0b',
-                  userSelect: 'none',
-                }}
-                title="Operational behavior profile"
-              >
-                MODE: {OFFICE_OPERATIONAL_PROFILES[officeOperationalMode].label}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  const order: Array<'auto' | 'morning' | 'afternoon' | 'night'> = ['auto', 'morning', 'afternoon', 'night']
-                  const idx = order.indexOf(officeSceneMode as any)
-                  const next = order[(idx + 1) % order.length]
-                  updateSettings({ officeSceneMode: next })
-                }}
-                style={{
-                  fontSize: 9,
-                  fontWeight: 800,
-                  letterSpacing: '.08em',
-                  padding: '6px 10px',
-                  borderRadius: 999,
-                  border: '1px solid #7ba7d455',
-                  background: 'rgba(123,167,212,0.12)',
-                  color: '#7ba7d4',
-                  cursor: 'pointer',
-                }}
-                title="Cycle scene mode"
-              >
-                SCENE: {String(officeSceneMode).toUpperCase()}
-              </button>
-              <button
-                type="button"
-                onClick={() => updateSettings({ officeMotion: Math.max(0.4, Number((officeMotion - 0.2).toFixed(1))) })}
-                style={{
-                  fontSize: 9, fontWeight: 800, letterSpacing: '.08em',
-                  padding: '6px 8px', borderRadius: 999, border: '1px solid #1A2040',
-                  background: 'rgba(26,32,64,0.2)', color: '#7ba7d4', cursor: 'pointer',
-                }}
-                title="Decrease motion intensity"
-              >MOTION -</button>
-              <button
-                type="button"
-                onClick={() => updateSettings({ officeMotion: Math.min(2, Number((officeMotion + 0.2).toFixed(1))) })}
-                style={{
-                  fontSize: 9, fontWeight: 800, letterSpacing: '.08em',
-                  padding: '6px 8px', borderRadius: 999, border: '1px solid #1A2040',
-                  background: 'rgba(26,32,64,0.2)', color: '#7ba7d4', cursor: 'pointer',
-                }}
-                title="Increase motion intensity"
-              >MOTION +</button>
-              {CAMERA_PRESET_OPTIONS.map((preset) => {
-                const active = officeCameraPreset === preset.id
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => updateSettings({ officeCameraPreset: preset.id })}
-                    style={{
-                      fontSize: 9, fontWeight: 800, letterSpacing: '.08em',
-                      padding: '6px 9px', borderRadius: 999,
-                      border: `1px solid ${active ? '#00DDFF88' : '#1A2040'}`,
-                      background: active ? 'rgba(0,221,255,0.12)' : 'rgba(26,32,64,0.2)',
-                      color: active ? '#00DDFF' : '#7ba7d4', cursor: 'pointer',
-                    }}
-                    title={preset.title}
-                  >
-                    {preset.label}
-                  </button>
-                )
-              })}
-
-                {/* ── Layout presets ── */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const p = OFFICE_LAYOUT_PRESETS.focus
-                    if (p.officeSceneMode) updateSettings({ officeSceneMode: p.officeSceneMode, officeOperationalMode: 'normal' })
-                    if (p.officeMotion) updateSettings({ officeMotion: p.officeMotion, officeOperationalMode: 'normal' })
-                    setTab('intel')
-                    setOfficeLayout(p.layout)
-                  }}
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 800,
-                    letterSpacing: '.08em',
-                    padding: '6px 10px',
-                    borderRadius: 999,
-                    border: '1px solid rgba(0,255,102,0.45)',
-                    background: 'rgba(0,255,102,0.10)',
-                    color: '#00FF66',
-                    cursor: 'pointer',
-                  }}
-                  title="Apply Focus preset"
-                >
-                  FOCUS
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    const p = OFFICE_LAYOUT_PRESETS.war
-                    if (p.officeSceneMode) updateSettings({ officeSceneMode: p.officeSceneMode, officeOperationalMode: 'war' })
-                    if (p.officeMotion) updateSettings({ officeMotion: p.officeMotion, officeOperationalMode: 'war' })
-                    setTab('cyber')
-                    setOfficeLayout(p.layout)
-                  }}
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 800,
-                    letterSpacing: '.08em',
-                    padding: '6px 10px',
-                    borderRadius: 999,
-                    border: '1px solid rgba(239,68,68,0.45)',
-                    background: 'rgba(239,68,68,0.10)',
-                    color: '#ef4444',
-                    cursor: 'pointer',
-                  }}
-                  title="Apply War Room preset"
-                >
-                  WAR ROOM
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    const p = OFFICE_LAYOUT_PRESETS.nightOps
-                    if (p.officeSceneMode) updateSettings({ officeSceneMode: p.officeSceneMode, officeOperationalMode: 'nightOps' })
-                    if (p.officeMotion) updateSettings({ officeMotion: p.officeMotion, officeOperationalMode: 'nightOps' })
-                    setTab('security')
-                    setOfficeLayout(p.layout)
-                  }}
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 800,
-                    letterSpacing: '.08em',
-                    padding: '6px 10px',
-                    borderRadius: 999,
-                    border: '1px solid rgba(167,139,250,0.55)',
-                    background: 'rgba(167,139,250,0.12)',
-                    color: '#a78bfa',
-                    cursor: 'pointer',
-                  }}
-                  title="Apply Night Ops preset"
-                >
-                  NIGHT OPS
-                </button>
-            </>
-          </div>
+          {/* Office controls moved in-scene onto the WALL CONTROL board (keeps chat clear). */}
 
           <div style={{ position: 'absolute', right: 12, top: 52, zIndex: 55 }}>
             <ModeBriefingPanel onOpenTab={openBriefingTab} />
@@ -1092,7 +957,10 @@ export default function OfficeCommandCenter() {
           }}
         >
           {messages.length === 0 ? (
-            <WelcomeHUD />
+            <div style={{ padding: '18px 18px', color: 'var(--text3)', fontSize: 12, lineHeight: 1.5 }}>
+              <div style={{ fontWeight: 900, letterSpacing: '.06em', color: 'var(--text2)', marginBottom: 6 }}>HQ TERMINAL</div>
+              <div>Type a message to start. Live KPIs are now mounted on the office walls to keep chat unobstructed.</div>
+            </div>
           ) : (
             <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {messages.map((m, i) => {

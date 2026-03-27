@@ -3,7 +3,8 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic            from 'next/dynamic'
 import TopicHeatmap       from '@/components/signals/TopicHeatmap'
 import WorldTopicHeatmap  from '@/components/ops/WorldTopicHeatmap'
@@ -12,6 +13,7 @@ import ConflictFeed       from '@/components/ops/ConflictFeed'
 import MarketRates        from '@/components/ops/MarketRates'
 import PolymarketFeed     from '@/components/intel/PolymarketFeed'
 import { ArticlesLoader } from '@/components/ui/DataLoader'
+import { useStore } from '@/store/useStore'
 
 const OpsMap = dynamic(() => import('@/components/ops/OpsMap'), { ssr: false })
 
@@ -30,7 +32,7 @@ function CollapsibleSection({ title, children, defaultOpen = false }: {
   return (
     <div style={{ marginBottom: '8px' }}>
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={() => setOpen((v: boolean) => !v)}
         style={{
           display: 'flex', alignItems: 'center', gap: '8px',
           width: '100%', background: 'var(--surf2)',
@@ -62,10 +64,35 @@ function CollapsibleSection({ title, children, defaultOpen = false }: {
 }
 
 export default function IntelPage() {
-  const [seg, setSeg] = useState<Segment>('news')
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const seg = useStore((s) => s.intelView) ?? 'news'
+  const setSeg = useStore((s) => s.setIntelView)
+  const [lastTap, setLastTap] = useState<number>(0)
+
+  const urlSeg = useMemo(() => {
+    const v = (searchParams?.get('view') ?? '').toLowerCase()
+    return (['news', 'world', 'markets'] as Segment[]).includes(v as Segment) ? (v as Segment) : null
+  }, [searchParams])
+
+  // URL → store (so deep links win on first load / navigation)
+  useEffect(() => {
+    if (!urlSeg) return
+    setSeg(urlSeg)
+  }, [urlSeg, setSeg])
+
+  // Keep URL in sync when segment changes (shareable deep links).
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams?.toString() ?? '')
+    if ((params.get('view') ?? '').toLowerCase() === seg) return
+    params.set('view', seg)
+    router.replace(`/intel?${params.toString()}`)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seg])
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '18px 16px 80px' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '18px 16px 80px', position: 'relative', zIndex: 5 }}>
       <ArticlesLoader />
 
       <div style={{ marginBottom: '18px' }}>
@@ -80,11 +107,16 @@ export default function IntelPage() {
         display: 'flex', gap: '4px', marginBottom: '20px',
         background: 'var(--surf2)', border: '1px solid var(--border)',
         borderRadius: '8px', padding: '3px',
+        position: 'relative', zIndex: 2001, pointerEvents: 'auto',
       }}>
-        {SEGMENTS.map(s => (
+        {SEGMENTS.map((s) => (
           <button
             key={s.id}
-            onClick={() => setSeg(s.id)}
+            type="button"
+            onPointerDown={() => {
+              setSeg(s.id)
+              setLastTap(Date.now())
+            }}
             style={{
               flex: 1, padding: '6px 8px',
               borderRadius: '6px', border: 'none', cursor: 'pointer',
@@ -93,10 +125,15 @@ export default function IntelPage() {
               background: seg === s.id ? 'var(--accent)' : 'transparent',
               color: seg === s.id ? '#fff' : 'var(--text2)',
             }}
+            aria-pressed={seg === s.id}
           >
             {s.label}
           </button>
         ))}
+      </div>
+      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: -12, marginBottom: 14 }}>
+        Active: <span style={{ color: 'var(--text2)', fontWeight: 700 }}>{String(seg).toUpperCase()}</span>
+        {lastTap ? <span style={{ marginLeft: 10, opacity: 0.7 }}>· tapped {new Date(lastTap).toLocaleTimeString()}</span> : null}
       </div>
 
       {/* ── NEWS ── */}

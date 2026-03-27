@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useStore, type ScheduledJob } from '@/store/useStore'
 import { callAI, buildSystemPrompt } from '@/lib/ai'
 import { OFFICE_OPERATIONAL_PROFILES } from '@/components/home/office/constants'
@@ -63,9 +63,9 @@ export default function CronSchedulerRunner() {
   const mode = settings.officeOperationalMode ?? 'normal'
   const profile = OFFICE_OPERATIONAL_PROFILES[mode]
   const autoCooldownMs = Math.max(10, Number(settings.autoOpsJobCooldownMin ?? 30)) * 60_000
-  const autoLastRunAt = settings.autoOpsLastRunAt ?? {}
+  const autoLastRunAt = useMemo(() => settings.autoOpsLastRunAt ?? {}, [settings.autoOpsLastRunAt])
 
-  const runAutoJob = async (autoJob: AutoModeJob, force = false) => {
+  const runAutoJob = useCallback(async (autoJob: AutoModeJob, force = false) => {
     const last =
       autoLastRunRef.current[autoJob.id] ??
       autoLastRunAt[autoJob.id] ??
@@ -143,9 +143,9 @@ export default function CronSchedulerRunner() {
       }
     }
     updateSettings({ autoOpsLastRunAt: nextAutoLast })
-  }
+  }, [addLog, addModeBriefing, addNotification, autoCooldownMs, autoLastRunAt, mode, profile, settings, updateSettings])
 
-  function dueAutoJobs(now: Date): AutoModeJob[] {
+  const dueAutoJobs = useCallback((now: Date): AutoModeJob[] => {
     if (!isAutoOpsModeEnabled(mode, settings)) return []
     return getAutoJobsForMode(mode).filter((j) => {
       const last =
@@ -156,7 +156,7 @@ export default function CronSchedulerRunner() {
       const onInterval = now.getMinutes() % j.intervalMin === 0
       return enoughCooldown && onInterval
     })
-  }
+  }, [autoCooldownMs, autoLastRunAt, mode, settings])
 
   useEffect(() => {
     const tick = async () => {
@@ -245,7 +245,7 @@ export default function CronSchedulerRunner() {
       window.removeEventListener('nexus-auto-ops-run-now', onManualRun as EventListener)
       window.clearInterval(id)
     }
-  }, [settings, updateSettings, addNotification, addLog, addModeBriefing, profile, mode, autoCooldownMs, autoLastRunAt])
+  }, [settings, updateSettings, addNotification, addLog, addModeBriefing, profile, mode, autoCooldownMs, autoLastRunAt, dueAutoJobs, runAutoJob])
 
   return null
 }

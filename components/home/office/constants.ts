@@ -16,7 +16,7 @@ import { JANSKY_F, ORBIT_F, NOVA_F, CIPHER_F, FLUX_F } from './sprites'
 //   EL     → Operative→ o1 / o3      — raw psychic power = extended reasoning
 //   DUSTIN → Research → Perplexity   — always searching, loves science
 //   HOPPER → Security → Gemini       — chief investigator, threat-aware
-//   ROBIN  → Markets  → Grok         — fast pattern reader, real-time wit
+//   LUCAS   → Coordinator → Grok     — route coordinator, call-sign strategist
 export const AGENTS: Record<AgentId, {
   name: string; role: string; color: string; model: string; frames: string[][]
 }> = {
@@ -24,7 +24,7 @@ export const AGENTS: Record<AgentId, {
   orbit:  { name: 'EL',     role: 'Operative', color: '#818cf8', model: 'o1 / o3',      frames: ORBIT_F  },
   nova:   { name: 'DUSTIN', role: 'Research',  color: '#f59e0b', model: 'Perplexity',   frames: NOVA_F   },
   cipher: { name: 'HOPPER', role: 'Security',  color: '#3b82f6', model: 'Gemini',       frames: CIPHER_F },
-  flux:   { name: 'ROBIN',  role: 'Markets',   color: '#10b981', model: 'Grok',         frames: FLUX_F   },
+  flux:   { name: 'LUCAS',  role: 'Coordinator', color: '#10b981', model: 'Grok',       frames: FLUX_F   },
 }
 
 // Left-to-right render order — used by DispatchBar to calculate % positions.
@@ -228,7 +228,7 @@ export const DISPATCH_LINES: Record<AgentId, string> = {
   orbit:  '→ EL. Open a portal.',
   nova:   '→ DUSTIN. Find it.',
   cipher: '→ HOPPER. Check the threat.',
-  flux:   '→ ROBIN. Crack the pattern.',
+  flux:   '→ LUCAS. Crack the pattern.',
 }
 
 // ── Tool call icons ───────────────────────────────────────────────────────────
@@ -288,7 +288,7 @@ export const DESK_DECO: Record<AgentId, string> = {
   orbit:  '🌀',  // EL  — psychic vortex / portal
   nova:   '🔭',  // DUSTIN — scientist, always exploring
   cipher: '🔦',  // HOPPER — flashlight, investigator
-  flux:   '🗝️',  // ROBIN  — code-breaker, key to the pattern
+  flux:   '🗝️',  // LUCAS — route coordinator / pattern key
 }
 
 // ── Desk monitor data ─────────────────────────────────────────────────────────

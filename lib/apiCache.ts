@@ -135,3 +135,33 @@ export function createCache<T = unknown>(config: Partial<CacheConfig> = {}): Cac
 
   return { get, set, has, delete: deleteKey, clear, stats }
 }
+
+// Shared lightweight JSON fetch cache for client/server utilities.
+// Useful for short-lived diagnostics endpoints that are polled by multiple widgets.
+const jsonCache = createCache<unknown>({ maxEntries: 64, defaultTTL: 15_000 })
+const jsonInflight = new Map<string, Promise<unknown>>()
+
+export async function fetchJsonCached<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  ttlMs = 15_000,
+): Promise<T> {
+  const cached = jsonCache.get(key)
+  if (cached !== undefined) return cached as T
+
+  const pending = jsonInflight.get(key)
+  if (pending) return pending as Promise<T>
+
+  const p = (async () => {
+    try {
+      const data = await fetcher()
+      jsonCache.set(key, data as unknown, ttlMs)
+      return data
+    } finally {
+      jsonInflight.delete(key)
+    }
+  })()
+
+  jsonInflight.set(key, p as Promise<unknown>)
+  return p
+}

@@ -12,9 +12,10 @@
 // Hair: R (bright red) / r (dark red). Jacket: k (red). Shadow: r.
 export const JANSKY_F: string[][] = [
   // Frame 0 — standing
-  [' RRRRRR  ',' RssssR  ',' RseseR  ',' RssssR  ','  sssss  ','  kkkkk  ',' kkkkkkk ',' kkkkkkk ',' kkk kk  ',' kkk kk  ','  k   k  ','  r   r  ','  d   d  ','         '],
+  // Max: headphones + Walkman
+  ['  RRRR   ',' qRssRq  ',' qseseq  ',' qssssq  ','  sssss  ','  uuuuu  ',' uuuuuuu ',' uUuUuUU ','  u u u  ','  ummMu  ','  ummMu  ','  d   d  ','  d   d  ','         '],
   // Frame 1 — mid-step (right leg forward)
-  [' RRRRRR  ',' RssssR  ',' RseseR  ',' RssssR  ','  sssss  ','  kkkkk  ',' kkkkkkk ',' kkkkkkk ','  kk  k  ','  kk  k  ','  k   k  ','  r   r  ','   d  d  ','         '],
+  ['  RRRR   ',' qRssRq  ',' qseseq  ',' qssssq  ','  sssss  ','  uuuuu  ',' uuuuuuu ',' uUuUuUU ','   u u   ','  ummM   ','  ummM   ','  d   d  ','   d d   ','         '],
 ]
 
 // ── ORBIT ──────────────────────────────────────────────────────────────────────
@@ -22,9 +23,10 @@ export const JANSKY_F: string[][] = [
 // Hair: h (dark brown). Hoodie: p (purple) / o (shadow).
 export const ORBIT_F: string[][] = [
   // Frame 0 — standing
-  [' hppph   ',' hpssph  ',' hpsesph ',' hpsssp  ','  pppppp ','pppppppp ','pppppppp ',' ppp pp  ',' ppp pp  ','  pp pp  ','  o   o  ','  o   o  ','  d   d  ','         '],
+  // Eleven: short hair + subtle nosebleed (x) cue
+  ['  hhhhh  ',' hpSsSph ',' hpsesph ',' hpsssph ','  sxsxs  ','  ppppp  ',' ppppppp ','pppppppp ',' ppp pp  ','  pp pp  ','  o   o  ','  o   o  ','  d   d  ','         '],
   // Frame 1 — mid-step
-  [' hppph   ',' hpssph  ',' hpsesph ',' hpsssp  ','  pppppp ','pppppppp ','pppp ppp ','pppp pp  ',' ppp pp  ','  pp pp  ','  o   o  ','  o   o  ','  d   d  ','         '],
+  ['  hhhhh  ',' hpSsSph ',' hpsesph ',' hpsssph ','  sxsxs  ','  ppppp  ',' ppppppp ','pppp ppp ','pppp pp  ','  pp pp  ','  o   o  ','  o   o  ','   d d   ','         '],
 ]
 
 // ── NOVA ───────────────────────────────────────────────────────────────────────
@@ -32,9 +34,10 @@ export const ORBIT_F: string[][] = [
 // Hair: h (dark brown) / H (highlight). Jacket: w (blue-grey) / W (shadow).
 export const NOVA_F: string[][] = [
   // Frame 0 — standing
-  ['  hhhhh  ',' hhsshh  ',' hsleslh ',' hssssH  ','  sssss  ','  wwwww  ',' wwwwwww ',' wwwwwww ',' ww  ww  ',' ww  ww  ','  w   w  ','  W   W  ','  d   d  ','         '],
+  // Dustin: cap + glasses + radio (m/M) on belt
+  ['  aaaaa  ',' aBssB a ',' qsesesq ',' qsSSSq  ','  sssss  ','  wwwwW  ',' wwwwwww ',' wWwWwww ',' ww  ww  ',' wwmMww  ','  w m w  ','  W   W  ','  d   d  ','         '],
   // Frame 1 — mid-step
-  ['  hhhhh  ',' hhsshh  ',' hsleslh ',' hssssH  ','  sssss  ','  wwwww  ',' wwwwwww ',' wwwwwww ','  ww  ww ',' ww  ww  ','  w   w  ','  W   W  ','   d  d  ','         '],
+  ['  aaaaa  ',' aBssB a ',' qsesesq ',' qsSSSq  ','  sssss  ','  wwwwW  ',' wwwwwww ',' wWwWwww ','  ww  ww ',' wwmMww  ','  w  mw  ','  W   W  ','   d d   ','         '],
 ]
 
 // ── CIPHER ─────────────────────────────────────────────────────────────────────
@@ -42,29 +45,32 @@ export const NOVA_F: string[][] = [
 // Hair: h (dark brown). Visor: v (repurposed as beard shadow on lower face).
 export const CIPHER_F: string[][] = [
   // Frame 0 — standing
-  [' hzzzzh  ',' hzsszzh ',' hzsshzh ',' hzvvvz  ','  sssss  ','  zZzzz  ',' zZzZzzz ',' zzZzzzz ',' zz  zz  ',' zz  zz  ','  z   z  ','  Z   Z  ','  d   d  ','         '],
+  // Hopper: hat + beard + flashlight (y) in hand
+  ['  aaaaa  ',' aahhhaa ',' hzsszzh ',' hzvvvzh ','  sssss  ','  zZzzz  ',' zZzZzzz ',' zzZzzzz ',' zz  zz  ',' zzy yzz ','  z y z  ','  Z   Z  ','  d   d  ','         '],
   // Frame 1 — mid-step
-  [' hzzzzh  ',' hzsszzh ',' hzsshzh ',' hzvvvz  ','  sssss  ','  zZzzz  ',' zZzZzzz ',' zzZzzzz ','  zz zz  ','  zz zz  ','  z   z  ','  Z   Z  ','   d d   ','         '],
+  ['  aaaaa  ',' aahhhaa ',' hzsszzh ',' hzvvvzh ','  sssss  ','  zZzzz  ',' zZzZzzz ',' zzZzzzz ','  zz zz  ',' zzy yzz ','  z y z  ','  Z   Z  ','   d d   ','         '],
 ]
 
 // ── FLUX ───────────────────────────────────────────────────────────────────────
-// ROBIN — chestnut brown hair (B), amber trading jacket (F/f). Markets / quant agent.
+// LUCAS — (male) chestnut brown hair (B), amber trading jacket (F/f). Coordinator proxy.
 export const FLUX_F: string[][] = [
   // Frame 0 — standing
-  ['  BBBBB  ',' BssssBB ',' BsesssB ','  BssssB ','  sssss  ','  FfFFF  ',' FFFfFFF ',' FFFfFFF ',' FF  FF  ',' FF  FF  ','  F   F  ','  f   f  ','  d   d  ','         '],
+  // Lucas: headband + wristband stripe
+  ['  yyyyy  ',' yBssByy ',' BsesesB ','  BssssB ','  sssss  ','  ggggg  ',' ggggggg ',' gGgggGg ',' gg  gg  ',' ggy gg  ','  g y g  ','  d   d  ','  d   d  ','         '],
   // Frame 1 — mid-step
-  ['  BBBBB  ',' BssssBB ',' BsesssB ','  BssssB ','  sssss  ','  FfFFF  ',' FFFfFFF ',' FFFfFFF ','  FF FF  ','  FF FF  ','  F   F  ','  f   f  ','   d d   ','         '],
+  ['  yyyyy  ',' yBssByy ',' BsesesB ','  BssssB ','  sssss  ','  ggggg  ',' ggggggg ',' gGgggGg ','  gg gg  ','  ggy gg ','  g y g  ','  d   d  ','   d d   ','         '],
 ]
 
 // ── CRAB ───────────────────────────────────────────────────────────────────────
 // The crab mascot. 12 wide × 8 tall. One static frame per emotion state.
 // Emotion states map directly to Emotion type in types.ts.
 export const CRAB: Record<string, string[]> = {
-  idle:     ['   cccccc   ','  cccccccc  ',' cccyeyccc  ','cccccccccccc','ccCccccccCcc',' cccccccccc ','  cc  cc  c ','  c   cc   c'],
-  thinking: ['c  cccccc   ','cc cccccccc ',' cccyeyccc  ','cccccccccccc','ccCccccccCcc',' cccccccccc ','  cc  cc    ','   c  cc    '],
-  happy:    ['c   cccccc c',' c cccccc c ','  ccyeyccc  ',' cccccccccc ','ccCcgggcgCcc',' cccccccccc ','  cc  cc  c ',' c c  cc c  '],
-  working:  ['   cccccc   ','  cccccccc  ','cccyeyccccc ','cccccccccccc','cCccccccccCc',' cccccccccc ','cc  cc  cc  ','cc  cc  cc  '],
-  excited:  ['c  cccccc  c',' c cccccc c ','  ccyRyccc  ',' cccccccccc ','ccCccgcccCcc',' gccccccccg ','  cc  cc    ',' c c  cc c  '],
-  error:    ['   xxxxxx   ','  cccccccc  ',' cccxexxcc  ','xxccccccccxx','ccCccccccCcc',' cccccccccc ','  cc  cc  c ','  c   cc   c'],
-  success:  ['g  cccccc  g',' g cccccc g ','  ccgegccc  ','ccccggggcccc','ccCcggggcCcc',' gccccccccg ','  cc  cc  c ',' g c  cc g  '],
+  // Stranger Things-ish "Hawkins Gate" vibe while keeping the same 12x8 sprite size.
+  idle:     ['   zzzzzz   ','  zZZZZZZz  ','  zZyyyyZz  ','  zZyyyyZz  ','  zZZZZZZz  ','   zzzzzz   ','    z  z    ','   zyyyyz   '],
+  thinking: ['   zzzzzz   ','  zZZZZZZz  ','  zZyyxyZz  ','  zZyyxyZz  ','  zZZZZZZz  ','   zzzzzz   ','    z  z    ','   zyyyyz   '],
+  happy:    ['   zzzzzz   ','  zZZZZZZz  ','  zZggggZz  ','  zZggggZz  ','  zZZZZZZz  ','   zzzzzz   ','    z  z    ','   zggggz   '],
+  working:  ['   zzzzzz   ','  zZZZZZZz  ','  zZgyyyZz  ','  zZgyyyZz  ','  zZZZZZZz  ','   zzzzzz   ','    z  z    ','   zgyyyz   '],
+  excited:  ['   zzzzzz   ','  zZZZZZZz  ','  zZxxxyZz  ','  zZxxxyZz  ','  zZZZZZZz  ','   zzzzzz   ','    z  z    ','   zxxxyz   '],
+  error:    ['   xxxxxx   ','  xxZZxxZZ  ','  zZxxxxZz  ','  zZxxxxZz  ','  xxZZxxZZ  ','   xxxxxx   ','    x  x    ','   zxxxxz   '],
+  success:  ['   zzzzzz   ','  zZZZZZZz  ','  zZggggZz  ','  zZggggZz  ','  zZZZZZZz  ','   zzzzzz   ','    z  z    ','   zggggz   '],
 }

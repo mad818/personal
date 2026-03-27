@@ -64,6 +64,32 @@ async function fetchRSS(url: string, src: string, cat: string): Promise<NewsItem
   }
 }
 
+async function fetchCryptoCompare(): Promise<NewsItem[]> {
+  try {
+    const url = 'https://min-api.cryptocompare.com/data/v2/news/?lang=EN&sortOrder=latest&limit=30'
+    const r = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; NexusBot/1.0)' },
+      signal: AbortSignal.timeout(9000),
+      next: { revalidate: 300 },
+    })
+    if (!r.ok) return []
+    const d = await r.json() as any
+    const raw = (d?.Data ?? []) as Array<{ id: string; title: string; url: string; source: string; published_on: number }>
+    return raw
+      .slice(0, 25)
+      .map((a) => ({
+        title: clean(String(a.title ?? '')),
+        link: clean(String(a.url ?? '')),
+        date: new Date(Number(a.published_on ?? 0) * 1000).toISOString(),
+        src: clean(String(a.source ?? 'CryptoCompare')),
+        cat: 'crypto',
+      }))
+      .filter((i) => i.title && i.link.startsWith('http'))
+  } catch {
+    return []
+  }
+}
+
 export async function GET() {
   const feeds = [
     // Crypto
@@ -80,18 +106,31 @@ export async function GET() {
     { url: 'https://feeds.reuters.com/reuters/worldNews',            src: 'Reuters World',  cat: 'world'   },
   ]
 
-  const results = await Promise.allSettled(feeds.map((f) => fetchRSS(f.url, f.src, f.cat)))
+  const results = await Promise.allSettled([
+    ...feeds.map((f) => fetchRSS(f.url, f.src, f.cat)),
+    fetchCryptoCompare(),
+  ])
   const items: NewsItem[] = []
   for (const r of results) {
     if (r.status === 'fulfilled') items.push(...r.value)
   }
 
+  // Dedupe by title
+  const seen = new Set<string>()
+  const deduped: NewsItem[] = []
+  for (const it of items) {
+    const key = it.title.trim().toLowerCase()
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    deduped.push(it)
+  }
+
   // Sort newest first where possible
-  items.sort((a, b) => {
+  deduped.sort((a, b) => {
     const da = a.date ? new Date(a.date).getTime() : 0
     const db = b.date ? new Date(b.date).getTime() : 0
     return db - da
   })
 
-  return NextResponse.json(items)
+  return NextResponse.json(deduped)
 }

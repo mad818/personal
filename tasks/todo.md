@@ -70,9 +70,76 @@
 - [x] AI connection pass: align model/provider maps + refresh stale `.claude` rules docs
 - [x] Add path-collision guardrail script + CI workflow
 - [x] Publish comprehensive project improvement plan map (interactive roadmap)
+- [x] Add release summary doc for secure push batches (`docs/releases/2026-03-27-secure-push-summary.md`)
+- [x] Phase 1 execution: unify AI task-model routing into shared module (client/server/store aligned)
+- [x] Phase 1 execution: add secure `/api/status` diagnostics endpoint (sanitized readiness/health)
+- [x] Phase 1 execution: add CI quality gates workflow (`type-check`, `lint`, `path safety`) + docs/env sync
+- [x] Research and codify best-practice patterns from major AI agent ecosystems (NVIDIA, Claude, Codex, Cursor, OpenClaw/OpenHands)
+- [x] Translate those patterns into a Nexus execution blueprint with phased implementation backlog
+- [x] Phase A execution: add tool risk tiering and default high-risk write approval guard in `lib/agent.ts`
+- [x] Phase A execution: expose risk metadata in tool-call traces for operator visibility
+- [x] Phase A execution: extend `/api/status` with policy + AI routing diagnostics
+- [x] Phase A execution: add explicit Settings checkbox for high-risk write approval policy
+- [x] Phase B execution: add verification adapter endpoint (`/api/verify`) for type-check, lint, and route smoke
+- [x] Phase B execution: integrate mandatory verification pass for permissive write-capable runs and mark degraded when checks fail
+- [x] Phase B execution: add run diagnostics schema in store (run id, status, phase timing, failure cause, verification)
+- [x] Phase C execution: add context budget bundle + compaction report primitive in `lib/liveContext.ts`
+- [x] Phase C execution: wire budgeted live context into HQ send pipeline
+- [x] Phase D execution: add reproducible runtime eval harness (`scripts/eval-agent-runtime.js`) and CI gate step
+- [x] Phase D execution: add eval threshold policy (`--min-score`) and wire CI to enforce it
+- [x] Phase D execution: persist runtime eval artifacts (`docs/metrics/agent-runtime-latest.json`, history jsonl)
+- [x] Phase D execution: expose runtime eval policy in `/api/status` readiness diagnostics
+- [x] Phase D execution: add weighted eval categories (safety/reliability/ux/observability) with weighted score output
+- [x] Phase D execution: expose runtime eval metrics via `/api/metrics/runtime-eval`
+- [x] Phase D execution: add in-app Runtime Eval Trend panel in Settings
+- [x] Phase D execution: enforce category-level eval thresholds in CI (`safety/reliability/ux/observability`)
+- [x] Phase D execution: add HQ Telemetry EVAL chip sourced from runtime metrics API
+- [x] Phase D execution: improve eval failure diagnostics output (failed checks + category threshold failures)
+- [x] Phase D execution: expand route smoke adapter to include protected endpoint reachability checks (`/api/tools`, `/api/ai`)
+- [x] Phase D execution: include latest runtime eval snapshot in `/api/status` diagnostics
+- [x] Phase D execution: add per-category breakdown bars in Settings runtime eval trend panel
+- [x] Phase D execution: add eval freshness/staleness signal to metrics API and Settings trend panel
+- [x] Phase D execution: add one-click runtime eval trigger route (`POST /api/metrics/runtime-eval/run`) and wire button in Settings
+- [x] Phase D execution: expose eval category thresholds in `/api/status` readiness payload + `.env.example`
+- [x] Phase D execution: add cooldown-managed revalidation runner state for runtime eval trigger route
+- [x] Phase D execution: add status rollup grade/degraded reasons in `/api/status` eval diagnostics
+- [x] Phase D execution: add HQ “why degraded” hints in EVAL chip (stale/failure count) and auto-refresh cadence
+- [x] Phase D execution: add header-level Eval Grade badge in HQ top bar sourced from `/api/status`
+- [x] Phase D execution: add Force Run action to runtime eval panel (cooldown override)
+- [x] Phase D execution: add explicit degraded reason list (failed checks/category thresholds) in Settings eval panel
+- [x] Phase D execution: add copy/export diagnostics actions in runtime eval panel
+- [x] Phase D execution: add grade-drop alert signal via store notifications
+- [x] Phase D execution: add recent grade breadcrumb tooltip on HQ header eval badge
+- [x] Phase D execution: add Open Status deep-link action in runtime eval panel
+- [x] Phase D execution: enrich grade-drop notifications with degraded-reason snapshot context
+- [x] Phase D execution: add compact header severity icon before eval grade (fresh/failing/stale)
+- [x] Phase D execution: replace raw status JSON jump with in-app status diagnostics drawer
+- [x] Phase D execution: persist runtime grade-drop incidents into activity timeline log
+- [x] Phase D execution: add cooldown-aware backoff policy for repeated runtime eval runner failures
+- [x] Phase D execution: expose runtime eval runner backoff state in `/api/status` rollup diagnostics
+- [x] Phase D execution: show eval retry-pressure (`BACKOFF`) chip in HQ telemetry HUD
+- [x] Phase D optimization: remove stale-closure polling in runtime eval trend auto-revalidate loop
+- [x] Phase D optimization: skip telemetry eval polling while tab is hidden and refresh on visibility restore
+- [x] Phase D optimization: dedupe `/api/metrics/runtime-eval` reads across HUD, HQ header, and settings via shared short-TTL cache keys
+- [x] Phase D optimization: pause HQ header/status polling while tab is hidden and refresh on visibility restore
+- [x] Phase D optimization: pause runtime eval panel polling while tab is hidden and refresh on visibility restore
+- [x] Phase D optimization: centralize eval grade visual mapping (color/icon) for consistent HQ and telemetry badges
+- [x] Phase O2: centralize runtime polling/TTL cadence in `lib/runtimeConfig.ts` and stagger first reads
+- [x] Phase O3: memoize heavy 3D office (`OfficeRoom3D`) to reduce re-render churn on polling updates
+- [x] Phase O3: memoize `TelemetryHUD` to prevent parent-driven re-renders on eval header polling
+- [x] Phase O4: store/state hardening via shallow selectors and derived settings fields
+- [x] Phase O5: add shared runtime API schemas/parsers and enforce validated payloads across HQ runtime consumers
+- [x] Phase O6: UX reliability polish (consistent “last updated” hints + microstate tightening for runtime surfaces)
+- [x] Add Claude Desktop + Cursor workflow doc + `npm run verify` command
 
 ## Next Up
+- [ ] Stranger Things “Beyond Tier” 3D agents: stature + stance + VFX (EL aura, Hopper flashlight) + quality toggle
 - [ ] Telegram bot integration (message agent from phone) — do last
+- [ ] Intel/Markets/Cyber: convert sections to real sub-tabs (URL + persisted state) and lazy-load heavy views (NO HQ changes)
+- [ ] Intel/Markets/Cyber: unify sub-tab UX (shared switcher, consistent headers, empty/loading/error states) (NO HQ changes)
+- [ ] Intel: improve News drill-down + topic clustering; Prediction market UX upgrades (NO HQ changes)
+- [ ] Markets: watchlist/screener/sizer performance + clarity pass (NO HQ changes)
+- [ ] Cyber: triage-first view + correlation (CVE/OTX/CISA) + reliability pass (NO HQ changes)
 
 ## In Progress
 - [ ] (empty)

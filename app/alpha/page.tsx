@@ -1,16 +1,56 @@
 // ── alpha/page.tsx ──────────────────────────────────────────
-// ALPHA tab landing page: crypto prices, momentum scanner, buy signals, position sizing.
+// MARKETS tab: crypto prices, momentum scanner, buy signals, position sizing.
 
-import PriceGrid        from '@/components/alpha/PriceGrid'
-import MomentumScanner  from '@/components/alpha/MomentumScanner'
-import BuyBot           from '@/components/alpha/BuyBot'
-import PositionSizer    from '@/components/alpha/PositionSizer'
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import WatchlistManager from '@/components/alpha/WatchlistManager'
 import { PricesLoader } from '@/components/ui/DataLoader'
+import { useStore } from '@/store/useStore'
+
+type MarketsView = 'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices'
+const VIEWS: Array<{ id: MarketsView; label: string }> = [
+  { id: 'watchlist', label: '⭐ WATCHLIST' },
+  { id: 'signals',   label: '🤖 SIGNALS' },
+  { id: 'scanner',   label: '📈 SCANNER' },
+  { id: 'sizer',     label: '🎯 SIZER' },
+  { id: 'prices',    label: '💱 PRICES' },
+]
+
+const LazyPriceGrid = dynamic(() => import('@/components/alpha/PriceGrid'), { ssr: false })
+const LazyMomentumScanner = dynamic(() => import('@/components/alpha/MomentumScanner'), { ssr: false })
+const LazyBuyBot = dynamic(() => import('@/components/alpha/BuyBot'), { ssr: false })
+const LazyPositionSizer = dynamic(() => import('@/components/alpha/PositionSizer'), { ssr: false })
 
 export default function AlphaPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const view = useStore((s) => s.marketsView) ?? 'watchlist'
+  const setView = useStore((s) => s.setMarketsView)
+  const [lastTap, setLastTap] = useState<number>(0)
+
+  const urlView = useMemo(() => {
+    const v = (searchParams?.get('view') ?? '').toLowerCase()
+    return (['watchlist', 'signals', 'scanner', 'sizer', 'prices'] as MarketsView[]).includes(v as MarketsView) ? (v as MarketsView) : null
+  }, [searchParams])
+
+  useEffect(() => {
+    if (!urlView) return
+    setView(urlView)
+  }, [urlView, setView])
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams?.toString() ?? '')
+    if ((params.get('view') ?? '').toLowerCase() === view) return
+    params.set('view', view)
+    router.replace(`/alpha?${params.toString()}`)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view])
+
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '18px 16px 40px' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '18px 16px 40px', position: 'relative', zIndex: 5 }}>
       <PricesLoader />
 
       <div style={{ marginBottom: '20px' }}>
@@ -20,42 +60,87 @@ export default function AlphaPage() {
         </div>
       </div>
 
-      {/* Watchlist manager — compact toggle */}
-      <div style={{ marginBottom: '16px' }}>
-        <WatchlistManager />
+      {/* ── Sub-tabs ── */}
+      <div style={{
+        display: 'flex', gap: '4px', marginBottom: '16px',
+        background: 'var(--surf2)', border: '1px solid var(--border)',
+        borderRadius: '8px', padding: '3px', flexWrap: 'wrap',
+        position: 'relative', zIndex: 2001, pointerEvents: 'auto',
+      }}>
+        {VIEWS.map((v) => (
+          <button
+            key={v.id}
+            type="button"
+            onPointerDown={() => {
+              setView(v.id)
+              setLastTap(Date.now())
+            }}
+            style={{
+              flex: '1 1 140px',
+              padding: '6px 8px',
+              borderRadius: '6px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '11px',
+              fontWeight: 800,
+              letterSpacing: '0.3px',
+              transition: 'all .15s',
+              background: view === v.id ? 'var(--accent)' : 'transparent',
+              color: view === v.id ? '#fff' : 'var(--text2)',
+              minWidth: 120,
+            }}
+            aria-pressed={view === v.id}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: -10, marginBottom: 14 }}>
+        Active: <span style={{ color: 'var(--text2)', fontWeight: 700 }}>{String(view).toUpperCase()}</span>
+        {lastTap ? <span style={{ marginLeft: 10, opacity: 0.7 }}>· tapped {new Date(lastTap).toLocaleTimeString()}</span> : null}
       </div>
 
-      {/* Buy Bot — AI-powered buy/sell signals */}
-      <div style={{ marginBottom: '28px' }}>
-        <BuyBot />
-      </div>
-
-      {/* Momentum Scanner — ranked signal list */}
-      <div style={{ marginBottom: '28px' }}>
-        <div style={{
-          fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
-          letterSpacing: '0.8px', marginBottom: '10px',
-        }}>
-          Momentum Signals
+      {view === 'watchlist' && (
+        <div style={{ marginBottom: '16px' }}>
+          <WatchlistManager />
         </div>
-        <MomentumScanner />
-      </div>
+      )}
 
-      {/* Position Sizer */}
-      <div style={{ marginBottom: '28px' }}>
-        <PositionSizer />
-      </div>
-
-      {/* Price Grid — full card view with sparklines */}
-      <div>
-        <div style={{
-          fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
-          letterSpacing: '0.8px', marginBottom: '10px',
-        }}>
-          Price Overview
+      {view === 'signals' && (
+        <div style={{ marginBottom: '28px' }}>
+          <LazyBuyBot />
         </div>
-        <PriceGrid />
-      </div>
+      )}
+
+      {view === 'scanner' && (
+        <div style={{ marginBottom: '28px' }}>
+          <div style={{
+            fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
+            letterSpacing: '0.8px', marginBottom: '10px',
+          }}>
+            Momentum Signals
+          </div>
+          <LazyMomentumScanner />
+        </div>
+      )}
+
+      {view === 'sizer' && (
+        <div style={{ marginBottom: '28px' }}>
+          <LazyPositionSizer />
+        </div>
+      )}
+
+      {view === 'prices' && (
+        <div>
+          <div style={{
+            fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
+            letterSpacing: '0.8px', marginBottom: '10px',
+          }}>
+            Price Overview
+          </div>
+          <LazyPriceGrid />
+        </div>
+      )}
     </div>
   )
 }

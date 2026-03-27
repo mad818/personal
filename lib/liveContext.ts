@@ -56,6 +56,42 @@ interface ArticleEntry {
   bias?:  string
 }
 
+interface LiveContextBuildOptions {
+  maxChars?: number
+}
+
+export interface LiveContextReport {
+  chars: number
+  compacted: boolean
+  maxChars: number
+  lineCount: number
+}
+
+export interface LiveContextBundle {
+  context: string
+  report: LiveContextReport
+}
+
+function compactToBudget(text: string, maxChars: number): LiveContextBundle {
+  if (!text) {
+    return {
+      context: '',
+      report: { chars: 0, compacted: false, maxChars, lineCount: 0 },
+    }
+  }
+  if (text.length <= maxChars) {
+    return {
+      context: text,
+      report: { chars: text.length, compacted: false, maxChars, lineCount: text.split('\n').length },
+    }
+  }
+  const clipped = `${text.slice(0, Math.max(0, maxChars - 64)).trimEnd()}\n[CONTEXT COMPACTED TO FIT TOKEN BUDGET]\n`
+  return {
+    context: clipped,
+    report: { chars: clipped.length, compacted: true, maxChars, lineCount: clipped.split('\n').length },
+  }
+}
+
 export function buildLiveContext(state: LiveState): string {
   const lines: string[] = []
   const ts = new Date().toISOString()
@@ -145,8 +181,13 @@ export function buildLiveContext(state: LiveState): string {
   lines.push(`DATA FRESHNESS: Prices/signals pulled ${ts.slice(11, 19)} UTC — treat as current market state`)
 
   if (lines.length === 0) return ''
-
   return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join('\n')}\n[END LIVE INTEL]\n`
+}
+
+export function buildLiveContextBundle(state: LiveState, opts: LiveContextBuildOptions = {}): LiveContextBundle {
+  const maxChars = Math.max(500, Math.min(12_000, opts.maxChars ?? 3_200))
+  const raw = buildLiveContext(state)
+  return compactToBudget(raw, maxChars)
 }
 
 // ── buildCapabilitiesBlock ─────────────────────────────────────────────────────

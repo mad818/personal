@@ -4,6 +4,7 @@
 
 import { DEFAULT_SETTINGS, type Settings } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
+import { TASK_MODELS } from '@/lib/aiModelRouting'
 
 function getSettings(): Settings {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS
@@ -63,23 +64,6 @@ async function streamRequest(
   return full
 }
 
-// ── Task → local model map (mirrors server-side TASK_MODELS) ─────────────────
-// Tuned for RTX 5070 12GB GDDR7 — all models fit fully in VRAM at Q4_K_M
-// Pull commands:
-//   ollama pull qwen3:8b          (~5.5 GB) — chat + fast
-//   ollama pull qwen2.5-coder:14b (~9.5 GB) — code
-//   ollama pull gemma3:12b        (~8.1 GB) — vision
-//   ollama pull deepseek-r1:14b   (~9.5 GB) — reasoning (outputs <think> blocks)
-//   ollama pull nomic-embed-text  (~0.3 GB) — embeddings
-const TASK_MODELS: Record<string, string> = {
-  chat:      'qwen3:8b',              // ~55-65 tok/s — Qwen3 8B beats prior-gen 14B for chat
-  code:      'qwen2.5-coder:14b',     // ~40-50 tok/s — best coding model at 12GB
-  vision:    'gemma3:12b',            // ~45-55 tok/s — multimodal, vision + instruction
-  reasoning: 'deepseek-r1:14b',       // ~35-45 tok/s — think-trace reasoning, wired to R1 UI
-  fast:      'qwen3:8b',              // ~55-65 tok/s — same as chat, snappy responses
-  embed:     'nomic-embed-text',      // trivial VRAM — sentence embeddings
-}
-
 // ── Main AI call (non-streaming) ──────────────────────────────────────────────
 export async function callAI(
   prompt: string,
@@ -110,7 +94,7 @@ export async function callAI(
   }
 
   // Local Ollama — pick model by task hint
-  const model = task ? (TASK_MODELS[task] ?? s.localModel) : s.localModel
+  const model = task ? (TASK_MODELS[task as keyof typeof TASK_MODELS] ?? s.localModel) : s.localModel
   const res = await fetch(s.localEndpoint, {
     method: 'POST',
     headers: {
@@ -159,7 +143,7 @@ export async function streamAI(
   }
 
   // Local Ollama — pick model by task hint
-  const model = task ? (TASK_MODELS[task] ?? s.localModel) : s.localModel
+  const model = task ? (TASK_MODELS[task as keyof typeof TASK_MODELS] ?? s.localModel) : s.localModel
   return streamRequest(
     s.localEndpoint,
     s.localApiKey ? { Authorization: `Bearer ${s.localApiKey}` } : {},
@@ -232,7 +216,7 @@ export async function streamAIWithThinking(
       s.localEndpoint,
       s.localApiKey ? { Authorization: `Bearer ${s.localApiKey}` } : {},
       {
-        model:      TASK_MODELS['reasoning'],
+        model:      TASK_MODELS.reasoning,
         max_tokens: maxTokens,
         messages:   [{ role: 'system', content: systemPrompt }, ...messages],
         stream:     true,

@@ -55,30 +55,6 @@ export function useArticles() {
         })
       } catch { /* silent */ }
 
-      // ── 2. CryptoCompare News (free, supplements RSS with richer content) ────
-      try {
-        const url = 'https://min-api.cryptocompare.com/data/v2/news/?lang=EN&sortOrder=latest&limit=30'
-        const r   = await fetch(url, { signal: AbortSignal.timeout(8000) })
-        const d   = await r.json()
-        const raw = (d?.Data ?? []) as {
-          id: string; title: string; url: string; source: string
-          published_on: number; body?: string
-        }[]
-        raw.forEach((a) => {
-          if (!articles.find((x) => x.title === a.title)) {
-            articles.push({
-              id:    `cc-${a.id}`,
-              title: a.title,
-              desc:  (a.body ?? '').slice(0, 160),
-              link:  a.url,
-              date:  new Date(a.published_on * 1000).toISOString(),
-              bias:  detectBias(a.title + ' ' + (a.body ?? '')),
-              src:   a.source,
-            })
-          }
-        })
-      } catch { /* silent */ }
-
       // ── 3. Guardian (key required, highest quality — adds on top) ────────────
       if (guardianKey) {
         try {

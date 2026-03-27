@@ -36,3 +36,29 @@ export function timeAgo(dateStr: string): string {
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
   return `${Math.floor(diff / 86400)}d ago`
 }
+
+export type EvalGrade = 'A' | 'B' | 'C' | 'unknown'
+
+export function gradeFromEvalScore(
+  score: number | null | undefined,
+  opts: { stale?: boolean } = {},
+): EvalGrade {
+  if (typeof score !== 'number' || !Number.isFinite(score) || score <= 0) return 'unknown'
+  if (opts.stale) return 'C'
+  if (score >= 95) return 'A'
+  if (score >= 85) return 'B'
+  return 'C'
+}
+
+export function evalGradeColor(grade: EvalGrade): string {
+  if (grade === 'A') return '#10b981'
+  if (grade === 'B') return '#f59e0b'
+  if (grade === 'C') return '#ef4444'
+  return '#7ba7d4'
+}
+
+export function evalIndicatorIcon(args: { stale?: boolean; failures?: number }): '✓' | '●' | '⚠' {
+  if (args.stale) return '⚠'
+  if (Number(args.failures ?? 0) > 0) return '●'
+  return '✓'
+}

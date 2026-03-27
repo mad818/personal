@@ -27,7 +27,7 @@ function isValidCron(expr: string): boolean {
 export default function CronSchedulerPanel({ open, onClose }: Props) {
   const settings = useStore((s) => s.settings)
   const updateSettings = useStore((s) => s.updateSettings)
-  const jobs = settings.scheduledJobs ?? []
+  const jobs = useMemo(() => settings.scheduledJobs ?? [], [settings.scheduledJobs])
 
   const [name, setName] = useState('')
   const [prompt, setPrompt] = useState('')

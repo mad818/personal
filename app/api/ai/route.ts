@@ -2,6 +2,7 @@
 // Multi-provider AI proxy: Ollama fallback chain, task-based model routing, hard token caps.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { DEFAULT_LOCAL_MODEL, TASK_MODELS } from '@/lib/aiModelRouting'
 
 /**
  * Multi-provider AI proxy with task-based model routing.
@@ -35,16 +36,6 @@ const MAX_TOKENS_PER_REQUEST = Math.min(
 )
 
 // ── Task → local Ollama model map ─────────────────────────────────────────────
-const TASK_MODELS: Record<string, string> = {
-  chat:      'qwen3:8b',
-  code:      'qwen2.5-coder:14b',
-  vision:    'gemma3:12b',
-  reasoning: 'deepseek-r1:14b',
-  fast:      'qwen3:8b',
-  embed:     'nomic-embed-text',
-  // default (no task hint) handled by TASK_MODELS['chat']
-}
-
 // ── Provider registry ─────────────────────────────────────────────────────────
 interface Provider {
   name:    string
@@ -61,7 +52,7 @@ const PROVIDERS: Record<string, Provider> = {
     url:    process.env.OLLAMA_ENDPOINT ?? 'http://localhost:11434/v1/chat/completions',
     key:    () => process.env.OLLAMA_API_KEY ?? 'ollama',
     format: 'openai',
-    model:  'qwen3:8b',
+    model:  DEFAULT_LOCAL_MODEL,
     headers: (key) => ({
       'Content-Type':  'application/json',
       'Authorization': `Bearer ${key}`,
@@ -229,7 +220,7 @@ export async function POST(req: NextRequest) {
     )
 
     // Determine the model to use for Ollama based on task hint
-    const taskModel = task ? (TASK_MODELS[task] ?? TASK_MODELS['chat']) : undefined
+    const taskModel = task ? (TASK_MODELS[task as keyof typeof TASK_MODELS] ?? DEFAULT_LOCAL_MODEL) : undefined
 
     // Determine provider chain
     let chain: string[]
@@ -253,7 +244,7 @@ export async function POST(req: NextRequest) {
       // For cloud providers in the auto chain, use provider's default model
       const effectiveModel =
         providerName === 'ollama'
-          ? (resolvedModel ?? TASK_MODELS['chat'])
+          ? (resolvedModel ?? DEFAULT_LOCAL_MODEL)
           : (providerName === chain[0] ? resolvedModel : undefined)
 
       const r = await callProvider(

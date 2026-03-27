@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useStore, DEFAULT_SETTINGS, Settings } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
+import RuntimeEvalTrend from '@/components/ui/RuntimeEvalTrend'
 
 // ── Sensitive fields — these go to /api/settings (server-side .env.local) ────
 // Keys here match both the FIELDS key AND the SENSITIVE_KEYS list in settings/route.ts
@@ -251,6 +252,25 @@ export default function SettingsDrawer({ open, onClose }: Props) {
                 Operational Auto Jobs
               </div>
 
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 10 }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase' }}>
+                  Office VFX Quality
+                </span>
+                <select
+                  value={String(settings.officeVfxQuality ?? 'low')}
+                  onChange={(e) => updateSettings({ officeVfxQuality: e.target.value as any } as Partial<Settings>)}
+                  style={{
+                    background: 'var(--surf)', border: '1px solid var(--border2)',
+                    borderRadius: '6px', color: 'var(--text)', fontSize: '12px',
+                    padding: '7px 10px', outline: 'none', width: '100%', boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="off">Off</option>
+                  <option value="low">Low (recommended)</option>
+                  <option value="high">High</option>
+                </select>
+              </label>
+
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <input
                   type="checkbox"
@@ -267,6 +287,15 @@ export default function SettingsDrawer({ open, onClose }: Props) {
                   onChange={(e) => updateSettings({ enableNightOpsAutoJobs: e.target.checked } as Partial<Settings>)}
                 />
                 <span style={{ fontSize: 12, color: 'var(--text)' }}>Enable Night Ops auto jobs</span>
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(settings.agentHighRiskWritesRequireApproval)}
+                  onChange={(e) => updateSettings({ agentHighRiskWritesRequireApproval: e.target.checked } as Partial<Settings>)}
+                />
+                <span style={{ fontSize: 12, color: 'var(--text)' }}>Require approval for high-risk write tools</span>
               </label>
 
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -291,6 +320,8 @@ export default function SettingsDrawer({ open, onClose }: Props) {
                 />
               </label>
             </div>
+
+            <RuntimeEvalTrend />
           </div>
         </div>
 

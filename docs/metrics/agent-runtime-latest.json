@@ -1,0 +1,63 @@
+{
+  "ts": "2026-03-27T08:16:54.446Z",
+  "score": 100,
+  "weightedPassed": 10,
+  "weightedTotal": 10,
+  "passed": 4,
+  "total": 4,
+  "minScore": 85,
+  "ok": true,
+  "categoryThresholds": {},
+  "categories": {
+    "safety": {
+      "passedWeight": 3,
+      "totalWeight": 3,
+      "score": 100
+    },
+    "reliability": {
+      "passedWeight": 3,
+      "totalWeight": 3,
+      "score": 100
+    },
+    "ux": {
+      "passedWeight": 2,
+      "totalWeight": 2,
+      "score": 100
+    },
+    "observability": {
+      "passedWeight": 2,
+      "totalWeight": 2,
+      "score": 100
+    }
+  },
+  "checks": [
+    {
+      "name": "tool risk tiers",
+      "pass": true,
+      "detail": "Agent runtime declares risk tier policy map",
+      "category": "safety",
+      "weight": 3
+    },
+    {
+      "name": "verification adapters",
+      "pass": true,
+      "detail": "Verification flow wired to typecheck/lint/route smoke",
+      "category": "reliability",
+      "weight": 3
+    },
+    {
+      "name": "runtime status chip",
+      "pass": true,
+      "detail": "Telemetry HUD surfaces run status",
+      "category": "ux",
+      "weight": 2
+    },
+    {
+      "name": "status diagnostics queue",
+      "pass": true,
+      "detail": "Status endpoint includes queue and verification diagnostics",
+      "category": "observability",
+      "weight": 2
+    }
+  ]
+}

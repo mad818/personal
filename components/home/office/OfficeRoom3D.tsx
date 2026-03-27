@@ -2,7 +2,8 @@
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useStore } from '@/store/useStore'
 import * as THREE from 'three'
 import type { AgentId, OfficeObjectId, OfficeObjectPos } from './types'
@@ -11,6 +12,7 @@ import { AGENTS, OFFICE_OBJECT_DEFAULTS } from './constants'
 type Vec3 = [number, number, number]
 type DispatchState = { from: AgentId; to: AgentId } | null
 type OfficeCameraPreset = 'cinematic' | 'closeOps' | 'wallReadability'
+type OfficeVfxQuality = 'off' | 'low' | 'high'
 
 const CAMERA_PRESETS: Record<OfficeCameraPreset, { position: Vec3; fov: number; lookAt: Vec3 }> = {
   cinematic: {
@@ -28,6 +30,48 @@ const CAMERA_PRESETS: Record<OfficeCameraPreset, { position: Vec3; fov: number; 
     fov: 37,
     lookAt: [0, 1.38, -0.32],
   },
+}
+
+// Stable radii map used by world position clamping/anchoring.
+const RADIUS_BY_ID: Record<OfficeObjectId, number> = {
+  serverRack: 0.48,
+  plantBackLeft: 0.35,
+  plantBottomLeft: 0.3,
+  waterCooler: 0.34,
+  trashCan: 0.26,
+  fuelGauge: 0.24,
+  conferenceTable: 1.05,
+  sofa: 0.95,
+  janskyDesk: 0.78,
+  cipherDesk: 0.62,
+  fluxDesk: 0.62,
+  orbitDesk: 0.62,
+  novaDesk: 0.62,
+}
+
+// Per-agent 3D appearance overrides (Stranger Things theming).
+// Agent meshes are simple primitives; these tweaks give each character a distinct look.
+const AGENT_3D_STYLES: Record<
+  AgentId,
+  {
+    suit: string
+    shirt: string
+    hair: string
+    tie?: string
+    headphones?: boolean
+    glasses?: boolean
+    beard?: boolean
+    hood?: boolean
+    hat?: boolean
+    cap?: boolean
+    accessoryColor?: string
+  }
+> = {
+  jansky: { suit: '#ef4444', shirt: '#e7edf5', hair: '#b45309', tie: '#c0392b' }, // MAX
+  orbit: { suit: '#818cf8', shirt: '#dbeafe', hair: '#fbbf24', hood: true }, // EL
+  nova: { suit: '#f59e0b', shirt: '#e4eaf2', hair: '#7a3c18', glasses: true }, // DUSTIN
+  cipher: { suit: '#3b82f6', shirt: '#dbeafe', hair: '#0f172a', beard: true, hat: true, accessoryColor: '#4a3b2c' }, // HOPPER
+  flux: { suit: '#10b981', shirt: '#e4eaf2', hair: '#8b5e3c', cap: true, accessoryColor: '#111827' }, // LUCAS
 }
 
 function toWorld(pos: OfficeObjectPos): Vec3 {
@@ -448,10 +492,7 @@ function RoomShell({ tod }: { tod: 'morning' | 'afternoon' | 'night' }) {
         <boxGeometry args={[9.2, 0.03, 0.02]} />
         <meshStandardMaterial color={pal.trim} roughness={0.85} />
       </mesh>
-      <mesh position={[0, 1.52, -2.88]} receiveShadow={false}>
-        <boxGeometry args={[9.2, 0.03, 0.02]} />
-        <meshStandardMaterial color={pal.trim} roughness={0.85} />
-      </mesh>
+      {/* Removed upper trim band: it read like a "fixture" overlay across the window. */}
 
       {/* Left wall */}
       <mesh position={[-5, 1.25, 0]} receiveShadow>
@@ -465,36 +506,7 @@ function RoomShell({ tod }: { tod: 'morning' | 'afternoon' | 'night' }) {
         <meshStandardMaterial color={pal.sideWall} roughness={0.95} />
       </mesh>
 
-      {/* Window frame (simple plane) */}
-      <mesh position={[0, 1.55, -2.92]} receiveShadow>
-        <planeGeometry args={[3.6, 1.2]} />
-        <meshStandardMaterial color={tod === 'night' ? '#111f39' : '#7ea5d8'} roughness={0.9} metalness={0.0} />
-      </mesh>
-      {/* Window glass reflection */}
-      <mesh position={[0, 1.55, -2.905]} receiveShadow={false}>
-        <planeGeometry args={[3.56, 1.16]} />
-        <meshStandardMaterial color="#dbeafe" transparent opacity={tod === 'night' ? 0.09 : 0.12} roughness={0.05} metalness={0.05} />
-      </mesh>
-      {/* Exterior skyline silhouette */}
-      <mesh position={[0, 1.34, -2.905]} receiveShadow={false}>
-        <boxGeometry args={[3.45, 0.34, 0.02]} />
-        <meshStandardMaterial color={tod === 'night' ? '#111722' : '#74889f'} roughness={0.95} />
-      </mesh>
-      {[-1.35, -0.9, -0.5, -0.05, 0.38, 0.82, 1.22].map((x, i) => (
-        <mesh key={`tower-${i}`} position={[x, 1.34 + ((i % 3) * 0.07), -2.9]} receiveShadow={false}>
-          <boxGeometry args={[0.24, 0.36 + ((i % 4) * 0.06), 0.02]} />
-          <meshStandardMaterial color={tod === 'night' ? '#171f2d' : '#7f95ad'} roughness={0.95} />
-        </mesh>
-      ))}
-      {/* Window mullions */}
-      <mesh position={[0, 1.55, -2.91]}>
-        <boxGeometry args={[0.05, 1.2, 0.02]} />
-        <meshStandardMaterial color={pal.trim} roughness={0.8} />
-      </mesh>
-      <mesh position={[0, 1.55, -2.91]}>
-        <boxGeometry args={[3.6, 0.05, 0.02]} />
-        <meshStandardMaterial color={pal.trim} roughness={0.8} />
-      </mesh>
+      {/* Window visuals are provided by `CityWindow` (procedural LA skyline). */}
       {/* Baseboard around floor edge */}
       <mesh position={[0, 0.09, -2.89]}>
         <boxGeometry args={[9.8, 0.08, 0.08]} />
@@ -527,7 +539,8 @@ function RoomShell({ tod }: { tod: 'morning' | 'afternoon' | 'night' }) {
       ))}
 
       {/* Whiteboard (briefing wall) */}
-      <group position={[0, 1.25, -2.87]}>
+      {/* Moved left so it doesn't occlude the window view */}
+      <group position={[-3.1, 1.25, -2.87]}>
         <mesh>
           <boxGeometry args={[1.8, 0.85, 0.025]} />
           <meshStandardMaterial color="#d8e3ef" roughness={0.8} />
@@ -578,6 +591,7 @@ function WallMountedPanels({
   worldRisk,
   modelLabel,
   agentStats,
+  controls,
 }: {
   activeAgent?: AgentId | null
   articlesCount: number
@@ -585,10 +599,31 @@ function WallMountedPanels({
   worldRisk: number
   modelLabel: string
   agentStats: Record<string, { totalTasks: number; lastConfidence: number }>
+  controls?: {
+    officeEditMode: boolean
+    onToggleEditMode: () => void
+    onResetLayout: () => void
+    onOpenMemory: () => void
+    onOpenScheduler: () => void
+    cameraPreset: OfficeCameraPreset
+    onSetCameraPreset: (p: OfficeCameraPreset) => void
+    vfxQuality: OfficeVfxQuality
+    onSetVfxQuality: (q: OfficeVfxQuality) => void
+  }
 }) {
   const ids = Object.keys(AGENTS) as AgentId[]
   const [hoverLeft, setHoverLeft] = useState(false)
   const [hoverRight, setHoverRight] = useState(false)
+  const [hoverCtl, setHoverCtl] = useState(false)
+  const [hoverCmd, setHoverCmd] = useState(false)
+  const { prices, fg, cves } = useStore((s) => ({
+    prices: s.prices,
+    fg: s.signals?.fg,
+    cves: s.cves,
+  }))
+  const btc = prices['bitcoin']
+  const totalTasks = Object.values(agentStats).reduce((sum, a) => sum + a.totalTasks, 0)
+  const ready = pricesCount > 0 && articlesCount > 0
   return (
     <>
       {/* Left wall roster board (closer to camera/agents) */}
@@ -681,8 +716,230 @@ function WallMountedPanels({
           </div>
         </Html>
       </group>
+
+      {/* Back wall command center KPI board (moves WelcomeHUD off the chat pane) */}
+      {/* Align with window centerline */}
+      <group position={[-3.1, 1.55, -2.875]} rotation={[0, 0, 0]}>
+        <mesh>
+          <boxGeometry args={[1.85, 1.05, 0.03]} />
+          <meshStandardMaterial color={hoverCmd ? '#172033' : '#111827'} roughness={0.78} metalness={0.15} />
+        </mesh>
+        <mesh position={[0, 0.49, 0.012]}>
+          <boxGeometry args={[1.85, 0.07, 0.02]} />
+          <meshStandardMaterial color="#1f2937" roughness={0.65} />
+        </mesh>
+        <Html transform position={[0, -0.02, 0.02]} distanceFactor={2.25}>
+          <div
+            onMouseEnter={() => setHoverCmd(true)}
+            onMouseLeave={() => setHoverCmd(false)}
+            style={{
+              width: 260,
+              fontFamily: 'Inter, system-ui, sans-serif',
+              color: '#9fb3d7',
+              cursor: 'default',
+              userSelect: 'none',
+              filter: hoverCmd ? 'brightness(1.08)' : 'none',
+              transition: 'filter 120ms ease',
+            }}
+          >
+            <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 900, letterSpacing: '.12em', marginBottom: 10 }}>
+              COMMAND CENTER
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              <KpiCard
+                label="PRICE"
+                value={btc?.price ? `$${(btc.price / 1000).toFixed(1)}K` : '—'}
+                sub={btc?.chg !== undefined ? `${btc.chg >= 0 ? '+' : ''}${btc.chg.toFixed(2)}%` : undefined}
+                color={btc?.chg !== undefined ? (btc.chg >= 0 ? '#00FF66' : '#ef4444') : '#6875a0'}
+              />
+              <KpiCard
+                label="CVE TODAY"
+                value={cves.length > 0 ? String(cves.length) : '—'}
+                sub={cves.length > 10 ? 'ELEVATED' : cves.length > 0 ? 'NORMAL' : undefined}
+                color={cves.length > 20 ? '#ef4444' : cves.length > 5 ? '#f59e0b' : '#00DDFF'}
+              />
+              <KpiCard
+                label="TASKS RUN"
+                value={String(totalTasks)}
+                sub={`${Object.keys(agentStats).length} AGENTS`}
+                color="#00DDFF"
+              />
+              <KpiCard
+                label="STATUS"
+                value={ready ? 'READY' : 'DEGRADED'}
+                sub={ready ? 'ONLINE' : 'CHECK FEEDS'}
+                color={ready ? '#00FF66' : '#f59e0b'}
+              />
+              <KpiCard
+                label="WORLD RISK"
+                value={worldRisk > 0 ? String(worldRisk) : '—'}
+                sub={worldRisk > 70 ? 'HIGH' : worldRisk > 40 ? 'MED' : worldRisk > 0 ? 'LOW' : undefined}
+                color={worldRisk > 70 ? '#ef4444' : worldRisk > 40 ? '#f59e0b' : '#00FF66'}
+              />
+              <KpiCard
+                label="FEAR & GREED"
+                value={fg ? String(fg.value) : '—'}
+                sub={fg ? String(fg.label ?? '').toUpperCase() : undefined}
+                color={
+                  fg
+                    ? (Number(fg.value) >= 60 ? '#00FF66' : Number(fg.value) >= 40 ? '#f59e0b' : '#ef4444')
+                    : '#6875a0'
+                }
+              />
+            </div>
+          </div>
+        </Html>
+      </group>
+
+      {/* Back wall control board (keeps screen-space overlays off chat) */}
+      {controls && (
+        <group position={[3.1, 1.55, -2.875]} rotation={[0, 0, 0]}>
+          <mesh>
+            <boxGeometry args={[1.85, 1.05, 0.03]} />
+            <meshStandardMaterial color={hoverCtl ? '#172033' : '#111827'} roughness={0.78} metalness={0.15} />
+          </mesh>
+          <mesh position={[0, 0.49, 0.012]}>
+            <boxGeometry args={[1.85, 0.07, 0.02]} />
+            <meshStandardMaterial color="#1f2937" roughness={0.65} />
+          </mesh>
+          <Html transform position={[0, -0.02, 0.02]} distanceFactor={2.25}>
+            <div
+              onMouseEnter={() => setHoverCtl(true)}
+              onMouseLeave={() => setHoverCtl(false)}
+              style={{
+                width: 260,
+                fontFamily: 'Inter, system-ui, sans-serif',
+                color: '#9fb3d7',
+                cursor: 'default',
+                userSelect: 'none',
+                filter: hoverCtl ? 'brightness(1.08)' : 'none',
+                transition: 'filter 120ms ease',
+              }}
+            >
+              <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 900, letterSpacing: '.12em', marginBottom: 10 }}>
+                WALL CONTROL
+              </div>
+
+              <div style={{ display: 'grid', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" onClick={controls.onOpenMemory} style={ctlBtn('#4f6ef7')}>MEMORY</button>
+                  <button type="button" onClick={controls.onOpenScheduler} style={ctlBtn('#10b981')}>SCHED</button>
+                </div>
+
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={controls.onToggleEditMode}
+                    style={ctlBtn(controls.officeEditMode ? '#00FF66' : '#00DDFF')}
+                    title="Toggle layout edit mode"
+                  >
+                    {controls.officeEditMode ? 'EDIT: ON' : 'EDIT'}
+                  </button>
+                  <button type="button" onClick={controls.onResetLayout} style={ctlBtn('#ef4444')} title="Reset office layout">
+                    RESET
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#7e8fab' }}>CAM</span>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {(['cinematic', 'closeOps', 'wallReadability'] as const).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => controls.onSetCameraPreset(p)}
+                        style={{
+                          ...ctlMiniBtn(controls.cameraPreset === p ? '#00DDFF' : '#7ba7d4'),
+                          borderColor: controls.cameraPreset === p ? '#00DDFF88' : '#24314a',
+                          background: controls.cameraPreset === p ? 'rgba(0,221,255,0.12)' : 'rgba(13,18,32,0.96)',
+                        }}
+                        title={p}
+                      >
+                        {p === 'cinematic' ? 'CIN' : p === 'closeOps' ? 'OPS' : 'WALL'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#7e8fab' }}>VFX</span>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {(['off', 'low', 'high'] as const).map((q) => (
+                      <button
+                        key={q}
+                        type="button"
+                        onClick={() => controls.onSetVfxQuality(q)}
+                        style={{
+                          ...ctlMiniBtn(controls.vfxQuality === q ? '#f59e0b' : '#7ba7d4'),
+                          borderColor: controls.vfxQuality === q ? '#f59e0b88' : '#24314a',
+                          background: controls.vfxQuality === q ? 'rgba(245,158,11,0.14)' : 'rgba(13,18,32,0.96)',
+                        }}
+                      >
+                        {q.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Html>
+        </group>
+      )}
     </>
   )
+}
+
+function KpiCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color: string }) {
+  return (
+    <div
+      style={{
+        borderRadius: 10,
+        border: `1px solid ${color}22`,
+        background: 'rgba(8,12,22,0.82)',
+        padding: '8px 8px',
+        textAlign: 'center',
+      }}
+    >
+      <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.12em', color: '#304060', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '.06em', color, lineHeight: 1.05 }}>{value}</div>
+      {sub ? (
+        <div style={{ marginTop: 4, fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: `${color}99` }}>{sub}</div>
+      ) : (
+        <div style={{ marginTop: 4, fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: 'transparent' }}>—</div>
+      )}
+    </div>
+  )
+}
+
+function ctlBtn(color: string): CSSProperties {
+  return {
+    flex: 1,
+    fontSize: 10,
+    fontWeight: 900,
+    letterSpacing: '.12em',
+    padding: '8px 10px',
+    borderRadius: 10,
+    border: `1px solid ${color}66`,
+    background: 'rgba(8,12,22,0.82)',
+    color,
+    cursor: 'pointer',
+  }
+}
+
+function ctlMiniBtn(color: string): CSSProperties {
+  return {
+    fontSize: 9,
+    fontWeight: 900,
+    letterSpacing: '.12em',
+    padding: '6px 8px',
+    borderRadius: 999,
+    border: '1px solid #24314a',
+    background: 'rgba(13,18,32,0.96)',
+    color,
+    cursor: 'pointer',
+    minWidth: 44,
+  }
 }
 
 function CeilingLights({ nightFactor }: { nightFactor: number }) {
@@ -728,53 +985,78 @@ function CeilingLights({ nightFactor }: { nightFactor: number }) {
 }
 
 function CityWindow({ nightFactor }: { nightFactor: number }) {
-  const lamps = useMemo(() => {
-    // Grid-ish lamp placements inside the window plane (normalized to room).
-    // Window approx: x in [-1.8..1.8], y in [1.0..2.1] and z ~ -2.92
-    const coords: Array<{ x: number; y: number; z: number; bias: number }> = []
-    const xs = [ -1.55, -1.05, -0.55, -0.1, 0.35, 0.85, 1.35 ]
-    const ys = [ 1.15, 1.35, 1.55, 1.75, 1.95 ]
-    for (let ix = 0; ix < xs.length; ix++) {
-      for (let iy = 0; iy < ys.length; iy++) {
-        if (Math.random() < 0.55) continue
-        coords.push({ x: xs[ix], y: ys[iy], z: -2.92, bias: Math.random() })
-      }
-    }
-    return coords
-  }, [])
+  // Must render *in front* of the back-wall panel band (z ~ -2.89).
+  const Z_VIEW = -2.872
+  const Z_GLASS = -2.862
+  const Z_FRAME = -2.858
 
-  const refs = useRef<Array<THREE.Mesh | null>>([])
+  const { gl } = useThree()
+
+  const viewTex = useMemo(() => {
+    const t = new THREE.TextureLoader().load('/office/la-skyline.jpg')
+    t.colorSpace = THREE.SRGBColorSpace
+    t.minFilter = THREE.LinearFilter
+    t.magFilter = THREE.LinearFilter
+    t.generateMipmaps = true
+    // Reduce blurriness at oblique angles (window plane).
+    t.anisotropy = gl.capabilities.getMaxAnisotropy()
+    return t
+  }, [gl])
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime()
-    for (let i = 0; i < lamps.length; i++) {
-      const mesh = refs.current[i]
-      if (!mesh) continue
-      const phase = i * 0.33 + lamps[i].bias * 10
-      // Deterministic shimmer (no per-frame random).
-      const micro = Math.sin(t * (3.1 + lamps[i].bias * 1.3) + phase * 1.7) * 0.08
-      const tw = 0.4 + Math.sin(t * (0.9 + lamps[i].bias) + phase) * 0.25 + micro
-      const intensity = (0.15 + tw * 0.8) * nightFactor
-      const mat = mesh.material as THREE.MeshStandardMaterial
-      mat.emissiveIntensity = intensity
-    }
+    // Keep a tiny animated shimmer hook available for future glass effects.
+    // Intentionally does nothing while glass overlay is removed.
+    void t
+    void nightFactor
   })
 
-  const onColor = '#f59e0b'
+  const frameColor = '#4b5563'
   return (
     <>
-      {lamps.map((l, i) => (
-        <mesh
-          key={i}
-          ref={(el) => {
-            refs.current[i] = el
-          }}
-          position={[l.x, l.y, l.z]}
-        >
-          <boxGeometry args={[0.09, 0.06, 0.02]} />
-          <meshStandardMaterial color="#090f1c" emissive={onColor} emissiveIntensity={0.1} />
+      {/* LA skyline photo view */}
+      <mesh position={[0, 1.55, Z_VIEW]} renderOrder={10}>
+        <planeGeometry args={[3.55, 1.25]} />
+        <meshStandardMaterial
+          map={viewTex}
+          color="#ffffff"
+          emissive="#ffffff"
+          emissiveIntensity={0.08}
+          roughness={0.72}
+          metalness={0}
+          fog={false}
+          depthWrite
+        />
+      </mesh>
+
+      {/* Removed glass tint overlay (was reading as a light-blue wash). */}
+
+      {/* Window frame (border strips so we don't cover the view) */}
+      <group position={[0, 1.55, Z_FRAME]} renderOrder={16}>
+        {/* top / bottom */}
+        <mesh position={[0, 0.64, 0]}>
+          <boxGeometry args={[3.64, 0.06, 0.03]} />
+          <meshStandardMaterial color={frameColor} roughness={0.85} />
         </mesh>
-      ))}
+        <mesh position={[0, -0.64, 0]}>
+          <boxGeometry args={[3.64, 0.06, 0.03]} />
+          <meshStandardMaterial color={frameColor} roughness={0.85} />
+        </mesh>
+        {/* left / right */}
+        <mesh position={[-1.82, 0, 0]}>
+          <boxGeometry args={[0.06, 1.34, 0.03]} />
+          <meshStandardMaterial color={frameColor} roughness={0.85} />
+        </mesh>
+        <mesh position={[1.82, 0, 0]}>
+          <boxGeometry args={[0.06, 1.34, 0.03]} />
+          <meshStandardMaterial color={frameColor} roughness={0.85} />
+        </mesh>
+        {/* center mullion */}
+        <mesh position={[0, 0, 0.002]}>
+          <boxGeometry args={[0.04, 1.28, 0.02]} />
+          <meshStandardMaterial color="#2b364d" roughness={0.9} />
+        </mesh>
+      </group>
     </>
   )
 }
@@ -786,7 +1068,9 @@ function DustParticles({ nightFactor }: { nightFactor: number }) {
     for (let i = 0; i < count; i++) {
       const x = (Math.random() - 0.5) * 10
       const y = Math.random() * 2.2 + 0.2
-      const z = (Math.random() - 0.5) * 6
+      // Keep particles in the room volume, but avoid the back-wall window plane
+      // so they don't read as a "speckle overlay" on the city view.
+      const z = Math.random() * 5.1 - 2.25 // [-2.25 .. 2.85]
       arr[i * 3 + 0] = x
       arr[i * 3 + 1] = y
       arr[i * 3 + 2] = z
@@ -821,10 +1105,12 @@ function AgentFloorShadows({
   agentPos,
   activeAgent,
   obstacles = [],
+  vfxQuality = 'low',
 }: {
   agentPos?: Record<AgentId, { x: number; y: number }>
   activeAgent?: AgentId | null
   obstacles?: Array<{ x: number; z: number; r: number }>
+  vfxQuality?: OfficeVfxQuality
 }) {
   const pal = useMemo(() => scenePalette('afternoon'), [])
   const groups = useRef<Array<THREE.Group | null>>([])
@@ -835,8 +1121,36 @@ function AgentFloorShadows({
   const armRRefs = useRef<Array<THREE.Mesh | null>>([])
   const legLRefs = useRef<Array<THREE.Mesh | null>>([])
   const legRRefs = useRef<Array<THREE.Mesh | null>>([])
+  const elAuraRefs = useRef<Array<THREE.Mesh | null>>([])
+  const hopperBeamRefs = useRef<Array<THREE.Mesh | null>>([])
   const targetRefs = useRef<Record<AgentId, Vec3>>({} as Record<AgentId, Vec3>)
   const initRefs = useRef<Record<AgentId, boolean>>({} as Record<AgentId, boolean>)
+
+  const quality = vfxQuality
+  const vfxOn = quality !== 'off'
+  const vfxHi = quality === 'high'
+
+  const STATURE: Record<AgentId, number> = {
+    cipher: 1.12, // Hopper
+    nova: 0.92, // Dustin
+    orbit: 0.95, // El
+    flux: 1.02, // Lucas
+    jansky: 1.0, // Max
+  }
+  const GAIT: Record<AgentId, { amp: number; freq: number }> = {
+    cipher: { amp: 0.9, freq: 0.85 },
+    nova: { amp: 1.1, freq: 1.1 },
+    orbit: { amp: 1.0, freq: 1.0 },
+    flux: { amp: 1.05, freq: 1.05 },
+    jansky: { amp: 1.0, freq: 1.0 },
+  }
+  const REST: Record<AgentId, { arm: number; leg: number }> = {
+    cipher: { arm: 0.18, leg: 0.04 }, // heavier stance
+    nova: { arm: 0.05, leg: 0.02 },
+    orbit: { arm: -0.05, leg: 0.03 }, // tucked posture
+    flux: { arm: 0.07, leg: 0.03 },
+    jansky: { arm: 0.09, leg: 0.02 },
+  }
 
   const resolveObstacles = (target: Vec3): Vec3 => {
     let x = target[0]
@@ -870,6 +1184,8 @@ function AgentFloorShadows({
       const p = agentPos?.[id]
       const group = groups.current[i]
       if (group && p) {
+        const s = STATURE[id] ?? 1
+        group.scale.set(s, s, s)
         const rawTarget = agentToShadowWorld(p.x, p.y)
         const target = resolveObstacles(rawTarget)
         targetRefs.current[id] = target
@@ -920,11 +1236,34 @@ function AgentFloorShadows({
           ? Math.hypot(target[0] - group.position.x, target[2] - group.position.z)
           : 0
       const walking = vel > 0.02
-      const gait = Math.sin(t * (live || walking ? 6.2 : 2.4) + i * 0.5) * (live || walking ? 0.34 : 0.09)
-      if (armL) armL.rotation.x = gait * 0.9
-      if (armR) armR.rotation.x = -gait * 0.9
-      if (legL) legL.rotation.x = -gait * 0.7
-      if (legR) legR.rotation.x = gait * 0.7
+      const gaitCfg = GAIT[id] ?? { amp: 1, freq: 1 }
+      const rest = REST[id] ?? { arm: 0, leg: 0 }
+      const gait = Math.sin(t * (live || walking ? 6.2 : 2.4) * gaitCfg.freq + i * 0.5) * (live || walking ? 0.34 : 0.09) * gaitCfg.amp
+      if (armL) armL.rotation.x = rest.arm + gait * 0.9
+      if (armR) armR.rotation.x = rest.arm + -gait * 0.9
+      if (legL) legL.rotation.x = rest.leg + -gait * 0.7
+      if (legR) legR.rotation.x = rest.leg + gait * 0.7
+
+      // VFX: EL aura + Hopper beam (quality gated)
+      if (vfxOn) {
+        const aura = elAuraRefs.current[i]
+        if (aura && id === 'orbit') {
+          const power = activeAgent === 'orbit' ? 1 : walking ? 0.55 : 0.25
+          const base = vfxHi ? 0.55 : 0.28
+          aura.scale.setScalar(0.9 + Math.sin(t * 3.2) * 0.08)
+          const mat = aura.material as THREE.MeshStandardMaterial
+          mat.emissiveIntensity = base * power * (0.7 + Math.sin(t * 4.2) * 0.3)
+          mat.opacity = (vfxHi ? 0.28 : 0.18) * power
+        }
+        const beam = hopperBeamRefs.current[i]
+        if (beam && id === 'cipher') {
+          const power = activeAgent === 'cipher' ? 1 : walking ? 0.5 : 0.2
+          const mat = beam.material as THREE.MeshStandardMaterial
+          mat.opacity = (vfxHi ? 0.22 : 0.14) * power
+          mat.emissiveIntensity = (vfxHi ? 0.65 : 0.35) * power
+          beam.visible = power > 0.12
+        }
+      }
     }
   })
 
@@ -939,6 +1278,7 @@ function AgentFloorShadows({
         const w = agentToShadowWorld(p.x, p.y)
         const live = activeAgent === id
         const c = AGENTS[id].color
+        const showVfx = vfxQuality !== 'off'
         return (
           <group
             key={id}
@@ -967,13 +1307,25 @@ function AgentFloorShadows({
               {/* Torso */}
               <mesh castShadow>
                 <boxGeometry args={[0.14, 0.2, 0.08]} />
-                <meshStandardMaterial color={pal.suit} emissive="#000000" emissiveIntensity={0} roughness={0.45} />
+                <meshStandardMaterial
+                  color={AGENT_3D_STYLES[id].suit}
+                  emissive="#000000"
+                  emissiveIntensity={0}
+                  roughness={0.45}
+                />
               </mesh>
               {/* Suit / shirt center strip */}
               <mesh position={[0, -0.01, 0.042]} castShadow={false}>
                 <boxGeometry args={[0.04, 0.15, 0.01]} />
-                <meshStandardMaterial color={pal.shirt} roughness={0.5} />
+                <meshStandardMaterial color={AGENT_3D_STYLES[id].shirt} roughness={0.5} />
               </mesh>
+              {/* MAX tie accent */}
+              {AGENT_3D_STYLES[id].tie && (
+                <mesh position={[0, -0.045, 0.042]} castShadow={false}>
+                  <boxGeometry args={[0.013, 0.09, 0.008]} />
+                  <meshStandardMaterial color={AGENT_3D_STYLES[id].tie as string} roughness={0.55} />
+                </mesh>
+              )}
               {/* Arms */}
               <mesh
                 ref={(el) => {
@@ -982,8 +1334,8 @@ function AgentFloorShadows({
                 position={[-0.1, 0.03, 0]}
                 castShadow
               >
-                <boxGeometry args={[0.035, 0.14, 0.035]} />
-                <meshStandardMaterial color={pal.suit} roughness={0.45} />
+                <cylinderGeometry args={[0.02, 0.02, 0.14, 10]} />
+                <meshStandardMaterial color={AGENT_3D_STYLES[id].suit} roughness={0.55} />
               </mesh>
               <mesh
                 ref={(el) => {
@@ -992,8 +1344,8 @@ function AgentFloorShadows({
                 position={[0.1, 0.03, 0]}
                 castShadow
               >
-                <boxGeometry args={[0.035, 0.14, 0.035]} />
-                <meshStandardMaterial color={pal.suit} roughness={0.45} />
+                <cylinderGeometry args={[0.02, 0.02, 0.14, 10]} />
+                <meshStandardMaterial color={AGENT_3D_STYLES[id].suit} roughness={0.55} />
               </mesh>
               {/* Legs */}
               <mesh
@@ -1003,8 +1355,8 @@ function AgentFloorShadows({
                 position={[-0.04, -0.16, 0]}
                 castShadow
               >
-                <boxGeometry args={[0.04, 0.16, 0.04]} />
-                <meshStandardMaterial color="#1f2937" roughness={0.6} />
+                <cylinderGeometry args={[0.022, 0.022, 0.16, 10]} />
+                <meshStandardMaterial color="#111827" roughness={0.7} />
               </mesh>
               <mesh
                 ref={(el) => {
@@ -1013,9 +1365,28 @@ function AgentFloorShadows({
                 position={[0.04, -0.16, 0]}
                 castShadow
               >
-                <boxGeometry args={[0.04, 0.16, 0.04]} />
-                <meshStandardMaterial color="#1f2937" roughness={0.6} />
+                <cylinderGeometry args={[0.022, 0.022, 0.16, 10]} />
+                <meshStandardMaterial color="#111827" roughness={0.7} />
               </mesh>
+              {/* Jacket bulk / shoulders to break the box silhouette */}
+              <mesh position={[0, 0.06, 0]} castShadow={false}>
+                <boxGeometry args={[0.18, 0.08, 0.1]} />
+                <meshStandardMaterial color={AGENT_3D_STYLES[id].suit} roughness={0.65} />
+              </mesh>
+              {/* MAX Walkman prop */}
+              {id === 'jansky' && (
+                <mesh position={[0.065, -0.035, 0.06]} castShadow={false}>
+                  <boxGeometry args={[0.05, 0.06, 0.018]} />
+                  <meshStandardMaterial color="#9ca3af" roughness={0.55} metalness={0.25} />
+                </mesh>
+              )}
+              {/* DUSTIN radio prop */}
+              {id === 'nova' && (
+                <mesh position={[-0.07, -0.07, 0.055]} castShadow={false}>
+                  <boxGeometry args={[0.055, 0.05, 0.02]} />
+                  <meshStandardMaterial color="#6b7280" roughness={0.6} metalness={0.15} />
+                </mesh>
+              )}
             </group>
 
             <mesh
@@ -1031,13 +1402,158 @@ function AgentFloorShadows({
             {/* Hair cap */}
             <mesh position={[0, 0.545, 0]} castShadow={false}>
               <sphereGeometry args={[0.052, 10, 10]} />
-              <meshStandardMaterial color="#2b2b2b" roughness={0.6} />
+              <meshStandardMaterial color={AGENT_3D_STYLES[id].hair} roughness={0.6} />
             </mesh>
+            {/* EL hood (high-level silhouette distinction) */}
+            {AGENT_3D_STYLES[id].hood && (
+              <mesh position={[0, 0.50, 0.03]} castShadow={false}>
+                <boxGeometry args={[0.16, 0.12, 0.05]} />
+                <meshStandardMaterial color={AGENT_3D_STYLES[id].suit} roughness={0.7} metalness={0.05} />
+              </mesh>
+            )}
             {/* Eyes strip */}
             <mesh position={[0, 0.505, 0.062]} castShadow={false}>
               <boxGeometry args={[0.045, 0.012, 0.01]} />
               <meshStandardMaterial color="#111827" roughness={0.3} />
             </mesh>
+            {/* EL telekinesis aura ring (quality gated) */}
+            {showVfx && id === 'orbit' && (
+              <mesh
+                ref={(el) => {
+                  elAuraRefs.current[i] = el
+                }}
+                position={[0, 0.505, 0.02]}
+                rotation={[Math.PI / 2, 0, 0]}
+                castShadow={false}
+              >
+                <torusGeometry args={[0.11, 0.012, 10, 22]} />
+                <meshStandardMaterial
+                  color="#60a5fa"
+                  emissive="#60a5fa"
+                  emissiveIntensity={0.25}
+                  transparent
+                  opacity={0.16}
+                  depthWrite={false}
+                />
+              </mesh>
+            )}
+            {/* EL nosebleed cue */}
+            {id === 'orbit' && (
+              <mesh position={[0.006, 0.49, 0.072]} castShadow={false}>
+                <boxGeometry args={[0.008, 0.012, 0.004]} />
+                <meshStandardMaterial color="#ef4444" roughness={0.35} />
+              </mesh>
+            )}
+            {/* EL headphones */}
+            {AGENT_3D_STYLES[id].headphones && (
+              <>
+                <mesh position={[-0.065, 0.525, 0.02]} castShadow={false}>
+                  <boxGeometry args={[0.03, 0.03, 0.02]} />
+                  <meshStandardMaterial color="#0f172a" roughness={0.55} />
+                </mesh>
+                <mesh position={[0.065, 0.525, 0.02]} castShadow={false}>
+                  <boxGeometry args={[0.03, 0.03, 0.02]} />
+                  <meshStandardMaterial color="#0f172a" roughness={0.55} />
+                </mesh>
+                <mesh position={[0, 0.53, 0.02]} castShadow={false}>
+                  <boxGeometry args={[0.16, 0.01, 0.02]} />
+                  <meshStandardMaterial color="#0f172a" roughness={0.55} />
+                </mesh>
+              </>
+            )}
+            {/* HOPPER hat (simple brim + crown) */}
+            {AGENT_3D_STYLES[id].hat && (
+              <>
+                <mesh position={[0, 0.58, 0.04]} castShadow={false}>
+                  <boxGeometry args={[0.16, 0.03, 0.06]} />
+                  <meshStandardMaterial
+                    color={AGENT_3D_STYLES[id].accessoryColor ?? '#4a3b2c'}
+                    roughness={0.7}
+                    metalness={0.05}
+                  />
+                </mesh>
+                <mesh position={[0, 0.615, 0.04]} castShadow={false}>
+                  <boxGeometry args={[0.07, 0.04, 0.06]} />
+                  <meshStandardMaterial
+                    color={AGENT_3D_STYLES[id].accessoryColor ?? '#4a3b2c'}
+                    roughness={0.7}
+                    metalness={0.05}
+                  />
+                </mesh>
+              </>
+            )}
+            {/* LUCAS cap */}
+            {AGENT_3D_STYLES[id].cap && (
+              <>
+                <mesh position={[0, 0.57, 0.04]} castShadow={false}>
+                  <boxGeometry args={[0.16, 0.02, 0.06]} />
+                  <meshStandardMaterial
+                    color={AGENT_3D_STYLES[id].accessoryColor ?? '#111827'}
+                    roughness={0.75}
+                  />
+                </mesh>
+              </>
+            )}
+            {/* LUCAS headband stripe */}
+            {id === 'flux' && (
+              <mesh position={[0, 0.555, 0.055]} castShadow={false}>
+                <boxGeometry args={[0.12, 0.012, 0.004]} />
+                <meshStandardMaterial color="#f0c060" roughness={0.5} />
+              </mesh>
+            )}
+            {/* DUSTIN glasses */}
+            {AGENT_3D_STYLES[id].glasses && (
+              <>
+                <mesh position={[-0.03, 0.505, 0.068]} castShadow={false}>
+                  <boxGeometry args={[0.03, 0.02, 0.004]} />
+                  <meshStandardMaterial color="#111827" roughness={0.3} />
+                </mesh>
+                <mesh position={[0.03, 0.505, 0.068]} castShadow={false}>
+                  <boxGeometry args={[0.03, 0.02, 0.004]} />
+                  <meshStandardMaterial color="#111827" roughness={0.3} />
+                </mesh>
+                <mesh position={[0, 0.505, 0.068]} castShadow={false}>
+                  <boxGeometry args={[0.02, 0.006, 0.004]} />
+                  <meshStandardMaterial color="#111827" roughness={0.3} />
+                </mesh>
+              </>
+            )}
+            {/* HOPPER beard shadow */}
+            {AGENT_3D_STYLES[id].beard && (
+              <mesh position={[0, 0.475, 0.062]} castShadow={false}>
+                <boxGeometry args={[0.05, 0.03, 0.01]} />
+                <meshStandardMaterial color="#5a3a28" roughness={0.45} />
+              </mesh>
+            )}
+            {/* HOPPER flashlight prop (right hand) */}
+            {id === 'cipher' && (
+              <mesh position={[0.125, 0.34, 0.03]} castShadow={false}>
+                <cylinderGeometry args={[0.008, 0.008, 0.07, 10]} />
+                <meshStandardMaterial color="#9ca3af" roughness={0.5} metalness={0.35} />
+              </mesh>
+            )}
+            {/* HOPPER flashlight beam (cheap volumetric cone) */}
+            {showVfx && id === 'cipher' && (
+              <mesh
+                ref={(el) => {
+                  hopperBeamRefs.current[i] = el
+                }}
+                position={[0.16, 0.34, 0.18]}
+                rotation={[0.35, 0, 0]}
+                castShadow={false}
+              >
+                <cylinderGeometry args={[0.01, 0.14, 0.38, 10, 1, true]} />
+                <meshStandardMaterial
+                  color="#fde68a"
+                  emissive="#fde68a"
+                  emissiveIntensity={0.35}
+                  transparent
+                  opacity={0.12}
+                  side={THREE.DoubleSide}
+                  depthWrite={false}
+                />
+              </mesh>
+            )}
             {/* Role-color chest badge */}
             <mesh position={[0, 0.235, 0.055]} castShadow={false}>
               <boxGeometry args={[0.03, 0.03, 0.01]} />
@@ -1104,6 +1620,7 @@ function DraggableProp({
   worldPos,
   radiusById,
   onMoveWorld,
+  hideProxyWhenNotEnabled = false,
 }: {
   id: OfficeObjectId
   pos: OfficeObjectPos
@@ -1115,6 +1632,7 @@ function DraggableProp({
   worldPos: Record<OfficeObjectId, Vec3>
   radiusById: Record<OfficeObjectId, number>
   onMoveWorld: (id: OfficeObjectId, world: Vec3) => void
+  hideProxyWhenNotEnabled?: boolean
 }) {
   const world = useMemo(() => worldPos[id] ?? toWorld(pos), [worldPos, id, pos])
   const ref = useRef<THREE.Mesh | null>(null)
@@ -1137,6 +1655,7 @@ function DraggableProp({
       ref={ref}
       position={[world[0], baseY, world[2]]}
       castShadow
+      visible={enabled || !hideProxyWhenNotEnabled}
       onPointerDown={(e) => {
         if (!enabled) return
         e.stopPropagation()
@@ -1195,7 +1714,7 @@ function DraggableProp({
   )
 }
 
-export function OfficeRoom3D({
+function OfficeRoom3DInner({
   officeEditMode,
   officeLayout,
   agentPos,
@@ -1203,6 +1722,13 @@ export function OfficeRoom3D({
   sceneMode = 'auto',
   motionIntensity = 1,
   cameraPreset = 'cinematic',
+  vfxQuality = 'low',
+  onOpenMemory,
+  onOpenScheduler,
+  onToggleEditMode,
+  onResetLayout,
+  onSetCameraPreset,
+  onSetVfxQuality,
   dispatchBar = null,
 }: {
   officeEditMode: boolean
@@ -1212,6 +1738,13 @@ export function OfficeRoom3D({
   sceneMode?: 'auto' | 'morning' | 'afternoon' | 'night'
   motionIntensity?: number
   cameraPreset?: OfficeCameraPreset
+  vfxQuality?: OfficeVfxQuality
+  onOpenMemory?: () => void
+  onOpenScheduler?: () => void
+  onToggleEditMode?: () => void
+  onResetLayout?: () => void
+  onSetCameraPreset?: (p: OfficeCameraPreset) => void
+  onSetVfxQuality?: (q: OfficeVfxQuality) => void
   dispatchBar?: DispatchState
 }) {
   const [autoTod, setAutoTod] = useState<'morning' | 'afternoon' | 'night'>(() => getTimeOfDay())
@@ -1245,21 +1778,7 @@ export function OfficeRoom3D({
     return { ...OFFICE_OBJECT_DEFAULTS, ...officeLayout }
   }, [officeLayout])
 
-  const radiusById: Record<OfficeObjectId, number> = {
-    serverRack: 0.48,
-    plantBackLeft: 0.35,
-    plantBottomLeft: 0.3,
-    waterCooler: 0.34,
-    trashCan: 0.26,
-    fuelGauge: 0.24,
-    conferenceTable: 1.05,
-    sofa: 0.95,
-    janskyDesk: 0.78,
-    cipherDesk: 0.62,
-    fluxDesk: 0.62,
-    orbitDesk: 0.62,
-    novaDesk: 0.62,
-  }
+  const radiusById = RADIUS_BY_ID
 
   const worldPos = useMemo(() => {
     const next: Record<OfficeObjectId, Vec3> = {} as Record<OfficeObjectId, Vec3>
@@ -1358,6 +1877,21 @@ export function OfficeRoom3D({
           worldRisk={worldRisk}
           modelLabel={modelLabel}
           agentStats={agentStats}
+          controls={
+            onOpenMemory && onOpenScheduler && onToggleEditMode && onResetLayout && onSetCameraPreset && onSetVfxQuality
+              ? {
+                  officeEditMode,
+                  onToggleEditMode,
+                  onResetLayout,
+                  onOpenMemory,
+                  onOpenScheduler,
+                  cameraPreset,
+                  onSetCameraPreset,
+                  vfxQuality,
+                  onSetVfxQuality,
+                }
+              : undefined
+          }
         />
         <Furniture3D
           nightFactor={nightFactor * motion}
@@ -1368,9 +1902,8 @@ export function OfficeRoom3D({
           tryMove={tryMove}
         />
         <CityWindow nightFactor={nightFactor * motion} />
-        <CeilingLights nightFactor={nightFactor * motion} />
         <DustParticles nightFactor={nightFactor * motion} />
-        <AgentFloorShadows agentPos={agentPos} activeAgent={activeAgent} obstacles={agentObstacles} />
+        <AgentFloorShadows agentPos={agentPos} activeAgent={activeAgent} obstacles={agentObstacles} vfxQuality={vfxQuality} />
         <DispatchBeam dispatchBar={dispatchBar} agentPos={agentPos} />
 
         <DraggableProp
@@ -1378,6 +1911,7 @@ export function OfficeRoom3D({
           pos={layout.serverRack}
           color="#223040"
           size={[0.55, 1.2, 0.35]}
+          y={0.62}
           radius={radiusById.serverRack}
           enabled={officeEditMode}
           worldPos={worldPos}
@@ -1451,47 +1985,102 @@ export function OfficeRoom3D({
           pos={layout.waterCooler}
           color="#0d1826"
           size={[0.35, 1.1, 0.35]}
+          y={0.57}
           radius={radiusById.waterCooler}
           enabled={officeEditMode}
           worldPos={worldPos}
           radiusById={radiusById}
           onMoveWorld={tryMove}
+          hideProxyWhenNotEnabled
         />
+        {/* Water cooler detail model (used when edit-mode proxy is hidden). */}
+        <group position={[worldPos.waterCooler[0], 0.57, worldPos.waterCooler[2]]} castShadow={false}>
+          <mesh castShadow={false}>
+            <cylinderGeometry args={[0.16, 0.18, 1.05, 16]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.85} metalness={0.06} />
+          </mesh>
+          <mesh position={[0, 0.525, 0]} castShadow={false}>
+            <cylinderGeometry args={[0.17, 0.17, 0.06, 14]} />
+            <meshStandardMaterial color="#111827" roughness={0.7} />
+          </mesh>
+          <mesh position={[0, -0.525, 0]} castShadow={false}>
+            <cylinderGeometry args={[0.21, 0.21, 0.04, 16]} />
+            <meshStandardMaterial color="#0b1220" roughness={0.9} />
+          </mesh>
+          {/* Spout / nozzle */}
+          <mesh position={[0.06, 0.05, 0.17]} castShadow={false}>
+            <boxGeometry args={[0.05, 0.08, 0.04]} />
+            <meshStandardMaterial color="#1f2937" roughness={0.8} />
+          </mesh>
+        </group>
         <DraggableProp
           id="trashCan"
           pos={layout.trashCan}
           color="#222222"
           size={[0.35, 0.45, 0.35]}
+          y={0.245}
           radius={radiusById.trashCan}
           enabled={officeEditMode}
           worldPos={worldPos}
           radiusById={radiusById}
           onMoveWorld={tryMove}
+          hideProxyWhenNotEnabled
         />
+        {/* Trash can detail model + fill indicator */}
+        <group position={[worldPos.trashCan[0], 0.245, worldPos.trashCan[2]]} castShadow={false}>
+          <mesh castShadow={false}>
+            <cylinderGeometry args={[0.16, 0.16, 0.45, 16]} />
+            <meshStandardMaterial color="#1f2937" roughness={0.85} metalness={0.03} />
+          </mesh>
+          {/* Lid */}
+          <mesh position={[0, 0.215, 0]} castShadow={false}>
+            <cylinderGeometry args={[0.165, 0.165, 0.04, 14]} />
+            <meshStandardMaterial color="#111827" roughness={0.8} />
+          </mesh>
+          {/* Fill indicator cylinder (state-driven) */}
+          <mesh position={[0, (0.02 - 0.245) + (Math.max(0.04, trashPct * 0.32) / 2), 0]} castShadow={false}>
+            <cylinderGeometry args={[0.14, 0.14, Math.max(0.04, trashPct * 0.32), 16]} />
+            <meshStandardMaterial
+              color={trashPct > 0.85 ? '#ef4444' : trashPct > 0.6 ? '#f59e0b' : '#4f6ef7'}
+              transparent
+              opacity={0.48}
+              emissive={trashPct >= 1 ? '#ef4444' : '#000000'}
+              emissiveIntensity={trashPct >= 1 ? 0.4 : 0}
+            />
+          </mesh>
+          {/* Small inner rim */}
+          <mesh position={[0, 0.18, 0]} castShadow={false}>
+            <cylinderGeometry args={[0.13, 0.13, 0.02, 14]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.9} />
+          </mesh>
+        </group>
         <DraggableProp
           id="fuelGauge"
           pos={layout.fuelGauge}
           color="#0a0f1e"
           size={[0.25, 0.8, 0.25]}
+          y={0.42}
           radius={radiusById.fuelGauge}
           enabled={officeEditMode}
           worldPos={worldPos}
           radiusById={radiusById}
           onMoveWorld={tryMove}
+          hideProxyWhenNotEnabled
         />
         <DraggableProp
           id="plantBackLeft"
           pos={layout.plantBackLeft}
           color="#4a3423"
           size={[0.3, 0.24, 0.3]}
-          y={0.12}
+          y={0.34}
           radius={radiusById.plantBackLeft}
           enabled={officeEditMode}
           worldPos={worldPos}
           radiusById={radiusById}
           onMoveWorld={tryMove}
+          hideProxyWhenNotEnabled
         />
-        <group position={[worldPos.plantBackLeft[0], 0.28, worldPos.plantBackLeft[2]]}>
+        <group position={[worldPos.plantBackLeft[0], 0.34, worldPos.plantBackLeft[2]]}>
           <mesh castShadow={false}>
             <cylinderGeometry args={[0.022, 0.03, 0.26, 8]} />
             <meshStandardMaterial color="#2e5b2f" roughness={0.85} />
@@ -1514,14 +2103,15 @@ export function OfficeRoom3D({
           pos={layout.plantBottomLeft}
           color="#4a3423"
           size={[0.26, 0.2, 0.26]}
-          y={0.1}
+          y={0.30}
           radius={radiusById.plantBottomLeft}
           enabled={officeEditMode}
           worldPos={worldPos}
           radiusById={radiusById}
           onMoveWorld={tryMove}
+          hideProxyWhenNotEnabled
         />
-        <group position={[worldPos.plantBottomLeft[0], 0.24, worldPos.plantBottomLeft[2]]}>
+        <group position={[worldPos.plantBottomLeft[0], 0.30, worldPos.plantBottomLeft[2]]}>
           <mesh castShadow={false}>
             <cylinderGeometry args={[0.018, 0.025, 0.2, 8]} />
             <meshStandardMaterial color="#2e5b2f" roughness={0.85} />
@@ -1555,20 +2145,12 @@ export function OfficeRoom3D({
           </mesh>
         </group>
 
-        {/* 3D parity trash fill indicator (replaces 2D TrashCan fill logic) */}
-        <mesh position={[worldPos.trashCan[0], 0.17 + trashPct * 0.16, worldPos.trashCan[2]]} castShadow={false}>
-          <cylinderGeometry args={[0.14, 0.14, Math.max(0.04, trashPct * 0.32), 16]} />
-          <meshStandardMaterial
-            color={trashPct > 0.85 ? '#ef4444' : trashPct > 0.6 ? '#f59e0b' : '#4f6ef7'}
-            transparent
-            opacity={0.48}
-            emissive={trashPct >= 1 ? '#ef4444' : '#000000'}
-            emissiveIntensity={trashPct >= 1 ? 0.4 : 0}
-          />
-        </mesh>
+        {/* Trash fill indicator is rendered inside the trash-can detail group above. */}
 
       </Canvas>
     </div>
   )
 }
+
+export const OfficeRoom3D = memo(OfficeRoom3DInner)
 

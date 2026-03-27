@@ -93,7 +93,10 @@ flowchart LR
     T --> F[fetch_url]
     T --> R[read_file]
     T --> C[calculate]
-    W & F & R & C --> O[Tool result]
+    W --> O[Tool result]
+    F --> O
+    R --> O
+    C --> O
     O --> A
     A -->|Done| S([Stream to UI])
     style A fill:#151820,stroke:#4f6ef7,color:#dde1f0
@@ -109,32 +112,32 @@ Tool calls appear as collapsible badges in the chat UI in real time. The agent w
 
 ```mermaid
 flowchart TD
-    subgraph Client["Browser"]
-        NAV[Sidebar Nav] --> TABS[12 Tab Pages\napp/[tab]/page.tsx]
-        TABS --> STORE[Zustand Store\nstore/useStore.ts]
-        STORE -->|persisted| LS[(localStorage)]
-        TABS --> HOOKS[Data Hooks\nusePrices · useArticles · useCVEs]
+    subgraph Client
+        NAV["Sidebar Nav"] --> TABS["12 Tab Pages<br/>app/(tab)/page.tsx"]
+        TABS --> STORE["Zustand Store<br/>store/useStore.ts"]
+        STORE -->|persisted| LS[("localStorage")]
+        TABS --> HOOKS["Data Hooks<br/>usePrices, useArticles, useCVEs"]
     end
 
-    subgraph Server["Next.js Server Routes"]
-        API_AI[/api/ai\nAnthropic proxy]
-        API_TOOLS[/api/tools\nweb_search · fetch_url · calculate]
-        API_SEARCH[/api/search\nGDELT · Guardian]
-        MIDDLEWARE[middleware.ts\nBearer auth]
+    subgraph Server
+        API_AI["/api/ai<br/>Anthropic proxy"]
+        API_TOOLS["/api/tools<br/>web_search, fetch_url, calculate"]
+        API_SEARCH["/api/search<br/>GDELT, Guardian"]
+        MIDDLEWARE["middleware.ts<br/>Bearer auth"]
     end
 
-    subgraph AI["AI Layer"]
-        CLAUDE[Claude API\nAnthropic]
-        OLLAMA[Ollama\nLocal LLM]
+    subgraph AI
+        CLAUDE["Claude API<br/>Anthropic"]
+        OLLAMA["Ollama<br/>Local LLM"]
     end
 
-    subgraph External["Live Data Sources"]
-        CG[CoinGecko\ncrypto]
-        USGS[USGS\nquakes]
-        GDELT[GDELT\nnews]
-        NVD[NVD\nCVEs]
-        OTX[AlienVault OTX\nthreat intel]
-        POLY[Polymarket\nprediction markets]
+    subgraph External
+        CG["CoinGecko<br/>crypto"]
+        USGS["USGS<br/>quakes"]
+        GDELT["GDELT<br/>news"]
+        NVD["NVD<br/>CVEs"]
+        OTX["AlienVault OTX<br/>threat intel"]
+        POLY["Polymarket<br/>prediction markets"]
     end
 
     HOOKS --> API_SEARCH
@@ -144,7 +147,12 @@ flowchart TD
     API_TOOLS --> MIDDLEWARE
     API_AI --> CLAUDE
     API_AI --> OLLAMA
-    HOOKS --> CG & USGS & GDELT & NVD & OTX & POLY
+    HOOKS --> CG
+    HOOKS --> USGS
+    HOOKS --> GDELT
+    HOOKS --> NVD
+    HOOKS --> OTX
+    HOOKS --> POLY
 
     style Client fill:#0f1117,stroke:#1e2233,color:#dde1f0
     style Server fill:#07080d,stroke:#4f6ef7,color:#dde1f0

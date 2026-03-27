@@ -34,3 +34,6 @@ jobs:
 
       - name: Agent runtime eval
         run: npm run eval:agent-runtime:ci
+
+      - name: Handoff doc is up to date
+        run: npm run handoff:check

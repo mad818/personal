@@ -15,6 +15,8 @@
     "type-check": "tsc --noEmit",
     "verify": "npm run type-check && npm run lint && npm run check:path-collisions",
     "verify:full": "npm run verify && npm run format:check",
+    "handoff:write": "node scripts/generate-handoff.js --write",
+    "handoff:check": "node scripts/generate-handoff.js --check",
     "format:write": "prettier --write \"{app,lib,components}/**/*.{ts,tsx,mdx}\" --cache",
     "format:check": "prettier --check \"{app,lib,components}**/*.{ts,tsx,mdx}\" --cache"
   },

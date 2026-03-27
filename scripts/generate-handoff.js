@@ -1,0 +1,158 @@
+/* eslint-disable no-console */
+/**
+ * Auto-generate docs/CLAUDE_HANDOFF.md from current repo state.
+ *
+ * Goals:
+ * - Always reflects the latest commit + current tree (no stale "old" handoff content).
+ * - Provides enough context for a new agent/operator to continue work immediately.
+ *
+ * Usage:
+ *   node scripts/generate-handoff.js --write
+ *   node scripts/generate-handoff.js --check
+ */
+
+const { execSync } = require('node:child_process')
+const fs = require('node:fs')
+const path = require('node:path')
+
+function sh(cmd) {
+  return execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' }).trim()
+}
+
+function safe(cmd, fallback = '') {
+  try {
+    return sh(cmd)
+  } catch {
+    return fallback
+  }
+}
+
+function mdEscape(s) {
+  return String(s ?? '').replace(/[\\`]/g, '\\$&')
+}
+
+function getTopTodoLines(todoPathAbs) {
+  const raw = fs.readFileSync(todoPathAbs, 'utf8')
+  const lines = raw.split(/\r?\n/)
+  const start = lines.findIndex((l) => l.trim() === '## Next Up')
+  if (start === -1) return []
+  const out = []
+  for (let i = start + 1; i < lines.length; i++) {
+    const l = lines[i]
+    if (l.startsWith('## ')) break
+    if (l.trim().startsWith('- [ ] ')) out.push(l.trim().replace('- [ ] ', '- '))
+    if (out.length >= 10) break
+  }
+  return out
+}
+
+function buildHandoff() {
+  const repoRoot = process.cwd()
+
+  const headSha = safe('git rev-parse --short HEAD', 'unknown')
+  const headMsg = safe('git log -1 --pretty=%s', 'unknown')
+  // Use commit time (not "now") so output is deterministic for CI checks.
+  const headWhen = safe('git log -1 --pretty=%cI', new Date().toISOString())
+
+  const changedFiles = safe('git show --name-only --pretty="" HEAD', '')
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 60)
+
+  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'))
+  const verifyCmd = packageJson?.scripts?.verify ? 'npm run verify' : 'npx tsc --noEmit'
+  const devCmd = packageJson?.scripts?.dev ? 'npm run dev' : 'npm run dev'
+
+  const todoAbs = path.join(repoRoot, 'tasks', 'todo.md')
+  const nextUp = fs.existsSync(todoAbs) ? getTopTodoLines(todoAbs) : []
+
+  const handoff = [
+    '## Nexus Prime — Claude Desktop Handoff (AUTO)',
+    '',
+    `**Generated from commit:** \`${mdEscape(headWhen)}\``,
+    `**Commit:** \`${mdEscape(headSha)}\` — ${mdEscape(headMsg)}`,
+    '',
+    '### Project purpose',
+    '',
+    'Nexus Prime is a **free, open-source, self-hosted intelligence dashboard** that runs locally (no cloud backend, no DB).',
+    'It aggregates markets, geopolitics, cyber, ops, IoT, and includes an AI agent (Claude via server proxy or local Ollama).',
+    '',
+    '### Development stage',
+    '',
+    '- Next.js 14 app is the active surface (`app/`, `components/`, `lib/`, `store/`).',
+    '- `nexus-final.html` remains as legacy reference and should stay single-file.',
+    '',
+    '### Run + verify',
+    '',
+    '```bash',
+    'npm install',
+    devCmd,
+    '```',
+    '',
+    '**Always verify after edits:**',
+    '',
+    '```bash',
+    verifyCmd,
+    '```',
+    '',
+    '### Security + ops constraints',
+    '',
+    '- Secrets live in `.env.local` (never commit). See `.env.example`.',
+    '- Server routes are protected by `NEXUS_TOKEN` and CSP is enforced in `next.config.js`.',
+    '- Prefer server-side API routes for external fetches to avoid CSP/CORS issues.',
+    '',
+    '### What changed in the latest push',
+    '',
+    ...(changedFiles.length
+      ? ['Files touched in the latest commit:', '', ...changedFiles.map((f) => `- \`${mdEscape(f)}\``), '']
+      : ['(Could not list changed files.)', '']),
+    '### What’s next (from `tasks/todo.md`)',
+    '',
+    ...(nextUp.length ? nextUp : ['- Review `tasks/todo.md` → `## Next Up`']),
+    '',
+    '### Where to look',
+    '',
+    '- **Tabs**: `app/[tab]/page.tsx`',
+    '- **State**: `store/useStore.ts`',
+    '- **AI**: `lib/agent.ts`, `lib/ai.ts`, `app/api/ai/*`, `app/api/tools/*`',
+    '- **Diagnostics**: `app/api/status/*`, `app/api/verify/*`, `docs/metrics/*`',
+    '',
+  ].join('\n')
+
+  return handoff
+}
+
+function normalizeNewlines(s) {
+  return s.replace(/\r\n/g, '\n')
+}
+
+function main() {
+  const args = process.argv.slice(2)
+  const write = args.includes('--write')
+  const check = args.includes('--check')
+  if (!write && !check) {
+    console.error('Usage: node scripts/generate-handoff.js --write|--check')
+    process.exit(2)
+  }
+
+  const outPath = path.join(process.cwd(), 'docs', 'CLAUDE_HANDOFF.md')
+  const next = normalizeNewlines(buildHandoff()).trim() + '\n'
+  const cur = fs.existsSync(outPath) ? normalizeNewlines(fs.readFileSync(outPath, 'utf8')) : ''
+
+  if (check) {
+    if (normalizeNewlines(cur) !== next) {
+      console.error('docs/CLAUDE_HANDOFF.md is stale. Run: npm run handoff:write')
+      process.exit(1)
+    }
+    console.log('Handoff OK: docs/CLAUDE_HANDOFF.md is up to date.')
+    return
+  }
+
+  fs.mkdirSync(path.dirname(outPath), { recursive: true })
+  fs.writeFileSync(outPath, next, 'utf8')
+  console.log(`Wrote ${outPath}`)
+}
+
+main()
+

@@ -84,6 +84,7 @@
 - Companion services (GeoDeep, n8n) belong in `docs/deployment/` docs, not bundled into the Next.js app. Document like Coolify: setup, env vars, integration points, notes.
 - PM Cockpit checklist should be seeded with DEFAULT items in the store constant so new installs always have a usable list without migration logic.
 - `Array.from(set)` not `[...set]` when `downlevelIteration` is not enabled in tsconfig — TypeScript spread on Set fails without it.
+- `NODE_ENV=production` set at the Windows system level silently prunes all devDependencies on every `npm install`, removing tailwindcss/postcss/autoprefixer and breaking the build. Fix: `.npmrc` in the project root with `production=false`. This is committed and must never be removed.
 - Completed HQ office 2D -> 3D migration; keep one renderer path only and mirror runtime parity signals natively in 3D before deleting legacy components.
 - Added shared chat capability routing layer and wired both chat surfaces to auto-open matching tabs for prompt intent and tool calls.
 - Bound War Room/Night Ops presets to operational mode settings so runtime scheduler and alert policy change with the selected profile.

@@ -378,6 +378,41 @@ async function patchProjectFile(relPath: string, oldStr: string, newStr: string)
   return `Patched: ${relPath} — ${linesChanged} line(s) changed.`
 }
 
+// ── n8n workflow trigger ──────────────────────────────────────────────────────
+const N8N_BASE_URL = process.env.N8N_BASE_URL ?? 'http://localhost:5678'
+const N8N_API_KEY  = process.env.N8N_API_KEY ?? ''
+
+async function n8nRunWorkflow(workflowId: string, payload: Record<string, unknown>): Promise<string> {
+  if (!workflowId) return 'n8n_run_workflow: workflowId is required.'
+  if (!N8N_API_KEY) {
+    return (
+      'n8n is not configured. Add N8N_API_KEY and N8N_BASE_URL to your .env.local, ' +
+      'then start n8n. See docs/deployment/n8n.md.'
+    )
+  }
+  try {
+    // Prefer webhook execution (instant); fall back to API execution endpoint
+    const url = `${N8N_BASE_URL}/api/v1/workflows/${encodeURIComponent(workflowId)}/execute`
+    const r = await fetch(url, {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-N8N-API-KEY': N8N_API_KEY,
+      },
+      body:   JSON.stringify(payload),
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!r.ok) {
+      return `n8n returned HTTP ${r.status}. Make sure n8n is running and the workflow ID is correct.`
+    }
+    const d = await r.json()
+    const execId = d?.data?.executionId ?? d?.executionId ?? 'unknown'
+    return `Workflow ${workflowId} triggered — execution ID: ${execId}`
+  } catch {
+    return 'Could not reach n8n. Make sure it is running (see docs/deployment/n8n.md).'
+  }
+}
+
 // ── Route handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
@@ -425,6 +460,11 @@ export async function POST(req: NextRequest) {
       case 'create_project_file':
         result = await createProjectFile(input.path ?? '', input.content ?? '')
         break
+      case 'n8n_run_workflow': {
+        const payload = input.payload ? JSON.parse(input.payload) as Record<string, unknown> : {}
+        result = await n8nRunWorkflow(input.workflow_id ?? '', payload)
+        break
+      }
       default:
         result = `Unknown tool: ${tool}`
     }

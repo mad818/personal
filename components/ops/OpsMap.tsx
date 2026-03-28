@@ -115,13 +115,30 @@ async function fetchFires(firmsKey: string): Promise<Fire[]> {
   } catch { return [] }
 }
 
-// ── Layer types ───────────────────────────────────────────────────────────
-type LayerKey = 'quakes' | 'flights' | 'fires'
+interface GeoDepDetection {
+  lat:        number
+  lng:        number
+  label:      string
+  confidence: number
+}
 
-const LAYER_META: Record<LayerKey, { label: string; icon: string; needsKey?: string }> = {
+async function fetchGeoDepData(): Promise<GeoDepDetection[]> {
+  try {
+    const r = await fetch('/api/geo-scan', { signal: AbortSignal.timeout(15000) })
+    if (!r.ok) return []
+    const d = await r.json()
+    return (d.detections ?? []) as GeoDepDetection[]
+  } catch { return [] }
+}
+
+// ── Layer types ───────────────────────────────────────────────────────────
+type LayerKey = 'quakes' | 'flights' | 'fires' | 'geodep'
+
+const LAYER_META: Record<LayerKey, { label: string; icon: string; needsKey?: string; serviceRequired?: boolean }> = {
   quakes:  { label: 'Quakes',  icon: '🔴' },
   flights: { label: 'Flights', icon: '✈️' },
   fires:   { label: 'Fires',   icon: '🔥', needsKey: 'firmsKey' },
+  geodep:  { label: 'AI Scan', icon: '🛰️', serviceRequired: true },
 }
 
 export default function OpsMap() {
@@ -239,13 +256,39 @@ export default function OpsMap() {
     }
   }, [activeLayers, firmsKey])
 
+  const refreshGeodep = useCallback(async () => {
+    const map = mapRef.current
+    if (!map || !activeLayers.has('geodep')) return
+    setLayerLoading((p) => ({ ...p, geodep: true }))
+    try {
+      const L = await import('leaflet')
+      const detections = await fetchGeoDepData()
+      if (!mapRef.current) return
+      const group = L.layerGroup()
+      detections.forEach((d) => {
+        L.circleMarker([d.lat, d.lng], {
+          radius: 6, color: '#a78bfa', fillColor: '#7c3aed', fillOpacity: 0.7, weight: 1.5,
+        })
+          .addTo(group)
+          .bindPopup(`<b>🛰️ ${d.label}</b><br>Confidence: ${Math.round(d.confidence * 100)}%`)
+      })
+      if (layerRefs.current.geodep) {
+        map.removeLayer(layerRefs.current.geodep)
+      }
+      group.addTo(map)
+      layerRefs.current.geodep = group
+    } finally {
+      setLayerLoading((p) => ({ ...p, geodep: false }))
+    }
+  }, [activeLayers])
+
   // Load quakes + fires when activeLayers changes (flights handled separately)
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
     import('leaflet').then((L) => {
       activeLayers.forEach(async (key) => {
-        if (key === 'flights') return
+        if (key === 'flights' || key === 'geodep') return
         if (layerRefs.current[key]) return  // already loaded
         setLayerLoading((p) => ({ ...p, [key]: true }))
 
@@ -316,6 +359,19 @@ export default function OpsMap() {
       }
     }
   }, [activeLayers, mapReady, paintFlightsLayer])
+
+  // Geodep: load once when layer turns on — no auto-refresh (expensive ML call, manual only)
+  useEffect(() => {
+    if (!mapReady || !activeLayers.has('geodep')) return
+    void refreshGeodep()
+    return () => {
+      const m = mapRef.current
+      if (m && layerRefs.current.geodep) {
+        m.removeLayer(layerRefs.current.geodep)
+        delete layerRefs.current.geodep
+      }
+    }
+  }, [activeLayers, mapReady, refreshGeodep])
 
   // Auto-refresh active free layers only (polite cadence; toggle off anytime)
   useEffect(() => {
@@ -409,11 +465,12 @@ export default function OpsMap() {
           const active  = activeLayers.has(key)
           const loading = layerLoading[key]
           const locked  = meta.needsKey === 'firmsKey' && !firmsKey
+          const svcHint = meta.serviceRequired ? 'Requires local GeoDeep AI service — see docs/deployment/geodep.md' : undefined
           return (
             <button
               key={key}
               onClick={() => !locked && toggleLayer(key)}
-              title={locked ? 'Add NASA FIRMS key in Settings to enable fire layer' : undefined}
+              title={locked ? 'Add NASA FIRMS key in Settings to enable fire layer' : svcHint}
               style={{
                 height: '26px', padding: '0 10px', borderRadius: '6px',
                 fontSize: '10.5px', fontWeight: 700, cursor: locked ? 'default' : 'pointer',
@@ -432,7 +489,7 @@ export default function OpsMap() {
       </div>
 
       {/* Manual refresh — free APIs only; you choose when to hit the network */}
-      {(activeLayers.has('quakes') || activeLayers.has('flights') || activeLayers.has('fires')) && (
+      {(activeLayers.has('quakes') || activeLayers.has('flights') || activeLayers.has('fires') || activeLayers.has('geodep')) && (
         <div
           style={{
             display: 'flex',
@@ -528,11 +585,32 @@ export default function OpsMap() {
               {layerLoading.fires ? '…' : '↻ Refresh fires'}
             </button>
           )}
+          {activeLayers.has('geodep') && (
+            <button
+              type="button"
+              aria-label="Run AI object detection via local GeoDeep service"
+              onClick={() => void refreshGeodep()}
+              disabled={!!layerLoading.geodep}
+              style={{
+                height: '24px',
+                padding: '0 10px',
+                borderRadius: '6px',
+                border: '1px solid var(--border2)',
+                background: 'var(--surface2)',
+                color: 'var(--text2)',
+                fontSize: '10px',
+                fontWeight: 600,
+                cursor: layerLoading.geodep ? 'wait' : 'pointer',
+              }}
+            >
+              {layerLoading.geodep ? '…' : '↻ Run AI scan'}
+            </button>
+          )}
         </div>
       )}
 
       {/* Legend — any active layer */}
-      {(activeLayers.has('quakes') || activeLayers.has('flights') || activeLayers.has('fires')) && (
+      {(activeLayers.has('quakes') || activeLayers.has('flights') || activeLayers.has('fires') || activeLayers.has('geodep')) && (
         <div style={{ display: 'flex', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
           {activeLayers.has('quakes') &&
             [
@@ -569,6 +647,12 @@ export default function OpsMap() {
               Quakes auto ~{Math.round(OPSMAP_QUAKE_AUTO_REFRESH_MS / 60_000)} min (USGS)
             </span>
           )}
+          {activeLayers.has('geodep') && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7c3aed', display: 'inline-block' }} />
+              AI detections — local service · manual refresh only
+            </span>
+          )}
         </div>
       )}
 
@@ -596,6 +680,11 @@ export default function OpsMap() {
       {!firmsKey && (
         <div style={{ marginTop: '6px', fontSize: '10px', color: 'var(--text3)' }}>
           🔥 Add a NASA FIRMS key in Settings to enable the fire hotspot layer.
+        </div>
+      )}
+      {activeLayers.has('geodep') && (
+        <div style={{ marginTop: '6px', fontSize: '10px', color: 'var(--text3)' }}>
+          🛰️ AI Scan uses a local GeoDeep service. See <code style={{ fontFamily: 'monospace', fontSize: '9px' }}>docs/deployment/geodep.md</code> to set it up.
         </div>
       )}
     </div>

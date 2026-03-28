@@ -77,6 +77,13 @@
 
 ### 2026-03-27
 - Stale TaskPlanPanel came from non-finalized run paths and missing auto-clear; always close run lifecycle and clear terminal plans.
+
+### 2026-03-28
+- Git index.lock in the container overlay blocks sandbox Bash git commands. Always route git operations through Desktop Commander (cmd shell) using `git commit -F commit_msg.txt` pattern.
+- When adding a new layer type to a Leaflet component (like geodep), follow the established pattern: dedicated fetch fn → dedicated `useCallback` → dedicated `useEffect` (not bolted onto the shared activeLayers effect). This keeps each layer isolated and avoids dependency array sprawl.
+- Companion services (GeoDeep, n8n) belong in `docs/deployment/` docs, not bundled into the Next.js app. Document like Coolify: setup, env vars, integration points, notes.
+- PM Cockpit checklist should be seeded with DEFAULT items in the store constant so new installs always have a usable list without migration logic.
+- `Array.from(set)` not `[...set]` when `downlevelIteration` is not enabled in tsconfig — TypeScript spread on Set fails without it.
 - Completed HQ office 2D -> 3D migration; keep one renderer path only and mirror runtime parity signals natively in 3D before deleting legacy components.
 - Added shared chat capability routing layer and wired both chat surfaces to auto-open matching tabs for prompt intent and tool calls.
 - Bound War Room/Night Ops presets to operational mode settings so runtime scheduler and alert policy change with the selected profile.

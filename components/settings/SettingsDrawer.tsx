@@ -6,23 +6,7 @@ import { useStore, DEFAULT_SETTINGS, Settings } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
 import RuntimeEvalTrend from '@/components/ui/RuntimeEvalTrend'
 import { PMHealthStrip } from '@/components/settings/PMHealthStrip'
-
-// ── Sensitive fields — these go to /api/settings (server-side .env.local) ────
-// Keys here match both the FIELDS key AND the SENSITIVE_KEYS list in settings/route.ts
-const SENSITIVE_FIELD_MAP: Record<string, string> = {
-  apiKey:       'ANTHROPIC_API_KEY',
-  minimaxKey:   'MINIMAX_API_KEY',
-  braveKey:     'BRAVE_SEARCH_KEY',
-  cgKey:        'COINGECKO_KEY',
-  finnhubKey:   'FINNHUB_KEY',
-  nvdKey:       'NVD_KEY',
-  guardianKey:  'GUARDIAN_KEY',
-  fredKey:      'FRED_KEY',
-  otxKey:       'OTX_KEY',
-  aisstreamKey: 'AISSTREAM_KEY',
-  firmsKey:     'FIRMS_MAP_KEY',
-  firecrawlKey: 'FIRECRAWL_KEY',
-}
+import { PMChecklist }  from '@/components/settings/PMChecklist'
 
 // ── Non-sensitive fields — stored in Zustand / localStorage ──────────────────
 const LOCAL_FIELDS: { key: keyof Settings; label: string; type?: string; placeholder?: string }[] = [
@@ -130,14 +114,25 @@ export default function SettingsDrawer({ open, onClose }: Props) {
     setSensitiveEdits({})
   }, [updateSettings])
 
+  // ── Exit animation ───────────────────────────────────────────────────────────
+  const [closing, setClosing] = useState(false)
+  const handleClose = useCallback(() => {
+    setClosing(true)
+    setTimeout(() => { setClosing(false); onClose() }, 220)
+  }, [onClose])
+
   if (!open) return null
 
   return (
     <>
       {/* Backdrop */}
       <div
-        onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', zIndex: 1100 }}
+        onClick={handleClose}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', zIndex: 1100,
+          opacity: closing ? 0 : 1,
+          transition: 'opacity .22s var(--t, ease)',
+        }}
       />
 
       {/* Drawer */}
@@ -149,6 +144,8 @@ export default function SettingsDrawer({ open, onClose }: Props) {
         zIndex: 1200,
         display: 'flex', flexDirection: 'column',
         overflowY: 'auto',
+        transform: closing ? 'translateX(100%)' : 'translateX(0)',
+        transition: 'transform .22s cubic-bezier(.4,0,.2,1)',
       }}>
         {/* Header */}
         <div style={{
@@ -158,7 +155,7 @@ export default function SettingsDrawer({ open, onClose }: Props) {
         }}>
           <span style={{ fontWeight: 900, fontSize: '14px', color: 'var(--text)' }}>⚙️ Settings</span>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             style={{
               marginLeft: 'auto', background: 'transparent', border: 'none',
               color: 'var(--text2)', fontSize: '18px', cursor: 'pointer', padding: '0 4px',
@@ -326,6 +323,7 @@ export default function SettingsDrawer({ open, onClose }: Props) {
             </div>
 
             <PMHealthStrip />
+            <PMChecklist />
             <RuntimeEvalTrend />
           </div>
         </div>

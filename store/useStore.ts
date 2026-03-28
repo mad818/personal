@@ -404,7 +404,35 @@ interface NexusState {
   setSecFilings:     (data: GeoRecord[]) => void
   setFlights:        (data: GeoRecord[]) => void
   setSecurityAlerts: (data: SecurityAlert[]) => void
+
+  // PM Cockpit checklist (Phase B)
+  pmChecklist:           PMChecklistItem[]
+  togglePMChecklistItem: (id: string) => void
+  resetPMChecklist:      () => void
 }
+
+// ── PM Checklist types + defaults ─────────────────────────────────────────────
+export interface PMChecklistItem {
+  id:       string
+  label:    string
+  checked:  boolean
+  category: 'daily' | 'pre-push' | 'post-incident'
+}
+
+const DEFAULT_PM_CHECKLIST: PMChecklistItem[] = [
+  // Daily
+  { id: 'daily-todo',     label: 'Review tasks/todo.md — no stale tasks',         category: 'daily',         checked: false },
+  { id: 'daily-verify',   label: 'npm run verify passes (tsc + lint)',             category: 'daily',         checked: false },
+  { id: 'daily-handoff',  label: 'Handoff current (run handoff:write if needed)',  category: 'daily',         checked: false },
+  // Pre-push
+  { id: 'push-tsc',       label: 'npx tsc --noEmit clean',                        category: 'pre-push',      checked: false },
+  { id: 'push-browser',   label: 'Tested in browser (no console errors)',          category: 'pre-push',      checked: false },
+  { id: 'push-msg',       label: 'Commit message describes why, not just what',   category: 'pre-push',      checked: false },
+  // Post-incident
+  { id: 'post-lesson',    label: 'Lesson added to tasks/lessons.md',              category: 'post-incident', checked: false },
+  { id: 'post-repro',     label: 'Root cause confirmed (not just symptom fixed)', category: 'post-incident', checked: false },
+  { id: 'post-retest',    label: 'Regression path manually retested',             category: 'post-incident', checked: false },
+]
 
 // ── Store ─────────────────────────────────────────────────────────────────────
 export const useStore = create<NexusState>()(
@@ -709,6 +737,19 @@ export const useStore = create<NexusState>()(
           const notifications = s.notifications.filter((n) => n.id !== id)
           return { notifications, unreadCount: notifications.filter((n) => !n.read).length }
         }),
+
+      // PM Checklist
+      pmChecklist: DEFAULT_PM_CHECKLIST,
+      togglePMChecklistItem: (id) =>
+        set((s) => ({
+          pmChecklist: s.pmChecklist.map((item) =>
+            item.id === id ? { ...item, checked: !item.checked } : item
+          ),
+        })),
+      resetPMChecklist: () =>
+        set((s) => ({
+          pmChecklist: s.pmChecklist.map((item) => ({ ...item, checked: false })),
+        })),
     }),
     {
       name:       'nexus-settings',

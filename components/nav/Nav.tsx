@@ -7,12 +7,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import SettingsDrawer from '@/components/settings/SettingsDrawer'
+import { NEXUS_FREE_USE_DESCRIPTION, NEXUS_FREE_USE_LABEL } from '@/lib/productGuarantees'
 
 const TABS = [
-  { href: '/home',  label: '🤖 NEXUS HQ' },
-  { href: '/intel', label: '📡 INTEL'    },
-  { href: '/alpha', label: '📈 MARKETS'  },
-  { href: '/cyber', label: '🔒 CYBER'   },
+  { href: '/home',      label: '🤖 NEXUS HQ' },
+  { href: '/intel',     label: '📡 INTEL'    },
+  { href: '/alpha',     label: '📈 MARKETS'  },
+  { href: '/cyber',      label: '🔒 CYBER'    },
+  { href: '/resources', label: '📚 FIELD'   },
 ]
 
 export default function Nav() {
@@ -79,11 +81,31 @@ export default function Nav() {
           )
         })}
 
+        <span
+          title={NEXUS_FREE_USE_DESCRIPTION}
+          style={{
+            marginLeft:   'auto',
+            flexShrink:   0,
+            fontSize:     '9.5px',
+            fontWeight:   700,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            color:        'var(--text3)',
+            padding:      '4px 8px',
+            borderRadius: '6px',
+            border:       '1px solid rgba(196,72,90,0.2)',
+            background:   'rgba(16,185,129,0.08)',
+            whiteSpace:   'nowrap',
+          }}
+        >
+          {NEXUS_FREE_USE_LABEL}
+        </span>
+
         {/* Settings button */}
         <button
           onClick={() => setSettingsOpen(true)}
           style={{
-            marginLeft:  'auto',
+            marginLeft:  '8px',
             padding:     '5px 10px',
             borderRadius:'6px',
             fontSize:    '14px',

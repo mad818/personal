@@ -13,3 +13,7 @@ export const TASK_MODELS = {
 export type AITask = keyof typeof TASK_MODELS
 
 export const DEFAULT_LOCAL_MODEL = TASK_MODELS.chat
+
+/** MiniMax OpenAI-compatible API — see https://platform.minimax.io/docs/api-reference/text-openai-api */
+export const MINIMAX_DEFAULT_CHAT_MODEL  = 'MiniMax-M2.1'
+export const MINIMAX_DEFAULT_AGENT_MODEL = 'MiniMax-M2.1'

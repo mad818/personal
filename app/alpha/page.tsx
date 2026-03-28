@@ -10,13 +10,14 @@ import WatchlistManager from '@/components/alpha/WatchlistManager'
 import { PricesLoader } from '@/components/ui/DataLoader'
 import { useStore } from '@/store/useStore'
 
-type MarketsView = 'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices'
+type MarketsView = 'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices' | 'charts'
 const VIEWS: Array<{ id: MarketsView; label: string }> = [
   { id: 'watchlist', label: '⭐ WATCHLIST' },
   { id: 'signals',   label: '🤖 SIGNALS' },
   { id: 'scanner',   label: '📈 SCANNER' },
   { id: 'sizer',     label: '🎯 SIZER' },
   { id: 'prices',    label: '💱 PRICES' },
+  { id: 'charts',    label: '📺 CHARTS' },
 ]
 
 const LazyPriceGrid = dynamic(() => import('@/components/alpha/PriceGrid'), { ssr: false })
@@ -24,6 +25,7 @@ const LazyMomentumScanner = dynamic(() => import('@/components/alpha/MomentumSca
 const LazyBuyBot = dynamic(() => import('@/components/alpha/BuyBot'), { ssr: false })
 const LazyPositionSizer   = dynamic(() => import('@/components/alpha/PositionSizer'),    { ssr: false })
 const LazyPriceSparklines = dynamic(() => import('@/components/alpha/PriceSparklines'), { ssr: false })
+const LazyTradingViewMarkets = dynamic(() => import('@/components/alpha/TradingViewMarkets'), { ssr: false })
 
 export default function AlphaPage() {
   const searchParams = useSearchParams()
@@ -33,7 +35,7 @@ export default function AlphaPage() {
 
   const urlView = useMemo(() => {
     const v = (searchParams?.get('view') ?? '').toLowerCase()
-    return (['watchlist', 'signals', 'scanner', 'sizer', 'prices'] as MarketsView[]).includes(v as MarketsView) ? (v as MarketsView) : null
+    return (['watchlist', 'signals', 'scanner', 'sizer', 'prices', 'charts'] as MarketsView[]).includes(v as MarketsView) ? (v as MarketsView) : null
   }, [searchParams])
 
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function AlphaPage() {
       <div style={{ marginBottom: '20px' }}>
         <div style={{ fontSize: '18px', fontWeight: 900 }}>📈 MARKETS</div>
         <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px' }}>
-          Crypto · Momentum scanner · Buy signals · Position sizing · Price tracking
+          Crypto · Momentum scanner · Buy signals · Position sizing · Price tracking · TradingView charts
         </div>
       </div>
 
@@ -158,6 +160,18 @@ export default function AlphaPage() {
             Price Overview
           </div>
           <LazyPriceGrid />
+        </div>
+      )}
+
+      {view === 'charts' && (
+        <div style={{ marginBottom: '28px' }}>
+          <div style={{
+            fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
+            letterSpacing: '0.8px', marginBottom: '10px',
+          }}>
+            TradingView — legacy StockBot embeds
+          </div>
+          <LazyTradingViewMarkets />
         </div>
       )}
     </div>

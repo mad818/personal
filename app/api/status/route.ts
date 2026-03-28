@@ -93,6 +93,7 @@ export async function GET() {
   const providers = {
     anthropic: present(process.env.ANTHROPIC_API_KEY),
     openai: present(process.env.OPENAI_API_KEY),
+    minimax: present(process.env.MINIMAX_API_KEY),
     groq: present(process.env.GROQ_API_KEY),
     openrouter: present(process.env.OPENROUTER_API_KEY),
     google: present(process.env.GOOGLE_AI_KEY),

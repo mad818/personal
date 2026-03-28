@@ -63,6 +63,7 @@
 52. Grade-drop alerts should include concise degraded-reason context; notifying without cause increases acknowledgement time.
 53. DraggableProp `y` is treated as the proxy mesh CENTER height; align it with the corresponding anchor group (or adjust by the floor/rug plane) to avoid floor clipping/overdraw.
 54. `docs/CLAUDE_HANDOFF.md` must not embed `HEAD` SHA, latest commit subject, or `git show` file lists if that file is committed by `handoff:sync` — those fields change every handoff commit and prevent convergence. Use stable branch links + `docs/handoff-supplement.md` for narrative and `blob/main` permalinks.
+55. When early-phase GitHub repos are private or gone, inventory **`archive/`** and local clones first, write a **matrix doc** (`docs/ideas/legacy-*.md`) for implemented vs dropped ideas, and only then port features (e.g. third-party embeds need **CSP** updates, not silent failures).
 
 ---
 

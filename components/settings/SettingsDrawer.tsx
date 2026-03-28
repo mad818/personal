@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useCallback, useEffect } from 'react'
 import { useStore, DEFAULT_SETTINGS, Settings } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
@@ -9,6 +10,7 @@ import RuntimeEvalTrend from '@/components/ui/RuntimeEvalTrend'
 // Keys here match both the FIELDS key AND the SENSITIVE_KEYS list in settings/route.ts
 const SENSITIVE_FIELD_MAP: Record<string, string> = {
   apiKey:       'ANTHROPIC_API_KEY',
+  minimaxKey:   'MINIMAX_API_KEY',
   braveKey:     'BRAVE_SEARCH_KEY',
   cgKey:        'COINGECKO_KEY',
   finnhubKey:   'FINNHUB_KEY',
@@ -23,7 +25,7 @@ const SENSITIVE_FIELD_MAP: Record<string, string> = {
 
 // ── Non-sensitive fields — stored in Zustand / localStorage ──────────────────
 const LOCAL_FIELDS: { key: keyof Settings; label: string; type?: string; placeholder?: string }[] = [
-  { key: 'aiProvider',    label: 'AI Provider (openai | anthropic)' },
+  { key: 'aiProvider',    label: 'AI Provider (openai | anthropic | minimax)' },
   { key: 'localEndpoint', label: 'Local LLM Endpoint',       placeholder: 'http://localhost:11434/v1/...' },
   { key: 'localModel',    label: 'Local Model Name',         placeholder: 'qwen3:8b' },
   { key: 'localApiKey',   label: 'Local / OpenRouter Key',   type: 'password' },
@@ -38,6 +40,7 @@ const LOCAL_FIELDS: { key: keyof Settings; label: string; type?: string; placeho
 // ── Sensitive fields shown in the drawer ─────────────────────────────────────
 const SENSITIVE_FIELDS: { key: keyof Settings; label: string; envKey: string; placeholder?: string }[] = [
   { key: 'apiKey',       label: 'Claude / Anthropic API Key',  envKey: 'ANTHROPIC_API_KEY',  placeholder: 'sk-ant-...' },
+  { key: 'minimaxKey',   label: 'MiniMax API Key',               envKey: 'MINIMAX_API_KEY',   placeholder: 'platform.minimax.io' },
   { key: 'braveKey',     label: 'Brave Search API Key',        envKey: 'BRAVE_SEARCH_KEY',   placeholder: 'Get free at search.brave.com' },
   { key: 'cgKey',        label: 'CoinGecko Demo Key',          envKey: 'COINGECKO_KEY' },
   { key: 'finnhubKey',   label: 'Finnhub Key',                 envKey: 'FINNHUB_KEY' },
@@ -331,6 +334,19 @@ export default function SettingsDrawer({ open, onClose }: Props) {
           padding: '16px 18px', borderTop: '1px solid var(--border)',
           position: 'sticky', bottom: 0, background: 'var(--surf)',
         }}>
+          <Link
+            href="/resources"
+            onClick={onClose}
+            style={{
+              fontSize: '11px',
+              fontWeight: 600,
+              color: 'var(--accent)',
+              textDecoration: 'none',
+              marginBottom: '2px',
+            }}
+          >
+            📚 Field manual — certification, interviews, agent resources →
+          </Link>
           {saveErr && (
             <div style={{ fontSize: '11px', color: saveErr.includes('Restart') ? 'var(--fmd)' : 'var(--flo)', lineHeight: 1.4 }}>
               {saveErr}

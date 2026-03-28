@@ -3,6 +3,7 @@
 
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { assertNexusDoesNotChargeUsers, NEXUS_FREE_USE_DESCRIPTION } from '@/lib/productGuarantees'
 import Nav               from '@/components/nav/Nav'
 import AuthGate          from '@/components/auth/AuthGate'
 import CommandBar        from '@/components/ui/CommandBar'
@@ -14,9 +15,11 @@ import CronSchedulerRunner from '@/components/ui/CronSchedulerRunner'
 import ErrorBoundary     from '@/components/system/ErrorBoundary'
 import ClickDebug        from '@/components/ui/ClickDebug'
 
+assertNexusDoesNotChargeUsers()
+
 export const metadata: Metadata = {
   title: 'Nexus Prime',
-  description: 'Personal intelligence dashboard',
+  description: `${NEXUS_FREE_USE_DESCRIPTION} Personal intelligence dashboard.`,
   manifest: '/manifest.json',
   icons: {
     icon: [{ url: '/icon.svg', type: 'image/svg+xml', sizes: '512x512' }],

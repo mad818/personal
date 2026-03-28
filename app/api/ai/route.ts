@@ -2,13 +2,17 @@
 // Multi-provider AI proxy: Ollama fallback chain, task-based model routing, hard token caps.
 
 import { NextRequest, NextResponse } from 'next/server'
-import { DEFAULT_LOCAL_MODEL, TASK_MODELS } from '@/lib/aiModelRouting'
+import {
+  DEFAULT_LOCAL_MODEL,
+  MINIMAX_DEFAULT_CHAT_MODEL,
+  TASK_MODELS,
+} from '@/lib/aiModelRouting'
 
 /**
  * Multi-provider AI proxy with task-based model routing.
  *
- * Fallback chain (auto mode): Ollama → Groq → OpenRouter → Google → Anthropic → OpenAI
- * Research chain: Anthropic → OpenRouter → Groq → Ollama → OpenAI
+ * Fallback chain (auto mode): Ollama → Groq → OpenRouter → Google → MiniMax → Anthropic → OpenAI
+ * Research chain: Anthropic → OpenRouter → Groq → MiniMax → Ollama → OpenAI
  *
  * Task routing maps task hints to the optimal local Ollama model:
  *   chat      → qwen3:8b             (fast, general purpose)
@@ -116,13 +120,25 @@ const PROVIDERS: Record<string, Provider> = {
       'Authorization': `Bearer ${key}`,
     }),
   },
+  /** OpenAI-compatible — https://platform.minimax.io/docs/api-reference/text-openai-api */
+  minimax: {
+    name:   'minimax',
+    url:    'https://api.minimax.io/v1/chat/completions',
+    key:    () => process.env.MINIMAX_API_KEY ?? '',
+    format: 'openai',
+    model:  MINIMAX_DEFAULT_CHAT_MODEL,
+    headers: (key) => ({
+      'Content-Type':  'application/json',
+      'Authorization': `Bearer ${key}`,
+    }),
+  },
 }
 
 // ── Provider chains ───────────────────────────────────────────────────────────
 // auto: try local first, fall back to cloud
-const AUTO_CHAIN     = ['ollama', 'groq', 'openrouter', 'google', 'anthropic', 'openai']
+const AUTO_CHAIN     = ['ollama', 'groq', 'openrouter', 'google', 'minimax', 'anthropic', 'openai']
 // research: cloud-first for depth, local as final fallback
-const RESEARCH_CHAIN = ['anthropic', 'openrouter', 'groq', 'ollama', 'openai']
+const RESEARCH_CHAIN = ['anthropic', 'openrouter', 'groq', 'minimax', 'ollama', 'openai']
 
 // ── Call a single provider ────────────────────────────────────────────────────
 async function callProvider(

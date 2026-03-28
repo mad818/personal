@@ -1,7 +1,7 @@
 {
   "name": "Nexus Prime",
   "short_name": "Nexus",
-  "description": "Personal intelligence dashboard",
+  "description": "Nexus Prime — self-hosted intel dashboard: markets, cyber, maps, AI agent. Free app; optional BYOK keys for providers.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

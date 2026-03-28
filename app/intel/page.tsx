@@ -169,7 +169,7 @@ export default function IntelPage() {
           <CollapsibleSection title="FX Rates &amp; Commodities">
             <LazyMarketRates />
           </CollapsibleSection>
-          <CollapsibleSection title="Live Map — Quakes · Flights · Fires" defaultOpen>
+          <CollapsibleSection title="Live Map — quakes, flights, fires (free public data)" defaultOpen>
             <LazyOpsMap />
           </CollapsibleSection>
         </div>

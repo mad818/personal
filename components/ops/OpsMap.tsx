@@ -2,6 +2,13 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useStore } from '@/store/useStore'
+import {
+  OPSMAP_DATA_ATTRIBUTION,
+  OPSMAP_FIRE_AUTO_REFRESH_MS,
+  OPSMAP_FLIGHT_AUTO_REFRESH_MS,
+  OPSMAP_FREE_AUTO_REFRESH_DEFAULT,
+  OPSMAP_QUAKE_AUTO_REFRESH_MS,
+} from '@/lib/opsMapFreeTier'
 
 // ── Quake colours by magnitude ─────────────────────────────────────────────
 function quakeColor(mag: number): string {
@@ -28,13 +35,14 @@ interface Fire {
 }
 
 interface Flight {
-  icao:    string
+  icao:     string
   callsign: string
-  lat:     number
-  lng:     number
-  alt:     number
-  vel:     number
-  hdg:     number
+  lat:      number
+  lng:      number
+  alt:      number
+  vel:      number
+  hdg:      number
+  squawk:   string
 }
 
 async function fetchQuakes(): Promise<Quake[]> {
@@ -57,18 +65,39 @@ async function fetchFlights(): Promise<Flight[]> {
     const r = await fetch('https://opensky-network.org/api/states/all', { signal: AbortSignal.timeout(10000) })
     const d = await r.json()
     return ((d.states ?? []) as any[][])
-      .filter((s) => s[5] !== null && s[6] !== null)
-      .slice(0, 800)  // cap to avoid overloading the map
+      .filter((s) => s[5] != null && s[6] != null && !s[8]) // in air only (OpenSky index 8 = on_ground)
+      .slice(0, 800) // cap to avoid overloading the map
       .map((s) => ({
-        icao:    s[0] ?? '',
+        icao:     s[0] ?? '',
         callsign: (s[1] ?? '').trim(),
-        lat:     s[6],
-        lng:     s[5],
-        alt:     s[13] ?? s[7] ?? 0,
-        vel:     s[9] ?? 0,
-        hdg:     s[10] ?? 0,
+        lat:      s[6],
+        lng:      s[5],
+        alt:      s[13] ?? s[7] ?? 0,
+        vel:      s[9] ?? 0,
+        hdg:      typeof s[10] === 'number' ? s[10] : 0,
+        squawk:   s[14] != null ? String(s[14]) : '',
       }))
-  } catch { return [] }
+  } catch {
+    return []
+  }
+}
+
+/** Rotated plane marker (true track ° from north) — direction + refresh cadence sell “live” vs a static dot */
+function flightDivIcon(L: { divIcon: (o: Record<string, unknown>) => unknown }, f: Flight) {
+  const heading = Number.isFinite(f.hdg) ? f.hdg : 0
+  const sq = f.squawk?.trim()
+  const emergency = sq === '7700' || sq === '7600'
+  const color = emergency ? '#ef4444' : '#60a5fa'
+  const glow = emergency ? 'rgba(239,68,68,0.75)' : 'rgba(96,165,250,0.55)'
+  return L.divIcon({
+    className: 'ops-flight-marker',
+    html: `<svg width="14" height="14" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
+      style="transform:rotate(${heading}deg);transform-origin:center center;filter:drop-shadow(0 0 3px ${glow})">
+      <polygon points="6,0 4.5,5 0,6 4.5,7.5 4,12 6,10.5 8,12 7.5,7.5 12,6 7.5,5" fill="${color}" opacity="0.9"/>
+    </svg>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  })
 }
 
 async function fetchFires(firmsKey: string): Promise<Fire[]> {
@@ -104,6 +133,9 @@ export default function OpsMap() {
 
   const [activeLayers, setActiveLayers] = useState<Set<LayerKey>>(new Set<LayerKey>(['quakes']))
   const [layerLoading, setLayerLoading] = useState<Record<string, boolean>>({})
+  const [mapReady, setMapReady] = useState(false)
+  /** Auto-refresh only free APIs (USGS / OpenSky / FIRMS) at conservative intervals. */
+  const [freeDataAutoRefresh, setFreeDataAutoRefresh] = useState(OPSMAP_FREE_AUTO_REFRESH_DEFAULT)
 
   const toggleLayer = useCallback(async (key: LayerKey) => {
     const map = mapRef.current
@@ -125,12 +157,95 @@ export default function OpsMap() {
     })
   }, [])
 
-  // Load layers when activeLayers changes
-  useEffect(() => {
+  const paintFlightsLayer = useCallback(async () => {
     const map = mapRef.current
     if (!map) return
+    setLayerLoading((p) => ({ ...p, flights: true }))
+    try {
+      const L = await import('leaflet')
+      const flights = await fetchFlights()
+      if (!mapRef.current) return
+      const group = L.layerGroup()
+      flights.forEach((f) => {
+        const sq = f.squawk?.trim()
+        const tip = `<b>${(f.callsign || f.icao || '?').trim()}</b>${sq ? `<br>Squawk ${sq}` : ''}<br>Alt ${Math.round(f.alt)} m · ${Math.round(f.vel * 3.6)} km/h · Hdg ${Math.round(f.hdg)}°`
+        L.marker([f.lat, f.lng], {
+          icon: flightDivIcon(L, f) as import('leaflet').DivIcon,
+        })
+          .bindPopup(tip)
+          .addTo(group)
+      })
+      if (layerRefs.current.flights) {
+        map.removeLayer(layerRefs.current.flights)
+      }
+      group.addTo(map)
+      layerRefs.current.flights = group
+    } finally {
+      setLayerLoading((p) => ({ ...p, flights: false }))
+    }
+  }, [])
+
+  const refreshQuakes = useCallback(async () => {
+    const map = mapRef.current
+    if (!map || !activeLayers.has('quakes')) return
+    setLayerLoading((p) => ({ ...p, quakes: true }))
+    try {
+      const L = await import('leaflet')
+      const quakes = await fetchQuakes()
+      if (!mapRef.current) return
+      const group = L.layerGroup()
+      quakes.filter((q) => q.mag >= 2.5).forEach((q) => {
+        L.circleMarker([q.lat, q.lng], {
+          radius: Math.max(4, q.mag * 3),
+          color: quakeColor(q.mag), fillColor: quakeColor(q.mag),
+          fillOpacity: 0.5, weight: 1,
+        })
+          .addTo(group)
+          .bindPopup(`<b>M${q.mag.toFixed(1)}</b><br>${q.place}<br><small>${new Date(q.time).toUTCString()}</small>`)
+      })
+      if (layerRefs.current.quakes) {
+        map.removeLayer(layerRefs.current.quakes)
+      }
+      group.addTo(map)
+      layerRefs.current.quakes = group
+    } finally {
+      setLayerLoading((p) => ({ ...p, quakes: false }))
+    }
+  }, [activeLayers])
+
+  const refreshFires = useCallback(async () => {
+    const map = mapRef.current
+    if (!map || !activeLayers.has('fires') || !firmsKey) return
+    setLayerLoading((p) => ({ ...p, fires: true }))
+    try {
+      const L = await import('leaflet')
+      const fires = await fetchFires(firmsKey)
+      if (!mapRef.current) return
+      const group = L.layerGroup()
+      fires.forEach((f) => {
+        L.circleMarker([f.lat, f.lng], {
+          radius: 3, color: '#f97316', fillColor: '#f97316', fillOpacity: 0.6, weight: 0,
+        })
+          .addTo(group)
+          .bindPopup(`<b>🔥 Fire</b><br>Brightness: ${f.brightness}K<br>${f.acq_date}`)
+      })
+      if (layerRefs.current.fires) {
+        map.removeLayer(layerRefs.current.fires)
+      }
+      group.addTo(map)
+      layerRefs.current.fires = group
+    } finally {
+      setLayerLoading((p) => ({ ...p, fires: false }))
+    }
+  }, [activeLayers, firmsKey])
+
+  // Load quakes + fires when activeLayers changes (flights handled separately)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
     import('leaflet').then((L) => {
       activeLayers.forEach(async (key) => {
+        if (key === 'flights') return
         if (layerRefs.current[key]) return  // already loaded
         setLayerLoading((p) => ({ ...p, [key]: true }))
 
@@ -145,21 +260,6 @@ export default function OpsMap() {
             })
               .addTo(group)
               .bindPopup(`<b>M${q.mag.toFixed(1)}</b><br>${q.place}<br><small>${new Date(q.time).toUTCString()}</small>`)
-          })
-          group.addTo(map)
-          layerRefs.current[key] = group
-
-        } else if (key === 'flights') {
-          const flights = await fetchFlights()
-          const group = L.layerGroup()
-          flights.forEach((f) => {
-            const hdgRad = ((f.hdg ?? 0) * Math.PI) / 180
-            const marker = L.circleMarker([f.lat, f.lng], {
-              radius: 3, color: '#4f6ef7', fillColor: '#4f6ef7', fillOpacity: 0.7, weight: 1,
-            }).bindPopup(
-              `<b>${f.callsign || f.icao || '?'}</b><br>Alt: ${Math.round(f.alt)}m · ${Math.round(f.vel * 3.6)} km/h`
-            )
-            marker.addTo(group)
           })
           group.addTo(map)
           layerRefs.current[key] = group
@@ -182,7 +282,7 @@ export default function OpsMap() {
       })
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeLayers, firmsKey])
+  }, [activeLayers, firmsKey, mapReady])
 
   // Inject Leaflet CSS via useEffect — <link> in JSX is unreliable in Next.js
   useEffect(() => {
@@ -194,7 +294,52 @@ export default function OpsMap() {
       link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
       document.head.appendChild(link)
     }
+    const sid = 'ops-flight-marker-css'
+    if (!document.getElementById(sid)) {
+      const st = document.createElement('style')
+      st.id = sid
+      st.textContent =
+        '.leaflet-marker-icon.ops-flight-marker{background:transparent!important;border:none!important;margin-left:-7px!important;margin-top:-7px!important;}'
+      document.head.appendChild(st)
+    }
   }, [])
+
+  // Flights: load once when layer turns on; optional slow auto-refresh (opt-in)
+  useEffect(() => {
+    if (!mapReady || !activeLayers.has('flights')) return
+    void paintFlightsLayer()
+    return () => {
+      const m = mapRef.current
+      if (m && layerRefs.current.flights) {
+        m.removeLayer(layerRefs.current.flights)
+        delete layerRefs.current.flights
+      }
+    }
+  }, [activeLayers, mapReady, paintFlightsLayer])
+
+  // Auto-refresh active free layers only (polite cadence; toggle off anytime)
+  useEffect(() => {
+    if (!mapReady || !freeDataAutoRefresh) return
+    const ids: ReturnType<typeof setInterval>[] = []
+    if (activeLayers.has('quakes')) {
+      ids.push(setInterval(() => void refreshQuakes(), OPSMAP_QUAKE_AUTO_REFRESH_MS))
+    }
+    if (activeLayers.has('flights')) {
+      ids.push(setInterval(() => void paintFlightsLayer(), OPSMAP_FLIGHT_AUTO_REFRESH_MS))
+    }
+    if (activeLayers.has('fires') && firmsKey) {
+      ids.push(setInterval(() => void refreshFires(), OPSMAP_FIRE_AUTO_REFRESH_MS))
+    }
+    return () => ids.forEach(clearInterval)
+  }, [
+    mapReady,
+    freeDataAutoRefresh,
+    activeLayers,
+    firmsKey,
+    refreshQuakes,
+    paintFlightsLayer,
+    refreshFires,
+  ])
 
   useEffect(() => {
     const container = containerRef.current
@@ -216,33 +361,26 @@ export default function OpsMap() {
 
       const map = L.map(containerRef.current!, {
         center: [20, 0], zoom: 2,
-        zoomControl: true, attributionControl: false,
+        zoomControl: true,
+        attributionControl: true,
       })
       mapRef.current = map
 
       L.tileLayer(
         'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        { subdomains: 'abcd', maxZoom: 18 }
+        {
+          subdomains: 'abcd',
+          maxZoom: 18,
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        }
       ).addTo(map)
 
-      // Initial quake layer
-      fetchQuakes().then((quakes) => {
-        const group = L.layerGroup()
-        quakes.filter((q) => q.mag >= 2.5).forEach((q) => {
-          L.circleMarker([q.lat, q.lng], {
-            radius: Math.max(4, q.mag * 3),
-            color: quakeColor(q.mag), fillColor: quakeColor(q.mag),
-            fillOpacity: 0.5, weight: 1,
-          })
-            .addTo(group)
-            .bindPopup(`<b>M${q.mag.toFixed(1)}</b><br>${q.place}<br><small>${new Date(q.time).toUTCString()}</small>`)
-        })
-        group.addTo(map)
-        layerRefs.current['quakes'] = group
-      })
+      setMapReady(true)
     })
 
     return () => {
+      setMapReady(false)
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
@@ -293,34 +431,158 @@ export default function OpsMap() {
         })}
       </div>
 
-      {/* Quake legend */}
-      {activeLayers.has('quakes') && (
+      {/* Manual refresh — free APIs only; you choose when to hit the network */}
+      {(activeLayers.has('quakes') || activeLayers.has('flights') || activeLayers.has('fires')) && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '10px',
+            flexWrap: 'wrap',
+            fontSize: '10px',
+            color: 'var(--text3)',
+          }}
+        >
+          <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Map data</span>
+          <label
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              userSelect: 'none',
+              paddingRight: '4px',
+              borderRight: '1px solid var(--border2)',
+              marginRight: '2px',
+            }}
+            title="Only free public APIs: USGS (~5 min), OpenSky (~2 min), NASA FIRMS (~10 min). Turn off to fetch only when you click Refresh."
+          >
+            <input
+              type="checkbox"
+              checked={freeDataAutoRefresh}
+              onChange={(e) => setFreeDataAutoRefresh(e.target.checked)}
+            />
+            Auto free data
+          </label>
+          {activeLayers.has('quakes') && (
+            <button
+              type="button"
+              aria-label="Refresh earthquake layer from USGS"
+              onClick={() => void refreshQuakes()}
+              disabled={!!layerLoading.quakes}
+              style={{
+                height: '24px',
+                padding: '0 10px',
+                borderRadius: '6px',
+                border: '1px solid var(--border2)',
+                background: 'var(--surface2)',
+                color: 'var(--text2)',
+                fontSize: '10px',
+                fontWeight: 600,
+                cursor: layerLoading.quakes ? 'wait' : 'pointer',
+              }}
+            >
+              {layerLoading.quakes ? '…' : '↻ Refresh quakes'}
+            </button>
+          )}
+          {activeLayers.has('flights') && (
+            <button
+              type="button"
+              aria-label="Refresh flight positions from OpenSky"
+              onClick={() => void paintFlightsLayer()}
+              disabled={!!layerLoading.flights}
+              style={{
+                height: '24px',
+                padding: '0 10px',
+                borderRadius: '6px',
+                border: '1px solid var(--border2)',
+                background: 'var(--surface2)',
+                color: 'var(--text2)',
+                fontSize: '10px',
+                fontWeight: 600,
+                cursor: layerLoading.flights ? 'wait' : 'pointer',
+              }}
+            >
+              {layerLoading.flights ? '…' : '↻ Refresh flights'}
+            </button>
+          )}
+          {activeLayers.has('fires') && firmsKey && (
+            <button
+              type="button"
+              aria-label="Refresh fire hotspots from NASA FIRMS"
+              onClick={() => void refreshFires()}
+              disabled={!!layerLoading.fires}
+              style={{
+                height: '24px',
+                padding: '0 10px',
+                borderRadius: '6px',
+                border: '1px solid var(--border2)',
+                background: 'var(--surface2)',
+                color: 'var(--text2)',
+                fontSize: '10px',
+                fontWeight: 600,
+                cursor: layerLoading.fires ? 'wait' : 'pointer',
+              }}
+            >
+              {layerLoading.fires ? '…' : '↻ Refresh fires'}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Legend — any active layer */}
+      {(activeLayers.has('quakes') || activeLayers.has('flights') || activeLayers.has('fires')) && (
         <div style={{ display: 'flex', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-          {[
-            { color: '#ef4444', label: 'M6+' },
-            { color: '#f59e0b', label: 'M5–6' },
-            { color: '#a78bfa', label: 'M4–5' },
-            { color: '#6875a0', label: 'M2.5–4' },
-          ].map((l) => (
-            <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: l.color, display: 'inline-block' }} />
-              {l.label}
-            </span>
-          ))}
+          {activeLayers.has('quakes') &&
+            [
+              { color: '#ef4444', label: 'M6+' },
+              { color: '#f59e0b', label: 'M5–6' },
+              { color: '#a78bfa', label: 'M4–5' },
+              { color: '#6875a0', label: 'M2.5–4' },
+            ].map((l) => (
+              <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: l.color, display: 'inline-block' }} />
+                {l.label}
+              </span>
+            ))}
           {activeLayers.has('flights') && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4f6ef7', display: 'inline-block' }} />
-              Flights
+              <span style={{ fontSize: '11px' }} title="Free OpenSky — icon points forward (heading).">
+                ✈️
+              </span>
+              Flights — heading · free data
+              {freeDataAutoRefresh ? ` · auto ~${Math.round(OPSMAP_FLIGHT_AUTO_REFRESH_MS / 60_000)} min` : ' · manual only'}
             </span>
           )}
           {activeLayers.has('fires') && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f97316', display: 'inline-block' }} />
               Fire hotspots
+              {freeDataAutoRefresh && firmsKey
+                ? ` · auto ~${Math.round(OPSMAP_FIRE_AUTO_REFRESH_MS / 60_000)} min`
+                : ''}
+            </span>
+          )}
+          {activeLayers.has('quakes') && freeDataAutoRefresh && (
+            <span style={{ fontSize: '10px', color: 'var(--text3)' }}>
+              Quakes auto ~{Math.round(OPSMAP_QUAKE_AUTO_REFRESH_MS / 60_000)} min (USGS)
             </span>
           )}
         </div>
       )}
+
+      <p
+        style={{
+          margin: '0 0 8px',
+          fontSize: '9.5px',
+          lineHeight: 1.45,
+          color: 'var(--text3)',
+          maxWidth: '720px',
+        }}
+      >
+        {OPSMAP_DATA_ATTRIBUTION}
+      </p>
 
       <div
         ref={containerRef}

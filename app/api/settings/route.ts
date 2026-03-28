@@ -21,6 +21,7 @@ import * as path from 'path'
 const SENSITIVE_KEYS = [
   'ANTHROPIC_API_KEY',
   'OPENAI_API_KEY',
+  'MINIMAX_API_KEY',
   'BRAVE_SEARCH_KEY',
   'COINGECKO_KEY',
   'FINNHUB_KEY',

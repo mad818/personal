@@ -33,7 +33,7 @@ import {
 } from '@/store/useStore'
 import { useStore } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
-import { DEFAULT_LOCAL_MODEL } from '@/lib/aiModelRouting'
+import { DEFAULT_LOCAL_MODEL, MINIMAX_DEFAULT_AGENT_MODEL } from '@/lib/aiModelRouting'
 import {
   remember  as memRemember,
   recall    as memRecall,
@@ -747,6 +747,24 @@ Example: ["User is analyzing BTC/USD 4h chart", "User prefers RSI(14) over MACD 
         const match = raw.match(/\[[\s\S]*\]/)
         extracted = match ? JSON.parse(match[0]) : []
       }
+    } else if (settings.aiProvider === 'minimax') {
+      const res = await apiFetch('/api/ai', {
+        method: 'POST',
+        body: JSON.stringify({
+          provider:   'minimax',
+          model:      MINIMAX_DEFAULT_AGENT_MODEL,
+          max_tokens: 256,
+          messages:   [{ role: 'user', content: prompt }],
+          task:       'fast',
+        }),
+        signal: AbortSignal.timeout(15_000),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const raw  = data.choices?.[0]?.message?.content ?? '[]'
+        const match = raw.match(/\[[\s\S]*\]/)
+        extracted = match ? JSON.parse(match[0]) : []
+      }
     } else if (settings.localEndpoint && settings.localModel) {
       const res = await fetch(settings.localEndpoint, {
         method: 'POST',
@@ -913,6 +931,120 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
   return finalAnswer
 }
 
+// ── MiniMax agent loop (OpenAI-compat tools via /api/ai — key server-side) ────
+async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
+  const { settings: s, systemPrompt, messages, onStep, maxIterations = 6 } = opts
+  const model = MINIMAX_DEFAULT_AGENT_MODEL
+  const tools = AGENT_TOOLS
+
+  if (typeof window !== 'undefined') useStore.getState().setCurrentPhase('executing')
+  onStep({ type: 'phase', content: 'executing', phase: 'executing' })
+  onStep({ type: 'thinking', content: `Using MiniMax (${model}) via server proxy…` })
+
+  type OAIMsg = {
+    role:          string
+    content:       string | null
+    tool_calls?:   object[]
+    tool_call_id?: string
+    name?:         string
+  }
+
+  const conv: OAIMsg[] = [
+    { role: 'system', content: systemPrompt },
+    ...messages.map((m) => ({ role: m.role, content: m.content })),
+  ]
+
+  let finalAnswer = ''
+
+  for (let iter = 0; iter < maxIterations; iter++) {
+    const systemOut = conv[0]?.role === 'system' ? String(conv[0].content ?? '') : undefined
+    const msgs      = conv[0]?.role === 'system' ? conv.slice(1) : [...conv]
+
+    let res: Response
+    try {
+      res = await apiFetch('/api/ai', {
+        method: 'POST',
+        body: JSON.stringify({
+          provider:    'minimax',
+          model,
+          max_tokens:  4096,
+          system:      systemOut,
+          messages:    msgs,
+          tools:       toOAITools(tools),
+          tool_choice: 'auto',
+        }),
+        signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
+      })
+    } catch (e) {
+      const isTimeout = e instanceof Error && e.name === 'TimeoutError'
+      finalAnswer = isTimeout
+        ? `MiniMax took too long (${OLLAMA_TIMEOUT_MS / 1000}s). Try again or switch provider.`
+        : 'Network error reaching MiniMax via /api/ai.'
+      onStep({ type: 'answer', content: finalAnswer })
+      break
+    }
+
+    let data: Record<string, unknown>
+    try {
+      data = await res.json()
+    } catch {
+      finalAnswer = 'MiniMax returned an unreadable response.'
+      onStep({ type: 'answer', content: finalAnswer })
+      break
+    }
+
+    if (!res.ok) {
+      const msg =
+        (data?.error as { message?: string })?.message ??
+        (typeof data?.message === 'string' ? data.message : null) ??
+        `MiniMax error (HTTP ${res.status}). Is MINIMAX_API_KEY set?`
+      finalAnswer = msg
+      onStep({ type: 'answer', content: finalAnswer })
+      break
+    }
+
+    type OAIChoice = {
+      message?: {
+        content?:      string | null
+        tool_calls?: { id: string; function: { name: string; arguments: string } }[]
+      }
+      finish_reason?: string
+    }
+    const choices    = data.choices as OAIChoice[] | undefined
+    const msg        = choices?.[0]?.message
+    const stopReason = choices?.[0]?.finish_reason ?? ''
+
+    if (!msg?.tool_calls?.length) {
+      finalAnswer = msg?.content ?? ''
+      onStep({ type: 'answer', content: finalAnswer })
+      break
+    }
+
+    conv.push({ role: 'assistant', content: msg.content ?? null, tool_calls: msg.tool_calls })
+
+    for (const tc of msg.tool_calls) {
+      const name = tc.function.name
+      let   input: Record<string, string> = {}
+      try { input = JSON.parse(tc.function.arguments) } catch { /* ignore */ }
+
+      const risk = getToolRisk(name)
+      onStep({
+        type:    'tool_call',
+        content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
+        tool:    name,
+      })
+
+      const result = await executeTool(name, input)
+      onStep({ type: 'tool_result', content: result, tool: name })
+      conv.push({ role: 'tool', tool_call_id: tc.id, name, content: result })
+    }
+
+    if (stopReason === 'stop') break
+  }
+
+  return finalAnswer
+}
+
 // ── Main agent loop ───────────────────────────────────────────────────────────
 export async function runAgent(opts: AgentOptions): Promise<string> {
   const { settings, systemPrompt, messages, onStep, maxIterations = 8, onToken } = opts
@@ -1006,10 +1138,9 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     })
   }
 
-  // No API key in settings AND not anthropic provider → Ollama in regular mode
-  // Note: the actual key now lives server-side. If aiProvider is 'anthropic' we
-  // try /api/ai regardless — the server will return a clear error if key is missing.
-  if (s.aiProvider !== 'anthropic' && !s.apiKey) {
+  // No API key in settings AND not a server-cloud default → Ollama in regular mode
+  // Anthropic / MiniMax always try /api/ai (keys in .env). OpenAI path uses legacy apiKey or auto chain.
+  if (s.aiProvider !== 'anthropic' && s.aiProvider !== 'minimax' && !s.apiKey) {
     try {
       const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: false })
       finalizeRunState(Boolean(answer))
@@ -1035,6 +1166,24 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
       return answer
     } catch {
       const err = 'Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.'
+      finalizeRunState(false)
+      finishDiagnostics({ ok: false, failureCause: err })
+      onStep({ type: 'answer', content: err })
+      return err
+    }
+  }
+
+  // ── MiniMax — OpenAI-format tool loop (server-side MINIMAX_API_KEY)
+  if (s.aiProvider === 'minimax') {
+    try {
+      const answer = await runMiniMaxAgent(enrichedOpts)
+      finalizeRunState(Boolean(answer))
+      finishDiagnostics({ ok: Boolean(answer) })
+      void autoLearn(userMessage, answer, s)
+      return answer
+    } catch {
+      const err =
+        'MiniMax agent failed. Set MINIMAX_API_KEY in Settings, save, then restart `npm run dev`.'
       finalizeRunState(false)
       finishDiagnostics({ ok: false, failureCause: err })
       onStep({ type: 'answer', content: err })

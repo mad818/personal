@@ -1,6 +1,8 @@
 # NEXUS PRIME
 
 ## What this is
+**Product invariant:** Nexus Prime is **free (MIT)** — **no in-app charges**, subscriptions, or Nexus-side billing. Optional keys are BYOK. See `lib/productGuarantees.ts` and `assertNexusDoesNotChargeUsers()` in `app/layout.tsx`.
+
 Nexus Prime is a dual-surface intelligence dashboard:
 - `nexus-final.html` — original single-file browser app (~12,265 lines). Do not split it.
 - React/Next.js 14 app in the project root — active development surface.

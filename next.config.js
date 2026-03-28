@@ -42,7 +42,7 @@ module.exports = {
             value: [
               "default-src 'self'",
               // Scripts: self + any CDN libs referenced in artifacts
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdnjs.cloudflare.com",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdnjs.cloudflare.com https://s3.tradingview.com",
               // Styles: self + inline (required for React style props) + unpkg for Leaflet CSS
               "style-src 'self' 'unsafe-inline' https://unpkg.com",
               // Images: self + data URIs + https sources (covers Leaflet map tiles + marker icons)
@@ -58,6 +58,7 @@ module.exports = {
                 'https://gamma-api.polymarket.com',
                 'https://services.swpc.noaa.gov',
                 'https://earthquake.usgs.gov',
+                'https://firms.modaps.eosdis.nasa.gov',
                 'https://opensky-network.org',
                 'https://celestrak.org',
                 'https://gpsjam.org',
@@ -65,10 +66,12 @@ module.exports = {
                 'wss://stream.aisstream.io',
                 'ws://localhost:*',
                 'https://api.anthropic.com',
+                'https://s3.tradingview.com',
+                'https://www.tradingview.com',
                 'http://localhost:*',
               ].join(' '),
-              // Frames: none
-              "frame-src 'none'",
+              // TradingView MARKETS embeds (legacy StockBot phase) — iframes + widget loader
+              "frame-src 'self' https://www.tradingview.com https://*.tradingview.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",

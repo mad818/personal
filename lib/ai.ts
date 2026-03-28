@@ -4,7 +4,8 @@
 
 import { DEFAULT_SETTINGS, type Settings } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
-import { TASK_MODELS } from '@/lib/aiModelRouting'
+import { MINIMAX_DEFAULT_CHAT_MODEL, TASK_MODELS } from '@/lib/aiModelRouting'
+import { NEXUS_AGENT_NO_BILLING_RULE } from '@/lib/productGuarantees'
 
 function getSettings(): Settings {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS
@@ -18,7 +19,7 @@ function getSettings(): Settings {
 
 function aiReady(s: Settings): boolean {
   // Cloud providers route via /api/ai with server-side keys
-  if (s.aiProvider === 'anthropic' || s.aiProvider === 'openai') return true
+  if (s.aiProvider === 'anthropic' || s.aiProvider === 'openai' || s.aiProvider === 'minimax') return true
   // Local Ollama — needs endpoint + model
   if (s.localEndpoint && s.localModel) return true
   return false
@@ -74,9 +75,14 @@ export async function callAI(
   if (!aiReady(s)) throw new Error('No AI configured')
 
   // Route cloud providers through /api/ai — key never leaves the server
-  if (s.aiProvider === 'anthropic' || s.aiProvider === 'openai') {
+  if (s.aiProvider === 'anthropic' || s.aiProvider === 'openai' || s.aiProvider === 'minimax') {
     const cloudProvider = s.aiProvider
-    const cloudModel = cloudProvider === 'anthropic' ? 'claude-opus-4-5' : 'gpt-4o-mini'
+    const cloudModel =
+      cloudProvider === 'anthropic'
+        ? 'claude-opus-4-5'
+        : cloudProvider === 'minimax'
+          ? MINIMAX_DEFAULT_CHAT_MODEL
+          : 'gpt-4o-mini'
     const res = await apiFetch('/api/ai', {
       method: 'POST',
       body: JSON.stringify({
@@ -122,9 +128,14 @@ export async function streamAI(
   const s = getSettings()
   if (!aiReady(s)) throw new Error('No AI configured')
 
-  if (s.aiProvider === 'anthropic' || s.aiProvider === 'openai') {
+  if (s.aiProvider === 'anthropic' || s.aiProvider === 'openai' || s.aiProvider === 'minimax') {
     const cloudProvider = s.aiProvider
-    const cloudModel = cloudProvider === 'anthropic' ? 'claude-opus-4-5' : 'gpt-4o-mini'
+    const cloudModel =
+      cloudProvider === 'anthropic'
+        ? 'claude-opus-4-5'
+        : cloudProvider === 'minimax'
+          ? MINIMAX_DEFAULT_CHAT_MODEL
+          : 'gpt-4o-mini'
     return streamRequest(
       '/api/ai',
       {},
@@ -264,6 +275,8 @@ export function buildSystemPrompt(s: Settings, liveContext = ''): string {
     ? `\n\n== ${name.toUpperCase()}'S PROFILE ==\n${parts.join('\n')}\n== END PROFILE ==`
     : ''
   return `You are Nexus AI — ${name}'s personal intelligence system, advisor, and developer agent. You are direct, sharp, and technical. You adapt to whatever ${name} needs: market analysis, research, trading signals, or coding and editing the Nexus Prime website itself.
+
+${NEXUS_AGENT_NO_BILLING_RULE}
 
 You have full access to the Nexus Prime project source code through these tools:
 - list_project_files(directory) — explore the project structure

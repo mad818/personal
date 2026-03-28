@@ -14,7 +14,7 @@
 <br>
 
 **A personal intelligence dashboard that runs entirely on your machine.**
-Live crypto, geopolitical, cyber, IoT, and market data — unified in one dark UI with a built-in AI agent.
+Live crypto, geopolitical, cyber, and market data — plus free-tier intel maps, optional TradingView embeds, and a built-in AI agent (Claude, MiniMax, OpenAI chain, or local Ollama).
 
 [Quickstart](#quickstart) · [Tabs](#tabs) · [AI Agent](#ai-agent) · [Stack](#stack) · [API Keys](#api-keys) · [Self-hosting](#self-hosting) · [Structure](#project-structure)
 
@@ -24,7 +24,9 @@ Live crypto, geopolitical, cyber, IoT, and market data — unified in one dark U
 
 ## What it is
 
-Nexus Prime is a self-hosted intelligence dashboard. It pulls live data from dozens of sources and surfaces it across 12 purpose-built tabs. An AI agent built on Claude (or Ollama for offline use) runs inside the app — it can search the web, fetch URLs, reason across data, and answer questions in a full tool-use loop.
+**Free software (MIT) — Nexus does not charge you.** There are no subscriptions, paywalls, or in-app purchases in this app. Optional API keys are bring-your-own; if a provider bills you, that is between you and them, not Nexus.
+
+Nexus Prime is a self-hosted intelligence dashboard. It pulls live data from dozens of sources and surfaces it across purpose-built tabs. An AI agent runs inside the app (Claude, MiniMax, cloud fallbacks, or local Ollama) with tool-use for research, analysis, and code edits. The **Field manual** (`/resources`) links curated external learning resources; `.env.local` stays gitignored.
 
 No cloud backend. No database. Runs locally on `npm run dev`.
 
@@ -237,7 +239,7 @@ All keys are optional. The app degrades gracefully when a key is absent.
 
 | Variable | Service | Free tier | Get one |
 |----------|---------|-----------|---------|
-| `ANTHROPIC_API_KEY` | Claude AI (agent + chat) | Pay-per-token | [console.anthropic.com](https://console.anthropic.com) |
+| `ANTHROPIC_API_KEY` | Claude AI (agent + chat) | Your account with Anthropic (Nexus does not bill you) | [console.anthropic.com](https://console.anthropic.com) |
 | `GROQ_API_KEY` | Groq (fast inference) | Yes | [console.groq.com](https://console.groq.com/keys) |
 | `NEXUS_TOKEN` | Internal API auth | n/a | Set any string |
 | `COINGECKO_KEY` | CoinGecko (crypto prices) | Yes | [coingecko.com/api](https://www.coingecko.com/en/api) |

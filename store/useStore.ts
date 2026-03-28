@@ -129,7 +129,8 @@ export interface ModeBriefing {
 export const DEFAULT_SETTINGS = {
   // AI
   apiKey:            '',
-  aiProvider:        'openai' as 'openai' | 'anthropic',
+  minimaxKey:        '',
+  aiProvider:        'openai' as 'openai' | 'anthropic' | 'minimax',
   localEndpoint:     'http://localhost:11434/v1/chat/completions',
   localModel:        DEFAULT_LOCAL_MODEL,
   localApiKey:       '',
@@ -291,7 +292,7 @@ interface NexusState {
   tab:           string
   // Per-tab sub-tab selections (persisted)
   intelView:     'news' | 'world' | 'markets'
-  marketsView:   'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices'
+  marketsView:   'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices' | 'charts'
   cyberView:     'triage' | 'matrix' | 'cves' | 'otx' | 'cisa'
   prices:        Record<string, PriceData>
   sparklines:    Record<string, number[]>

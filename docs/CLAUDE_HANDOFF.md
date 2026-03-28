@@ -1,7 +1,7 @@
 ## Nexus Prime — Claude Desktop Handoff (AUTO)
 
-**Generated from commit:** `2026-03-27T07:41:18-07:00`
-**Commit:** `49a3d0e` — Add auto-generated handoff doc and CI freshness check.
+**Generated from commit:** `2026-03-27T17:00:39-07:00`
+**Latest commit:** chore: sync handoff on git push (husky pre-push + handoff:sync)
 
 ### Project purpose
 
@@ -55,10 +55,11 @@ npm run verify
 
 Files touched in the latest commit:
 
-- `.github/workflows/quality-gates.yml`
-- `docs/CLAUDE_HANDOFF.md`
+- `.husky/pre-push`
+- `package-lock.json`
 - `package.json`
 - `scripts/generate-handoff.js`
+- `scripts/sync-handoff-loop.js`
 
 ### What’s next (from `tasks/todo.md`)
 

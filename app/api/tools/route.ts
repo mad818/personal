@@ -420,6 +420,143 @@ async function rssFetch(feedUrl: string, limit: string): Promise<string> {
   return agentReachProxy('/rss', params)
 }
 
+// ── Session-scoped read cache (60 s TTL) ─────────────────────────────────────
+// Caches fetch responses in memory so repeated reads in the same session don't
+// hit external APIs again. Evicted when a patch_project_file write occurs.
+interface CacheEntry { value: string; expiresAt: number }
+const readCache = new Map<string, CacheEntry>()
+
+function cacheGet(key: string): string | null {
+  const entry = readCache.get(key)
+  if (!entry || Date.now() > entry.expiresAt) { readCache.delete(key); return null }
+  return entry.value
+}
+
+function cachePut(key: string, value: string, ttlMs = 60_000): void {
+  readCache.set(key, { value, expiresAt: Date.now() + ttlMs })
+}
+
+function cacheEvict(prefix: string): void {
+  for (const k of Array.from(readCache.keys())) {
+    if (k.startsWith(prefix)) readCache.delete(k)
+  }
+}
+
+// ── HuggingFace daily papers search ──────────────────────────────────────────
+// Free, no key. Returns today's AI papers from HuggingFace.
+async function hfPapersSearch(query: string, limit: string): Promise<string> {
+  const cacheKey = `hf_papers:${query}:${limit}`
+  const cached = cacheGet(cacheKey)
+  if (cached) return `[cached]\n${cached}`
+
+  try {
+    const url = `https://huggingface.co/api/daily_papers`
+    const r   = await fetch(url, {
+      headers: { 'User-Agent': 'NexusPrime/1.0' },
+      signal:  AbortSignal.timeout(10_000),
+    })
+    if (!r.ok) return `HuggingFace papers API returned HTTP ${r.status}`
+    const data = await r.json() as { id: string; paper: { title: string; summary: string; authors: { name: string }[]; upvotes?: number } }[]
+    if (!Array.isArray(data) || !data.length) return 'No papers found today.'
+
+    const q = query.trim().toLowerCase()
+    const filtered = q
+      ? data.filter(p => (p.paper.title + ' ' + (p.paper.summary ?? '')).toLowerCase().includes(q))
+      : data
+
+    const max  = Math.min(parseInt(limit ?? '5', 10) || 5, 20)
+    const text = (filtered.length ? filtered : data)
+      .slice(0, max)
+      .map((p, i) =>
+        `${i + 1}. ${p.paper.title}\n` +
+        `   Authors: ${(p.paper.authors ?? []).slice(0, 3).map(a => a.name).join(', ')}\n` +
+        `   ${(p.paper.summary ?? '').slice(0, 200)}…\n` +
+        `   🤗 https://huggingface.co/papers/${p.id}`
+      )
+      .join('\n\n')
+
+    cachePut(cacheKey, text)
+    return text
+  } catch {
+    return 'Could not reach HuggingFace papers API.'
+  }
+}
+
+// ── Open-Meteo weather tool ───────────────────────────────────────────────────
+// Free, no API key required.
+async function openMeteoWeather(lat: string, lon: string, location: string): Promise<string> {
+  const latitude  = parseFloat(lat)  || 34.05
+  const longitude = parseFloat(lon)  || -118.24
+  const loc       = (location || `${latitude},${longitude}`)
+  const cacheKey  = `open_meteo:${latitude}:${longitude}`
+  const cached    = cacheGet(cacheKey)
+  if (cached) return `[cached]\n${cached}`
+
+  try {
+    const url = (
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
+      `&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code` +
+      `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max` +
+      `&forecast_days=3&timezone=auto`
+    )
+    const r    = await fetch(url, { signal: AbortSignal.timeout(8_000) })
+    if (!r.ok) return `Open-Meteo returned HTTP ${r.status}`
+    const d    = await r.json() as {
+      current: { temperature_2m: number; relative_humidity_2m: number; wind_speed_10m: number; weather_code: number }
+      daily:   { time: string[]; temperature_2m_max: number[]; temperature_2m_min: number[]; precipitation_sum: number[]; wind_speed_10m_max: number[] }
+      timezone: string
+    }
+    const c    = d.current
+    const days = d.daily
+    const forecast = days.time.slice(0, 3).map((date, i) =>
+      `  ${date}: ${days.temperature_2m_max[i]}°C / ${days.temperature_2m_min[i]}°C, precip ${days.precipitation_sum[i]}mm, wind ${days.wind_speed_10m_max[i]} km/h`
+    ).join('\n')
+
+    const text = (
+      `Weather for ${loc} (${d.timezone})\n` +
+      `Current: ${c.temperature_2m}°C, humidity ${c.relative_humidity_2m}%, wind ${c.wind_speed_10m} km/h (WMO code ${c.weather_code})\n\n` +
+      `3-day forecast:\n${forecast}`
+    )
+    cachePut(cacheKey, text, 30_000)
+    return text
+  } catch {
+    return 'Could not reach Open-Meteo API.'
+  }
+}
+
+// ── SEC EDGAR full-text search ────────────────────────────────────────────────
+// Free public API — no key required.
+async function secEdgarSearch(query: string, forms: string, limit: string): Promise<string> {
+  const cacheKey = `sec_edgar:${query}:${forms}:${limit}`
+  const cached   = cacheGet(cacheKey)
+  if (cached) return `[cached]\n${cached}`
+
+  try {
+    const q       = encodeURIComponent(query)
+    const fFilter = forms ? `&forms=${encodeURIComponent(forms)}` : ''
+    const url     = `https://efts.sec.gov/LATEST/search-index?q=%22${q}%22&dateRange=custom&startdt=2024-01-01&enddt=2026-12-31${fFilter}&hits.hits.total.value=1&hits.hits._source=file_date,display_names,form_type,period_of_report,entity_name,biz_location`
+    const r       = await fetch(url, {
+      headers: { 'User-Agent': 'NexusPrime research@nexusprime.local' },
+      signal:  AbortSignal.timeout(10_000),
+    })
+    if (!r.ok) return `SEC EDGAR returned HTTP ${r.status}`
+    const d = await r.json() as { hits?: { hits?: { _source: { entity_name?: string; form_type?: string; file_date?: string; display_names?: string } }[] } }
+    const hits = d.hits?.hits ?? []
+    if (!hits.length) return `No SEC filings found for "${query}".`
+
+    const max  = Math.min(parseInt(limit ?? '8', 10) || 8, 20)
+    const text = hits.slice(0, max).map((h, i) => {
+      const s = h._source
+      return `${i + 1}. ${s.entity_name ?? s.display_names ?? 'Unknown'} — ${s.form_type ?? ''} (${s.file_date ?? ''})`
+    }).join('\n')
+
+    cachePut(cacheKey, text)
+    return `SEC EDGAR filings for "${query}":\n${text}\nFull search: https://efts.sec.gov/LATEST/search-index?q=${q}`
+  } catch {
+    return 'Could not reach SEC EDGAR full-text search API.'
+  }
+}
+
 // ── Lesson logger (OpenClaw autoresearch pattern) ─────────────────────────────
 // Agents propose lessons after corrections; human reviews on next session open.
 const LESSONS_FILE = path.join(PROJECT_ROOT, 'tasks', 'lessons.md')
@@ -513,6 +650,8 @@ export async function POST(req: NextRequest) {
         result = await listProjectFiles(input.directory ?? '.')
         break
       case 'patch_project_file':
+        // Evict any cached reads for this file path before patching
+        cacheEvict(`read_project_file:${input.path ?? ''}`)
         result = await patchProjectFile(input.path ?? '', input.old_string ?? '', input.new_string ?? '')
         break
       case 'create_project_file':
@@ -526,6 +665,15 @@ export async function POST(req: NextRequest) {
         break
       case 'rss_fetch':
         result = await rssFetch(input.url ?? '', input.limit ?? '10')
+        break
+      case 'hf_papers_search':
+        result = await hfPapersSearch(input.query ?? '', input.limit ?? '5')
+        break
+      case 'open_meteo_weather':
+        result = await openMeteoWeather(input.lat ?? '', input.lon ?? '', input.location ?? '')
+        break
+      case 'sec_edgar_search':
+        result = await secEdgarSearch(input.query ?? '', input.forms ?? '', input.limit ?? '8')
         break
       case 'log_lesson':
         result = await logLesson(input.agent ?? 'AGENT', input.lesson ?? '')

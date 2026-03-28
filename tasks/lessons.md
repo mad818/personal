@@ -131,3 +131,12 @@
 - Added top-bar Eval Grade badge, force-run override in Settings, and explicit degraded reason lists so operators can move from signal -> diagnosis -> action quickly.
 - Added grade-drop notification signals plus copy/export diagnostics and recent-grade breadcrumb context to accelerate incident triage and reporting.
 - Added Open Status deep-link and compact severity iconography, plus reason-enriched drop alerts, to close the loop from detection to investigation.
+57. Route live context through agent-specific filters (`buildFilteredLiveContext`) rather than dumping all signals to every agent; irrelevant signals waste tokens and dilute focus.
+58. Vault/saved-article UX needs search + tag filter + sort to be useful at scale; bookmarking without retrieval is a dead end.
+59. Delta sweeps (price, CVE, world-risk) should compare two snapshots and fire typed alerts with severity — don't log every tick, only threshold crossings.
+60. Session-scoped read cache with 60 s TTL reduces external API hits on repeated agent reads; evict on write (patch_project_file) to avoid stale context.
+61. A keyword-first RAG router (`routeQuery`) eliminates the need for agents to decide which tool to call first — pre-route and inject the block into the system prompt.
+62. Post-run lesson proposals should never auto-commit; surface an approval bar first (Memento-Skills pattern) so the human can reject noise before it pollutes lessons.md.
+63. Agent prompts need TDD discipline (assert-before-write) and deep-research pipelines (5-tool sequence → Feynman brief) to enforce quality floors at the prompt level.
+64. `orbit:next` and `audit:full` scripts turn backlog and health checks into one-command CLI ops — faster than reading files or running separate commands.
+65. Telegram webhook must return HTTP 200 immediately and dispatch agent asynchronously; Telegram retries on slow responses, causing duplicate messages.

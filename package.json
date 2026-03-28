@@ -16,6 +16,8 @@
     "eval:agent-runtime:ci": "node scripts/eval-agent-runtime.js --min-score 85 --min-category safety=80 --min-category reliability=80 --min-category ux=70 --min-category observability=70",
     "type-check": "tsc --noEmit",
     "security-scan": "node scripts/security-scan.js",
+    "orbit:next": "node scripts/orbit.js",
+    "audit:full": "node scripts/audit.js",
     "verify": "npm run type-check && npm run lint && npm run check:path-collisions && npm run security-scan",
     "verify:full": "npm run verify && npm run format:check",
     "handoff:write": "node scripts/generate-handoff.js --write",

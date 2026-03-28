@@ -163,7 +163,23 @@
 - [x] PM cockpit Phase B — interactive daily checklist (Zustand-persisted, copy diagnostics button)
 
 ### Always Last
-- [ ] Telegram bot integration (message agent from phone) — **last** (bot already exists on Telegram; wire into Nexus when ready)
+- [x] Telegram bot integration — Batch 7A: `/api/telegram` webhook route + `docs/deployment/telegram.md`
+
+## Batch 3–7 Assimilation (completed 2026-03-28)
+- [x] Batch 3A/3D — Filtered live context per agent (`buildFilteredLiveContext`) + memory diff block
+- [x] Batch 4A — WCAG 2.1 AA `:focus-visible` global rule + `var(--t)` transition fixes
+- [x] Batch 4B/4C — CyberArticleHeatmap transition + drawer slide unified to `var(--t)`
+- [x] Batch 4D — Vault tags: `updateArticleTags` store action + SavedArticles tag input/filter/search rebuild
+- [x] Batch 5A — `buildDeltaSweep()` in `lib/liveContext.ts`: price/CVE/world-risk delta alerts
+- [x] Batch 5B — `hf_papers_search` tool (HuggingFace daily papers, no key)
+- [x] Batch 5C — Session-scoped 60 s read cache + cache eviction on patch in `/api/tools`
+- [x] Batch 5D — `open_meteo_weather` + `sec_edgar_search` tools added to `/api/tools`
+- [x] Batch 6A — `lib/ragRouter.ts`: keyword-first RAG router with 9 domain routes + `buildRagContextBlock`
+- [x] Batch 6B — Memento-Skills: post-run lesson proposal UI in OfficeCommandCenter (approve → `log_lesson`)
+- [x] Batch 6C — `ScheduledJob` extended with `type`, `outputTarget`, `missionAgent` fields
+- [x] Batch 7B — ORBIT TDD discipline added to prompts.ts (ASSERT comment before fn, verify after)
+- [x] Batch 7C — `scripts/orbit.js` (`npm run orbit:next`) + `scripts/audit.js` (`npm run audit:full`)
+- [x] Batch 7D — NOVA deep research workflow added to prompts.ts (5-tool pipeline → Feynman brief → Vault)
 
 ## In Progress
 _(none)_

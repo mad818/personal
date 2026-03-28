@@ -92,6 +92,89 @@ function compactToBudget(text: string, maxChars: number): LiveContextBundle {
   }
 }
 
+// ── Agent relevance map — which sections each agent cares about ────────────────
+// Prunes live context to signal-relevant sections per specialist.
+// JANSKY/ORBIT always receive the full context (orchestrators need everything).
+const AGENT_SECTIONS: Record<string, Set<string>> = {
+  flux:   new Set(['market', 'sentiment', 'news']),
+  cipher: new Set(['cves', 'news']),
+  nova:   new Set(['news', 'worldRisk']),
+  orbit:  new Set(['market', 'sentiment', 'worldRisk', 'cves', 'news', 'session']),
+  jansky: new Set(['market', 'sentiment', 'worldRisk', 'cves', 'news', 'session']),
+}
+
+// Builds a context block filtered to what the given agent actually needs.
+// Falls back to the full context for unknown agent IDs.
+export function buildFilteredLiveContext(state: LiveState, agentId: string): string {
+  const allowed = AGENT_SECTIONS[agentId.toLowerCase()] ?? null
+  // If no filter defined, return full context
+  if (!allowed) return buildLiveContext(state)
+
+  const prices = state.prices as Record<string, PriceEntry>
+  const fg     = state.signals?.fg as { value: number | string; label: string } | undefined
+  const ts     = new Date().toISOString()
+  const lines: string[] = []
+
+  if (allowed.has('market')) {
+    const watchCoins = ['bitcoin', 'ethereum', 'solana', 'binancecoin']
+    const parts: string[] = []
+    for (const id of watchCoins) {
+      const p = prices[id]; if (!p) continue
+      const sym = p.sym ?? id.slice(0, 3).toUpperCase()
+      const dir = p.chg >= 0 ? '+' : ''
+      parts.push(`${sym} $${p.price < 1 ? p.price.toFixed(4) : p.price.toLocaleString('en-US', { maximumFractionDigits: 0 })} (${dir}${p.chg.toFixed(2)}%)`)
+    }
+    if (parts.length) lines.push(`MARKET: ${parts.join(' · ')}`)
+  }
+
+  if (allowed.has('sentiment') && fg) {
+    const fgVal = Number(fg.value)
+    lines.push(`SENTIMENT: Fear & Greed ${fgVal} — ${fg.label?.toUpperCase() ?? ''}`)
+  }
+
+  if (allowed.has('worldRisk')) {
+    const wr = state.worldRisk ?? 0
+    if (wr > 0) {
+      const label = wr > 70 ? 'HIGH' : wr > 40 ? 'MEDIUM' : 'LOW'
+      lines.push(`WORLD RISK: ${wr}/100 (${label})`)
+    }
+  }
+
+  if (allowed.has('cves')) {
+    const cves = (state.cves ?? []) as CveEntry[]
+    if (cves.length > 0) {
+      const critical = cves.filter(c => {
+        const sev = (c.severity ?? '').toUpperCase()
+        const score = c.cvssScore ?? c.score ?? 0
+        return sev === 'CRITICAL' || score >= 9.0
+      })
+      let line = `CVEs TODAY: ${cves.length} total`
+      if (critical.length) {
+        line += ` · ${critical.length} CRITICAL (${critical.slice(0, 2).map(c => c.id).join(', ')}${critical.length > 2 ? ' …' : ''})`
+      }
+      lines.push(line)
+    }
+  }
+
+  if (allowed.has('news')) {
+    const articles = (state.articles ?? []) as ArticleEntry[]
+    if (articles.length > 0) {
+      const headlines = articles.slice(0, 6).map(a => a.title).join(' · ')
+      lines.push(`NEWS (${articles.length} signals): ${headlines}`)
+    }
+  }
+
+  if (allowed.has('session')) {
+    const agentStats = state.agentStats ?? {}
+    const total = Object.values(agentStats).reduce<number>((s, a) => s + (a.totalTasks ?? 0), 0)
+    if (total > 0) lines.push(`SESSION: ${total} tasks across ${Object.keys(agentStats).length} agents`)
+  }
+
+  lines.push(`DATA FRESHNESS: ${ts.slice(11, 19)} UTC`)
+  if (!lines.length) return ''
+  return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join('\n')}\n[END LIVE INTEL]\n`
+}
+
 export function buildLiveContext(state: LiveState): string {
   const lines: string[] = []
   const ts = new Date().toISOString()
@@ -188,6 +271,109 @@ export function buildLiveContextBundle(state: LiveState, opts: LiveContextBuildO
   const maxChars = Math.max(500, Math.min(12_000, opts.maxChars ?? 3_200))
   const raw = buildLiveContext(state)
   return compactToBudget(raw, maxChars)
+}
+
+// ── buildMemoryDiffBlock ──────────────────────────────────────────────────────
+// Injects a lightweight "what changed since last session" block.
+// Based on charliejhills claude-subconscious pattern — no background daemon,
+// just a single persisted summary string updated at session end.
+export function buildMemoryDiffBlock(lastSessionSummary: string): string {
+  if (!lastSessionSummary?.trim()) return ''
+  return `\n\n[MEMORY DIFF — since last session]\n${lastSessionSummary.trim()}\n[END MEMORY DIFF]\n`
+}
+
+// ── buildDeltaSweep ───────────────────────────────────────────────────────────
+// Compares two store snapshots and returns delta alerts for significant changes.
+// Call on every data refresh interval. Returns an empty array if nothing crossed
+// a threshold — so the caller can skip notification writes.
+//
+// Thresholds:
+//   Price change  ≥ 3% (absolute move between prev and curr snapshot price)
+//   CVE count     increases by ≥ 3 between refreshes
+//   World risk    jumps or drops by ≥ 10 points
+
+export interface DeltaAlert {
+  type:     'market' | 'threat' | 'risk'
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  title:    string
+  message:  string
+  source:   string
+}
+
+export function buildDeltaSweep(prev: LiveState, curr: LiveState): DeltaAlert[] {
+  const alerts: DeltaAlert[] = []
+
+  // ── Price delta check ─────────────────────────────────────────────────────
+  const prevPrices = (prev.prices ?? {}) as Record<string, PriceEntry>
+  const currPrices = (curr.prices ?? {}) as Record<string, PriceEntry>
+
+  const watchCoins: Record<string, string> = {
+    bitcoin:     'BTC',
+    ethereum:    'ETH',
+    solana:      'SOL',
+    binancecoin: 'BNB',
+  }
+
+  for (const [coinId, sym] of Object.entries(watchCoins)) {
+    const prev_p = prevPrices[coinId]
+    const curr_p = currPrices[coinId]
+    if (!prev_p || !curr_p || prev_p.price <= 0) continue
+
+    const pctMove = ((curr_p.price - prev_p.price) / prev_p.price) * 100
+    if (Math.abs(pctMove) >= 3) {
+      const dir = pctMove > 0 ? '▲' : '▼'
+      const sev = Math.abs(pctMove) >= 8 ? 'critical' : Math.abs(pctMove) >= 5 ? 'high' : 'medium'
+      alerts.push({
+        type:     'market',
+        severity: sev,
+        title:    `${sym} ${dir} ${Math.abs(pctMove).toFixed(1)}%`,
+        message:  `${sym} moved from $${prev_p.price.toLocaleString('en-US', { maximumFractionDigits: 0 })} to $${curr_p.price.toLocaleString('en-US', { maximumFractionDigits: 0 })} (${pctMove > 0 ? '+' : ''}${pctMove.toFixed(2)}%)`,
+        source:   'Price Delta Sweep',
+      })
+    }
+  }
+
+  // ── CVE spike check ───────────────────────────────────────────────────────
+  const prevCveCount = (prev.cves ?? []).length
+  const currCveCount = (curr.cves ?? []).length
+  if (currCveCount - prevCveCount >= 3) {
+    const added = currCveCount - prevCveCount
+    const currCves = (curr.cves ?? []) as CveEntry[]
+    const newCritical = currCves
+      .slice(0, added)
+      .filter(c => (c.severity ?? '').toUpperCase() === 'CRITICAL' || (c.cvssScore ?? c.score ?? 0) >= 9)
+      .slice(0, 2)
+      .map(c => c.id)
+      .join(', ')
+    alerts.push({
+      type:     'threat',
+      severity: newCritical ? 'high' : 'medium',
+      title:    `CVE Spike: +${added} new vulnerabilities`,
+      message:  newCritical
+        ? `${added} new CVEs loaded, including critical: ${newCritical}`
+        : `${added} new CVEs added to the feed — review CYBER tab`,
+      source:   'CVE Delta Sweep',
+    })
+  }
+
+  // ── World risk jump check ─────────────────────────────────────────────────
+  const prevRisk = prev.worldRisk ?? 0
+  const currRisk = curr.worldRisk ?? 0
+  const riskDelta = currRisk - prevRisk
+  if (Math.abs(riskDelta) >= 10) {
+    const dir = riskDelta > 0 ? '▲' : '▼'
+    const sev = Math.abs(riskDelta) >= 20 ? 'high' : 'medium'
+    const label = currRisk > 70 ? 'HIGH' : currRisk > 40 ? 'MEDIUM' : 'LOW'
+    alerts.push({
+      type:     'risk',
+      severity: sev,
+      title:    `World Risk ${dir} ${Math.abs(riskDelta)} pts → ${currRisk}/100`,
+      message:  `World risk moved from ${prevRisk} to ${currRisk}/100 (${label}). Check OPS tab for geopolitical context.`,
+      source:   'World Risk Delta Sweep',
+    })
+  }
+
+  return alerts
 }
 
 // ── buildCapabilitiesBlock ─────────────────────────────────────────────────────

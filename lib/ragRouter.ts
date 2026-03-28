@@ -1,170 +1,153 @@
 // ── lib/ragRouter.ts ──────────────────────────────────────────────────────────
-// Agentic RAG routing — maps a query to the most relevant data sources and
-// the agent best suited to answer it. Inspired by the LightRAG pattern:
-// route first, validate source freshness, then retrieve. No vector DB needed —
-// Nexus uses live data feeds and project files as its knowledge base.
+// Keyword-first RAG router for Nexus Prime agent queries.
 //
-// Usage:
-//   const route = routeQuery(userMessage)
-//   // Inject route.sourcesBlock into the agent system prompt if needed.
-//   // Use route.agent to confirm or override detectAgent() when ambiguous.
+// Pattern: keyword domain match → assign tool strategy → add source credibility tag
+//
+// Inspired by advaitpaliwal's context-routing approach: route to the best data
+// source first, fall back to web search, always tag credibility.
+//
+// Usage (in OfficeCommandCenter send flow):
+//   import { routeQuery, buildRagContextBlock } from '@/lib/ragRouter'
+//   const block = buildRagContextBlock(userMessage)
+//   // inject block into agent system prompt
 
-import type { AgentId } from '@/components/home/office/types'
+export type SourceCredibility = 'HIGH' | 'MEDIUM' | 'LOW' | 'STALE'
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-export interface QueryRoute {
-  /** Recommended agent for this query. */
-  agent: AgentId
-  /** Human-readable list of data sources this query should draw from. */
-  sources: string[]
-  /** Validation notes — e.g. freshness warnings. */
-  notes: string[]
-  /** Pre-built block to inject into the system prompt. */
-  sourcesBlock: string
+export interface RagStrategy {
+  domain:        string
+  primaryTools:  string[]
+  fallbackTools: string[]
+  credibility:   SourceCredibility
+  rationale:     string
 }
 
-// ── Source definitions ─────────────────────────────────────────────────────────
-// Each source declares its domain keywords, the agent that owns it,
-// and how fresh the data is expected to be.
-
-const SOURCE_MAP: {
-  id: string
-  label: string
-  agent: AgentId
-  freshness: string
-  keywords: string[]
-}[] = [
+// ── Routing table ─────────────────────────────────────────────────────────────
+const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
   {
-    id:        'prices',
-    label:     'Live crypto prices (CoinGecko) + Fear & Greed index',
-    agent:     'flux',
-    freshness: 'real-time (30s polling)',
-    keywords:  ['price','btc','eth','sol','bnb','bitcoin','ethereum','crypto','market','chart',
-                 'bull','bear','fear','greed','momentum','alpha','trade','portfolio','signal'],
+    keywords: ['bitcoin', 'btc', 'ethereum', 'eth', 'solana', 'sol', 'crypto', 'price',
+               'market cap', 'mempool', 'defi', 'yield', 'fear greed', 'fear & greed'],
+    strategy: {
+      domain:        'Markets / Crypto',
+      primaryTools:  ['web_search'],
+      fallbackTools: ['fetch_url'],
+      credibility:   'HIGH',
+      rationale:     'Market queries: use web_search for live data. Cross-reference the NEXUS LIVE INTEL market block.',
+    },
   },
   {
-    id:        'cves',
-    label:     'Live CVE feed (NVD) + OTX threat intel + CISA advisories',
-    agent:     'cipher',
-    freshness: 'refreshed hourly',
-    keywords:  ['cve','vulnerability','exploit','threat','security','cyber','hack','breach',
-                 'malware','attack','osint','patch','advisory','cisa','nvd','otx'],
+    keywords: ['cve', 'exploit', 'vulnerability', 'zero-day', 'zero day', 'patch',
+               'ransomware', 'malware', 'threat actor', 'apt', 'cvss', 'nvd', 'otx'],
+    strategy: {
+      domain:        'Cybersecurity / CVE',
+      primaryTools:  ['web_search'],
+      fallbackTools: ['fetch_url'],
+      credibility:   'HIGH',
+      rationale:     'Security queries: cross-reference the live CVE feed in NEXUS LIVE INTEL, then web_search for exploit details.',
+    },
   },
   {
-    id:        'news',
-    label:     'Live news (RSS + CryptoCompare + GDELT fallback)',
-    agent:     'nova',
-    freshness: 'refreshed every 5 minutes',
-    keywords:  ['news','headline','latest','today','current','article','report','event',
-                 'geopolit','conflict','election','sanction','gdelt','guardian'],
+    keywords: ['paper', 'arxiv', 'research', 'llm', 'transformer', 'diffusion',
+               'huggingface', 'model', 'benchmark', 'dataset', 'training'],
+    strategy: {
+      domain:        'AI / ML Research',
+      primaryTools:  ['hf_papers_search'],
+      fallbackTools: ['web_search'],
+      credibility:   'HIGH',
+      rationale:     'Research queries: start with hf_papers_search for today\'s HuggingFace daily papers.',
+    },
   },
   {
-    id:        'world',
-    label:     'World risk score + conflict tracker + FX + commodities',
-    agent:     'jansky',
-    freshness: 'refreshed on OPS tab open',
-    keywords:  ['world','risk','conflict','war','geopolit','country','region','ops','fx',
-                 'commodit','macro','fed','rate','inflation','dollar','gold','oil'],
+    keywords: ['sec', 'filing', 'edgar', '10-k', '10-q', '8-k', 'earnings',
+               'annual report', 'quarterly report'],
+    strategy: {
+      domain:        'SEC Filings / EDGAR',
+      primaryTools:  ['sec_edgar_search'],
+      fallbackTools: ['web_search'],
+      credibility:   'HIGH',
+      rationale:     'Filing queries: sec_edgar_search hits the SEC full-text index. Source credibility [HIGH].',
+    },
   },
   {
-    id:        'codebase',
-    label:     'Nexus Prime codebase (project files via /api/project)',
-    agent:     'orbit',
-    freshness: 'live — reads from disk on each call',
-    keywords:  ['code','file','implement','build','fix','debug','component','function',
-                 'typescript','react','next','zustand','store','api','route','lib','hook',
-                 'refactor','bug','error','edit','change','patch','create','write'],
+    keywords: ['weather', 'temperature', 'forecast', 'rain', 'wind', 'storm',
+               'hurricane', 'earthquake', 'seismic'],
+    strategy: {
+      domain:        'Weather / Geophysical',
+      primaryTools:  ['open_meteo_weather'],
+      fallbackTools: ['web_search'],
+      credibility:   'HIGH',
+      rationale:     'Weather queries: open_meteo_weather for current + 3-day forecast. No API key required.',
+    },
   },
   {
-    id:        'polymarket',
-    label:     'Polymarket prediction markets (Gamma API)',
-    agent:     'flux',
-    freshness: 'refreshed on INTEL tab open',
-    keywords:  ['polymarket','prediction','odds','probability','market','election','bet',
-                 'forecast','gamma','event'],
+    keywords: ['reddit', 'community', 'sentiment', 'forum', 'discussion',
+               'opinion', 'trending', 'subreddit'],
+    strategy: {
+      domain:        'Social Sentiment / Reddit',
+      primaryTools:  ['reddit_search'],
+      fallbackTools: ['web_search'],
+      credibility:   'MEDIUM',
+      rationale:     'Social sentiment: reddit_search for community discussion. Credibility [MEDIUM] — anecdotal.',
+    },
   },
   {
-    id:        'memory',
-    label:     'Agent session memory (agent-notes.md via recall tool)',
-    agent:     'jansky',
-    freshness: 'persisted — grows across sessions',
-    keywords:  ['remember','recall','previous','last time','history','session','note',
-                 'context','what did','before','past'],
+    keywords: ['github', 'repo', 'repository', 'open source', 'stars', 'fork',
+               'trending', 'library', 'package', 'npm', 'pypi'],
+    strategy: {
+      domain:        'GitHub / Open Source',
+      primaryTools:  ['github_trending'],
+      fallbackTools: ['web_search'],
+      credibility:   'HIGH',
+      rationale:     'GitHub queries: github_trending for today\'s trending repos. Fall back to web_search for specific repos.',
+    },
+  },
+  {
+    keywords: ['rss', 'feed', 'blog', 'newsletter', 'substack', 'medium', 'article'],
+    strategy: {
+      domain:        'RSS / Blog Feed',
+      primaryTools:  ['rss_fetch'],
+      fallbackTools: ['fetch_url', 'web_search'],
+      credibility:   'MEDIUM',
+      rationale:     'RSS queries: rss_fetch parses the feed directly. Credibility depends on source.',
+    },
+  },
+  {
+    keywords: ['code', 'codebase', 'file', 'component', 'function', 'bug', 'error',
+               'typescript', 'react', 'next.js', 'route', 'store', 'hook'],
+    strategy: {
+      domain:        'Project Codebase',
+      primaryTools:  ['list_project_files', 'read_project_file'],
+      fallbackTools: ['web_search'],
+      credibility:   'HIGH',
+      rationale:     'Codebase queries: read the actual file before answering. Never answer from memory alone.',
+    },
   },
 ]
 
-// ── routeQuery ────────────────────────────────────────────────────────────────
-// Scores each source against the query and returns the top matches.
-// Returns the recommended agent + a formatted sources block for prompt injection.
-export function routeQuery(query: string): QueryRoute {
-  const lower = query.toLowerCase()
-
-  // Score each source by keyword hits
-  const scored = SOURCE_MAP.map((src) => ({
-    ...src,
-    score: src.keywords.filter((k) => lower.includes(k)).length,
-  }))
-
-  const matched = scored
-    .filter((s) => s.score > 0)
-    .sort((a, b) => b.score - a.score)
-
-  // Primary agent = top-scoring source's owner; fall back to jansky
-  const primaryAgent: AgentId = matched[0]?.agent ?? 'jansky'
-  const topSources = matched.slice(0, 3)
-
-  const sources = topSources.map((s) => `${s.label} [${s.freshness}]`)
-  const notes: string[] = []
-
-  // Freshness warning for memory source
-  if (topSources.some((s) => s.id === 'memory')) {
-    notes.push('Memory may contain stale entries — validate against live data before citing.')
-  }
-
-  // Multi-domain query: flag that multiple agents could contribute
-  const agentSet = new Set(topSources.map((s) => s.agent))
-  if (agentSet.size > 1) {
-    const others = Array.from(agentSet).filter(a => a !== primaryAgent).join(', ')
-    notes.push(`Multi-domain query. Primary: ${primaryAgent}. Also relevant: ${others}.`)
-  }
-
-  const sourcesBlock = buildSourcesBlock(sources, notes)
-
-  return { agent: primaryAgent, sources, notes, sourcesBlock }
+const DEFAULT_STRATEGY: RagStrategy = {
+  domain:        'General',
+  primaryTools:  ['web_search'],
+  fallbackTools: ['fetch_url'],
+  credibility:   'MEDIUM',
+  rationale:     'No specific domain detected — use web_search. Cite sources. Tag credibility per source.',
 }
 
-// ── buildSourcesBlock ─────────────────────────────────────────────────────────
-// Returns a formatted string to inject into the system prompt.
-// Tells the agent exactly which sources it should draw from for this query.
-export function buildSourcesBlock(sources: string[], notes: string[]): string {
-  if (!sources.length) return ''
-
-  const lines = [
-    '\n\n[DATA SOURCES FOR THIS QUERY]',
-    'Draw from these sources. Validate freshness before citing.',
-    ...sources.map((s) => `  • ${s}`),
-    ...(notes.length ? ['', 'Notes:', ...notes.map((n) => `  ⚠ ${n}`)] : []),
-    'Do not cite sources not listed here without explicitly noting they are supplemental.',
-    '[/DATA SOURCES]',
-  ]
-
-  return lines.join('\n')
+export function routeQuery(query: string): RagStrategy {
+  if (!query?.trim()) return DEFAULT_STRATEGY
+  const q = query.toLowerCase()
+  for (const rule of ROUTING_RULES) {
+    if (rule.keywords.some((kw) => q.includes(kw))) return rule.strategy
+  }
+  return DEFAULT_STRATEGY
 }
 
-// ── buildGlobalSourcesBlock ───────────────────────────────────────────────────
-// Per-agent static block that lists ALL sources available to that agent.
-// Injected into the base system prompt so agents always know what they can access.
-export function buildGlobalSourcesBlock(agent: AgentId): string {
-  const agentSources = SOURCE_MAP.filter((s) => s.agent === agent || s.agent === 'jansky')
-  if (!agentSources.length) return ''
-
-  const lines = [
-    '\n\n[AVAILABLE DATA SOURCES]',
-    ...agentSources.map((s) => `  • ${s.label} [${s.freshness}]`),
-    'Use the most relevant source for each claim. Validate freshness before citing.',
-    '[/AVAILABLE DATA SOURCES]',
-  ]
-
-  return lines.join('\n')
+export function buildRagContextBlock(query: string): string {
+  const s = routeQuery(query)
+  return (
+    `\n\n[RAG ROUTING — ${s.domain}]\n` +
+    `Primary tools: ${s.primaryTools.join(', ')}\n` +
+    `Fallback tools: ${s.fallbackTools.join(', ')}\n` +
+    `Source credibility expectation: [${s.credibility}]\n` +
+    `Rationale: ${s.rationale}\n` +
+    `[END RAG ROUTING]\n`
+  )
 }

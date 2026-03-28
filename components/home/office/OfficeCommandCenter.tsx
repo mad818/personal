@@ -28,8 +28,8 @@ import { evalGradeColor, evalIndicatorIcon, gradeFromEvalScore } from '@/lib/hel
 import { RUNTIME_CACHE_TTL_MS, RUNTIME_POLL_MS } from '@/lib/runtimeConfig'
 import { parseRuntimeEvalPayload, parseStatusPayload } from '@/lib/runtimeTypes'
 import { useStore } from '@/store/useStore'
-import { buildCapabilitiesBlock, buildLiveContextBundle } from '@/lib/liveContext'
-import { routeQuery } from '@/lib/ragRouter'
+import { buildCapabilitiesBlock, buildLiveContextBundle, buildMemoryDiffBlock } from '@/lib/liveContext'
+import { buildRagContextBlock } from '@/lib/ragRouter'
 import { detectRouteFromPrompt, detectRouteFromTool } from '@/lib/chatCapabilityRouting'
 
 import { CrabMascot } from './CrabMascot'
@@ -159,6 +159,12 @@ export default function OfficeCommandCenter() {
   const [evalStale, setEvalStale] = useState(false)
   const [evalFailureCount, setEvalFailureCount] = useState(0)
   const [evalUpdatedAt, setEvalUpdatedAt] = useState<number | null>(null)
+
+  // ── Memento-Skills: post-run lesson proposal ──────────────────────────────
+  // After a substantive run (>= 2 tool calls), propose a lesson for approval.
+  // User can approve (→ log_lesson) or dismiss. Based on the OpenClaw pattern
+  // of never auto-committing agent-generated lessons without human review.
+  const [pendingLesson, setPendingLesson] = useState<{ text: string; agent: string } | null>(null)
 
   // Local scroll management for the terminal chat area.
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -396,11 +402,13 @@ export default function OfficeCommandCenter() {
     // Phase 3: run the agent (ground it in live dashboard state).
     const liveBundle  = buildLiveContextBundle(useStore.getState(), { maxChars: 3200 })
     const liveContext = liveBundle.context
-    const systemBase  = buildSystemPrompt(settings, liveContext)
+    // Memory diff — injects a one-line summary of the last session's outcome
+    const memDiff     = buildMemoryDiffBlock(settings.lastSessionSummary ?? '')
+    const systemBase  = buildSystemPrompt(settings, liveContext + memDiff)
     // RAG routing — inject a per-query data sources block so the agent knows
     // exactly which live feeds are relevant and how fresh they are.
-    const ragRoute     = routeQuery(value)
-    const enrichedPrompt = buildAgentPrompt(target, systemBase) + buildCapabilitiesBlock(target) + ragRoute.sourcesBlock
+    const ragBlock       = buildRagContextBlock(value)
+    const enrichedPrompt = buildAgentPrompt(target, systemBase) + buildCapabilitiesBlock(target) + ragBlock
 
     const steps: AgentStep[] = []
 
@@ -455,6 +463,18 @@ export default function OfficeCommandCenter() {
 
       setEmotion('success')
       setTimeout(() => setEmotion('happy'), 550)
+
+      // ── Memento-Skills: propose a lesson after substantive runs ─────────────
+      // Trigger when the agent used >= 2 tool calls and result is meaningful.
+      // Extracts a short lesson heuristic from the result summary.
+      const toolCallCount = steps.filter(s => s.type === 'tool_call').length
+      if (toolCallCount >= 2 && result.length >= 150) {
+        // Extract a brief lesson from the first substantive sentence of the result
+        const firstLine = result.split('\n').find(l => l.trim().length > 40) ?? result.slice(0, 100)
+        const proposedLesson = `When handling "${value.slice(0, 60).trim()}…" style queries, ${target.toUpperCase()} used ${toolCallCount} tool calls. Key pattern: ${firstLine.trim().slice(0, 120)}`
+        setPendingLesson({ text: proposedLesson, agent: target })
+      }
+      // ────────────────────────────────────────────────────────────────────────
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Something went wrong.'
       setMessages((prev) => [
@@ -1034,6 +1054,53 @@ export default function OfficeCommandCenter() {
                 </div>
               )}
               <div ref={bottomRef} />
+            </div>
+          )}
+
+          {/* ── Memento-Skills lesson approval bar ── */}
+          {pendingLesson && (
+            <div style={{
+              padding: '8px 12px',
+              borderTop: '1px solid var(--border)',
+              background: 'rgba(196,72,90,.07)',
+              display: 'flex', flexDirection: 'column', gap: '5px',
+              flexShrink: 0,
+            }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.5px' }}>
+                💡 LESSON PROPOSAL — {pendingLesson.agent.toUpperCase()}
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--text2)', lineHeight: 1.4 }}>
+                {pendingLesson.text.slice(0, 200)}{pendingLesson.text.length > 200 ? '…' : ''}
+              </div>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  onClick={() => {
+                    apiFetch('/api/tools', {
+                      method: 'POST',
+                      body: JSON.stringify({ tool: 'log_lesson', input: { agent: pendingLesson.agent, lesson: pendingLesson.text } }),
+                    }).catch(() => { /* non-fatal */ })
+                    setPendingLesson(null)
+                  }}
+                  style={{
+                    background: 'var(--accent)', border: 'none', borderRadius: '6px',
+                    color: '#fff', fontSize: '10px', fontWeight: 700, padding: '3px 10px',
+                    cursor: 'pointer', transition: 'opacity var(--t)',
+                  }}
+                >
+                  ✓ Log lesson
+                </button>
+                <button
+                  onClick={() => setPendingLesson(null)}
+                  style={{
+                    background: 'transparent', border: '1px solid var(--border2)',
+                    borderRadius: '6px', color: 'var(--text3)', fontSize: '10px',
+                    fontWeight: 700, padding: '3px 10px', cursor: 'pointer',
+                    transition: 'opacity var(--t)',
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
           )}
 

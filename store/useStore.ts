@@ -36,6 +36,10 @@ export interface ScheduledJob {
   lastRunAt?:    number
   lastStatus?:   'ok' | 'error'
   lastSummary?:  string
+  // Mission-type jobs: agent runs a structured objective + saves output to Vault
+  type?:         'prompt' | 'mission'
+  outputTarget?: 'vault' | 'notify' | 'none'  // where the result is saved
+  missionAgent?: string                         // override agent selection
 }
 
 export interface PendingEdit {
@@ -153,6 +157,8 @@ export const DEFAULT_SETTINGS = {
   userSkills:    '',
   userLearning:  '',
   userContext:   '',
+  // Session memory (charliejhills background memory pattern)
+  lastSessionSummary: '',   // one-line summary of last session's outcome; injected into next session's context
   // App state
   watchlist:     [] as string[],
   botHistory:    [] as unknown[],
@@ -195,7 +201,8 @@ export interface Article {
   date:  string
   bias?: string
   src?:  string
-  cat?:  string  // crypto | markets | cyber | tech | world
+  cat?:  string    // crypto | markets | cyber | tech | world
+  tags?: string[]  // user-defined tags for vault filtering (Siftly pattern)
 }
 
 export interface PendingDraft {
@@ -391,7 +398,8 @@ interface NexusState {
   setOtxPulses:      (pulses: OTXPulse[]) => void
   addChatMessage:    (msg: { role: string; content: string }) => void
   clearChat:         () => void
-  toggleSaveArticle: (article: Article) => void
+  toggleSaveArticle:  (article: Article) => void
+  updateArticleTags:  (articleId: string, tags: string[]) => void
 
   // Extended setters
   setEarthquakes:    (data: GeoRecord[]) => void
@@ -695,6 +703,12 @@ export const useStore = create<NexusState>()(
               : [article, ...s.savedArticles],
           }
         }),
+      updateArticleTags: (articleId, tags) =>
+        set((s) => ({
+          savedArticles: s.savedArticles.map((a) =>
+            a.id === articleId ? { ...a, tags } : a,
+          ),
+        })),
 
       // Extended setters
       setEarthquakes:    (earthquakes)    => set({ earthquakes }),

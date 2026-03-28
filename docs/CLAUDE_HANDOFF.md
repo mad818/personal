@@ -1,7 +1,7 @@
 ## Nexus Prime — Claude Desktop Handoff (AUTO)
 
-**Generated from commit:** `2026-03-27T17:56:18-07:00`
-**Latest commit:** chore: sync docs/CLAUDE_HANDOFF.md
+**Generated from commit:** `2026-03-27T19:17:57-07:00`
+**Latest commit:** feat: news feeds + GDELT fallback, PWA manifest/icon, docs and gitignore cleanup
 
 ### Project purpose
 
@@ -55,11 +55,21 @@ npm run verify
 
 Files touched in the latest commit:
 
-- `docs/CLAUDE_HANDOFF.md`
+- `.gitignore`
+- `CLAUDE.md`
+- `README.md`
+- `app/api/news/route.ts`
+- `app/layout.tsx`
+- `components/signals/NewsFeed.tsx`
+- `hooks/useArticles.ts`
+- `public/icon.svg`
+- `public/manifest.json`
+- `tasks/todo.md`
+- `tsconfig.tsbuildinfo`
 
 ### What’s next (from `tasks/todo.md`)
 
-- Telegram bot integration (message agent from phone) — deferred
+- Telegram bot integration (message agent from phone) — **last** (bot already exists on Telegram; wire into Nexus when ready)
 
 ### Where to look
 

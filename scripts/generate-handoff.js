@@ -31,6 +31,14 @@ function mdEscape(s) {
   return String(s ?? '').replace(/[\\`]/g, '\\$&')
 }
 
+/** e.g. https://github.com/owner/repo from origin URL */
+function parseGithubWebBase(remoteUrl) {
+  if (!remoteUrl) return null
+  const m = String(remoteUrl).trim().match(/github\.com[:/]([^/]+)\/([^/]+?)(?:\.git)?$/i)
+  if (!m) return null
+  return `https://github.com/${m[1]}/${m[2]}`
+}
+
 function getTopTodoLines(todoPathAbs) {
   const raw = fs.readFileSync(todoPathAbs, 'utf8')
   const lines = raw.split(/\r?\n/)
@@ -66,12 +74,31 @@ function buildHandoff() {
   const todoAbs = path.join(repoRoot, 'tasks', 'todo.md')
   const nextUp = fs.existsSync(todoAbs) ? getTopTodoLines(todoAbs) : []
 
+  const originUrl = safe('git remote get-url origin', '')
+  const ghBase = parseGithubWebBase(originUrl)
+  const headSha = safe('git rev-parse HEAD', '')
+  const headShort = safe('git rev-parse --short HEAD', '')
+
+  const supplementPath = path.join(repoRoot, 'docs', 'handoff-supplement.md')
+  const supplement = fs.existsSync(supplementPath)
+    ? '\n' + normalizeNewlines(fs.readFileSync(supplementPath, 'utf8')).trim() + '\n'
+    : ''
+
   const handoff = [
     '## Nexus Prime — Claude Desktop Handoff (AUTO)',
     '',
     `**Generated from commit:** \`${mdEscape(headWhen)}\``,
     `**Latest commit:** ${mdEscape(headMsg)}`,
     '',
+    ...(ghBase && headSha
+      ? [
+          '### Git (remote)',
+          '',
+          `- **origin:** \`${mdEscape(originUrl)}\``,
+          `- **HEAD:** \`${mdEscape(headShort)}\` — [commit](${ghBase}/commit/${headSha}) · [tree at this revision](${ghBase}/tree/${headSha})`,
+          '',
+        ]
+      : []),
     '### Project purpose',
     '',
     'Nexus Prime is a **free, open-source, self-hosted intelligence dashboard** that runs locally (no cloud backend, no DB).',
@@ -135,7 +162,9 @@ function buildHandoff() {
     '- **State**: `store/useStore.ts`',
     '- **AI**: `lib/agent.ts`, `lib/ai.ts`, `app/api/ai/*`, `app/api/tools/*`',
     '- **Diagnostics**: `app/api/status/*`, `app/api/verify/*`, `docs/metrics/*`',
+    '- **Deployment / ideas:** `docs/deployment/`, `docs/ideas/assimilated-ecosystem.md`, `Dockerfile`',
     '',
+    ...(supplement ? ['### Continuation notes (committed supplement)', '', supplement] : []),
   ].join('\n')
 
   return handoff

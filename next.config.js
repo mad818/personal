@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
+  // Enables `.next/standalone` for Docker / Coolify reproducible deploys (see Dockerfile)
+  output: 'standalone',
+
   images: {
     remotePatterns: [
       {

@@ -16,7 +16,7 @@
 **A personal intelligence dashboard that runs entirely on your machine.**
 Live crypto, geopolitical, cyber, IoT, and market data — unified in one dark UI with a built-in AI agent.
 
-[Quickstart](#quickstart) · [Tabs](#tabs) · [AI Agent](#ai-agent) · [Stack](#stack) · [API Keys](#api-keys) · [Structure](#project-structure)
+[Quickstart](#quickstart) · [Tabs](#tabs) · [AI Agent](#ai-agent) · [Stack](#stack) · [API Keys](#api-keys) · [Self-hosting](#self-hosting) · [Structure](#project-structure)
 
 </div>
 
@@ -213,6 +213,14 @@ Open [localhost:3000](http://localhost:3000). All tabs work — keys missing mea
 
 ---
 
+## Self-hosting
+
+To run Nexus on your own VPS (e.g. with [Coolify](https://github.com/coollabsio/coolify)), see **[docs/deployment/coolify.md](docs/deployment/coolify.md)** — Git source, **Dockerfile** or Nixpacks, port **3000**, and which env vars to set in the host UI.
+
+Local smoke test with Docker: `docker build -t nexus-prime .` then `docker run --rm -p 3000:3000 --env-file .env.local nexus-prime` (ensure `.env.local` exists and includes `ANTHROPIC_API_KEY` and `NEXUS_TOKEN`).
+
+---
+
 ## Local AI (fully offline)
 
 ```bash
@@ -280,9 +288,16 @@ tasks/
 ├── todo.md                 ← active task list
 └── lessons.md              ← rules from past corrections
 
+Dockerfile                  ← production image (Next standalone, port 3000)
+.dockerignore
+
 docs/
 ├── architecture.md
-└── expansion-plan.md
+├── expansion-plan.md
+├── deployment/
+│   └── coolify.md          ← optional VPS deploy with Coolify
+└── ideas/
+    └── assimilated-ecosystem.md
 ```
 
 ---

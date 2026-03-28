@@ -81,6 +81,10 @@ app/api/                  ← Next.js server routes
 | @.claude/skills/add-api/SKILL.md | New external data source or API key |
 | @.claude/skills/fix-bug/SKILL.md | Any bug in nexus-final.html |
 
+**External ecosystem (ideas only, not copied code):** `docs/ideas/assimilated-ecosystem.md` — maps other OSS projects (PM workflows, Coolify, autoresearch, routers, etc.) to Nexus patterns.
+
+**Handoff supplement (optional, committed):** `docs/handoff-supplement.md` — narrative + `blob/main` links merged into `docs/CLAUDE_HANDOFF.md` by `scripts/generate-handoff.js`.
+
 ## Rules (auto-loaded by path — do not repeat here)
 @.claude/rules/security.md
 @.claude/rules/architecture.md
@@ -92,6 +96,6 @@ app/api/                  ← Next.js server routes
 tasks/todo.md       — active task list
 tasks/lessons.md    — correction log and rules
 specs/features/     — one spec per feature, written before building
-docs/               — architecture.md, expansion-plan.md
+docs/               — architecture.md, expansion-plan.md, deployment/, ideas/assimilated-ecosystem.md
 archive/            — unused files (do not delete, do not import)
 ```

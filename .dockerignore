@@ -1,0 +1,29 @@
+# Dependencies & build output
+node_modules
+.next
+out
+
+# Git & IDE
+.git
+.gitignore
+.cursor
+.claude
+.husky
+
+# Docs & task lists (not needed to compile the app)
+docs
+tasks
+specs
+archive
+agent-transcripts
+
+# Local env (never bake secrets)
+.env
+.env.*
+!.env.example
+
+# Tests & tooling noise
+coverage
+.turbo
+tsconfig.tsbuildinfo
+**/.DS_Store

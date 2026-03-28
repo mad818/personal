@@ -26,6 +26,12 @@
 
 </div>
 
+**Hybrid layout:** the SVGs above are the visual map; the sections below repeat the same facts in text so you can search, copy commands, and skim without loading images.
+
+## What it is
+
+**Nexus Prime** is a self-hosted intelligence dashboard (Next.js 14, MIT). There is no Nexus subscription: optional APIs are bring-your-own. Live markets, geopolitics, cyber, maps, and a multi-provider **AI agent** (Claude, MiniMax, OpenAI-family chain, or **Ollama** offline) run on your machine — no cloud app backend, no database. Curated learning links live at **`/resources`**; secrets stay in **`.env.local`** (gitignored).
+
 ---
 
 ## Tabs
@@ -168,6 +174,8 @@ flowchart TD
 
 </div>
 
+The graphic is the cheat sheet; in one line: **Next.js 14 App Router + TypeScript 5 + Zustand + Tailwind/Radix**, **server `/api/*` routes** for AI and tools (keys never shipped to the browser), **Leaflet** maps, **Framer Motion**, **Sonner**, **D3** sparklines. The pipeline strip under [At a glance](#at-a-glance) shows how data and LLM traffic flow.
+
 ---
 
 ## Quickstart
@@ -177,6 +185,29 @@ flowchart TD
 <img src="./public/github-section-quickstart.svg" width="100%" alt="Quickstart: clone mad818/personal, npm install, cp .env.example, NEXUS_TOKEN and ANTHROPIC example, npm run dev, localhost PWA, npm run verify" />
 
 </div>
+
+1. **Clone & install**
+
+```bash
+git clone https://github.com/mad818/personal.git
+cd personal
+npm install
+```
+
+2. **Environment** — `cp .env.example .env.local`, then set at least:
+
+```env
+NEXUS_TOKEN=your-long-random-secret
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+(Use [Local AI](#local-ai-fully-offline) instead of cloud keys if you want fully offline LLM.)
+
+3. **Run** — `npm run dev` → [http://localhost:3000](http://localhost:3000). Missing *data* keys only quiet that feed.
+
+4. **Verify** (before PRs) — `npm run verify` (typecheck, lint, path safety).
+
+5. **PWA** — `public/manifest.json` + `public/icon.svg`; Chrome/Edge **Install**, or iOS Safari **Add to Home Screen**.
 
 ---
 
@@ -188,6 +219,12 @@ flowchart TD
 
 </div>
 
+- **`NEXUS_TOKEN`** — Required for the browser to call `/api/*` (Bearer token). Pick any strong random string.
+- **AI providers** — `ANTHROPIC_API_KEY`, `MINIMAX_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, `GOOGLE_AI_KEY`, etc. The server tries configured providers in order and skips missing keys.
+- **Data / intel** — CoinGecko, Finnhub, Guardian, FRED, OTX, NVD, Firecrawl, Brave, AISstream, FIRMS, … all **optional**; the UI degrades gracefully.
+
+**Canonical list with comments and signup links:** [`.env.example`](./.env.example).
+
 ---
 
 ## Local AI (fully offline)
@@ -197,6 +234,13 @@ flowchart TD
 <img src="./public/github-section-local-ai.svg" width="100%" alt="Local AI: ollama pull qwen3, serve on 11434, OpenAI-compatible endpoint in Settings, Local provider, aiModelRouting" />
 
 </div>
+
+```bash
+ollama pull qwen3:8b
+# ollama serve  (listens on :11434 by default)
+```
+
+In the app: **Settings** → **Provider: Local** → endpoint `http://localhost:11434/v1/chat/completions` → model e.g. `qwen3:8b`. Optional per-task model mapping: `lib/aiModelRouting.ts`. Map/news layers still use the public internet unless you avoid those features.
 
 ---
 
@@ -208,6 +252,17 @@ flowchart TD
 
 </div>
 
+- **Coolify / VPS** — Full walkthrough: [`docs/deployment/coolify.md`](docs/deployment/coolify.md) (Git deploy, Dockerfile or Nixpacks, port **3000**, same env vars as local).
+- **Docker smoke test**
+
+```bash
+docker build -t nexus-prime .
+docker run --rm -p 3000:3000 --env-file .env.local nexus-prime
+```
+
+- **Health** — `GET /api/health` (public, no Bearer).
+- **Hardening** — Non-dev builds get CSP and related headers from `next.config.js`.
+
 ---
 
 ## Project structure
@@ -217,6 +272,12 @@ flowchart TD
 <img src="./public/github-section-structure.svg" width="100%" alt="Project tree: app routes api, components lib store, docs tasks skills, Dockerfile middleware legacy html" />
 
 </div>
+
+- **`app/`** — App Router routes (`command`, `signals`, `intel`, …) plus **`app/api/*`** (AI, tools, search, health, …). Root `page.tsx` redirects to `/command`; `layout.tsx` holds shell + **CommandBar**.
+- **`components/`** — Tab UI, **`ui/`** (Radix), **`system/`**, **`nav/`**.
+- **`lib/`** — `ai.ts`, `agent.ts`, `helpers.ts`, `liveContext.ts`, `aiModelRouting.ts`, …
+- **`store/useStore.ts`** — Zustand (persisted settings + session data).
+- **Meta** — `.claude/skills/`, `tasks/`, `docs/` (including deployment), **`Dockerfile`**, **`middleware.ts`**, **`nexus-final.html`** (legacy single-file reference).
 
 ---
 

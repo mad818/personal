@@ -65,15 +65,8 @@ git show --stat HEAD
 
 ### What’s next (from `tasks/todo.md`)
 
-- 1B — Agent prompt sharpening: ORBIT phase-discipline, NOVA research-first, CIPHER triage-first
-- 1C — Passive auto-memory: post-run capture hook + session log writer
-- 1A — Agentic RAG router: `lib/ragRouter.ts` + per-agent data-source block in prompts
-- 2A — Typography + spacing audit: normalize 3-level type scale across Settings, HQ HUD, tabs
 - 2B — Simplify pass: dead props + redundant state in OfficeRoom3D, SettingsDrawer, prompts.ts
 - 2C — Animation polish: consistent `var(--t)` usage + drawer exit animation
-- GeoDeep geospatial layer: local Python service + `/api/geo-scan` + Leaflet toggle (standalone sprint)
-- n8n deployment doc + agent tool wrapper (document like Coolify, runs alongside Nexus)
-- PM cockpit Phase B — interactive daily checklist (Zustand-persisted, copy diagnostics button)
 - Telegram bot integration (message agent from phone) — **last** (bot already exists on Telegram; wire into Nexus when ready)
 
 ### Where to look

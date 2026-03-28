@@ -1,7 +1,7 @@
 ## Nexus Prime — Claude Desktop Handoff (AUTO)
 
-**Generated from commit:** `2026-03-27T19:17:57-07:00`
-**Latest commit:** feat: news feeds + GDELT fallback, PWA manifest/icon, docs and gitignore cleanup
+**Generated from commit:** `2026-03-27T19:18:03-07:00`
+**Latest commit:** chore: sync docs/CLAUDE_HANDOFF.md
 
 ### Project purpose
 
@@ -55,17 +55,7 @@ npm run verify
 
 Files touched in the latest commit:
 
-- `.gitignore`
-- `CLAUDE.md`
-- `README.md`
-- `app/api/news/route.ts`
-- `app/layout.tsx`
-- `components/signals/NewsFeed.tsx`
-- `hooks/useArticles.ts`
-- `public/icon.svg`
-- `public/manifest.json`
-- `tasks/todo.md`
-- `tsconfig.tsbuildinfo`
+- `docs/CLAUDE_HANDOFF.md`
 
 ### What’s next (from `tasks/todo.md`)
 

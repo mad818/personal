@@ -24,6 +24,23 @@ function detectBias(text: string): string {
   return top[1] > 0 ? top[0] : 'neutral'
 }
 
+function stableArticleId(prefix: string, title: string, link: string): string {
+  const s = `${title}|${link}`
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = Math.imul(31, h) + s.charCodeAt(i) | 0
+  return `${prefix}-${Math.abs(h).toString(36)}`
+}
+
+/** Last-resort categorization for GDELT client fallback */
+function guessCatFromTitle(title: string): string {
+  const t = title.toLowerCase()
+  if (/bitcoin|crypto|ethereum|blockchain|defi|token|btc|solana/.test(t)) return 'crypto'
+  if (/hack|cyber|ransom|malware|cve|vulnerability|breach|phish/.test(t)) return 'cyber'
+  if (/stock|market|fed|earnings|economy|trade|bank|inflation|gdp/.test(t)) return 'markets'
+  if (/software|chip|ai|iphone|google|microsoft|apple|tech/.test(t)) return 'tech'
+  return 'world'
+}
+
 export function useArticles() {
   const setArticles  = useStore((s) => s.setArticles)
   const guardianKey  = useStore((s) => s.settings.guardianKey)
@@ -37,13 +54,13 @@ export function useArticles() {
     try {
       const articles: Article[] = []
 
-      // ── 1. Server-side RSS (CoinTelegraph + CoinDesk — no CORS, always works) ─
+      // ── 1. Server-side RSS + CryptoCompare + GDELT fallback (see app/api/news/route.ts) ─
       try {
-        const r   = await apiFetch('/api/news', { signal: AbortSignal.timeout(10000) })
+        const r   = await apiFetch('/api/news', { signal: AbortSignal.timeout(15000) })
         const raw = await r.json() as { title: string; link: string; date: string; src: string; cat?: string }[]
-        raw.forEach((a, i) => {
+        raw.forEach((a) => {
           articles.push({
-            id:   `rss-${i}`,
+            id:    stableArticleId('news', a.title, a.link),
             title: a.title,
             desc:  '',
             link:  a.link,
@@ -55,18 +72,45 @@ export function useArticles() {
         })
       } catch { /* silent */ }
 
+      // ── 2. Client GDELT backup if /api/news returned nothing (edge case) ─────────
+      if (articles.length === 0) {
+        try {
+          const r = await apiFetch(
+            '/api/gdelt?query=cryptocurrency+OR+cybersecurity+OR+markets+OR+geopolitics&timespan=24H&maxrecords=35',
+            { signal: AbortSignal.timeout(12000) },
+          )
+          const d = await r.json() as { articles?: Array<{ title?: string; url?: string; seendate?: string }> }
+          ;(d?.articles ?? []).forEach((a) => {
+            const title = String(a.title ?? '')
+            const link = String(a.url ?? '')
+            if (!title || !link.startsWith('http')) return
+            const cat = guessCatFromTitle(title)
+            articles.push({
+              id: stableArticleId('gdelt', title, link),
+              title,
+              desc: '',
+              link,
+              date: String(a.seendate ?? ''),
+              bias: detectBias(title),
+              src: 'GDELT',
+              cat,
+            })
+          })
+        } catch { /* silent */ }
+      }
+
       // ── 3. Guardian (key required, highest quality — adds on top) ────────────
       if (guardianKey) {
         try {
           const url = `https://content.guardianapis.com/search?q=crypto+finance+markets&api-key=${guardianKey}&show-fields=trailText&page-size=20&order-by=newest`
           const r   = await fetch(url, { signal: AbortSignal.timeout(8000) })
           const d   = await r.json()
-          ;(d?.response?.results ?? []).forEach((a: any, i: number) => {
+          ;(d?.response?.results ?? []).forEach((a: any) => {
             const title = a.webTitle ?? ''
             const desc  = a.fields?.trailText ?? ''
             if (!articles.find((x) => x.title === title)) {
               articles.push({
-                id:   `guardian-${i}`,
+                id:   stableArticleId('guardian', title, a.webUrl ?? ''),
                 title, desc,
                 link: a.webUrl ?? '',
                 date: a.webPublicationDate ?? '',

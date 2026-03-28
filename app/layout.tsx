@@ -1,7 +1,7 @@
 // ── layout ──────────────────────────────────────────────────
 // Root layout: global styles, auth gate, navigation, health monitor.
 
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import Nav               from '@/components/nav/Nav'
 import AuthGate          from '@/components/auth/AuthGate'
@@ -17,6 +17,23 @@ import ClickDebug        from '@/components/ui/ClickDebug'
 export const metadata: Metadata = {
   title: 'Nexus Prime',
   description: 'Personal intelligence dashboard',
+  manifest: '/manifest.json',
+  icons: {
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml', sizes: '512x512' }],
+    apple: [{ url: '/icon.svg', sizes: '180x180' }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'Nexus Prime',
+    statusBarStyle: 'black-translucent',
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#0a0708',
+  width: 'device-width',
+  initialScale: 1,
+  colorScheme: 'dark',
 }
 
 export default function RootLayout({

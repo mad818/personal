@@ -64,6 +64,40 @@ async function fetchRSS(url: string, src: string, cat: string): Promise<NewsItem
   }
 }
 
+/** GDELT artlist — free, no key; fills gaps when RSS feeds block or return empty. */
+async function fetchGDELTFallback(): Promise<NewsItem[]> {
+  const queries: { q: string; cat: string }[] = [
+    { q: 'bitcoin OR ethereum OR cryptocurrency OR blockchain', cat: 'crypto' },
+    { q: 'ransomware OR cybersecurity OR vulnerability OR data breach', cat: 'cyber' },
+    { q: '"stock market" OR earnings OR "federal reserve" OR inflation', cat: 'markets' },
+    { q: 'diplomacy OR geopolitics OR united nations OR sanctions', cat: 'world' },
+  ]
+  const out: NewsItem[] = []
+  for (const { q, cat } of queries) {
+    try {
+      const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(q)}&mode=artlist&timespan=24H&maxrecords=10&format=json`
+      const r = await fetch(url, {
+        headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; NexusBot/1.0)' },
+        signal: AbortSignal.timeout(8000),
+        next: { revalidate: 300 },
+      })
+      if (!r.ok) continue
+      const d = (await r.json()) as { articles?: Array<{ title?: string; url?: string; seendate?: string }> }
+      for (const a of d?.articles ?? []) {
+        const title = clean(String(a.title ?? ''))
+        const link = clean(String(a.url ?? ''))
+        const date = String(a.seendate ?? '').trim()
+        if (title && link.startsWith('http')) {
+          out.push({ title, link, date, src: 'GDELT', cat })
+        }
+      }
+    } catch {
+      /* next query */
+    }
+  }
+  return out
+}
+
 async function fetchCryptoCompare(): Promise<NewsItem[]> {
   try {
     const url = 'https://min-api.cryptocompare.com/data/v2/news/?lang=EN&sortOrder=latest&limit=30'
@@ -93,17 +127,26 @@ async function fetchCryptoCompare(): Promise<NewsItem[]> {
 export async function GET() {
   const feeds = [
     // Crypto
-    { url: 'https://cointelegraph.com/rss',                          src: 'CoinTelegraph',  cat: 'crypto'  },
-    { url: 'https://www.coindesk.com/arc/outboundfeeds/rss/',        src: 'CoinDesk',       cat: 'crypto'  },
-    // Finance / Markets
-    { url: 'https://feeds.bloomberg.com/markets/news.rss',           src: 'Bloomberg',      cat: 'markets' },
-    { url: 'https://feeds.reuters.com/reuters/businessNews',         src: 'Reuters Biz',    cat: 'markets' },
+    { url: 'https://cointelegraph.com/rss', src: 'CoinTelegraph', cat: 'crypto' },
+    { url: 'https://www.coindesk.com/arc/outboundfeeds/rss/', src: 'CoinDesk', cat: 'crypto' },
+    // Finance / Markets (some endpoints block server-side; backups below)
+    { url: 'https://feeds.bloomberg.com/markets/news.rss', src: 'Bloomberg', cat: 'markets' },
+    { url: 'https://feeds.reuters.com/reuters/businessNews', src: 'Reuters Biz', cat: 'markets' },
+    { url: 'https://feeds.marketwatch.com/marketwatch/topstories/', src: 'MarketWatch', cat: 'markets' },
+    { url: 'https://feeds.arstechnica.com/arstechnica/business', src: 'Ars Business', cat: 'markets' },
     // Tech / Cyber
-    { url: 'https://feeds.feedburner.com/TheHackersNews',            src: 'Hacker News',    cat: 'cyber'   },
-    { url: 'https://www.wired.com/feed/rss',                         src: 'Wired',          cat: 'tech'    },
-    // World / OSINT
-    { url: 'https://feeds.bbci.co.uk/news/world/rss.xml',           src: 'BBC World',      cat: 'world'   },
-    { url: 'https://feeds.reuters.com/reuters/worldNews',            src: 'Reuters World',  cat: 'world'   },
+    { url: 'https://feeds.feedburner.com/TheHackersNews', src: 'The Hacker News', cat: 'cyber' },
+    { url: 'https://www.bleepingcomputer.com/feed/', src: 'BleepingComputer', cat: 'cyber' },
+    { url: 'https://www.wired.com/feed/rss', src: 'Wired', cat: 'tech' },
+    { url: 'https://techcrunch.com/feed/', src: 'TechCrunch', cat: 'tech' },
+    { url: 'https://www.theregister.com/headlines.rss', src: 'The Register', cat: 'tech' },
+    // World / OSINT (free, usually server-friendly)
+    { url: 'https://feeds.bbci.co.uk/news/world/rss.xml', src: 'BBC World', cat: 'world' },
+    { url: 'https://feeds.reuters.com/reuters/worldNews', src: 'Reuters World', cat: 'world' },
+    { url: 'https://www.aljazeera.com/xml/rss/all.xml', src: 'Al Jazeera', cat: 'world' },
+    { url: 'https://rss.npr.org/1001/rss.xml', src: 'NPR News', cat: 'world' },
+    { url: 'https://news.un.org/feed/rss/en', src: 'UN News', cat: 'world' },
+    { url: 'https://rss.dw.com/rdf/rss-en-world', src: 'DW World', cat: 'world' },
   ]
 
   const results = await Promise.allSettled([
@@ -123,6 +166,17 @@ export async function GET() {
     if (!key || seen.has(key)) continue
     seen.add(key)
     deduped.push(it)
+  }
+
+  // If RSS/crypto APIs are thin or blocked, merge GDELT (no API key)
+  if (deduped.length < 25) {
+    const gdelt = await fetchGDELTFallback()
+    for (const it of gdelt) {
+      const key = it.title.trim().toLowerCase()
+      if (!key || seen.has(key)) continue
+      seen.add(key)
+      deduped.push(it)
+    }
   }
 
   // Sort newest first where possible

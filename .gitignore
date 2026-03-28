@@ -15,3 +15,13 @@ tsconfig.tsbuildinfo
 # Claude local overrides (personal, not committed)
 CLAUDE.local.md
 .claude/settings.local.json
+
+# Local one-off helper scripts (not part of the app)
+commit-log.txt
+commit-session.ps1
+do-commit.bat
+find-git.bat
+git-path.txt
+kill-git.bat
+kill-log.txt
+push.sh

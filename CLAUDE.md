@@ -8,7 +8,9 @@ Nexus Prime is a dual-surface intelligence dashboard:
 ## Commands
 ```
 npm run dev      # start dev server (localhost:3000)
-npx tsc --noEmit # type-check — must pass before any task is marked done
+npm run verify   # type-check + lint + path safety (same as CI)
+npx tsc --noEmit # type-check only
+# PWA: public/manifest.json + public/icon.svg — Chrome/Edge Install; iPhone Safari → Add to Home Screen
 ```
 
 ## Handoff (Cursor, Claude, or any editor — same rules)

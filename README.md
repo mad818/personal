@@ -40,7 +40,7 @@ No cloud backend. No database. Runs locally on `npm run dev`.
 KPI cards, Fear & Greed index, live BTC price, AI briefing, event predictor, deep research agent
 
 ### 📡 Signals
-Live news feed from GDELT and The Guardian. Bias tagging (bullish / bearish / neutral), article clusters, bookmarking
+Live news (RSS + CryptoCompare + GDELT fallback; optional Guardian with API key). Bias tagging (bullish / bearish / neutral), article clusters, bookmarking
 
 ### 🎯 Alpha
 Momentum scanner with RSI/BB/EMA scoring, Buy Bot signals, 7-day sparklines, position sizing calculator
@@ -208,6 +208,8 @@ npm run dev
 ```
 
 Open [localhost:3000](http://localhost:3000). All tabs work — keys missing means that data source falls back silently.
+
+**4. Install as app (optional)** — PWA metadata is in `public/manifest.json` with `public/icon.svg`. In Chrome or Edge, use **Install** from the address bar; on iPhone, open in Safari → **Add to Home Screen**.
 
 ---
 

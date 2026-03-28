@@ -68,9 +68,12 @@ export default function NewsFeed() {
   const [filter, setFilter] = useState('all')
 
   if (!articles.length) return (
-    <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text3)', fontSize: '13px' }}>
+    <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text3)', fontSize: '13px', maxWidth: '420px', margin: '0 auto' }}>
       <div style={{ fontSize: '28px', marginBottom: '10px' }}>📡</div>
-      Fetching live intel…
+      <div style={{ fontWeight: 600, marginBottom: '6px' }}>Loading news…</div>
+      <div style={{ fontSize: '11px', lineHeight: 1.5, opacity: 0.9 }}>
+        Pulls RSS + CryptoCompare + GDELT on the server; if that fails, the client tries GDELT again. Reload the app or wait for the next refresh (every 5 min).
+      </div>
     </div>
   )
 

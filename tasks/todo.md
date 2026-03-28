@@ -137,9 +137,10 @@
 - [x] Intel: PolymarketFeed UX — sort controls (% hi/lo, volume, closing), summary bar, bracket labels, search, end-date cues
 - [x] Markets: clarity pass — section headers, PriceSparklines wired into watchlist view, sizer label added
 - [x] Cyber: triage-first view — TriageView correlated CVE/OTX/CISA, priority+source filters, summary strip, TriageCard with left-border priority
+- [x] News feeds: extra free RSS sources + GDELT server fallback when thin; client GDELT backup + stable article IDs (`app/api/news`, `hooks/useArticles`)
 
 ## Next Up
-- [ ] Telegram bot integration (message agent from phone) — deferred
+- [ ] Telegram bot integration (message agent from phone) — **last** (bot already exists on Telegram; wire into Nexus when ready)
 
 ## In Progress
 _(none)_

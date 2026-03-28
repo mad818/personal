@@ -76,6 +76,7 @@
 - [x] Phase 1 execution: add CI quality gates workflow (`type-check`, `lint`, `path safety`) + docs/env sync
 - [x] Research and codify best-practice patterns from major AI agent ecosystems (NVIDIA, Claude, Codex, Cursor, OpenClaw/OpenHands)
 - [x] Translate those patterns into a Nexus execution blueprint with phased implementation backlog
+- [x] Batch 2 ideas assimilation — Phase A (security scanner + pre-commit hook + CIPHER self-audit), Phase B (NOVA research modes + source credibility + lesson logger), Phase C (RACI model + 5-state machine + handoff template), Phase D (AlphaEarth reference card in INTEL/world), Phase E (Agent Reach Python service + proxy + tools)
 - [x] Phase A execution: add tool risk tiering and default high-risk write approval guard in `lib/agent.ts`
 - [x] Phase A execution: expose risk metadata in tool-call traces for operator visibility
 - [x] Phase A execution: extend `/api/status` with policy + AI routing diagnostics

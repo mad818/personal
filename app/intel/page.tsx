@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic            from 'next/dynamic'
 import { ArticlesLoader } from '@/components/ui/DataLoader'
 import { useStore } from '@/store/useStore'
+import { AlphaEarthCard } from '@/components/ops/AlphaEarthCard'
 
 const LazyTopicHeatmap      = dynamic(() => import('@/components/signals/TopicHeatmap'),    { ssr: false })
 const LazyWorldTopicHeatmap = dynamic(() => import('@/components/ops/WorldTopicHeatmap'),   { ssr: false })
@@ -171,6 +172,7 @@ export default function IntelPage() {
           </CollapsibleSection>
           <CollapsibleSection title="Live Map — quakes, flights, fires (free public data)" defaultOpen>
             <LazyOpsMap />
+            <AlphaEarthCard />
           </CollapsibleSection>
         </div>
       )}

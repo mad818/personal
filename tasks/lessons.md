@@ -66,6 +66,11 @@
 55. When early-phase GitHub repos are private or gone, inventory **`archive/`** and local clones first, write a **matrix doc** (`docs/ideas/legacy-*.md`) for implemented vs dropped ideas, and only then port features (e.g. third-party embeds need **CSP** updates, not silent failures).
 56. `scripts/generate-handoff.js` must resolve the branch from **`GITHUB_HEAD_REF` / `GITHUB_REF`** before `git rev-parse --abbrev-ref HEAD`, because **GitHub Actions checks out detached HEAD** and otherwise emits `HEAD` while local runs emit `main`, making `handoff:check` fail in CI every push. Also canonicalize **origin** with **`GITHUB_REPOSITORY`** (or normalize HTTPS/SSH) because Actions **`git remote get-url`** often returns `https://github.com/o/r` **without `.git`**, which still makes the committed handoff look stale.
 
+57. JSON files edited by multiple tool calls in one session can end up truncated (missing closing brace). Always validate `package.json` after edits via `npm run security-scan` or any `npm run` command — an EJSONPARSE error is the signal. Fix: append the missing `}` and never leave a JSON file partially written.
+58. When installing a pre-commit hook on Windows, write via Desktop Commander (not Bash sandbox) because the sandbox may have a stale `.git/index.lock`. Use `git config core.hooksPath .git/hooks` to confirm the hook path is active.
+59. Static reference cards (AlphaEarth, geodep) with zero API cost belong in `components/ops/` as standalone exported components and mount inside an existing `CollapsibleSection` — no new routes needed, no API keys required.
+60. Agent Reach companion service follows the n8n/geodep pattern: standalone Python script + Next.js proxy (`/api/agent-reach`) + deployment doc in `docs/deployment/`. The proxy always degrades gracefully (503 + setup hint) when the service is not running.
+
 ---
 
 ## Session Log

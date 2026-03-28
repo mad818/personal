@@ -378,6 +378,64 @@ async function patchProjectFile(relPath: string, oldStr: string, newStr: string)
   return `Patched: ${relPath} — ${linesChanged} line(s) changed.`
 }
 
+// ── Agent Reach connectors (free public data — no keys needed) ───────────────
+// Proxy calls to the local Agent Reach service (localhost:5051).
+// If the service is not running, each tool returns a setup hint.
+
+const AGENT_REACH_BASE = process.env.AGENT_REACH_URL ?? 'http://127.0.0.1:5051'
+
+async function agentReachProxy(endpoint: string, params: Record<string, string>): Promise<string> {
+  const qs = new URLSearchParams(params).toString()
+  const url = `${AGENT_REACH_BASE}${endpoint}${qs ? `?${qs}` : ''}`
+  try {
+    const r    = await fetch(url, { signal: AbortSignal.timeout(12_000) })
+    const data = await r.json() as unknown
+    return JSON.stringify(data, null, 2)
+  } catch {
+    return (
+      `Agent Reach service is not running on ${AGENT_REACH_BASE}.\n` +
+      'Start it with: python scripts/agent-reach-service.py\n' +
+      'See docs/deployment/agent-reach.md for setup.'
+    )
+  }
+}
+
+async function redditSearch(query: string, subreddit: string, limit: string): Promise<string> {
+  const params: Record<string, string> = { q: query }
+  if (subreddit) params.subreddit = subreddit
+  if (limit)     params.limit     = limit
+  return agentReachProxy('/reddit', params)
+}
+
+async function githubTrending(language: string, since: string): Promise<string> {
+  const params: Record<string, string> = {}
+  if (language) params.language = language
+  params.since = since || 'daily'
+  return agentReachProxy('/github-trending', params)
+}
+
+async function rssFetch(feedUrl: string, limit: string): Promise<string> {
+  const params: Record<string, string> = { url: feedUrl }
+  if (limit) params.limit = limit
+  return agentReachProxy('/rss', params)
+}
+
+// ── Lesson logger (OpenClaw autoresearch pattern) ─────────────────────────────
+// Agents propose lessons after corrections; human reviews on next session open.
+const LESSONS_FILE = path.join(PROJECT_ROOT, 'tasks', 'lessons.md')
+
+async function logLesson(agent: string, lesson: string): Promise<string> {
+  if (!lesson.trim()) return 'log_lesson: lesson text is required.'
+  const date  = new Date().toISOString().slice(0, 10)
+  const entry = `\n- [PROPOSED — ${agent.toUpperCase()} — ${date}] ${lesson.trim()}`
+  try {
+    await fs.appendFile(LESSONS_FILE, entry, 'utf-8')
+    return `Lesson logged for review: "${lesson.trim()}"`
+  } catch {
+    return 'Could not write to tasks/lessons.md — check file permissions.'
+  }
+}
+
 // ── n8n workflow trigger ──────────────────────────────────────────────────────
 const N8N_BASE_URL = process.env.N8N_BASE_URL ?? 'http://localhost:5678'
 const N8N_API_KEY  = process.env.N8N_API_KEY ?? ''
@@ -459,6 +517,18 @@ export async function POST(req: NextRequest) {
         break
       case 'create_project_file':
         result = await createProjectFile(input.path ?? '', input.content ?? '')
+        break
+      case 'reddit_search':
+        result = await redditSearch(input.query ?? '', input.subreddit ?? '', input.limit ?? '10')
+        break
+      case 'github_trending':
+        result = await githubTrending(input.language ?? '', input.since ?? 'daily')
+        break
+      case 'rss_fetch':
+        result = await rssFetch(input.url ?? '', input.limit ?? '10')
+        break
+      case 'log_lesson':
+        result = await logLesson(input.agent ?? 'AGENT', input.lesson ?? '')
         break
       case 'n8n_run_workflow': {
         const payload = input.payload ? JSON.parse(input.payload) as Record<string, unknown> : {}

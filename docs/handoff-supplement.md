@@ -33,3 +33,33 @@
 - [docs/pm-cockpit-plan.md](https://github.com/mad818/personal/blob/main/docs/pm-cockpit-plan.md) — phased plan: health strip → checklist UI → optional CI hooks; includes **HTTP 500 triage** (identify route, 401 vs 503 vs 500, check dev server logs).
 
 Use **`blob/main/...`** links above for stable file URLs. For the exact revision after a push, see [commit history](https://github.com/mad818/personal/commits/main) or run `git log -1` locally.
+
+---
+
+## Handoff template — use this at end of every work session
+
+Agents and IDE sessions should close with this structure in their final message:
+
+```
+## HANDOFF — [agent name] — [date]
+
+### COMPLETED
+- [task] — [file changed] — [what it does]
+
+### ARTIFACTS
+- [file path] — [one-line description]
+
+### VERIFICATION
+- [ ] tsc --noEmit passes
+- [ ] npm run verify passes
+- [ ] Patched sections re-read and confirmed correct
+
+### KNOWN ISSUES
+- [anything left broken or incomplete — none if clean]
+
+### NEXT
+- [suggested next task] — owner: [agent or Mario]
+```
+
+This template feeds `docs/CLAUDE_HANDOFF.md` via `npm run handoff:write`.
+If nothing broke and verify is green, state that explicitly — "No known issues."

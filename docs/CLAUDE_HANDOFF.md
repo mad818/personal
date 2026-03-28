@@ -1,7 +1,7 @@
 ## Nexus Prime — Claude Desktop Handoff (AUTO)
 
-**Generated from commit:** `2026-03-27T17:01:27-07:00`
-**Latest commit:** docs: document same handoff flow for Cursor and Claude (handoff:pull)
+**Generated from commit:** `2026-03-27T17:01:32-07:00`
+**Latest commit:** chore: sync docs/CLAUDE_HANDOFF.md
 
 ### Project purpose
 
@@ -55,8 +55,7 @@ npm run verify
 
 Files touched in the latest commit:
 
-- `CLAUDE.md`
-- `package.json`
+- `docs/CLAUDE_HANDOFF.md`
 
 ### What’s next (from `tasks/todo.md`)
 

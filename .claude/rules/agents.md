@@ -9,6 +9,13 @@ paths:
 
 # Agent System
 
+## Operator model (PM + engineers)
+
+- **Human = product manager (Max):** priorities, scope, acceptance, merge direction, kill bad ideas.
+- **Agents = engineers:** in-app specialists below + any Claude/Cursor session working the repo.
+- **“Always running”** means a **healthy loop**: clear backlog (`tasks/todo.md`), unblocked tasks, green checks (`npm run verify`, CI), handoff doc current—not infinite model uptime.
+- Playbook: `docs/pm-operator-model.md`.
+
 ## The five agents
 | Agent | Specialty | Key tools |
 |-------|-----------|-----------|

@@ -140,6 +140,7 @@
 - [x] News feeds: extra free RSS sources + GDELT server fallback when thin; client GDELT backup + stable article IDs (`app/api/news`, `hooks/useArticles`)
 
 ## Next Up
+- [ ] PM cockpit Phase A — read-only health strip (see `docs/pm-cockpit-plan.md` + handoff supplement)
 - [ ] Telegram bot integration (message agent from phone) — **last** (bot already exists on Telegram; wire into Nexus when ready)
 
 ## In Progress

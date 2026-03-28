@@ -203,18 +203,26 @@ async function callProvider(
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  let body: {
+    provider?: string
+    task?: string
+    model?: string
+    messages?: unknown[]
+    system?: string
+    max_tokens?: number
+    stream?: boolean
+    tools?: unknown
+    tool_choice?: unknown
+    [key: string]: unknown
+  }
   try {
-    const body = await req.json() as {
-      provider?:    string
-      task?:        string
-      model?:       string
-      messages?:    unknown[]
-      system?:      string
-      max_tokens?:  number
-      stream?:      boolean
-      tools?:       unknown
-      tool_choice?: unknown
-      [key: string]: unknown
+    try {
+      body = (await req.json()) as typeof body
+    } catch {
+      return NextResponse.json(
+        { error: { message: 'Invalid or empty JSON body. Send Content-Type: application/json with a valid payload.' } },
+        { status: 400 },
+      )
     }
 
     const {
@@ -292,10 +300,11 @@ export async function POST(req: NextRequest) {
       { error: { message: 'All AI providers unavailable. Check your API keys and Ollama status.' } },
       { status: 503 }
     )
-  } catch {
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'AI proxy request failed.'
     return NextResponse.json(
-      { error: { message: 'AI proxy request failed.' } },
-      { status: 500 }
+      { error: { message: msg } },
+      { status: 500 },
     )
   }
 }

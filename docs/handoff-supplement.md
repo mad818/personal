@@ -27,4 +27,9 @@
 
 - [scripts/generate-handoff.js](https://github.com/mad818/personal/blob/main/scripts/generate-handoff.js) — **branch** tree + commit history links from `origin`, plus this file appended into `docs/CLAUDE_HANDOFF.md` (no per-commit SHA — avoids handoff sync oscillation).
 
+**PM operator + cockpit (planned)**
+
+- [docs/pm-operator-model.md](https://github.com/mad818/personal/blob/main/docs/pm-operator-model.md) — you = PM, in-app/IDE agents = engineering squad; what “always running” means.
+- [docs/pm-cockpit-plan.md](https://github.com/mad818/personal/blob/main/docs/pm-cockpit-plan.md) — phased plan: health strip → checklist UI → optional CI hooks; includes **HTTP 500 triage** (identify route, 401 vs 503 vs 500, check dev server logs).
+
 Use **`blob/main/...`** links above for stable file URLs. For the exact revision after a push, see [commit history](https://github.com/mad818/personal/commits/main) or run `git log -1` locally.

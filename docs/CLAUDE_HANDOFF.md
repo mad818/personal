@@ -1,7 +1,7 @@
 ## Nexus Prime — Claude Desktop Handoff (AUTO)
 
-**Generated from commit:** `2026-03-27T17:56:16-07:00`
-**Latest commit:** feat: tasks 1 3-7 -- Beyond Tier VFX, lazy sub-tabs, triage view, PolymarketFeed UX
+**Generated from commit:** `2026-03-27T17:56:18-07:00`
+**Latest commit:** chore: sync docs/CLAUDE_HANDOFF.md
 
 ### Project purpose
 
@@ -55,15 +55,7 @@ npm run verify
 
 Files touched in the latest commit:
 
-- `app/alpha/page.tsx`
-- `app/cyber/page.tsx`
-- `app/intel/page.tsx`
-- `components/cyber/TriageView.tsx`
-- `components/home/office/OfficeRoom3D.tsx`
-- `components/intel/PolymarketFeed.tsx`
 - `docs/CLAUDE_HANDOFF.md`
-- `package.json`
-- `tasks/todo.md`
 
 ### What’s next (from `tasks/todo.md`)
 

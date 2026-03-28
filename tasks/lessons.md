@@ -62,6 +62,7 @@
 51. Pair runtime-grade badges with exportable diagnostics and history breadcrumbs so operators can escalate incidents with context in one step.
 52. Grade-drop alerts should include concise degraded-reason context; notifying without cause increases acknowledgement time.
 53. DraggableProp `y` is treated as the proxy mesh CENTER height; align it with the corresponding anchor group (or adjust by the floor/rug plane) to avoid floor clipping/overdraw.
+54. `docs/CLAUDE_HANDOFF.md` must not embed `HEAD` SHA, latest commit subject, or `git show` file lists if that file is committed by `handoff:sync` — those fields change every handoff commit and prevent convergence. Use stable branch links + `docs/handoff-supplement.md` for narrative and `blob/main` permalinks.
 
 ---
 

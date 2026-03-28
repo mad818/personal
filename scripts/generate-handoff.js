@@ -3,7 +3,7 @@
  * Auto-generate docs/CLAUDE_HANDOFF.md from current repo state.
  *
  * Goals:
- * - Always reflects the latest commit + current tree (no stale "old" handoff content).
+ * - Always reflects the latest commit message, file list, and todo (no stale "old" handoff content).
  * - Provides enough context for a new agent/operator to continue work immediately.
  *
  * Usage:
@@ -49,10 +49,9 @@ function getTopTodoLines(todoPathAbs) {
 function buildHandoff() {
   const repoRoot = process.cwd()
 
-  const headSha = safe('git rev-parse --short HEAD', 'unknown')
   const headMsg = safe('git log -1 --pretty=%s', 'unknown')
-  // Use commit time (not "now") so output is deterministic for CI checks.
-  const headWhen = safe('git log -1 --pretty=%cI', new Date().toISOString())
+  // Author date — stable across `git commit --amend` (committer date changes each amend).
+  const headWhen = safe('git log -1 --pretty=%aI', new Date().toISOString())
 
   const changedFiles = safe('git show --name-only --pretty="" HEAD', '')
     .split(/\r?\n/)
@@ -71,7 +70,7 @@ function buildHandoff() {
     '## Nexus Prime — Claude Desktop Handoff (AUTO)',
     '',
     `**Generated from commit:** \`${mdEscape(headWhen)}\``,
-    `**Commit:** \`${mdEscape(headSha)}\` — ${mdEscape(headMsg)}`,
+    `**Latest commit:** ${mdEscape(headMsg)}`,
     '',
     '### Project purpose',
     '',

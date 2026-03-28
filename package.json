@@ -17,8 +17,10 @@
     "verify:full": "npm run verify && npm run format:check",
     "handoff:write": "node scripts/generate-handoff.js --write",
     "handoff:check": "node scripts/generate-handoff.js --check",
+    "handoff:sync": "node scripts/sync-handoff-loop.js",
     "format:write": "prettier --write \"{app,lib,components}/**/*.{ts,tsx,mdx}\" --cache",
-    "format:check": "prettier --check \"{app,lib,components}**/*.{ts,tsx,mdx}\" --cache"
+    "format:check": "prettier --check \"{app,lib,components}**/*.{ts,tsx,mdx}\" --cache",
+    "prepare": "husky"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -75,6 +77,7 @@
     "eslint-config-next": "14.1.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-tailwindcss": "^3.14.0",
+    "husky": "^9.1.7",
     "postcss": "^8.4.39",
     "prettier": "^3.3.2",
     "tailwind-merge": "^2.3.0",

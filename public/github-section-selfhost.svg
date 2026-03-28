@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 210" width="1000" height="210" role="img" aria-labelledby="shTitle shDesc">
+  <title id="shTitle">Self-hosting paths</title>
+  <desc id="shDesc">Docker standalone and Coolify VPS</desc>
+  <defs>
+    <linearGradient id="shBg" x1="0" y1="0" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0708"/><stop offset="100%" style="stop-color:#120d0f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="210" rx="14" fill="url(#shBg)" stroke="#d4a56a" stroke-opacity="0.35" stroke-width="1"/>
+  <text x="500" y="34" text-anchor="middle" fill="#f0d9a8" font-family="system-ui,sans-serif" font-size="12" font-weight="800" letter-spacing="0.2em">SELF-HOSTING</text>
+  <text x="500" y="52" text-anchor="middle" fill="#887b7f" font-family="system-ui,sans-serif" font-size="9">Production: Next standalone in Docker | Port 3000 | Pass same .env as local</text>
+  <line x1="48" y1="62" x2="952" y2="62" stroke="#d4a56a" stroke-opacity="0.3" stroke-width="1"/>
+
+  <g font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" fill="#e5d9dc">
+    <rect x="32" y="78" width="440" height="114" rx="10" fill="#141011" stroke="#60a5fa" stroke-opacity="0.4"/>
+    <text x="252" y="102" text-anchor="middle" fill="#93c5fd" font-family="system-ui,sans-serif" font-size="11" font-weight="800">DOCKER (SMOKE)</text>
+    <text x="252" y="124" text-anchor="middle">docker build -t nexus-prime .</text>
+    <text x="252" y="142" text-anchor="middle" font-size="8">docker run --rm -p 3000:3000</text>
+    <text x="252" y="158" text-anchor="middle" font-size="8">--env-file .env.local nexus-prime</text>
+
+    <rect x="488" y="78" width="480" height="114" rx="10" fill="#141011" stroke="#c4485a" stroke-opacity="0.4"/>
+    <text x="728" y="102" text-anchor="middle" fill="#f5d0d6" font-family="system-ui,sans-serif" font-size="11" font-weight="800">VPS + COOLIFY</text>
+    <text x="728" y="124" text-anchor="middle" font-size="8.5">Git deploy | Dockerfile</text>
+    <text x="728" y="142" text-anchor="middle" font-size="8.5">docs/deployment/coolify.md</text>
+    <text x="728" y="162" text-anchor="middle" font-size="8" fill="#887b7f">Health: /api/health</text>
+  </g>
+  <text x="500" y="198" text-anchor="middle" fill="#5c5356" font-family="system-ui,sans-serif" font-size="9">HSTS + CSP active in production next.config.js</text>
+</svg>

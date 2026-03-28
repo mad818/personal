@@ -27,7 +27,7 @@
 **A personal intelligence dashboard that runs entirely on your machine.**
 Live crypto, geopolitical, cyber, and market data — plus free-tier intel maps, optional TradingView embeds, and a built-in AI agent (Claude, MiniMax, OpenAI chain, or local Ollama).
 
-[Quickstart](#quickstart) · [Tabs](#tabs) · [AI Agent](#ai-agent) · [Stack](#stack) · [API Keys](#api-keys) · [Self-hosting](#self-hosting) · [Structure](#project-structure)
+[Quickstart](#quickstart) · [API Keys](#api-keys) · [Local AI](#local-ai-fully-offline) · [Self-hosting](#self-hosting) · [Structure](#project-structure) · [Tabs](#tabs) · [AI Agent](#ai-agent) · [Stack](#stack)
 
 </div>
 
@@ -193,124 +193,137 @@ flowchart TD
 
 ## Quickstart
 
-**1. Clone and install**
+<div align="center">
 
-```bash
-git clone https://github.com/mad818/personal.git
-cd personal
-npm install
-```
+<img src="./public/github-section-quickstart.svg" width="100%" alt="Quickstart: clone, npm install, copy .env.local, npm run dev, open localhost:3000" />
 
-**2. Configure environment**
+</div>
 
-```bash
-cp .env.example .env.local
-```
+| Step | What to run |
+|------|-------------|
+| **1. Clone & install** | `git clone https://github.com/mad818/personal.git` → `cd personal` → `npm install` |
+| **2. Environment** | `cp .env.example .env.local` then edit (see [API Keys](#api-keys) and [Local AI](#local-ai-fully-offline)) |
+| **3. Dev server** | `npm run dev` → open [localhost:3000](http://localhost:3000) |
+| **4. Quality gate** | `npm run verify` — typecheck, lint, path-collision check (run before PRs) |
+| **5. PWA (optional)** | `public/manifest.json` + `public/icon.svg` — Chrome/Edge **Install**; iOS Safari **Add to Home Screen** |
 
-Edit `.env.local` with at minimum:
+Minimum useful `.env.local` for cloud AI + protected APIs:
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-...   # for the AI agent
-NEXUS_TOKEN=any-string          # protects /api/* routes
+NEXUS_TOKEN=any-long-random-string
+ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-**3. Run**
-
-```bash
-npm run dev
-```
-
-Open [localhost:3000](http://localhost:3000). All tabs work — keys missing means that data source falls back silently.
-
-**4. Install as app (optional)** — PWA metadata is in `public/manifest.json` with `public/icon.svg`. In Chrome or Edge, use **Install** from the address bar; on iPhone, open in Safari → **Add to Home Screen**.
-
----
-
-## Self-hosting
-
-To run Nexus on your own VPS (e.g. with [Coolify](https://github.com/coollabsio/coolify)), see **[docs/deployment/coolify.md](docs/deployment/coolify.md)** — Git source, **Dockerfile** or Nixpacks, port **3000**, and which env vars to set in the host UI.
-
-Local smoke test with Docker: `docker build -t nexus-prime .` then `docker run --rm -p 3000:3000 --env-file .env.local nexus-prime` (ensure `.env.local` exists and includes `ANTHROPIC_API_KEY` and `NEXUS_TOKEN`).
-
----
-
-## Local AI (fully offline)
-
-```bash
-ollama pull qwen3:8b
-```
-
-Then open **Settings** in the app, set provider to Local, endpoint to `http://localhost:11434/v1/chat/completions`, and model to `qwen3:8b`. No API key needed.
+Missing data keys only disable that feed; the rest of the app still loads.
 
 ---
 
 ## API Keys
 
-All keys are optional. The app degrades gracefully when a key is absent.
+<div align="center">
+
+<img src="./public/github-section-api-keys.svg" width="100%" alt="API keys: NEXUS_TOKEN for /api, AI keys on server, optional data keys" />
+
+</div>
+
+**Source of truth:** [`.env.example`](./.env.example) (comments list provider order, defaults, and links).
 
 | Variable | Service | Free tier | Get one |
 |----------|---------|-----------|---------|
-| `ANTHROPIC_API_KEY` | Claude AI (agent + chat) | Your account with Anthropic (Nexus does not bill you) | [console.anthropic.com](https://console.anthropic.com) |
-| `GROQ_API_KEY` | Groq (fast inference) | Yes | [console.groq.com](https://console.groq.com/keys) |
-| `NEXUS_TOKEN` | Internal API auth | n/a | Set any string |
-| `COINGECKO_KEY` | CoinGecko (crypto prices) | Yes | [coingecko.com/api](https://www.coingecko.com/en/api) |
-| `FINNHUB_KEY` | Finnhub (stock quotes) | Yes | [finnhub.io](https://finnhub.io) |
+| `NEXUS_TOKEN` | Internal Bearer auth for `/api/*` | n/a | Any strong random string |
+| `ANTHROPIC_API_KEY` | Claude (agent + chat) | Your Anthropic account | [console.anthropic.com](https://console.anthropic.com) |
+| `MINIMAX_API_KEY` | MiniMax (OpenAI-compatible) | Per MiniMax | [platform.minimax.io](https://platform.minimax.io) |
+| `OPENAI_API_KEY` | OpenAI | Per OpenAI | [platform.openai.com](https://platform.openai.com/api-keys) |
+| `GROQ_API_KEY` | Groq | Yes | [console.groq.com](https://console.groq.com/keys) |
+| `OPENROUTER_API_KEY` | OpenRouter gateway | Per plan | [openrouter.ai/keys](https://openrouter.ai/keys) |
+| `GOOGLE_AI_KEY` | Google AI (Gemini) | Per Google | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| `COINGECKO_KEY` | CoinGecko | Demo tier | [coingecko.com/api](https://www.coingecko.com/en/api) |
+| `FINNHUB_KEY` | Finnhub (stocks) | Yes | [finnhub.io](https://finnhub.io) |
 | `GUARDIAN_KEY` | The Guardian (news) | Yes | [open-platform.theguardian.com](https://open-platform.theguardian.com) |
-| `OTX_KEY` | AlienVault OTX (threat intel) | Yes | [otx.alienvault.com](https://otx.alienvault.com) |
-| `FIRECRAWL_KEY` | Firecrawl (web scraper) | Yes | [firecrawl.dev](https://firecrawl.dev) |
-| `NVD_KEY` | NVD (CVE feed) | Yes | [nvd.nist.gov/developers](https://nvd.nist.gov/developers/request-an-api-key) |
-| `AISSTREAM_KEY` | AISstream (live ship tracking) | Yes | [aisstream.io](https://aisstream.io) |
-| `FIRMS_MAP_KEY` | NASA FIRMS (fire hotspots) | Yes | [firms.modaps.eosdis.nasa.gov](https://firms.modaps.eosdis.nasa.gov/api/area/) |
+| `FRED_KEY` | FRED (macro) | Yes | [fred.stlouisfed.org/docs/api](https://fred.stlouisfed.org/docs/api/api_key.html) |
+| `OTX_KEY` | AlienVault OTX | Yes | [otx.alienvault.com](https://otx.alienvault.com) |
+| `FIRECRAWL_KEY` | Firecrawl | Yes | [firecrawl.dev](https://firecrawl.dev) |
+| `BRAVE_SEARCH_KEY` | Brave Search | Per Brave | [api.search.brave.com](https://api.search.brave.com) |
+| `NVD_KEY` | NVD (CVEs) | Yes | [nvd.nist.gov/developers](https://nvd.nist.gov/developers/request-an-api-key) |
+| `AISSTREAM_KEY` | AISstream (ships) | Yes | [aisstream.io](https://aisstream.io) |
+| `FIRMS_MAP_KEY` | NASA FIRMS (fires) | Yes | [firms.modaps.eosdis.nasa.gov](https://firms.modaps.eosdis.nasa.gov/api/area/) |
+
+Server-side AI keys are never exposed to the browser; the client sends `Authorization: Bearer <NEXUS_TOKEN>` only.
 
 ---
 
-## Project Structure
+## Local AI (fully offline)
+
+<div align="center">
+
+<img src="./public/github-section-local-ai.svg" width="100%" alt="Local AI: ollama pull and serve, then Nexus Settings Local provider and endpoint" />
+
+</div>
+
+```bash
+ollama pull qwen3:8b
+# ollama serve runs by default on :11434
+```
+
+In the app: **Settings** → provider **Local** → endpoint `http://localhost:11434/v1/chat/completions` → model e.g. `qwen3:8b`. No cloud API key required for the agent. Optional model routing for tools vs chat lives in `lib/aiModelRouting.ts`.
+
+Public map/news layers still call the internet unless you avoid those tabs or features.
+
+---
+
+## Self-hosting
+
+<div align="center">
+
+<img src="./public/github-section-selfhost.svg" width="100%" alt="Self-hosting: Docker smoke test and Coolify VPS deploy" />
+
+</div>
+
+| Path | Notes |
+|------|--------|
+| **Coolify / VPS** | Step-by-step: **[docs/deployment/coolify.md](docs/deployment/coolify.md)** — Git deploy, **Dockerfile** or Nixpacks, port **3000**, paste the same env vars as local. |
+| **Docker smoke** | `docker build -t nexus-prime .` then `docker run --rm -p 3000:3000 --env-file .env.local nexus-prime` (`.env.local` must include at least `NEXUS_TOKEN`; add AI keys as needed). |
+| **Health** | `GET /api/health` — uptime check (public; no Bearer). |
+
+Production hardening: `next.config.js` sets CSP and related headers for non-dev builds.
+
+---
+
+## Project structure
+
+<div align="center">
+
+<img src="./public/github-section-structure.svg" width="100%" alt="Project structure: app, components, lib, store, docs, tasks" />
+
+</div>
 
 ```
-app/                        ← one route per tab (Next.js App Router)
-├── command/                ← ⚡ Command tab
-├── signals/                ← 📡 Signals tab
-├── alpha/                  ← 🎯 Alpha tab
-├── ops/                    ← 🌍 Ops tab
-├── intel/                  ← 📊 Intel tab
-├── cyber/                  ← 🔒 Cyber tab
-├── vault/                  ← 🗂 Vault tab
-├── api/                    ← server routes (ai, tools, search, ...)
-└── layout.tsx              ← root layout (AuthGate + Nav)
+app/                        ← routes + app/api/* (Next.js App Router)
+├── page.tsx                ← redirects to /command
+├── home/  command/  signals/  alpha/  ops/  intel/  cyber/  vault/
+├── resources/  skills/  security/  vehicle/  iot/  reset/
+├── api/                    ← ai, tools, search, health, ...
+└── layout.tsx              ← root layout, CommandBar, nav
 
-components/                 ← one folder per tab + shared UI
-├── ui/                     ← buttons, cards, inputs (Radix primitives)
+components/                 ← tab folders + shared UI
+├── ui/                     ← Radix-based primitives, CommandBar
 ├── system/                 ← DataLoader, ErrorBoundary, ThemeProvider
-└── nav/                    ← sidebar navigation
+└── nav/                    ← sidebar
 
-store/
-└── useStore.ts             ← Zustand store: settings (persisted) + live data
+store/useStore.ts           ← Zustand: persisted settings + session data
 
 lib/
-├── ai.ts                   ← callAI, streamAI, buildSystemPrompt
-├── agent.ts                ← ReAct agent loop with tool use
-└── helpers.ts              ← fmtPrice, fmtVol, timeAgo, esc
+├── ai.ts  agent.ts  helpers.ts  aiModelRouting.ts  liveContext.ts  ...
 
-.claude/skills/             ← project-level agent skills
-├── add-feature/SKILL.md
-├── add-tab/SKILL.md
-├── add-api/SKILL.md
-└── fix-bug/SKILL.md
+.claude/skills/             ← add-feature, add-tab, add-api, fix-bug, …
 
-tasks/
-├── todo.md                 ← active task list
-└── lessons.md              ← rules from past corrections
+tasks/                      ← todo.md, lessons.md
 
-Dockerfile                  ← production image (Next standalone, port 3000)
-.dockerignore
+docs/                       ← architecture, deployment/coolify.md, ideas/
 
-docs/
-├── architecture.md
-├── expansion-plan.md
-├── deployment/
-│   └── coolify.md          ← optional VPS deploy with Coolify
-└── ideas/
-    └── assimilated-ecosystem.md
+Dockerfile  .dockerignore   ← standalone Next output, port 3000
+
+nexus-final.html            ← legacy single-file dashboard (reference)
 ```
 
 ---

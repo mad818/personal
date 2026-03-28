@@ -6,7 +6,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import CyberArticleHeatmap from '@/components/cyber/CyberArticleHeatmap'
 import { CVEsLoader, OTXLoader } from '@/components/ui/DataLoader'
 import { useStore } from '@/store/useStore'
 
@@ -23,7 +22,9 @@ const VIEWS: Array<{ id: CyberView; label: string }> = [
 const LazyCyberHeatmap = dynamic(() => import('@/components/cyber/CyberHeatmap'), { ssr: false })
 const LazyCVEFeed = dynamic(() => import('@/components/cyber/CVEFeed'), { ssr: false })
 const LazyOTXFeed = dynamic(() => import('@/components/cyber/OTXFeed'), { ssr: false })
-const LazyCISAFeed = dynamic(() => import('@/components/cyber/CISAFeed'), { ssr: false })
+const LazyCISAFeed            = dynamic(() => import('@/components/cyber/CISAFeed'),             { ssr: false })
+const LazyTriageView          = dynamic(() => import('@/components/cyber/TriageView'),             { ssr: false })
+const LazyCyberArticleHeatmap = dynamic(() => import('@/components/cyber/CyberArticleHeatmap'),   { ssr: false })
 
 function CollapsibleSection({ title, children, defaultOpen = false }: {
   title: string; children: React.ReactNode; defaultOpen?: boolean
@@ -58,7 +59,6 @@ export default function CyberPage() {
   const router = useRouter()
   const view = useStore((s) => s.cyberView) ?? 'triage'
   const setView = useStore((s) => s.setCyberView)
-  const [lastTap, setLastTap] = useState<number>(0)
 
   const urlView = useMemo(() => {
     const v = (searchParams?.get('view') ?? '').toLowerCase()
@@ -99,10 +99,7 @@ export default function CyberPage() {
           <button
             key={v.id}
             type="button"
-            onPointerDown={() => {
-              setView(v.id)
-              setLastTap(Date.now())
-            }}
+            onPointerDown={() => setView(v.id)}
             style={{
               flex: '1 1 140px',
               padding: '6px 8px',
@@ -123,17 +120,15 @@ export default function CyberPage() {
           </button>
         ))}
       </div>
-      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: -10, marginBottom: 14 }}>
-        Active: <span style={{ color: 'var(--text2)', fontWeight: 700 }}>{String(view).toUpperCase()}</span>
-        {lastTap ? <span style={{ marginLeft: 10, opacity: 0.7 }}>· tapped {new Date(lastTap).toLocaleTimeString()}</span> : null}
-      </div>
-
       {view === 'triage' && (
-        <div style={{ marginBottom: '10px' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text3)', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
-            Threat Intelligence Signals
+        <div>
+          <LazyTriageView />
+          <div style={{ marginTop: '24px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text3)', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
+              Threat Intelligence Signals
+            </div>
+            <LazyCyberArticleHeatmap />
           </div>
-          <CyberArticleHeatmap />
         </div>
       )}
 

@@ -6,16 +6,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic            from 'next/dynamic'
-import TopicHeatmap       from '@/components/signals/TopicHeatmap'
-import WorldTopicHeatmap  from '@/components/ops/WorldTopicHeatmap'
-import GeoHeatmap         from '@/components/ops/GeoHeatmap'
-import ConflictFeed       from '@/components/ops/ConflictFeed'
-import MarketRates        from '@/components/ops/MarketRates'
-import PolymarketFeed     from '@/components/intel/PolymarketFeed'
 import { ArticlesLoader } from '@/components/ui/DataLoader'
 import { useStore } from '@/store/useStore'
 
-const OpsMap = dynamic(() => import('@/components/ops/OpsMap'), { ssr: false })
+const LazyTopicHeatmap      = dynamic(() => import('@/components/signals/TopicHeatmap'),    { ssr: false })
+const LazyWorldTopicHeatmap = dynamic(() => import('@/components/ops/WorldTopicHeatmap'),   { ssr: false })
+const LazyGeoHeatmap        = dynamic(() => import('@/components/ops/GeoHeatmap'),          { ssr: false })
+const LazyConflictFeed      = dynamic(() => import('@/components/ops/ConflictFeed'),        { ssr: false })
+const LazyMarketRates       = dynamic(() => import('@/components/ops/MarketRates'),         { ssr: false })
+const LazyPolymarketFeed    = dynamic(() => import('@/components/intel/PolymarketFeed'),    { ssr: false })
+const LazyOpsMap            = dynamic(() => import('@/components/ops/OpsMap'),              { ssr: false })
 
 // ── Segmented control ─────────────────────────────────────────────────────────
 type Segment = 'news' | 'world' | 'markets'
@@ -69,7 +69,6 @@ export default function IntelPage() {
 
   const seg = useStore((s) => s.intelView) ?? 'news'
   const setSeg = useStore((s) => s.setIntelView)
-  const [lastTap, setLastTap] = useState<number>(0)
 
   const urlSeg = useMemo(() => {
     const v = (searchParams?.get('view') ?? '').toLowerCase()
@@ -113,10 +112,7 @@ export default function IntelPage() {
           <button
             key={s.id}
             type="button"
-            onPointerDown={() => {
-              setSeg(s.id)
-              setLastTap(Date.now())
-            }}
+            onPointerDown={() => setSeg(s.id)}
             style={{
               flex: 1, padding: '6px 8px',
               borderRadius: '6px', border: 'none', cursor: 'pointer',
@@ -131,11 +127,6 @@ export default function IntelPage() {
           </button>
         ))}
       </div>
-      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: -12, marginBottom: 14 }}>
-        Active: <span style={{ color: 'var(--text2)', fontWeight: 700 }}>{String(seg).toUpperCase()}</span>
-        {lastTap ? <span style={{ marginLeft: 10, opacity: 0.7 }}>· tapped {new Date(lastTap).toLocaleTimeString()}</span> : null}
-      </div>
-
       {/* ── NEWS ── */}
       {seg === 'news' && (
         <div>
@@ -145,7 +136,7 @@ export default function IntelPage() {
           }}>
             Live News · Topic Heatmap
           </div>
-          <TopicHeatmap />
+          <LazyTopicHeatmap />
         </div>
       )}
 
@@ -158,7 +149,7 @@ export default function IntelPage() {
           }}>
             Intelligence Signals
           </div>
-          <WorldTopicHeatmap />
+          <LazyWorldTopicHeatmap />
 
           <div style={{ margin: '20px 0', height: '1px', background: 'var(--border)' }} />
 
@@ -168,24 +159,24 @@ export default function IntelPage() {
           }}>
             Conflict Impact Assessment
           </div>
-          <GeoHeatmap />
+          <LazyGeoHeatmap />
 
           <div style={{ margin: '20px 0', height: '1px', background: 'var(--border)' }} />
 
           <CollapsibleSection title="Raw Conflict Feed (GDELT)">
-            <ConflictFeed />
+            <LazyConflictFeed />
           </CollapsibleSection>
           <CollapsibleSection title="FX Rates &amp; Commodities">
-            <MarketRates />
+            <LazyMarketRates />
           </CollapsibleSection>
           <CollapsibleSection title="Live Map — Quakes · Flights · Fires" defaultOpen>
-            <OpsMap />
+            <LazyOpsMap />
           </CollapsibleSection>
         </div>
       )}
 
       {/* ── PREDICTION MARKETS ── */}
-      {seg === 'markets' && <PolymarketFeed />}
+      {seg === 'markets' && <LazyPolymarketFeed />}
     </div>
   )
 }

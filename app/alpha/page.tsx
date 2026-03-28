@@ -3,7 +3,7 @@
 
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import WatchlistManager from '@/components/alpha/WatchlistManager'
@@ -22,14 +22,14 @@ const VIEWS: Array<{ id: MarketsView; label: string }> = [
 const LazyPriceGrid = dynamic(() => import('@/components/alpha/PriceGrid'), { ssr: false })
 const LazyMomentumScanner = dynamic(() => import('@/components/alpha/MomentumScanner'), { ssr: false })
 const LazyBuyBot = dynamic(() => import('@/components/alpha/BuyBot'), { ssr: false })
-const LazyPositionSizer = dynamic(() => import('@/components/alpha/PositionSizer'), { ssr: false })
+const LazyPositionSizer   = dynamic(() => import('@/components/alpha/PositionSizer'),    { ssr: false })
+const LazyPriceSparklines = dynamic(() => import('@/components/alpha/PriceSparklines'), { ssr: false })
 
 export default function AlphaPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const view = useStore((s) => s.marketsView) ?? 'watchlist'
   const setView = useStore((s) => s.setMarketsView)
-  const [lastTap, setLastTap] = useState<number>(0)
 
   const urlView = useMemo(() => {
     const v = (searchParams?.get('view') ?? '').toLowerCase()
@@ -71,10 +71,7 @@ export default function AlphaPage() {
           <button
             key={v.id}
             type="button"
-            onPointerDown={() => {
-              setView(v.id)
-              setLastTap(Date.now())
-            }}
+            onPointerDown={() => setView(v.id)}
             style={{
               flex: '1 1 140px',
               padding: '6px 8px',
@@ -95,19 +92,35 @@ export default function AlphaPage() {
           </button>
         ))}
       </div>
-      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: -10, marginBottom: 14 }}>
-        Active: <span style={{ color: 'var(--text2)', fontWeight: 700 }}>{String(view).toUpperCase()}</span>
-        {lastTap ? <span style={{ marginLeft: 10, opacity: 0.7 }}>· tapped {new Date(lastTap).toLocaleTimeString()}</span> : null}
-      </div>
-
       {view === 'watchlist' && (
         <div style={{ marginBottom: '16px' }}>
+          <div style={{
+            fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
+            letterSpacing: '0.8px', marginBottom: '10px',
+          }}>
+            Watchlist
+          </div>
           <WatchlistManager />
+          <div style={{ marginTop: '20px' }}>
+            <div style={{
+              fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
+              letterSpacing: '0.8px', marginBottom: '10px',
+            }}>
+              7-Day Sparklines — Tracked Coins
+            </div>
+            <LazyPriceSparklines />
+          </div>
         </div>
       )}
 
       {view === 'signals' && (
         <div style={{ marginBottom: '28px' }}>
+          <div style={{
+            fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
+            letterSpacing: '0.8px', marginBottom: '10px',
+          }}>
+            Buy / Sell Signals
+          </div>
           <LazyBuyBot />
         </div>
       )}
@@ -126,6 +139,12 @@ export default function AlphaPage() {
 
       {view === 'sizer' && (
         <div style={{ marginBottom: '28px' }}>
+          <div style={{
+            fontSize: '11px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase',
+            letterSpacing: '0.8px', marginBottom: '10px',
+          }}>
+            Position Sizer — Fixed Risk &amp; Kelly Criterion
+          </div>
           <LazyPositionSizer />
         </div>
       )}

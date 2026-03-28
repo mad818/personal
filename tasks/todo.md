@@ -131,15 +131,15 @@
 - [x] Phase O5: add shared runtime API schemas/parsers and enforce validated payloads across HQ runtime consumers
 - [x] Phase O6: UX reliability polish (consistent “last updated” hints + microstate tightening for runtime surfaces)
 - [x] Add Claude Desktop + Cursor workflow doc + `npm run verify` command
+- [x] Stranger Things “Beyond Tier” 3D agents: EL dual outer-ring + floating orbs + Hopper beam sweep at quality=high
+- [x] Intel/Markets/Cyber: real sub-tabs (URL + persisted Zustand state) + lazy-load all heavy views
+- [x] Intel/Markets/Cyber: unified sub-tab UX (shared switcher style, consistent section headers, no debug timestamps)
+- [x] Intel: PolymarketFeed UX — sort controls (% hi/lo, volume, closing), summary bar, bracket labels, search, end-date cues
+- [x] Markets: clarity pass — section headers, PriceSparklines wired into watchlist view, sizer label added
+- [x] Cyber: triage-first view — TriageView correlated CVE/OTX/CISA, priority+source filters, summary strip, TriageCard with left-border priority
 
 ## Next Up
-- [ ] Stranger Things “Beyond Tier” 3D agents: stature + stance + VFX (EL aura, Hopper flashlight) + quality toggle
-- [ ] Telegram bot integration (message agent from phone) — do last
-- [ ] Intel/Markets/Cyber: convert sections to real sub-tabs (URL + persisted state) and lazy-load heavy views (NO HQ changes)
-- [ ] Intel/Markets/Cyber: unify sub-tab UX (shared switcher, consistent headers, empty/loading/error states) (NO HQ changes)
-- [ ] Intel: improve News drill-down + topic clustering; Prediction market UX upgrades (NO HQ changes)
-- [ ] Markets: watchlist/screener/sizer performance + clarity pass (NO HQ changes)
-- [ ] Cyber: triage-first view + correlation (CVE/OTX/CISA) + reliability pass (NO HQ changes)
+- [ ] Telegram bot integration (message agent from phone) — deferred
 
 ## In Progress
-- [ ] (empty)
+_(none)_

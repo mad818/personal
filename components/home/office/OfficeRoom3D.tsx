@@ -1121,9 +1121,11 @@ function AgentFloorShadows({
   const armRRefs = useRef<Array<THREE.Mesh | null>>([])
   const legLRefs = useRef<Array<THREE.Mesh | null>>([])
   const legRRefs = useRef<Array<THREE.Mesh | null>>([])
-  const elAuraRefs = useRef<Array<THREE.Mesh | null>>([])
-  const hopperBeamRefs = useRef<Array<THREE.Mesh | null>>([])
-  const targetRefs = useRef<Record<AgentId, Vec3>>({} as Record<AgentId, Vec3>)
+  const elAuraRefs      = useRef<Array<THREE.Mesh | null>>([])
+  const elOuterAuraRefs = useRef<Array<THREE.Mesh | null>>([])        // Beyond Tier: second ring (hi only)
+  const elOrbRefs       = useRef<Array<Array<THREE.Mesh | null>>>([]) // Beyond Tier: 3 floating orbs
+  const hopperBeamRefs  = useRef<Array<THREE.Mesh | null>>([])
+  const targetRefs      = useRef<Record<AgentId, Vec3>>({} as Record<AgentId, Vec3>)
   const initRefs = useRef<Record<AgentId, boolean>>({} as Record<AgentId, boolean>)
 
   const quality = vfxQuality
@@ -1251,10 +1253,41 @@ function AgentFloorShadows({
           const power = activeAgent === 'orbit' ? 1 : walking ? 0.55 : 0.25
           const base = vfxHi ? 0.55 : 0.28
           aura.scale.setScalar(0.9 + Math.sin(t * 3.2) * 0.08)
+          aura.rotation.y = t * 1.8
           const mat = aura.material as THREE.MeshStandardMaterial
           mat.emissiveIntensity = base * power * (0.7 + Math.sin(t * 4.2) * 0.3)
           mat.opacity = (vfxHi ? 0.28 : 0.18) * power
         }
+
+        // Beyond Tier: outer aura ring + floating orbs (hi quality only)
+        if (vfxHi && id === 'orbit') {
+          const power = activeAgent === 'orbit' ? 1 : walking ? 0.55 : 0.25
+          const outerAura = elOuterAuraRefs.current[i]
+          if (outerAura) {
+            outerAura.rotation.y = -t * 0.9
+            outerAura.rotation.z = t * 0.4
+            const mat = outerAura.material as THREE.MeshStandardMaterial
+            mat.emissiveIntensity = 0.35 * power * (0.6 + Math.sin(t * 2.8 + 1.2) * 0.4)
+            mat.opacity = 0.14 * power
+          }
+          const orbRow = elOrbRefs.current[i]
+          if (orbRow) {
+            for (let o = 0; o < 3; o++) {
+              const orb = orbRow[o]
+              if (!orb) continue
+              const phase = (o / 3) * Math.PI * 2
+              const radius = 0.17
+              const speed2 = activeAgent === 'orbit' ? 2.2 : 1.1
+              orb.position.x = Math.cos(t * speed2 + phase) * radius
+              orb.position.z = Math.sin(t * speed2 + phase) * radius
+              orb.position.y = 0.505 + Math.sin(t * 3.1 + phase) * 0.025
+              const mat = orb.material as THREE.MeshStandardMaterial
+              mat.emissiveIntensity = 0.8 * power * (0.7 + Math.sin(t * 3.8 + phase) * 0.3)
+              mat.opacity = 0.55 * power
+            }
+          }
+        }
+
         const beam = hopperBeamRefs.current[i]
         if (beam && id === 'cipher') {
           const power = activeAgent === 'cipher' ? 1 : walking ? 0.5 : 0.2
@@ -1262,6 +1295,10 @@ function AgentFloorShadows({
           mat.opacity = (vfxHi ? 0.22 : 0.14) * power
           mat.emissiveIntensity = (vfxHi ? 0.65 : 0.35) * power
           beam.visible = power > 0.12
+          // Beyond Tier: sweep beam arc when cipher is active
+          if (vfxHi && activeAgent === 'cipher') {
+            beam.rotation.y = Math.sin(t * 1.4) * 0.35
+          }
         }
       }
     }
@@ -1437,6 +1474,47 @@ function AgentFloorShadows({
                 />
               </mesh>
             )}
+            {/* Beyond Tier: EL outer aura ring (hi quality only) */}
+            {vfxQuality === 'high' && id === 'orbit' && (
+              <mesh
+                ref={(el) => { elOuterAuraRefs.current[i] = el }}
+                position={[0, 0.505, 0.02]}
+                rotation={[Math.PI / 2, 0, 0]}
+                castShadow={false}
+              >
+                <torusGeometry args={[0.18, 0.008, 8, 24]} />
+                <meshStandardMaterial
+                  color="#818cf8"
+                  emissive="#818cf8"
+                  emissiveIntensity={0.2}
+                  transparent
+                  opacity={0.1}
+                  depthWrite={false}
+                />
+              </mesh>
+            )}
+            {/* Beyond Tier: EL floating orbs (hi quality only) */}
+            {vfxQuality === 'high' && id === 'orbit' && ([0, 1, 2] as const).map((o) => (
+              <mesh
+                key={o}
+                ref={(el) => {
+                  if (!elOrbRefs.current[i]) elOrbRefs.current[i] = []
+                  elOrbRefs.current[i][o] = el
+                }}
+                position={[0, 0.505, 0]}
+                castShadow={false}
+              >
+                <sphereGeometry args={[0.018, 8, 8]} />
+                <meshStandardMaterial
+                  color="#60a5fa"
+                  emissive="#60a5fa"
+                  emissiveIntensity={0.7}
+                  transparent
+                  opacity={0.5}
+                  depthWrite={false}
+                />
+              </mesh>
+            ))}
             {/* EL nosebleed cue */}
             {id === 'orbit' && (
               <mesh position={[0.006, 0.49, 0.072]} castShadow={false}>

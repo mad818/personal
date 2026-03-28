@@ -59,13 +59,7 @@ Files touched in the latest commit:
 
 ### What’s next (from `tasks/todo.md`)
 
-- Stranger Things “Beyond Tier” 3D agents: stature + stance + VFX (EL aura, Hopper flashlight) + quality toggle
-- Telegram bot integration (message agent from phone) — do last
-- Intel/Markets/Cyber: convert sections to real sub-tabs (URL + persisted state) and lazy-load heavy views (NO HQ changes)
-- Intel/Markets/Cyber: unify sub-tab UX (shared switcher, consistent headers, empty/loading/error states) (NO HQ changes)
-- Intel: improve News drill-down + topic clustering; Prediction market UX upgrades (NO HQ changes)
-- Markets: watchlist/screener/sizer performance + clarity pass (NO HQ changes)
-- Cyber: triage-first view + correlation (CVE/OTX/CISA) + reliability pass (NO HQ changes)
+- Telegram bot integration (message agent from phone) — deferred
 
 ### Where to look
 

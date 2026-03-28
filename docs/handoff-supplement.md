@@ -25,6 +25,6 @@
 
 **Handoff automation**
 
-- [scripts/generate-handoff.js](https://github.com/mad818/personal/blob/main/scripts/generate-handoff.js) — injects **GitHub commit/tree links** from `origin` and appends this file into `docs/CLAUDE_HANDOFF.md`.
+- [scripts/generate-handoff.js](https://github.com/mad818/personal/blob/main/scripts/generate-handoff.js) — **branch** tree + commit history links from `origin`, plus this file appended into `docs/CLAUDE_HANDOFF.md` (no per-commit SHA — avoids handoff sync oscillation).
 
-After `git push`, use **this commit’s** “Git (remote)” links at the top of `docs/CLAUDE_HANDOFF.md` for an immutable snapshot; use `blob/main/...` links above for stable paths on default branch.
+Use **`blob/main/...`** links above for stable file URLs. For the exact revision after a push, see [commit history](https://github.com/mad818/personal/commits/main) or run `git log -1` locally.

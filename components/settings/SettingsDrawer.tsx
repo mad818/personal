@@ -5,6 +5,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useStore, DEFAULT_SETTINGS, Settings } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
 import RuntimeEvalTrend from '@/components/ui/RuntimeEvalTrend'
+import { PMHealthStrip } from '@/components/settings/PMHealthStrip'
 
 // ── Sensitive fields — these go to /api/settings (server-side .env.local) ────
 // Keys here match both the FIELDS key AND the SENSITIVE_KEYS list in settings/route.ts
@@ -175,7 +176,7 @@ export default function SettingsDrawer({ open, onClose }: Props) {
               display: 'flex', alignItems: 'center', gap: '6px',
             }}>
               🔒 API Keys
-              <span style={{ fontSize: '9px', color: 'var(--text3)', fontWeight: 400, textTransform: 'none' }}>
+              <span style={{ fontSize: '10px', color: 'var(--text3)', fontWeight: 400, textTransform: 'none' }}>
                 — stored server-side in .env.local, never in browser
               </span>
             </div>
@@ -186,12 +187,12 @@ export default function SettingsDrawer({ open, onClose }: Props) {
                 return (
                   <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <span style={{
-                      fontSize: '10.5px', fontWeight: 700, color: 'var(--text3)',
+                      fontSize: '10px', fontWeight: 700, color: 'var(--text3)',
                       textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px',
                     }}>
                       {label}
                       <span style={{
-                        fontSize: '9px', fontWeight: 700,
+                        fontSize: '10px', fontWeight: 700,
                         color: isSet ? 'var(--fhi)' : 'var(--text3)',
                       }}>
                         {isSet ? '● set' : '○ not set'}
@@ -230,7 +231,7 @@ export default function SettingsDrawer({ open, onClose }: Props) {
                 if (Array.isArray(val) || typeof val === 'object') return null
                 return (
                   <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase' }}>
                       {label}
                     </span>
                     <input
@@ -256,7 +257,7 @@ export default function SettingsDrawer({ open, onClose }: Props) {
               </div>
 
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 10 }}>
-                <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase' }}>
                   Office VFX Quality
                 </span>
                 <select
@@ -302,7 +303,7 @@ export default function SettingsDrawer({ open, onClose }: Props) {
               </label>
 
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase' }}>
                   Global Auto Job Cooldown (minutes)
                 </span>
                 <input
@@ -324,6 +325,7 @@ export default function SettingsDrawer({ open, onClose }: Props) {
               </label>
             </div>
 
+            <PMHealthStrip />
             <RuntimeEvalTrend />
           </div>
         </div>

@@ -140,7 +140,28 @@
 - [x] News feeds: extra free RSS sources + GDELT server fallback when thin; client GDELT backup + stable article IDs (`app/api/news`, `hooks/useArticles`)
 
 ## Next Up
-- [ ] PM cockpit Phase A — read-only health strip (see `docs/pm-cockpit-plan.md` + handoff supplement)
+
+### Phase 1 — Agent Intelligence (see `docs/plans/ideas-assimilation-plan.md`)
+- [ ] 1B — Agent prompt sharpening: ORBIT phase-discipline, NOVA research-first, CIPHER triage-first
+- [ ] 1C — Passive auto-memory: post-run capture hook + session log writer
+- [ ] 1A — Agentic RAG router: `lib/ragRouter.ts` + per-agent data-source block in prompts
+
+### Phase 2 — Design Pass
+- [ ] 2A — Typography + spacing audit: normalize 3-level type scale across Settings, HQ HUD, tabs
+- [ ] 2B — Simplify pass: dead props + redundant state in OfficeRoom3D, SettingsDrawer, prompts.ts
+- [ ] 2C — Animation polish: consistent `var(--t)` usage + drawer exit animation
+
+### Phase 3 — OPS Tab AI Layer
+- [ ] GeoDeep geospatial layer: local Python service + `/api/geo-scan` + Leaflet toggle (standalone sprint)
+
+### Phase 4 — Automation Backbone
+- [ ] n8n deployment doc + agent tool wrapper (document like Coolify, runs alongside Nexus)
+
+### PM Cockpit
+- [x] PM cockpit Phase A — read-only health strip (see `docs/pm-cockpit-plan.md` + handoff supplement)
+- [ ] PM cockpit Phase B — interactive daily checklist (Zustand-persisted, copy diagnostics button)
+
+### Always Last
 - [ ] Telegram bot integration (message agent from phone) — **last** (bot already exists on Telegram; wire into Nexus when ready)
 
 ## In Progress

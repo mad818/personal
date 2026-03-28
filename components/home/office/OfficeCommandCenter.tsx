@@ -29,6 +29,7 @@ import { RUNTIME_CACHE_TTL_MS, RUNTIME_POLL_MS } from '@/lib/runtimeConfig'
 import { parseRuntimeEvalPayload, parseStatusPayload } from '@/lib/runtimeTypes'
 import { useStore } from '@/store/useStore'
 import { buildCapabilitiesBlock, buildLiveContextBundle } from '@/lib/liveContext'
+import { routeQuery } from '@/lib/ragRouter'
 import { detectRouteFromPrompt, detectRouteFromTool } from '@/lib/chatCapabilityRouting'
 
 import { CrabMascot } from './CrabMascot'
@@ -393,10 +394,13 @@ export default function OfficeCommandCenter() {
     }
 
     // Phase 3: run the agent (ground it in live dashboard state).
-    const liveBundle = buildLiveContextBundle(useStore.getState(), { maxChars: 3200 })
+    const liveBundle  = buildLiveContextBundle(useStore.getState(), { maxChars: 3200 })
     const liveContext = liveBundle.context
-    const systemBase = buildSystemPrompt(settings, liveContext)
-    const enrichedPrompt = buildAgentPrompt(target, systemBase) + buildCapabilitiesBlock(target)
+    const systemBase  = buildSystemPrompt(settings, liveContext)
+    // RAG routing — inject a per-query data sources block so the agent knows
+    // exactly which live feeds are relevant and how fresh they are.
+    const ragRoute     = routeQuery(value)
+    const enrichedPrompt = buildAgentPrompt(target, systemBase) + buildCapabilitiesBlock(target) + ragRoute.sourcesBlock
 
     const steps: AgentStep[] = []
 
@@ -432,6 +436,22 @@ export default function OfficeCommandCenter() {
       ])
 
       addOfficeMessage({ role: 'agent', agent: target, text: result })
+
+      // ── Passive auto-memory: fire-and-forget session log entry ──────────────
+      // Captures query, agent, tool count, and outcome summary for recall later.
+      // Non-blocking — never delays the UI response.
+      const toolNames = steps.filter(s => s.type === 'tool_call').map(s => (s as { tool?: string }).tool ?? '?').join(', ')
+      const memNote = [
+        `agent:${target}`,
+        `q:${value.slice(0, 80)}`,
+        `a:${result.slice(0, 120).replace(/\n/g, ' ')}`,
+        toolNames ? `tools:${toolNames}` : null,
+      ].filter(Boolean).join(' | ')
+      apiFetch('/api/tools', {
+        method: 'POST',
+        body: JSON.stringify({ tool: 'remember', input: { note: memNote } }),
+      }).catch(() => { /* non-fatal */ })
+      // ────────────────────────────────────────────────────────────────────────
 
       setEmotion('success')
       setTimeout(() => setEmotion('happy'), 550)

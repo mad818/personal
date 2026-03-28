@@ -1,28 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 210" width="1000" height="210" role="img" aria-labelledby="shTitle shDesc">
-  <title id="shTitle">Self-hosting paths</title>
-  <desc id="shDesc">Docker standalone and Coolify VPS</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 278" width="1000" height="278" role="img" aria-labelledby="sT sD">
+  <title id="sT">Self-hosting</title>
+  <desc id="sD">Docker Coolify health CSP</desc>
   <defs>
-    <linearGradient id="shBg" x1="0" y1="0" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0a0708"/><stop offset="100%" style="stop-color:#120d0f"/>
+    <linearGradient id="sBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0708"/><stop offset="100%" style="stop-color:#15100c"/>
+    </linearGradient>
+    <linearGradient id="sAc" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#d4a56a"/><stop offset="100%" style="stop-color:#c4485a"/>
     </linearGradient>
   </defs>
-  <rect width="1000" height="210" rx="14" fill="url(#shBg)" stroke="#d4a56a" stroke-opacity="0.35" stroke-width="1"/>
-  <text x="500" y="34" text-anchor="middle" fill="#f0d9a8" font-family="system-ui,sans-serif" font-size="12" font-weight="800" letter-spacing="0.2em">SELF-HOSTING</text>
-  <text x="500" y="52" text-anchor="middle" fill="#887b7f" font-family="system-ui,sans-serif" font-size="9">Production: Next standalone in Docker | Port 3000 | Pass same .env as local</text>
-  <line x1="48" y1="62" x2="952" y2="62" stroke="#d4a56a" stroke-opacity="0.3" stroke-width="1"/>
+  <rect width="1000" height="278" rx="16" fill="url(#sBg)" stroke="#d4a56a" stroke-opacity="0.42" stroke-width="1"/>
+  <path d="M 18 260 L 44 260 M 18 260 L 18 234" stroke="#d4a56a" stroke-opacity="0.25" fill="none"/>
 
-  <g font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" fill="#e5d9dc">
-    <rect x="32" y="78" width="440" height="114" rx="10" fill="#141011" stroke="#60a5fa" stroke-opacity="0.4"/>
-    <text x="252" y="102" text-anchor="middle" fill="#93c5fd" font-family="system-ui,sans-serif" font-size="11" font-weight="800">DOCKER (SMOKE)</text>
-    <text x="252" y="124" text-anchor="middle">docker build -t nexus-prime .</text>
-    <text x="252" y="142" text-anchor="middle" font-size="8">docker run --rm -p 3000:3000</text>
-    <text x="252" y="158" text-anchor="middle" font-size="8">--env-file .env.local nexus-prime</text>
+  <text x="500" y="34" text-anchor="middle" fill="#f0d9a8" font-family="system-ui,Segoe UI,sans-serif" font-size="11" font-weight="800" letter-spacing="0.32em">SELF-HOSTING</text>
+  <line x1="110" y1="46" x2="890" y2="46" stroke="url(#sAc)" stroke-opacity="0.55" stroke-width="1"/>
+  <text x="500" y="62" text-anchor="middle" fill="#887b7f" font-family="system-ui,sans-serif" font-size="8">Next.js standalone in Docker | port 3000 | mirror .env.local on the host</text>
 
-    <rect x="488" y="78" width="480" height="114" rx="10" fill="#141011" stroke="#c4485a" stroke-opacity="0.4"/>
-    <text x="728" y="102" text-anchor="middle" fill="#f5d0d6" font-family="system-ui,sans-serif" font-size="11" font-weight="800">VPS + COOLIFY</text>
-    <text x="728" y="124" text-anchor="middle" font-size="8.5">Git deploy | Dockerfile</text>
-    <text x="728" y="142" text-anchor="middle" font-size="8.5">docs/deployment/coolify.md</text>
-    <text x="728" y="162" text-anchor="middle" font-size="8" fill="#887b7f">Health: /api/health</text>
-  </g>
-  <text x="500" y="198" text-anchor="middle" fill="#5c5356" font-family="system-ui,sans-serif" font-size="9">HSTS + CSP active in production next.config.js</text>
+  <rect x="28" y="78" width="452" height="132" rx="12" fill="#141011" stroke="#60a5fa" stroke-opacity="0.42"/>
+  <text x="254" y="102" text-anchor="middle" fill="#93c5fd" font-family="system-ui,sans-serif" font-size="10" font-weight="800">CONTAINER SMOKE</text>
+  <text x="254" y="124" text-anchor="middle" fill="#c4b4b8" font-family="ui-monospace,monospace" font-size="8">docker build -t nexus-prime .</text>
+  <text x="254" y="142" text-anchor="middle" fill="#c4b4b8" font-family="ui-monospace,monospace" font-size="7.5">docker run --rm -p 3000:3000 \</text>
+  <text x="254" y="158" text-anchor="middle" fill="#c4b4b8" font-family="ui-monospace,monospace" font-size="7.5">  --env-file .env.local nexus-prime</text>
+  <text x="254" y="182" text-anchor="middle" fill="#78716c" font-size="7">Needs NEXUS_TOKEN at minimum</text>
+  <text x="254" y="198" text-anchor="middle" fill="#78716c" font-size="7">Add AI and data keys like local</text>
+
+  <rect x="496" y="78" width="476" height="132" rx="12" fill="#141011" stroke="#c4485a" stroke-opacity="0.42"/>
+  <text x="734" y="102" text-anchor="middle" fill="#f5d0d6" font-family="system-ui,sans-serif" font-size="10" font-weight="800">VPS + COOLIFY</text>
+  <text x="734" y="124" text-anchor="middle" fill="#d4c4b8" font-size="8">Git source deploy | Dockerfile or Nixpacks</text>
+  <text x="734" y="142" text-anchor="middle" fill="#a8a29e" font-family="ui-monospace,monospace" font-size="7.5">docs/deployment/coolify.md</text>
+  <text x="734" y="162" text-anchor="middle" fill="#78716c" font-size="7">Step-by-step env UI screenshots inside doc</text>
+  <text x="734" y="182" text-anchor="middle" fill="#78716c" font-size="7">Expose 3000 to your reverse proxy</text>
+  <text x="734" y="198" text-anchor="middle" fill="#78716c" font-size="7">GET /api/health public uptime</text>
+
+  <rect x="48" y="222" width="904" height="44" rx="8" fill="#0d0a0b" stroke="#44403c" stroke-opacity="0.6"/>
+  <text x="500" y="242" text-anchor="middle" fill="#9ca3af" font-family="system-ui,sans-serif" font-size="7.5">Production builds: CSP + security headers from next.config.js | HSTS where TLS terminates</text>
+  <text x="500" y="258" text-anchor="middle" fill="#5c5356" font-size="6.5">Social preview card: public/github-social-card.svg export to PNG for GitHub settings</text>
 </svg>

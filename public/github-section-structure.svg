@@ -1,40 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 280" width="1000" height="280" role="img" aria-labelledby="stTitle stDesc">
-  <title id="stTitle">Project structure overview</title>
-  <desc id="stDesc">app routes components lib store docs tasks</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 420" width="1000" height="420" role="img" aria-labelledby="pT pD">
+  <title id="pT">Project structure</title>
+  <desc id="pD">app components lib store docs root files</desc>
   <defs>
-    <linearGradient id="stBg" x1="0" y1="0" x2="100%" y2="100%">
+    <linearGradient id="pBg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#0a0708"/><stop offset="100%" style="stop-color:#120d0f"/>
     </linearGradient>
+    <linearGradient id="pAc" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#c4485a"/><stop offset="100%" style="stop-color:#60a5fa"/>
+    </linearGradient>
   </defs>
-  <rect width="1000" height="280" rx="14" fill="url(#stBg)" stroke="#c4485a" stroke-opacity="0.28" stroke-width="1"/>
-  <text x="500" y="32" text-anchor="middle" fill="#e8ddd0" font-family="system-ui,sans-serif" font-size="12" font-weight="800" letter-spacing="0.2em">PROJECT STRUCTURE</text>
-  <line x1="48" y1="44" x2="952" y2="44" stroke="#c4485a" stroke-opacity="0.25" stroke-width="1"/>
+  <rect width="1000" height="420" rx="16" fill="url(#pBg)" stroke="#c4485a" stroke-opacity="0.32" stroke-width="1"/>
+  <path d="M 22 22 L 48 22 M 22 22 L 22 48" stroke="#60a5fa" stroke-opacity="0.25" fill="none"/>
 
-  <g font-family="system-ui,sans-serif" font-size="9">
-    <rect x="28" y="58" width="200" height="72" rx="8" fill="#141011" stroke="#60a5fa" stroke-opacity="0.4"/>
-    <text x="128" y="82" text-anchor="middle" fill="#93c5fd" font-weight="800" font-size="10">app/</text>
-    <text x="128" y="100" text-anchor="middle" fill="#a8a29e">routes + api/*</text>
-    <text x="128" y="116" text-anchor="middle" fill="#6b7280" font-size="8">home intel alpha cyber ...</text>
+  <text x="500" y="36" text-anchor="middle" fill="#e8ddd0" font-family="system-ui,Segoe UI,sans-serif" font-size="11" font-weight="800" letter-spacing="0.32em">PROJECT STRUCTURE</text>
+  <line x1="100" y1="48" x2="900" y2="48" stroke="url(#pAc)" stroke-opacity="0.5" stroke-width="1"/>
+  <text x="500" y="64" text-anchor="middle" fill="#6b5f63" font-family="system-ui,sans-serif" font-size="8">Next.js App Router | one folder per tab under app/ | shared logic in lib/</text>
 
-    <rect x="240" y="58" width="200" height="72" rx="8" fill="#141011" stroke="#d4a56a" stroke-opacity="0.4"/>
-    <text x="340" y="82" text-anchor="middle" fill="#fcd34d" font-weight="800" font-size="10">components/</text>
-    <text x="340" y="100" text-anchor="middle" fill="#a8a29e">per-tab UI + ui/</text>
-    <text x="340" y="116" text-anchor="middle" fill="#6b7280" font-size="8">nav CommandBar ...</text>
+  <!-- Tree spine -->
+  <path d="M 120 108 L 120 340" stroke="#44403c" stroke-width="1.5" fill="none" stroke-opacity="0.8"/>
+  <path d="M 120 108 L 200 108" stroke="#44403c" stroke-width="1.5" fill="none"/>
+  <circle cx="120" cy="108" r="4" fill="#c4485a"/>
 
-    <rect x="452" y="58" width="200" height="72" rx="8" fill="#141011" stroke="#34d399" stroke-opacity="0.4"/>
-    <text x="552" y="82" text-anchor="middle" fill="#6ee7b7" font-weight="800" font-size="10">lib/</text>
-    <text x="552" y="100" text-anchor="middle" fill="#a8a29e">ai agent helpers</text>
-    <text x="552" y="116" text-anchor="middle" fill="#6b7280" font-size="8">liveContext apiFetch</text>
+  <text x="210" y="104" fill="#f5d0d6" font-family="ui-monospace,monospace" font-size="10" font-weight="700">personal/</text>
 
-    <rect x="664" y="58" width="308" height="72" rx="8" fill="#141011" stroke="#a78bfa" stroke-opacity="0.4"/>
-    <text x="818" y="82" text-anchor="middle" fill="#ddd6fe" font-weight="800" font-size="10">store/ docs/ tasks/</text>
-    <text x="818" y="100" text-anchor="middle" fill="#a8a29e">useStore.md lessons</text>
-    <text x="818" y="116" text-anchor="middle" fill="#6b7280" font-size="8">.claude/skills specs</text>
+  <!-- app branch -->
+  <path d="M 120 148 L 160 148 L 160 168" stroke="#60a5fa" stroke-width="1.2" fill="none" stroke-opacity="0.7"/>
+  <path d="M 120 108 L 120 148" stroke="#44403c" stroke-width="1.5" fill="none"/>
+  <rect x="168" y="152" width="780" height="168" rx="10" fill="#141011" stroke="#60a5fa" stroke-opacity="0.35"/>
+  <text x="180" y="174" fill="#93c5fd" font-family="ui-monospace,monospace" font-size="10" font-weight="800">app/</text>
+  <text x="180" y="192" fill="#a8a29e" font-family="system-ui,sans-serif" font-size="7.5">page.tsx redirects to /command | layout.tsx CommandBar + nav</text>
+  <text x="180" y="210" fill="#d6d3d1" font-family="ui-monospace,monospace" font-size="7">command/ signals/ alpha/ ops/ intel/ cyber/ vault/</text>
+  <text x="180" y="226" fill="#d6d3d1" font-family="ui-monospace,monospace" font-size="7">home/ resources/ skills/ security/ vehicle/ iot/ reset/</text>
+  <text x="180" y="246" fill="#86efac" font-family="ui-monospace,monospace" font-size="7">api/  ai  tools  search  health  project  ...</text>
+  <text x="180" y="266" fill="#78716c" font-size="7">Server routes behind NEXUS_TOKEN except public health</text>
+  <text x="180" y="286" fill="#78716c" font-size="7">Field manual route: /resources</text>
 
-    <rect x="28" y="146" width="944" height="114" rx="10" fill="#0d0a0b" stroke="#374151" stroke-opacity="0.6"/>
-    <text x="500" y="172" text-anchor="middle" fill="#9ca3af" font-size="10" font-weight="700">NOTABLE FILES</text>
-    <text x="500" y="194" text-anchor="middle" fill="#6b7280" font-family="ui-monospace,monospace" font-size="8">next.config.js (CSP) | Dockerfile | nexus-final.html (legacy single-file)</text>
-    <text x="500" y="212" text-anchor="middle" fill="#6b7280" font-family="ui-monospace,monospace" font-size="8">middleware.ts | CLAUDE.md | app/api/ai/route.ts</text>
-    <text x="500" y="230" text-anchor="middle" fill="#6b7280" font-family="ui-monospace,monospace" font-size="8">public/*.svg infographics + manifest PWA</text>
-  </g>
+  <!-- components -->
+  <path d="M 120 248 L 160 248 L 160 268" stroke="#d4a56a" stroke-width="1.2" fill="none" stroke-opacity="0.7"/>
+  <path d="M 120 148 L 120 248" stroke="#44403c" stroke-width="1.5" fill="none"/>
+  <rect x="168" y="272" width="360" height="52" rx="8" fill="#1a1512" stroke="#d4a56a" stroke-opacity="0.4"/>
+  <text x="180" y="292" fill="#fcd34d" font-family="ui-monospace,monospace" font-size="9" font-weight="700">components/</text>
+  <text x="180" y="308" fill="#a8a29e" font-size="7">ui/ system/ nav/ + one folder per tab surface</text>
+
+  <!-- lib store -->
+  <path d="M 120 288 L 540 288 L 540 300" stroke="#34d399" stroke-width="1.2" fill="none" stroke-opacity="0.6"/>
+  <rect x="548" y="272" width="200" height="52" rx="8" fill="#1a1512" stroke="#34d399" stroke-opacity="0.4"/>
+  <text x="560" y="292" fill="#6ee7b7" font-family="ui-monospace,monospace" font-size="9" font-weight="700">lib/</text>
+  <text x="560" y="308" fill="#a8a29e" font-size="7">ai agent helpers liveContext apiFetch</text>
+
+  <rect x="760" y="272" width="188" height="52" rx="8" fill="#1a1512" stroke="#a78bfa" stroke-opacity="0.4"/>
+  <text x="772" y="292" fill="#ddd6fe" font-family="ui-monospace,monospace" font-size="9" font-weight="700">store/</text>
+  <text x="772" y="308" fill="#a8a29e" font-size="7">useStore.ts Zustand</text>
+
+  <!-- lower band -->
+  <rect x="48" y="336" width="904" height="68" rx="10" fill="#0d0a0b" stroke="#374151" stroke-opacity="0.55"/>
+  <text x="500" y="358" text-anchor="middle" fill="#9ca3af" font-family="system-ui,sans-serif" font-size="8" font-weight="700">META + DOCS + LEGACY</text>
+  <text x="500" y="376" text-anchor="middle" fill="#6b7280" font-family="ui-monospace,monospace" font-size="7">.claude/skills/ | tasks/todo.md lessons.md | docs/architecture.md deployment/coolify.md</text>
+  <text x="500" y="392" text-anchor="middle" fill="#6b7280" font-family="ui-monospace,monospace" font-size="7">Dockerfile .dockerignore | middleware.ts | nexus-final.html single-file reference | public/*.svg README art</text>
 </svg>

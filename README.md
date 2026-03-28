@@ -14,32 +14,17 @@
 
 <br>
 
-### At a glance *(GitHub’s short repo description is text-only — visuals live here)*
+### At a glance
 
 <img src="./public/github-infographic-features.svg" width="100%" alt="Nexus Prime feature infographic: Intel, Markets, Cyber, AI agent with Claude and MiniMax and Ollama, privacy, MIT license" />
 
 <img src="./public/github-infographic-stack.svg" width="100%" alt="Nexus Prime stack infographic: Next.js, TypeScript, Zustand, API routes, feeds and LLM proxy" />
 
-**Social preview (1280×640):** the repo card is [`public/github-social-card.svg`](./public/github-social-card.svg). In **GitHub → Settings → General → Social preview → Edit**, upload a **PNG or JPEG** (GitHub may not accept SVG there): open the SVG in a browser, export or screenshot at ~1280×640, then attach.
+<img src="./public/github-readme-overview.svg" width="100%" alt="Overview: self-hosted dashboard, MIT no in-app charges, BYOK, npm run dev, Field manual at /resources, social preview export hint" />
 
-<br>
-
-**A personal intelligence dashboard that runs entirely on your machine.**
-Live crypto, geopolitical, cyber, and market data — plus free-tier intel maps, optional TradingView embeds, and a built-in AI agent (Claude, MiniMax, OpenAI chain, or local Ollama).
-
-[Quickstart](#quickstart) · [API Keys](#api-keys) · [Local AI](#local-ai-fully-offline) · [Self-hosting](#self-hosting) · [Structure](#project-structure) · [Tabs](#tabs) · [AI Agent](#ai-agent) · [Stack](#stack)
+<p align="center"><sub><a href="#quickstart">Quickstart</a> · <a href="#api-keys">API Keys</a> · <a href="#local-ai-fully-offline">Local AI</a> · <a href="#self-hosting">Self-hosting</a> · <a href="#project-structure">Structure</a> · <a href="#tabs">Tabs</a> · <a href="#ai-agent">AI Agent</a> · <a href="#stack">Stack</a></sub></p>
 
 </div>
-
----
-
-## What it is
-
-**Free software (MIT) — Nexus does not charge you.** There are no subscriptions, paywalls, or in-app purchases in this app. Optional API keys are bring-your-own; if a provider bills you, that is between you and them, not Nexus.
-
-Nexus Prime is a self-hosted intelligence dashboard. It pulls live data from dozens of sources and surfaces it across purpose-built tabs. An AI agent runs inside the app (Claude, MiniMax, cloud fallbacks, or local Ollama) with tool-use for research, analysis, and code edits. The **Field manual** (`/resources`) links curated external learning resources; `.env.local` stays gitignored.
-
-No cloud backend. No database. Runs locally on `npm run dev`.
 
 ---
 
@@ -177,17 +162,11 @@ flowchart TD
 
 ## Stack
 
-| Layer | Tech | Why |
-|-------|------|-----|
-| Framework | Next.js 14 (App Router) | File-based routing, server components, API routes |
-| Language | TypeScript 5 | Full type safety across client and server |
-| State | Zustand | Persisted settings + session-only live data, no boilerplate |
-| Styling | Tailwind CSS + Radix UI | Dark design system, accessible primitives |
-| AI | Anthropic Claude or Ollama | Flexible — cloud or fully offline |
-| Maps | Leaflet + react-leaflet | Interactive world map with live data layers |
-| Animation | Framer Motion | Tab transitions, panel reveals |
-| Notifications | Sonner | Toast system |
-| Data viz | D3 + SVG sparklines | Lightweight inline charts |
+<div align="center">
+
+<img src="./public/github-section-stack-layers.svg" width="100%" alt="Stack table as graphic: Next.js, TypeScript, Zustand, Tailwind Radix, AI providers, Leaflet, Framer Motion, Sonner, D3 sparklines" />
+
+</div>
 
 ---
 
@@ -195,26 +174,9 @@ flowchart TD
 
 <div align="center">
 
-<img src="./public/github-section-quickstart.svg" width="100%" alt="Quickstart: clone, npm install, copy .env.local, npm run dev, open localhost:3000" />
+<img src="./public/github-section-quickstart.svg" width="100%" alt="Quickstart: clone mad818/personal, npm install, cp .env.example, NEXUS_TOKEN and ANTHROPIC example, npm run dev, localhost PWA, npm run verify" />
 
 </div>
-
-| Step | What to run |
-|------|-------------|
-| **1. Clone & install** | `git clone https://github.com/mad818/personal.git` → `cd personal` → `npm install` |
-| **2. Environment** | `cp .env.example .env.local` then edit (see [API Keys](#api-keys) and [Local AI](#local-ai-fully-offline)) |
-| **3. Dev server** | `npm run dev` → open [localhost:3000](http://localhost:3000) |
-| **4. Quality gate** | `npm run verify` — typecheck, lint, path-collision check (run before PRs) |
-| **5. PWA (optional)** | `public/manifest.json` + `public/icon.svg` — Chrome/Edge **Install**; iOS Safari **Add to Home Screen** |
-
-Minimum useful `.env.local` for cloud AI + protected APIs:
-
-```env
-NEXUS_TOKEN=any-long-random-string
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-Missing data keys only disable that feed; the rest of the app still loads.
 
 ---
 
@@ -222,33 +184,9 @@ Missing data keys only disable that feed; the rest of the app still loads.
 
 <div align="center">
 
-<img src="./public/github-section-api-keys.svg" width="100%" alt="API keys: NEXUS_TOKEN for /api, AI keys on server, optional data keys" />
+<img src="./public/github-section-api-keys.svg" width="100%" alt="API keys infographic: NEXUS_TOKEN gate, AI provider env vars with console URLs, data keys, .env.example canonical" />
 
 </div>
-
-**Source of truth:** [`.env.example`](./.env.example) (comments list provider order, defaults, and links).
-
-| Variable | Service | Free tier | Get one |
-|----------|---------|-----------|---------|
-| `NEXUS_TOKEN` | Internal Bearer auth for `/api/*` | n/a | Any strong random string |
-| `ANTHROPIC_API_KEY` | Claude (agent + chat) | Your Anthropic account | [console.anthropic.com](https://console.anthropic.com) |
-| `MINIMAX_API_KEY` | MiniMax (OpenAI-compatible) | Per MiniMax | [platform.minimax.io](https://platform.minimax.io) |
-| `OPENAI_API_KEY` | OpenAI | Per OpenAI | [platform.openai.com](https://platform.openai.com/api-keys) |
-| `GROQ_API_KEY` | Groq | Yes | [console.groq.com](https://console.groq.com/keys) |
-| `OPENROUTER_API_KEY` | OpenRouter gateway | Per plan | [openrouter.ai/keys](https://openrouter.ai/keys) |
-| `GOOGLE_AI_KEY` | Google AI (Gemini) | Per Google | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
-| `COINGECKO_KEY` | CoinGecko | Demo tier | [coingecko.com/api](https://www.coingecko.com/en/api) |
-| `FINNHUB_KEY` | Finnhub (stocks) | Yes | [finnhub.io](https://finnhub.io) |
-| `GUARDIAN_KEY` | The Guardian (news) | Yes | [open-platform.theguardian.com](https://open-platform.theguardian.com) |
-| `FRED_KEY` | FRED (macro) | Yes | [fred.stlouisfed.org/docs/api](https://fred.stlouisfed.org/docs/api/api_key.html) |
-| `OTX_KEY` | AlienVault OTX | Yes | [otx.alienvault.com](https://otx.alienvault.com) |
-| `FIRECRAWL_KEY` | Firecrawl | Yes | [firecrawl.dev](https://firecrawl.dev) |
-| `BRAVE_SEARCH_KEY` | Brave Search | Per Brave | [api.search.brave.com](https://api.search.brave.com) |
-| `NVD_KEY` | NVD (CVEs) | Yes | [nvd.nist.gov/developers](https://nvd.nist.gov/developers/request-an-api-key) |
-| `AISSTREAM_KEY` | AISstream (ships) | Yes | [aisstream.io](https://aisstream.io) |
-| `FIRMS_MAP_KEY` | NASA FIRMS (fires) | Yes | [firms.modaps.eosdis.nasa.gov](https://firms.modaps.eosdis.nasa.gov/api/area/) |
-
-Server-side AI keys are never exposed to the browser; the client sends `Authorization: Bearer <NEXUS_TOKEN>` only.
 
 ---
 
@@ -256,18 +194,9 @@ Server-side AI keys are never exposed to the browser; the client sends `Authoriz
 
 <div align="center">
 
-<img src="./public/github-section-local-ai.svg" width="100%" alt="Local AI: ollama pull and serve, then Nexus Settings Local provider and endpoint" />
+<img src="./public/github-section-local-ai.svg" width="100%" alt="Local AI: ollama pull qwen3, serve on 11434, OpenAI-compatible endpoint in Settings, Local provider, aiModelRouting" />
 
 </div>
-
-```bash
-ollama pull qwen3:8b
-# ollama serve runs by default on :11434
-```
-
-In the app: **Settings** → provider **Local** → endpoint `http://localhost:11434/v1/chat/completions` → model e.g. `qwen3:8b`. No cloud API key required for the agent. Optional model routing for tools vs chat lives in `lib/aiModelRouting.ts`.
-
-Public map/news layers still call the internet unless you avoid those tabs or features.
 
 ---
 
@@ -275,17 +204,9 @@ Public map/news layers still call the internet unless you avoid those tabs or fe
 
 <div align="center">
 
-<img src="./public/github-section-selfhost.svg" width="100%" alt="Self-hosting: Docker smoke test and Coolify VPS deploy" />
+<img src="./public/github-section-selfhost.svg" width="100%" alt="Self-hosting: docker build run env-file, Coolify doc path, health route, CSP next.config" />
 
 </div>
-
-| Path | Notes |
-|------|--------|
-| **Coolify / VPS** | Step-by-step: **[docs/deployment/coolify.md](docs/deployment/coolify.md)** — Git deploy, **Dockerfile** or Nixpacks, port **3000**, paste the same env vars as local. |
-| **Docker smoke** | `docker build -t nexus-prime .` then `docker run --rm -p 3000:3000 --env-file .env.local nexus-prime` (`.env.local` must include at least `NEXUS_TOKEN`; add AI keys as needed). |
-| **Health** | `GET /api/health` — uptime check (public; no Bearer). |
-
-Production hardening: `next.config.js` sets CSP and related headers for non-dev builds.
 
 ---
 
@@ -293,38 +214,9 @@ Production hardening: `next.config.js` sets CSP and related headers for non-dev 
 
 <div align="center">
 
-<img src="./public/github-section-structure.svg" width="100%" alt="Project structure: app, components, lib, store, docs, tasks" />
+<img src="./public/github-section-structure.svg" width="100%" alt="Project tree: app routes api, components lib store, docs tasks skills, Dockerfile middleware legacy html" />
 
 </div>
-
-```
-app/                        ← routes + app/api/* (Next.js App Router)
-├── page.tsx                ← redirects to /command
-├── home/  command/  signals/  alpha/  ops/  intel/  cyber/  vault/
-├── resources/  skills/  security/  vehicle/  iot/  reset/
-├── api/                    ← ai, tools, search, health, ...
-└── layout.tsx              ← root layout, CommandBar, nav
-
-components/                 ← tab folders + shared UI
-├── ui/                     ← Radix-based primitives, CommandBar
-├── system/                 ← DataLoader, ErrorBoundary, ThemeProvider
-└── nav/                    ← sidebar
-
-store/useStore.ts           ← Zustand: persisted settings + session data
-
-lib/
-├── ai.ts  agent.ts  helpers.ts  aiModelRouting.ts  liveContext.ts  ...
-
-.claude/skills/             ← add-feature, add-tab, add-api, fix-bug, …
-
-tasks/                      ← todo.md, lessons.md
-
-docs/                       ← architecture, deployment/coolify.md, ideas/
-
-Dockerfile  .dockerignore   ← standalone Next output, port 3000
-
-nexus-final.html            ← legacy single-file dashboard (reference)
-```
 
 ---
 

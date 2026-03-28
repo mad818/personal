@@ -1,7 +1,7 @@
 ## Nexus Prime — Claude Desktop Handoff (AUTO)
 
-**Generated from commit:** `2026-03-27T17:00:39-07:00`
-**Latest commit:** chore: sync handoff on git push (husky pre-push + handoff:sync)
+**Generated from commit:** `2026-03-27T17:00:43-07:00`
+**Latest commit:** chore: sync docs/CLAUDE_HANDOFF.md
 
 ### Project purpose
 
@@ -55,11 +55,7 @@ npm run verify
 
 Files touched in the latest commit:
 
-- `.husky/pre-push`
-- `package-lock.json`
-- `package.json`
-- `scripts/generate-handoff.js`
-- `scripts/sync-handoff-loop.js`
+- `docs/CLAUDE_HANDOFF.md`
 
 ### What’s next (from `tasks/todo.md`)
 

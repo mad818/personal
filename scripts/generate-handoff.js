@@ -66,7 +66,16 @@ function buildHandoff() {
 
   const originUrl = safe('git remote get-url origin', '')
   const ghBase = parseGithubWebBase(originUrl)
-  const branch = safe('git rev-parse --abbrev-ref HEAD', 'main')
+  // CI checks out detached HEAD: abbrev-ref is "HEAD", not the branch name. Prefer GitHub env.
+  const branch = (() => {
+    if (process.env.GITHUB_HEAD_REF) return process.env.GITHUB_HEAD_REF
+    const ref = process.env.GITHUB_REF || ''
+    const m = ref.match(/^refs\/heads\/(.+)$/)
+    if (m) return m[1]
+    const ab = safe('git rev-parse --abbrev-ref HEAD', '')
+    if (ab && ab !== 'HEAD') return ab
+    return 'main'
+  })()
 
   const supplementPath = path.join(repoRoot, 'docs', 'handoff-supplement.md')
   const supplement = fs.existsSync(supplementPath)

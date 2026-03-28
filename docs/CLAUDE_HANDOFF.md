@@ -1,6 +1,6 @@
 ## Nexus Prime — Claude Desktop Handoff (AUTO)
 
-**Generated from commit:** `2026-03-27T17:00:43-07:00`
+**Generated from commit:** `2026-03-27T17:00:44-07:00`
 **Latest commit:** chore: sync docs/CLAUDE_HANDOFF.md
 
 ### Project purpose

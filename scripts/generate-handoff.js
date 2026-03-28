@@ -39,6 +39,27 @@ function parseGithubWebBase(remoteUrl) {
   return `https://github.com/${m[1]}/${m[2]}`
 }
 
+/** Stable `https://github.com/o/r.git` — CI `origin` often omits `.git`; SSH vs HTTPS differs locally. */
+function normalizeGithubOriginUrl(raw) {
+  const u = String(raw || '').trim()
+  if (!u) return ''
+  let m = u.match(/^git@github\.com:([^/]+)\/([^/\s]+?)(?:\.git)?$/i)
+  if (m) return `https://github.com/${m[1]}/${m[2]}.git`
+  m = u.match(/^https?:\/\/github\.com\/([^/]+)\/([^/\s]+?)(?:\.git)?\/?$/i)
+  if (m) return `https://github.com/${m[1]}/${m[2]}.git`
+  return u
+}
+
+/** Prefer GITHUB_REPOSITORY in Actions so output matches local handoff (no .git / SSH drift). */
+function handoffOriginUrl() {
+  const gr = process.env.GITHUB_REPOSITORY
+  if (gr && /^[\w.-]+\/[\w.-]+$/.test(String(gr).trim())) {
+    const [owner, repo] = String(gr).trim().split('/')
+    return `https://github.com/${owner}/${repo}.git`
+  }
+  return normalizeGithubOriginUrl(safe('git remote get-url origin', ''))
+}
+
 function getTopTodoLines(todoPathAbs) {
   const raw = fs.readFileSync(todoPathAbs, 'utf8')
   const lines = raw.split(/\r?\n/)
@@ -64,7 +85,7 @@ function buildHandoff() {
   const todoAbs = path.join(repoRoot, 'tasks', 'todo.md')
   const nextUp = fs.existsSync(todoAbs) ? getTopTodoLines(todoAbs) : []
 
-  const originUrl = safe('git remote get-url origin', '')
+  const originUrl = handoffOriginUrl()
   const ghBase = parseGithubWebBase(originUrl)
   // CI checks out detached HEAD: abbrev-ref is "HEAD", not the branch name. Prefer GitHub env.
   const branch = (() => {

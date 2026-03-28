@@ -18,6 +18,7 @@
     "handoff:write": "node scripts/generate-handoff.js --write",
     "handoff:check": "node scripts/generate-handoff.js --check",
     "handoff:sync": "node scripts/sync-handoff-loop.js",
+    "handoff:pull": "git pull",
     "format:write": "prettier --write \"{app,lib,components}/**/*.{ts,tsx,mdx}\" --cache",
     "format:check": "prettier --check \"{app,lib,components}**/*.{ts,tsx,mdx}\" --cache",
     "prepare": "husky"

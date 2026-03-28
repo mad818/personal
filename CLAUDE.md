@@ -11,6 +11,22 @@ npm run dev      # start dev server (localhost:3000)
 npx tsc --noEmit # type-check — must pass before any task is marked done
 ```
 
+## Handoff (Cursor, Claude, or any editor — same rules)
+
+There is **one** handoff file: `docs/CLAUDE_HANDOFF.md`. It is **not** chat history. It is **rebuilt from the repo** (latest commit + file list + `tasks/todo.md` “what’s next”). **Old text is replaced** every time it is regenerated.
+
+**When you open this project (any machine, Cursor or Claude):** run `npm run handoff:pull` (same as `git pull`) so your disk matches GitHub and you read the latest handoff.
+
+**When you finish work:** commit your changes, then `git push`. A **git hook** runs `npm run handoff:sync` before the push so the handoff on GitHub stays current. **Same commands in Cursor and in Claude** — same folder, same git, same GitHub.
+
+**If “what to do next” should change:** edit `tasks/todo.md` (section `## Next Up`). The next `handoff:write` / push will pull that into the handoff.
+
+```
+npm run handoff:pull   # start of session — get latest from GitHub
+npm run handoff:write  # optional — refresh handoff without pushing
+git add / git commit / git push   # end of session — push updates handoff via hook
+```
+
 ## React app structure
 ```
 app/[tab]/page.tsx        ← one route per tab

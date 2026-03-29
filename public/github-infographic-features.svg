@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300" width="1000" height="300" role="img" aria-labelledby="title desc">
   <title id="title">Nexus Prime features at a glance</title>
-  <desc id="desc">Six pillars: Intel, Markets, Cyber, AI agent, Privacy, License</desc>
+  <desc id="desc">Six pillars: Intel, Markets, Cyber + OSINT, AI agent, Privacy, License</desc>
   <defs>
     <linearGradient id="bgf" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#0a0708"/>
@@ -34,8 +34,9 @@
       <rect width="136" height="196" rx="10" fill="#141011" stroke="#7c3aed" stroke-opacity="0.25"/>
       <path d="M68 22 L82 44 L54 44 Z" fill="#7c3aed" fill-opacity="0.35" stroke="#a78bfa" stroke-width="0.8"/>
       <text x="68" y="78" text-anchor="middle" fill="#e9e0ff" font-size="13" font-weight="800">CYBER</text>
-      <text x="68" y="100" text-anchor="middle" fill="#8a7a7e" font-size="9">CVEs / OTX</text>
-      <text x="68" y="114" text-anchor="middle" fill="#8a7a7e" font-size="9">CISA KEV</text>
+      <text x="68" y="96" text-anchor="middle" fill="#8a7a7e" font-size="9">CVEs / OTX / CISA</text>
+      <text x="68" y="110" text-anchor="middle" fill="#a78bfa" font-size="9" font-weight="700">+ OSINT RECON</text>
+      <text x="68" y="124" text-anchor="middle" fill="#8a7a7e" font-size="8">WHOIS · DNS · Certs</text>
     </g>
     <g transform="translate(490,72)">
       <rect width="136" height="196" rx="10" fill="#141011" stroke="#34d399" stroke-opacity="0.3"/>
@@ -49,8 +50,9 @@
       <rect width="136" height="196" rx="10" fill="#141011" stroke="#60a5fa" stroke-opacity="0.25"/>
       <rect x="44" y="22" width="48" height="34" rx="4" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-opacity="0.6"/>
       <text x="68" y="78" text-anchor="middle" fill="#dbeafe" font-size="13" font-weight="800">PRIVACY</text>
-      <text x="68" y="100" text-anchor="middle" fill="#8a7a7e" font-size="9">Keys on server</text>
-      <text x="68" y="114" text-anchor="middle" fill="#8a7a7e" font-size="9">.env.local gitignored</text>
+      <text x="68" y="96" text-anchor="middle" fill="#8a7a7e" font-size="9">Keys on server</text>
+      <text x="68" y="110" text-anchor="middle" fill="#8a7a7e" font-size="9">.env.local gitignored</text>
+      <text x="68" y="124" text-anchor="middle" fill="#60a5fa" font-size="8">WebRTC leak probe</text>
     </g>
     <g transform="translate(790,72)">
       <rect width="170" height="196" rx="10" fill="#141011" stroke="#22c55e" stroke-opacity="0.35"/>

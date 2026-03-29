@@ -67,10 +67,21 @@ header{position:sticky;top:0;z-index:400;height:54px;display:flex;align-items:ce
   transition:border-color var(--t),box-shadow var(--t)}
 .search-input::placeholder{color:var(--text2)}
 .search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
-.nav-pills{display:flex;gap:2px}
+.nav-pills{display:flex;gap:2px;align-items:center}
 .np{padding:4px 11px;border-radius:99px;font-size:12px;font-weight:500;color:var(--text2);transition:all var(--t)}
 .np.active{background:var(--surf3);color:var(--accent);border:1px solid var(--border2)}
 .np:not(.active):hover{color:var(--text);background:var(--surf2)}
+/* Dropdown nav groups */
+.np-grp{position:relative;display:inline-flex}
+.np-grp-btn{padding:4px 11px;border-radius:99px;font-size:12px;font-weight:500;color:var(--text2);transition:all var(--t);white-space:nowrap}
+.np-grp-btn:hover{color:var(--text);background:var(--surf2)}
+.np-grp.active .np-grp-btn,.np-grp-btn.active{background:var(--surf3)!important;color:var(--accent)!important;border:1px solid var(--border2)}
+.np-grp-btn::after{content:'▾';font-size:8px;margin-left:3px;opacity:.55}
+.np-drop{position:absolute;top:calc(100% + 5px);left:0;background:var(--surf2);border:1px solid var(--border2);border-radius:var(--r);padding:4px;min-width:118px;display:none;flex-direction:column;gap:1px;z-index:300;box-shadow:0 8px 28px rgba(0,0,0,.5)}
+.np-grp.open .np-drop{display:flex}
+.np-di{padding:7px 11px;border-radius:var(--rs);font-size:12px;font-weight:500;color:var(--text2);text-align:left;white-space:nowrap;width:100%;transition:all var(--t)}
+.np-di:hover{color:var(--text);background:var(--surf3)}
+.np-di.active{color:var(--accent);background:var(--surf3)}
 .hdr-r{display:flex;align-items:center;gap:7px;margin-left:auto}
 #clock{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap}
 .hbtn{width:32px;height:32px;border-radius:var(--rs);background:var(--surf2);border:1px solid var(--border);
@@ -2266,15 +2277,27 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
     <input class="search-input" id="search" type="search" placeholder="Search articles, CVEs, entities…" autocomplete="off"/>
   </div>
   <nav class="nav-pills">
-    <button class="np active" data-tab="home"     data-tip="HOME — your personal AI. Ask anything: markets, goals, intelligence, motivation." data-tip-pos="below">🤖 HOME</button>
-    <button class="np" data-tab="superset" data-tip="COMMAND — live KPIs, buy signals, alerts, AI briefing, deep research, event predictor." data-tip-pos="below">⚡ COMMAND</button>
-    <button class="np" data-tab="articles" data-tip="SIGNALS — live article feed with bias filter, story threads, and cluster view." data-tip-pos="below">📡 SIGNALS</button>
-    <button class="np" data-tab="buys"     data-tip="ALPHA — AI-scored buy/sell signals using RSI, MACD, Bollinger Bands, volume &amp; sentiment." data-tip-pos="below">🎯 ALPHA</button>
-    <button class="np" data-tab="world"    data-tip="OPS — global conflict tracker, FX, commodities, country OSINT panels, regional risk &amp; live map." data-tip-pos="below">🌍 OPS</button>
-    <button class="np" data-tab="strategy" data-tip="INTEL — Porter 5 Forces, VRIO, Value Chain, BCG Matrix, JTBD, strategic synthesis." data-tip-pos="below">📊 INTEL</button>
-    <button class="np" data-tab="security" data-tip="CYBER — CVEs, threat intel, OTX pulses, CISA advisories, WiFi DensePose sensors." data-tip-pos="below">🔒 CYBER</button>
-    <button class="np" data-tab="saved"    data-tip="VAULT — bookmarked articles and saved intel." data-tip-pos="below">🗂 VAULT</button>
-    <button class="np" data-tab="recon"   data-tip="RECON — OSINT toolkit: WHOIS, DNS, certs, IP geo, breach check, VirusTotal, Shodan, WebRTC leak detection." data-tip-pos="below">🕵️ RECON</button>
+    <button class="np active" data-tab="home"     data-tip="HOME — personal AI. Ask anything: markets, goals, intel, motivation." data-tip-pos="below">🤖 HOME</button>
+    <button class="np" data-tab="superset" data-tip="COMMAND — live KPIs, buy signals, Fear &amp; Greed, AI briefing, event predictor." data-tip-pos="below">⚡ COMMAND</button>
+    <button class="np" data-tab="articles" data-tip="SIGNALS — live news with bias filter, story threads, and cluster view." data-tip-pos="below">📡 SIGNALS</button>
+    <button class="np" data-tab="buys"     data-tip="ALPHA — AI-scored signals using RSI, MACD, Bollinger Bands, volume &amp; sentiment." data-tip-pos="below">🎯 ALPHA</button>
+    <!-- OPS group: World map + Cyber + Recon -->
+    <div class="np-grp" id="npg-ops">
+      <button class="np-grp-btn" id="npg-ops-btn" data-tip="OPS — world map, live intel layers, CVEs, OSINT toolkit." data-tip-pos="below">🌍 OPS</button>
+      <div class="np-drop" id="npg-ops-drop">
+        <button class="np-di" data-tab="world">🌍 World Map</button>
+        <button class="np-di" data-tab="security">🔒 Cyber</button>
+        <button class="np-di" data-tab="recon">🕵️ Recon</button>
+      </div>
+    </div>
+    <!-- INTEL group: Strategy frameworks + Vault -->
+    <div class="np-grp" id="npg-intel">
+      <button class="np-grp-btn" id="npg-intel-btn" data-tip="INTEL — strategy frameworks, Polymarket odds, saved articles." data-tip-pos="below">📊 INTEL</button>
+      <div class="np-drop" id="npg-intel-drop">
+        <button class="np-di" data-tab="strategy">📊 Strategy</button>
+        <button class="np-di" data-tab="saved">🗂 Vault</button>
+      </div>
+    </div>
   </nav>
   <div class="hdr-r">
     <span id="clock"></span>
@@ -5930,6 +5953,11 @@ function switchTab(tab){
     if(el) el.style.display=t===tab?'block':'none';
   });
   document.querySelectorAll('.np').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('.np-di').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('.np-grp').forEach(grp=>{
+    const any=[...grp.querySelectorAll('.np-di')].some(d=>d.dataset.tab===tab);
+    grp.classList.toggle('active',any);
+  });
   // Show article-specific controls only on SIGNALS tab
   const signalsOnly = tab === 'articles';
   const ctrlBar = document.querySelector('.ctrl-bar');
@@ -8620,6 +8648,25 @@ async function loadAll(){
 
 // ─── EVENTS ───────────────────────────────────────────────────────────────────
 document.querySelectorAll('.np').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+// Dropdown group nav
+document.querySelectorAll('.np-grp-btn').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    const grp=btn.closest('.np-grp');
+    const wasOpen=grp.classList.contains('open');
+    document.querySelectorAll('.np-grp').forEach(g=>g.classList.remove('open'));
+    if(!wasOpen) grp.classList.add('open');
+  });
+});
+document.querySelectorAll('.np-di').forEach(b=>{
+  b.addEventListener('click',()=>{
+    switchTab(b.dataset.tab);
+    document.querySelectorAll('.np-grp').forEach(g=>g.classList.remove('open'));
+  });
+});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.np-grp')) document.querySelectorAll('.np-grp').forEach(g=>g.classList.remove('open'));
+});
 
 // Time filter
 document.querySelectorAll('.tf').forEach(btn=>{

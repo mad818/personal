@@ -36,48 +36,35 @@
 
 ## Tabs
 
+The nav bar shows **6 items**. OPS and INTEL are dropdowns that expand to reveal sub-tabs — keeping the bar compact while all 9 surfaces remain one click away.
+
 <table>
 <tr>
 <td width="50%" valign="top">
 
+### 🤖 Home
+Personal AI assistant. Ask anything: markets, goals, threat intel, motivation. Streams tool calls live.
+
 ### ⚡ Command
-KPI cards, Fear & Greed index, live BTC price, AI briefing, event predictor, deep research agent
+KPI cards, Fear & Greed index, live BTC price, AI briefing, event predictor, deep research agent.
 
 ### 📡 Signals
-Live news (RSS + CryptoCompare + GDELT fallback; optional Guardian with API key). Bias tagging (bullish / bearish / neutral), article clusters, bookmarking
+Live news (RSS + GDELT fallback; optional Guardian key). Bias tagging (bullish / bearish / neutral), story threads, article clusters, bookmarking.
 
 ### 🎯 Alpha
-Momentum scanner with RSI/BB/EMA scoring, Buy Bot signals, 7-day sparklines, position sizing calculator
-
-### 🌍 Ops
-Conflict tracker, interactive world map, FX rates, commodities, OSINT panels
-
-### 📊 Intel
-Polymarket prediction odds, Porter 5 Forces, VRIO framework, BCG Matrix, SaaS lifecycle tracker
-
-### 🔒 Cyber
-Live CVEs sorted by severity (CRITICAL → LOW), OTX threat intel, CISA advisories
+Momentum scanner with RSI/BB/EMA scoring, Buy Bot signals, 7-day sparklines, position sizing calculator.
 
 </td>
 <td width="50%" valign="top">
 
-### 🗂 Vault
-Saved articles, persisted across sessions via Zustand
+### 🌍 OPS ▾ (dropdown)
+**World Map** — interactive Leaflet map with live layers: earthquakes (USGS), flights (OpenSky), ships (AIS), fires (NASA FIRMS), GPS jamming, space weather.
+**Cyber** — live CVEs (CRITICAL → LOW), OTX threat intel, CISA KEV advisories.
+**Recon** — OSINT toolkit: RDAP/WHOIS, DNS, crt.sh cert transparency, IP geo (all free). HIBP breach check, VirusTotal, Shodan (BYOK). Local WebRTC leak probe + fingerprint entropy + OPSEC score.
 
-### 🌐 World
-Interactive Leaflet map with live layers: earthquakes (USGS), flights (OpenSky), ships (AISstream), fires (NASA FIRMS), GPS jamming
-
-### 🔐 Security
-Security posture monitoring and threat surface overview
-
-### 🛠 Skills
-Self-learning skill engine — agent reads, writes, and improves its own skill files
-
-### 🚗 Vehicle
-Vehicle tracking and telemetry data
-
-### 📱 IoT
-Device monitoring and live sensor feeds
+### 📊 INTEL ▾ (dropdown)
+**Strategy** — Polymarket prediction odds, Porter 5 Forces, VRIO, BCG Matrix, SaaS lifecycle tracker.
+**Vault** — bookmarked articles, persisted across sessions.
 
 </td>
 </tr>
@@ -117,7 +104,7 @@ Tool calls appear as collapsible badges in the chat UI in real time. The agent w
 ```mermaid
 flowchart TD
     subgraph Client
-        NAV["Sidebar Nav"] --> TABS["12 Tab Pages<br/>app/(tab)/page.tsx"]
+        NAV["6-Item Nav (2 dropdowns)"] --> TABS["9 Tab Surfaces<br/>app/(tab)/page.tsx"]
         TABS --> STORE["Zustand Store<br/>store/useStore.ts"]
         STORE -->|persisted| LS[("localStorage")]
         TABS --> HOOKS["Data Hooks<br/>usePrices, useArticles, useCVEs"]

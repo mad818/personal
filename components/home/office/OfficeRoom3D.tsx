@@ -2,7 +2,6 @@
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useStore } from '@/store/useStore'
@@ -2581,17 +2580,6 @@ function OfficeRoom3DInner({
 
         {/* Trash fill indicator is rendered inside the trash-can detail group above. */}
 
-        {/* ── Bloom post-processing (G4) — makes emissive surfaces actually glow ── */}
-        {vfxQuality !== 'off' && (
-          <EffectComposer>
-            <Bloom
-              intensity={vfxQuality === 'high' ? 0.55 : 0.28}
-              luminanceThreshold={0.55}
-              luminanceSmoothing={0.85}
-              mipmapBlur
-            />
-          </EffectComposer>
-        )}
 
       </Canvas>
     </div>

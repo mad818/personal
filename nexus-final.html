@@ -13748,7 +13748,7 @@ function rcCalcEntropy(){
     // Hardware concurrency
     bits += Math.log2((navigator.hardwareConcurrency||1) + 1);
     // Device memory
-    bits += Math.log2(((navigator as any).deviceMemory||1) + 1);
+    bits += Math.log2((navigator.deviceMemory||1) + 1);
     // User agent entropy (rough)
     const ua = navigator.userAgent || '';
     bits += Math.log2(ua.length + 1) * 0.6;

@@ -181,5 +181,19 @@
 - [x] Batch 7C — `scripts/orbit.js` (`npm run orbit:next`) + `scripts/audit.js` (`npm run audit:full`)
 - [x] Batch 7D — NOVA deep research workflow added to prompts.ts (5-tool pipeline → Feynman brief → Vault)
 
+## Completed (2026-03-29 — HQ Graphics Enhancement)
+- [x] G1A — Per-desk colored point lights (5 agents + ceiling boosted)
+- [x] G1B — CityWindow nightFactor wired: emissiveIntensity + city spill pointLight
+- [x] G1C — Ceiling plane + ceiling trim band + AO contact shadow discs
+- [x] G1D — Animated wall clock (LiveClock component, real-time hands)
+- [x] G2A — TOOL_POSE_MAP + AGENT_WORK_POSE in constants.ts
+- [x] G2B — Per-agent work poses (type/read/search/wait/compute) in AgentFloorShadows
+- [x] G2C — Rim highlight (BackSide outline mesh, agent-color glow on active agent)
+- [x] G2D — Speech bubbles (Html overlay above head, shows active tool name)
+- [x] G3A — MatrixOverlay component (canvas-texture column cascade, green rain spawn effect)
+- [x] G4A — Bloom post-processing (@react-three/postprocessing v2, vfxQuality gated)
+- [x] G4C — Procedural floor tile canvas texture (tile seams + grain, replaces line-segment grid)
+- [x] Pixel-agents assimilation plan map (docs/plans/pixel-agents-assimilation-plan.md)
+
 ## In Progress
 _(none)_

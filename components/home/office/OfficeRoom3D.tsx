@@ -2,12 +2,14 @@
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useStore } from '@/store/useStore'
 import * as THREE from 'three'
 import type { AgentId, OfficeObjectId, OfficeObjectPos } from './types'
-import { AGENTS, OFFICE_OBJECT_DEFAULTS } from './constants'
+import { AGENTS, OFFICE_OBJECT_DEFAULTS, TOOL_POSE_MAP, AGENT_WORK_POSE } from './constants'
+import type { AgentPoseType } from './constants'
 
 type Vec3 = [number, number, number]
 type DispatchState = { from: AgentId; to: AgentId } | null
@@ -189,6 +191,19 @@ function Furniture3D({
         <planeGeometry args={[4.65, 2.95]} />
         <meshStandardMaterial color={pal.rugInner} roughness={0.95} metalness={0.02} />
       </mesh>
+      {/* AO contact shadow discs — darkened circles under major furniture for depth */}
+      {[
+        { pos: worldPos.conferenceTable, r: 1.35 },
+        { pos: worldPos.sofa,            r: 1.05 },
+        { pos: worldPos.serverRack,      r: 0.4  },
+        { pos: worldPos.waterCooler,     r: 0.28 },
+      ].map(({ pos, r }, i) => (
+        <mesh key={`ao-${i}`} position={[pos[0], 0.009, pos[2]]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow={false}>
+          <circleGeometry args={[r, 24]} />
+          <meshBasicMaterial color="#000000" transparent opacity={0.14} depthWrite={false} />
+        </mesh>
+      ))}
+
       {/* Circulation lane guides */}
       <mesh position={[0, 0.013, 1.25]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow={false}>
         <planeGeometry args={[8.8, 0.36]} />
@@ -446,36 +461,63 @@ function agentToShadowWorld(xPct: number, yPct: number): Vec3 {
 
 function RoomShell({ tod }: { tod: 'morning' | 'afternoon' | 'night' }) {
   const pal = scenePalette(tod)
-  const floorGrid = useMemo(() => {
-    const lines: number[] = []
-    for (let x = -5; x <= 5; x += 0.5) {
-      lines.push(x, 0.002, -3, x, 0.002, 3)
+
+  // Procedural floor tile canvas texture (G4C)
+  const floorTex = useMemo(() => {
+    if (typeof document === 'undefined') return null
+    const SIZE = 512
+    const TILE = 64 // pixels per tile cell
+    const cvs  = document.createElement('canvas')
+    cvs.width = SIZE; cvs.height = SIZE
+    const ctx = cvs.getContext('2d')!
+    // Base fill
+    ctx.fillStyle = pal.floor
+    ctx.fillRect(0, 0, SIZE, SIZE)
+    // Tile grain noise — subtle random brightness per tile
+    for (let ty = 0; ty < SIZE / TILE; ty++) {
+      for (let tx = 0; tx < SIZE / TILE; tx++) {
+        const brightness = 0.92 + Math.random() * 0.12
+        ctx.fillStyle = `rgba(${Math.round(brightness * 20)},${Math.round(brightness * 22)},${Math.round(brightness * 28)},0.18)`
+        ctx.fillRect(tx * TILE + 1, ty * TILE + 1, TILE - 2, TILE - 2)
+      }
     }
-    for (let z = -3; z <= 3; z += 0.5) {
-      lines.push(-5, 0.002, z, 5, 0.002, z)
+    // Grout lines
+    ctx.strokeStyle = pal.floorGrid
+    ctx.lineWidth = 1.5
+    ctx.globalAlpha = 0.55
+    for (let x = 0; x <= SIZE; x += TILE) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, SIZE); ctx.stroke()
     }
-    return new Float32Array(lines)
-  }, [])
+    for (let y = 0; y <= SIZE; y += TILE) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(SIZE, y); ctx.stroke()
+    }
+    ctx.globalAlpha = 1
+    const tex = new THREE.CanvasTexture(cvs)
+    tex.wrapS = THREE.RepeatWrapping
+    tex.wrapT = THREE.RepeatWrapping
+    tex.repeat.set(5, 3)
+    tex.anisotropy = 4
+    return tex
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tod])
 
   return (
     <>
-      {/* Floor */}
+      {/* Floor — canvas tile texture (G4C) replaces flat color + line-segment grid */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[10, 6]} />
-        <meshStandardMaterial color={pal.floor} roughness={0.96} metalness={0.04} />
+        <meshStandardMaterial
+          map={floorTex ?? undefined}
+          color={floorTex ? '#ffffff' : pal.floor}
+          roughness={0.94}
+          metalness={0.05}
+        />
       </mesh>
       {/* Subtle floor sheen lane (polish wear pattern) */}
       <mesh position={[0, 0.004, 0.9]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow={false}>
         <planeGeometry args={[8.6, 0.7]} />
         <meshStandardMaterial color="#cbd5e1" transparent opacity={0.04} roughness={0.2} metalness={0.1} />
       </mesh>
-      {/* Floor subtle grid lines */}
-      <lineSegments>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" array={floorGrid} count={floorGrid.length / 3} itemSize={3} />
-        </bufferGeometry>
-        <lineBasicMaterial color={pal.floorGrid} transparent opacity={0.2} />
-      </lineSegments>
 
       {/* Back wall */}
       <mesh position={[0, 1.25, -3]} receiveShadow>
@@ -504,6 +546,29 @@ function RoomShell({ tod }: { tod: 'morning' | 'afternoon' | 'night' }) {
       <mesh position={[5, 1.25, 0]} receiveShadow>
         <boxGeometry args={[0.2, 2.5, 6]} />
         <meshStandardMaterial color={pal.sideWall} roughness={0.95} />
+      </mesh>
+
+      {/* Ceiling — closes the room so it doesn't look open-topped */}
+      <mesh position={[0, 2.46, 0]} rotation={[Math.PI / 2, 0, 0]} receiveShadow={false}>
+        <planeGeometry args={[10, 6]} />
+        <meshStandardMaterial color={tod === 'night' ? '#1a2230' : tod === 'morning' ? '#d0c6ba' : '#c4b9aa'} roughness={0.95} metalness={0} />
+      </mesh>
+      {/* Ceiling trim band along all four walls */}
+      <mesh position={[0, 2.44, -2.9]} rotation={[0, 0, 0]}>
+        <boxGeometry args={[9.9, 0.06, 0.04]} />
+        <meshStandardMaterial color={pal.trim} roughness={0.85} />
+      </mesh>
+      <mesh position={[0, 2.44, 2.9]} rotation={[0, 0, 0]}>
+        <boxGeometry args={[9.9, 0.06, 0.04]} />
+        <meshStandardMaterial color={pal.trim} roughness={0.85} />
+      </mesh>
+      <mesh position={[-4.9, 2.44, 0]}>
+        <boxGeometry args={[0.04, 0.06, 5.8]} />
+        <meshStandardMaterial color={pal.trim} roughness={0.85} />
+      </mesh>
+      <mesh position={[4.9, 2.44, 0]}>
+        <boxGeometry args={[0.04, 0.06, 5.8]} />
+        <meshStandardMaterial color={pal.trim} roughness={0.85} />
       </mesh>
 
       {/* Window visuals are provided by `CityWindow` (procedural LA skyline). */}
@@ -565,22 +630,62 @@ function RoomShell({ tod }: { tod: 'morning' | 'afternoon' | 'night' }) {
         ))}
       </group>
 
-      {/* Wall clock */}
-      <group position={[4.55, 1.85, -1.6]}>
-        <mesh>
-          <cylinderGeometry args={[0.16, 0.16, 0.03, 24]} />
-          <meshStandardMaterial color="#e5e7eb" roughness={0.5} />
-        </mesh>
-        <mesh position={[0, 0, 0.017]}>
-          <boxGeometry args={[0.02, 0.1, 0.005]} />
-          <meshStandardMaterial color="#111827" />
-        </mesh>
-        <mesh position={[0.045, 0.025, 0.018]} rotation={[0, 0, -0.75]}>
-          <boxGeometry args={[0.07, 0.012, 0.005]} />
-          <meshStandardMaterial color="#111827" />
-        </mesh>
-      </group>
+      {/* Wall clock — animated hands (updates live) */}
+      <LiveClock />
     </>
+  )
+}
+
+// ── Live wall clock — hands rotate in real time ───────────────────────────────
+function LiveClock() {
+  const hourRef  = useRef<THREE.Mesh | null>(null)
+  const minRef   = useRef<THREE.Mesh | null>(null)
+  const secRef   = useRef<THREE.Mesh | null>(null)
+
+  useFrame(() => {
+    const now = new Date()
+    const h = now.getHours() % 12
+    const m = now.getMinutes()
+    const s = now.getSeconds()
+    // Rotate around Z — negative because clock face is front-facing (+Z)
+    if (hourRef.current) hourRef.current.rotation.z  = -((h + m / 60) / 12) * Math.PI * 2
+    if (minRef.current)  minRef.current.rotation.z   = -((m + s / 60) / 60) * Math.PI * 2
+    if (secRef.current)  secRef.current.rotation.z   = -(s / 60) * Math.PI * 2
+  })
+
+  return (
+    <group position={[4.55, 1.85, -1.6]}>
+      {/* Clock face */}
+      <mesh>
+        <cylinderGeometry args={[0.16, 0.16, 0.03, 24]} />
+        <meshStandardMaterial color="#e5e7eb" roughness={0.5} />
+      </mesh>
+      {/* Clock face disc */}
+      <mesh position={[0, 0.017, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.14, 24]} />
+        <meshStandardMaterial color="#f8fafc" roughness={0.4} />
+      </mesh>
+      {/* Hour hand */}
+      <mesh ref={hourRef} position={[0, 0.02, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <boxGeometry args={[0.012, 0.072, 0.005]} />
+        <meshStandardMaterial color="#111827" />
+      </mesh>
+      {/* Minute hand */}
+      <mesh ref={minRef} position={[0, 0.022, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <boxGeometry args={[0.008, 0.098, 0.004]} />
+        <meshStandardMaterial color="#1e293b" />
+      </mesh>
+      {/* Second hand */}
+      <mesh ref={secRef} position={[0, 0.024, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <boxGeometry args={[0.004, 0.11, 0.003]} />
+        <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.35} />
+      </mesh>
+      {/* Center dot */}
+      <mesh position={[0, 0.026, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.012, 12]} />
+        <meshStandardMaterial color="#0f172a" />
+      </mesh>
+    </group>
   )
 }
 
@@ -1003,19 +1108,34 @@ function CityWindow({ nightFactor }: { nightFactor: number }) {
     return t
   }, [gl])
 
+  const skyRef = useRef<THREE.Mesh | null>(null)
+
   useFrame((state) => {
     const t = state.clock.getElapsedTime()
-    // Keep a tiny animated shimmer hook available for future glass effects.
-    // Intentionally does nothing while glass overlay is removed.
-    void t
-    void nightFactor
+    const sky = skyRef.current
+    if (sky) {
+      const mat = sky.material as THREE.MeshStandardMaterial
+      // Night: city glows bright (0.55), morning: gentle (0.14), afternoon: neutral (0.08)
+      const targetEmissive = 0.08 + nightFactor * 0.47
+      // Subtle shimmer — city lights twinkle
+      const shimmer = nightFactor > 0.5 ? Math.sin(t * 0.8) * 0.04 : 0
+      mat.emissiveIntensity += (targetEmissive + shimmer - mat.emissiveIntensity) * 0.06
+    }
   })
 
   const frameColor = '#4b5563'
   return (
     <>
+      {/* City spill light — cool blue wash from window at night */}
+      <pointLight
+        position={[0, 1.55, -2.5]}
+        intensity={nightFactor * 0.32}
+        color="#4870c8"
+        distance={4.5}
+        decay={2}
+      />
       {/* LA skyline photo view */}
-      <mesh position={[0, 1.55, Z_VIEW]} renderOrder={10}>
+      <mesh ref={skyRef} position={[0, 1.55, Z_VIEW]} renderOrder={10}>
         <planeGeometry args={[3.55, 1.25]} />
         <meshStandardMaterial
           map={viewTex}
@@ -1113,8 +1233,10 @@ function AgentFloorShadows({
   vfxQuality?: OfficeVfxQuality
 }) {
   const pal = useMemo(() => scenePalette('afternoon'), [])
+  const agentStats = useStore((s) => s.agentStats)
   const groups = useRef<Array<THREE.Group | null>>([])
   const glows = useRef<Array<THREE.Mesh | null>>([])
+  const rimRefs = useRef<Array<THREE.Mesh | null>>([])
   const bodyRefs = useRef<Array<THREE.Group | null>>([])
   const headRefs = useRef<Array<THREE.Mesh | null>>([])
   const armLRefs = useRef<Array<THREE.Mesh | null>>([])
@@ -1241,10 +1363,71 @@ function AgentFloorShadows({
       const gaitCfg = GAIT[id] ?? { amp: 1, freq: 1 }
       const rest = REST[id] ?? { arm: 0, leg: 0 }
       const gait = Math.sin(t * (live || walking ? 6.2 : 2.4) * gaitCfg.freq + i * 0.5) * (live || walking ? 0.34 : 0.09) * gaitCfg.amp
-      if (armL) armL.rotation.x = rest.arm + gait * 0.9
-      if (armR) armR.rotation.x = rest.arm + -gait * 0.9
-      if (legL) legL.rotation.x = rest.leg + -gait * 0.7
-      if (legR) legR.rotation.x = rest.leg + gait * 0.7
+
+      // ── Per-agent work pose (G2B) ───────────────────────────────────────────
+      // When agent is active and not walking, apply their characteristic work pose.
+      const lastTool = agentStats[id]?.lastTask ?? ''
+      const mappedPose: AgentPoseType = live && !walking
+        ? (TOOL_POSE_MAP[lastTool] ?? AGENT_WORK_POSE[id] ?? 'idle')
+        : 'idle'
+
+      let armLRot = rest.arm + gait * 0.9
+      let armRRot = rest.arm + -gait * 0.9
+      let legLRot = rest.leg + -gait * 0.7
+      let legRRot = rest.leg + gait * 0.7
+
+      if (mappedPose === 'type') {
+        // Both arms angled forward, rapid micro-vibration
+        const vib = Math.sin(t * 14 + i) * 0.06
+        armLRot = -0.45 + vib
+        armRRot = -0.45 - vib
+        legLRot = rest.leg
+        legRRot = rest.leg
+        if (body) body.rotation.x = Math.sin(t * 0.9 + i) * 0.04
+      } else if (mappedPose === 'read') {
+        // Arms lowered, head tilted toward document
+        armLRot = 0.55
+        armRRot = 0.55
+        legLRot = rest.leg
+        legRRot = rest.leg
+        if (head) head.rotation.x = 0.22 + Math.sin(t * 0.5 + i) * 0.04
+      } else if (mappedPose === 'search') {
+        // Body sways left-right like a scanning motion
+        if (body) body.rotation.y = Math.sin(t * 1.6 + i) * 0.25
+        armLRot = -0.2 + Math.sin(t * 1.6 + i) * 0.15
+        armRRot = -0.2 - Math.sin(t * 1.6 + i) * 0.15
+      } else if (mappedPose === 'wait') {
+        // One arm raised, slight backward lean
+        armLRot = -0.85 + Math.sin(t * 1.2 + i) * 0.1
+        armRRot = rest.arm + gait * 0.9
+        if (body) body.rotation.x = -0.06 + Math.sin(t * 0.7 + i) * 0.03
+      } else if (mappedPose === 'compute') {
+        // Arms crossed (both pulled to center), subtle bob
+        armLRot = 0.3
+        armRRot = 0.3
+        if (body) {
+          body.rotation.x = 0
+          body.rotation.y = Math.sin(t * 0.6 + i) * 0.08
+        }
+      } else {
+        // idle — reset rotations that pose states may have modified
+        if (body) { body.rotation.x = 0; body.rotation.y = 0 }
+        if (head) head.rotation.x = 0
+      }
+
+      if (armL) armL.rotation.x = armLRot
+      if (armR) armR.rotation.x = armRRot
+      if (legL) legL.rotation.x = legLRot
+      if (legR) legR.rotation.x = legRRot
+
+      // ── Rim highlight (G2C) — animate opacity on the outline mesh ──────────
+      const rim = rimRefs.current[i]
+      if (rim) {
+        const mat = rim.material as THREE.MeshStandardMaterial
+        const targetOpacity = live ? 0.55 + Math.sin(t * 3 + i) * 0.1 : 0
+        mat.opacity += (targetOpacity - mat.opacity) * 0.12
+        rim.visible = mat.opacity > 0.01
+      }
 
       // VFX: EL aura + Hopper beam (quality gated)
       if (vfxOn) {
@@ -1334,6 +1517,52 @@ function AgentFloorShadows({
               <circleGeometry args={[0.38, 20]} />
               <meshBasicMaterial color="#7b8794" transparent opacity={live ? 0.22 : 0.1} />
             </mesh>
+
+            {/* ── Rim highlight — back-face outline scales slightly larger (G2C) ── */}
+            <mesh
+              ref={(el) => { rimRefs.current[i] = el }}
+              position={[0, 0.38, 0]}
+              visible={false}
+            >
+              <sphereGeometry args={[0.22, 12, 12]} />
+              <meshStandardMaterial
+                color={c}
+                emissive={c}
+                emissiveIntensity={1.2}
+                side={THREE.BackSide}
+                transparent
+                opacity={0}
+                depthWrite={false}
+              />
+            </mesh>
+
+            {/* ── Speech bubble (G2D) — shown while agent is active ── */}
+            {live && (
+              <Html
+                position={[0, 0.82, 0]}
+                center
+                distanceFactor={4.5}
+                style={{ pointerEvents: 'none' }}
+              >
+                <div style={{
+                  background: 'rgba(8,12,24,0.92)',
+                  border: `1px solid ${c}55`,
+                  borderRadius: 8,
+                  padding: '3px 7px',
+                  fontSize: 10,
+                  fontWeight: 800,
+                  letterSpacing: '.1em',
+                  color: c,
+                  whiteSpace: 'nowrap',
+                  boxShadow: `0 0 8px ${c}44`,
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                }}>
+                  {agentStats[id]?.lastTask
+                    ? `⚡ ${agentStats[id].lastTask.replace(/_/g, ' ').toUpperCase()}`
+                    : '● ACTIVE'}
+                </div>
+              </Html>
+            )}
 
             <group
               ref={(el) => {
@@ -1637,10 +1866,114 @@ function AgentFloorShadows({
               <boxGeometry args={[0.03, 0.03, 0.01]} />
               <meshStandardMaterial color={pal.metalDark} roughness={0.55} metalness={0.35} />
             </mesh>
+
+            {/* ── Matrix spawn overlay (G3) — green column-cascade when agent activates ── */}
+            {showVfx && <MatrixOverlay active={live} color={c} />}
           </group>
         )
       })}
     </>
+  )
+}
+
+// ── MatrixOverlay — column-cascade green rain effect (pixel-agents inspired) ───
+// Renders a canvas-texture plane in front of the agent body when they spawn
+// or become active. Each pixel column starts at a staggered time, sweeping
+// a bright head + fading green trail top-to-bottom.
+function MatrixOverlay({ active, color }: { active: boolean; color: string }) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const texRef    = useRef<THREE.CanvasTexture | null>(null)
+  const meshRef   = useRef<THREE.Mesh | null>(null)
+  const progressRef = useRef(0)
+  const seedsRef    = useRef<Float32Array | null>(null)
+
+  // Build a small off-screen canvas once
+  const W = 32
+  const H = 64
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const cvs = document.createElement('canvas')
+    cvs.width  = W
+    cvs.height = H
+    canvasRef.current = cvs
+    const tex = new THREE.CanvasTexture(cvs)
+    tex.magFilter = THREE.NearestFilter
+    tex.minFilter = THREE.NearestFilter
+    texRef.current = tex
+    // Per-column stagger seeds (0..1)
+    seedsRef.current = new Float32Array(W).map(() => Math.random())
+    progressRef.current = 0
+  }, [])
+
+  useFrame((state, delta) => {
+    if (!active) {
+      progressRef.current = 0
+      const mesh = meshRef.current
+      if (mesh) mesh.visible = false
+      return
+    }
+    progressRef.current = Math.min(1, progressRef.current + delta * 0.85)
+    const progress = progressRef.current
+    const cvs = canvasRef.current
+    const tex  = texRef.current
+    const mesh = meshRef.current
+    const seeds = seedsRef.current
+    if (!cvs || !tex || !mesh || !seeds) return
+    mesh.visible = true
+    const ctx = cvs.getContext('2d')
+    if (!ctx) return
+    ctx.clearRect(0, 0, W, H)
+    const t = state.clock.getElapsedTime()
+
+    for (let col = 0; col < W; col++) {
+      const seed = seeds[col]
+      // Each column starts offset by its seed — creates cascading waterfall
+      const colProgress = Math.max(0, Math.min(1, (progress - seed * 0.4) / 0.6))
+      if (colProgress <= 0) continue
+      const headY = Math.floor(colProgress * H)
+
+      for (let row = 0; row <= headY; row++) {
+        const dist = headY - row
+        if (dist === 0) {
+          // Bright white-green head pixel
+          ctx.fillStyle = `rgba(200, 255, 180, ${0.9 + Math.sin(t * 12 + col) * 0.08})`
+        } else if (dist < 3) {
+          ctx.fillStyle = `rgba(80, 255, 80, ${0.7 - dist * 0.15})`
+        } else if (dist < 8) {
+          ctx.fillStyle = `rgba(30, 200, 50, ${0.4 - dist * 0.04})`
+        } else {
+          ctx.fillStyle = `rgba(10, 100, 20, ${Math.max(0, 0.15 - dist * 0.01)})`
+        }
+        // Hash-based flicker ~70% visibility
+        const flicker = ((col * 7 + row * 13 + Math.floor(t * 8)) & 0xff) < 178
+        if (flicker) ctx.fillRect(col, row, 1, 1)
+      }
+    }
+
+    tex.needsUpdate = true
+    // Fade out as progress nears 1
+    const mesh3 = mesh.material as THREE.MeshBasicMaterial
+    mesh3.opacity = progress < 0.85 ? 0.82 : 1 - (progress - 0.85) / 0.15
+  })
+
+  if (typeof document === 'undefined') return null
+
+  return (
+    <mesh
+      ref={meshRef}
+      position={[0, 0.38, 0.15]}
+      visible={false}
+    >
+      <planeGeometry args={[0.28, 0.72]} />
+      <meshBasicMaterial
+        map={texRef.current}
+        transparent
+        opacity={0.82}
+        depthWrite={false}
+        color={color}
+      />
+    </mesh>
   )
 }
 
@@ -1947,6 +2280,29 @@ function OfficeRoom3DInner({
         <pointLight position={[2.7, 2.2, -1.2]} intensity={tod === 'night' ? 0.14 : 0.11} color="#ffe7bf" distance={4.8} />
         <pointLight position={[0, 2.15, 1.9]} intensity={tod === 'night' ? 0.11 : 0.08} color="#ffd9b0" distance={5.2} />
 
+        {/* ── Per-desk agent colored accent lights ──────────────────────────────
+            One small pointLight per agent, positioned 0.9 units above their desk.
+            Color matches the agent brand color at low intensity to tint the work area.
+            Night raises intensity for dramatic effect. */}
+        {(Object.keys(AGENTS) as (keyof typeof AGENTS)[]).map((id) => {
+          const deskId = `${id}Desk` as OfficeObjectId
+          const deskPos = worldPos[deskId]
+          if (!deskPos) return null
+          const agentColor = AGENTS[id].color
+          const baseIntensity = tod === 'night' ? 0.32 : 0.16
+          const activeBoost = activeAgent === id ? 0.22 : 0
+          return (
+            <pointLight
+              key={`desk-light-${id}`}
+              position={[deskPos[0], deskPos[1] + 0.9, deskPos[2]]}
+              intensity={baseIntensity + activeBoost}
+              color={agentColor}
+              distance={1.8}
+              decay={2}
+            />
+          )
+        })}
+
         <RoomShell tod={tod} />
         <WallMountedPanels
           activeAgent={activeAgent}
@@ -2224,6 +2580,18 @@ function OfficeRoom3DInner({
         </group>
 
         {/* Trash fill indicator is rendered inside the trash-can detail group above. */}
+
+        {/* ── Bloom post-processing (G4) — makes emissive surfaces actually glow ── */}
+        {vfxQuality !== 'off' && (
+          <EffectComposer>
+            <Bloom
+              intensity={vfxQuality === 'high' ? 0.55 : 0.28}
+              luminanceThreshold={0.55}
+              luminanceSmoothing={0.85}
+              mipmapBlur
+            />
+          </EffectComposer>
+        )}
 
       </Canvas>
     </div>

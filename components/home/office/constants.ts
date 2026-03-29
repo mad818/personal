@@ -313,6 +313,44 @@ export const IDLE_ANIM: Record<AgentId, string> = {
   flux:   'idleCharts 2.4s ease-in-out infinite',    // chart-watching bob
 }
 
+// ── Tool → body pose mapping ──────────────────────────────────────────────────
+// Maps a tool name to a visual pose type used by AgentFloorShadows.
+// 'type'   → arms forward, rapid micro movement (writing/patching)
+// 'read'   → arms lowered, head tilted down (reading a file)
+// 'search' → body sways side-to-side (scanning the web)
+// 'wait'   → one arm raised, slow oscillation (awaiting approval)
+// 'compute'→ arms crossed, subtle bob (calculating)
+export type AgentPoseType = 'idle' | 'type' | 'read' | 'search' | 'wait' | 'compute'
+
+export const TOOL_POSE_MAP: Record<string, AgentPoseType> = {
+  write_file:           'type',
+  patch_project_file:   'type',
+  draft_file:           'type',
+  create_project_file:  'type',
+  propose_project_edit: 'wait',
+  ask_max:              'wait',
+  read_file:            'read',
+  list_files:           'read',
+  read_project_file:    'read',
+  list_project_files:   'read',
+  web_search:           'search',
+  fetch_url:            'search',
+  hf_papers_search:     'search',
+  calculate:            'compute',
+  sec_edgar_search:     'compute',
+  remember:             'compute',
+  recall:               'read',
+}
+
+// Per-agent default active pose (shown when agent is busy but no specific tool is known).
+export const AGENT_WORK_POSE: Record<AgentId, AgentPoseType> = {
+  jansky: 'wait',    // MAX — raised arm, authoritative stance
+  orbit:  'type',    // EL  — constant keyboard intensity
+  nova:   'search',  // DUSTIN — always scanning
+  cipher: 'read',    // HOPPER — reading threat reports
+  flux:   'compute', // LUCAS — analysing patterns
+}
+
 // ── Idle inner sprite motion ───────────────────────────────────────────────────
 // Drives just the character body independently of the outer wrapper animation.
 // This creates a two-layer motion: body sways + sprite moves inside it.

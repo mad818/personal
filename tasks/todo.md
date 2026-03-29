@@ -196,11 +196,11 @@
 - [x] Pixel-agents assimilation plan map (docs/plans/pixel-agents-assimilation-plan.md)
 
 ## RECON Tab — OSINT & Privacy (2026-03-29)
-- [ ] RECON tab: nav button, HTML panel, switchTab registration
-- [ ] RECON API keys: hibpKey, vtKey, shodanKey in DEFAULT_CFG + settings
-- [ ] RECON lookups: RDAP/WHOIS, DNS, crt.sh, IP geo, HIBP, VirusTotal, Shodan
-- [ ] RECON local tools: WebRTC leak probe, fingerprint entropy, OPSEC score
-- [ ] RECON CSS (rc- prefix) + CLAUDE.md tab map update
+- [x] RECON tab: nav button, HTML panel, switchTab registration
+- [x] RECON API keys: hibpKey, vtKey, shodanKey in DEFAULT_CFG + settings
+- [x] RECON lookups: RDAP/WHOIS, DNS, crt.sh, IP geo, HIBP, VirusTotal, Shodan
+- [x] RECON local tools: WebRTC leak probe, fingerprint entropy, OPSEC score
+- [x] RECON CSS (rc- prefix) + CLAUDE.md tab map update
 
 ## In Progress
 _(none)_

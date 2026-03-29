@@ -10,11 +10,13 @@ import SettingsDrawer from '@/components/settings/SettingsDrawer'
 import { NEXUS_FREE_USE_DESCRIPTION, NEXUS_FREE_USE_LABEL } from '@/lib/productGuarantees'
 
 const TABS = [
-  { href: '/home',      label: '🤖 NEXUS HQ' },
-  { href: '/intel',     label: '📡 INTEL'    },
-  { href: '/alpha',     label: '📈 MARKETS'  },
-  { href: '/cyber',      label: '🔒 CYBER'    },
-  { href: '/resources', label: '📚 FIELD'   },
+  { href: '/home',    label: '🤖 HQ'       },
+  { href: '/command', label: '⚡ COMMAND'  },
+  { href: '/intel',   label: '📡 INTEL'   },
+  { href: '/alpha',   label: '🎯 ALPHA'   },
+  { href: '/cyber',   label: '🔒 CYBER'   },
+  { href: '/recon',   label: '🕵️ RECON'  },
+  { href: '/vault',   label: '🗂 VAULT'   },
 ]
 
 export default function Nav() {

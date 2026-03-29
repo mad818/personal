@@ -36,35 +36,35 @@
 
 ## Tabs
 
-The nav bar shows **6 items**. OPS and INTEL are dropdowns that expand to reveal sub-tabs — keeping the bar compact while all 9 surfaces remain one click away.
+One unified React app — seven tabs, single nav bar, one URL.
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
-### 🤖 Home
-Personal AI assistant. Ask anything: markets, goals, threat intel, motivation. Streams tool calls live.
+### 🤖 HQ
+5-agent AI office (JANSKY, ORBIT, NOVA, CIPHER, FLUX). 3D workspace with live briefings and a full ReAct reasoning loop. Streams tool calls live.
 
 ### ⚡ Command
-KPI cards, Fear & Greed index, live BTC price, AI briefing, event predictor, deep research agent.
+Mission control — KPI cards, Fear & Greed index, live BTC price, AI daily briefing, event radar, threat heatmap, world event map, business intelligence, job risk analyser.
 
-### 📡 Signals
-Live news (RSS + GDELT fallback; optional Guardian key). Bias tagging (bullish / bearish / neutral), story threads, article clusters, bookmarking.
+### 📡 Intel
+Live news (RSS + GDELT fallback; optional Guardian key). Bias tagging, story threads, article clusters. Geopolitical heatmap, conflict feed, Polymarket prediction odds, strategy frameworks.
 
 ### 🎯 Alpha
-Momentum scanner with RSI/BB/EMA scoring, Buy Bot signals, 7-day sparklines, position sizing calculator.
+Momentum scanner with RSI/BB/EMA scoring, Buy Bot signals, 7-day sparklines, position sizing calculator, watchlist manager.
 
 </td>
 <td width="50%" valign="top">
 
-### 🌍 OPS ▾ (dropdown)
-**World Map** — interactive Leaflet map with live layers: earthquakes (USGS), flights (OpenSky), ships (AIS), fires (NASA FIRMS), GPS jamming, space weather.
-**Cyber** — live CVEs (CRITICAL → LOW), OTX threat intel, CISA KEV advisories.
-**Recon** — OSINT toolkit: RDAP/WHOIS, DNS, crt.sh cert transparency, IP geo (all free). HIBP breach check, VirusTotal, Shodan (BYOK). Local WebRTC leak probe + fingerprint entropy + OPSEC score.
+### 🔒 Cyber
+Live CVEs (CRITICAL → LOW), OTX threat intel feed, CISA KEV advisories, attack vector charts, triage view, cyber heatmap.
 
-### 📊 INTEL ▾ (dropdown)
-**Strategy** — Polymarket prediction odds, Porter 5 Forces, VRIO, BCG Matrix, SaaS lifecycle tracker.
-**Vault** — bookmarked articles, persisted across sessions.
+### 🕵️ Recon
+OSINT toolkit: RDAP/WHOIS, DNS records, crt.sh cert transparency, IP geolocation — all free, no key required. HIBP breach check, VirusTotal, Shodan (BYOK, optional). Local WebRTC leak probe, fingerprint entropy analyser, OPSEC score — all client-side only.
+
+### 🗂 Vault
+Bookmarked articles. Full-text search, folder organisation by category, JSON export. Persisted across sessions.
 
 </td>
 </tr>

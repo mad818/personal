@@ -151,6 +151,10 @@ export const DEFAULT_SETTINGS = {
   firmsKey:      '',
   firecrawlKey:  '',
   braveKey:      '',
+  // RECON / OSINT keys (BYOK — optional, free lookups work without them)
+  hibpKey:       '',   // Have I Been Pwned v3
+  vtKey:         '',   // VirusTotal v3
+  shodanKey:     '',   // Shodan
   // Personal profile
   userName:      'Mario',
   userGoals:     '',

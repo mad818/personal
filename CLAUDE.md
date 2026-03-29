@@ -3,9 +3,8 @@
 ## What this is
 **Product invariant:** Nexus Prime is **free (MIT)** — **no in-app charges**, subscriptions, or Nexus-side billing. Optional keys are BYOK. See `lib/productGuarantees.ts` and `assertNexusDoesNotChargeUsers()` in `app/layout.tsx`.
 
-Nexus Prime is a dual-surface intelligence dashboard:
-- `nexus-final.html` — original single-file browser app (~12,265 lines). Do not split it.
-- React/Next.js 14 app in the project root — active development surface.
+Nexus Prime is a unified React/Next.js 14 intelligence dashboard at `localhost:3000`.
+The legacy HTML app (`nexus-final.html`) has been archived to `archive/`. Do not restore it or reference it in new code — all development happens in the React app.
 
 ## Commands
 ```
@@ -43,28 +42,25 @@ lib/helpers.ts            ← fmtPrice, fmtVol, timeAgo, esc
 app/api/                  ← Next.js server routes
 ```
 
-<important if="editing nexus-final.html, any .ts, or any .tsx file">
+<important if="editing any .ts or .tsx file">
 ## Critical patterns
-- `$(id)` not `document.getElementById` — helper defined at top of HTML app
-- `showToast(msg, type)` for all user-facing notifications
-- `fmtPrice(n)` / `fmtVol(n)` for formatting — never raw `.toFixed()`
+- `fmtPrice(n)` / `fmtVol(n)` / `timeAgo(ts)` from `lib/helpers.ts` — never inline formatting
 - All async fetches: wrapped in `try/catch` with silent failure
-- CSS class names: kebab-case, feature-prefixed (`ms-`, `pm-`, `sb-`, `ss-`)
-- Fear & Greed: always `S.signals.fg.value` + `S.signals.fg.label` — never a plain number
-- AI calls: always through `stratAICall()` or `callAI()` — never direct API calls
+- Fear & Greed: always `signals.fg.value` + `signals.fg.label` — never a plain number
+- AI calls: always through `callAI()` or `streamAIWithThinking()` from `lib/ai.ts` — never direct provider calls
+- State: always read from Zustand store via `useStore(s => s.field)` — never `useStore().field`
 </important>
 
-## Tab map (HTML app)
-| Label | data-tab | Init function |
-|-------|----------|---------------|
-| ⚡ COMMAND | superset | `initSupersetTab()` |
-| 📡 SIGNALS | articles | _(auto)_ |
-| 🎯 ALPHA | buys | `initBuysTab()` |
-| 🌍 OPS | world | `initWorldTab()` |
-| 📊 INTEL | strategy | `initStratTab()` |
-| 🔒 CYBER | security | _(auto)_ |
-| 🗂 VAULT | saved | `renderSavedTab()` |
-| 🕵️ RECON | recon | `initReconTab()` |
+## Tab map (React app)
+| Label | Route | Page file |
+|-------|-------|-----------|
+| 🤖 HQ | /home | `app/home/page.tsx` |
+| ⚡ COMMAND | /command | `app/command/page.tsx` |
+| 📡 INTEL | /intel | `app/intel/page.tsx` |
+| 🎯 ALPHA | /alpha | `app/alpha/page.tsx` |
+| 🔒 CYBER | /cyber | `app/cyber/page.tsx` |
+| 🕵️ RECON | /recon | `app/recon/page.tsx` |
+| 🗂 VAULT | /vault | `app/vault/page.tsx` |
 
 <important if="making any code change">
 ## Operating principles

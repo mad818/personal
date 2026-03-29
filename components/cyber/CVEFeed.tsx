@@ -16,6 +16,53 @@ const SEV_COLOR: Record<string, string> = {
   NONE:     '#6b7280',
 }
 
+// ── Kill chain stage detection (exploitation-course pattern) ──────────────────
+type KillChainStage =
+  | 'Reconnaissance' | 'Initial Access' | 'Execution'
+  | 'Privilege Escalation' | 'Lateral Movement'
+  | 'Persistence' | 'Exfiltration' | 'Denial of Service'
+
+const STAGE_PATTERNS: [KillChainStage, RegExp][] = [
+  ['Denial of Service',    /denial.of.service|dos\b|resource exhaustion|memory leak|crash|hang|infinite loop/i],
+  ['Exfiltration',         /data leak|exfiltrat|sensitive.*data|credential.*leak|password.*expos/i],
+  ['Persistence',          /backdoor|persist|cron|startup|registry|scheduled task/i],
+  ['Lateral Movement',     /ssrf|server-side request|open redirect|credential|token hijack|session fixat/i],
+  ['Privilege Escalation', /privilege escalat|elevation|local privilege|escalat.*privil|\broot\b|arbitrary.*admin/i],
+  ['Execution',            /remote code exec|command injection|arbitrary code|eval.*inject|shell.*inject/i],
+  ['Initial Access',       /authentication bypass|unauthenticated|sql injection|xss|cross-site|file upload|deserialization|buffer overflow/i],
+  ['Reconnaissance',       /information disclosure|path traversal|directory listing|enumerat|version disclosure/i],
+]
+
+const STAGE_COLOR: Record<KillChainStage, string> = {
+  'Reconnaissance':       '#818cf8',
+  'Initial Access':       '#ef4444',
+  'Execution':            '#dc2626',
+  'Privilege Escalation': '#f97316',
+  'Lateral Movement':     '#f59e0b',
+  'Persistence':          '#a78bfa',
+  'Exfiltration':         '#ec4899',
+  'Denial of Service':    '#6b7280',
+}
+
+function detectStage(description: string): KillChainStage | null {
+  for (const [stage, re] of STAGE_PATTERNS) {
+    if (re.test(description)) return stage
+  }
+  return null
+}
+
+function KillChainBadge({ stage }: { stage: KillChainStage }) {
+  const col = STAGE_COLOR[stage]
+  return (
+    <span style={{
+      fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px',
+      background: `${col}22`, color: col, whiteSpace: 'nowrap',
+    }}>
+      ⚡ {stage}
+    </span>
+  )
+}
+
 /** CVSS score bar: 0–10 scale, colour shifts from green → amber → red */
 function CVSSBar({ score, severity }: { score: number; severity: string }) {
   const pct = Math.min(100, (score / 10) * 100)
@@ -65,6 +112,7 @@ export default function CVEFeed() {
 
 /** Memoized individual CVE card — only re-renders when its specific CVE object changes. */
 const CVECard = memo(function CVECard({ cve: c }: { cve: CVE }) {
+  const stage = detectStage(c.description ?? '')
   return (
     <a
       href={c.url}
@@ -86,6 +134,7 @@ const CVECard = memo(function CVECard({ cve: c }: { cve: CVE }) {
         }}>
           {c.severity} {c.score ? `· ${c.score}` : ''}
         </span>
+        {stage && <KillChainBadge stage={stage} />}
         <span style={{ fontSize: '10px', color: 'var(--text3)', marginLeft: 'auto' }}>
           {c.published ? new Date(c.published).toLocaleDateString() : ''}
         </span>

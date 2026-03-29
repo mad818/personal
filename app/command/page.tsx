@@ -16,6 +16,7 @@ const LazySystemStatusRing = dynamic(() => import('@/components/command/SystemSt
 const LazyBusinessBuilder  = dynamic(() => import('@/components/command/BusinessBuilder'),  { ssr: false })
 const LazyJobRiskAnalyzer  = dynamic(() => import('@/components/command/JobRiskAnalyzer'),  { ssr: false })
 const LazyFocusPanel       = dynamic(() => import('@/components/command/FocusPanel'),       { ssr: false })
+const LazyNetworkHealth    = dynamic(() => import('@/components/command/NetworkHealth'),    { ssr: false })
 
 function Section({ children }: { children: React.ReactNode }) {
   return (
@@ -65,8 +66,11 @@ export default function CommandPage() {
           <Section><LazyJobRiskAnalyzer /></Section>
         </div>
 
-        {/* Row 6 — Deep focus */}
-        <Section><LazyFocusPanel /></Section>
+        {/* Row 6 — Network health + deep focus */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+          <Section><LazyNetworkHealth /></Section>
+          <Section><LazyFocusPanel /></Section>
+        </div>
 
       </div>
     </>

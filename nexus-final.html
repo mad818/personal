@@ -664,6 +664,100 @@ header{position:sticky;top:0;z-index:400;height:54px;display:flex;align-items:ce
 .ss-mod-dot{width:7px;height:7px;border-radius:50%;background:var(--text3)}
 .ss-mod-dot.live{background:#22c55e}
 .ss-mod-dot.warn{background:#f59e0b}
+/* ── RECON TAB ───────────────────────────────────────────────────────────── */
+#tab-recon{max-width:1200px;margin:0 auto;padding:18px 16px 48px}
+.rc-header{margin-bottom:14px}
+.rc-title{font-size:20px;font-weight:800;letter-spacing:-.4px}
+.rc-sub{font-size:11px;color:var(--text3);margin-top:3px}
+/* Search bar */
+.rc-search-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:14px}
+.rc-target-inp{flex:1;min-width:220px;height:34px;background:var(--surf3);border:1px solid var(--border);border-radius:var(--rs);padding:0 12px;color:var(--text);font-size:12px;font-family:monospace;outline:none;transition:border-color var(--t)}
+.rc-target-inp:focus{border-color:var(--accent)}
+.rc-type-sel{height:34px;background:var(--surf3);border:1px solid var(--border);border-radius:var(--rs);padding:0 10px;color:var(--text);font-size:11px;cursor:pointer;outline:none}
+.rc-btn-scan{height:34px;padding:0 18px;background:var(--accent);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;transition:opacity var(--t)}
+.rc-btn-scan:hover{opacity:.85}
+.rc-btn-clear{height:34px;padding:0 14px;background:var(--surf3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text2);font-size:13px;cursor:pointer;transition:background var(--t)}
+.rc-btn-clear:hover{background:var(--surf2)}
+/* Body layout */
+.rc-body{display:flex;gap:14px;align-items:flex-start}
+.rc-grid{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+/* Cards */
+.rc-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.rc-card-hdr{display:flex;align-items:center;gap:6px;padding:10px 12px;background:var(--surf2);border-bottom:1px solid var(--border)}
+.rc-card-icon{font-size:14px}
+.rc-card-title{font-size:12px;font-weight:700;flex:1}
+.rc-card-badge{font-size:9px;font-weight:800;padding:2px 6px;border-radius:3px;letter-spacing:.4px}
+.rc-free{background:#1a3a2a;color:#10b981}
+.rc-byok{background:#2a1a1a;color:#f59e0b}
+.rc-ready{background:#1a2a3a;color:#4f6ef7}
+.rc-card-src{font-size:9px;color:var(--text3)}
+.rc-card-body{padding:10px 12px;min-height:52px;font-size:11px;color:var(--text)}
+.rc-placeholder{color:var(--text3);font-size:11px;font-style:italic}
+.rc-loading{color:var(--text3);font-size:11px;animation:pulse 1s ease infinite}
+.rc-err{color:var(--flo);font-size:11px}
+/* Table */
+.rc-tbl{width:100%;border-collapse:collapse}
+.rc-td-k{color:var(--text3);font-size:10px;padding:2px 8px 2px 0;width:38%;vertical-align:top;white-space:nowrap}
+.rc-td-v{color:var(--text);font-size:11px;padding:2px 0;word-break:break-all}
+/* DNS */
+.rc-dns-type{font-size:9px;font-weight:800;color:var(--accent);letter-spacing:.4px;margin-top:6px;margin-bottom:2px;text-transform:uppercase}
+.rc-dns-row{font-size:11px;font-family:monospace;color:var(--text);padding:1px 0;word-break:break-all}
+/* Certs */
+.rc-cert-list{display:flex;flex-direction:column;gap:4px}
+.rc-cert-row{display:flex;flex-direction:column;gap:1px;border-left:2px solid var(--border2);padding-left:6px}
+.rc-cert-cn{font-size:11px;font-family:monospace;color:var(--text)}
+.rc-cert-date{font-size:9px;color:var(--text3)}
+.rc-cert-issuer{font-size:9px;color:var(--text3)}
+.rc-cert-more{font-size:10px;color:var(--text3);margin-top:4px}
+/* HIBP */
+.rc-hibp-clean{color:var(--fhi);font-size:12px;font-weight:700}
+.rc-hibp-count{font-size:13px;font-weight:800;color:var(--flo);margin-bottom:6px}
+.rc-breach-list{display:flex;flex-direction:column;gap:4px}
+.rc-breach-row{display:grid;grid-template-columns:1fr auto;gap:2px;border-left:3px solid var(--border2);padding:4px 6px;border-radius:0 var(--rs) var(--rs) 0}
+.rc-breach-name{font-size:11px;font-weight:700;color:var(--text);grid-column:1}
+.rc-breach-date{font-size:9px;color:var(--text3);grid-column:2;white-space:nowrap}
+.rc-breach-types{font-size:9px;color:var(--text2);grid-column:1/-1}
+.rc-sev-high{border-color:var(--flo)!important}
+.rc-sev-med{border-color:var(--fmd)!important}
+.rc-sev-low{border-color:var(--border2)!important}
+/* VirusTotal */
+.rc-vt-score{font-size:13px;font-weight:800;margin-bottom:8px}
+.rc-vt-clean{color:var(--fhi)}
+.rc-vt-warn{color:var(--fmd)}
+.rc-vt-danger{color:var(--flo)}
+.rc-vt-engines{margin-top:6px;display:flex;flex-direction:column;gap:3px}
+.rc-vt-engine{display:flex;justify-content:space-between;font-size:10px;border-left:2px solid var(--border2);padding:2px 6px}
+.rc-engine-name{color:var(--text2)}
+.rc-engine-result{font-weight:700}
+/* Shodan */
+.rc-shodan-ports{margin-top:8px;display:flex;flex-direction:column;gap:3px}
+.rc-port-row{display:grid;grid-template-columns:40px 32px 1fr;gap:6px;font-size:10px;align-items:center;border-left:2px solid var(--border2);padding:2px 6px}
+.rc-port-num{font-family:monospace;font-weight:800;color:var(--accent)}
+.rc-port-proto{color:var(--text3)}
+.rc-port-banner{color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* OPSEC sidebar */
+.rc-opsec-panel{width:180px;flex-shrink:0;background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:14px 12px;display:flex;flex-direction:column;gap:10px}
+.rc-opsec-title{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--text2);text-transform:uppercase}
+.rc-opsec-score-wrap{text-align:center}
+.rc-opsec-score{font-size:36px;font-weight:900;line-height:1}
+.rc-opsec-label{font-size:10px;color:var(--text3);margin-top:2px}
+.rc-score-hi{color:var(--fhi)}
+.rc-score-md{color:var(--fmd)}
+.rc-score-lo{color:var(--flo)}
+.rc-score-crit{color:var(--flo)}
+.rc-opsec-checks{display:flex;flex-direction:column;gap:5px}
+.rc-chk{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.rc-chk-dot{font-size:8px}
+.rc-dot-wait{color:var(--text3)}
+.rc-dot-ok{color:var(--fhi)}
+.rc-dot-fail{color:var(--flo)}
+.rc-opsec-run-btn{padding:6px 0;background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-size:11px;font-weight:700;cursor:pointer;transition:background var(--t)}
+.rc-opsec-run-btn:hover{background:var(--surf3)}
+.rc-opsec-detail{display:flex;flex-direction:column;gap:4px}
+.rc-opsec-note{font-size:10px;color:var(--text2);line-height:1.4}
+.rc-note-ok{color:var(--fhi)}
+/* Responsive */
+@media(max-width:640px){.rc-opsec-panel{width:100%}.rc-body{flex-direction:column}}
 /* ── STRATEGY TAB ─────────────────────────────────────────────────────────── */
 #tab-strategy{max-width:1060px;margin:0 auto;padding:18px 16px 48px}
 .strat-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px}
@@ -1970,7 +2064,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
 
 /* ── Page fade-in on load ── */
 @keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-#tab-home,#tab-superset,#tab-articles,#tab-buys,#tab-world,#tab-strategy,#tab-security,#tab-saved{animation:pageIn .25s ease both}
+#tab-home,#tab-superset,#tab-articles,#tab-buys,#tab-world,#tab-strategy,#tab-security,#tab-saved,#tab-recon{animation:pageIn .25s ease both}
 
 /* ════════════════════════════════════════════════════════════
    INTERACTION UPGRADES
@@ -2180,6 +2274,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
     <button class="np" data-tab="strategy" data-tip="INTEL — Porter 5 Forces, VRIO, Value Chain, BCG Matrix, JTBD, strategic synthesis." data-tip-pos="below">📊 INTEL</button>
     <button class="np" data-tab="security" data-tip="CYBER — CVEs, threat intel, OTX pulses, CISA advisories, WiFi DensePose sensors." data-tip-pos="below">🔒 CYBER</button>
     <button class="np" data-tab="saved"    data-tip="VAULT — bookmarked articles and saved intel." data-tip-pos="below">🗂 VAULT</button>
+    <button class="np" data-tab="recon"   data-tip="RECON — OSINT toolkit: WHOIS, DNS, certs, IP geo, breach check, VirusTotal, Shodan, WebRTC leak detection." data-tip-pos="below">🕵️ RECON</button>
   </nav>
   <div class="hdr-r">
     <span id="clock"></span>
@@ -3057,6 +3152,129 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
 
 </div>
 
+<!-- ── RECON TAB ──────────────────────────────────────────────────────────────── -->
+<div id="tab-recon" style="display:none">
+  <div class="rc-header">
+    <div class="rc-title">🕵️ RECON</div>
+    <div class="rc-sub">OSINT toolkit — domain, IP, email, hash. No footprint. BYOK for paid lookups.</div>
+  </div>
+
+  <!-- Search bar -->
+  <div class="rc-search-row">
+    <input class="rc-target-inp" id="rc-target" type="text" placeholder="domain.com  /  8.8.8.8  /  user@email.com  /  sha256hash" autocomplete="off" spellcheck="false"/>
+    <select class="rc-type-sel" id="rc-type">
+      <option value="auto">Auto-detect</option>
+      <option value="domain">Domain</option>
+      <option value="ip">IP</option>
+      <option value="email">Email</option>
+      <option value="hash">Hash / URL</option>
+    </select>
+    <button class="rc-btn-scan" id="rc-scan-btn" onclick="runReconScan()">▶ SCAN</button>
+    <button class="rc-btn-clear" onclick="clearRecon()">✕</button>
+  </div>
+
+  <!-- Main grid + OPSEC sidebar -->
+  <div class="rc-body">
+    <div class="rc-grid">
+
+      <!-- RDAP / WHOIS -->
+      <div class="rc-card" id="rc-card-rdap">
+        <div class="rc-card-hdr">
+          <span class="rc-card-icon">🌐</span>
+          <span class="rc-card-title">RDAP / WHOIS</span>
+          <span class="rc-card-badge rc-free">FREE</span>
+          <span class="rc-card-src">rdap.org</span>
+        </div>
+        <div class="rc-card-body" id="rc-rdap-body"><span class="rc-placeholder">Enter a target above and press SCAN</span></div>
+      </div>
+
+      <!-- DNS Records -->
+      <div class="rc-card" id="rc-card-dns">
+        <div class="rc-card-hdr">
+          <span class="rc-card-icon">📡</span>
+          <span class="rc-card-title">DNS Records</span>
+          <span class="rc-card-badge rc-free">FREE</span>
+          <span class="rc-card-src">dns.google</span>
+        </div>
+        <div class="rc-card-body" id="rc-dns-body"><span class="rc-placeholder">—</span></div>
+      </div>
+
+      <!-- TLS Certs -->
+      <div class="rc-card" id="rc-card-certs">
+        <div class="rc-card-hdr">
+          <span class="rc-card-icon">🔏</span>
+          <span class="rc-card-title">TLS Certificates</span>
+          <span class="rc-card-badge rc-free">FREE</span>
+          <span class="rc-card-src">crt.sh</span>
+        </div>
+        <div class="rc-card-body" id="rc-certs-body"><span class="rc-placeholder">—</span></div>
+      </div>
+
+      <!-- IP Geo -->
+      <div class="rc-card" id="rc-card-geo">
+        <div class="rc-card-hdr">
+          <span class="rc-card-icon">📍</span>
+          <span class="rc-card-title">IP Geo &amp; ASN</span>
+          <span class="rc-card-badge rc-free">FREE</span>
+          <span class="rc-card-src">ipapi.co</span>
+        </div>
+        <div class="rc-card-body" id="rc-geo-body"><span class="rc-placeholder">—</span></div>
+      </div>
+
+      <!-- HIBP -->
+      <div class="rc-card" id="rc-card-hibp">
+        <div class="rc-card-hdr">
+          <span class="rc-card-icon">🔓</span>
+          <span class="rc-card-title">Breach Check</span>
+          <span class="rc-card-badge rc-byok" id="rc-hibp-badge">BYOK</span>
+          <span class="rc-card-src">HaveIBeenPwned</span>
+        </div>
+        <div class="rc-card-body" id="rc-hibp-body"><span class="rc-placeholder">Email targets only. Requires HIBP key in Settings.</span></div>
+      </div>
+
+      <!-- VirusTotal -->
+      <div class="rc-card" id="rc-card-vt">
+        <div class="rc-card-hdr">
+          <span class="rc-card-icon">🦠</span>
+          <span class="rc-card-title">VirusTotal</span>
+          <span class="rc-card-badge rc-byok" id="rc-vt-badge">BYOK</span>
+          <span class="rc-card-src">virustotal.com</span>
+        </div>
+        <div class="rc-card-body" id="rc-vt-body"><span class="rc-placeholder">Requires VT API key in Settings.</span></div>
+      </div>
+
+      <!-- Shodan -->
+      <div class="rc-card" id="rc-card-shodan">
+        <div class="rc-card-hdr">
+          <span class="rc-card-icon">🛰️</span>
+          <span class="rc-card-title">Shodan</span>
+          <span class="rc-card-badge rc-byok" id="rc-shodan-badge">BYOK</span>
+          <span class="rc-card-src">shodan.io</span>
+        </div>
+        <div class="rc-card-body" id="rc-shodan-body"><span class="rc-placeholder">IP targets only. Requires Shodan key in Settings.</span></div>
+      </div>
+
+    </div><!-- /rc-grid -->
+
+    <!-- OPSEC sidebar -->
+    <div class="rc-opsec-panel" id="rc-opsec-panel">
+      <div class="rc-opsec-title">🛡️ OPSEC</div>
+      <div class="rc-opsec-score-wrap">
+        <div class="rc-opsec-score" id="rc-opsec-score">—</div>
+        <div class="rc-opsec-label" id="rc-opsec-label">Not checked</div>
+      </div>
+      <div class="rc-opsec-checks" id="rc-opsec-checks">
+        <div class="rc-chk" id="rc-chk-webrtc"><span class="rc-chk-dot rc-dot-wait">●</span> WebRTC leak</div>
+        <div class="rc-chk" id="rc-chk-fp"><span class="rc-chk-dot rc-dot-wait">●</span> Fingerprint entropy</div>
+        <div class="rc-chk" id="rc-chk-https"><span class="rc-chk-dot rc-dot-wait">●</span> HTTPS context</div>
+        <div class="rc-chk" id="rc-chk-tor"><span class="rc-chk-dot rc-dot-wait">●</span> Tor exit node</div>
+      </div>
+      <button class="rc-opsec-run-btn" onclick="runOpsecCheck()">Run OPSEC Check</button>
+      <div class="rc-opsec-detail" id="rc-opsec-detail"></div>
+    </div>
+  </div><!-- /rc-body -->
+</div><!-- /tab-recon -->
+
 <!-- ── STRATEGY TAB ─────────────────────────────────────────────────────────── -->
 <div id="tab-strategy" style="display:none">
   <div class="strat-header">
@@ -3444,6 +3662,18 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)!
         <label class="sp-lbl">Firecrawl API Key <a class="sp-link" href="https://firecrawl.dev" target="_blank">Get free →</a></label>
         <input class="sp-inp mono" id="cfg-firecrawl-key" type="password" placeholder="fc-…"/>
         <div class="sp-note">Scrape any URL to clean markdown and inject it as AI trade thesis context. Free tier: 500 credits/month.</div>
+      </div>
+      <div class="sp-row" style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+        <div class="sp-sec-title" style="margin-bottom:8px">🕵️ RECON Keys (BYOK)</div>
+        <label class="sp-lbl">Have I Been Pwned <a class="sp-link" href="https://haveibeenpwned.com/API/Key" target="_blank">Get key →</a></label>
+        <input class="sp-inp mono" id="cfg-hibp-key" type="password" placeholder="HIBP v3 API key"/>
+        <div class="sp-note" style="margin-bottom:8px">Email breach lookups in RECON tab. Free tier via RapidAPI or paid plan.</div>
+        <label class="sp-lbl">VirusTotal <a class="sp-link" href="https://www.virustotal.com/gui/my-apikey" target="_blank">Get key →</a></label>
+        <input class="sp-inp mono" id="cfg-vt-key" type="password" placeholder="VT v3 API key"/>
+        <div class="sp-note" style="margin-bottom:8px">URL, IP, domain, and hash reputation. Free: 500 req/day.</div>
+        <label class="sp-lbl">Shodan <a class="sp-link" href="https://account.shodan.io/register" target="_blank">Get key →</a></label>
+        <input class="sp-inp mono" id="cfg-shodan-key" type="password" placeholder="Shodan API key"/>
+        <div class="sp-note">Open port and service enumeration for IPs. Free tier: 1 query/sec.</div>
       </div>
     </div>
 
@@ -3934,6 +4164,9 @@ const DEFAULT_CFG = {
   firmsKey:'',      // NASA FIRMS     — fire hotspots
   geminiKey:'',     // Gemini API key — Nano Banana image generation for HOME tab
   firecrawlKey:'',  // Firecrawl      — web scraper for AI context
+  hibpKey:'',       // Have I Been Pwned v3 — haveibeenpwned.com/API/v3
+  vtKey:'',         // VirusTotal v3  — virustotal.com/gui/home/upload
+  shodanKey:'',     // Shodan         — shodan.io/dashboard#overview
   keywords:[], watchlist:['bitcoin','ethereum','solana','chainlink','avalanche-2'],
   cam1:'', cam2:'', wsUrl:'', iotUrl:'',
   customFeeds:[],   // user-added RSS URLs [{url, name}]
@@ -4012,6 +4245,9 @@ function loadSettings(){
   if($('cfg-firms-key'))       $('cfg-firms-key').value       = S.settings.firmsKey||'';
   if($('cfg-gemini-key'))      $('cfg-gemini-key').value      = S.settings.geminiKey||'';
   if($('cfg-firecrawl-key'))   $('cfg-firecrawl-key').value   = S.settings.firecrawlKey||'';
+  if($('cfg-hibp-key'))        $('cfg-hibp-key').value        = S.settings.hibpKey||'';
+  if($('cfg-vt-key'))          $('cfg-vt-key').value          = S.settings.vtKey||'';
+  if($('cfg-shodan-key'))      $('cfg-shodan-key').value      = S.settings.shodanKey||'';
   toggleProviderFields();
   renderCustomFeedList();
   $('cfg-kw').value          = (S.settings.keywords||[]).join(', ');
@@ -4048,6 +4284,9 @@ function saveSettings(){
   if($('cfg-aisstream-key'))   S.settings.aisstreamKey   = $('cfg-aisstream-key').value.trim();
   if($('cfg-firms-key'))       S.settings.firmsKey       = $('cfg-firms-key').value.trim();
   if($('cfg-firecrawl-key'))   S.settings.firecrawlKey   = $('cfg-firecrawl-key').value.trim();
+  if($('cfg-hibp-key'))        S.settings.hibpKey        = $('cfg-hibp-key').value.trim();
+  if($('cfg-vt-key'))          S.settings.vtKey          = $('cfg-vt-key').value.trim();
+  if($('cfg-shodan-key'))      S.settings.shodanKey      = $('cfg-shodan-key').value.trim();
   S.settings.keywords        = $('cfg-kw').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
   S.settings.refreshInterval = parseInt($('cfg-refresh').value)||0;
   S.settings.watchlist= $('cfg-wl').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
@@ -5686,7 +5925,7 @@ function toggleDev(){
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 function switchTab(tab){
   S.tab=tab;
-  ['home','articles','security','saved','buys','world','superset','strategy'].forEach(t=>{
+  ['home','articles','security','saved','buys','world','superset','strategy','recon'].forEach(t=>{
     const el=$('tab-'+t);
     if(el) el.style.display=t===tab?'block':'none';
   });
@@ -5706,6 +5945,7 @@ function switchTab(tab){
   if(tab==='superset') initSupersetTab();
   if(tab==='saved') renderSavedTab();
   if(tab==='strategy') initStratTab();
+  if(tab==='recon') initReconTab();
 }
 
 // ── ARTICLE VIEW TOGGLE (News / Threads) ───────────────────────────────────────
@@ -8466,7 +8706,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='?'&&!inInput){ e.preventDefault(); showKeyboardHelp(); }
   // Tab shortcuts 1-5
   if(!inInput&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
-    const tabs=['superset','articles','buys','world','security','saved'];
+    const tabs=['superset','articles','buys','world','security','saved','recon'];
     const idx=parseInt(e.key)-1;
     if(idx>=0&&idx<tabs.length){ e.preventDefault(); switchTab(tabs[idx]); }
   }
@@ -12583,6 +12823,7 @@ const CP_CMDS=[
   {icon:'📊',label:'Go to INTEL',         action:()=>switchTab('strategy')},
   {icon:'🔒',label:'Go to CYBER',         action:()=>switchTab('security')},
   {icon:'🗂',label:'Go to VAULT',         action:()=>switchTab('saved')},
+  {icon:'🕵️',label:'Go to RECON',         action:()=>switchTab('recon')},
   {icon:'📋',label:'Run Daily Brief',     action:()=>runDailyBrief()},
   {icon:'🔔',label:'Smart Alerts',        action:()=>openAlertsPanel()},
   {icon:'⚙', label:'Settings',           action:()=>openSettings()},
@@ -13038,6 +13279,456 @@ document.addEventListener('keydown',e=>{
   closeCmdPalette();
   $('ah-popover')?.classList.remove('show');
 });
+
+// ── RECON TAB ─────────────────────────────────────────────────────────────────
+
+function initReconTab(){
+  rcUpdateBadges();
+}
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+function rcUpdateBadges(){
+  const hibpReady = !!(S.settings.hibpKey||'').trim();
+  const vtReady   = !!(S.settings.vtKey||'').trim();
+  const shReady   = !!(S.settings.shodanKey||'').trim();
+  const hb=$('rc-hibp-badge'), vb=$('rc-vt-badge'), sb=$('rc-shodan-badge');
+  if(hb){ hb.textContent=hibpReady?'READY':'BYOK'; hb.className='rc-card-badge '+(hibpReady?'rc-ready':'rc-byok'); }
+  if(vb){ vb.textContent=vtReady?'READY':'BYOK';   vb.className='rc-card-badge '+(vtReady?'rc-ready':'rc-byok'); }
+  if(sb){ sb.textContent=shReady?'READY':'BYOK';   sb.className='rc-card-badge '+(shReady?'rc-ready':'rc-byok'); }
+}
+
+function rcDetectType(t){
+  if(/^[\w.+\-]+@[\w.\-]+\.[a-z]{2,}$/i.test(t)) return 'email';
+  if(/^(\d{1,3}\.){3}\d{1,3}$/.test(t))           return 'ip';
+  if(/^[a-f0-9]{32,64}$/i.test(t))                return 'hash';
+  if(/^https?:\/\//i.test(t))                      return 'url';
+  return 'domain';
+}
+
+function rcSet(id, html){ const el=$(id); if(el) el.innerHTML=html; }
+function rcLoading(id){ rcSet(id,'<span class="rc-loading">Scanning…</span>'); }
+function rcErr(id, msg){ rcSet(id,`<span class="rc-err">${esc(msg||'Request failed')}</span>`); }
+
+// ── main orchestrator ────────────────────────────────────────────────────────
+
+async function runReconScan(){
+  const raw = ($('rc-target').value||'').trim();
+  if(!raw){ showToast('Enter a target first','warn'); return; }
+  const forcedType = ($('rc-type').value||'auto');
+  const type = forcedType==='auto' ? rcDetectType(raw) : forcedType;
+
+  // Reset all panels
+  ['rc-rdap-body','rc-dns-body','rc-certs-body','rc-geo-body',
+   'rc-hibp-body','rc-vt-body','rc-shodan-body'].forEach(id=>rcLoading(id));
+
+  // Determine domain vs IP
+  const isDomain = (type==='domain'||type==='email');
+  const isIp     = (type==='ip');
+  const isHash   = (type==='hash');
+  const isUrl    = (type==='url');
+
+  const domain = isDomain ? (type==='email'? raw.split('@')[1] : raw) : null;
+  const ip     = isIp ? raw : null;
+
+  // Run free lookups in parallel
+  const tasks = [];
+
+  if(domain) {
+    tasks.push(rcRdapDomain(domain));
+    tasks.push(rcDns(domain));
+    tasks.push(rcCerts(domain));
+  } else if(ip) {
+    tasks.push(rcRdapIp(ip));
+    rcSet('rc-dns-body','<span class="rc-placeholder">DNS lookup not applicable for raw IPs</span>');
+    rcSet('rc-certs-body','<span class="rc-placeholder">Cert transparency requires a domain</span>');
+  } else {
+    rcSet('rc-rdap-body','<span class="rc-placeholder">RDAP requires a domain or IP</span>');
+    rcSet('rc-dns-body','<span class="rc-placeholder">—</span>');
+    rcSet('rc-certs-body','<span class="rc-placeholder">—</span>');
+  }
+
+  // IP geo
+  if(ip){
+    tasks.push(rcIpGeo(ip));
+  } else if(domain){
+    // resolve domain to IP then geo
+    tasks.push(rcDomainGeo(domain));
+  } else {
+    rcSet('rc-geo-body','<span class="rc-placeholder">Geo requires domain or IP</span>');
+  }
+
+  // BYOK lookups
+  if(type==='email' && (S.settings.hibpKey||'').trim()) {
+    tasks.push(rcHibp(raw));
+  } else if(type==='email') {
+    rcSet('rc-hibp-body','<span class="rc-placeholder">Add HIBP key in Settings to check breaches</span>');
+  } else {
+    rcSet('rc-hibp-body','<span class="rc-placeholder">Email targets only</span>');
+  }
+
+  if((S.settings.vtKey||'').trim() && (domain||ip||isHash||isUrl)) {
+    tasks.push(rcVirusTotal(raw, type));
+  } else if(!(S.settings.vtKey||'').trim()) {
+    rcSet('rc-vt-body','<span class="rc-placeholder">Add VirusTotal key in Settings</span>');
+  } else {
+    rcSet('rc-vt-body','<span class="rc-placeholder">—</span>');
+  }
+
+  if(isIp && (S.settings.shodanKey||'').trim()) {
+    tasks.push(rcShodan(ip));
+  } else if(isIp && !(S.settings.shodanKey||'').trim()) {
+    rcSet('rc-shodan-body','<span class="rc-placeholder">Add Shodan key in Settings</span>');
+  } else {
+    rcSet('rc-shodan-body','<span class="rc-placeholder">IP targets only</span>');
+  }
+
+  await Promise.allSettled(tasks);
+}
+
+function clearRecon(){
+  $('rc-target').value='';
+  ['rc-rdap-body','rc-dns-body','rc-certs-body','rc-geo-body',
+   'rc-hibp-body','rc-vt-body','rc-shodan-body'].forEach(id=>{
+    rcSet(id,'<span class="rc-placeholder">—</span>');
+  });
+}
+
+// ── free lookups ─────────────────────────────────────────────────────────────
+
+async function rcRdapDomain(domain){
+  try {
+    const r = await fetch(`https://rdap.org/domain/${encodeURIComponent(domain)}`);
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    const rows = [];
+    if(d.ldhName)   rows.push(['Domain',   esc(d.ldhName)]);
+    if(d.status)    rows.push(['Status',   d.status.map(s=>esc(s)).join(', ')]);
+    const ns = (d.nameservers||[]).map(n=>esc(n.ldhName||'')).filter(Boolean);
+    if(ns.length)   rows.push(['NS', ns.join(', ')]);
+    const registrar = d.entities?.find(e=>e.roles?.includes('registrar'));
+    if(registrar?.vcardArray?.[1]) {
+      const fn = registrar.vcardArray[1].find(v=>v[0]==='fn');
+      if(fn) rows.push(['Registrar', esc(fn[3]||'')]);
+    }
+    const reg = d.events?.find(e=>e.eventAction==='registration');
+    const exp = d.events?.find(e=>e.eventAction==='expiration');
+    if(reg) rows.push(['Registered', esc(reg.eventDate?.slice(0,10)||'')]);
+    if(exp) rows.push(['Expires',    esc(exp.eventDate?.slice(0,10)||'')]);
+    rcSet('rc-rdap-body', rcTable(rows));
+  } catch(e) { rcErr('rc-rdap-body', String(e)); }
+}
+
+async function rcRdapIp(ip){
+  try {
+    const r = await fetch(`https://rdap.org/ip/${encodeURIComponent(ip)}`);
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    const rows = [];
+    if(d.name)   rows.push(['Name',    esc(d.name)]);
+    if(d.type)   rows.push(['Type',    esc(d.type)]);
+    if(d.handle) rows.push(['Handle',  esc(d.handle)]);
+    const cidr = (d.cidr0CIDRs||[]).map(c=>`${c.v4prefix||c.v6prefix}/${c.length}`);
+    if(cidr.length) rows.push(['CIDR', esc(cidr[0])]);
+    if(d.country) rows.push(['Country', esc(d.country)]);
+    const org = d.entities?.find(e=>e.roles?.includes('registrant'));
+    if(org?.vcardArray?.[1]) {
+      const fn = org.vcardArray[1].find(v=>v[0]==='fn');
+      if(fn) rows.push(['Org', esc(fn[3]||'')]);
+    }
+    rcSet('rc-rdap-body', rcTable(rows));
+  } catch(e) { rcErr('rc-rdap-body', String(e)); }
+}
+
+async function rcDns(domain){
+  try {
+    const types = ['A','MX','NS','TXT'];
+    const results = await Promise.allSettled(
+      types.map(t=>fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=${t}`).then(r=>r.json()))
+    );
+    let html = '';
+    types.forEach((type, i)=>{
+      const res = results[i];
+      if(res.status==='fulfilled' && res.value.Answer?.length){
+        html += `<div class="rc-dns-type">${esc(type)}</div>`;
+        res.value.Answer.forEach(a=>{
+          html += `<div class="rc-dns-row">${esc(String(a.data||''))}</div>`;
+        });
+      }
+    });
+    rcSet('rc-dns-body', html || '<span class="rc-placeholder">No records found</span>');
+  } catch(e) { rcErr('rc-dns-body', String(e)); }
+}
+
+async function rcCerts(domain){
+  try {
+    // crt.sh has CORS headers so direct fetch works
+    const r = await fetch(`https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`);
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    // deduplicate by common_name
+    const seen = new Set();
+    const uniq = (data||[]).filter(c=>{
+      const k = c.common_name;
+      if(seen.has(k)) return false;
+      seen.add(k); return true;
+    }).slice(0,12);
+    if(!uniq.length){ rcSet('rc-certs-body','<span class="rc-placeholder">No certificates found</span>'); return; }
+    let html = '<div class="rc-cert-list">';
+    uniq.forEach(c=>{
+      const issued = (c.not_before||'').slice(0,10);
+      const expires= (c.not_after||'').slice(0,10);
+      html += `<div class="rc-cert-row"><span class="rc-cert-cn">${esc(c.common_name||'')}</span><span class="rc-cert-date">${esc(issued)} → ${esc(expires)}</span><span class="rc-cert-issuer">${esc((c.issuer_name||'').replace(/.*CN=/,'').split(',')[0]||'')}</span></div>`;
+    });
+    if(data.length>12) html += `<div class="rc-cert-more">+${data.length-12} more — see crt.sh</div>`;
+    html += '</div>';
+    rcSet('rc-certs-body', html);
+  } catch(e) { rcErr('rc-certs-body', String(e)); }
+}
+
+async function rcIpGeo(ip){
+  try {
+    const r = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`);
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    if(d.error){ rcErr('rc-geo-body', d.reason||d.error); return; }
+    const rows = [
+      ['IP',       esc(d.ip||ip)],
+      ['City',     esc(d.city||'—')],
+      ['Region',   esc(d.region||'—')],
+      ['Country',  esc(`${d.country_name||''} ${d.country_code||''}`.trim())],
+      ['Org',      esc(d.org||'—')],
+      ['ASN',      esc(d.asn||'—')],
+      ['Timezone', esc(d.timezone||'—')],
+    ];
+    rcSet('rc-geo-body', rcTable(rows));
+  } catch(e) { rcErr('rc-geo-body', String(e)); }
+}
+
+async function rcDomainGeo(domain){
+  try {
+    // Resolve A record first via dns.google then geo
+    const rr = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`);
+    const dd = await rr.json();
+    const ip = dd.Answer?.[0]?.data;
+    if(!ip){ rcSet('rc-geo-body','<span class="rc-placeholder">Could not resolve domain to IP</span>'); return; }
+    await rcIpGeo(ip);
+  } catch(e) { rcErr('rc-geo-body', String(e)); }
+}
+
+// ── BYOK lookups ─────────────────────────────────────────────────────────────
+
+async function rcHibp(email){
+  const key = (S.settings.hibpKey||'').trim();
+  if(!key){ rcSet('rc-hibp-body','<span class="rc-placeholder">Add HIBP key in Settings</span>'); return; }
+  try {
+    const r = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(email)}?truncateResponse=false`,{
+      headers:{ 'hibp-api-key': key, 'User-Agent': 'Nexus-Prime' }
+    });
+    if(r.status===404){ rcSet('rc-hibp-body','<div class="rc-hibp-clean">✅ No breaches found</div>'); return; }
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const breaches = await r.json();
+    let html = `<div class="rc-hibp-count">${breaches.length} breach${breaches.length!==1?'es':''} found</div>`;
+    html += '<div class="rc-breach-list">';
+    breaches.forEach(b=>{
+      const sev = b.IsSensitive ? 'rc-sev-high' : (b.IsVerified ? 'rc-sev-med' : 'rc-sev-low');
+      html += `<div class="rc-breach-row ${sev}">
+        <span class="rc-breach-name">${esc(b.Name||b.Title||'')}</span>
+        <span class="rc-breach-date">${esc((b.BreachDate||'').slice(0,10))}</span>
+        <span class="rc-breach-types">${(b.DataClasses||[]).slice(0,4).map(s=>esc(s)).join(' · ')}</span>
+      </div>`;
+    });
+    html += '</div>';
+    rcSet('rc-hibp-body', html);
+  } catch(e) { rcErr('rc-hibp-body', String(e)); }
+}
+
+async function rcVirusTotal(target, type){
+  const key = (S.settings.vtKey||'').trim();
+  if(!key){ rcSet('rc-vt-body','<span class="rc-placeholder">Add VT API key in Settings</span>'); return; }
+  try {
+    let endpoint = '';
+    if(type==='hash')        endpoint = `https://www.virustotal.com/api/v3/files/${encodeURIComponent(target)}`;
+    else if(type==='ip')     endpoint = `https://www.virustotal.com/api/v3/ip_addresses/${encodeURIComponent(target)}`;
+    else if(type==='url'||type==='domain') {
+      // VT domain lookup
+      const dom = type==='url' ? (new URL(target)).hostname : target;
+      endpoint = `https://www.virustotal.com/api/v3/domains/${encodeURIComponent(dom)}`;
+    } else {
+      endpoint = `https://www.virustotal.com/api/v3/domains/${encodeURIComponent(target)}`;
+    }
+    const r = await fetch(endpoint, { headers:{ 'x-apikey': key } });
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    const stats = d.data?.attributes?.last_analysis_stats || {};
+    const total = Object.values(stats).reduce((a,b)=>a+(b||0),0);
+    const mal   = (stats.malicious||0)+(stats.suspicious||0);
+    const scoreClass = mal===0 ? 'rc-vt-clean' : mal<5 ? 'rc-vt-warn' : 'rc-vt-danger';
+    let html = `<div class="rc-vt-score ${scoreClass}">${mal}/${total} engines flagged</div>`;
+    const rows = [];
+    if(d.data?.attributes?.reputation!==undefined) rows.push(['Reputation', String(d.data.attributes.reputation)]);
+    if(d.data?.attributes?.last_analysis_date) rows.push(['Last scan', new Date(d.data.attributes.last_analysis_date*1000).toISOString().slice(0,10)]);
+    if(d.data?.attributes?.registrar)   rows.push(['Registrar',  esc(d.data.attributes.registrar)]);
+    if(d.data?.attributes?.country)     rows.push(['Country',    esc(d.data.attributes.country)]);
+    html += rcTable(rows);
+    // Show flagging engines
+    const engines = Object.entries(d.data?.attributes?.last_analysis_results||{})
+      .filter(([,v])=>v.category==='malicious'||v.category==='suspicious')
+      .slice(0,6);
+    if(engines.length){
+      html += '<div class="rc-vt-engines">';
+      engines.forEach(([name,v])=>{
+        html += `<div class="rc-vt-engine"><span class="rc-engine-name">${esc(name)}</span><span class="rc-engine-result rc-sev-high">${esc(v.result||v.category)}</span></div>`;
+      });
+      html += '</div>';
+    }
+    rcSet('rc-vt-body', html);
+  } catch(e) { rcErr('rc-vt-body', String(e)); }
+}
+
+async function rcShodan(ip){
+  const key = (S.settings.shodanKey||'').trim();
+  if(!key){ rcSet('rc-shodan-body','<span class="rc-placeholder">Add Shodan key in Settings</span>'); return; }
+  try {
+    const r = await fetch(`https://api.shodan.io/shodan/host/${encodeURIComponent(ip)}?key=${encodeURIComponent(key)}`);
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    const rows = [];
+    if(d.org)      rows.push(['Org',      esc(d.org)]);
+    if(d.country_name) rows.push(['Country', esc(d.country_name)]);
+    if(d.city)     rows.push(['City',     esc(d.city)]);
+    if(d.isp)      rows.push(['ISP',      esc(d.isp)]);
+    if(d.asn)      rows.push(['ASN',      esc(d.asn)]);
+    if(d.os)       rows.push(['OS',       esc(d.os)]);
+    if(d.vulns?.length) rows.push(['CVEs', d.vulns.slice(0,5).map(v=>esc(v)).join(', ')]);
+    let html = rcTable(rows);
+    // Open ports
+    if(d.data?.length){
+      html += '<div class="rc-shodan-ports">';
+      d.data.slice(0,10).forEach(svc=>{
+        html += `<div class="rc-port-row"><span class="rc-port-num">${esc(String(svc.port||''))}</span><span class="rc-port-proto">${esc(svc.transport||'tcp')}</span><span class="rc-port-banner">${esc((svc.product||svc._shodan?.module||'').slice(0,40))}</span></div>`;
+      });
+      if(d.data.length>10) html += `<div class="rc-cert-more">+${d.data.length-10} more ports</div>`;
+      html += '</div>';
+    }
+    rcSet('rc-shodan-body', html);
+  } catch(e) { rcErr('rc-shodan-body', String(e)); }
+}
+
+// ── table helper ──────────────────────────────────────────────────────────────
+
+function rcTable(rows){
+  if(!rows.length) return '';
+  return '<table class="rc-tbl">'+rows.map(([k,v])=>
+    `<tr><td class="rc-td-k">${k}</td><td class="rc-td-v">${v}</td></tr>`
+  ).join('')+'</table>';
+}
+
+// ── OPSEC check ───────────────────────────────────────────────────────────────
+
+async function runOpsecCheck(){
+  const detail = $('rc-opsec-detail');
+  if(detail) detail.innerHTML = '';
+  rcSet('rc-opsec-score','…');
+  rcSet('rc-opsec-label','Checking…');
+  rcDotWait('rc-chk-webrtc');
+  rcDotWait('rc-chk-fp');
+  rcDotWait('rc-chk-https');
+  rcDotWait('rc-chk-tor');
+
+  let score = 0;
+  const notes = [];
+
+  // 1. HTTPS context (30 pts)
+  const isHttps = location.protocol === 'https:' || location.hostname === 'localhost';
+  rcDotSet('rc-chk-https', isHttps);
+  if(isHttps){ score+=30; } else { notes.push('⚠ Not served over HTTPS — API keys exposed to network'); }
+
+  // 2. Fingerprint entropy (30 pts)
+  const entropy = rcCalcEntropy();
+  const lowEntropy = entropy < 12;
+  rcDotSet('rc-chk-fp', lowEntropy);
+  if(lowEntropy){ score+=30; } else { notes.push(`ℹ Browser fingerprint entropy: ${entropy.toFixed(1)} bits (lower is better)`); }
+  const fpEl = $('rc-chk-fp');
+  if(fpEl) fpEl.title = `Entropy ≈ ${entropy.toFixed(1)} bits`;
+
+  // 3. WebRTC (20 pts)
+  const leakIp = await rcProbeWebRTC();
+  const webrtcSafe = !leakIp;
+  rcDotSet('rc-chk-webrtc', webrtcSafe);
+  if(webrtcSafe){ score+=20; } else { notes.push(`⚠ WebRTC leaks local IP: ${esc(leakIp||'')}`); }
+
+  // 4. Tor check (20 pts) — fire and forget, best effort
+  let isTor = false;
+  try {
+    const tr = await fetch('https://check.torproject.org/api/ip', {signal: AbortSignal.timeout(4000)});
+    const td = await tr.json();
+    isTor = !!td.IsTor;
+  } catch(_){}
+  // tor itself is fine for privacy — mark as informational
+  rcDotSet('rc-chk-tor', true);
+  score += 20;
+  if(isTor) notes.push('ℹ Tor exit node detected — high anonymity');
+
+  // Composite
+  const label = score>=90?'Strong OPSEC':score>=60?'Moderate OPSEC':score>=30?'Weak OPSEC':'Poor OPSEC';
+  const cls   = score>=90?'rc-score-hi':score>=60?'rc-score-md':score>=30?'rc-score-lo':'rc-score-crit';
+  rcSet('rc-opsec-score',`<span class="${cls}">${score}</span>`);
+  rcSet('rc-opsec-label', label);
+  if(detail){
+    detail.innerHTML = notes.length
+      ? notes.map(n=>`<div class="rc-opsec-note">${n}</div>`).join('')
+      : '<div class="rc-opsec-note rc-note-ok">✅ No issues detected</div>';
+  }
+}
+
+function rcDotWait(id){ const el=$(id); if(el){ const d=el.querySelector('.rc-chk-dot'); if(d){ d.className='rc-chk-dot rc-dot-wait'; } } }
+function rcDotSet(id, ok){ const el=$(id); if(el){ const d=el.querySelector('.rc-chk-dot'); if(d){ d.className='rc-chk-dot '+(ok?'rc-dot-ok':'rc-dot-fail'); } } }
+
+function rcCalcEntropy(){
+  let bits = 0;
+  try {
+    // Screen resolution
+    bits += Math.log2(screen.width * screen.height + 1);
+    // Color depth
+    bits += Math.log2(screen.colorDepth + 1);
+    // Timezone offset range
+    bits += Math.log2(Math.abs(new Date().getTimezoneOffset()) + 1);
+    // Language
+    bits += Math.log2((navigator.languages||[navigator.language||'']).length + 1) + 2;
+    // Platform
+    bits += 2;
+    // Hardware concurrency
+    bits += Math.log2((navigator.hardwareConcurrency||1) + 1);
+    // Device memory
+    bits += Math.log2(((navigator as any).deviceMemory||1) + 1);
+    // User agent entropy (rough)
+    const ua = navigator.userAgent || '';
+    bits += Math.log2(ua.length + 1) * 0.6;
+  } catch(_){}
+  return bits;
+}
+
+async function rcProbeWebRTC(){
+  // Returns local/reflexive IP string if leaked, null if clean
+  return new Promise(resolve=>{
+    try {
+      const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+      const found = new Set();
+      let resolved = false;
+      const cleanup = ()=>{ try{ pc.close(); }catch(_){} };
+      pc.createDataChannel('');
+      pc.createOffer().then(o=>pc.setLocalDescription(o)).catch(()=>{ cleanup(); resolve(null); });
+      pc.onicecandidate = e=>{
+        if(!e || !e.candidate){ if(!resolved){ resolved=true; cleanup(); resolve(found.size>0?[...found][0]:null); } return; }
+        const m = /(\d+\.\d+\.\d+\.\d+)/.exec(e.candidate.candidate||'');
+        if(m) found.add(m[1]);
+      };
+      // Timeout after 3s
+      setTimeout(()=>{ if(!resolved){ resolved=true; cleanup(); resolve(found.size>0?[...found][0]:null); }},3000);
+    } catch(_){ resolve(null); }
+  });
+}
 
 </script>
 </body>

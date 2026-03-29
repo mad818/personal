@@ -64,6 +64,7 @@ app/api/                  ← Next.js server routes
 | 📊 INTEL | strategy | `initStratTab()` |
 | 🔒 CYBER | security | _(auto)_ |
 | 🗂 VAULT | saved | `renderSavedTab()` |
+| 🕵️ RECON | recon | `initReconTab()` |
 
 <important if="making any code change">
 ## Operating principles

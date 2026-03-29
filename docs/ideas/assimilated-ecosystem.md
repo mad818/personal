@@ -28,6 +28,13 @@ We **do not** vendor these codebases. This document **formats ideas** from each 
 | [n8n-mcp](https://github.com/czlonkowski/n8n-mcp) | MCP bridge to 1,396 n8n nodes + 2,709 workflow templates | Agent tool executor (`/api/tools`), scheduler/auto-jobs | **External service** — user self-hosts n8n; document alongside Coolify in `docs/deployment/n8n.md` |
 | [n8n-workflows](https://github.com/Zie619/n8n-workflows) | 4,343 production-ready automation workflow templates | Agent automation reference, auto-job templates | **Reference** — template library agents can query when building workflows |
 | [GeoDeep](https://github.com/uav4geo/GeoDeep) | AI object detection in GeoTIFFs, no GPU, free | OPS/World map — new AI geospatial detection layer | **New capability** — local Python service + `/api/geo-scan` proxy + Leaflet layer |
+| [hackingtool](https://github.com/Z4nzu/hackingtool) | 185+ security tools across 20 categories — full taxonomy: info gathering, forensics, cloud security, active directory, steganography, wireless, post-exploitation | RECON tab — taxonomy drives panel categories; **ideas only**, no tool binaries in Nexus. Specific free-API panels to add: subdomain enum (crt.sh + HackerTarget), email OSINT, username lookup, DNS security (DMARC/SPF/DKIM), metadata extraction | **Taxonomy map** — use as RECON panel blueprint; read-only/advisory boundary maintained |
+| [exploitation-course](https://github.com/ashemery/exploitation-course) | Structured exploit methodology: fuzzing → memory corruption → ROP → post-exploitation → reverse engineering. 12-module curriculum with lab VMs | CYBER tab — CVE display enrichment, kill chain stage labeling (Discovery → Exploitation → Post-Exploit), attack surface framing | **Display pattern** — enrich CVE cards with exploit stage context; no automated exploitation |
+| [mcporter](https://github.com/steipete/mcporter) | CLI for calling MCP servers directly — OAuth flows, JSONC config, `--raw-strings`, `CallResult.images()`, IDE autocomplete via schema.json | Agent system — agents currently call via `/api/ai`; mcporter pattern informs how agents could invoke external MCP tools with OAuth, structured results, and image outputs | **Architecture pattern** — document in `docs/agents/mcp-tools.md`; implement when agents need external MCP tool calls |
+| [geocoding-playground](https://github.com/walkthru-earth/geocoding-playground) | Client-side geocoding via DuckDB-WASM + Overture Maps Parquet; H3 tile overlay on MapLibre GL; 3-tier cache; 10 country-specific address parsers | RECON IP geo + OPS world map — H3 hexagonal overlay pattern for density visualization; client-side geocoding without a backend | **Pattern** — H3 hex overlays for OPS map density; client-side DuckDB pattern for offline data queries |
+| [TrafficLab-3D](https://github.com/duy-phamduc68/TrafficLab-3D) | Dual-panel 3D: CCTV bounding boxes + satellite floor-boxes via homography projection; YOLO tracking; speed/orientation/trajectory metrics | OPS tab — dual-panel map pattern (3D HQ view + satellite); trajectory/movement visualization concepts for flight/ship layers | **Visual pattern** — dual synchronized view concept for OPS map (3D globe + flat satellite); trajectory lines on live layers |
+| [homelable](https://github.com/Pouzor/homelable) | Self-hosted network topology canvas; nmap device discovery; health monitoring (ping/http/https/tcp/ssh/prometheus); MCP server for AI clients; Docker + Proxmox LXC | COMMAND tab — network health monitoring panel; OPS tab — internal device topology layer; Deployment docs (Coolify + homelable alongside) | **New capability** — COMMAND network health panel using ping/http checks; document alongside `docs/deployment/coolify.md` |
+| [G0DM0D3](https://github.com/elder-plinius/G0DM0D3) | Red-team prompt research: boundary inversion, l33tspeak/braille/morse obfuscation, 33 trigger-word tiers, AutoTune context-adaptive routing, ULTRAPLINIAN 51-model eval | Agent hardening — informs CIPHER + JANSKY prompt boundaries; obfuscation patterns to detect in incoming user content; adaptive routing mirrors `lib/ai.ts` provider selection | **Security reference** — use adversarially to stress-test agent instruction hierarchy; do not implement jailbreak patterns |
 | [hesreallyhim/awesome-claude-code](https://github.com/hesreallyhim/awesome-claude-code) | Curated Claude Code skills, hooks, orchestration patterns | Discovery resource | **Reference only** — like awesome-autoresearch; link, don't merge |
 | [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) | Obsidian vault integration for AI agents | Agent memory if user runs Obsidian | **External** — lower priority; only relevant if Mario uses Obsidian |
 | [agent-infra/sandbox](https://github.com/agent-infra/sandbox) | Containerized browser + terminal + files + Jupyter in one Docker image | ORBIT safe code execution environment | **Ops pattern** — document alongside Docker/Coolify; not bundled |
@@ -54,6 +61,28 @@ We **do not** vendor these codebases. This document **formats ideas** from each 
 | Agent quality gate | `npm run eval:agent-runtime:ci`, `.github/workflows/quality-gates.yml` |
 | Handoff + continuity | `docs/CLAUDE_HANDOFF.md`, `npm run handoff:sync`, `tasks/todo.md` |
 | PWA / install | `public/manifest.json`, `public/icon.svg`, `app/layout.tsx` |
+
+---
+
+## RECON tab expansion roadmap (from hackingtool taxonomy)
+
+RECON is the primary assimilation surface for the hackingtool taxonomy. All panels use free public APIs — no tool binaries, no scanning of third-party hosts without user intent.
+
+| Panel | Free API | Status |
+|-------|----------|--------|
+| RDAP / WHOIS | rdap.org | ✅ Live |
+| DNS Records (A/MX/NS/TXT) | dns.google | ✅ Live |
+| TLS Certs | crt.sh | ✅ Live |
+| IP Geolocation | ipapi.co | ✅ Live |
+| Have I Been Pwned | haveibeenpwned.com v3 | ✅ Live (BYOK) |
+| VirusTotal | virustotal.com v3 | ✅ Live (BYOK) |
+| Shodan | shodan.io | ✅ Live (BYOK) |
+| Subdomain Enumeration | hackertarget.com (free tier) + crt.sh | 🔜 Next |
+| Email Reputation | emailrep.io (free tier) | 🔜 Next |
+| Username OSINT | GitHub API + Gravatar (free) | 🔜 Next |
+| DNS Security (DMARC/SPF/DKIM) | dns.google TXT lookups | 🔜 Next |
+| HTTP Headers / Security Audit | headers-api via serverless proxy | 🔜 Planned |
+| Metadata Extraction | client-side EXIF (no upload needed) | 🔜 Planned |
 
 ---
 

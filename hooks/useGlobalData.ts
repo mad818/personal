@@ -2,12 +2,14 @@
 // Hook for coordinating global data fetches across all data sources.
 
 'use client'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useStore } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
 
 export function useGlobalData() {
   const [loading, setLoading] = useState(false)
+  // Abort controller ref — cancels in-flight requests when fetchAll is called again
+  const controllerRef = useRef<AbortController | null>(null)
 
   const setEarthquakes = useStore((s) => s.setEarthquakes)
   const setGdeltEvents = useStore((s) => s.setGdeltEvents)
@@ -108,6 +110,13 @@ export function useGlobalData() {
   }, [setSecFilings])
 
   const fetchAll = useCallback(async () => {
+    // Skip if the browser tab is hidden — saves API quota for backgrounded sessions
+    if (typeof document !== 'undefined' && document.hidden) return
+
+    // Abort any previous in-flight batch to avoid race conditions on rapid refresh
+    controllerRef.current?.abort()
+    controllerRef.current = new AbortController()
+
     setLoading(true)
     await Promise.allSettled([
       fetchEarthquakes(),

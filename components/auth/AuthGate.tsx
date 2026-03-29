@@ -157,7 +157,7 @@ export default function AuthGate({ children }: Props) {
               width: '100%',
               boxSizing: 'border-box',
               fontFamily: 'monospace',
-              transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+              transition: 'border-color var(--t), box-shadow var(--t)',
             }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = 'rgba(196,72,90,0.5)'

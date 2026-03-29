@@ -172,7 +172,9 @@ export async function GET(req: NextRequest) {
       response.shodan = shodanData
     }
 
-    return NextResponse.json(response)
+    return NextResponse.json(response, {
+      headers: { 'Cache-Control': 'public, max-age=900, s-maxage=900' },
+    })
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error'
     return NextResponse.json(

@@ -6,6 +6,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useStore, PriceData } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
+import { buildDeltaSweep } from '@/lib/liveContext'
 
 export const DEFAULT_COINS = [
   'bitcoin', 'ethereum', 'solana', 'binancecoin', 'ripple',
@@ -20,13 +21,17 @@ const DEFAULT_SYM: Record<string, string> = {
 }
 
 export function usePrices() {
-  const setPrices     = useStore((s) => s.setPrices)
-  const setSparklines = useStore((s) => s.setSparklines)
-  const watchlist     = useStore((s) => s.settings.watchlist)
+  const setPrices       = useStore((s) => s.setPrices)
+  const setSparklines   = useStore((s) => s.setSparklines)
+  const addNotification = useStore((s) => s.addNotification)
+  const watchlist       = useStore((s) => s.settings.watchlist)
 
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timerRef    = useRef<ReturnType<typeof setInterval> | null>(null)
+  const prevPrices  = useRef<Record<string, PriceData>>({})
+  // Visibility listener ref so we can remove it on stop()
+  const onVisibleRef = useRef<(() => void) | null>(null)
 
   const fetchPrices = useCallback(async () => {
     setLoading(true)
@@ -56,6 +61,25 @@ export function usePrices() {
           vol:   c.total_volume ?? 0,
         }
       })
+
+      // ── Delta sweep: fire notifications for significant price moves ────────
+      if (Object.keys(prevPrices.current).length > 0) {
+        const alerts = buildDeltaSweep(
+          { prices: prevPrices.current },
+          { prices },
+        )
+        alerts.forEach((a) =>
+          addNotification({
+            type:    a.type === 'market' ? 'market' : 'intel',
+            severity: a.severity,
+            title:   a.title,
+            message: a.message,
+            source:  a.source,
+          }),
+        )
+      }
+      prevPrices.current = prices
+
       setPrices(prices)
 
       const sparklines: Record<string, number[]> = {}
@@ -69,17 +93,30 @@ export function usePrices() {
     } finally {
       setLoading(false)
     }
-  }, [setPrices, setSparklines, watchlist])
+  }, [setPrices, setSparklines, addNotification, watchlist])
 
   const start = useCallback((intervalMs = 60_000) => {
     fetchPrices()
-    timerRef.current = setInterval(fetchPrices, intervalMs)
+    timerRef.current = setInterval(() => {
+      // Skip polling when the browser tab is hidden — saves API quota and CPU
+      if (typeof document !== 'undefined' && document.hidden) return
+      fetchPrices()
+    }, intervalMs)
+
+    // Resume polling when the user returns to the tab
+    const onVisible = () => { if (!document.hidden) fetchPrices() }
+    onVisibleRef.current = onVisible
+    document.addEventListener('visibilitychange', onVisible)
   }, [fetchPrices])
 
   const stop = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current)
       timerRef.current = null
+    }
+    if (onVisibleRef.current) {
+      document.removeEventListener('visibilitychange', onVisibleRef.current)
+      onVisibleRef.current = null
     }
   }, [])
 

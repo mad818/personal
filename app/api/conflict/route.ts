@@ -94,5 +94,8 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ articles: articles.slice(0, 40) })
+  return NextResponse.json(
+    { articles: articles.slice(0, 40) },
+    { headers: { 'Cache-Control': 'public, max-age=1800, s-maxage=1800' } },
+  )
 }

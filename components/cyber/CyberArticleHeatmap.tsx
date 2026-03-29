@@ -94,7 +94,7 @@ function SlidePanel({
         zIndex: 50,
         pointerEvents: open ? 'auto' : 'none',
         transform: open ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform .25s cubic-bezier(.4,0,.2,1)',
+        transition: 'transform var(--t)',
         display: 'flex', flexDirection: 'column',
         boxShadow: open ? '-12px 0 40px rgba(0,0,0,.5)' : 'none',
       }}>
@@ -175,7 +175,7 @@ function HeatCell({ topic, articles, maxCount, onClick }: {
         border: `1px solid color-mix(in srgb, ${topic.hue} ${bordPct}%, var(--border))`,
         borderRadius: '12px', padding: '18px 16px',
         cursor: count === 0 ? 'default' : 'pointer',
-        textAlign: 'left', transition: 'transform .15s, box-shadow .15s',
+        textAlign: 'left', transition: 'transform var(--t), box-shadow var(--t)',
         minHeight: '110px', display: 'flex', flexDirection: 'column', gap: '6px',
         boxShadow: intensity > 0.4 ? `0 0 20px color-mix(in srgb, ${topic.hue} ${Math.round(intensity * 25)}%, transparent)` : 'none',
       }}

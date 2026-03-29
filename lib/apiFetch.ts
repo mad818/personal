@@ -15,6 +15,11 @@
 
 const TOKEN_KEY = 'nexus_session_token'
 
+// ── In-flight deduplication map ───────────────────────────────────────────────
+// Prevents duplicate GET requests to the same URL within the same render cycle.
+// Only GET requests are deduplicated — mutations (POST/PUT/DELETE) are always sent.
+const inflightRequests = new Map<string, Promise<Response>>()
+
 export function getSessionToken(): string {
   if (typeof window === 'undefined') return ''
   return sessionStorage.getItem(TOKEN_KEY) ?? ''
@@ -42,6 +47,22 @@ export async function apiFetch(
   }
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)
+  }
+
+  const method = (options.method ?? 'GET').toUpperCase()
+
+  // Deduplicate concurrent GET requests to the same URL.
+  // A second caller that arrives while the first is in-flight gets the same Promise.
+  // POST/PUT/DELETE always fire independently.
+  if (method === 'GET') {
+    const existing = inflightRequests.get(url)
+    if (existing) return existing
+
+    const p = fetch(url, { ...options, headers }).finally(() => {
+      inflightRequests.delete(url)
+    })
+    inflightRequests.set(url, p)
+    return p
   }
 
   return fetch(url, { ...options, headers })

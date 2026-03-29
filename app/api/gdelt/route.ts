@@ -112,17 +112,20 @@ export async function GET(req: NextRequest) {
 
     // Augment with request metadata
     const isTimeline = TIMELINE_MODES.includes(mode as TimelineMode)
-    return NextResponse.json({
-      query,
-      mode,
-      timespan,
-      maxrecords: isTimeline ? null : maxrecords,
-      articles: isTimeline ? [] : ((data as { articles?: unknown[] })?.articles ?? []),
-      timeline: isTimeline ? data : null,
-      count: isTimeline
-        ? null
-        : ((data as { articles?: unknown[] })?.articles?.length ?? 0),
-    })
+    return NextResponse.json(
+      {
+        query,
+        mode,
+        timespan,
+        maxrecords: isTimeline ? null : maxrecords,
+        articles: isTimeline ? [] : ((data as { articles?: unknown[] })?.articles ?? []),
+        timeline: isTimeline ? data : null,
+        count: isTimeline
+          ? null
+          : ((data as { articles?: unknown[] })?.articles?.length ?? 0),
+      },
+      { headers: { 'Cache-Control': 'public, max-age=600, s-maxage=600' } },
+    )
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error'
     return NextResponse.json(

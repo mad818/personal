@@ -142,6 +142,14 @@ export function routeQuery(query: string): RagStrategy {
 
 export function buildRagContextBlock(query: string): string {
   const s = routeQuery(query)
+  const wordCount = query.trim().split(/\s+/).length
+
+  // Short queries (< 8 words) get a compact one-liner hint to save tokens.
+  // Complex queries get the full block with rationale so agents can reason about sources.
+  if (wordCount < 8) {
+    return `\n[RAG: ${s.domain} — use ${s.primaryTools[0]}. Credibility: ${s.credibility}]\n`
+  }
+
   return (
     `\n\n[RAG ROUTING — ${s.domain}]\n` +
     `Primary tools: ${s.primaryTools.join(', ')}\n` +

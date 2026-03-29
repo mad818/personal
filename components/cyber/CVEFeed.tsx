@@ -3,6 +3,7 @@
 
 'use client'
 
+import { memo } from 'react'
 import { useStore } from '@/store/useStore'
 
 import type { CVE } from '@/hooks/useCVEs'
@@ -56,37 +57,43 @@ export default function CVEFeed() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {cves.map((c) => (
-        <a
-          key={c.id}
-          href={c.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: 'block', background: 'var(--surf2)', border: '1px solid var(--border)',
-            borderRadius: '10px', padding: '12px 14px', textDecoration: 'none',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '11.5px', fontWeight: 800, fontFamily: 'monospace', color: 'var(--accent)' }}>
-              {c.id}
-            </span>
-            <span style={{
-              fontSize: '10px', fontWeight: 700, padding: '1px 7px', borderRadius: '8px',
-              background: `${SEV_COLOR[c.severity] ?? '#6b7280'}22`,
-              color: SEV_COLOR[c.severity] ?? 'var(--text3)',
-            }}>
-              {c.severity} {c.score ? `· ${c.score}` : ''}
-            </span>
-            <span style={{ fontSize: '10px', color: 'var(--text3)', marginLeft: 'auto' }}>
-              {c.published ? new Date(c.published).toLocaleDateString() : ''}
-            </span>
-          </div>
-          <div style={{ fontSize: '12.5px', color: 'var(--text2)', lineHeight: 1.5 }}>
-            {c.description?.slice(0, 200)}{(c.description?.length ?? 0) > 200 ? '…' : ''}
-          </div>
-          {c.score > 0 && <CVSSBar score={c.score} severity={c.severity} />}
-        </a>
+        <CVECard key={c.id} cve={c} />
       ))}
     </div>
   )
 }
+
+/** Memoized individual CVE card — only re-renders when its specific CVE object changes. */
+const CVECard = memo(function CVECard({ cve: c }: { cve: CVE }) {
+  return (
+    <a
+      href={c.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: 'block', background: 'var(--surf2)', border: '1px solid var(--border)',
+        borderRadius: '10px', padding: '12px 14px', textDecoration: 'none',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '11.5px', fontWeight: 800, fontFamily: 'monospace', color: 'var(--accent)' }}>
+          {c.id}
+        </span>
+        <span style={{
+          fontSize: '10px', fontWeight: 700, padding: '1px 7px', borderRadius: '8px',
+          background: `${SEV_COLOR[c.severity] ?? '#6b7280'}22`,
+          color: SEV_COLOR[c.severity] ?? 'var(--text3)',
+        }}>
+          {c.severity} {c.score ? `· ${c.score}` : ''}
+        </span>
+        <span style={{ fontSize: '10px', color: 'var(--text3)', marginLeft: 'auto' }}>
+          {c.published ? new Date(c.published).toLocaleDateString() : ''}
+        </span>
+      </div>
+      <div style={{ fontSize: '12.5px', color: 'var(--text2)', lineHeight: 1.5 }}>
+        {c.description?.slice(0, 200)}{(c.description?.length ?? 0) > 200 ? '…' : ''}
+      </div>
+      {c.score > 0 && <CVSSBar score={c.score} severity={c.severity} />}
+    </a>
+  )
+})

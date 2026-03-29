@@ -1,13 +1,18 @@
 // ── api/earthquakes ─────────────────────────────────────────
 // Earthquake API: USGS seismic data feed with location and magnitude.
+// Cached for 5 minutes — USGS refreshes feeds approximately every 5 minutes.
 
 import { NextResponse } from 'next/server'
+import { createCache } from '@/lib/apiCache'
+
 // Merges two feeds:
 //   - significant_week: significant earthquakes in the past week
 //   - 4.5_day: all M4.5+ in the past day
 // Deduplicates by id, returns sorted by time descending.
 
 export const dynamic = 'force-dynamic'
+
+const cache = createCache<EarthquakeRecord[]>({ defaultTTL: 300_000 }) // 5 min
 
 interface USGSFeature {
   id: string
@@ -96,6 +101,15 @@ function extractEarthquakes(geojson: USGSGeoJSON): Map<string, EarthquakeRecord>
 }
 
 export async function GET() {
+  const CACHE_KEY = 'earthquakes'
+  const cached = cache.get(CACHE_KEY)
+  if (cached) {
+    return NextResponse.json(
+      { count: cached.length, earthquakes: cached },
+      { headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' } },
+    )
+  }
+
   try {
     const [significantRes, recentRes] = await Promise.allSettled([
       fetch(
@@ -146,10 +160,12 @@ export async function GET() {
       return tb - ta
     })
 
-    return NextResponse.json({
-      count: earthquakes.length,
-      earthquakes,
-    })
+    cache.set(CACHE_KEY, earthquakes)
+
+    return NextResponse.json(
+      { count: earthquakes.length, earthquakes },
+      { headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' } },
+    )
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error'
     return NextResponse.json(

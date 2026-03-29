@@ -3,9 +3,10 @@
 
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useStore } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
+import { buildDeltaSweep } from '@/lib/liveContext'
 
 export interface CVE {
   id:          string
@@ -36,12 +37,14 @@ function parseSeverity(metrics: any): { severity: CVE['severity']; score: number
 }
 
 export function useCVEs() {
-  const setCves       = useStore((s) => s.setCves)
-  const setCvesLoaded = useStore((s) => s.setCvesLoaded)
+  const setCves         = useStore((s) => s.setCves)
+  const setCvesLoaded   = useStore((s) => s.setCvesLoaded)
+  const addNotification = useStore((s) => s.addNotification)
 
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
   const [cves,    setLocalCves] = useState<CVE[]>([])
+  const prevCves = useRef<CVE[]>([])
 
   const fetchCVEs = useCallback(async () => {
     setLoading(true)
@@ -66,6 +69,25 @@ export function useCVEs() {
       })
 
       raw.sort((a, b) => (SEV_ORDER[a.severity] ?? 4) - (SEV_ORDER[b.severity] ?? 4))
+
+      // ── Delta sweep: fire threat notifications on CVE spikes ──────────────
+      if (prevCves.current.length > 0) {
+        const alerts = buildDeltaSweep(
+          { cves: prevCves.current },
+          { cves: raw },
+        )
+        alerts.forEach((a) =>
+          addNotification({
+            type:     'threat',
+            severity: a.severity,
+            title:    a.title,
+            message:  a.message,
+            source:   a.source,
+          }),
+        )
+      }
+      prevCves.current = raw
+
       setLocalCves(raw)
       setCves(raw)
     } catch {
@@ -74,7 +96,7 @@ export function useCVEs() {
       setLoading(false)
       setCvesLoaded(true) // mark done regardless of outcome
     }
-  }, [setCves, setCvesLoaded])
+  }, [setCves, setCvesLoaded, addNotification])
 
   return { fetchCVEs, cves, loading, error }
 }

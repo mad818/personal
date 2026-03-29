@@ -64,7 +64,34 @@ async function fetchRSS(url: string, src: string, cat: string): Promise<NewsItem
   }
 }
 
-/** GDELT artlist — free, no key; fills gaps when RSS feeds block or return empty. */
+/** Fetch a single GDELT query. Returns items silently on failure. */
+async function fetchSingleGDELT(q: string, cat: string): Promise<NewsItem[]> {
+  try {
+    const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(q)}&mode=artlist&timespan=24H&maxrecords=10&format=json`
+    const r = await fetch(url, {
+      headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; NexusBot/1.0)' },
+      signal: AbortSignal.timeout(8000),
+      next: { revalidate: 300 },
+    })
+    if (!r.ok) return []
+    const d = (await r.json()) as { articles?: Array<{ title?: string; url?: string; seendate?: string }> }
+    const items: NewsItem[] = []
+    for (const a of d?.articles ?? []) {
+      const title = clean(String(a.title ?? ''))
+      const link  = clean(String(a.url ?? ''))
+      const date  = String(a.seendate ?? '').trim()
+      if (title && link.startsWith('http')) {
+        items.push({ title, link, date, src: 'GDELT', cat })
+      }
+    }
+    return items
+  } catch {
+    return []
+  }
+}
+
+/** GDELT artlist — free, no key; fills gaps when RSS feeds block or return empty.
+ *  Runs all 4 category queries in parallel instead of sequentially. */
 async function fetchGDELTFallback(): Promise<NewsItem[]> {
   const queries: { q: string; cat: string }[] = [
     { q: 'bitcoin OR ethereum OR cryptocurrency OR blockchain', cat: 'crypto' },
@@ -72,30 +99,10 @@ async function fetchGDELTFallback(): Promise<NewsItem[]> {
     { q: '"stock market" OR earnings OR "federal reserve" OR inflation', cat: 'markets' },
     { q: 'diplomacy OR geopolitics OR united nations OR sanctions', cat: 'world' },
   ]
-  const out: NewsItem[] = []
-  for (const { q, cat } of queries) {
-    try {
-      const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(q)}&mode=artlist&timespan=24H&maxrecords=10&format=json`
-      const r = await fetch(url, {
-        headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; NexusBot/1.0)' },
-        signal: AbortSignal.timeout(8000),
-        next: { revalidate: 300 },
-      })
-      if (!r.ok) continue
-      const d = (await r.json()) as { articles?: Array<{ title?: string; url?: string; seendate?: string }> }
-      for (const a of d?.articles ?? []) {
-        const title = clean(String(a.title ?? ''))
-        const link = clean(String(a.url ?? ''))
-        const date = String(a.seendate ?? '').trim()
-        if (title && link.startsWith('http')) {
-          out.push({ title, link, date, src: 'GDELT', cat })
-        }
-      }
-    } catch {
-      /* next query */
-    }
-  }
-  return out
+  const results = await Promise.allSettled(
+    queries.map(({ q, cat }) => fetchSingleGDELT(q, cat)),
+  )
+  return results.flatMap((r) => r.status === 'fulfilled' ? r.value : [])
 }
 
 async function fetchCryptoCompare(): Promise<NewsItem[]> {

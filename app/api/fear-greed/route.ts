@@ -1,9 +1,13 @@
 // ── api/fear-greed ──────────────────────────────────────────
 // Fear & Greed index API: crypto market sentiment indicator.
+// Cached for 1 hour — the index only updates once per day.
 
 import { NextResponse } from 'next/server'
+import { createCache } from '@/lib/apiCache'
 
 export const dynamic = 'force-dynamic'
+
+const cache = createCache<FearGreedResponse>({ defaultTTL: 3_600_000 }) // 1 hour
 
 interface FearGreedEntry {
   value: number
@@ -38,6 +42,14 @@ function parseEntry(entry: AlternativeFNGEntry): FearGreedEntry {
 }
 
 export async function GET(): Promise<NextResponse> {
+  const CACHE_KEY = 'fear-greed'
+  const cached = cache.get(CACHE_KEY)
+  if (cached) {
+    return NextResponse.json(cached, {
+      headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },
+    })
+  }
+
   try {
     // Fetch current + history in parallel
     const [currentRes, historyRes] = await Promise.all([
@@ -72,8 +84,11 @@ export async function GET(): Promise<NextResponse> {
     const history = (historyData.data ?? []).map(parseEntry)
 
     const result: FearGreedResponse = { current, history }
+    cache.set(CACHE_KEY, result)
 
-    return NextResponse.json(result)
+    return NextResponse.json(result, {
+      headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },
+    })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
     return NextResponse.json(

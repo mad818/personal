@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { useStore } from '@/store/useStore'
+import type { Article } from '@/store/useStore'
 import { timeAgo } from '@/lib/helpers'
 
 // ── Bias scoring ──────────────────────────────────────────────────────────────
@@ -108,62 +109,79 @@ export default function NewsFeed() {
 
       {/* Article list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {visible.map((a) => {
-          const isSaved = savedIds.has(a.id)
-          const score   = biasScore(a.title + ' ' + (a.desc ?? ''))
-          return (
-            <div key={a.id} style={{
-              background: 'var(--surf2)',
-              border: `1px solid ${isSaved ? 'var(--accent)' : 'var(--border)'}`,
-              borderRadius: '10px', padding: '11px 13px',
-            }}>
-              {/* Meta row */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '7px', flexWrap: 'wrap' }}>
-                {a.src && (
-                  <span style={{ fontSize: '10px', color: 'var(--text2)', fontWeight: 700 }}>{a.src}</span>
-                )}
-                {a.cat && a.cat !== 'crypto' && (
-                  <span style={{
-                    fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '8px',
-                    background: 'var(--surf3)', color: 'var(--text3)',
-                  }}>
-                    {CAT_LABELS[a.cat] ?? a.cat}
-                  </span>
-                )}
-                <span style={{ fontSize: '10px', color: 'var(--text3)', marginLeft: 'auto' }}>
-                  {timeAgo(a.date)}
-                </span>
-                <button
-                  onClick={() => toggleSaveArticle(a)}
-                  title={isSaved ? 'Remove from Vault' : 'Save to Vault'}
-                  style={{
-                    background: 'transparent', border: 'none', cursor: 'pointer',
-                    fontSize: '13px', padding: '0 2px', lineHeight: 1,
-                    color: isSaved ? 'var(--accent)' : 'var(--text3)',
-                  }}
-                >
-                  {isSaved ? '🔖' : '☆'}
-                </button>
-              </div>
-
-              {/* Headline */}
-              <a href={a.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', lineHeight: 1.4, marginBottom: '8px' }}>
-                  {a.title}
-                </div>
-                {a.desc && (
-                  <div style={{ fontSize: '11.5px', color: 'var(--text2)', marginBottom: '8px', lineHeight: 1.5 }}>
-                    {a.desc.slice(0, 140)}{a.desc.length > 140 ? '…' : ''}
-                  </div>
-                )}
-              </a>
-
-              {/* Bias bar */}
-              <BiasBar score={score} />
-            </div>
-          )
-        })}
+        {visible.map((a) => (
+          <ArticleCard
+            key={a.id}
+            article={a}
+            isSaved={savedIds.has(a.id)}
+            onToggleSave={toggleSaveArticle}
+          />
+        ))}
       </div>
     </div>
   )
 }
+
+/** Memoized article card — only re-renders when its specific article or saved state changes. */
+const ArticleCard = memo(function ArticleCard({
+  article: a,
+  isSaved,
+  onToggleSave,
+}: {
+  article: Article
+  isSaved: boolean
+  onToggleSave: (a: Article) => void
+}) {
+  const score = biasScore(a.title + ' ' + (a.desc ?? ''))
+  return (
+    <div style={{
+      background: 'var(--surf2)',
+      border: `1px solid ${isSaved ? 'var(--accent)' : 'var(--border)'}`,
+      borderRadius: '10px', padding: '11px 13px',
+    }}>
+      {/* Meta row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '7px', flexWrap: 'wrap' }}>
+        {a.src && (
+          <span style={{ fontSize: '10px', color: 'var(--text2)', fontWeight: 700 }}>{a.src}</span>
+        )}
+        {a.cat && a.cat !== 'crypto' && (
+          <span style={{
+            fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '8px',
+            background: 'var(--surf3)', color: 'var(--text3)',
+          }}>
+            {CAT_LABELS[a.cat] ?? a.cat}
+          </span>
+        )}
+        <span style={{ fontSize: '10px', color: 'var(--text3)', marginLeft: 'auto' }}>
+          {timeAgo(a.date)}
+        </span>
+        <button
+          onClick={() => onToggleSave(a)}
+          title={isSaved ? 'Remove from Vault' : 'Save to Vault'}
+          style={{
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            fontSize: '13px', padding: '0 2px', lineHeight: 1,
+            color: isSaved ? 'var(--accent)' : 'var(--text3)',
+          }}
+        >
+          {isSaved ? '🔖' : '☆'}
+        </button>
+      </div>
+
+      {/* Headline */}
+      <a href={a.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', lineHeight: 1.4, marginBottom: '8px' }}>
+          {a.title}
+        </div>
+        {a.desc && (
+          <div style={{ fontSize: '11.5px', color: 'var(--text2)', marginBottom: '8px', lineHeight: 1.5 }}>
+            {a.desc.slice(0, 140)}{a.desc.length > 140 ? '…' : ''}
+          </div>
+        )}
+      </a>
+
+      {/* Bias bar */}
+      <BiasBar score={score} />
+    </div>
+  )
+})

@@ -229,25 +229,23 @@ export function buildLiveContext(state: LiveState): string {
       return sev === 'HIGH' || (score >= 7.0 && score < 9.0)
     })
 
+    // IDs only — no description text (saves ~40 tokens per critical CVE)
     let cveLine = `CVEs TODAY: ${cves.length} total`
-    if (critical.length > 0) cveLine += ` · ${critical.length} CRITICAL`
-    if (high.length > 0)     cveLine += ` · ${high.length} HIGH`
-
-    // First 2 critical IDs
     if (critical.length > 0) {
       const ids = critical.slice(0, 2).map(c => c.id).join(', ')
-      cveLine += ` (${ids}${critical.length > 2 ? ' …' : ''})`
+      cveLine += ` · ${critical.length} CRITICAL (${ids}${critical.length > 2 ? ' +more' : ''})`
     }
+    if (high.length > 0) cveLine += ` · ${high.length} HIGH`
     lines.push(cveLine)
   }
 
   // ── NEWS SIGNALS ───────────────────────────────────────────────────────────
   const articles = (state.articles ?? []) as ArticleEntry[]
   if (articles.length > 0) {
-    // Show up to 6 headlines
+    // Cap each headline at 80 chars to stay within token budget
     const headlines = articles
       .slice(0, 6)
-      .map(a => a.title)
+      .map(a => a.title.length > 80 ? a.title.slice(0, 77) + '…' : a.title)
       .join(' · ')
     lines.push(`NEWS (${articles.length} signals): ${headlines}`)
   }

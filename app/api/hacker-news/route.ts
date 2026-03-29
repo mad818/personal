@@ -97,12 +97,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .map((r) => r.value)
       .filter((s): s is HNStory => s !== null)
 
-    return NextResponse.json({
-      type,
-      stories,
-      count: stories.length,
-      timestamp: new Date().toISOString(),
-    })
+    return NextResponse.json(
+      { type, stories, count: stories.length, timestamp: new Date().toISOString() },
+      { headers: { 'Cache-Control': 'public, max-age=600, s-maxage=600' } },
+    )
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
     return NextResponse.json(

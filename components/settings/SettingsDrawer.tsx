@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useCallback, useEffect } from 'react'
+import { memo, useState, useCallback, useEffect } from 'react'
 import { useStore, DEFAULT_SETTINGS, Settings } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
 import RuntimeEvalTrend from '@/components/ui/RuntimeEvalTrend'
@@ -43,7 +43,11 @@ interface Props {
   onClose: () => void
 }
 
-export default function SettingsDrawer({ open, onClose }: Props) {
+// Wrapped in memo — settings rarely change so this prevents unnecessary re-renders
+// triggered by unrelated store writes (e.g. price updates every 60s).
+const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
+  // Narrow selector: subscribes only to the settings slice, not the full store.
+  // Zustand will only re-render this component when `settings` itself changes.
   const settings       = useStore((s) => s.settings)
   const updateSettings = useStore((s) => s.updateSettings)
 
@@ -380,4 +384,6 @@ export default function SettingsDrawer({ open, onClose }: Props) {
       </div>
     </>
   )
-}
+})
+
+export default SettingsDrawer

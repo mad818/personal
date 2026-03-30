@@ -1,5 +1,5 @@
 // ── recon/page ──────────────────────────────────────────────
-// RECON tab: full OSINT suite — lookups, HTTP audit, metadata, OPSEC.
+// RECON tab: full OSINT suite — lookups, passive DNS, HTTP audit, metadata, OPSEC.
 
 'use client'
 
@@ -7,17 +7,19 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 
 const LazyReconLookup      = dynamic(() => import('@/components/recon/ReconLookup'),      { ssr: false })
+const LazyPassiveDns       = dynamic(() => import('@/components/recon/PassiveDnsPanel'),  { ssr: false })
 const LazyOpsecPanel       = dynamic(() => import('@/components/recon/OpsecPanel'),       { ssr: false })
 const LazyHeadersAudit     = dynamic(() => import('@/components/recon/HeadersAudit'),     { ssr: false })
 const LazyMetadataExtractor = dynamic(() => import('@/components/recon/MetadataExtractor'), { ssr: false })
 
-type View = 'osint' | 'headers' | 'metadata' | 'opsec'
+type View = 'osint' | 'pdns' | 'headers' | 'metadata' | 'opsec'
 
 const VIEWS: { id: View; label: string; tip: string }[] = [
-  { id: 'osint',    label: '🔍 OSINT Lookup',     tip: 'Domain · IP · Email · Username · Hash' },
-  { id: 'headers',  label: '🛡 HTTP Headers',     tip: 'Security header audit' },
-  { id: 'metadata', label: '📎 Metadata',         tip: 'EXIF extraction — local only' },
-  { id: 'opsec',    label: '🔒 OPSEC Check',      tip: 'WebRTC · fingerprint · HTTPS' },
+  { id: 'osint',    label: '🔍 OSINT Lookup',   tip: 'Domain · IP · Email · Username · Hash' },
+  { id: 'pdns',     label: '📡 Passive DNS',     tip: 'Historical records · reverse IP lookup' },
+  { id: 'headers',  label: '🛡 HTTP Headers',    tip: 'Security header audit' },
+  { id: 'metadata', label: '📎 Metadata',        tip: 'EXIF extraction — local only' },
+  { id: 'opsec',    label: '🔒 OPSEC Check',     tip: 'WebRTC · fingerprint · HTTPS' },
 ]
 
 function Card({ children }: { children: React.ReactNode }) {
@@ -65,6 +67,7 @@ export default function ReconPage() {
       {/* Panels */}
       <Card>
         {view === 'osint'    && <LazyReconLookup />}
+        {view === 'pdns'     && <LazyPassiveDns />}
         {view === 'headers'  && <LazyHeadersAudit />}
         {view === 'metadata' && <LazyMetadataExtractor />}
         {view === 'opsec'    && <LazyOpsecPanel />}

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useStore } from '@/store/useStore'
@@ -10,7 +10,7 @@ import {
   OPSMAP_QUAKE_AUTO_REFRESH_MS,
 } from '@/lib/opsMapFreeTier'
 
-// ── Quake colours by magnitude ─────────────────────────────────────────────
+// â”€â”€ Quake colours by magnitude â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function quakeColor(mag: number): string {
   if (mag >= 6)  return '#ef4444'
   if (mag >= 5)  return '#f59e0b'
@@ -82,7 +82,7 @@ async function fetchFlights(): Promise<Flight[]> {
   }
 }
 
-/** Rotated plane marker (true track ° from north) — direction + refresh cadence sell “live” vs a static dot */
+/** Rotated plane marker (true track Â° from north) â€” direction + refresh cadence sell â€œliveâ€ vs a static dot */
 function flightDivIcon(L: { divIcon: (o: Record<string, unknown>) => unknown }, f: Flight) {
   const heading = Number.isFinite(f.hdg) ? f.hdg : 0
   const sq = f.squawk?.trim()
@@ -103,7 +103,7 @@ function flightDivIcon(L: { divIcon: (o: Record<string, unknown>) => unknown }, 
 async function fetchFires(firmsKey: string): Promise<Fire[]> {
   if (!firmsKey) return []
   try {
-    // FIRMS CSV → parse manually (lightweight)
+    // FIRMS CSV â†’ parse manually (lightweight)
     const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${firmsKey}/MODIS_NRT/world/1`
     const r = await fetch(url, { signal: AbortSignal.timeout(12000) })
     const txt = await r.text()
@@ -131,14 +131,49 @@ async function fetchGeoDepData(): Promise<GeoDepDetection[]> {
   } catch { return [] }
 }
 
-// ── Layer types ───────────────────────────────────────────────────────────
+// â”€â”€ Layer types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€ Hex density helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/** Six flat-top hex vertices around (lat, lng) with half-width r degrees. */
+function hexVertices(lat: number, lng: number, r: number): [number, number][] {
+  return Array.from({ length: 6 }, (_, i) => {
+    const angle = (Math.PI / 3) * i
+    return [lat + r * Math.sin(angle), lng + r * Math.cos(angle)] as [number, number]
+  })
+}
+
+/** Build a Leaflet layerGroup of coloured hex polygons sized by event density. */
+function buildDensityLayer(L: any, points: { lat: number; lng: number }[]): any { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const CELL = 5 // ~500 km grid cells
+  const bins = new Map<string, number>()
+  points.forEach(p => {
+    const cy = Math.round(p.lat / CELL) * CELL
+    const cx = Math.round(p.lng / CELL) * CELL
+    bins.set(`${cy},${cx}`, (bins.get(`${cy},${cx}`) ?? 0) + 1)
+  })
+  const maxCount = Math.max(...Array.from(bins.values()), 1)
+  const group = L.layerGroup()
+  bins.forEach((count, key) => {
+    const [cy, cx] = key.split(',').map(Number)
+    const t = count / maxCount
+    const color = t > 0.7 ? '#ef4444' : t > 0.4 ? '#f59e0b' : t > 0.15 ? '#10b981' : '#60a5fa'
+    L.polygon(hexVertices(cy, cx, CELL * 0.52), {
+      color, fillColor: color,
+      fillOpacity: Math.min(0.12 + t * 0.45, 0.6),
+      weight: 0.5, opacity: 0.3,
+    })
+      .bindPopup(`${count} event${count !== 1 ? 's' : ''} in this cell`)
+      .addTo(group)
+  })
+  return group
+}
+
 type LayerKey = 'quakes' | 'flights' | 'fires' | 'geodep'
 
 const LAYER_META: Record<LayerKey, { label: string; icon: string; needsKey?: string; serviceRequired?: boolean }> = {
-  quakes:  { label: 'Quakes',  icon: '🔴' },
-  flights: { label: 'Flights', icon: '✈️' },
-  fires:   { label: 'Fires',   icon: '🔥', needsKey: 'firmsKey' },
-  geodep:  { label: 'AI Scan', icon: '🛰️', serviceRequired: true },
+  quakes:  { label: 'Quakes',  icon: 'ðŸ”´' },
+  flights: { label: 'Flights', icon: 'âœˆï¸' },
+  fires:   { label: 'Fires',   icon: 'ðŸ”¥', needsKey: 'firmsKey' },
+  geodep:  { label: 'AI Scan', icon: 'ðŸ›°ï¸', serviceRequired: true },
 }
 
 export default function OpsMap() {
@@ -153,6 +188,7 @@ export default function OpsMap() {
   const [mapReady, setMapReady] = useState(false)
   /** Auto-refresh only free APIs (USGS / OpenSky / FIRMS) at conservative intervals. */
   const [freeDataAutoRefresh, setFreeDataAutoRefresh] = useState(OPSMAP_FREE_AUTO_REFRESH_DEFAULT)
+  const [showDensity, setShowDensity] = useState(false)
 
   const toggleLayer = useCallback(async (key: LayerKey) => {
     const map = mapRef.current
@@ -185,7 +221,7 @@ export default function OpsMap() {
       const group = L.layerGroup()
       flights.forEach((f) => {
         const sq = f.squawk?.trim()
-        const tip = `<b>${(f.callsign || f.icao || '?').trim()}</b>${sq ? `<br>Squawk ${sq}` : ''}<br>Alt ${Math.round(f.alt)} m · ${Math.round(f.vel * 3.6)} km/h · Hdg ${Math.round(f.hdg)}°`
+        const tip = `<b>${(f.callsign || f.icao || '?').trim()}</b>${sq ? `<br>Squawk ${sq}` : ''}<br>Alt ${Math.round(f.alt)} m Â· ${Math.round(f.vel * 3.6)} km/h Â· Hdg ${Math.round(f.hdg)}Â°`
         L.marker([f.lat, f.lng], {
           icon: flightDivIcon(L, f) as import('leaflet').DivIcon,
         })
@@ -244,7 +280,7 @@ export default function OpsMap() {
           radius: 3, color: '#f97316', fillColor: '#f97316', fillOpacity: 0.6, weight: 0,
         })
           .addTo(group)
-          .bindPopup(`<b>🔥 Fire</b><br>Brightness: ${f.brightness}K<br>${f.acq_date}`)
+          .bindPopup(`<b>ðŸ”¥ Fire</b><br>Brightness: ${f.brightness}K<br>${f.acq_date}`)
       })
       if (layerRefs.current.fires) {
         map.removeLayer(layerRefs.current.fires)
@@ -270,7 +306,7 @@ export default function OpsMap() {
           radius: 6, color: '#a78bfa', fillColor: '#7c3aed', fillOpacity: 0.7, weight: 1.5,
         })
           .addTo(group)
-          .bindPopup(`<b>🛰️ ${d.label}</b><br>Confidence: ${Math.round(d.confidence * 100)}%`)
+          .bindPopup(`<b>ðŸ›°ï¸ ${d.label}</b><br>Confidence: ${Math.round(d.confidence * 100)}%`)
       })
       if (layerRefs.current.geodep) {
         map.removeLayer(layerRefs.current.geodep)
@@ -281,6 +317,33 @@ export default function OpsMap() {
       setLayerLoading((p) => ({ ...p, geodep: false }))
     }
   }, [activeLayers])
+
+  /** Collect lat/lng from all visible Leaflet layer groups and repaint density hexes. */
+  const computeAndPaintDensity = useCallback(async () => {
+    const map = mapRef.current
+    if (!map) return
+    const L = await import('leaflet')
+    const points: { lat: number; lng: number }[] = []
+    ;(['quakes', 'fires', 'flights'] as const).forEach(key => {
+      const group = layerRefs.current[key]
+      if (!group) return
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      group.getLayers().forEach((layer: any) => {
+        if (typeof layer.getLatLng === 'function') {
+          const ll = layer.getLatLng()
+          points.push({ lat: ll.lat, lng: ll.lng })
+        }
+      })
+    })
+    if (layerRefs.current.density) {
+      map.removeLayer(layerRefs.current.density)
+      delete layerRefs.current.density
+    }
+    if (!points.length) return
+    const densityGroup = buildDensityLayer(L, points)
+    densityGroup.addTo(map)
+    layerRefs.current.density = densityGroup
+  }, [])
 
   // Load quakes + fires when activeLayers changes (flights handled separately)
   useEffect(() => {
@@ -315,7 +378,7 @@ export default function OpsMap() {
               radius: 3, color: '#f97316', fillColor: '#f97316', fillOpacity: 0.6, weight: 0,
             })
               .addTo(group)
-              .bindPopup(`<b>🔥 Fire</b><br>Brightness: ${f.brightness}K<br>${f.acq_date}`)
+              .bindPopup(`<b>ðŸ”¥ Fire</b><br>Brightness: ${f.brightness}K<br>${f.acq_date}`)
           })
           group.addTo(map)
           layerRefs.current[key] = group
@@ -327,7 +390,7 @@ export default function OpsMap() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeLayers, firmsKey, mapReady])
 
-  // Inject Leaflet CSS via useEffect — <link> in JSX is unreliable in Next.js
+  // Inject Leaflet CSS via useEffect â€” <link> in JSX is unreliable in Next.js
   useEffect(() => {
     const id = 'leaflet-css'
     if (!document.getElementById(id)) {
@@ -360,7 +423,7 @@ export default function OpsMap() {
     }
   }, [activeLayers, mapReady, paintFlightsLayer])
 
-  // Geodep: load once when layer turns on — no auto-refresh (expensive ML call, manual only)
+  // Geodep: load once when layer turns on â€” no auto-refresh (expensive ML call, manual only)
   useEffect(() => {
     if (!mapReady || !activeLayers.has('geodep')) return
     void refreshGeodep()
@@ -372,6 +435,20 @@ export default function OpsMap() {
       }
     }
   }, [activeLayers, mapReady, refreshGeodep])
+
+  // Density overlay: repaint whenever toggled on or active layers change
+  useEffect(() => {
+    if (!mapReady) return
+    if (!showDensity) {
+      const map = mapRef.current
+      if (map && layerRefs.current.density) {
+        map.removeLayer(layerRefs.current.density)
+        delete layerRefs.current.density
+      }
+      return
+    }
+    void computeAndPaintDensity()
+  }, [showDensity, activeLayers, mapReady, computeAndPaintDensity])
 
   // Auto-refresh active free layers only (polite cadence; toggle off anytime)
   useEffect(() => {
@@ -457,7 +534,7 @@ export default function OpsMap() {
           fontSize: '11px', fontWeight: 700, color: 'var(--text3)',
           textTransform: 'uppercase', letterSpacing: '.5px',
         }}>
-          🌍 Live Map
+          ðŸŒ Live Map
         </span>
 
         {(Object.keys(LAYER_META) as LayerKey[]).map((key) => {
@@ -465,7 +542,7 @@ export default function OpsMap() {
           const active  = activeLayers.has(key)
           const loading = layerLoading[key]
           const locked  = meta.needsKey === 'firmsKey' && !firmsKey
-          const svcHint = meta.serviceRequired ? 'Requires local GeoDeep AI service — see docs/deployment/geodep.md' : undefined
+          const svcHint = meta.serviceRequired ? 'Requires local GeoDeep AI service â€” see docs/deployment/geodep.md' : undefined
           return (
             <button
               key={key}
@@ -482,13 +559,13 @@ export default function OpsMap() {
               }}
             >
               <span style={{ fontSize: '12px' }}>{meta.icon}</span>
-              {loading ? '…' : meta.label}
+              {loading ? 'â€¦' : meta.label}
             </button>
           )
         })}
       </div>
 
-      {/* Manual refresh — free APIs only; you choose when to hit the network */}
+      {/* Manual refresh â€” free APIs only; you choose when to hit the network */}
       {(activeLayers.has('quakes') || activeLayers.has('flights') || activeLayers.has('fires') || activeLayers.has('geodep')) && (
         <div
           style={{
@@ -540,7 +617,7 @@ export default function OpsMap() {
                 cursor: layerLoading.quakes ? 'wait' : 'pointer',
               }}
             >
-              {layerLoading.quakes ? '…' : '↻ Refresh quakes'}
+              {layerLoading.quakes ? 'â€¦' : 'â†» Refresh quakes'}
             </button>
           )}
           {activeLayers.has('flights') && (
@@ -561,7 +638,7 @@ export default function OpsMap() {
                 cursor: layerLoading.flights ? 'wait' : 'pointer',
               }}
             >
-              {layerLoading.flights ? '…' : '↻ Refresh flights'}
+              {layerLoading.flights ? 'â€¦' : 'â†» Refresh flights'}
             </button>
           )}
           {activeLayers.has('fires') && firmsKey && (
@@ -582,7 +659,7 @@ export default function OpsMap() {
                 cursor: layerLoading.fires ? 'wait' : 'pointer',
               }}
             >
-              {layerLoading.fires ? '…' : '↻ Refresh fires'}
+              {layerLoading.fires ? 'â€¦' : 'â†» Refresh fires'}
             </button>
           )}
           {activeLayers.has('geodep') && (
@@ -603,21 +680,21 @@ export default function OpsMap() {
                 cursor: layerLoading.geodep ? 'wait' : 'pointer',
               }}
             >
-              {layerLoading.geodep ? '…' : '↻ Run AI scan'}
+              {layerLoading.geodep ? 'â€¦' : 'â†» Run AI scan'}
             </button>
           )}
         </div>
       )}
 
-      {/* Legend — any active layer */}
+      {/* Legend â€” any active layer */}
       {(activeLayers.has('quakes') || activeLayers.has('flights') || activeLayers.has('fires') || activeLayers.has('geodep')) && (
         <div style={{ display: 'flex', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
           {activeLayers.has('quakes') &&
             [
               { color: '#ef4444', label: 'M6+' },
-              { color: '#f59e0b', label: 'M5–6' },
-              { color: '#a78bfa', label: 'M4–5' },
-              { color: '#6875a0', label: 'M2.5–4' },
+              { color: '#f59e0b', label: 'M5â€“6' },
+              { color: '#a78bfa', label: 'M4â€“5' },
+              { color: '#6875a0', label: 'M2.5â€“4' },
             ].map((l) => (
               <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: l.color, display: 'inline-block' }} />
@@ -626,11 +703,11 @@ export default function OpsMap() {
             ))}
           {activeLayers.has('flights') && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
-              <span style={{ fontSize: '11px' }} title="Free OpenSky — icon points forward (heading).">
-                ✈️
+              <span style={{ fontSize: '11px' }} title="Free OpenSky â€” icon points forward (heading).">
+                âœˆï¸
               </span>
-              Flights — heading · free data
-              {freeDataAutoRefresh ? ` · auto ~${Math.round(OPSMAP_FLIGHT_AUTO_REFRESH_MS / 60_000)} min` : ' · manual only'}
+              Flights â€” heading Â· free data
+              {freeDataAutoRefresh ? ` Â· auto ~${Math.round(OPSMAP_FLIGHT_AUTO_REFRESH_MS / 60_000)} min` : ' Â· manual only'}
             </span>
           )}
           {activeLayers.has('fires') && (
@@ -638,7 +715,7 @@ export default function OpsMap() {
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f97316', display: 'inline-block' }} />
               Fire hotspots
               {freeDataAutoRefresh && firmsKey
-                ? ` · auto ~${Math.round(OPSMAP_FIRE_AUTO_REFRESH_MS / 60_000)} min`
+                ? ` Â· auto ~${Math.round(OPSMAP_FIRE_AUTO_REFRESH_MS / 60_000)} min`
                 : ''}
             </span>
           )}
@@ -650,7 +727,13 @@ export default function OpsMap() {
           {activeLayers.has('geodep') && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7c3aed', display: 'inline-block' }} />
-              AI detections — local service · manual refresh only
+              AI detections â€” local service Â· manual refresh only
+            </span>
+          )}
+          {showDensity && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#10b981', display: 'inline-block' }} />
+              Density overlay
             </span>
           )}
         </div>
@@ -679,14 +762,16 @@ export default function OpsMap() {
 
       {!firmsKey && (
         <div style={{ marginTop: '6px', fontSize: '10px', color: 'var(--text3)' }}>
-          🔥 Add a NASA FIRMS key in Settings to enable the fire hotspot layer.
+          ðŸ”¥ Add a NASA FIRMS key in Settings to enable the fire hotspot layer.
         </div>
       )}
       {activeLayers.has('geodep') && (
         <div style={{ marginTop: '6px', fontSize: '10px', color: 'var(--text3)' }}>
-          🛰️ AI Scan uses a local GeoDeep service. See <code style={{ fontFamily: 'monospace', fontSize: '9px' }}>docs/deployment/geodep.md</code> to set it up.
+          ðŸ›°ï¸ AI Scan uses a local GeoDeep service. See <code style={{ fontFamily: 'monospace', fontSize: '9px' }}>docs/deployment/geodep.md</code> to set it up.
         </div>
       )}
     </div>
   )
 }
+
+

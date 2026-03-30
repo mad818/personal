@@ -77,12 +77,14 @@ RECON is the primary assimilation surface for the hackingtool taxonomy. All pane
 | Have I Been Pwned | haveibeenpwned.com v3 | ✅ Live (BYOK) |
 | VirusTotal | virustotal.com v3 | ✅ Live (BYOK) |
 | Shodan | shodan.io | ✅ Live (BYOK) |
-| Subdomain Enumeration | hackertarget.com (free tier) + crt.sh | 🔜 Next |
-| Email Reputation | emailrep.io (free tier) | 🔜 Next |
-| Username OSINT | GitHub API + Gravatar (free) | 🔜 Next |
-| DNS Security (DMARC/SPF/DKIM) | dns.google TXT lookups | 🔜 Next |
-| HTTP Headers / Security Audit | headers-api via serverless proxy | 🔜 Planned |
-| Metadata Extraction | client-side EXIF (no upload needed) | 🔜 Planned |
+| Subdomain Enumeration | hackertarget.com (free tier) + crt.sh | ✅ Live |
+| Email Reputation | emailrep.io (free tier) | ✅ Live |
+| Username OSINT | GitHub API + Gravatar (free) | ✅ Live |
+| DNS Security (DMARC/SPF/DKIM) | dns.google TXT lookups | ✅ Live |
+| HTTP Headers / Security Audit | headers-api via serverless proxy | ✅ Live |
+| Metadata Extraction | client-side EXIF (no upload needed) | ✅ Live |
+| Passive DNS / Historical Records | CIRCL pDNS (free) + HackerTarget reverse IP | ✅ Live |
+| OPS Map Hex Density Overlay | client-side grid bins → Leaflet hex polygons | ✅ Live |
 
 ---
 

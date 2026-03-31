@@ -131,4 +131,14 @@ Agents and IDE sessions should close with this structure in their final message:
 ### VERIFICATION
 - [ ] tsc --noEmit passes
 - [ ] npm run verify passes
-- [ ] Patched sections re-read and confirmed 
+- [ ] Patched sections re-read and confirmed correct
+
+### KNOWN ISSUES
+- [anything left broken or incomplete — none if clean]
+
+### NEXT
+- [suggested next task] — owner: [agent or Mario]
+```
+
+This template feeds `docs/CLAUDE_HANDOFF.md` via `npm run handoff:write`.
+If nothing broke and verify is green, state that explicitly — "No known issues."

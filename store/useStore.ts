@@ -96,6 +96,26 @@ export interface AgentRuntime {
   contextCompacted: boolean
 }
 
+export interface AgentToolTrace {
+  tool: string
+  risk: 'tier0' | 'tier1' | 'tier2'
+  input: string
+  output?: string
+}
+
+export interface AgentRunArtifact {
+  runId: string
+  runtimeEngine: 'nexus' | 'claudeCode'
+  startedAt: number
+  finishedAt: number
+  userMessage: string
+  finalAnswer: string
+  verificationSummary: string
+  contextChars: number
+  contextCompacted: boolean
+  toolTraces: AgentToolTrace[]
+}
+
 // ── Activity log ──────────────────────────────────────────────────────────────
 export type LogEntryType = 'articles' | 'prices' | 'cves' | 'system' | 'agent' | 'world' | 'otx'
 
@@ -139,6 +159,8 @@ export const DEFAULT_SETTINGS = {
   localModel:        DEFAULT_LOCAL_MODEL,
   localApiKey:       '',
   useLocalReasoning: true,   // Use local deepseek-r1:14b for Think mode
+  // Runtime engine rollout flag: "nexus" (current) | "claudeCode" (assimilation path)
+  agentRuntimeEngine: 'nexus' as 'nexus' | 'claudeCode',
   agentHighRiskWritesRequireApproval: true,
   // Data APIs
   cgKey:         '',
@@ -356,6 +378,8 @@ interface NexusState {
   beginAgentRun:     (runId: string) => void
   markAgentPhase:    (phase: OperationalPhase) => void
   finishAgentRun:    (patch: Partial<Pick<AgentRuntime, 'status' | 'failureCause' | 'verification' | 'contextChars' | 'contextCompacted'>>) => void
+  agentRunHistory:    AgentRunArtifact[]
+  addAgentRunArtifact:(artifact: AgentRunArtifact) => void
 
   // Office chat history (in-session, survives tab switches)
   officeMessages:      OfficeChatMessage[]
@@ -632,6 +656,11 @@ export const useStore = create<NexusState>()(
             finishedAt: Date.now(),
             currentPhase: 'done',
           },
+        })),
+      agentRunHistory: [],
+      addAgentRunArtifact: (artifact) =>
+        set((s) => ({
+          agentRunHistory: [artifact, ...s.agentRunHistory].slice(0, 40),
         })),
 
       // Office chat history

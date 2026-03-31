@@ -6,7 +6,7 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 ### Git (remote)
 
 - **origin:** `https://github.com/mad818/personal.git`
-- **Branch:** `main` — [browse tree](https://github.com/mad818/personal/tree/main) · [commit history](https://github.com/mad818/personal/commits/main)
+- **Branch:** `refactor/secure-typing-format` — [browse tree](https://github.com/mad818/personal/tree/refactor%2Fsecure-typing-format) · [commit history](https://github.com/mad818/personal/commits/refactor%2Fsecure-typing-format)
 
 ### Project purpose
 

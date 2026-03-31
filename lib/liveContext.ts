@@ -17,258 +17,331 @@
 //   const liveBlock = buildLiveContext(useStore.getState())
 //   const enrichedPrompt = systemPrompt + liveBlock
 
-import type { AgentStats } from '@/store/useStore'
+import type { AgentStats } from "@/store/useStore";
 
 // Minimal shape of the store state that buildLiveContext needs.
 // Avoids depending on a non-exported AppState type alias.
 interface LiveState {
-  prices?:    Record<string, unknown>
-  signals?:   { fg?: unknown }
-  worldRisk?: number
-  cves?:      unknown[]
-  articles?:  unknown[]
-  agentStats?: Record<string, AgentStats>
+  prices?: Record<string, unknown>;
+  signals?: { fg?: unknown };
+  worldRisk?: number;
+  cves?: unknown[];
+  articles?: unknown[];
+  agentStats?: Record<string, AgentStats>;
 }
 
 // Shape of a price entry from S.prices
 interface PriceEntry {
-  price: number
-  chg:   number
-  sym?:  string
-  mcap?: number
-  vol?:  number
+  price: number;
+  chg: number;
+  sym?: string;
+  mcap?: number;
+  vol?: number;
 }
 
 // Shape of a CVE entry from S.cves
 interface CveEntry {
-  id:          string
-  description?: string
-  summary?:    string
-  severity?:   string
-  cvssScore?:  number
-  score?:      number
+  id: string;
+  description?: string;
+  summary?: string;
+  severity?: string;
+  cvssScore?: number;
+  score?: number;
 }
 
 // Shape of an article from S.articles
 interface ArticleEntry {
-  title:  string
-  source?: string
-  bias?:  string
+  title: string;
+  source?: string;
+  bias?: string;
 }
 
 interface LiveContextBuildOptions {
-  maxChars?: number
+  maxChars?: number;
 }
 
 export interface LiveContextReport {
-  chars: number
-  compacted: boolean
-  maxChars: number
-  lineCount: number
+  chars: number;
+  compacted: boolean;
+  maxChars: number;
+  lineCount: number;
 }
 
 export interface LiveContextBundle {
-  context: string
-  report: LiveContextReport
+  context: string;
+  report: LiveContextReport;
 }
 
 function compactToBudget(text: string, maxChars: number): LiveContextBundle {
   if (!text) {
     return {
-      context: '',
+      context: "",
       report: { chars: 0, compacted: false, maxChars, lineCount: 0 },
-    }
+    };
   }
   if (text.length <= maxChars) {
     return {
       context: text,
-      report: { chars: text.length, compacted: false, maxChars, lineCount: text.split('\n').length },
-    }
+      report: {
+        chars: text.length,
+        compacted: false,
+        maxChars,
+        lineCount: text.split("\n").length,
+      },
+    };
   }
-  const clipped = `${text.slice(0, Math.max(0, maxChars - 64)).trimEnd()}\n[CONTEXT COMPACTED TO FIT TOKEN BUDGET]\n`
+  const clipped = `${text.slice(0, Math.max(0, maxChars - 64)).trimEnd()}\n[CONTEXT COMPACTED TO FIT TOKEN BUDGET]\n`;
   return {
     context: clipped,
-    report: { chars: clipped.length, compacted: true, maxChars, lineCount: clipped.split('\n').length },
-  }
+    report: {
+      chars: clipped.length,
+      compacted: true,
+      maxChars,
+      lineCount: clipped.split("\n").length,
+    },
+  };
 }
 
 // ── Agent relevance map — which sections each agent cares about ────────────────
 // Prunes live context to signal-relevant sections per specialist.
 // JANSKY/ORBIT always receive the full context (orchestrators need everything).
 const AGENT_SECTIONS: Record<string, Set<string>> = {
-  flux:   new Set(['market', 'sentiment', 'news']),
-  cipher: new Set(['cves', 'news']),
-  nova:   new Set(['news', 'worldRisk']),
-  orbit:  new Set(['market', 'sentiment', 'worldRisk', 'cves', 'news', 'session']),
-  jansky: new Set(['market', 'sentiment', 'worldRisk', 'cves', 'news', 'session']),
-}
+  flux: new Set(["market", "sentiment", "news"]),
+  cipher: new Set(["cves", "news"]),
+  nova: new Set(["news", "worldRisk"]),
+  orbit: new Set([
+    "market",
+    "sentiment",
+    "worldRisk",
+    "cves",
+    "news",
+    "session",
+  ]),
+  jansky: new Set([
+    "market",
+    "sentiment",
+    "worldRisk",
+    "cves",
+    "news",
+    "session",
+  ]),
+};
 
 // Builds a context block filtered to what the given agent actually needs.
 // Falls back to the full context for unknown agent IDs.
-export function buildFilteredLiveContext(state: LiveState, agentId: string): string {
-  const allowed = AGENT_SECTIONS[agentId.toLowerCase()] ?? null
+export function buildFilteredLiveContext(
+  state: LiveState,
+  agentId: string,
+): string {
+  const allowed = AGENT_SECTIONS[agentId.toLowerCase()] ?? null;
   // If no filter defined, return full context
-  if (!allowed) return buildLiveContext(state)
+  if (!allowed) return buildLiveContext(state);
 
-  const prices = state.prices as Record<string, PriceEntry>
-  const fg     = state.signals?.fg as { value: number | string; label: string } | undefined
-  const ts     = new Date().toISOString()
-  const lines: string[] = []
+  const prices = state.prices as Record<string, PriceEntry>;
+  const fg = state.signals?.fg as
+    | { value: number | string; label: string }
+    | undefined;
+  const ts = new Date().toISOString();
+  const lines: string[] = [];
 
-  if (allowed.has('market')) {
-    const watchCoins = ['bitcoin', 'ethereum', 'solana', 'binancecoin']
-    const parts: string[] = []
+  if (allowed.has("market")) {
+    const watchCoins = ["bitcoin", "ethereum", "solana", "binancecoin"];
+    const parts: string[] = [];
     for (const id of watchCoins) {
-      const p = prices[id]; if (!p) continue
-      const sym = p.sym ?? id.slice(0, 3).toUpperCase()
-      const dir = p.chg >= 0 ? '+' : ''
-      parts.push(`${sym} $${p.price < 1 ? p.price.toFixed(4) : p.price.toLocaleString('en-US', { maximumFractionDigits: 0 })} (${dir}${p.chg.toFixed(2)}%)`)
+      const p = prices[id];
+      if (!p) continue;
+      const sym = p.sym ?? id.slice(0, 3).toUpperCase();
+      const dir = p.chg >= 0 ? "+" : "";
+      parts.push(
+        `${sym} $${p.price < 1 ? p.price.toFixed(4) : p.price.toLocaleString("en-US", { maximumFractionDigits: 0 })} (${dir}${p.chg.toFixed(2)}%)`,
+      );
     }
-    if (parts.length) lines.push(`MARKET: ${parts.join(' · ')}`)
+    if (parts.length) lines.push(`MARKET: ${parts.join(" · ")}`);
   }
 
-  if (allowed.has('sentiment') && fg) {
-    const fgVal = Number(fg.value)
-    lines.push(`SENTIMENT: Fear & Greed ${fgVal} — ${fg.label?.toUpperCase() ?? ''}`)
+  if (allowed.has("sentiment") && fg) {
+    const fgVal = Number(fg.value);
+    lines.push(
+      `SENTIMENT: Fear & Greed ${fgVal} — ${fg.label?.toUpperCase() ?? ""}`,
+    );
   }
 
-  if (allowed.has('worldRisk')) {
-    const wr = state.worldRisk ?? 0
+  if (allowed.has("worldRisk")) {
+    const wr = state.worldRisk ?? 0;
     if (wr > 0) {
-      const label = wr > 70 ? 'HIGH' : wr > 40 ? 'MEDIUM' : 'LOW'
-      lines.push(`WORLD RISK: ${wr}/100 (${label})`)
+      const label = wr > 70 ? "HIGH" : wr > 40 ? "MEDIUM" : "LOW";
+      lines.push(`WORLD RISK: ${wr}/100 (${label})`);
     }
   }
 
-  if (allowed.has('cves')) {
-    const cves = (state.cves ?? []) as CveEntry[]
+  if (allowed.has("cves")) {
+    const cves = (state.cves ?? []) as CveEntry[];
     if (cves.length > 0) {
-      const critical = cves.filter(c => {
-        const sev = (c.severity ?? '').toUpperCase()
-        const score = c.cvssScore ?? c.score ?? 0
-        return sev === 'CRITICAL' || score >= 9.0
-      })
-      let line = `CVEs TODAY: ${cves.length} total`
+      const critical = cves.filter((c) => {
+        const sev = (c.severity ?? "").toUpperCase();
+        const score = c.cvssScore ?? c.score ?? 0;
+        return sev === "CRITICAL" || score >= 9.0;
+      });
+      let line = `CVEs TODAY: ${cves.length} total`;
       if (critical.length) {
-        line += ` · ${critical.length} CRITICAL (${critical.slice(0, 2).map(c => c.id).join(', ')}${critical.length > 2 ? ' …' : ''})`
+        line += ` · ${critical.length} CRITICAL (${critical
+          .slice(0, 2)
+          .map((c) => c.id)
+          .join(", ")}${critical.length > 2 ? " …" : ""})`;
       }
-      lines.push(line)
+      lines.push(line);
     }
   }
 
-  if (allowed.has('news')) {
-    const articles = (state.articles ?? []) as ArticleEntry[]
+  if (allowed.has("news")) {
+    const articles = (state.articles ?? []) as ArticleEntry[];
     if (articles.length > 0) {
-      const headlines = articles.slice(0, 6).map(a => a.title).join(' · ')
-      lines.push(`NEWS (${articles.length} signals): ${headlines}`)
+      const headlines = articles
+        .slice(0, 6)
+        .map((a) => a.title)
+        .join(" · ");
+      lines.push(`NEWS (${articles.length} signals): ${headlines}`);
     }
   }
 
-  if (allowed.has('session')) {
-    const agentStats = state.agentStats ?? {}
-    const total = Object.values(agentStats).reduce<number>((s, a) => s + (a.totalTasks ?? 0), 0)
-    if (total > 0) lines.push(`SESSION: ${total} tasks across ${Object.keys(agentStats).length} agents`)
+  if (allowed.has("session")) {
+    const agentStats = state.agentStats ?? {};
+    const total = Object.values(agentStats).reduce<number>(
+      (s, a) => s + (a.totalTasks ?? 0),
+      0,
+    );
+    if (total > 0)
+      lines.push(
+        `SESSION: ${total} tasks across ${Object.keys(agentStats).length} agents`,
+      );
   }
 
-  lines.push(`DATA FRESHNESS: ${ts.slice(11, 19)} UTC`)
-  if (!lines.length) return ''
-  return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join('\n')}\n[END LIVE INTEL]\n`
+  lines.push(`DATA FRESHNESS: ${ts.slice(11, 19)} UTC`);
+  if (!lines.length) return "";
+  return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join("\n")}\n[END LIVE INTEL]\n`;
 }
 
 export function buildLiveContext(state: LiveState): string {
-  const lines: string[] = []
-  const ts = new Date().toISOString()
+  const lines: string[] = [];
+  const ts = new Date().toISOString();
 
   // ── MARKET DATA ────────────────────────────────────────────────────────────
-  const prices = state.prices as Record<string, PriceEntry>
-  const fg     = state.signals?.fg as { value: number | string; label: string } | undefined
+  const prices = state.prices as Record<string, PriceEntry>;
+  const fg = state.signals?.fg as
+    | { value: number | string; label: string }
+    | undefined;
 
-  const marketParts: string[] = []
+  const marketParts: string[] = [];
 
   // Top coins — BTC, ETH, SOL, BNB if available
-  const watchCoins = ['bitcoin', 'ethereum', 'solana', 'binancecoin']
+  const watchCoins = ["bitcoin", "ethereum", "solana", "binancecoin"];
   for (const id of watchCoins) {
-    const p = prices[id]
-    if (!p) continue
-    const sym  = p.sym ?? id.slice(0, 3).toUpperCase()
-    const dir  = p.chg >= 0 ? '+' : ''
-    marketParts.push(`${sym} $${p.price < 1 ? p.price.toFixed(4) : p.price.toLocaleString('en-US', { maximumFractionDigits: 0 })} (${dir}${p.chg.toFixed(2)}%)`)
+    const p = prices[id];
+    if (!p) continue;
+    const sym = p.sym ?? id.slice(0, 3).toUpperCase();
+    const dir = p.chg >= 0 ? "+" : "";
+    marketParts.push(
+      `${sym} $${p.price < 1 ? p.price.toFixed(4) : p.price.toLocaleString("en-US", { maximumFractionDigits: 0 })} (${dir}${p.chg.toFixed(2)}%)`,
+    );
   }
 
   if (marketParts.length > 0) {
-    lines.push(`MARKET: ${marketParts.join(' · ')}`)
+    lines.push(`MARKET: ${marketParts.join(" · ")}`);
   }
 
   // Fear & Greed
   if (fg) {
-    const fgVal   = Number(fg.value)
-    const fgLabel = fg.label?.toUpperCase() ?? ''
-    const fgColor = fgVal >= 75 ? 'EXTREME GREED' : fgVal >= 55 ? 'GREED' : fgVal >= 45 ? 'NEUTRAL' : fgVal >= 25 ? 'FEAR' : 'EXTREME FEAR'
-    lines.push(`SENTIMENT: Fear & Greed ${fgVal} — ${fgLabel || fgColor}`)
+    const fgVal = Number(fg.value);
+    const fgLabel = fg.label?.toUpperCase() ?? "";
+    const fgColor =
+      fgVal >= 75
+        ? "EXTREME GREED"
+        : fgVal >= 55
+          ? "GREED"
+          : fgVal >= 45
+            ? "NEUTRAL"
+            : fgVal >= 25
+              ? "FEAR"
+              : "EXTREME FEAR";
+    lines.push(`SENTIMENT: Fear & Greed ${fgVal} — ${fgLabel || fgColor}`);
   }
 
   // ── WORLD RISK ─────────────────────────────────────────────────────────────
-  const worldRisk = state.worldRisk ?? 0
+  const worldRisk = state.worldRisk ?? 0;
   if (worldRisk > 0) {
-    const riskLabel = worldRisk > 70 ? 'HIGH' : worldRisk > 40 ? 'MEDIUM' : 'LOW'
-    lines.push(`WORLD RISK: ${worldRisk}/100 (${riskLabel})`)
+    const riskLabel =
+      worldRisk > 70 ? "HIGH" : worldRisk > 40 ? "MEDIUM" : "LOW";
+    lines.push(`WORLD RISK: ${worldRisk}/100 (${riskLabel})`);
   }
 
   // ── CVEs ───────────────────────────────────────────────────────────────────
-  const cves = (state.cves ?? []) as CveEntry[]
+  const cves = (state.cves ?? []) as CveEntry[];
   if (cves.length > 0) {
     // Identify high-severity CVEs
-    const critical = cves.filter(c => {
-      const sev = (c.severity ?? '').toUpperCase()
-      const score = c.cvssScore ?? c.score ?? 0
-      return sev === 'CRITICAL' || score >= 9.0
-    })
-    const high = cves.filter(c => {
-      const sev = (c.severity ?? '').toUpperCase()
-      const score = c.cvssScore ?? c.score ?? 0
-      return sev === 'HIGH' || (score >= 7.0 && score < 9.0)
-    })
+    const critical = cves.filter((c) => {
+      const sev = (c.severity ?? "").toUpperCase();
+      const score = c.cvssScore ?? c.score ?? 0;
+      return sev === "CRITICAL" || score >= 9.0;
+    });
+    const high = cves.filter((c) => {
+      const sev = (c.severity ?? "").toUpperCase();
+      const score = c.cvssScore ?? c.score ?? 0;
+      return sev === "HIGH" || (score >= 7.0 && score < 9.0);
+    });
 
     // IDs only — no description text (saves ~40 tokens per critical CVE)
-    let cveLine = `CVEs TODAY: ${cves.length} total`
+    let cveLine = `CVEs TODAY: ${cves.length} total`;
     if (critical.length > 0) {
-      const ids = critical.slice(0, 2).map(c => c.id).join(', ')
-      cveLine += ` · ${critical.length} CRITICAL (${ids}${critical.length > 2 ? ' +more' : ''})`
+      const ids = critical
+        .slice(0, 2)
+        .map((c) => c.id)
+        .join(", ");
+      cveLine += ` · ${critical.length} CRITICAL (${ids}${critical.length > 2 ? " +more" : ""})`;
     }
-    if (high.length > 0) cveLine += ` · ${high.length} HIGH`
-    lines.push(cveLine)
+    if (high.length > 0) cveLine += ` · ${high.length} HIGH`;
+    lines.push(cveLine);
   }
 
   // ── NEWS SIGNALS ───────────────────────────────────────────────────────────
-  const articles = (state.articles ?? []) as ArticleEntry[]
+  const articles = (state.articles ?? []) as ArticleEntry[];
   if (articles.length > 0) {
     // Cap each headline at 80 chars to stay within token budget
     const headlines = articles
       .slice(0, 6)
-      .map(a => a.title.length > 80 ? a.title.slice(0, 77) + '…' : a.title)
-      .join(' · ')
-    lines.push(`NEWS (${articles.length} signals): ${headlines}`)
+      .map((a) => (a.title.length > 80 ? a.title.slice(0, 77) + "…" : a.title))
+      .join(" · ");
+    lines.push(`NEWS (${articles.length} signals): ${headlines}`);
   }
 
   // ── ACTIVE AGENT STATS ─────────────────────────────────────────────────────
-  const agentStats = state.agentStats ?? {}
-  const totalTasks = Object.values(agentStats).reduce<number>((s, a) => s + (a.totalTasks ?? 0), 0)
+  const agentStats = state.agentStats ?? {};
+  const totalTasks = Object.values(agentStats).reduce<number>(
+    (s, a) => s + (a.totalTasks ?? 0),
+    0,
+  );
   if (totalTasks > 0) {
-    lines.push(`SESSION: ${totalTasks} tasks completed across ${Object.keys(agentStats).length} agents`)
+    lines.push(
+      `SESSION: ${totalTasks} tasks completed across ${Object.keys(agentStats).length} agents`,
+    );
   }
 
   // ── CAPABILITIES REMINDER ──────────────────────────────────────────────────
   // Tells the agent what live data it has access to, encouraging grounded answers
-  lines.push(`DATA FRESHNESS: Prices/signals pulled ${ts.slice(11, 19)} UTC — treat as current market state`)
+  lines.push(
+    `DATA FRESHNESS: Prices/signals pulled ${ts.slice(11, 19)} UTC — treat as current market state`,
+  );
 
-  if (lines.length === 0) return ''
-  return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join('\n')}\n[END LIVE INTEL]\n`
+  if (lines.length === 0) return "";
+  return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join("\n")}\n[END LIVE INTEL]\n`;
 }
 
-export function buildLiveContextBundle(state: LiveState, opts: LiveContextBuildOptions = {}): LiveContextBundle {
-  const maxChars = Math.max(500, Math.min(12_000, opts.maxChars ?? 3_200))
-  const raw = buildLiveContext(state)
-  return compactToBudget(raw, maxChars)
+export function buildLiveContextBundle(
+  state: LiveState,
+  opts: LiveContextBuildOptions = {},
+): LiveContextBundle {
+  const maxChars = Math.max(500, Math.min(12_000, opts.maxChars ?? 3_200));
+  const raw = buildLiveContext(state);
+  return compactToBudget(raw, maxChars);
 }
 
 // ── buildMemoryDiffBlock ──────────────────────────────────────────────────────
@@ -276,8 +349,8 @@ export function buildLiveContextBundle(state: LiveState, opts: LiveContextBuildO
 // Based on charliejhills claude-subconscious pattern — no background daemon,
 // just a single persisted summary string updated at session end.
 export function buildMemoryDiffBlock(lastSessionSummary: string): string {
-  if (!lastSessionSummary?.trim()) return ''
-  return `\n\n[MEMORY DIFF — since last session]\n${lastSessionSummary.trim()}\n[END MEMORY DIFF]\n`
+  if (!lastSessionSummary?.trim()) return "";
+  return `\n\n[MEMORY DIFF — since last session]\n${lastSessionSummary.trim()}\n[END MEMORY DIFF]\n`;
 }
 
 // ── buildDeltaSweep ───────────────────────────────────────────────────────────
@@ -291,87 +364,99 @@ export function buildMemoryDiffBlock(lastSessionSummary: string): string {
 //   World risk    jumps or drops by ≥ 10 points
 
 export interface DeltaAlert {
-  type:     'market' | 'threat' | 'risk'
-  severity: 'critical' | 'high' | 'medium' | 'low'
-  title:    string
-  message:  string
-  source:   string
+  type: "market" | "threat" | "risk";
+  severity: "critical" | "high" | "medium" | "low";
+  title: string;
+  message: string;
+  source: string;
 }
 
-export function buildDeltaSweep(prev: LiveState, curr: LiveState): DeltaAlert[] {
-  const alerts: DeltaAlert[] = []
+export function buildDeltaSweep(
+  prev: LiveState,
+  curr: LiveState,
+): DeltaAlert[] {
+  const alerts: DeltaAlert[] = [];
 
   // ── Price delta check ─────────────────────────────────────────────────────
-  const prevPrices = (prev.prices ?? {}) as Record<string, PriceEntry>
-  const currPrices = (curr.prices ?? {}) as Record<string, PriceEntry>
+  const prevPrices = (prev.prices ?? {}) as Record<string, PriceEntry>;
+  const currPrices = (curr.prices ?? {}) as Record<string, PriceEntry>;
 
   const watchCoins: Record<string, string> = {
-    bitcoin:     'BTC',
-    ethereum:    'ETH',
-    solana:      'SOL',
-    binancecoin: 'BNB',
-  }
+    bitcoin: "BTC",
+    ethereum: "ETH",
+    solana: "SOL",
+    binancecoin: "BNB",
+  };
 
   for (const [coinId, sym] of Object.entries(watchCoins)) {
-    const prev_p = prevPrices[coinId]
-    const curr_p = currPrices[coinId]
-    if (!prev_p || !curr_p || prev_p.price <= 0) continue
+    const prev_p = prevPrices[coinId];
+    const curr_p = currPrices[coinId];
+    if (!prev_p || !curr_p || prev_p.price <= 0) continue;
 
-    const pctMove = ((curr_p.price - prev_p.price) / prev_p.price) * 100
+    const pctMove = ((curr_p.price - prev_p.price) / prev_p.price) * 100;
     if (Math.abs(pctMove) >= 3) {
-      const dir = pctMove > 0 ? '▲' : '▼'
-      const sev = Math.abs(pctMove) >= 8 ? 'critical' : Math.abs(pctMove) >= 5 ? 'high' : 'medium'
+      const dir = pctMove > 0 ? "▲" : "▼";
+      const sev =
+        Math.abs(pctMove) >= 8
+          ? "critical"
+          : Math.abs(pctMove) >= 5
+            ? "high"
+            : "medium";
       alerts.push({
-        type:     'market',
+        type: "market",
         severity: sev,
-        title:    `${sym} ${dir} ${Math.abs(pctMove).toFixed(1)}%`,
-        message:  `${sym} moved from $${prev_p.price.toLocaleString('en-US', { maximumFractionDigits: 0 })} to $${curr_p.price.toLocaleString('en-US', { maximumFractionDigits: 0 })} (${pctMove > 0 ? '+' : ''}${pctMove.toFixed(2)}%)`,
-        source:   'Price Delta Sweep',
-      })
+        title: `${sym} ${dir} ${Math.abs(pctMove).toFixed(1)}%`,
+        message: `${sym} moved from $${prev_p.price.toLocaleString("en-US", { maximumFractionDigits: 0 })} to $${curr_p.price.toLocaleString("en-US", { maximumFractionDigits: 0 })} (${pctMove > 0 ? "+" : ""}${pctMove.toFixed(2)}%)`,
+        source: "Price Delta Sweep",
+      });
     }
   }
 
   // ── CVE spike check ───────────────────────────────────────────────────────
-  const prevCveCount = (prev.cves ?? []).length
-  const currCveCount = (curr.cves ?? []).length
+  const prevCveCount = (prev.cves ?? []).length;
+  const currCveCount = (curr.cves ?? []).length;
   if (currCveCount - prevCveCount >= 3) {
-    const added = currCveCount - prevCveCount
-    const currCves = (curr.cves ?? []) as CveEntry[]
+    const added = currCveCount - prevCveCount;
+    const currCves = (curr.cves ?? []) as CveEntry[];
     const newCritical = currCves
       .slice(0, added)
-      .filter(c => (c.severity ?? '').toUpperCase() === 'CRITICAL' || (c.cvssScore ?? c.score ?? 0) >= 9)
+      .filter(
+        (c) =>
+          (c.severity ?? "").toUpperCase() === "CRITICAL" ||
+          (c.cvssScore ?? c.score ?? 0) >= 9,
+      )
       .slice(0, 2)
-      .map(c => c.id)
-      .join(', ')
+      .map((c) => c.id)
+      .join(", ");
     alerts.push({
-      type:     'threat',
-      severity: newCritical ? 'high' : 'medium',
-      title:    `CVE Spike: +${added} new vulnerabilities`,
-      message:  newCritical
+      type: "threat",
+      severity: newCritical ? "high" : "medium",
+      title: `CVE Spike: +${added} new vulnerabilities`,
+      message: newCritical
         ? `${added} new CVEs loaded, including critical: ${newCritical}`
         : `${added} new CVEs added to the feed — review CYBER tab`,
-      source:   'CVE Delta Sweep',
-    })
+      source: "CVE Delta Sweep",
+    });
   }
 
   // ── World risk jump check ─────────────────────────────────────────────────
-  const prevRisk = prev.worldRisk ?? 0
-  const currRisk = curr.worldRisk ?? 0
-  const riskDelta = currRisk - prevRisk
+  const prevRisk = prev.worldRisk ?? 0;
+  const currRisk = curr.worldRisk ?? 0;
+  const riskDelta = currRisk - prevRisk;
   if (Math.abs(riskDelta) >= 10) {
-    const dir = riskDelta > 0 ? '▲' : '▼'
-    const sev = Math.abs(riskDelta) >= 20 ? 'high' : 'medium'
-    const label = currRisk > 70 ? 'HIGH' : currRisk > 40 ? 'MEDIUM' : 'LOW'
+    const dir = riskDelta > 0 ? "▲" : "▼";
+    const sev = Math.abs(riskDelta) >= 20 ? "high" : "medium";
+    const label = currRisk > 70 ? "HIGH" : currRisk > 40 ? "MEDIUM" : "LOW";
     alerts.push({
-      type:     'risk',
+      type: "risk",
       severity: sev,
-      title:    `World Risk ${dir} ${Math.abs(riskDelta)} pts → ${currRisk}/100`,
-      message:  `World risk moved from ${prevRisk} to ${currRisk}/100 (${label}). Check OPS tab for geopolitical context.`,
-      source:   'World Risk Delta Sweep',
-    })
+      title: `World Risk ${dir} ${Math.abs(riskDelta)} pts → ${currRisk}/100`,
+      message: `World risk moved from ${prevRisk} to ${currRisk}/100 (${label}). Check OPS tab for geopolitical context.`,
+      source: "World Risk Delta Sweep",
+    });
   }
 
-  return alerts
+  return alerts;
 }
 
 // ── buildCapabilitiesBlock ─────────────────────────────────────────────────────
@@ -388,7 +473,7 @@ export function buildCapabilitiesBlock(agentId: string): string {
     cipher: `You are a security analyst with CVE data loaded live. Start threat analysis from the current CVE feed — what's critical today, what's trending. Then expand with web_search for exploit details. Ground every recommendation in current exposure, not theoretical risk.`,
 
     flux: `You are a market analyst with live prices, Fear & Greed, and news signals available right now. Lead every market answer with the actual current numbers. Then layer in macro context via web_search. Never give generic market commentary — you have real data, use it.`,
-  }
-  const block = cap[agentId] ?? cap.jansky
-  return `\n\n[AGENT CAPABILITIES & REASONING STYLE]\n${block}\n[END CAPABILITIES]\n`
+  };
+  const block = cap[agentId] ?? cap.jansky;
+  return `\n\n[AGENT CAPABILITIES & REASONING STYLE]\n${block}\n[END CAPABILITIES]\n`;
 }

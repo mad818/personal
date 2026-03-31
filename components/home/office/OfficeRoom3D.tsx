@@ -1,21 +1,29 @@
-'use client'
+"use client";
 
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
-import { useStore } from '@/store/useStore'
-import * as THREE from 'three'
-import type { AgentId, OfficeObjectId, OfficeObjectPos } from './types'
-import { AGENTS, OFFICE_OBJECT_DEFAULTS, TOOL_POSE_MAP, AGENT_WORK_POSE } from './constants'
-import type { AgentPoseType } from './constants'
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Html } from "@react-three/drei";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
+import { useStore } from "@/store/useStore";
+import * as THREE from "three";
+import type { AgentId, OfficeObjectId, OfficeObjectPos } from "./types";
+import {
+  AGENTS,
+  OFFICE_OBJECT_DEFAULTS,
+  TOOL_POSE_MAP,
+  AGENT_WORK_POSE,
+} from "./constants";
+import type { AgentPoseType } from "./constants";
 
-type Vec3 = [number, number, number]
-type DispatchState = { from: AgentId; to: AgentId } | null
-type OfficeCameraPreset = 'cinematic' | 'closeOps' | 'wallReadability'
-type OfficeVfxQuality = 'off' | 'low' | 'high'
+type Vec3 = [number, number, number];
+type DispatchState = { from: AgentId; to: AgentId } | null;
+type OfficeCameraPreset = "cinematic" | "closeOps" | "wallReadability";
+type OfficeVfxQuality = "off" | "low" | "high";
 
-const CAMERA_PRESETS: Record<OfficeCameraPreset, { position: Vec3; fov: number; lookAt: Vec3 }> = {
+const CAMERA_PRESETS: Record<
+  OfficeCameraPreset,
+  { position: Vec3; fov: number; lookAt: Vec3 }
+> = {
   cinematic: {
     position: [0, 5.35, 8.55],
     fov: 42,
@@ -31,7 +39,7 @@ const CAMERA_PRESETS: Record<OfficeCameraPreset, { position: Vec3; fov: number; 
     fov: 37,
     lookAt: [0, 1.38, -0.32],
   },
-}
+};
 
 // Stable radii map used by world position clamping/anchoring.
 const RADIUS_BY_ID: Record<OfficeObjectId, number> = {
@@ -48,73 +56,91 @@ const RADIUS_BY_ID: Record<OfficeObjectId, number> = {
   fluxDesk: 0.62,
   orbitDesk: 0.62,
   novaDesk: 0.62,
-}
+};
 
 // Per-agent 3D appearance overrides (Stranger Things theming).
 // Agent meshes are simple primitives; these tweaks give each character a distinct look.
 const AGENT_3D_STYLES: Record<
   AgentId,
   {
-    suit: string
-    shirt: string
-    hair: string
-    tie?: string
-    headphones?: boolean
-    glasses?: boolean
-    beard?: boolean
-    hood?: boolean
-    hat?: boolean
-    cap?: boolean
-    accessoryColor?: string
+    suit: string;
+    shirt: string;
+    hair: string;
+    tie?: string;
+    headphones?: boolean;
+    glasses?: boolean;
+    beard?: boolean;
+    hood?: boolean;
+    hat?: boolean;
+    cap?: boolean;
+    accessoryColor?: string;
   }
 > = {
-  jansky: { suit: '#ef4444', shirt: '#e7edf5', hair: '#b45309', tie: '#c0392b' }, // MAX
-  orbit: { suit: '#818cf8', shirt: '#dbeafe', hair: '#fbbf24', hood: true }, // EL
-  nova: { suit: '#f59e0b', shirt: '#e4eaf2', hair: '#7a3c18', glasses: true }, // DUSTIN
-  cipher: { suit: '#3b82f6', shirt: '#dbeafe', hair: '#0f172a', beard: true, hat: true, accessoryColor: '#4a3b2c' }, // HOPPER
-  flux: { suit: '#10b981', shirt: '#e4eaf2', hair: '#8b5e3c', cap: true, accessoryColor: '#111827' }, // LUCAS
-}
+  jansky: {
+    suit: "#ef4444",
+    shirt: "#e7edf5",
+    hair: "#b45309",
+    tie: "#c0392b",
+  }, // MAX
+  orbit: { suit: "#818cf8", shirt: "#dbeafe", hair: "#fbbf24", hood: true }, // EL
+  nova: { suit: "#f59e0b", shirt: "#e4eaf2", hair: "#7a3c18", glasses: true }, // DUSTIN
+  cipher: {
+    suit: "#3b82f6",
+    shirt: "#dbeafe",
+    hair: "#0f172a",
+    beard: true,
+    hat: true,
+    accessoryColor: "#4a3b2c",
+  }, // HOPPER
+  flux: {
+    suit: "#10b981",
+    shirt: "#e4eaf2",
+    hair: "#8b5e3c",
+    cap: true,
+    accessoryColor: "#111827",
+  }, // LUCAS
+};
 
 function toWorld(pos: OfficeObjectPos): Vec3 {
   // 100% → 10 world units (room is roughly 10x6)
-  const roomW = 10
-  const roomD = 6
+  const roomW = 10;
+  const roomD = 6;
 
-  const px = pos.ax === 'r' ? 100 - pos.x : pos.x
-  const py = pos.ay === 'b' ? 100 - pos.y : pos.y
+  const px = pos.ax === "r" ? 100 - pos.x : pos.x;
+  const py = pos.ay === "b" ? 100 - pos.y : pos.y;
 
-  const x = (px / 100) * roomW - roomW / 2
-  const z = (py / 100) * roomD - roomD / 2
-  return [x, 0, z]
+  const x = (px / 100) * roomW - roomW / 2;
+  const z = (py / 100) * roomD - roomD / 2;
+  return [x, 0, z];
 }
 
 function fromWorld(p: Vec3, prev: OfficeObjectPos): OfficeObjectPos {
-  const roomW = 10
-  const roomD = 6
+  const roomW = 10;
+  const roomD = 6;
 
-  const px = ((p[0] + roomW / 2) / roomW) * 100
-  const py = ((p[2] + roomD / 2) / roomD) * 100
+  const px = ((p[0] + roomW / 2) / roomW) * 100;
+  const py = ((p[2] + roomD / 2) / roomD) * 100;
 
   // Preserve anchoring scheme used by 2D editor.
-  const x = prev.ax === 'r' ? 100 - px : px
-  const y = prev.ay === 'b' ? 100 - py : py
+  const x = prev.ax === "r" ? 100 - px : px;
+  const y = prev.ay === "b" ? 100 - py : py;
 
-  return { ...prev, x, y }
+  return { ...prev, x, y };
 }
 
 function clampWorld(p: Vec3): Vec3 {
   // Room bounds with margins.
-  const x = Math.max(-4.7, Math.min(4.7, p[0]))
-  const z = Math.max(-2.7, Math.min(2.7, p[2]))
-  return [x, p[1], z]
+  const x = Math.max(-4.7, Math.min(4.7, p[0]));
+  const z = Math.max(-2.7, Math.min(2.7, p[2]));
+  return [x, p[1], z];
 }
 
 function clampWorldByRadius(p: Vec3, radius: number): Vec3 {
-  const marginX = Math.min(4.6, Math.max(0.2, radius))
-  const marginZ = Math.min(2.6, Math.max(0.2, radius))
-  const x = Math.max(-5 + marginX, Math.min(5 - marginX, p[0]))
-  const z = Math.max(-3 + marginZ, Math.min(3 - marginZ, p[2]))
-  return [x, p[1], z]
+  const marginX = Math.min(4.6, Math.max(0.2, radius));
+  const marginZ = Math.min(2.6, Math.max(0.2, radius));
+  const x = Math.max(-5 + marginX, Math.min(5 - marginX, p[0]));
+  const z = Math.max(-3 + marginZ, Math.min(3 - marginZ, p[2]));
+  return [x, p[1], z];
 }
 
 function Furniture3D({
@@ -125,37 +151,37 @@ function Furniture3D({
   radiusById,
   tryMove,
 }: {
-  nightFactor: number
-  tod: 'morning' | 'afternoon' | 'night'
-  enabled: boolean
-  worldPos: Record<OfficeObjectId, Vec3>
-  radiusById: Record<OfficeObjectId, number>
-  tryMove: (id: OfficeObjectId, world: Vec3) => void
+  nightFactor: number;
+  tod: "morning" | "afternoon" | "night";
+  enabled: boolean;
+  worldPos: Record<OfficeObjectId, Vec3>;
+  radiusById: Record<OfficeObjectId, number>;
+  tryMove: (id: OfficeObjectId, world: Vec3) => void;
 }) {
   // Phase 2: furniture is now draggable with collision guardrails.
-  const pal = scenePalette(tod)
+  const pal = scenePalette(tod);
 
   const ScreenGlow = ({
     color,
     pos,
     live,
   }: {
-    color: string
-    pos: Vec3
-    live?: boolean
+    color: string;
+    pos: Vec3;
+    live?: boolean;
   }) => {
-    const ref = useRef<THREE.Mesh | null>(null)
+    const ref = useRef<THREE.Mesh | null>(null);
     useFrame((state) => {
-      const m = ref.current
-      if (!m) return
-      const mat = m.material as THREE.MeshStandardMaterial
-      const t = state.clock.getElapsedTime()
-      const base = 0.10 + nightFactor * 0.28
+      const m = ref.current;
+      if (!m) return;
+      const mat = m.material as THREE.MeshStandardMaterial;
+      const t = state.clock.getElapsedTime();
+      const base = 0.1 + nightFactor * 0.28;
       const pulse = live
         ? 0.45 + Math.sin(t * 6.0) * 0.18
-        : 0.22 + Math.sin(t * 2.3) * 0.10
-      mat.emissiveIntensity = (base + pulse) * 1.0
-    })
+        : 0.22 + Math.sin(t * 2.3) * 0.1;
+      mat.emissiveIntensity = (base + pulse) * 1.0;
+    });
 
     return (
       <mesh ref={ref} position={pos} castShadow={false} receiveShadow={false}>
@@ -168,55 +194,104 @@ function Furniture3D({
           metalness={0}
         />
       </mesh>
-    )
-  }
+    );
+  };
 
-  const deskIds: Array<{ id: OfficeObjectId; agent: AgentId; width: number; depth: number }> = [
-    { id: 'janskyDesk', agent: 'jansky', width: 1.25, depth: 0.65 },
-    { id: 'cipherDesk', agent: 'cipher', width: 0.95, depth: 0.55 },
-    { id: 'fluxDesk', agent: 'flux', width: 0.95, depth: 0.55 },
-    { id: 'orbitDesk', agent: 'orbit', width: 0.95, depth: 0.55 },
-    { id: 'novaDesk', agent: 'nova', width: 0.95, depth: 0.55 },
-  ]
+  const deskIds: Array<{
+    id: OfficeObjectId;
+    agent: AgentId;
+    width: number;
+    depth: number;
+  }> = [
+    { id: "janskyDesk", agent: "jansky", width: 1.25, depth: 0.65 },
+    { id: "cipherDesk", agent: "cipher", width: 0.95, depth: 0.55 },
+    { id: "fluxDesk", agent: "flux", width: 0.95, depth: 0.55 },
+    { id: "orbitDesk", agent: "orbit", width: 0.95, depth: 0.55 },
+    { id: "novaDesk", agent: "nova", width: 0.95, depth: 0.55 },
+  ];
 
   return (
     <>
       {/* Center rug to anchor the room composition */}
-      <mesh position={[0, 0.011, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <mesh
+        position={[0, 0.011, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow
+      >
         <planeGeometry args={[4.9, 3.2]} />
-        <meshStandardMaterial color={pal.rugOuter} roughness={0.96} metalness={0.02} />
+        <meshStandardMaterial
+          color={pal.rugOuter}
+          roughness={0.96}
+          metalness={0.02}
+        />
       </mesh>
-      <mesh position={[0, 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow={false}>
+      <mesh
+        position={[0, 0.012, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow={false}
+      >
         <planeGeometry args={[4.65, 2.95]} />
-        <meshStandardMaterial color={pal.rugInner} roughness={0.95} metalness={0.02} />
+        <meshStandardMaterial
+          color={pal.rugInner}
+          roughness={0.95}
+          metalness={0.02}
+        />
       </mesh>
       {/* AO contact shadow discs — darkened circles under major furniture for depth */}
       {[
         { pos: worldPos.conferenceTable, r: 1.35 },
-        { pos: worldPos.sofa,            r: 1.05 },
-        { pos: worldPos.serverRack,      r: 0.4  },
-        { pos: worldPos.waterCooler,     r: 0.28 },
+        { pos: worldPos.sofa, r: 1.05 },
+        { pos: worldPos.serverRack, r: 0.4 },
+        { pos: worldPos.waterCooler, r: 0.28 },
       ].map(({ pos, r }, i) => (
-        <mesh key={`ao-${i}`} position={[pos[0], 0.009, pos[2]]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow={false}>
+        <mesh
+          key={`ao-${i}`}
+          position={[pos[0], 0.009, pos[2]]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          receiveShadow={false}
+        >
           <circleGeometry args={[r, 24]} />
-          <meshBasicMaterial color="#000000" transparent opacity={0.14} depthWrite={false} />
+          <meshBasicMaterial
+            color="#000000"
+            transparent
+            opacity={0.14}
+            depthWrite={false}
+          />
         </mesh>
       ))}
 
       {/* Circulation lane guides */}
-      <mesh position={[0, 0.013, 1.25]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow={false}>
+      <mesh
+        position={[0, 0.013, 1.25]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow={false}
+      >
         <planeGeometry args={[8.8, 0.36]} />
-        <meshStandardMaterial color="#5a6472" transparent opacity={0.22} roughness={1} />
+        <meshStandardMaterial
+          color="#5a6472"
+          transparent
+          opacity={0.22}
+          roughness={1}
+        />
       </mesh>
-      <mesh position={[0, 0.013, -0.95]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow={false}>
+      <mesh
+        position={[0, 0.013, -0.95]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow={false}
+      >
         <planeGeometry args={[8.8, 0.2]} />
-        <meshStandardMaterial color="#5a6472" transparent opacity={0.16} roughness={1} />
+        <meshStandardMaterial
+          color="#5a6472"
+          transparent
+          opacity={0.16}
+          roughness={1}
+        />
       </mesh>
 
       {/* Conference table (center) */}
       <DraggableProp
         id="conferenceTable"
-        pos={{ x: 50, y: 50, ax: 'l', ay: 't' }}
+        pos={{ x: 50, y: 50, ax: "l", ay: "t" }}
         color="#2a1c10"
         size={[1.9, 0.06, 1.2]}
         y={0.26}
@@ -226,7 +301,15 @@ function Furniture3D({
         radiusById={radiusById}
         onMoveWorld={tryMove}
       />
-      <mesh position={[worldPos.conferenceTable[0], 0.30, worldPos.conferenceTable[2]]} castShadow receiveShadow>
+      <mesh
+        position={[
+          worldPos.conferenceTable[0],
+          0.3,
+          worldPos.conferenceTable[2],
+        ]}
+        castShadow
+        receiveShadow
+      >
         <boxGeometry args={[1.7, 0.06, 1.0]} />
         <meshStandardMaterial color={pal.deskWood} roughness={0.9} />
       </mesh>
@@ -234,17 +317,37 @@ function Furniture3D({
       {[-0.35, -0.17, 0, 0.17, 0.35].map((z, i) => (
         <mesh
           key={`table-grain-${i}`}
-          position={[worldPos.conferenceTable[0], 0.334, worldPos.conferenceTable[2] + z]}
+          position={[
+            worldPos.conferenceTable[0],
+            0.334,
+            worldPos.conferenceTable[2] + z,
+          ]}
           castShadow={false}
         >
           <boxGeometry args={[1.55, 0.004, 0.012]} />
-          <meshStandardMaterial color={pal.deskWoodDark} roughness={0.75} metalness={0.02} />
+          <meshStandardMaterial
+            color={pal.deskWoodDark}
+            roughness={0.75}
+            metalness={0.02}
+          />
         </mesh>
       ))}
       {/* Table accent strip + embedded terminal */}
-      <mesh position={[worldPos.conferenceTable[0], 0.34, worldPos.conferenceTable[2]]} castShadow={false}>
+      <mesh
+        position={[
+          worldPos.conferenceTable[0],
+          0.34,
+          worldPos.conferenceTable[2],
+        ]}
+        castShadow={false}
+      >
         <boxGeometry args={[0.55, 0.03, 0.28]} />
-        <meshStandardMaterial color="#1e2936" emissive="#000000" emissiveIntensity={0} roughness={0.55} />
+        <meshStandardMaterial
+          color="#1e2936"
+          emissive="#000000"
+          emissiveIntensity={0}
+          roughness={0.55}
+        />
       </mesh>
       {/* Conference chairs */}
       {[
@@ -275,7 +378,7 @@ function Furniture3D({
       {/* Sofa (bottom center) */}
       <DraggableProp
         id="sofa"
-        pos={{ x: 50, y: 97, ax: 'l', ay: 't' }}
+        pos={{ x: 50, y: 97, ax: "l", ay: "t" }}
         color="#16102c"
         size={[1.7, 0.18, 0.55]}
         y={0.22}
@@ -285,32 +388,42 @@ function Furniture3D({
         radiusById={radiusById}
         onMoveWorld={tryMove}
       />
-      <mesh position={[worldPos.sofa[0], 0.31, worldPos.sofa[2]]} castShadow={false}>
+      <mesh
+        position={[worldPos.sofa[0], 0.31, worldPos.sofa[2]]}
+        castShadow={false}
+      >
         <boxGeometry args={[1.7, 0.08, 0.52]} />
         <meshStandardMaterial color={pal.upholstery} roughness={0.95} />
       </mesh>
-      <mesh position={[worldPos.sofa[0], 0.39, worldPos.sofa[2] - 0.15]} castShadow={false}>
+      <mesh
+        position={[worldPos.sofa[0], 0.39, worldPos.sofa[2] - 0.15]}
+        castShadow={false}
+      >
         <boxGeometry args={[1.62, 0.14, 0.16]} />
         <meshStandardMaterial color={pal.upholstery} roughness={0.9} />
       </mesh>
       {/* Coffee table */}
-      <mesh position={[worldPos.sofa[0], 0.18, worldPos.sofa[2] - 0.85]} castShadow receiveShadow>
+      <mesh
+        position={[worldPos.sofa[0], 0.18, worldPos.sofa[2] - 0.85]}
+        castShadow
+        receiveShadow
+      >
         <boxGeometry args={[0.95, 0.06, 0.5]} />
         <meshStandardMaterial color="#3f3022" roughness={0.86} />
       </mesh>
 
       {/* Desks */}
       {deskIds.map(({ id, agent, width, depth }) => {
-        const center = worldPos[id]
-        const isJ = agent === 'jansky'
-        const monY = 0.30
-        const monOffsetX = isJ ? 0.28 : 0.22
+        const center = worldPos[id];
+        const isJ = agent === "jansky";
+        const monY = 0.3;
+        const monOffsetX = isJ ? 0.28 : 0.22;
 
         return (
           <group key={id}>
             <DraggableProp
               id={id}
-              pos={{ x: 50, y: 50, ax: 'l', ay: 't' }}
+              pos={{ x: 50, y: 50, ax: "l", ay: "t" }}
               color="#12102a"
               size={[width, 0.12, depth]}
               y={0.14}
@@ -320,185 +433,231 @@ function Furniture3D({
               radiusById={radiusById}
               onMoveWorld={tryMove}
             />
-            <ScreenGlow color={AGENTS[agent].color} pos={[center[0] - monOffsetX, monY, center[2] - 0.02]} />
-            <ScreenGlow color={AGENTS[agent].color} pos={[center[0] + monOffsetX, monY, center[2] - 0.02]} />
+            <ScreenGlow
+              color={AGENTS[agent].color}
+              pos={[center[0] - monOffsetX, monY, center[2] - 0.02]}
+            />
+            <ScreenGlow
+              color={AGENTS[agent].color}
+              pos={[center[0] + monOffsetX, monY, center[2] - 0.02]}
+            />
             {/* Monitor glass overlays */}
-            <mesh position={[center[0] - monOffsetX, monY, center[2] - 0.009]} castShadow={false}>
+            <mesh
+              position={[center[0] - monOffsetX, monY, center[2] - 0.009]}
+              castShadow={false}
+            >
               <boxGeometry args={[0.31, 0.12, 0.004]} />
-              <meshStandardMaterial color={pal.glass} transparent opacity={0.16} roughness={0.05} metalness={0.1} />
+              <meshStandardMaterial
+                color={pal.glass}
+                transparent
+                opacity={0.16}
+                roughness={0.05}
+                metalness={0.1}
+              />
             </mesh>
-            <mesh position={[center[0] + monOffsetX, monY, center[2] - 0.009]} castShadow={false}>
+            <mesh
+              position={[center[0] + monOffsetX, monY, center[2] - 0.009]}
+              castShadow={false}
+            >
               <boxGeometry args={[0.31, 0.12, 0.004]} />
-              <meshStandardMaterial color={pal.glass} transparent opacity={0.16} roughness={0.05} metalness={0.1} />
+              <meshStandardMaterial
+                color={pal.glass}
+                transparent
+                opacity={0.16}
+                roughness={0.05}
+                metalness={0.1}
+              />
             </mesh>
             {/* Desk underglow for depth */}
-            <mesh position={[center[0], 0.07, center[2]]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh
+              position={[center[0], 0.07, center[2]]}
+              rotation={[-Math.PI / 2, 0, 0]}
+            >
               <circleGeometry args={[Math.max(width, depth) * 0.56, 20]} />
               <meshBasicMaterial color="#6b7280" transparent opacity={0.03} />
             </mesh>
             {/* Workstation props: keyboard + notebook + mug */}
-            <mesh position={[center[0], 0.23, center[2] + 0.08]} castShadow={false}>
+            <mesh
+              position={[center[0], 0.23, center[2] + 0.08]}
+              castShadow={false}
+            >
               <boxGeometry args={[0.22, 0.015, 0.08]} />
               <meshStandardMaterial color="#1c2432" roughness={0.75} />
             </mesh>
-            <mesh position={[center[0] - 0.18, 0.23, center[2] + 0.08]} castShadow={false}>
+            <mesh
+              position={[center[0] - 0.18, 0.23, center[2] + 0.08]}
+              castShadow={false}
+            >
               <boxGeometry args={[0.11, 0.015, 0.08]} />
               <meshStandardMaterial color="#dbe6f6" roughness={0.65} />
             </mesh>
-            <mesh position={[center[0] + 0.18, 0.245, center[2] + 0.08]} castShadow={false}>
+            <mesh
+              position={[center[0] + 0.18, 0.245, center[2] + 0.08]}
+              castShadow={false}
+            >
               <cylinderGeometry args={[0.028, 0.03, 0.045, 10]} />
               <meshStandardMaterial color="#8b5e3c" roughness={0.6} />
             </mesh>
             {/* Cable drop */}
-            <mesh position={[center[0], 0.16, center[2] - 0.18]} castShadow={false}>
+            <mesh
+              position={[center[0], 0.16, center[2] - 0.18]}
+              castShadow={false}
+            >
               <cylinderGeometry args={[0.007, 0.007, 0.22, 8]} />
               <meshStandardMaterial color="#0f172a" roughness={0.9} />
             </mesh>
           </group>
-        )
+        );
       })}
     </>
-  )
+  );
 }
 
-function getTimeOfDay(): 'morning' | 'afternoon' | 'night' {
-  const h = new Date().getHours()
-  if (h >= 7 && h < 9) return 'morning'
-  if (h >= 14 && h < 16) return 'afternoon'
-  return 'night'
+function getTimeOfDay(): "morning" | "afternoon" | "night" {
+  const h = new Date().getHours();
+  if (h >= 7 && h < 9) return "morning";
+  if (h >= 14 && h < 16) return "afternoon";
+  return "night";
 }
 
-function scenePalette(tod: 'morning' | 'afternoon' | 'night') {
-  if (tod === 'morning') {
+function scenePalette(tod: "morning" | "afternoon" | "night") {
+  if (tod === "morning") {
     return {
-      floor: '#2a2520',
-      floorGrid: '#4b4036',
-      wall: '#d6c9b6',
-      wallPanel: '#c8baa6',
-      trim: '#8b6b4b',
-      sideWall: '#cfc2af',
-      baseboard: '#6f533b',
-      ambient: '#ffe5bf',
-      dir: '#ffd49a',
-      bg: '#f1e6d9',
-      rugOuter: '#37424f',
-      rugInner: '#4b5a69',
-      deskWood: '#7b5a40',
-      deskWoodDark: '#60442f',
-      glass: '#d7e7ff',
-      upholstery: '#5f6a78',
-      metalDark: '#5a6877',
-      skin: '#f1c27d',
-      suit: '#4b5a69',
-      shirt: '#e7edf5',
-    }
+      floor: "#2a2520",
+      floorGrid: "#4b4036",
+      wall: "#d6c9b6",
+      wallPanel: "#c8baa6",
+      trim: "#8b6b4b",
+      sideWall: "#cfc2af",
+      baseboard: "#6f533b",
+      ambient: "#ffe5bf",
+      dir: "#ffd49a",
+      bg: "#f1e6d9",
+      rugOuter: "#37424f",
+      rugInner: "#4b5a69",
+      deskWood: "#7b5a40",
+      deskWoodDark: "#60442f",
+      glass: "#d7e7ff",
+      upholstery: "#5f6a78",
+      metalDark: "#5a6877",
+      skin: "#f1c27d",
+      suit: "#4b5a69",
+      shirt: "#e7edf5",
+    };
   }
-  if (tod === 'afternoon') {
+  if (tod === "afternoon") {
     return {
-      floor: '#29241f',
-      floorGrid: '#47403a',
-      wall: '#c9beb0',
-      wallPanel: '#b8ac9d',
-      trim: '#7b6247',
-      sideWall: '#c0b4a6',
-      baseboard: '#694f39',
-      ambient: '#f8dcc0',
-      dir: '#ffd3ad',
-      bg: '#e8ddd0',
-      rugOuter: '#343f4c',
-      rugInner: '#465462',
-      deskWood: '#74543b',
-      deskWoodDark: '#5a412e',
-      glass: '#cfe0fb',
-      upholstery: '#586273',
-      metalDark: '#556474',
-      skin: '#efbe79',
-      suit: '#465361',
-      shirt: '#e4eaf2',
-    }
+      floor: "#29241f",
+      floorGrid: "#47403a",
+      wall: "#c9beb0",
+      wallPanel: "#b8ac9d",
+      trim: "#7b6247",
+      sideWall: "#c0b4a6",
+      baseboard: "#694f39",
+      ambient: "#f8dcc0",
+      dir: "#ffd3ad",
+      bg: "#e8ddd0",
+      rugOuter: "#343f4c",
+      rugInner: "#465462",
+      deskWood: "#74543b",
+      deskWoodDark: "#5a412e",
+      glass: "#cfe0fb",
+      upholstery: "#586273",
+      metalDark: "#556474",
+      skin: "#efbe79",
+      suit: "#465361",
+      shirt: "#e4eaf2",
+    };
   }
   return {
-    floor: '#1f2328',
-    floorGrid: '#313840',
-    wall: '#2d343d',
-    wallPanel: '#252d36',
-    trim: '#3e4c5a',
-    sideWall: '#2a3038',
-    baseboard: '#32404e',
-    ambient: '#8ab4ff',
-    dir: '#b8d2ff',
-    bg: '#0f141c',
-    rugOuter: '#313947',
-    rugInner: '#445063',
-    deskWood: '#5f4a38',
-    deskWoodDark: '#4a382b',
-    glass: '#bcd4fb',
-    upholstery: '#4c5664',
-    metalDark: '#4c5b6b',
-    skin: '#e7b772',
-    suit: '#3d4652',
-    shirt: '#dfe7f1',
-  }
+    floor: "#1f2328",
+    floorGrid: "#313840",
+    wall: "#2d343d",
+    wallPanel: "#252d36",
+    trim: "#3e4c5a",
+    sideWall: "#2a3038",
+    baseboard: "#32404e",
+    ambient: "#8ab4ff",
+    dir: "#b8d2ff",
+    bg: "#0f141c",
+    rugOuter: "#313947",
+    rugInner: "#445063",
+    deskWood: "#5f4a38",
+    deskWoodDark: "#4a382b",
+    glass: "#bcd4fb",
+    upholstery: "#4c5664",
+    metalDark: "#4c5b6b",
+    skin: "#e7b772",
+    suit: "#3d4652",
+    shirt: "#dfe7f1",
+  };
 }
 
 function SceneAtmosphere({ bg }: { bg: string }) {
-  const { scene } = useThree()
+  const { scene } = useThree();
   useEffect(() => {
-    scene.background = new THREE.Color(bg)
-    scene.fog = new THREE.Fog(bg, 9, 18)
-  }, [scene, bg])
-  return null
+    scene.background = new THREE.Color(bg);
+    scene.fog = new THREE.Fog(bg, 9, 18);
+  }, [scene, bg]);
+  return null;
 }
 
 function agentToShadowWorld(xPct: number, yPct: number): Vec3 {
-  const roomW = 10
-  const roomD = 6
-  const x = (xPct / 100) * roomW - roomW / 2
-  const z = (yPct / 100) * roomD - roomD / 2
-  return [x, 0.012, z]
+  const roomW = 10;
+  const roomD = 6;
+  const x = (xPct / 100) * roomW - roomW / 2;
+  const z = (yPct / 100) * roomD - roomD / 2;
+  return [x, 0.012, z];
 }
 
-function RoomShell({ tod }: { tod: 'morning' | 'afternoon' | 'night' }) {
-  const pal = scenePalette(tod)
+function RoomShell({ tod }: { tod: "morning" | "afternoon" | "night" }) {
+  const pal = scenePalette(tod);
 
   // Procedural floor tile canvas texture (G4C)
   const floorTex = useMemo(() => {
-    if (typeof document === 'undefined') return null
-    const SIZE = 512
-    const TILE = 64 // pixels per tile cell
-    const cvs  = document.createElement('canvas')
-    cvs.width = SIZE; cvs.height = SIZE
-    const ctx = cvs.getContext('2d')!
+    if (typeof document === "undefined") return null;
+    const SIZE = 512;
+    const TILE = 64; // pixels per tile cell
+    const cvs = document.createElement("canvas");
+    cvs.width = SIZE;
+    cvs.height = SIZE;
+    const ctx = cvs.getContext("2d")!;
     // Base fill
-    ctx.fillStyle = pal.floor
-    ctx.fillRect(0, 0, SIZE, SIZE)
+    ctx.fillStyle = pal.floor;
+    ctx.fillRect(0, 0, SIZE, SIZE);
     // Tile grain noise — subtle random brightness per tile
     for (let ty = 0; ty < SIZE / TILE; ty++) {
       for (let tx = 0; tx < SIZE / TILE; tx++) {
-        const brightness = 0.92 + Math.random() * 0.12
-        ctx.fillStyle = `rgba(${Math.round(brightness * 20)},${Math.round(brightness * 22)},${Math.round(brightness * 28)},0.18)`
-        ctx.fillRect(tx * TILE + 1, ty * TILE + 1, TILE - 2, TILE - 2)
+        const brightness = 0.92 + Math.random() * 0.12;
+        ctx.fillStyle = `rgba(${Math.round(brightness * 20)},${Math.round(brightness * 22)},${Math.round(brightness * 28)},0.18)`;
+        ctx.fillRect(tx * TILE + 1, ty * TILE + 1, TILE - 2, TILE - 2);
       }
     }
     // Grout lines
-    ctx.strokeStyle = pal.floorGrid
-    ctx.lineWidth = 1.5
-    ctx.globalAlpha = 0.55
+    ctx.strokeStyle = pal.floorGrid;
+    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.55;
     for (let x = 0; x <= SIZE; x += TILE) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, SIZE); ctx.stroke()
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, SIZE);
+      ctx.stroke();
     }
     for (let y = 0; y <= SIZE; y += TILE) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(SIZE, y); ctx.stroke()
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(SIZE, y);
+      ctx.stroke();
     }
-    ctx.globalAlpha = 1
-    const tex = new THREE.CanvasTexture(cvs)
-    tex.wrapS = THREE.RepeatWrapping
-    tex.wrapT = THREE.RepeatWrapping
-    tex.repeat.set(5, 3)
-    tex.anisotropy = 4
-    return tex
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tod])
+    ctx.globalAlpha = 1;
+    const tex = new THREE.CanvasTexture(cvs);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(5, 3);
+    tex.anisotropy = 4;
+    return tex;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tod]);
 
   return (
     <>
@@ -507,15 +666,25 @@ function RoomShell({ tod }: { tod: 'morning' | 'afternoon' | 'night' }) {
         <planeGeometry args={[10, 6]} />
         <meshStandardMaterial
           map={floorTex ?? undefined}
-          color={floorTex ? '#ffffff' : pal.floor}
+          color={floorTex ? "#ffffff" : pal.floor}
           roughness={0.94}
           metalness={0.05}
         />
       </mesh>
       {/* Subtle floor sheen lane (polish wear pattern) */}
-      <mesh position={[0, 0.004, 0.9]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow={false}>
+      <mesh
+        position={[0, 0.004, 0.9]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow={false}
+      >
         <planeGeometry args={[8.6, 0.7]} />
-        <meshStandardMaterial color="#cbd5e1" transparent opacity={0.04} roughness={0.2} metalness={0.1} />
+        <meshStandardMaterial
+          color="#cbd5e1"
+          transparent
+          opacity={0.04}
+          roughness={0.2}
+          metalness={0.1}
+        />
       </mesh>
 
       {/* Back wall */}
@@ -548,9 +717,23 @@ function RoomShell({ tod }: { tod: 'morning' | 'afternoon' | 'night' }) {
       </mesh>
 
       {/* Ceiling — closes the room so it doesn't look open-topped */}
-      <mesh position={[0, 2.46, 0]} rotation={[Math.PI / 2, 0, 0]} receiveShadow={false}>
+      <mesh
+        position={[0, 2.46, 0]}
+        rotation={[Math.PI / 2, 0, 0]}
+        receiveShadow={false}
+      >
         <planeGeometry args={[10, 6]} />
-        <meshStandardMaterial color={tod === 'night' ? '#1a2230' : tod === 'morning' ? '#d0c6ba' : '#c4b9aa'} roughness={0.95} metalness={0} />
+        <meshStandardMaterial
+          color={
+            tod === "night"
+              ? "#1a2230"
+              : tod === "morning"
+                ? "#d0c6ba"
+                : "#c4b9aa"
+          }
+          roughness={0.95}
+          metalness={0}
+        />
       </mesh>
       {/* Ceiling trim band along all four walls */}
       <mesh position={[0, 2.44, -2.9]} rotation={[0, 0, 0]}>
@@ -597,7 +780,12 @@ function RoomShell({ tod }: { tod: 'morning' | 'afternoon' | 'night' }) {
           </mesh>
           <mesh position={[0, 0, 0.018]}>
             <boxGeometry args={[0.78, 0.5, 0.01]} />
-            <meshStandardMaterial color={tod === 'night' ? '#2a3342' : '#8aa9c8'} emissive={tod === 'night' ? '#3b82f6' : '#94a3b8'} emissiveIntensity={0.08} roughness={0.7} />
+            <meshStandardMaterial
+              color={tod === "night" ? "#2a3342" : "#8aa9c8"}
+              emissive={tod === "night" ? "#3b82f6" : "#94a3b8"}
+              emissiveIntensity={0.08}
+              roughness={0.7}
+            />
           </mesh>
         </group>
       ))}
@@ -632,25 +820,27 @@ function RoomShell({ tod }: { tod: 'morning' | 'afternoon' | 'night' }) {
       {/* Wall clock — animated hands (updates live) */}
       <LiveClock />
     </>
-  )
+  );
 }
 
 // ── Live wall clock — hands rotate in real time ───────────────────────────────
 function LiveClock() {
-  const hourRef  = useRef<THREE.Mesh | null>(null)
-  const minRef   = useRef<THREE.Mesh | null>(null)
-  const secRef   = useRef<THREE.Mesh | null>(null)
+  const hourRef = useRef<THREE.Mesh | null>(null);
+  const minRef = useRef<THREE.Mesh | null>(null);
+  const secRef = useRef<THREE.Mesh | null>(null);
 
   useFrame(() => {
-    const now = new Date()
-    const h = now.getHours() % 12
-    const m = now.getMinutes()
-    const s = now.getSeconds()
+    const now = new Date();
+    const h = now.getHours() % 12;
+    const m = now.getMinutes();
+    const s = now.getSeconds();
     // Rotate around Z — negative because clock face is front-facing (+Z)
-    if (hourRef.current) hourRef.current.rotation.z  = -((h + m / 60) / 12) * Math.PI * 2
-    if (minRef.current)  minRef.current.rotation.z   = -((m + s / 60) / 60) * Math.PI * 2
-    if (secRef.current)  secRef.current.rotation.z   = -(s / 60) * Math.PI * 2
-  })
+    if (hourRef.current)
+      hourRef.current.rotation.z = -((h + m / 60) / 12) * Math.PI * 2;
+    if (minRef.current)
+      minRef.current.rotation.z = -((m + s / 60) / 60) * Math.PI * 2;
+    if (secRef.current) secRef.current.rotation.z = -(s / 60) * Math.PI * 2;
+  });
 
   return (
     <group position={[4.55, 1.85, -1.6]}>
@@ -665,19 +855,35 @@ function LiveClock() {
         <meshStandardMaterial color="#f8fafc" roughness={0.4} />
       </mesh>
       {/* Hour hand */}
-      <mesh ref={hourRef} position={[0, 0.02, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        ref={hourRef}
+        position={[0, 0.02, 0]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <boxGeometry args={[0.012, 0.072, 0.005]} />
         <meshStandardMaterial color="#111827" />
       </mesh>
       {/* Minute hand */}
-      <mesh ref={minRef} position={[0, 0.022, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        ref={minRef}
+        position={[0, 0.022, 0]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <boxGeometry args={[0.008, 0.098, 0.004]} />
         <meshStandardMaterial color="#1e293b" />
       </mesh>
       {/* Second hand */}
-      <mesh ref={secRef} position={[0, 0.024, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        ref={secRef}
+        position={[0, 0.024, 0]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <boxGeometry args={[0.004, 0.11, 0.003]} />
-        <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.35} />
+        <meshStandardMaterial
+          color="#ef4444"
+          emissive="#ef4444"
+          emissiveIntensity={0.35}
+        />
       </mesh>
       {/* Center dot */}
       <mesh position={[0, 0.026, 0]} rotation={[Math.PI / 2, 0, 0]}>
@@ -685,7 +891,7 @@ function LiveClock() {
         <meshStandardMaterial color="#0f172a" />
       </mesh>
     </group>
-  )
+  );
 }
 
 function WallMountedPanels({
@@ -697,44 +903,51 @@ function WallMountedPanels({
   agentStats,
   controls,
 }: {
-  activeAgent?: AgentId | null
-  articlesCount: number
-  pricesCount: number
-  worldRisk: number
-  modelLabel: string
-  agentStats: Record<string, { totalTasks: number; lastConfidence: number }>
+  activeAgent?: AgentId | null;
+  articlesCount: number;
+  pricesCount: number;
+  worldRisk: number;
+  modelLabel: string;
+  agentStats: Record<string, { totalTasks: number; lastConfidence: number }>;
   controls?: {
-    officeEditMode: boolean
-    onToggleEditMode: () => void
-    onResetLayout: () => void
-    onOpenMemory: () => void
-    onOpenScheduler: () => void
-    cameraPreset: OfficeCameraPreset
-    onSetCameraPreset: (p: OfficeCameraPreset) => void
-    vfxQuality: OfficeVfxQuality
-    onSetVfxQuality: (q: OfficeVfxQuality) => void
-  }
+    officeEditMode: boolean;
+    onToggleEditMode: () => void;
+    onResetLayout: () => void;
+    onOpenMemory: () => void;
+    onOpenScheduler: () => void;
+    cameraPreset: OfficeCameraPreset;
+    onSetCameraPreset: (p: OfficeCameraPreset) => void;
+    vfxQuality: OfficeVfxQuality;
+    onSetVfxQuality: (q: OfficeVfxQuality) => void;
+  };
 }) {
-  const ids = Object.keys(AGENTS) as AgentId[]
-  const [hoverLeft, setHoverLeft] = useState(false)
-  const [hoverRight, setHoverRight] = useState(false)
-  const [hoverCtl, setHoverCtl] = useState(false)
-  const [hoverCmd, setHoverCmd] = useState(false)
+  const ids = Object.keys(AGENTS) as AgentId[];
+  const [hoverLeft, setHoverLeft] = useState(false);
+  const [hoverRight, setHoverRight] = useState(false);
+  const [hoverCtl, setHoverCtl] = useState(false);
+  const [hoverCmd, setHoverCmd] = useState(false);
   const { prices, fg, cves } = useStore((s) => ({
     prices: s.prices,
     fg: s.signals?.fg,
     cves: s.cves,
-  }))
-  const btc = prices['bitcoin']
-  const totalTasks = Object.values(agentStats).reduce((sum, a) => sum + a.totalTasks, 0)
-  const ready = pricesCount > 0 && articlesCount > 0
+  }));
+  const btc = prices["bitcoin"];
+  const totalTasks = Object.values(agentStats).reduce(
+    (sum, a) => sum + a.totalTasks,
+    0,
+  );
+  const ready = pricesCount > 0 && articlesCount > 0;
   return (
     <>
       {/* Left wall roster board (closer to camera/agents) */}
       <group position={[-4.86, 1.54, -0.38]} rotation={[0, Math.PI / 2, 0]}>
         <mesh>
           <boxGeometry args={[2.2, 1.55, 0.03]} />
-          <meshStandardMaterial color={hoverLeft ? '#172033' : '#111827'} roughness={0.78} metalness={0.15} />
+          <meshStandardMaterial
+            color={hoverLeft ? "#172033" : "#111827"}
+            roughness={0.78}
+            metalness={0.15}
+          />
         </mesh>
         <mesh position={[0, 0.74, 0.012]}>
           <boxGeometry args={[2.2, 0.07, 0.02]} />
@@ -746,35 +959,120 @@ function WallMountedPanels({
             onMouseLeave={() => setHoverLeft(false)}
             style={{
               width: 290,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              color: '#9fb3d7',
-              cursor: 'pointer',
-              filter: hoverLeft ? 'brightness(1.07)' : 'none',
-              transition: 'filter 120ms ease',
+              fontFamily: "Inter, system-ui, sans-serif",
+              color: "#9fb3d7",
+              cursor: "pointer",
+              filter: hoverLeft ? "brightness(1.07)" : "none",
+              transition: "filter 120ms ease",
             }}
           >
-            <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 800, letterSpacing: '.11em', marginBottom: 8 }}>WALL ROSTER</div>
-            <div style={{ display: 'grid', gap: 4 }}>
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: 13,
+                fontWeight: 800,
+                letterSpacing: ".11em",
+                marginBottom: 8,
+              }}
+            >
+              WALL ROSTER
+            </div>
+            <div style={{ display: "grid", gap: 4 }}>
               {ids.map((id) => {
-                const cfg = AGENTS[id]
-                const st = agentStats[id]
-                const conf = Math.max(0, Math.min(100, Number(st?.lastConfidence ?? 0)))
-                const confColor = conf >= 80 ? '#00FF66' : conf >= 50 ? '#f59e0b' : '#ef4444'
+                const cfg = AGENTS[id];
+                const st = agentStats[id];
+                const conf = Math.max(
+                  0,
+                  Math.min(100, Number(st?.lastConfidence ?? 0)),
+                );
+                const confColor =
+                  conf >= 80 ? "#00FF66" : conf >= 50 ? "#f59e0b" : "#ef4444";
                 return (
-                  <div key={id} style={{ border: `1px solid ${cfg.color}30`, borderRadius: 6, padding: '4px 6px', background: 'rgba(8,12,22,0.78)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.color, display: 'inline-block' }} />
-                      <span style={{ color: cfg.color, fontSize: 12, fontWeight: 700 }}>{cfg.name}</span>
-                      <span style={{ marginLeft: 'auto', fontSize: 10, color: '#7e8fab', maxWidth: 130, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cfg.role}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                      <span style={{ flex: 1, height: 5, borderRadius: 999, overflow: 'hidden', border: '1px solid #2b364d', background: '#111827' }}>
-                        <span style={{ display: 'block', height: '100%', width: `${conf}%`, background: confColor }} />
+                  <div
+                    key={id}
+                    style={{
+                      border: `1px solid ${cfg.color}30`,
+                      borderRadius: 6,
+                      padding: "4px 6px",
+                      background: "rgba(8,12,22,0.78)",
+                    }}
+                  >
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 6 }}
+                    >
+                      <span
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: cfg.color,
+                          display: "inline-block",
+                        }}
+                      />
+                      <span
+                        style={{
+                          color: cfg.color,
+                          fontSize: 12,
+                          fontWeight: 700,
+                        }}
+                      >
+                        {cfg.name}
                       </span>
-                      <span style={{ fontSize: 10, color: '#8fa2c4', whiteSpace: 'nowrap' }}>{st ? `${st.totalTasks}T ${Math.round(conf)}%` : 'NO DATA'}</span>
+                      <span
+                        style={{
+                          marginLeft: "auto",
+                          fontSize: 10,
+                          color: "#7e8fab",
+                          maxWidth: 130,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {cfg.role}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        marginTop: 4,
+                      }}
+                    >
+                      <span
+                        style={{
+                          flex: 1,
+                          height: 5,
+                          borderRadius: 999,
+                          overflow: "hidden",
+                          border: "1px solid #2b364d",
+                          background: "#111827",
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: "block",
+                            height: "100%",
+                            width: `${conf}%`,
+                            background: confColor,
+                          }}
+                        />
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          color: "#8fa2c4",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {st
+                          ? `${st.totalTasks}T ${Math.round(conf)}%`
+                          : "NO DATA"}
+                      </span>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           </div>
@@ -785,7 +1083,11 @@ function WallMountedPanels({
       <group position={[4.86, 1.28, 0.55]} rotation={[0, -Math.PI / 2, 0]}>
         <mesh>
           <boxGeometry args={[1.95, 1.2, 0.03]} />
-          <meshStandardMaterial color={hoverRight ? '#172033' : '#111827'} roughness={0.78} metalness={0.15} />
+          <meshStandardMaterial
+            color={hoverRight ? "#172033" : "#111827"}
+            roughness={0.78}
+            metalness={0.15}
+          />
         </mesh>
         <mesh position={[0, 0.56, 0.012]}>
           <boxGeometry args={[1.95, 0.07, 0.02]} />
@@ -797,23 +1099,64 @@ function WallMountedPanels({
             onMouseLeave={() => setHoverRight(false)}
             style={{
               width: 290,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              color: '#9fb3d7',
-              cursor: 'pointer',
-              filter: hoverRight ? 'brightness(1.1)' : 'none',
-              transition: 'filter 120ms ease',
+              fontFamily: "Inter, system-ui, sans-serif",
+              color: "#9fb3d7",
+              cursor: "pointer",
+              filter: hoverRight ? "brightness(1.1)" : "none",
+              transition: "filter 120ms ease",
             }}
           >
-            <div style={{ textAlign: 'center', fontSize: 17, fontWeight: 800, letterSpacing: '.12em', marginBottom: 10 }}>SYS</div>
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: 17,
+                fontWeight: 800,
+                letterSpacing: ".12em",
+                marginBottom: 10,
+              }}
+            >
+              SYS
+            </div>
             {[
-              ['Signals', String(articlesCount), articlesCount > 0 ? '#10b981' : '#ef4444'],
-              ['Tickers', String(pricesCount), pricesCount > 0 ? '#10b981' : '#6875a0'],
-              ['Risk', String(worldRisk), worldRisk > 4 ? '#ef4444' : worldRisk > 1 ? '#f59e0b' : '#10b981'],
-              ['Model', modelLabel, '#f59e0b'],
-              ['Active', activeAgent ? AGENTS[activeAgent].name : '—', activeAgent ? AGENTS[activeAgent].color : '#6875a0'],
+              [
+                "Signals",
+                String(articlesCount),
+                articlesCount > 0 ? "#10b981" : "#ef4444",
+              ],
+              [
+                "Tickers",
+                String(pricesCount),
+                pricesCount > 0 ? "#10b981" : "#6875a0",
+              ],
+              [
+                "Risk",
+                String(worldRisk),
+                worldRisk > 4
+                  ? "#ef4444"
+                  : worldRisk > 1
+                    ? "#f59e0b"
+                    : "#10b981",
+              ],
+              ["Model", modelLabel, "#f59e0b"],
+              [
+                "Active",
+                activeAgent ? AGENTS[activeAgent].name : "—",
+                activeAgent ? AGENTS[activeAgent].color : "#6875a0",
+              ],
             ].map(([label, value, color]) => (
-              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14, padding: '4px 0' }}>
-                <span style={{ color: '#7e8fab', fontWeight: 600 }}>{label}</span>
+              <div
+                key={label}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  fontSize: 14,
+                  padding: "4px 0",
+                }}
+              >
+                <span style={{ color: "#7e8fab", fontWeight: 600 }}>
+                  {label}
+                </span>
                 <span style={{ color, fontWeight: 700 }}>{value}</span>
               </div>
             ))}
@@ -826,7 +1169,11 @@ function WallMountedPanels({
       <group position={[-3.1, 1.55, -2.875]} rotation={[0, 0, 0]}>
         <mesh>
           <boxGeometry args={[1.85, 1.05, 0.03]} />
-          <meshStandardMaterial color={hoverCmd ? '#172033' : '#111827'} roughness={0.78} metalness={0.15} />
+          <meshStandardMaterial
+            color={hoverCmd ? "#172033" : "#111827"}
+            roughness={0.78}
+            metalness={0.15}
+          />
         </mesh>
         <mesh position={[0, 0.49, 0.012]}>
           <boxGeometry args={[1.85, 0.07, 0.02]} />
@@ -838,30 +1185,66 @@ function WallMountedPanels({
             onMouseLeave={() => setHoverCmd(false)}
             style={{
               width: 260,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              color: '#9fb3d7',
-              cursor: 'default',
-              userSelect: 'none',
-              filter: hoverCmd ? 'brightness(1.08)' : 'none',
-              transition: 'filter 120ms ease',
+              fontFamily: "Inter, system-ui, sans-serif",
+              color: "#9fb3d7",
+              cursor: "default",
+              userSelect: "none",
+              filter: hoverCmd ? "brightness(1.08)" : "none",
+              transition: "filter 120ms ease",
             }}
           >
-            <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 900, letterSpacing: '.12em', marginBottom: 10 }}>
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: 13,
+                fontWeight: 900,
+                letterSpacing: ".12em",
+                marginBottom: 10,
+              }}
+            >
               COMMAND CENTER
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 8,
+              }}
+            >
               <KpiCard
                 label="PRICE"
-                value={btc?.price ? `$${(btc.price / 1000).toFixed(1)}K` : '—'}
-                sub={btc?.chg !== undefined ? `${btc.chg >= 0 ? '+' : ''}${btc.chg.toFixed(2)}%` : undefined}
-                color={btc?.chg !== undefined ? (btc.chg >= 0 ? '#00FF66' : '#ef4444') : '#6875a0'}
+                value={btc?.price ? `$${(btc.price / 1000).toFixed(1)}K` : "—"}
+                sub={
+                  btc?.chg !== undefined
+                    ? `${btc.chg >= 0 ? "+" : ""}${btc.chg.toFixed(2)}%`
+                    : undefined
+                }
+                color={
+                  btc?.chg !== undefined
+                    ? btc.chg >= 0
+                      ? "#00FF66"
+                      : "#ef4444"
+                    : "#6875a0"
+                }
               />
               <KpiCard
                 label="CVE TODAY"
-                value={cves.length > 0 ? String(cves.length) : '—'}
-                sub={cves.length > 10 ? 'ELEVATED' : cves.length > 0 ? 'NORMAL' : undefined}
-                color={cves.length > 20 ? '#ef4444' : cves.length > 5 ? '#f59e0b' : '#00DDFF'}
+                value={cves.length > 0 ? String(cves.length) : "—"}
+                sub={
+                  cves.length > 10
+                    ? "ELEVATED"
+                    : cves.length > 0
+                      ? "NORMAL"
+                      : undefined
+                }
+                color={
+                  cves.length > 20
+                    ? "#ef4444"
+                    : cves.length > 5
+                      ? "#f59e0b"
+                      : "#00DDFF"
+                }
               />
               <KpiCard
                 label="TASKS RUN"
@@ -871,24 +1254,42 @@ function WallMountedPanels({
               />
               <KpiCard
                 label="STATUS"
-                value={ready ? 'READY' : 'DEGRADED'}
-                sub={ready ? 'ONLINE' : 'CHECK FEEDS'}
-                color={ready ? '#00FF66' : '#f59e0b'}
+                value={ready ? "READY" : "DEGRADED"}
+                sub={ready ? "ONLINE" : "CHECK FEEDS"}
+                color={ready ? "#00FF66" : "#f59e0b"}
               />
               <KpiCard
                 label="WORLD RISK"
-                value={worldRisk > 0 ? String(worldRisk) : '—'}
-                sub={worldRisk > 70 ? 'HIGH' : worldRisk > 40 ? 'MED' : worldRisk > 0 ? 'LOW' : undefined}
-                color={worldRisk > 70 ? '#ef4444' : worldRisk > 40 ? '#f59e0b' : '#00FF66'}
+                value={worldRisk > 0 ? String(worldRisk) : "—"}
+                sub={
+                  worldRisk > 70
+                    ? "HIGH"
+                    : worldRisk > 40
+                      ? "MED"
+                      : worldRisk > 0
+                        ? "LOW"
+                        : undefined
+                }
+                color={
+                  worldRisk > 70
+                    ? "#ef4444"
+                    : worldRisk > 40
+                      ? "#f59e0b"
+                      : "#00FF66"
+                }
               />
               <KpiCard
                 label="FEAR & GREED"
-                value={fg ? String(fg.value) : '—'}
-                sub={fg ? String(fg.label ?? '').toUpperCase() : undefined}
+                value={fg ? String(fg.value) : "—"}
+                sub={fg ? String(fg.label ?? "").toUpperCase() : undefined}
                 color={
                   fg
-                    ? (Number(fg.value) >= 60 ? '#00FF66' : Number(fg.value) >= 40 ? '#f59e0b' : '#ef4444')
-                    : '#6875a0'
+                    ? Number(fg.value) >= 60
+                      ? "#00FF66"
+                      : Number(fg.value) >= 40
+                        ? "#f59e0b"
+                        : "#ef4444"
+                    : "#6875a0"
                 }
               />
             </div>
@@ -901,7 +1302,11 @@ function WallMountedPanels({
         <group position={[3.1, 1.55, -2.875]} rotation={[0, 0, 0]}>
           <mesh>
             <boxGeometry args={[1.85, 1.05, 0.03]} />
-            <meshStandardMaterial color={hoverCtl ? '#172033' : '#111827'} roughness={0.78} metalness={0.15} />
+            <meshStandardMaterial
+              color={hoverCtl ? "#172033" : "#111827"}
+              roughness={0.78}
+              metalness={0.15}
+            />
           </mesh>
           <mesh position={[0, 0.49, 0.012]}>
             <boxGeometry args={[1.85, 0.07, 0.02]} />
@@ -913,71 +1318,150 @@ function WallMountedPanels({
               onMouseLeave={() => setHoverCtl(false)}
               style={{
                 width: 260,
-                fontFamily: 'Inter, system-ui, sans-serif',
-                color: '#9fb3d7',
-                cursor: 'default',
-                userSelect: 'none',
-                filter: hoverCtl ? 'brightness(1.08)' : 'none',
-                transition: 'filter 120ms ease',
+                fontFamily: "Inter, system-ui, sans-serif",
+                color: "#9fb3d7",
+                cursor: "default",
+                userSelect: "none",
+                filter: hoverCtl ? "brightness(1.08)" : "none",
+                transition: "filter 120ms ease",
               }}
             >
-              <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 900, letterSpacing: '.12em', marginBottom: 10 }}>
+              <div
+                style={{
+                  textAlign: "center",
+                  fontSize: 13,
+                  fontWeight: 900,
+                  letterSpacing: ".12em",
+                  marginBottom: 10,
+                }}
+              >
                 WALL CONTROL
               </div>
 
-              <div style={{ display: 'grid', gap: 8 }}>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" onClick={controls.onOpenMemory} style={ctlBtn('#4f6ef7')}>MEMORY</button>
-                  <button type="button" onClick={controls.onOpenScheduler} style={ctlBtn('#10b981')}>SCHED</button>
+              <div style={{ display: "grid", gap: 8 }}>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={controls.onOpenMemory}
+                    style={ctlBtn("#4f6ef7")}
+                  >
+                    MEMORY
+                  </button>
+                  <button
+                    type="button"
+                    onClick={controls.onOpenScheduler}
+                    style={ctlBtn("#10b981")}
+                  >
+                    SCHED
+                  </button>
                 </div>
 
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: "flex", gap: 8 }}>
                   <button
                     type="button"
                     onClick={controls.onToggleEditMode}
-                    style={ctlBtn(controls.officeEditMode ? '#00FF66' : '#00DDFF')}
+                    style={ctlBtn(
+                      controls.officeEditMode ? "#00FF66" : "#00DDFF",
+                    )}
                     title="Toggle layout edit mode"
                   >
-                    {controls.officeEditMode ? 'EDIT: ON' : 'EDIT'}
+                    {controls.officeEditMode ? "EDIT: ON" : "EDIT"}
                   </button>
-                  <button type="button" onClick={controls.onResetLayout} style={ctlBtn('#ef4444')} title="Reset office layout">
+                  <button
+                    type="button"
+                    onClick={controls.onResetLayout}
+                    style={ctlBtn("#ef4444")}
+                    title="Reset office layout"
+                  >
                     RESET
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#7e8fab' }}>CAM</span>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    {(['cinematic', 'closeOps', 'wallReadability'] as const).map((p) => (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 10,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      letterSpacing: ".1em",
+                      color: "#7e8fab",
+                    }}
+                  >
+                    CAM
+                  </span>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {(
+                      ["cinematic", "closeOps", "wallReadability"] as const
+                    ).map((p) => (
                       <button
                         key={p}
                         type="button"
                         onClick={() => controls.onSetCameraPreset(p)}
                         style={{
-                          ...ctlMiniBtn(controls.cameraPreset === p ? '#00DDFF' : '#7ba7d4'),
-                          borderColor: controls.cameraPreset === p ? '#00DDFF88' : '#24314a',
-                          background: controls.cameraPreset === p ? 'rgba(0,221,255,0.12)' : 'rgba(13,18,32,0.96)',
+                          ...ctlMiniBtn(
+                            controls.cameraPreset === p ? "#00DDFF" : "#7ba7d4",
+                          ),
+                          borderColor:
+                            controls.cameraPreset === p
+                              ? "#00DDFF88"
+                              : "#24314a",
+                          background:
+                            controls.cameraPreset === p
+                              ? "rgba(0,221,255,0.12)"
+                              : "rgba(13,18,32,0.96)",
                         }}
                         title={p}
                       >
-                        {p === 'cinematic' ? 'CIN' : p === 'closeOps' ? 'OPS' : 'WALL'}
+                        {p === "cinematic"
+                          ? "CIN"
+                          : p === "closeOps"
+                            ? "OPS"
+                            : "WALL"}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#7e8fab' }}>VFX</span>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    {(['off', 'low', 'high'] as const).map((q) => (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 10,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      letterSpacing: ".1em",
+                      color: "#7e8fab",
+                    }}
+                  >
+                    VFX
+                  </span>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {(["off", "low", "high"] as const).map((q) => (
                       <button
                         key={q}
                         type="button"
                         onClick={() => controls.onSetVfxQuality(q)}
                         style={{
-                          ...ctlMiniBtn(controls.vfxQuality === q ? '#f59e0b' : '#7ba7d4'),
-                          borderColor: controls.vfxQuality === q ? '#f59e0b88' : '#24314a',
-                          background: controls.vfxQuality === q ? 'rgba(245,158,11,0.14)' : 'rgba(13,18,32,0.96)',
+                          ...ctlMiniBtn(
+                            controls.vfxQuality === q ? "#f59e0b" : "#7ba7d4",
+                          ),
+                          borderColor:
+                            controls.vfxQuality === q ? "#f59e0b88" : "#24314a",
+                          background:
+                            controls.vfxQuality === q
+                              ? "rgba(245,158,11,0.14)"
+                              : "rgba(13,18,32,0.96)",
                         }}
                       >
                         {q.toUpperCase()}
@@ -991,29 +1475,79 @@ function WallMountedPanels({
         </group>
       )}
     </>
-  )
+  );
 }
 
-function KpiCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color: string }) {
+function KpiCard({
+  label,
+  value,
+  sub,
+  color,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  color: string;
+}) {
   return (
     <div
       style={{
         borderRadius: 10,
         border: `1px solid ${color}22`,
-        background: 'rgba(8,12,22,0.82)',
-        padding: '8px 8px',
-        textAlign: 'center',
+        background: "rgba(8,12,22,0.82)",
+        padding: "8px 8px",
+        textAlign: "center",
       }}
     >
-      <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.12em', color: '#304060', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '.06em', color, lineHeight: 1.05 }}>{value}</div>
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 900,
+          letterSpacing: ".12em",
+          color: "#304060",
+          marginBottom: 4,
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: 16,
+          fontWeight: 900,
+          letterSpacing: ".06em",
+          color,
+          lineHeight: 1.05,
+        }}
+      >
+        {value}
+      </div>
       {sub ? (
-        <div style={{ marginTop: 4, fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: `${color}99` }}>{sub}</div>
+        <div
+          style={{
+            marginTop: 4,
+            fontSize: 10,
+            fontWeight: 800,
+            letterSpacing: ".1em",
+            color: `${color}99`,
+          }}
+        >
+          {sub}
+        </div>
       ) : (
-        <div style={{ marginTop: 4, fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: 'transparent' }}>—</div>
+        <div
+          style={{
+            marginTop: 4,
+            fontSize: 10,
+            fontWeight: 800,
+            letterSpacing: ".1em",
+            color: "transparent",
+          }}
+        >
+          —
+        </div>
       )}
     </div>
-  )
+  );
 }
 
 function ctlBtn(color: string): CSSProperties {
@@ -1021,108 +1555,117 @@ function ctlBtn(color: string): CSSProperties {
     flex: 1,
     fontSize: 10,
     fontWeight: 900,
-    letterSpacing: '.12em',
-    padding: '8px 10px',
+    letterSpacing: ".12em",
+    padding: "8px 10px",
     borderRadius: 10,
     border: `1px solid ${color}66`,
-    background: 'rgba(8,12,22,0.82)',
+    background: "rgba(8,12,22,0.82)",
     color,
-    cursor: 'pointer',
-  }
+    cursor: "pointer",
+  };
 }
 
 function ctlMiniBtn(color: string): CSSProperties {
   return {
     fontSize: 9,
     fontWeight: 900,
-    letterSpacing: '.12em',
-    padding: '6px 8px',
+    letterSpacing: ".12em",
+    padding: "6px 8px",
     borderRadius: 999,
-    border: '1px solid #24314a',
-    background: 'rgba(13,18,32,0.96)',
+    border: "1px solid #24314a",
+    background: "rgba(13,18,32,0.96)",
     color,
-    cursor: 'pointer',
+    cursor: "pointer",
     minWidth: 44,
-  }
+  };
 }
 
 function CeilingLights({ nightFactor }: { nightFactor: number }) {
-  const barRefs = useRef<Array<THREE.Mesh | null>>([])
-  const flickerSeed = useMemo(() => [Math.random(), Math.random(), Math.random()], [])
+  const barRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const flickerSeed = useMemo(
+    () => [Math.random(), Math.random(), Math.random()],
+    [],
+  );
 
   useFrame((state) => {
-    const t = state.clock.getElapsedTime()
+    const t = state.clock.getElapsedTime();
     for (let i = 0; i < barRefs.current.length; i++) {
-      const m = barRefs.current[i]
-      if (!m) continue
+      const m = barRefs.current[i];
+      if (!m) continue;
       // Flicker is stronger at night (more dramatic).
-      const base = 0.45 + nightFactor * 0.35
+      const base = 0.45 + nightFactor * 0.35;
       // Avoid per-frame Math.random() (can cause jank). Use a deterministic wobble instead.
-      const s = flickerSeed[i] ?? 0.5
-      const wobble = Math.sin(t * (6.4 + s * 2.2) + i * 3.1) * 0.06
-      const flicker = 0.78 + Math.sin(t * (2.2 + i * 0.6) + i * 2.1) * 0.1 + wobble
-      const intensity = base * flicker
-      const mat = m.material as THREE.MeshStandardMaterial
-      if (mat && 'emissiveIntensity' in mat) mat.emissiveIntensity = intensity
+      const s = flickerSeed[i] ?? 0.5;
+      const wobble = Math.sin(t * (6.4 + s * 2.2) + i * 3.1) * 0.06;
+      const flicker =
+        0.78 + Math.sin(t * (2.2 + i * 0.6) + i * 2.1) * 0.1 + wobble;
+      const intensity = base * flicker;
+      const mat = m.material as THREE.MeshStandardMaterial;
+      if (mat && "emissiveIntensity" in mat) mat.emissiveIntensity = intensity;
     }
-  })
+  });
 
-  const emissive = '#f0f0aa'
+  const emissive = "#f0f0aa";
   return (
     <>
-      {([ -2.8, 0,  2.8 ] as const).map((x, i) => (
+      {([-2.8, 0, 2.8] as const).map((x, i) => (
         <mesh
           key={i}
           ref={(el) => {
-            barRefs.current[i] = el
+            barRefs.current[i] = el;
           }}
           position={[x, 2.35, -1.2]}
           castShadow
           receiveShadow
         >
           <boxGeometry args={[1.2, 0.05, 0.1]} />
-          <meshStandardMaterial color="#15120f" emissive={emissive} emissiveIntensity={0.6} />
+          <meshStandardMaterial
+            color="#15120f"
+            emissive={emissive}
+            emissiveIntensity={0.6}
+          />
         </mesh>
       ))}
     </>
-  )
+  );
 }
 
 function CityWindow({ nightFactor }: { nightFactor: number }) {
   // Must render *in front* of the back-wall panel band (z ~ -2.89).
-  const Z_VIEW = -2.872
-  const Z_GLASS = -2.862
-  const Z_FRAME = -2.858
+  const Z_VIEW = -2.872;
+  const Z_GLASS = -2.862;
+  const Z_FRAME = -2.858;
 
-  const { gl } = useThree()
+  const { gl } = useThree();
 
   const viewTex = useMemo(() => {
-    const t = new THREE.TextureLoader().load('/office/la-skyline.jpg')
-    t.colorSpace = THREE.SRGBColorSpace
-    t.minFilter = THREE.LinearFilter
-    t.magFilter = THREE.LinearFilter
-    t.generateMipmaps = true
+    const t = new THREE.TextureLoader().load("/office/la-skyline.jpg");
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.minFilter = THREE.LinearFilter;
+    t.magFilter = THREE.LinearFilter;
+    t.generateMipmaps = true;
     // Reduce blurriness at oblique angles (window plane).
-    t.anisotropy = gl.capabilities.getMaxAnisotropy()
-    return t
-  }, [gl])
+    t.anisotropy = gl.capabilities.getMaxAnisotropy();
+    return t;
+  }, [gl]);
 
-  const skyRef = useRef<THREE.Mesh | null>(null)
+  const skyRef = useRef<THREE.Mesh | null>(null);
 
   useFrame((state) => {
-    const t = state.clock.getElapsedTime()
-    const sky = skyRef.current
+    const t = state.clock.getElapsedTime();
+    const sky = skyRef.current;
     if (sky) {
-      const mat = sky.material as THREE.MeshStandardMaterial
+      const mat = sky.material as THREE.MeshStandardMaterial;
       // Night: city glows bright (0.55), morning: gentle (0.14), afternoon: neutral (0.08)
-      const targetEmissive = 0.08 + nightFactor * 0.47
+      const targetEmissive = 0.08 + nightFactor * 0.47;
       // Subtle shimmer — city lights twinkle
-      const shimmer = nightFactor > 0.5 ? Math.sin(t * 0.8) * 0.04 : 0
-      mat.emissiveIntensity += (targetEmissive + shimmer - mat.emissiveIntensity) * 0.06
+      const shimmer = nightFactor > 0.5 ? Math.sin(t * 0.8) * 0.04 : 0;
+      mat.emissiveIntensity +=
+        (targetEmissive + shimmer - mat.emissiveIntensity) * 0.06;
     }
-  })
+  });
 
-  const frameColor = '#4b5563'
+  const frameColor = "#4b5563";
   return (
     <>
       {/* City spill light — cool blue wash from window at night */}
@@ -1177,81 +1720,94 @@ function CityWindow({ nightFactor }: { nightFactor: number }) {
         </mesh>
       </group>
     </>
-  )
+  );
 }
 
 function DustParticles({ nightFactor }: { nightFactor: number }) {
-  const count = Math.max(60, Math.min(180, Math.round(80 + nightFactor * 70)))
+  const count = Math.max(60, Math.min(180, Math.round(80 + nightFactor * 70)));
   const points = useMemo(() => {
-    const arr: Float32Array = new Float32Array(count * 3)
+    const arr: Float32Array = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      const x = (Math.random() - 0.5) * 10
-      const y = Math.random() * 2.2 + 0.2
+      const x = (Math.random() - 0.5) * 10;
+      const y = Math.random() * 2.2 + 0.2;
       // Keep particles in the room volume, but avoid the back-wall window plane
       // so they don't read as a "speckle overlay" on the city view.
-      const z = Math.random() * 5.1 - 2.25 // [-2.25 .. 2.85]
-      arr[i * 3 + 0] = x
-      arr[i * 3 + 1] = y
-      arr[i * 3 + 2] = z
+      const z = Math.random() * 5.1 - 2.25; // [-2.25 .. 2.85]
+      arr[i * 3 + 0] = x;
+      arr[i * 3 + 1] = y;
+      arr[i * 3 + 2] = z;
     }
-    return arr
-  }, [count])
+    return arr;
+  }, [count]);
 
-  const ref = useRef<THREE.Points | null>(null)
+  const ref = useRef<THREE.Points | null>(null);
 
   useFrame((state) => {
-    const t = state.clock.getElapsedTime()
-    const pts = ref.current
-    if (!pts) return
-    const m = pts.material as THREE.PointsMaterial
+    const t = state.clock.getElapsedTime();
+    const pts = ref.current;
+    if (!pts) return;
+    const m = pts.material as THREE.PointsMaterial;
     // Slightly increase particle visibility at night.
-    m.opacity = (0.08 + nightFactor * 0.12) * (0.6 + Math.sin(t * 0.6) * 0.4)
-    pts.rotation.y = t * 0.05
-    pts.rotation.x = Math.sin(t * 0.2) * 0.03
-  })
+    m.opacity = (0.08 + nightFactor * 0.12) * (0.6 + Math.sin(t * 0.6) * 0.4);
+    pts.rotation.y = t * 0.05;
+    pts.rotation.x = Math.sin(t * 0.2) * 0.03;
+  });
 
   return (
     <points ref={ref}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={points.length / 3} array={points} itemSize={3} />
+        <bufferAttribute
+          attach="attributes-position"
+          count={points.length / 3}
+          array={points}
+          itemSize={3}
+        />
       </bufferGeometry>
-      <pointsMaterial color="#93c5fd" size={0.03} opacity={0.12} transparent depthWrite={false} />
+      <pointsMaterial
+        color="#93c5fd"
+        size={0.03}
+        opacity={0.12}
+        transparent
+        depthWrite={false}
+      />
     </points>
-  )
+  );
 }
 
 function AgentFloorShadows({
   agentPos,
   activeAgent,
   obstacles = [],
-  vfxQuality = 'low',
+  vfxQuality = "low",
 }: {
-  agentPos?: Record<AgentId, { x: number; y: number }>
-  activeAgent?: AgentId | null
-  obstacles?: Array<{ x: number; z: number; r: number }>
-  vfxQuality?: OfficeVfxQuality
+  agentPos?: Record<AgentId, { x: number; y: number }>;
+  activeAgent?: AgentId | null;
+  obstacles?: Array<{ x: number; z: number; r: number }>;
+  vfxQuality?: OfficeVfxQuality;
 }) {
-  const pal = useMemo(() => scenePalette('afternoon'), [])
-  const agentStats = useStore((s) => s.agentStats)
-  const groups = useRef<Array<THREE.Group | null>>([])
-  const glows = useRef<Array<THREE.Mesh | null>>([])
-  const rimRefs = useRef<Array<THREE.Mesh | null>>([])
-  const bodyRefs = useRef<Array<THREE.Group | null>>([])
-  const headRefs = useRef<Array<THREE.Mesh | null>>([])
-  const armLRefs = useRef<Array<THREE.Mesh | null>>([])
-  const armRRefs = useRef<Array<THREE.Mesh | null>>([])
-  const legLRefs = useRef<Array<THREE.Mesh | null>>([])
-  const legRRefs = useRef<Array<THREE.Mesh | null>>([])
-  const elAuraRefs      = useRef<Array<THREE.Mesh | null>>([])
-  const elOuterAuraRefs = useRef<Array<THREE.Mesh | null>>([])        // Beyond Tier: second ring (hi only)
-  const elOrbRefs       = useRef<Array<Array<THREE.Mesh | null>>>([]) // Beyond Tier: 3 floating orbs
-  const hopperBeamRefs  = useRef<Array<THREE.Mesh | null>>([])
-  const targetRefs      = useRef<Record<AgentId, Vec3>>({} as Record<AgentId, Vec3>)
-  const initRefs = useRef<Record<AgentId, boolean>>({} as Record<AgentId, boolean>)
+  const pal = useMemo(() => scenePalette("afternoon"), []);
+  const agentStats = useStore((s) => s.agentStats);
+  const groups = useRef<Array<THREE.Group | null>>([]);
+  const glows = useRef<Array<THREE.Mesh | null>>([]);
+  const rimRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const bodyRefs = useRef<Array<THREE.Group | null>>([]);
+  const headRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const armLRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const armRRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const legLRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const legRRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const elAuraRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const elOuterAuraRefs = useRef<Array<THREE.Mesh | null>>([]); // Beyond Tier: second ring (hi only)
+  const elOrbRefs = useRef<Array<Array<THREE.Mesh | null>>>([]); // Beyond Tier: 3 floating orbs
+  const hopperBeamRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const targetRefs = useRef<Record<AgentId, Vec3>>({} as Record<AgentId, Vec3>);
+  const initRefs = useRef<Record<AgentId, boolean>>(
+    {} as Record<AgentId, boolean>,
+  );
 
-  const quality = vfxQuality
-  const vfxOn = quality !== 'off'
-  const vfxHi = quality === 'high'
+  const quality = vfxQuality;
+  const vfxOn = quality !== "off";
+  const vfxHi = quality === "high";
 
   const STATURE: Record<AgentId, number> = {
     cipher: 1.12, // Hopper
@@ -1259,267 +1815,288 @@ function AgentFloorShadows({
     orbit: 0.95, // El
     flux: 1.02, // Lucas
     jansky: 1.0, // Max
-  }
+  };
   const GAIT: Record<AgentId, { amp: number; freq: number }> = {
     cipher: { amp: 0.9, freq: 0.85 },
     nova: { amp: 1.1, freq: 1.1 },
     orbit: { amp: 1.0, freq: 1.0 },
     flux: { amp: 1.05, freq: 1.05 },
     jansky: { amp: 1.0, freq: 1.0 },
-  }
+  };
   const REST: Record<AgentId, { arm: number; leg: number }> = {
     cipher: { arm: 0.18, leg: 0.04 }, // heavier stance
     nova: { arm: 0.05, leg: 0.02 },
     orbit: { arm: -0.05, leg: 0.03 }, // tucked posture
     flux: { arm: 0.07, leg: 0.03 },
     jansky: { arm: 0.09, leg: 0.02 },
-  }
+  };
 
   const resolveObstacles = (target: Vec3): Vec3 => {
-    let x = target[0]
-    let z = target[2]
+    let x = target[0];
+    let z = target[2];
     for (let iter = 0; iter < 3; iter++) {
       for (const o of obstacles) {
-        const dx = x - o.x
-        const dz = z - o.z
-        const d2 = dx * dx + dz * dz
-        const minR = o.r + 0.28
+        const dx = x - o.x;
+        const dz = z - o.z;
+        const d2 = dx * dx + dz * dz;
+        const minR = o.r + 0.28;
         if (d2 < minR * minR) {
-          const d = Math.max(0.0001, Math.sqrt(d2))
-          const nx = dx / d
-          const nz = dz / d
-          const push = minR - d
-          x += nx * push
-          z += nz * push
+          const d = Math.max(0.0001, Math.sqrt(d2));
+          const nx = dx / d;
+          const nz = dz / d;
+          const push = minR - d;
+          x += nx * push;
+          z += nz * push;
         }
       }
-      x = Math.max(-4.55, Math.min(4.55, x))
-      z = Math.max(-2.55, Math.min(2.55, z))
+      x = Math.max(-4.55, Math.min(4.55, x));
+      z = Math.max(-2.55, Math.min(2.55, z));
     }
-    return [x, target[1], z]
-  }
+    return [x, target[1], z];
+  };
 
   useFrame((state, delta) => {
-    const t = state.clock.getElapsedTime()
-    const ids = Object.keys(AGENTS) as AgentId[]
+    const t = state.clock.getElapsedTime();
+    const ids = Object.keys(AGENTS) as AgentId[];
     for (let i = 0; i < ids.length; i++) {
-      const id = ids[i]
-      const p = agentPos?.[id]
-      const group = groups.current[i]
+      const id = ids[i];
+      const p = agentPos?.[id];
+      const group = groups.current[i];
       if (group && p) {
-        const s = STATURE[id] ?? 1
-        group.scale.set(s, s, s)
-        const rawTarget = agentToShadowWorld(p.x, p.y)
-        const target = resolveObstacles(rawTarget)
-        targetRefs.current[id] = target
+        const s = STATURE[id] ?? 1;
+        group.scale.set(s, s, s);
+        const rawTarget = agentToShadowWorld(p.x, p.y);
+        const target = resolveObstacles(rawTarget);
+        targetRefs.current[id] = target;
         if (!initRefs.current[id]) {
-          group.position.set(target[0], 0, target[2])
-          initRefs.current[id] = true
+          group.position.set(target[0], 0, target[2]);
+          initRefs.current[id] = true;
         }
 
-        const dx = target[0] - group.position.x
-        const dz = target[2] - group.position.z
-        const dist = Math.hypot(dx, dz)
-        const speed = activeAgent === id ? 2.25 : 1.35 // world units / sec
-        const step = speed * Math.max(0.001, delta)
+        const dx = target[0] - group.position.x;
+        const dz = target[2] - group.position.z;
+        const dist = Math.hypot(dx, dz);
+        const speed = activeAgent === id ? 2.25 : 1.35; // world units / sec
+        const step = speed * Math.max(0.001, delta);
         if (dist > 0.001) {
           if (dist <= step) {
-            group.position.x = target[0]
-            group.position.z = target[2]
+            group.position.x = target[0];
+            group.position.z = target[2];
           } else {
-            group.position.x += (dx / dist) * step
-            group.position.z += (dz / dist) * step
+            group.position.x += (dx / dist) * step;
+            group.position.z += (dz / dist) * step;
           }
           // Face travel direction.
-          group.rotation.y = Math.atan2(dx, dz)
+          group.rotation.y = Math.atan2(dx, dz);
         }
       }
 
-      const mesh = glows.current[i]
-      if (!mesh) continue
-      const mat = mesh.material as THREE.MeshBasicMaterial
-      const live = activeAgent === id
-      const breathe = 0.45 + Math.sin(t * (live ? 4.4 : 2.4) + i) * (live ? 0.28 : 0.16)
-      const targetOpacity = live ? 0.28 + breathe * 0.45 : 0.10 + breathe * 0.18
-      mat.opacity += (targetOpacity - mat.opacity) * 0.2
+      const mesh = glows.current[i];
+      if (!mesh) continue;
+      const mat = mesh.material as THREE.MeshBasicMaterial;
+      const live = activeAgent === id;
+      const breathe =
+        0.45 + Math.sin(t * (live ? 4.4 : 2.4) + i) * (live ? 0.28 : 0.16);
+      const targetOpacity = live ? 0.28 + breathe * 0.45 : 0.1 + breathe * 0.18;
+      mat.opacity += (targetOpacity - mat.opacity) * 0.2;
 
       // Subtle bobbing on each marker to suggest movement/idle activity.
-      const body = bodyRefs.current[i]
-      const head = headRefs.current[i]
-      const armL = armLRefs.current[i]
-      const armR = armRRefs.current[i]
-      const legL = legLRefs.current[i]
-      const legR = legRRefs.current[i]
-      const bob = Math.sin(t * (live ? 5.0 : 2.5) + i * 0.7) * (live ? 0.018 : 0.01)
-      if (body) body.position.y = 0.24 + bob
-      if (head) head.position.y = 0.50 + bob * 1.2
-      const target = targetRefs.current[id]
+      const body = bodyRefs.current[i];
+      const head = headRefs.current[i];
+      const armL = armLRefs.current[i];
+      const armR = armRRefs.current[i];
+      const legL = legLRefs.current[i];
+      const legR = legRRefs.current[i];
+      const bob =
+        Math.sin(t * (live ? 5.0 : 2.5) + i * 0.7) * (live ? 0.018 : 0.01);
+      if (body) body.position.y = 0.24 + bob;
+      if (head) head.position.y = 0.5 + bob * 1.2;
+      const target = targetRefs.current[id];
       const vel =
         group && p && target
-          ? Math.hypot(target[0] - group.position.x, target[2] - group.position.z)
-          : 0
-      const walking = vel > 0.02
-      const gaitCfg = GAIT[id] ?? { amp: 1, freq: 1 }
-      const rest = REST[id] ?? { arm: 0, leg: 0 }
-      const gait = Math.sin(t * (live || walking ? 6.2 : 2.4) * gaitCfg.freq + i * 0.5) * (live || walking ? 0.34 : 0.09) * gaitCfg.amp
+          ? Math.hypot(
+              target[0] - group.position.x,
+              target[2] - group.position.z,
+            )
+          : 0;
+      const walking = vel > 0.02;
+      const gaitCfg = GAIT[id] ?? { amp: 1, freq: 1 };
+      const rest = REST[id] ?? { arm: 0, leg: 0 };
+      const gait =
+        Math.sin(t * (live || walking ? 6.2 : 2.4) * gaitCfg.freq + i * 0.5) *
+        (live || walking ? 0.34 : 0.09) *
+        gaitCfg.amp;
 
       // ── Per-agent work pose (G2B) ───────────────────────────────────────────
       // When agent is active and not walking, apply their characteristic work pose.
-      const lastTool = agentStats[id]?.lastTask ?? ''
-      const mappedPose: AgentPoseType = live && !walking
-        ? (TOOL_POSE_MAP[lastTool] ?? AGENT_WORK_POSE[id] ?? 'idle')
-        : 'idle'
+      const lastTool = agentStats[id]?.lastTask ?? "";
+      const mappedPose: AgentPoseType =
+        live && !walking
+          ? (TOOL_POSE_MAP[lastTool] ?? AGENT_WORK_POSE[id] ?? "idle")
+          : "idle";
 
-      let armLRot = rest.arm + gait * 0.9
-      let armRRot = rest.arm + -gait * 0.9
-      let legLRot = rest.leg + -gait * 0.7
-      let legRRot = rest.leg + gait * 0.7
+      let armLRot = rest.arm + gait * 0.9;
+      let armRRot = rest.arm + -gait * 0.9;
+      let legLRot = rest.leg + -gait * 0.7;
+      let legRRot = rest.leg + gait * 0.7;
 
-      if (mappedPose === 'type') {
+      if (mappedPose === "type") {
         // Both arms angled forward, rapid micro-vibration
-        const vib = Math.sin(t * 14 + i) * 0.06
-        armLRot = -0.45 + vib
-        armRRot = -0.45 - vib
-        legLRot = rest.leg
-        legRRot = rest.leg
-        if (body) body.rotation.x = Math.sin(t * 0.9 + i) * 0.04
-      } else if (mappedPose === 'read') {
+        const vib = Math.sin(t * 14 + i) * 0.06;
+        armLRot = -0.45 + vib;
+        armRRot = -0.45 - vib;
+        legLRot = rest.leg;
+        legRRot = rest.leg;
+        if (body) body.rotation.x = Math.sin(t * 0.9 + i) * 0.04;
+      } else if (mappedPose === "read") {
         // Arms lowered, head tilted toward document
-        armLRot = 0.55
-        armRRot = 0.55
-        legLRot = rest.leg
-        legRRot = rest.leg
-        if (head) head.rotation.x = 0.22 + Math.sin(t * 0.5 + i) * 0.04
-      } else if (mappedPose === 'search') {
+        armLRot = 0.55;
+        armRRot = 0.55;
+        legLRot = rest.leg;
+        legRRot = rest.leg;
+        if (head) head.rotation.x = 0.22 + Math.sin(t * 0.5 + i) * 0.04;
+      } else if (mappedPose === "search") {
         // Body sways left-right like a scanning motion
-        if (body) body.rotation.y = Math.sin(t * 1.6 + i) * 0.25
-        armLRot = -0.2 + Math.sin(t * 1.6 + i) * 0.15
-        armRRot = -0.2 - Math.sin(t * 1.6 + i) * 0.15
-      } else if (mappedPose === 'wait') {
+        if (body) body.rotation.y = Math.sin(t * 1.6 + i) * 0.25;
+        armLRot = -0.2 + Math.sin(t * 1.6 + i) * 0.15;
+        armRRot = -0.2 - Math.sin(t * 1.6 + i) * 0.15;
+      } else if (mappedPose === "wait") {
         // One arm raised, slight backward lean
-        armLRot = -0.85 + Math.sin(t * 1.2 + i) * 0.1
-        armRRot = rest.arm + gait * 0.9
-        if (body) body.rotation.x = -0.06 + Math.sin(t * 0.7 + i) * 0.03
-      } else if (mappedPose === 'compute') {
+        armLRot = -0.85 + Math.sin(t * 1.2 + i) * 0.1;
+        armRRot = rest.arm + gait * 0.9;
+        if (body) body.rotation.x = -0.06 + Math.sin(t * 0.7 + i) * 0.03;
+      } else if (mappedPose === "compute") {
         // Arms crossed (both pulled to center), subtle bob
-        armLRot = 0.3
-        armRRot = 0.3
+        armLRot = 0.3;
+        armRRot = 0.3;
         if (body) {
-          body.rotation.x = 0
-          body.rotation.y = Math.sin(t * 0.6 + i) * 0.08
+          body.rotation.x = 0;
+          body.rotation.y = Math.sin(t * 0.6 + i) * 0.08;
         }
       } else {
         // idle — reset rotations that pose states may have modified
-        if (body) { body.rotation.x = 0; body.rotation.y = 0 }
-        if (head) head.rotation.x = 0
+        if (body) {
+          body.rotation.x = 0;
+          body.rotation.y = 0;
+        }
+        if (head) head.rotation.x = 0;
       }
 
-      if (armL) armL.rotation.x = armLRot
-      if (armR) armR.rotation.x = armRRot
-      if (legL) legL.rotation.x = legLRot
-      if (legR) legR.rotation.x = legRRot
+      if (armL) armL.rotation.x = armLRot;
+      if (armR) armR.rotation.x = armRRot;
+      if (legL) legL.rotation.x = legLRot;
+      if (legR) legR.rotation.x = legRRot;
 
       // ── Rim highlight (G2C) — animate opacity on the outline mesh ──────────
-      const rim = rimRefs.current[i]
+      const rim = rimRefs.current[i];
       if (rim) {
-        const mat = rim.material as THREE.MeshStandardMaterial
-        const targetOpacity = live ? 0.55 + Math.sin(t * 3 + i) * 0.1 : 0
-        mat.opacity += (targetOpacity - mat.opacity) * 0.12
-        rim.visible = mat.opacity > 0.01
+        const mat = rim.material as THREE.MeshStandardMaterial;
+        const targetOpacity = live ? 0.55 + Math.sin(t * 3 + i) * 0.1 : 0;
+        mat.opacity += (targetOpacity - mat.opacity) * 0.12;
+        rim.visible = mat.opacity > 0.01;
       }
 
       // VFX: EL aura + Hopper beam (quality gated)
       if (vfxOn) {
-        const aura = elAuraRefs.current[i]
-        if (aura && id === 'orbit') {
-          const power = activeAgent === 'orbit' ? 1 : walking ? 0.55 : 0.25
-          const base = vfxHi ? 0.55 : 0.28
-          aura.scale.setScalar(0.9 + Math.sin(t * 3.2) * 0.08)
-          aura.rotation.y = t * 1.8
-          const mat = aura.material as THREE.MeshStandardMaterial
-          mat.emissiveIntensity = base * power * (0.7 + Math.sin(t * 4.2) * 0.3)
-          mat.opacity = (vfxHi ? 0.28 : 0.18) * power
+        const aura = elAuraRefs.current[i];
+        if (aura && id === "orbit") {
+          const power = activeAgent === "orbit" ? 1 : walking ? 0.55 : 0.25;
+          const base = vfxHi ? 0.55 : 0.28;
+          aura.scale.setScalar(0.9 + Math.sin(t * 3.2) * 0.08);
+          aura.rotation.y = t * 1.8;
+          const mat = aura.material as THREE.MeshStandardMaterial;
+          mat.emissiveIntensity =
+            base * power * (0.7 + Math.sin(t * 4.2) * 0.3);
+          mat.opacity = (vfxHi ? 0.28 : 0.18) * power;
         }
 
         // Beyond Tier: outer aura ring + floating orbs (hi quality only)
-        if (vfxHi && id === 'orbit') {
-          const power = activeAgent === 'orbit' ? 1 : walking ? 0.55 : 0.25
-          const outerAura = elOuterAuraRefs.current[i]
+        if (vfxHi && id === "orbit") {
+          const power = activeAgent === "orbit" ? 1 : walking ? 0.55 : 0.25;
+          const outerAura = elOuterAuraRefs.current[i];
           if (outerAura) {
-            outerAura.rotation.y = -t * 0.9
-            outerAura.rotation.z = t * 0.4
-            const mat = outerAura.material as THREE.MeshStandardMaterial
-            mat.emissiveIntensity = 0.35 * power * (0.6 + Math.sin(t * 2.8 + 1.2) * 0.4)
-            mat.opacity = 0.14 * power
+            outerAura.rotation.y = -t * 0.9;
+            outerAura.rotation.z = t * 0.4;
+            const mat = outerAura.material as THREE.MeshStandardMaterial;
+            mat.emissiveIntensity =
+              0.35 * power * (0.6 + Math.sin(t * 2.8 + 1.2) * 0.4);
+            mat.opacity = 0.14 * power;
           }
-          const orbRow = elOrbRefs.current[i]
+          const orbRow = elOrbRefs.current[i];
           if (orbRow) {
             for (let o = 0; o < 3; o++) {
-              const orb = orbRow[o]
-              if (!orb) continue
-              const phase = (o / 3) * Math.PI * 2
-              const radius = 0.17
-              const speed2 = activeAgent === 'orbit' ? 2.2 : 1.1
-              orb.position.x = Math.cos(t * speed2 + phase) * radius
-              orb.position.z = Math.sin(t * speed2 + phase) * radius
-              orb.position.y = 0.505 + Math.sin(t * 3.1 + phase) * 0.025
-              const mat = orb.material as THREE.MeshStandardMaterial
-              mat.emissiveIntensity = 0.8 * power * (0.7 + Math.sin(t * 3.8 + phase) * 0.3)
-              mat.opacity = 0.55 * power
+              const orb = orbRow[o];
+              if (!orb) continue;
+              const phase = (o / 3) * Math.PI * 2;
+              const radius = 0.17;
+              const speed2 = activeAgent === "orbit" ? 2.2 : 1.1;
+              orb.position.x = Math.cos(t * speed2 + phase) * radius;
+              orb.position.z = Math.sin(t * speed2 + phase) * radius;
+              orb.position.y = 0.505 + Math.sin(t * 3.1 + phase) * 0.025;
+              const mat = orb.material as THREE.MeshStandardMaterial;
+              mat.emissiveIntensity =
+                0.8 * power * (0.7 + Math.sin(t * 3.8 + phase) * 0.3);
+              mat.opacity = 0.55 * power;
             }
           }
         }
 
-        const beam = hopperBeamRefs.current[i]
-        if (beam && id === 'cipher') {
-          const power = activeAgent === 'cipher' ? 1 : walking ? 0.5 : 0.2
-          const mat = beam.material as THREE.MeshStandardMaterial
-          mat.opacity = (vfxHi ? 0.22 : 0.14) * power
-          mat.emissiveIntensity = (vfxHi ? 0.65 : 0.35) * power
-          beam.visible = power > 0.12
+        const beam = hopperBeamRefs.current[i];
+        if (beam && id === "cipher") {
+          const power = activeAgent === "cipher" ? 1 : walking ? 0.5 : 0.2;
+          const mat = beam.material as THREE.MeshStandardMaterial;
+          mat.opacity = (vfxHi ? 0.22 : 0.14) * power;
+          mat.emissiveIntensity = (vfxHi ? 0.65 : 0.35) * power;
+          beam.visible = power > 0.12;
           // Beyond Tier: sweep beam arc when cipher is active
-          if (vfxHi && activeAgent === 'cipher') {
-            beam.rotation.y = Math.sin(t * 1.4) * 0.35
+          if (vfxHi && activeAgent === "cipher") {
+            beam.rotation.y = Math.sin(t * 1.4) * 0.35;
           }
         }
       }
     }
-  })
+  });
 
-  if (!agentPos) return null
+  if (!agentPos) return null;
 
-  const ids = Object.keys(AGENTS) as AgentId[]
+  const ids = Object.keys(AGENTS) as AgentId[];
   return (
     <>
       {ids.map((id, i) => {
-        const p = agentPos[id]
-        if (!p) return null
-        const w = agentToShadowWorld(p.x, p.y)
-        const live = activeAgent === id
-        const c = AGENTS[id].color
-        const showVfx = vfxQuality !== 'off'
+        const p = agentPos[id];
+        if (!p) return null;
+        const w = agentToShadowWorld(p.x, p.y);
+        const live = activeAgent === id;
+        const c = AGENTS[id].color;
+        const showVfx = vfxQuality !== "off";
         return (
           <group
             key={id}
             ref={(el) => {
-              groups.current[i] = el
+              groups.current[i] = el;
             }}
             position={[0, 0, 0]}
           >
             <mesh
               ref={(el) => {
-                glows.current[i] = el
+                glows.current[i] = el;
               }}
               rotation={[-Math.PI / 2, 0, 0]}
               position={[0, 0.012, 0]}
             >
               <circleGeometry args={[0.38, 20]} />
-              <meshBasicMaterial color="#7b8794" transparent opacity={live ? 0.22 : 0.1} />
+              <meshBasicMaterial
+                color="#7b8794"
+                transparent
+                opacity={live ? 0.22 : 0.1}
+              />
             </mesh>
 
             {/* ── Rim highlight — back-face outline scales slightly larger (G2C) ── */}
             <mesh
-              ref={(el) => { rimRefs.current[i] = el }}
+              ref={(el) => {
+                rimRefs.current[i] = el;
+              }}
               position={[0, 0.38, 0]}
               visible={false}
             >
@@ -1541,31 +2118,33 @@ function AgentFloorShadows({
                 position={[0, 0.82, 0]}
                 center
                 distanceFactor={4.5}
-                style={{ pointerEvents: 'none' }}
+                style={{ pointerEvents: "none" }}
               >
-                <div style={{
-                  background: 'rgba(8,12,24,0.92)',
-                  border: `1px solid ${c}55`,
-                  borderRadius: 8,
-                  padding: '3px 7px',
-                  fontSize: 10,
-                  fontWeight: 800,
-                  letterSpacing: '.1em',
-                  color: c,
-                  whiteSpace: 'nowrap',
-                  boxShadow: `0 0 8px ${c}44`,
-                  fontFamily: 'Inter, system-ui, sans-serif',
-                }}>
+                <div
+                  style={{
+                    background: "rgba(8,12,24,0.92)",
+                    border: `1px solid ${c}55`,
+                    borderRadius: 8,
+                    padding: "3px 7px",
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: ".1em",
+                    color: c,
+                    whiteSpace: "nowrap",
+                    boxShadow: `0 0 8px ${c}44`,
+                    fontFamily: "Inter, system-ui, sans-serif",
+                  }}
+                >
                   {agentStats[id]?.lastTask
-                    ? `⚡ ${agentStats[id].lastTask.replace(/_/g, ' ').toUpperCase()}`
-                    : '● ACTIVE'}
+                    ? `⚡ ${agentStats[id].lastTask.replace(/_/g, " ").toUpperCase()}`
+                    : "● ACTIVE"}
                 </div>
               </Html>
             )}
 
             <group
               ref={(el) => {
-                bodyRefs.current[i] = el
+                bodyRefs.current[i] = el;
               }}
               position={[0, 0.24, 0]}
             >
@@ -1582,40 +2161,52 @@ function AgentFloorShadows({
               {/* Suit / shirt center strip */}
               <mesh position={[0, -0.01, 0.042]} castShadow={false}>
                 <boxGeometry args={[0.04, 0.15, 0.01]} />
-                <meshStandardMaterial color={AGENT_3D_STYLES[id].shirt} roughness={0.5} />
+                <meshStandardMaterial
+                  color={AGENT_3D_STYLES[id].shirt}
+                  roughness={0.5}
+                />
               </mesh>
               {/* MAX tie accent */}
               {AGENT_3D_STYLES[id].tie && (
                 <mesh position={[0, -0.045, 0.042]} castShadow={false}>
                   <boxGeometry args={[0.013, 0.09, 0.008]} />
-                  <meshStandardMaterial color={AGENT_3D_STYLES[id].tie as string} roughness={0.55} />
+                  <meshStandardMaterial
+                    color={AGENT_3D_STYLES[id].tie as string}
+                    roughness={0.55}
+                  />
                 </mesh>
               )}
               {/* Arms */}
               <mesh
                 ref={(el) => {
-                  armLRefs.current[i] = el
+                  armLRefs.current[i] = el;
                 }}
                 position={[-0.1, 0.03, 0]}
                 castShadow
               >
                 <cylinderGeometry args={[0.02, 0.02, 0.14, 10]} />
-                <meshStandardMaterial color={AGENT_3D_STYLES[id].suit} roughness={0.55} />
+                <meshStandardMaterial
+                  color={AGENT_3D_STYLES[id].suit}
+                  roughness={0.55}
+                />
               </mesh>
               <mesh
                 ref={(el) => {
-                  armRRefs.current[i] = el
+                  armRRefs.current[i] = el;
                 }}
                 position={[0.1, 0.03, 0]}
                 castShadow
               >
                 <cylinderGeometry args={[0.02, 0.02, 0.14, 10]} />
-                <meshStandardMaterial color={AGENT_3D_STYLES[id].suit} roughness={0.55} />
+                <meshStandardMaterial
+                  color={AGENT_3D_STYLES[id].suit}
+                  roughness={0.55}
+                />
               </mesh>
               {/* Legs */}
               <mesh
                 ref={(el) => {
-                  legLRefs.current[i] = el
+                  legLRefs.current[i] = el;
                 }}
                 position={[-0.04, -0.16, 0]}
                 castShadow
@@ -1625,7 +2216,7 @@ function AgentFloorShadows({
               </mesh>
               <mesh
                 ref={(el) => {
-                  legRRefs.current[i] = el
+                  legRRefs.current[i] = el;
                 }}
                 position={[0.04, -0.16, 0]}
                 castShadow
@@ -1636,27 +2227,38 @@ function AgentFloorShadows({
               {/* Jacket bulk / shoulders to break the box silhouette */}
               <mesh position={[0, 0.06, 0]} castShadow={false}>
                 <boxGeometry args={[0.18, 0.08, 0.1]} />
-                <meshStandardMaterial color={AGENT_3D_STYLES[id].suit} roughness={0.65} />
+                <meshStandardMaterial
+                  color={AGENT_3D_STYLES[id].suit}
+                  roughness={0.65}
+                />
               </mesh>
               {/* MAX Walkman prop */}
-              {id === 'jansky' && (
+              {id === "jansky" && (
                 <mesh position={[0.065, -0.035, 0.06]} castShadow={false}>
                   <boxGeometry args={[0.05, 0.06, 0.018]} />
-                  <meshStandardMaterial color="#9ca3af" roughness={0.55} metalness={0.25} />
+                  <meshStandardMaterial
+                    color="#9ca3af"
+                    roughness={0.55}
+                    metalness={0.25}
+                  />
                 </mesh>
               )}
               {/* DUSTIN radio prop */}
-              {id === 'nova' && (
+              {id === "nova" && (
                 <mesh position={[-0.07, -0.07, 0.055]} castShadow={false}>
                   <boxGeometry args={[0.055, 0.05, 0.02]} />
-                  <meshStandardMaterial color="#6b7280" roughness={0.6} metalness={0.15} />
+                  <meshStandardMaterial
+                    color="#6b7280"
+                    roughness={0.6}
+                    metalness={0.15}
+                  />
                 </mesh>
               )}
             </group>
 
             <mesh
               ref={(el) => {
-                headRefs.current[i] = el
+                headRefs.current[i] = el;
               }}
               position={[0, 0.5, 0]}
               castShadow
@@ -1667,13 +2269,20 @@ function AgentFloorShadows({
             {/* Hair cap */}
             <mesh position={[0, 0.545, 0]} castShadow={false}>
               <sphereGeometry args={[0.052, 10, 10]} />
-              <meshStandardMaterial color={AGENT_3D_STYLES[id].hair} roughness={0.6} />
+              <meshStandardMaterial
+                color={AGENT_3D_STYLES[id].hair}
+                roughness={0.6}
+              />
             </mesh>
             {/* EL hood (high-level silhouette distinction) */}
             {AGENT_3D_STYLES[id].hood && (
-              <mesh position={[0, 0.50, 0.03]} castShadow={false}>
+              <mesh position={[0, 0.5, 0.03]} castShadow={false}>
                 <boxGeometry args={[0.16, 0.12, 0.05]} />
-                <meshStandardMaterial color={AGENT_3D_STYLES[id].suit} roughness={0.7} metalness={0.05} />
+                <meshStandardMaterial
+                  color={AGENT_3D_STYLES[id].suit}
+                  roughness={0.7}
+                  metalness={0.05}
+                />
               </mesh>
             )}
             {/* Eyes strip */}
@@ -1682,10 +2291,10 @@ function AgentFloorShadows({
               <meshStandardMaterial color="#111827" roughness={0.3} />
             </mesh>
             {/* EL telekinesis aura ring (quality gated) */}
-            {showVfx && id === 'orbit' && (
+            {showVfx && id === "orbit" && (
               <mesh
                 ref={(el) => {
-                  elAuraRefs.current[i] = el
+                  elAuraRefs.current[i] = el;
                 }}
                 position={[0, 0.505, 0.02]}
                 rotation={[Math.PI / 2, 0, 0]}
@@ -1703,9 +2312,11 @@ function AgentFloorShadows({
               </mesh>
             )}
             {/* Beyond Tier: EL outer aura ring (hi quality only) */}
-            {vfxQuality === 'high' && id === 'orbit' && (
+            {vfxQuality === "high" && id === "orbit" && (
               <mesh
-                ref={(el) => { elOuterAuraRefs.current[i] = el }}
+                ref={(el) => {
+                  elOuterAuraRefs.current[i] = el;
+                }}
                 position={[0, 0.505, 0.02]}
                 rotation={[Math.PI / 2, 0, 0]}
                 castShadow={false}
@@ -1722,29 +2333,31 @@ function AgentFloorShadows({
               </mesh>
             )}
             {/* Beyond Tier: EL floating orbs (hi quality only) */}
-            {vfxQuality === 'high' && id === 'orbit' && ([0, 1, 2] as const).map((o) => (
-              <mesh
-                key={o}
-                ref={(el) => {
-                  if (!elOrbRefs.current[i]) elOrbRefs.current[i] = []
-                  elOrbRefs.current[i][o] = el
-                }}
-                position={[0, 0.505, 0]}
-                castShadow={false}
-              >
-                <sphereGeometry args={[0.018, 8, 8]} />
-                <meshStandardMaterial
-                  color="#60a5fa"
-                  emissive="#60a5fa"
-                  emissiveIntensity={0.7}
-                  transparent
-                  opacity={0.5}
-                  depthWrite={false}
-                />
-              </mesh>
-            ))}
+            {vfxQuality === "high" &&
+              id === "orbit" &&
+              ([0, 1, 2] as const).map((o) => (
+                <mesh
+                  key={o}
+                  ref={(el) => {
+                    if (!elOrbRefs.current[i]) elOrbRefs.current[i] = [];
+                    elOrbRefs.current[i][o] = el;
+                  }}
+                  position={[0, 0.505, 0]}
+                  castShadow={false}
+                >
+                  <sphereGeometry args={[0.018, 8, 8]} />
+                  <meshStandardMaterial
+                    color="#60a5fa"
+                    emissive="#60a5fa"
+                    emissiveIntensity={0.7}
+                    transparent
+                    opacity={0.5}
+                    depthWrite={false}
+                  />
+                </mesh>
+              ))}
             {/* EL nosebleed cue */}
-            {id === 'orbit' && (
+            {id === "orbit" && (
               <mesh position={[0.006, 0.49, 0.072]} castShadow={false}>
                 <boxGeometry args={[0.008, 0.012, 0.004]} />
                 <meshStandardMaterial color="#ef4444" roughness={0.35} />
@@ -1773,7 +2386,7 @@ function AgentFloorShadows({
                 <mesh position={[0, 0.58, 0.04]} castShadow={false}>
                   <boxGeometry args={[0.16, 0.03, 0.06]} />
                   <meshStandardMaterial
-                    color={AGENT_3D_STYLES[id].accessoryColor ?? '#4a3b2c'}
+                    color={AGENT_3D_STYLES[id].accessoryColor ?? "#4a3b2c"}
                     roughness={0.7}
                     metalness={0.05}
                   />
@@ -1781,7 +2394,7 @@ function AgentFloorShadows({
                 <mesh position={[0, 0.615, 0.04]} castShadow={false}>
                   <boxGeometry args={[0.07, 0.04, 0.06]} />
                   <meshStandardMaterial
-                    color={AGENT_3D_STYLES[id].accessoryColor ?? '#4a3b2c'}
+                    color={AGENT_3D_STYLES[id].accessoryColor ?? "#4a3b2c"}
                     roughness={0.7}
                     metalness={0.05}
                   />
@@ -1794,14 +2407,14 @@ function AgentFloorShadows({
                 <mesh position={[0, 0.57, 0.04]} castShadow={false}>
                   <boxGeometry args={[0.16, 0.02, 0.06]} />
                   <meshStandardMaterial
-                    color={AGENT_3D_STYLES[id].accessoryColor ?? '#111827'}
+                    color={AGENT_3D_STYLES[id].accessoryColor ?? "#111827"}
                     roughness={0.75}
                   />
                 </mesh>
               </>
             )}
             {/* LUCAS headband stripe */}
-            {id === 'flux' && (
+            {id === "flux" && (
               <mesh position={[0, 0.555, 0.055]} castShadow={false}>
                 <boxGeometry args={[0.12, 0.012, 0.004]} />
                 <meshStandardMaterial color="#f0c060" roughness={0.5} />
@@ -1832,17 +2445,21 @@ function AgentFloorShadows({
               </mesh>
             )}
             {/* HOPPER flashlight prop (right hand) */}
-            {id === 'cipher' && (
+            {id === "cipher" && (
               <mesh position={[0.125, 0.34, 0.03]} castShadow={false}>
                 <cylinderGeometry args={[0.008, 0.008, 0.07, 10]} />
-                <meshStandardMaterial color="#9ca3af" roughness={0.5} metalness={0.35} />
+                <meshStandardMaterial
+                  color="#9ca3af"
+                  roughness={0.5}
+                  metalness={0.35}
+                />
               </mesh>
             )}
             {/* HOPPER flashlight beam (cheap volumetric cone) */}
-            {showVfx && id === 'cipher' && (
+            {showVfx && id === "cipher" && (
               <mesh
                 ref={(el) => {
-                  hopperBeamRefs.current[i] = el
+                  hopperBeamRefs.current[i] = el;
                 }}
                 position={[0.16, 0.34, 0.18]}
                 rotation={[0.35, 0, 0]}
@@ -1863,16 +2480,20 @@ function AgentFloorShadows({
             {/* Role-color chest badge */}
             <mesh position={[0, 0.235, 0.055]} castShadow={false}>
               <boxGeometry args={[0.03, 0.03, 0.01]} />
-              <meshStandardMaterial color={pal.metalDark} roughness={0.55} metalness={0.35} />
+              <meshStandardMaterial
+                color={pal.metalDark}
+                roughness={0.55}
+                metalness={0.35}
+              />
             </mesh>
 
             {/* ── Matrix spawn overlay (G3) — green column-cascade when agent activates ── */}
             {showVfx && <MatrixOverlay active={live} color={c} />}
           </group>
-        )
+        );
       })}
     </>
-  )
+  );
 }
 
 // ── MatrixOverlay — column-cascade green rain effect (pixel-agents inspired) ───
@@ -1880,90 +2501,89 @@ function AgentFloorShadows({
 // or become active. Each pixel column starts at a staggered time, sweeping
 // a bright head + fading green trail top-to-bottom.
 function MatrixOverlay({ active, color }: { active: boolean; color: string }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const texRef    = useRef<THREE.CanvasTexture | null>(null)
-  const meshRef   = useRef<THREE.Mesh | null>(null)
-  const progressRef = useRef(0)
-  const seedsRef    = useRef<Float32Array | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const texRef = useRef<THREE.CanvasTexture | null>(null);
+  const meshRef = useRef<THREE.Mesh | null>(null);
+  const progressRef = useRef(0);
+  const seedsRef = useRef<Float32Array | null>(null);
 
   // Build a small off-screen canvas once
-  const W = 32
-  const H = 64
+  const W = 32;
+  const H = 64;
 
   useEffect(() => {
-    if (typeof document === 'undefined') return
-    const cvs = document.createElement('canvas')
-    cvs.width  = W
-    cvs.height = H
-    canvasRef.current = cvs
-    const tex = new THREE.CanvasTexture(cvs)
-    tex.magFilter = THREE.NearestFilter
-    tex.minFilter = THREE.NearestFilter
-    texRef.current = tex
+    if (typeof document === "undefined") return;
+    const cvs = document.createElement("canvas");
+    cvs.width = W;
+    cvs.height = H;
+    canvasRef.current = cvs;
+    const tex = new THREE.CanvasTexture(cvs);
+    tex.magFilter = THREE.NearestFilter;
+    tex.minFilter = THREE.NearestFilter;
+    texRef.current = tex;
     // Per-column stagger seeds (0..1)
-    seedsRef.current = new Float32Array(W).map(() => Math.random())
-    progressRef.current = 0
-  }, [])
+    seedsRef.current = new Float32Array(W).map(() => Math.random());
+    progressRef.current = 0;
+  }, []);
 
   useFrame((state, delta) => {
     if (!active) {
-      progressRef.current = 0
-      const mesh = meshRef.current
-      if (mesh) mesh.visible = false
-      return
+      progressRef.current = 0;
+      const mesh = meshRef.current;
+      if (mesh) mesh.visible = false;
+      return;
     }
-    progressRef.current = Math.min(1, progressRef.current + delta * 0.85)
-    const progress = progressRef.current
-    const cvs = canvasRef.current
-    const tex  = texRef.current
-    const mesh = meshRef.current
-    const seeds = seedsRef.current
-    if (!cvs || !tex || !mesh || !seeds) return
-    mesh.visible = true
-    const ctx = cvs.getContext('2d')
-    if (!ctx) return
-    ctx.clearRect(0, 0, W, H)
-    const t = state.clock.getElapsedTime()
+    progressRef.current = Math.min(1, progressRef.current + delta * 0.85);
+    const progress = progressRef.current;
+    const cvs = canvasRef.current;
+    const tex = texRef.current;
+    const mesh = meshRef.current;
+    const seeds = seedsRef.current;
+    if (!cvs || !tex || !mesh || !seeds) return;
+    mesh.visible = true;
+    const ctx = cvs.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, W, H);
+    const t = state.clock.getElapsedTime();
 
     for (let col = 0; col < W; col++) {
-      const seed = seeds[col]
+      const seed = seeds[col];
       // Each column starts offset by its seed — creates cascading waterfall
-      const colProgress = Math.max(0, Math.min(1, (progress - seed * 0.4) / 0.6))
-      if (colProgress <= 0) continue
-      const headY = Math.floor(colProgress * H)
+      const colProgress = Math.max(
+        0,
+        Math.min(1, (progress - seed * 0.4) / 0.6),
+      );
+      if (colProgress <= 0) continue;
+      const headY = Math.floor(colProgress * H);
 
       for (let row = 0; row <= headY; row++) {
-        const dist = headY - row
+        const dist = headY - row;
         if (dist === 0) {
           // Bright white-green head pixel
-          ctx.fillStyle = `rgba(200, 255, 180, ${0.9 + Math.sin(t * 12 + col) * 0.08})`
+          ctx.fillStyle = `rgba(200, 255, 180, ${0.9 + Math.sin(t * 12 + col) * 0.08})`;
         } else if (dist < 3) {
-          ctx.fillStyle = `rgba(80, 255, 80, ${0.7 - dist * 0.15})`
+          ctx.fillStyle = `rgba(80, 255, 80, ${0.7 - dist * 0.15})`;
         } else if (dist < 8) {
-          ctx.fillStyle = `rgba(30, 200, 50, ${0.4 - dist * 0.04})`
+          ctx.fillStyle = `rgba(30, 200, 50, ${0.4 - dist * 0.04})`;
         } else {
-          ctx.fillStyle = `rgba(10, 100, 20, ${Math.max(0, 0.15 - dist * 0.01)})`
+          ctx.fillStyle = `rgba(10, 100, 20, ${Math.max(0, 0.15 - dist * 0.01)})`;
         }
         // Hash-based flicker ~70% visibility
-        const flicker = ((col * 7 + row * 13 + Math.floor(t * 8)) & 0xff) < 178
-        if (flicker) ctx.fillRect(col, row, 1, 1)
+        const flicker = ((col * 7 + row * 13 + Math.floor(t * 8)) & 0xff) < 178;
+        if (flicker) ctx.fillRect(col, row, 1, 1);
       }
     }
 
-    tex.needsUpdate = true
+    tex.needsUpdate = true;
     // Fade out as progress nears 1
-    const mesh3 = mesh.material as THREE.MeshBasicMaterial
-    mesh3.opacity = progress < 0.85 ? 0.82 : 1 - (progress - 0.85) / 0.15
-  })
+    const mesh3 = mesh.material as THREE.MeshBasicMaterial;
+    mesh3.opacity = progress < 0.85 ? 0.82 : 1 - (progress - 0.85) / 0.15;
+  });
 
-  if (typeof document === 'undefined') return null
+  if (typeof document === "undefined") return null;
 
   return (
-    <mesh
-      ref={meshRef}
-      position={[0, 0.38, 0.15]}
-      visible={false}
-    >
+    <mesh ref={meshRef} position={[0, 0.38, 0.15]} visible={false}>
       <planeGeometry args={[0.28, 0.72]} />
       <meshBasicMaterial
         map={texRef.current}
@@ -1973,50 +2593,66 @@ function MatrixOverlay({ active, color }: { active: boolean; color: string }) {
         color={color}
       />
     </mesh>
-  )
+  );
 }
 
 function DispatchBeam({
   dispatchBar,
   agentPos,
 }: {
-  dispatchBar: DispatchState
-  agentPos?: Record<AgentId, { x: number; y: number }>
+  dispatchBar: DispatchState;
+  agentPos?: Record<AgentId, { x: number; y: number }>;
 }) {
-  const tRef = useRef(0)
+  const tRef = useRef(0);
   useFrame((_, delta) => {
-    tRef.current += delta
-  })
+    tRef.current += delta;
+  });
 
-  if (!dispatchBar) return null
-  const from = dispatchBar.from
-  const to = dispatchBar.to
-  const fromPos = agentPos?.[from]
-  const toPos = agentPos?.[to]
-  if (!fromPos || !toPos) return null
+  if (!dispatchBar) return null;
+  const from = dispatchBar.from;
+  const to = dispatchBar.to;
+  const fromPos = agentPos?.[from];
+  const toPos = agentPos?.[to];
+  if (!fromPos || !toPos) return null;
 
-  const fromWorld = agentToShadowWorld(fromPos.x, fromPos.y)
-  const toWorld = agentToShadowWorld(toPos.x, toPos.y)
-  const dx = toWorld[0] - fromWorld[0]
-  const dz = toWorld[2] - fromWorld[2]
-  const dist = Math.max(0.0001, Math.hypot(dx, dz))
-  const angle = Math.atan2(dx, dz)
-  const progress = Math.min(1, (tRef.current * 1.8) % 1)
-  const dotX = fromWorld[0] + dx * progress
-  const dotZ = fromWorld[2] + dz * progress
+  const fromWorld = agentToShadowWorld(fromPos.x, fromPos.y);
+  const toWorld = agentToShadowWorld(toPos.x, toPos.y);
+  const dx = toWorld[0] - fromWorld[0];
+  const dz = toWorld[2] - fromWorld[2];
+  const dist = Math.max(0.0001, Math.hypot(dx, dz));
+  const angle = Math.atan2(dx, dz);
+  const progress = Math.min(1, (tRef.current * 1.8) % 1);
+  const dotX = fromWorld[0] + dx * progress;
+  const dotZ = fromWorld[2] + dz * progress;
 
   return (
     <group>
-      <mesh position={[(fromWorld[0] + toWorld[0]) / 2, 0.04, (fromWorld[2] + toWorld[2]) / 2]} rotation={[-Math.PI / 2, 0, angle]}>
+      <mesh
+        position={[
+          (fromWorld[0] + toWorld[0]) / 2,
+          0.04,
+          (fromWorld[2] + toWorld[2]) / 2,
+        ]}
+        rotation={[-Math.PI / 2, 0, angle]}
+      >
         <planeGeometry args={[0.06, dist]} />
-        <meshBasicMaterial color={AGENTS[to].color} transparent opacity={0.45} />
+        <meshBasicMaterial
+          color={AGENTS[to].color}
+          transparent
+          opacity={0.45}
+        />
       </mesh>
       <mesh position={[dotX, 0.06, dotZ]}>
         <sphereGeometry args={[0.065, 10, 10]} />
-        <meshStandardMaterial color={AGENTS[to].color} emissive={AGENTS[to].color} emissiveIntensity={0.8} roughness={0.25} />
+        <meshStandardMaterial
+          color={AGENTS[to].color}
+          emissive={AGENTS[to].color}
+          emissiveIntensity={0.8}
+          roughness={0.25}
+        />
       </mesh>
     </group>
-  )
+  );
 }
 
 function DraggableProp({
@@ -2032,33 +2668,36 @@ function DraggableProp({
   onMoveWorld,
   hideProxyWhenNotEnabled = false,
 }: {
-  id: OfficeObjectId
-  pos: OfficeObjectPos
-  color: string
-  size: Vec3
-  y?: number
-  radius: number
-  enabled: boolean
-  worldPos: Record<OfficeObjectId, Vec3>
-  radiusById: Record<OfficeObjectId, number>
-  onMoveWorld: (id: OfficeObjectId, world: Vec3) => void
-  hideProxyWhenNotEnabled?: boolean
+  id: OfficeObjectId;
+  pos: OfficeObjectPos;
+  color: string;
+  size: Vec3;
+  y?: number;
+  radius: number;
+  enabled: boolean;
+  worldPos: Record<OfficeObjectId, Vec3>;
+  radiusById: Record<OfficeObjectId, number>;
+  onMoveWorld: (id: OfficeObjectId, world: Vec3) => void;
+  hideProxyWhenNotEnabled?: boolean;
 }) {
-  const world = useMemo(() => worldPos[id] ?? toWorld(pos), [worldPos, id, pos])
-  const ref = useRef<THREE.Mesh | null>(null)
-  const blockedUntilRef = useRef(0)
-  const [sx, sy, sz] = size
-  const baseY = y ?? sy / 2
+  const world = useMemo(
+    () => worldPos[id] ?? toWorld(pos),
+    [worldPos, id, pos],
+  );
+  const ref = useRef<THREE.Mesh | null>(null);
+  const blockedUntilRef = useRef(0);
+  const [sx, sy, sz] = size;
+  const baseY = y ?? sy / 2;
 
   useFrame((state) => {
-    const mesh = ref.current
-    if (!mesh) return
-    const mat = mesh.material as THREE.MeshStandardMaterial
-    const now = performance.now()
-    const blocked = now < blockedUntilRef.current
-    mat.emissive = new THREE.Color(blocked ? '#ef4444' : '#000000')
-    mat.emissiveIntensity = blocked ? 0.7 : 0
-  })
+    const mesh = ref.current;
+    if (!mesh) return;
+    const mat = mesh.material as THREE.MeshStandardMaterial;
+    const now = performance.now();
+    const blocked = now < blockedUntilRef.current;
+    mat.emissive = new THREE.Color(blocked ? "#ef4444" : "#000000");
+    mat.emissiveIntensity = blocked ? 0.7 : 0;
+  });
 
   return (
     <mesh
@@ -2067,36 +2706,38 @@ function DraggableProp({
       castShadow
       visible={enabled || !hideProxyWhenNotEnabled}
       onPointerDown={(e) => {
-        if (!enabled) return
-        e.stopPropagation()
-        ;(e.target as any).setPointerCapture?.(e.pointerId)
+        if (!enabled) return;
+        e.stopPropagation();
+        (e.target as any).setPointerCapture?.(e.pointerId);
       }}
       onPointerMove={(e) => {
-        if (!enabled) return
-        if ((e.buttons ?? 0) !== 1) return
-        e.stopPropagation()
+        if (!enabled) return;
+        if ((e.buttons ?? 0) !== 1) return;
+        e.stopPropagation();
         // Move on ground plane using local delta in screen-space projected.
         // R3F gives us a ray; intersect y=0 plane.
-        const ray = e.ray
-        const t = ray.direction.y === 0 ? 0 : -ray.origin.y / ray.direction.y
+        const ray = e.ray;
+        const t = ray.direction.y === 0 ? 0 : -ray.origin.y / ray.direction.y;
         const hit: Vec3 = [
           ray.origin.x + ray.direction.x * t,
           0,
           ray.origin.z + ray.direction.z * t,
-        ]
-        const clamped = clampWorldByRadius(hit, radius)
+        ];
+        const clamped = clampWorldByRadius(hit, radius);
         // No-overlap guardrails: reject move if footprint intersects another object.
-        for (const [otherId, otherPos] of Object.entries(worldPos) as Array<[OfficeObjectId, Vec3]>) {
-          if (otherId === id) continue
-          const r = radius + (radiusById[otherId] ?? 0.25)
-          const dx = clamped[0] - otherPos[0]
-          const dz = clamped[2] - otherPos[2]
+        for (const [otherId, otherPos] of Object.entries(worldPos) as Array<
+          [OfficeObjectId, Vec3]
+        >) {
+          if (otherId === id) continue;
+          const r = radius + (radiusById[otherId] ?? 0.25);
+          const dx = clamped[0] - otherPos[0];
+          const dz = clamped[2] - otherPos[2];
           if (dx * dx + dz * dz < r * r) {
-            blockedUntilRef.current = performance.now() + 220
-            return
+            blockedUntilRef.current = performance.now() + 220;
+            return;
           }
         }
-        onMoveWorld(id, clamped)
+        onMoveWorld(id, clamped);
       }}
     >
       <boxGeometry args={size} />
@@ -2104,7 +2745,9 @@ function DraggableProp({
       {enabled && (
         <>
           <lineSegments>
-            <edgesGeometry args={[new THREE.BoxGeometry(sx * 1.02, sy * 1.02, sz * 1.02)]} />
+            <edgesGeometry
+              args={[new THREE.BoxGeometry(sx * 1.02, sy * 1.02, sz * 1.02)]}
+            />
             <lineBasicMaterial color="#00DDFF" transparent opacity={0.7} />
           </lineSegments>
           {[
@@ -2121,7 +2764,7 @@ function DraggableProp({
         </>
       )}
     </mesh>
-  )
+  );
 }
 
 function OfficeRoom3DInner({
@@ -2129,10 +2772,10 @@ function OfficeRoom3DInner({
   officeLayout,
   agentPos,
   activeAgent,
-  sceneMode = 'auto',
+  sceneMode = "auto",
   motionIntensity = 1,
-  cameraPreset = 'cinematic',
-  vfxQuality = 'low',
+  cameraPreset = "cinematic",
+  vfxQuality = "low",
   onOpenMemory,
   onOpenScheduler,
   onToggleEditMode,
@@ -2141,119 +2784,141 @@ function OfficeRoom3DInner({
   onSetVfxQuality,
   dispatchBar = null,
 }: {
-  officeEditMode: boolean
-  officeLayout: Record<OfficeObjectId, OfficeObjectPos>
-  agentPos?: Record<AgentId, { x: number; y: number }>
-  activeAgent?: AgentId | null
-  sceneMode?: 'auto' | 'morning' | 'afternoon' | 'night'
-  motionIntensity?: number
-  cameraPreset?: OfficeCameraPreset
-  vfxQuality?: OfficeVfxQuality
-  onOpenMemory?: () => void
-  onOpenScheduler?: () => void
-  onToggleEditMode?: () => void
-  onResetLayout?: () => void
-  onSetCameraPreset?: (p: OfficeCameraPreset) => void
-  onSetVfxQuality?: (q: OfficeVfxQuality) => void
-  dispatchBar?: DispatchState
+  officeEditMode: boolean;
+  officeLayout: Record<OfficeObjectId, OfficeObjectPos>;
+  agentPos?: Record<AgentId, { x: number; y: number }>;
+  activeAgent?: AgentId | null;
+  sceneMode?: "auto" | "morning" | "afternoon" | "night";
+  motionIntensity?: number;
+  cameraPreset?: OfficeCameraPreset;
+  vfxQuality?: OfficeVfxQuality;
+  onOpenMemory?: () => void;
+  onOpenScheduler?: () => void;
+  onToggleEditMode?: () => void;
+  onResetLayout?: () => void;
+  onSetCameraPreset?: (p: OfficeCameraPreset) => void;
+  onSetVfxQuality?: (q: OfficeVfxQuality) => void;
+  dispatchBar?: DispatchState;
 }) {
-  const [autoTod, setAutoTod] = useState<'morning' | 'afternoon' | 'night'>(() => getTimeOfDay())
+  const [autoTod, setAutoTod] = useState<"morning" | "afternoon" | "night">(
+    () => getTimeOfDay(),
+  );
   useEffect(() => {
-    const id = window.setInterval(() => setAutoTod(getTimeOfDay()), 60_000)
-    return () => window.clearInterval(id)
-  }, [])
+    const id = window.setInterval(() => setAutoTod(getTimeOfDay()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
-  const tod = sceneMode === 'auto' ? autoTod : sceneMode
-  const pal = scenePalette(tod)
-  const nightFactor = tod === 'night' ? 1 : tod === 'afternoon' ? 0.55 : 0.75
-  const motion = Math.max(0.25, Math.min(2.5, motionIntensity))
-  const setOfficeObjectPos = useStore((s) => s.setOfficeObjectPos)
-  const officeMessages = useStore((s) => s.officeMessages)
-  const articlesCount = useStore((s) => s.articles.length)
-  const pricesCount = useStore((s) => Object.keys(s.prices).length)
-  const worldRisk = useStore((s) => s.worldRisk)
-  const modelLabel = useStore((s) => s.settings.localModel?.split(':')[0] ?? 'auto')
-  const agentStats = useStore((s) => s.agentStats)
-  const shadowSize = motion >= 1.15 ? 1024 : motion >= 0.85 ? 768 : 512
-  const dprMax = motion >= 1.2 ? 1.75 : motion >= 0.9 ? 1.5 : 1.25
-  const msgCount = officeMessages.length
+  const tod = sceneMode === "auto" ? autoTod : sceneMode;
+  const pal = scenePalette(tod);
+  const nightFactor = tod === "night" ? 1 : tod === "afternoon" ? 0.55 : 0.75;
+  const motion = Math.max(0.25, Math.min(2.5, motionIntensity));
+  const setOfficeObjectPos = useStore((s) => s.setOfficeObjectPos);
+  const officeMessages = useStore((s) => s.officeMessages);
+  const articlesCount = useStore((s) => s.articles.length);
+  const pricesCount = useStore((s) => Object.keys(s.prices).length);
+  const worldRisk = useStore((s) => s.worldRisk);
+  const modelLabel = useStore(
+    (s) => s.settings.localModel?.split(":")[0] ?? "auto",
+  );
+  const agentStats = useStore((s) => s.agentStats);
+  const shadowSize = motion >= 1.15 ? 1024 : motion >= 0.85 ? 768 : 512;
+  const dprMax = motion >= 1.2 ? 1.75 : motion >= 0.9 ? 1.5 : 1.25;
+  const msgCount = officeMessages.length;
   const tokenEstimate = useMemo(() => {
-    return officeMessages.reduce((acc, m) => acc + Math.ceil(m.text.length / 4), 0)
-  }, [officeMessages])
-  const fuelPct = Math.min(1, tokenEstimate / 200_000)
-  const trashPct = Math.min(1, msgCount / 40)
+    return officeMessages.reduce(
+      (acc, m) => acc + Math.ceil(m.text.length / 4),
+      0,
+    );
+  }, [officeMessages]);
+  const fuelPct = Math.min(1, tokenEstimate / 200_000);
+  const trashPct = Math.min(1, msgCount / 40);
 
   // Persisted layouts may be missing newly-added objects; always fall back to defaults.
   const layout = useMemo(() => {
-    return { ...OFFICE_OBJECT_DEFAULTS, ...officeLayout }
-  }, [officeLayout])
+    return { ...OFFICE_OBJECT_DEFAULTS, ...officeLayout };
+  }, [officeLayout]);
 
-  const radiusById = RADIUS_BY_ID
+  const radiusById = RADIUS_BY_ID;
 
   const worldPos = useMemo(() => {
-    const next: Record<OfficeObjectId, Vec3> = {} as Record<OfficeObjectId, Vec3>
-    ;(Object.keys(OFFICE_OBJECT_DEFAULTS) as OfficeObjectId[]).forEach((id) => {
-      next[id] = clampWorldByRadius(toWorld(layout[id]), radiusById[id] ?? 0.35)
-    })
-    return next
-  }, [layout, radiusById])
+    const next: Record<OfficeObjectId, Vec3> = {} as Record<
+      OfficeObjectId,
+      Vec3
+    >;
+    (Object.keys(OFFICE_OBJECT_DEFAULTS) as OfficeObjectId[]).forEach((id) => {
+      next[id] = clampWorldByRadius(
+        toWorld(layout[id]),
+        radiusById[id] ?? 0.35,
+      );
+    });
+    return next;
+  }, [layout, radiusById]);
 
   const agentObstacles = useMemo(() => {
     const ids: OfficeObjectId[] = [
-      'janskyDesk',
-      'cipherDesk',
-      'fluxDesk',
-      'orbitDesk',
-      'novaDesk',
-      'conferenceTable',
-      'sofa',
-      'serverRack',
-      'waterCooler',
-      'plantBackLeft',
-      'plantBottomLeft',
-    ]
+      "janskyDesk",
+      "cipherDesk",
+      "fluxDesk",
+      "orbitDesk",
+      "novaDesk",
+      "conferenceTable",
+      "sofa",
+      "serverRack",
+      "waterCooler",
+      "plantBackLeft",
+      "plantBottomLeft",
+    ];
     return ids.map((id) => ({
       x: worldPos[id][0],
       z: worldPos[id][2],
       r: radiusById[id] ?? 0.35,
-    }))
-  }, [worldPos, radiusById])
+    }));
+  }, [worldPos, radiusById]);
 
   const rackVitals = useMemo(() => {
-    const cpu = Math.min(95, 20 + msgCount * 1.8 + (activeAgent ? 20 : 0))
-    const mem = Math.min(96, 35 + fuelPct * 55)
-    const disk = Math.min(99, 42 + msgCount * 0.7)
-    return { cpu, mem, disk }
-  }, [msgCount, activeAgent, fuelPct])
+    const cpu = Math.min(95, 20 + msgCount * 1.8 + (activeAgent ? 20 : 0));
+    const mem = Math.min(96, 35 + fuelPct * 55);
+    const disk = Math.min(99, 42 + msgCount * 0.7);
+    return { cpu, mem, disk };
+  }, [msgCount, activeAgent, fuelPct]);
 
   const tryMove = (id: OfficeObjectId, world: Vec3) => {
-    const prev = layout[id]
-    if (!prev) return
-    setOfficeObjectPos(id, fromWorld(world, prev))
-  }
+    const prev = layout[id];
+    if (!prev) return;
+    setOfficeObjectPos(id, fromWorld(world, prev));
+  };
 
   // NOTE: Phase 1.5: environment is 3D and animated; agent avatars stay 2D/HTML for now.
-  const selectedPreset = CAMERA_PRESETS[cameraPreset] ?? CAMERA_PRESETS.cinematic
+  const selectedPreset =
+    CAMERA_PRESETS[cameraPreset] ?? CAMERA_PRESETS.cinematic;
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <Canvas
         shadows
-        camera={{ position: selectedPreset.position, fov: selectedPreset.fov, near: 0.1, far: 50 }}
+        camera={{
+          position: selectedPreset.position,
+          fov: selectedPreset.fov,
+          near: 0.1,
+          far: 50,
+        }}
         dpr={[1, dprMax]}
-        style={{ width: '100%', height: '100%' }}
+        style={{ width: "100%", height: "100%" }}
         onCreated={({ camera }) => {
           camera.lookAt(
             selectedPreset.lookAt[0],
             selectedPreset.lookAt[1],
             selectedPreset.lookAt[2],
-          )
+          );
         }}
       >
         <SceneAtmosphere bg={pal.bg} />
-        <ambientLight intensity={0.34 + nightFactor * 0.18} color={pal.ambient} />
+        <ambientLight
+          intensity={0.34 + nightFactor * 0.18}
+          color={pal.ambient}
+        />
         <hemisphereLight
-          color={tod === 'night' ? '#90b9ff' : '#fff6ea'}
-          groundColor={tod === 'night' ? '#1a2432' : '#3b2f24'}
+          color={tod === "night" ? "#90b9ff" : "#fff6ea"}
+          groundColor={tod === "night" ? "#1a2432" : "#3b2f24"}
           intensity={0.3}
         />
         <directionalLight
@@ -2271,25 +2936,50 @@ function OfficeRoom3DInner({
           shadow-camera-bottom={-8}
         />
         {/* Practical warm desk lamp fill */}
-        <pointLight position={[0, 1.25, 1.2]} intensity={tod === 'night' ? 0.26 : 0.18} color="#ffd7a8" distance={8} />
+        <pointLight
+          position={[0, 1.25, 1.2]}
+          intensity={tod === "night" ? 0.26 : 0.18}
+          color="#ffd7a8"
+          distance={8}
+        />
         {/* Cool monitor bounce light */}
-        <pointLight position={[0, 0.9, -1.5]} intensity={tod === 'night' ? 0.18 : 0.12} color="#9fb7da" distance={7} />
+        <pointLight
+          position={[0, 0.9, -1.5]}
+          intensity={tod === "night" ? 0.18 : 0.12}
+          color="#9fb7da"
+          distance={7}
+        />
         {/* Extra practical fixtures for richer office ambience */}
-        <pointLight position={[-2.7, 2.2, -1.2]} intensity={tod === 'night' ? 0.14 : 0.11} color="#ffe7bf" distance={4.8} />
-        <pointLight position={[2.7, 2.2, -1.2]} intensity={tod === 'night' ? 0.14 : 0.11} color="#ffe7bf" distance={4.8} />
-        <pointLight position={[0, 2.15, 1.9]} intensity={tod === 'night' ? 0.11 : 0.08} color="#ffd9b0" distance={5.2} />
+        <pointLight
+          position={[-2.7, 2.2, -1.2]}
+          intensity={tod === "night" ? 0.14 : 0.11}
+          color="#ffe7bf"
+          distance={4.8}
+        />
+        <pointLight
+          position={[2.7, 2.2, -1.2]}
+          intensity={tod === "night" ? 0.14 : 0.11}
+          color="#ffe7bf"
+          distance={4.8}
+        />
+        <pointLight
+          position={[0, 2.15, 1.9]}
+          intensity={tod === "night" ? 0.11 : 0.08}
+          color="#ffd9b0"
+          distance={5.2}
+        />
 
         {/* ── Per-desk agent colored accent lights ──────────────────────────────
             One small pointLight per agent, positioned 0.9 units above their desk.
             Color matches the agent brand color at low intensity to tint the work area.
             Night raises intensity for dramatic effect. */}
         {(Object.keys(AGENTS) as (keyof typeof AGENTS)[]).map((id) => {
-          const deskId = `${id}Desk` as OfficeObjectId
-          const deskPos = worldPos[deskId]
-          if (!deskPos) return null
-          const agentColor = AGENTS[id].color
-          const baseIntensity = tod === 'night' ? 0.32 : 0.16
-          const activeBoost = activeAgent === id ? 0.22 : 0
+          const deskId = `${id}Desk` as OfficeObjectId;
+          const deskPos = worldPos[deskId];
+          if (!deskPos) return null;
+          const agentColor = AGENTS[id].color;
+          const baseIntensity = tod === "night" ? 0.32 : 0.16;
+          const activeBoost = activeAgent === id ? 0.22 : 0;
           return (
             <pointLight
               key={`desk-light-${id}`}
@@ -2299,7 +2989,7 @@ function OfficeRoom3DInner({
               distance={1.8}
               decay={2}
             />
-          )
+          );
         })}
 
         <RoomShell tod={tod} />
@@ -2311,7 +3001,12 @@ function OfficeRoom3DInner({
           modelLabel={modelLabel}
           agentStats={agentStats}
           controls={
-            onOpenMemory && onOpenScheduler && onToggleEditMode && onResetLayout && onSetCameraPreset && onSetVfxQuality
+            onOpenMemory &&
+            onOpenScheduler &&
+            onToggleEditMode &&
+            onResetLayout &&
+            onSetCameraPreset &&
+            onSetVfxQuality
               ? {
                   officeEditMode,
                   onToggleEditMode,
@@ -2336,7 +3031,12 @@ function OfficeRoom3DInner({
         />
         <CityWindow nightFactor={nightFactor * motion} />
         <DustParticles nightFactor={nightFactor * motion} />
-        <AgentFloorShadows agentPos={agentPos} activeAgent={activeAgent} obstacles={agentObstacles} vfxQuality={vfxQuality} />
+        <AgentFloorShadows
+          agentPos={agentPos}
+          activeAgent={activeAgent}
+          obstacles={agentObstacles}
+          vfxQuality={vfxQuality}
+        />
         <DispatchBeam dispatchBar={dispatchBar} agentPos={agentPos} />
 
         <DraggableProp
@@ -2355,28 +3055,49 @@ function OfficeRoom3DInner({
         {[0.35, 0.62, 0.88].map((h, i) => (
           <mesh
             key={`rack-led-${i}`}
-            position={[worldPos.serverRack[0] + 0.2, h, worldPos.serverRack[2] + 0.16]}
+            position={[
+              worldPos.serverRack[0] + 0.2,
+              h,
+              worldPos.serverRack[2] + 0.16,
+            ]}
             castShadow={false}
           >
             <boxGeometry args={[0.06, 0.02, 0.02]} />
-            <meshStandardMaterial color="#0b1220" emissive={i === 1 ? '#22c55e' : '#38bdf8'} emissiveIntensity={0.8} />
+            <meshStandardMaterial
+              color="#0b1220"
+              emissive={i === 1 ? "#22c55e" : "#38bdf8"}
+              emissiveIntensity={0.8}
+            />
           </mesh>
         ))}
         {/* Server rack detail: front bays + side vents */}
         {Array.from({ length: 6 }).map((_, i) => (
           <mesh
             key={`rack-bay-${i}`}
-            position={[worldPos.serverRack[0] + 0.19, 0.18 + i * 0.16, worldPos.serverRack[2] + 0.165]}
+            position={[
+              worldPos.serverRack[0] + 0.19,
+              0.18 + i * 0.16,
+              worldPos.serverRack[2] + 0.165,
+            ]}
             castShadow={false}
           >
             <boxGeometry args={[0.18, 0.1, 0.01]} />
-            <meshStandardMaterial color="#0b1220" emissive="#1e293b" emissiveIntensity={0.22} roughness={0.8} />
+            <meshStandardMaterial
+              color="#0b1220"
+              emissive="#1e293b"
+              emissiveIntensity={0.22}
+              roughness={0.8}
+            />
           </mesh>
         ))}
         {Array.from({ length: 9 }).map((_, i) => (
           <mesh
             key={`rack-vent-${i}`}
-            position={[worldPos.serverRack[0] - 0.24, 0.2 + i * 0.1, worldPos.serverRack[2] + 0.14]}
+            position={[
+              worldPos.serverRack[0] - 0.24,
+              0.2 + i * 0.1,
+              worldPos.serverRack[2] + 0.14,
+            ]}
             castShadow={false}
           >
             <boxGeometry args={[0.02, 0.05, 0.01]} />
@@ -2385,33 +3106,67 @@ function OfficeRoom3DInner({
         ))}
         {/* Rack frame rails */}
         {[-0.23, 0.23].map((x, i) => (
-          <mesh key={`rack-rail-${i}`} position={[worldPos.serverRack[0] + x, 0.62, worldPos.serverRack[2] + 0.16]} castShadow={false}>
+          <mesh
+            key={`rack-rail-${i}`}
+            position={[
+              worldPos.serverRack[0] + x,
+              0.62,
+              worldPos.serverRack[2] + 0.16,
+            ]}
+            castShadow={false}
+          >
             <boxGeometry args={[0.02, 1.02, 0.02]} />
-            <meshStandardMaterial color="#334155" roughness={0.7} metalness={0.35} />
+            <meshStandardMaterial
+              color="#334155"
+              roughness={0.7}
+              metalness={0.35}
+            />
           </mesh>
         ))}
         {/* Cable bundle from rack */}
-        <mesh position={[worldPos.serverRack[0] - 0.1, 0.12, worldPos.serverRack[2] - 0.24]} rotation={[0.25, 0, 0.35]} castShadow={false}>
+        <mesh
+          position={[
+            worldPos.serverRack[0] - 0.1,
+            0.12,
+            worldPos.serverRack[2] - 0.24,
+          ]}
+          rotation={[0.25, 0, 0.35]}
+          castShadow={false}
+        >
           <cylinderGeometry args={[0.03, 0.035, 0.42, 10]} />
           <meshStandardMaterial color="#111827" roughness={0.95} />
         </mesh>
         {/* Server rack parity meters (CPU/MEM/DSK) */}
-        {(['cpu', 'mem', 'disk'] as const).map((k, i) => {
-          const v = rackVitals[k]
-          const pct = Math.max(0.05, Math.min(1, v / 100))
-          const c = v > 85 ? '#ef4444' : v > 65 ? '#f59e0b' : '#22c55e'
+        {(["cpu", "mem", "disk"] as const).map((k, i) => {
+          const v = rackVitals[k];
+          const pct = Math.max(0.05, Math.min(1, v / 100));
+          const c = v > 85 ? "#ef4444" : v > 65 ? "#f59e0b" : "#22c55e";
           return (
-            <group key={`rack-meter-${k}`} position={[worldPos.serverRack[0] + 0.205, 1.04 - i * 0.17, worldPos.serverRack[2] + 0.17]}>
+            <group
+              key={`rack-meter-${k}`}
+              position={[
+                worldPos.serverRack[0] + 0.205,
+                1.04 - i * 0.17,
+                worldPos.serverRack[2] + 0.17,
+              ]}
+            >
               <mesh castShadow={false}>
                 <boxGeometry args={[0.14, 0.06, 0.008]} />
                 <meshStandardMaterial color="#0b1220" roughness={0.9} />
               </mesh>
-              <mesh position={[-0.07 + pct * 0.07, 0, 0.006]} castShadow={false}>
+              <mesh
+                position={[-0.07 + pct * 0.07, 0, 0.006]}
+                castShadow={false}
+              >
                 <boxGeometry args={[0.14 * pct, 0.034, 0.006]} />
-                <meshStandardMaterial color={c} emissive={c} emissiveIntensity={0.45} />
+                <meshStandardMaterial
+                  color={c}
+                  emissive={c}
+                  emissiveIntensity={0.45}
+                />
               </mesh>
             </group>
-          )
+          );
         })}
         <DraggableProp
           id="waterCooler"
@@ -2427,10 +3182,17 @@ function OfficeRoom3DInner({
           hideProxyWhenNotEnabled
         />
         {/* Water cooler detail model (used when edit-mode proxy is hidden). */}
-        <group position={[worldPos.waterCooler[0], 0.57, worldPos.waterCooler[2]]} castShadow={false}>
+        <group
+          position={[worldPos.waterCooler[0], 0.57, worldPos.waterCooler[2]]}
+          castShadow={false}
+        >
           <mesh castShadow={false}>
             <cylinderGeometry args={[0.16, 0.18, 1.05, 16]} />
-            <meshStandardMaterial color="#0f172a" roughness={0.85} metalness={0.06} />
+            <meshStandardMaterial
+              color="#0f172a"
+              roughness={0.85}
+              metalness={0.06}
+            />
           </mesh>
           <mesh position={[0, 0.525, 0]} castShadow={false}>
             <cylinderGeometry args={[0.17, 0.17, 0.06, 14]} />
@@ -2460,10 +3222,17 @@ function OfficeRoom3DInner({
           hideProxyWhenNotEnabled
         />
         {/* Trash can detail model + fill indicator */}
-        <group position={[worldPos.trashCan[0], 0.245, worldPos.trashCan[2]]} castShadow={false}>
+        <group
+          position={[worldPos.trashCan[0], 0.245, worldPos.trashCan[2]]}
+          castShadow={false}
+        >
           <mesh castShadow={false}>
             <cylinderGeometry args={[0.16, 0.16, 0.45, 16]} />
-            <meshStandardMaterial color="#1f2937" roughness={0.85} metalness={0.03} />
+            <meshStandardMaterial
+              color="#1f2937"
+              roughness={0.85}
+              metalness={0.03}
+            />
           </mesh>
           {/* Lid */}
           <mesh position={[0, 0.215, 0]} castShadow={false}>
@@ -2471,13 +3240,28 @@ function OfficeRoom3DInner({
             <meshStandardMaterial color="#111827" roughness={0.8} />
           </mesh>
           {/* Fill indicator cylinder (state-driven) */}
-          <mesh position={[0, (0.02 - 0.245) + (Math.max(0.04, trashPct * 0.32) / 2), 0]} castShadow={false}>
-            <cylinderGeometry args={[0.14, 0.14, Math.max(0.04, trashPct * 0.32), 16]} />
+          <mesh
+            position={[
+              0,
+              0.02 - 0.245 + Math.max(0.04, trashPct * 0.32) / 2,
+              0,
+            ]}
+            castShadow={false}
+          >
+            <cylinderGeometry
+              args={[0.14, 0.14, Math.max(0.04, trashPct * 0.32), 16]}
+            />
             <meshStandardMaterial
-              color={trashPct > 0.85 ? '#ef4444' : trashPct > 0.6 ? '#f59e0b' : '#4f6ef7'}
+              color={
+                trashPct > 0.85
+                  ? "#ef4444"
+                  : trashPct > 0.6
+                    ? "#f59e0b"
+                    : "#4f6ef7"
+              }
               transparent
               opacity={0.48}
-              emissive={trashPct >= 1 ? '#ef4444' : '#000000'}
+              emissive={trashPct >= 1 ? "#ef4444" : "#000000"}
               emissiveIntensity={trashPct >= 1 ? 0.4 : 0}
             />
           </mesh>
@@ -2513,7 +3297,13 @@ function OfficeRoom3DInner({
           onMoveWorld={tryMove}
           hideProxyWhenNotEnabled
         />
-        <group position={[worldPos.plantBackLeft[0], 0.34, worldPos.plantBackLeft[2]]}>
+        <group
+          position={[
+            worldPos.plantBackLeft[0],
+            0.34,
+            worldPos.plantBackLeft[2],
+          ]}
+        >
           <mesh castShadow={false}>
             <cylinderGeometry args={[0.022, 0.03, 0.26, 8]} />
             <meshStandardMaterial color="#2e5b2f" roughness={0.85} />
@@ -2525,9 +3315,16 @@ function OfficeRoom3DInner({
             [0.0, 0.26, -0.08, 0.09],
             [-0.06, 0.23, -0.12, 0.08],
           ].map((l, i) => (
-            <mesh key={`leaf-a-${i}`} position={[l[0], l[1], l[2]] as Vec3} castShadow={false}>
+            <mesh
+              key={`leaf-a-${i}`}
+              position={[l[0], l[1], l[2]] as Vec3}
+              castShadow={false}
+            >
               <sphereGeometry args={[l[3], 10, 10]} />
-              <meshStandardMaterial color={i % 2 ? '#2f8f45' : '#3ba854'} roughness={0.9} />
+              <meshStandardMaterial
+                color={i % 2 ? "#2f8f45" : "#3ba854"}
+                roughness={0.9}
+              />
             </mesh>
           ))}
         </group>
@@ -2536,7 +3333,7 @@ function OfficeRoom3DInner({
           pos={layout.plantBottomLeft}
           color="#4a3423"
           size={[0.26, 0.2, 0.26]}
-          y={0.30}
+          y={0.3}
           radius={radiusById.plantBottomLeft}
           enabled={officeEditMode}
           worldPos={worldPos}
@@ -2544,7 +3341,13 @@ function OfficeRoom3DInner({
           onMoveWorld={tryMove}
           hideProxyWhenNotEnabled
         />
-        <group position={[worldPos.plantBottomLeft[0], 0.30, worldPos.plantBottomLeft[2]]}>
+        <group
+          position={[
+            worldPos.plantBottomLeft[0],
+            0.3,
+            worldPos.plantBottomLeft[2],
+          ]}
+        >
           <mesh castShadow={false}>
             <cylinderGeometry args={[0.018, 0.025, 0.2, 8]} />
             <meshStandardMaterial color="#2e5b2f" roughness={0.85} />
@@ -2555,9 +3358,16 @@ function OfficeRoom3DInner({
             [0.08, 0.11, -0.02, 0.08],
             [0.0, 0.2, -0.06, 0.06],
           ].map((l, i) => (
-            <mesh key={`leaf-b-${i}`} position={[l[0], l[1], l[2]] as Vec3} castShadow={false}>
+            <mesh
+              key={`leaf-b-${i}`}
+              position={[l[0], l[1], l[2]] as Vec3}
+              castShadow={false}
+            >
               <sphereGeometry args={[l[3], 10, 10]} />
-              <meshStandardMaterial color={i % 2 ? '#319a4c' : '#40b65e'} roughness={0.9} />
+              <meshStandardMaterial
+                color={i % 2 ? "#319a4c" : "#40b65e"}
+                roughness={0.9}
+              />
             </mesh>
           ))}
         </group>
@@ -2571,20 +3381,29 @@ function OfficeRoom3DInner({
           <mesh position={[0, -0.25 + fuelPct * 0.25, 0.06]} castShadow={false}>
             <boxGeometry args={[0.07, Math.max(0.02, fuelPct * 0.5), 0.02]} />
             <meshStandardMaterial
-              color={fuelPct > 0.85 ? '#ef4444' : fuelPct > 0.6 ? '#f59e0b' : '#22c55e'}
-              emissive={fuelPct > 0.85 ? '#ef4444' : fuelPct > 0.6 ? '#f59e0b' : '#22c55e'}
+              color={
+                fuelPct > 0.85
+                  ? "#ef4444"
+                  : fuelPct > 0.6
+                    ? "#f59e0b"
+                    : "#22c55e"
+              }
+              emissive={
+                fuelPct > 0.85
+                  ? "#ef4444"
+                  : fuelPct > 0.6
+                    ? "#f59e0b"
+                    : "#22c55e"
+              }
               emissiveIntensity={0.35}
             />
           </mesh>
         </group>
 
         {/* Trash fill indicator is rendered inside the trash-can detail group above. */}
-
-
       </Canvas>
     </div>
-  )
+  );
 }
 
-export const OfficeRoom3D = memo(OfficeRoom3DInner)
-
+export const OfficeRoom3D = memo(OfficeRoom3DInner);

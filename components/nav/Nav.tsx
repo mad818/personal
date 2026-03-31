@@ -1,103 +1,113 @@
 // ── components/nav/Nav ─────────────────────────────────────
 // Top navigation bar with tab links, settings, and user menu.
 
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
-import SettingsDrawer from '@/components/settings/SettingsDrawer'
-import { NEXUS_FREE_USE_DESCRIPTION, NEXUS_FREE_USE_LABEL } from '@/lib/productGuarantees'
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import SettingsDrawer from "@/components/settings/SettingsDrawer";
+import {
+  NEXUS_FREE_USE_DESCRIPTION,
+  NEXUS_FREE_USE_LABEL,
+} from "@/lib/productGuarantees";
 
 const TABS = [
-  { href: '/home',    label: '🤖 HQ'       },
-  { href: '/command', label: '⚡ COMMAND'  },
-  { href: '/intel',   label: '📡 INTEL'   },
-  { href: '/alpha',   label: '🎯 ALPHA'   },
-  { href: '/cyber',   label: '🔒 CYBER'   },
-  { href: '/recon',   label: '🕵️ RECON'  },
-  { href: '/vault',   label: '🗂 VAULT'   },
-]
+  { href: "/home", label: "🤖 HQ" },
+  { href: "/command", label: "⚡ COMMAND" },
+  { href: "/intel", label: "📡 INTEL" },
+  { href: "/alpha", label: "🎯 ALPHA" },
+  { href: "/cyber", label: "🔒 CYBER" },
+  { href: "/recon", label: "🕵️ RECON" },
+  { href: "/vault", label: "🗂 VAULT" },
+];
 
 export default function Nav() {
-  const pathname    = usePathname()
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const pathname = usePathname();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <>
-      <nav style={{
-        position:     'fixed',
-        top:          0,
-        left:         0,
-        right:        0,
-        height:       '48px',
-        /* Dark warm glassmorphism */
-        background:   'rgba(10, 7, 8, 0.88)',
-        backdropFilter: 'blur(18px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(18px) saturate(180%)',
-        borderBottom: '1px solid rgba(196,72,90,0.08)',
-        boxShadow:    '0 1px 0 rgba(212,149,106,0.04), 0 2px 20px rgba(0,0,0,.6)',
-        display:      'flex',
-        alignItems:   'center',
-        gap:          '2px',
-        padding:      '0 12px',
-        zIndex:       1000,
-        overflowX:    'auto',
-      }}>
+      <nav
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "48px",
+          /* Dark warm glassmorphism */
+          background: "rgba(10, 7, 8, 0.88)",
+          backdropFilter: "blur(18px) saturate(180%)",
+          WebkitBackdropFilter: "blur(18px) saturate(180%)",
+          borderBottom: "1px solid rgba(196,72,90,0.08)",
+          boxShadow:
+            "0 1px 0 rgba(212,149,106,0.04), 0 2px 20px rgba(0,0,0,.6)",
+          display: "flex",
+          alignItems: "center",
+          gap: "2px",
+          padding: "0 12px",
+          zIndex: 1000,
+          overflowX: "auto",
+        }}
+      >
         {TABS.map((tab) => {
-          const active = pathname === tab.href || (pathname === '/' && tab.href === '/home')
+          const active =
+            pathname === tab.href || (pathname === "/" && tab.href === "/home");
           return (
             <Link
               key={tab.href}
               href={tab.href}
               style={{
-                position:       'relative',
-                padding:        '5px 11px',
-                borderRadius:   '6px',
-                fontSize:       '11.5px',
-                fontWeight:     700,
-                whiteSpace:     'nowrap',
-                background:     active ? 'rgba(196,72,90,0.18)' : 'transparent',
-                color:          active ? '#f5d0d6' : 'var(--text2)',
-                transition:     'all 0.15s ease',
-                textDecoration: 'none',
-                letterSpacing:  '0.2px',
+                position: "relative",
+                padding: "5px 11px",
+                borderRadius: "6px",
+                fontSize: "11.5px",
+                fontWeight: 700,
+                whiteSpace: "nowrap",
+                background: active ? "rgba(196,72,90,0.18)" : "transparent",
+                color: active ? "#f5d0d6" : "var(--text2)",
+                transition: "all 0.15s ease",
+                textDecoration: "none",
+                letterSpacing: "0.2px",
               }}
             >
               {tab.label}
               {/* Active underline glow — rose */}
               {active && (
-                <span style={{
-                  position:     'absolute',
-                  bottom:       '-1px',
-                  left:         '50%',
-                  transform:    'translateX(-50%)',
-                  width:        '60%',
-                  height:       '2px',
-                  borderRadius: '2px 2px 0 0',
-                  background:   'linear-gradient(90deg, transparent, #c4485a, transparent)',
-                  boxShadow:    '0 0 8px 1px rgba(196,72,90,.7)',
-                }} />
+                <span
+                  style={{
+                    position: "absolute",
+                    bottom: "-1px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: "60%",
+                    height: "2px",
+                    borderRadius: "2px 2px 0 0",
+                    background:
+                      "linear-gradient(90deg, transparent, #c4485a, transparent)",
+                    boxShadow: "0 0 8px 1px rgba(196,72,90,.7)",
+                  }}
+                />
               )}
             </Link>
-          )
+          );
         })}
 
         <span
           title={NEXUS_FREE_USE_DESCRIPTION}
           style={{
-            marginLeft:   'auto',
-            flexShrink:   0,
-            fontSize:     '9.5px',
-            fontWeight:   700,
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-            color:        'var(--text3)',
-            padding:      '4px 8px',
-            borderRadius: '6px',
-            border:       '1px solid rgba(196,72,90,0.2)',
-            background:   'rgba(16,185,129,0.08)',
-            whiteSpace:   'nowrap',
+            marginLeft: "auto",
+            flexShrink: 0,
+            fontSize: "9.5px",
+            fontWeight: 700,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase",
+            color: "var(--text3)",
+            padding: "4px 8px",
+            borderRadius: "6px",
+            border: "1px solid rgba(196,72,90,0.2)",
+            background: "rgba(16,185,129,0.08)",
+            whiteSpace: "nowrap",
           }}
         >
           {NEXUS_FREE_USE_LABEL}
@@ -107,26 +117,29 @@ export default function Nav() {
         <button
           onClick={() => setSettingsOpen(true)}
           style={{
-            marginLeft:  '8px',
-            padding:     '5px 10px',
-            borderRadius:'6px',
-            fontSize:    '14px',
-            background:  'transparent',
-            border:      'none',
-            color:       'var(--text2)',
-            cursor:      'pointer',
-            flexShrink:  0,
-            transition:  'color 0.15s',
+            marginLeft: "8px",
+            padding: "5px 10px",
+            borderRadius: "6px",
+            fontSize: "14px",
+            background: "transparent",
+            border: "none",
+            color: "var(--text2)",
+            cursor: "pointer",
+            flexShrink: 0,
+            transition: "color 0.15s",
           }}
           title="Settings"
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text2)')}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text2)")}
         >
           ⚙️
         </button>
       </nav>
 
-      <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsDrawer
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
     </>
-  )
+  );
 }

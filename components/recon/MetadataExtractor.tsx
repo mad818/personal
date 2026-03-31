@@ -2,205 +2,307 @@
 // Client-side EXIF and metadata extraction from images and PDFs.
 // Nothing is uploaded — all processing happens in the browser.
 
-'use client'
+"use client";
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback } from "react";
 
-interface MetaRow { key: string; value: string }
+interface MetaRow {
+  key: string;
+  value: string;
+}
 
 function esc(s: string): string {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 // Read EXIF from JPEG via DataView — no external lib needed
 function readJpegExif(buf: ArrayBuffer): MetaRow[] {
-  const view = new DataView(buf)
-  const rows: MetaRow[] = []
+  const view = new DataView(buf);
+  const rows: MetaRow[] = [];
 
   // Check JPEG SOI marker
-  if (view.getUint16(0) !== 0xFFD8) return []
+  if (view.getUint16(0) !== 0xffd8) return [];
 
   // Walk JPEG segments looking for APP1 (EXIF)
-  let offset = 2
+  let offset = 2;
   while (offset < view.byteLength - 2) {
-    const marker = view.getUint16(offset)
-    offset += 2
-    if (marker === 0xFFE1) {
+    const marker = view.getUint16(offset);
+    offset += 2;
+    if (marker === 0xffe1) {
       // APP1 — check for "Exif\0\0"
-      const segLen = view.getUint16(offset)
+      const segLen = view.getUint16(offset);
       const exifHeader = String.fromCharCode(
-        view.getUint8(offset + 2), view.getUint8(offset + 3),
-        view.getUint8(offset + 4), view.getUint8(offset + 5),
-      )
-      if (exifHeader === 'Exif') {
+        view.getUint8(offset + 2),
+        view.getUint8(offset + 3),
+        view.getUint8(offset + 4),
+        view.getUint8(offset + 5),
+      );
+      if (exifHeader === "Exif") {
         // Found EXIF — parse basic IFD0 tags
-        const tiffOffset = offset + 8
-        const littleEndian = view.getUint16(tiffOffset) === 0x4949
-        const getU16 = (o: number) => view.getUint16(o, littleEndian)
-        const getU32 = (o: number) => view.getUint32(o, littleEndian)
+        const tiffOffset = offset + 8;
+        const littleEndian = view.getUint16(tiffOffset) === 0x4949;
+        const getU16 = (o: number) => view.getUint16(o, littleEndian);
+        const getU32 = (o: number) => view.getUint32(o, littleEndian);
 
-        const ifd0 = tiffOffset + getU32(tiffOffset + 4)
-        const entries = getU16(ifd0)
+        const ifd0 = tiffOffset + getU32(tiffOffset + 4);
+        const entries = getU16(ifd0);
 
         const TAG_NAMES: Record<number, string> = {
-          0x010F: 'Camera Make', 0x0110: 'Camera Model',
-          0x0131: 'Software',   0x0132: 'DateTime',
-          0x013B: 'Artist',     0x8769: 'EXIF IFD',
-          0x013E: 'WhitePoint', 0x0112: 'Orientation',
-          0x011A: 'X Resolution', 0x011B: 'Y Resolution',
-          0x0213: 'YCbCr Positioning',
-        }
+          0x010f: "Camera Make",
+          0x0110: "Camera Model",
+          0x0131: "Software",
+          0x0132: "DateTime",
+          0x013b: "Artist",
+          0x8769: "EXIF IFD",
+          0x013e: "WhitePoint",
+          0x0112: "Orientation",
+          0x011a: "X Resolution",
+          0x011b: "Y Resolution",
+          0x0213: "YCbCr Positioning",
+        };
 
         for (let i = 0; i < Math.min(entries, 30); i++) {
-          const entryOffset = ifd0 + 2 + i * 12
-          const tag   = getU16(entryOffset)
-          const type  = getU16(entryOffset + 2)
-          const count = getU32(entryOffset + 4)
-          const name  = TAG_NAMES[tag]
-          if (!name) continue
+          const entryOffset = ifd0 + 2 + i * 12;
+          const tag = getU16(entryOffset);
+          const type = getU16(entryOffset + 2);
+          const count = getU32(entryOffset + 4);
+          const name = TAG_NAMES[tag];
+          if (!name) continue;
 
           // ASCII string (type 2)
           if (type === 2 && count > 0) {
-            const valueOffset = count <= 4
-              ? entryOffset + 8
-              : tiffOffset + getU32(entryOffset + 8)
-            let str = ''
+            const valueOffset =
+              count <= 4
+                ? entryOffset + 8
+                : tiffOffset + getU32(entryOffset + 8);
+            let str = "";
             for (let j = 0; j < count - 1 && j < 64; j++) {
-              const ch = view.getUint8(valueOffset + j)
-              if (ch === 0) break
-              str += String.fromCharCode(ch)
+              const ch = view.getUint8(valueOffset + j);
+              if (ch === 0) break;
+              str += String.fromCharCode(ch);
             }
-            if (str) rows.push({ key: name, value: str.trim() })
+            if (str) rows.push({ key: name, value: str.trim() });
           }
         }
       }
-      offset += segLen
-    } else if ((marker & 0xFF00) === 0xFF00) {
-      const segLen = view.getUint16(offset)
-      offset += segLen
-    } else break
+      offset += segLen;
+    } else if ((marker & 0xff00) === 0xff00) {
+      const segLen = view.getUint16(offset);
+      offset += segLen;
+    } else break;
   }
-  return rows
+  return rows;
 }
 
 function readPngMeta(buf: ArrayBuffer): MetaRow[] {
-  const view = new DataView(buf)
-  const rows: MetaRow[] = []
+  const view = new DataView(buf);
+  const rows: MetaRow[] = [];
   // PNG signature: 8 bytes
-  let offset = 8
-  const decoder = new TextDecoder()
+  let offset = 8;
+  const decoder = new TextDecoder();
   while (offset < view.byteLength - 12) {
-    const length = view.getUint32(offset)
-    const type   = decoder.decode(new Uint8Array(buf, offset + 4, 4))
-    if (type === 'tEXt') {
-      const data  = new Uint8Array(buf, offset + 8, length)
-      const nullIdx = data.indexOf(0)
+    const length = view.getUint32(offset);
+    const type = decoder.decode(new Uint8Array(buf, offset + 4, 4));
+    if (type === "tEXt") {
+      const data = new Uint8Array(buf, offset + 8, length);
+      const nullIdx = data.indexOf(0);
       if (nullIdx > 0) {
-        const key = decoder.decode(data.slice(0, nullIdx))
-        const val = decoder.decode(data.slice(nullIdx + 1))
-        rows.push({ key: esc(key), value: esc(val) })
+        const key = decoder.decode(data.slice(0, nullIdx));
+        const val = decoder.decode(data.slice(nullIdx + 1));
+        rows.push({ key: esc(key), value: esc(val) });
       }
     }
-    if (type === 'IEND') break
-    offset += 12 + length
+    if (type === "IEND") break;
+    offset += 12 + length;
   }
-  return rows
+  return rows;
 }
 
 function genericMeta(file: File): MetaRow[] {
   const rows: MetaRow[] = [
-    { key: 'Filename', value: file.name },
-    { key: 'Type',     value: file.type || 'unknown' },
-    { key: 'Size',     value: `${(file.size / 1024).toFixed(1)} KB` },
-    { key: 'Modified', value: new Date(file.lastModified).toISOString().slice(0, 19).replace('T', ' ') },
-  ]
-  return rows
+    { key: "Filename", value: file.name },
+    { key: "Type", value: file.type || "unknown" },
+    { key: "Size", value: `${(file.size / 1024).toFixed(1)} KB` },
+    {
+      key: "Modified",
+      value: new Date(file.lastModified)
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " "),
+    },
+  ];
+  return rows;
 }
 
 export default function MetadataExtractor() {
-  const [rows,    setRows]    = useState<MetaRow[]>([])
-  const [fname,   setFname]   = useState('')
-  const [dragging, setDragging] = useState(false)
-  const [error,   setError]   = useState('')
+  const [rows, setRows] = useState<MetaRow[]>([]);
+  const [fname, setFname] = useState("");
+  const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState("");
 
   const process = useCallback(async (file: File) => {
-    setError('')
-    setFname(file.name)
-    const base = genericMeta(file)
+    setError("");
+    setFname(file.name);
+    const base = genericMeta(file);
 
     try {
-      const buf = await file.arrayBuffer()
-      let extra: MetaRow[] = []
+      const buf = await file.arrayBuffer();
+      let extra: MetaRow[] = [];
 
-      if (file.type === 'image/jpeg' || file.name.toLowerCase().endsWith('.jpg') || file.name.toLowerCase().endsWith('.jpeg')) {
-        extra = readJpegExif(buf)
-      } else if (file.type === 'image/png' || file.name.toLowerCase().endsWith('.png')) {
-        extra = readPngMeta(buf)
+      if (
+        file.type === "image/jpeg" ||
+        file.name.toLowerCase().endsWith(".jpg") ||
+        file.name.toLowerCase().endsWith(".jpeg")
+      ) {
+        extra = readJpegExif(buf);
+      } else if (
+        file.type === "image/png" ||
+        file.name.toLowerCase().endsWith(".png")
+      ) {
+        extra = readPngMeta(buf);
       }
 
-      setRows([...base, ...extra])
+      setRows([...base, ...extra]);
     } catch (e) {
-      setRows(base)
-      setError(`Could not parse metadata: ${String(e)}`)
+      setRows(base);
+      setError(`Could not parse metadata: ${String(e)}`);
     }
-  }, [])
+  }, []);
 
-  const onDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setDragging(false)
-    const file = e.dataTransfer.files[0]
-    if (file) void process(file)
-  }, [process])
+  const onDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragging(false);
+      const file = e.dataTransfer.files[0];
+      if (file) void process(file);
+    },
+    [process],
+  );
 
-  const onFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) void process(file)
-  }, [process])
+  const onFile = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) void process(file);
+    },
+    [process],
+  );
 
   return (
     <div>
       {/* Drop zone */}
       <label
-        onDragOver={e => { e.preventDefault(); setDragging(true) }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          gap: '6px', padding: '28px', borderRadius: '10px', cursor: 'pointer',
-          border: `2px dashed ${dragging ? 'var(--accent)' : 'var(--border)'}`,
-          background: dragging ? 'rgba(79,110,247,0.06)' : 'var(--surf2)',
-          transition: 'all 0.15s',
-          marginBottom: '14px',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "6px",
+          padding: "28px",
+          borderRadius: "10px",
+          cursor: "pointer",
+          border: `2px dashed ${dragging ? "var(--accent)" : "var(--border)"}`,
+          background: dragging ? "rgba(79,110,247,0.06)" : "var(--surf2)",
+          transition: "all 0.15s",
+          marginBottom: "14px",
         }}
       >
-        <input type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={onFile} />
-        <span style={{ fontSize: '24px' }}>📎</span>
-        <span style={{ fontSize: '12px', color: 'var(--text)', fontWeight: 700 }}>Drop image or PDF here</span>
-        <span style={{ fontSize: '10px', color: 'var(--text3)' }}>or click to browse — nothing is uploaded, all processing is local</span>
+        <input
+          type="file"
+          accept="image/*,.pdf"
+          style={{ display: "none" }}
+          onChange={onFile}
+        />
+        <span style={{ fontSize: "24px" }}>📎</span>
+        <span
+          style={{ fontSize: "12px", color: "var(--text)", fontWeight: 700 }}
+        >
+          Drop image or PDF here
+        </span>
+        <span style={{ fontSize: "10px", color: "var(--text3)" }}>
+          or click to browse — nothing is uploaded, all processing is local
+        </span>
       </label>
 
-      {error && <div style={{ color: 'var(--fmd)', fontSize: '11px', marginBottom: '10px' }}>{error}</div>}
+      {error && (
+        <div
+          style={{
+            color: "var(--fmd)",
+            fontSize: "11px",
+            marginBottom: "10px",
+          }}
+        >
+          {error}
+        </div>
+      )}
 
       {rows.length > 0 && (
         <div>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>{fname}</div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+          <div
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              color: "var(--text)",
+              marginBottom: "8px",
+            }}
+          >
+            {fname}
+          </div>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: "11px",
+            }}
+          >
             <tbody>
               {rows.map((r, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '5px 10px 5px 0', color: 'var(--text3)', whiteSpace: 'nowrap', verticalAlign: 'top', width: '140px' }}>{r.key}</td>
-                  <td style={{ padding: '5px 0', color: 'var(--text)', wordBreak: 'break-all' }}>{r.value}</td>
+                <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td
+                    style={{
+                      padding: "5px 10px 5px 0",
+                      color: "var(--text3)",
+                      whiteSpace: "nowrap",
+                      verticalAlign: "top",
+                      width: "140px",
+                    }}
+                  >
+                    {r.key}
+                  </td>
+                  <td
+                    style={{
+                      padding: "5px 0",
+                      color: "var(--text)",
+                      wordBreak: "break-all",
+                    }}
+                  >
+                    {r.value}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
           {rows.length <= 4 && (
-            <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '8px' }}>
+            <div
+              style={{
+                fontSize: "10px",
+                color: "var(--text3)",
+                marginTop: "8px",
+              }}
+            >
               No EXIF metadata found — file may have been stripped.
             </div>
           )}
         </div>
       )}
     </div>
-  )
+  );
 }

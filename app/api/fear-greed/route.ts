@@ -2,35 +2,35 @@
 // Fear & Greed index API: crypto market sentiment indicator.
 // Cached for 1 hour — the index only updates once per day.
 
-import { NextResponse } from 'next/server'
-import { createCache } from '@/lib/apiCache'
+import { NextResponse } from "next/server";
+import { createCache } from "@/lib/apiCache";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
-const cache = createCache<FearGreedResponse>({ defaultTTL: 3_600_000 }) // 1 hour
+const cache = createCache<FearGreedResponse>({ defaultTTL: 3_600_000 }); // 1 hour
 
 interface FearGreedEntry {
-  value: number
-  classification: string
-  timestamp: string
+  value: number;
+  classification: string;
+  timestamp: string;
 }
 
 interface FearGreedResponse {
-  current: FearGreedEntry
-  history: FearGreedEntry[]
+  current: FearGreedEntry;
+  history: FearGreedEntry[];
 }
 
 interface AlternativeFNGEntry {
-  value: string
-  value_classification: string
-  timestamp: string
-  time_until_update?: string
+  value: string;
+  value_classification: string;
+  timestamp: string;
+  time_until_update?: string;
 }
 
 interface AlternativeFNGResponse {
-  name: string
-  data: AlternativeFNGEntry[]
-  metadata?: { error: string | null }
+  name: string;
+  data: AlternativeFNGEntry[];
+  metadata?: { error: string | null };
 }
 
 function parseEntry(entry: AlternativeFNGEntry): FearGreedEntry {
@@ -38,59 +38,59 @@ function parseEntry(entry: AlternativeFNGEntry): FearGreedEntry {
     value: parseInt(entry.value, 10),
     classification: entry.value_classification,
     timestamp: new Date(parseInt(entry.timestamp, 10) * 1000).toISOString(),
-  }
+  };
 }
 
 export async function GET(): Promise<NextResponse> {
-  const CACHE_KEY = 'fear-greed'
-  const cached = cache.get(CACHE_KEY)
+  const CACHE_KEY = "fear-greed";
+  const cached = cache.get(CACHE_KEY);
   if (cached) {
     return NextResponse.json(cached, {
-      headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },
-    })
+      headers: { "Cache-Control": "public, max-age=3600, s-maxage=3600" },
+    });
   }
 
   try {
     // Fetch current + history in parallel
     const [currentRes, historyRes] = await Promise.all([
-      fetch('https://api.alternative.me/fng/?limit=1&format=json', {
+      fetch("https://api.alternative.me/fng/?limit=1&format=json", {
         signal: AbortSignal.timeout(8000),
-        headers: { 'Accept': 'application/json' },
+        headers: { Accept: "application/json" },
       }),
-      fetch('https://api.alternative.me/fng/?limit=30&format=json', {
+      fetch("https://api.alternative.me/fng/?limit=30&format=json", {
         signal: AbortSignal.timeout(8000),
-        headers: { 'Accept': 'application/json' },
+        headers: { Accept: "application/json" },
       }),
-    ])
+    ]);
 
     if (!currentRes.ok) {
-      throw new Error(`Fear & Greed API error: ${currentRes.status}`)
+      throw new Error(`Fear & Greed API error: ${currentRes.status}`);
     }
     if (!historyRes.ok) {
-      throw new Error(`Fear & Greed history API error: ${historyRes.status}`)
+      throw new Error(`Fear & Greed history API error: ${historyRes.status}`);
     }
 
     const [currentData, historyData] = await Promise.all([
       currentRes.json() as Promise<AlternativeFNGResponse>,
       historyRes.json() as Promise<AlternativeFNGResponse>,
-    ])
+    ]);
 
-    const currentEntry = currentData.data?.[0]
+    const currentEntry = currentData.data?.[0];
     if (!currentEntry) {
-      throw new Error('No current Fear & Greed data returned')
+      throw new Error("No current Fear & Greed data returned");
     }
 
-    const current = parseEntry(currentEntry)
-    const history = (historyData.data ?? []).map(parseEntry)
+    const current = parseEntry(currentEntry);
+    const history = (historyData.data ?? []).map(parseEntry);
 
-    const result: FearGreedResponse = { current, history }
-    cache.set(CACHE_KEY, result)
+    const result: FearGreedResponse = { current, history };
+    cache.set(CACHE_KEY, result);
 
     return NextResponse.json(result, {
-      headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },
-    })
+      headers: { "Cache-Control": "public, max-age=3600, s-maxage=3600" },
+    });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Unknown error'
+    const msg = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(
       {
         error: msg,
@@ -98,6 +98,6 @@ export async function GET(): Promise<NextResponse> {
         history: [],
       },
       { status: 200 },
-    )
+    );
   }
 }

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 // ── lib/keywordAlerts.ts ───────────────────────────────────────────────────────
 // Keyword alert engine for Nexus Prime.
@@ -7,11 +7,11 @@
 // from Settings. Returns matches without duplicates — callers are responsible
 // for tracking already-fired article IDs across renders.
 
-import type { Article } from '@/store/useStore'
+import type { Article } from "@/store/useStore";
 
 export interface AlertMatch {
-  article:        Article
-  matchedKeyword: string
+  article: Article;
+  matchedKeyword: string;
 }
 
 /**
@@ -20,9 +20,9 @@ export interface AlertMatch {
  */
 export function parseKeywords(raw: string): string[] {
   return raw
-    .split(',')
+    .split(",")
     .map((k) => k.trim().toLowerCase())
-    .filter((k) => k.length >= 2)
+    .filter((k) => k.length >= 2);
 }
 
 /**
@@ -34,32 +34,32 @@ export function parseKeywords(raw: string): string[] {
  * @returns           Array of { article, matchedKeyword } for new matches only
  */
 export function scanArticles(
-  articles:    Article[],
+  articles: Article[],
   rawKeywords: string,
-  seenIds:     Set<string>,
+  seenIds: Set<string>,
 ): AlertMatch[] {
-  if (!rawKeywords.trim()) return []
+  if (!rawKeywords.trim()) return [];
 
-  const keywords = parseKeywords(rawKeywords)
-  if (!keywords.length) return []
+  const keywords = parseKeywords(rawKeywords);
+  if (!keywords.length) return [];
 
-  const matches: AlertMatch[] = []
+  const matches: AlertMatch[] = [];
 
   for (const article of articles) {
-    if (seenIds.has(article.id)) continue
+    if (seenIds.has(article.id)) continue;
 
-    const haystack = `${article.title} ${article.desc ?? ''}`.toLowerCase()
+    const haystack = `${article.title} ${article.desc ?? ""}`.toLowerCase();
 
     for (const kw of keywords) {
       if (haystack.includes(kw)) {
-        matches.push({ article, matchedKeyword: kw })
-        seenIds.add(article.id) // mark as seen so we never fire twice
-        break                   // one alert per article max
+        matches.push({ article, matchedKeyword: kw });
+        seenIds.add(article.id); // mark as seen so we never fire twice
+        break; // one alert per article max
       }
     }
   }
 
-  return matches
+  return matches;
 }
 
 /**
@@ -67,9 +67,9 @@ export function scanArticles(
  */
 export function articleCatToNotifType(
   cat: string | undefined,
-): 'market' | 'threat' | 'intel' {
-  if (!cat) return 'intel'
-  if (cat === 'crypto' || cat === 'markets') return 'market'
-  if (cat === 'cyber')                       return 'threat'
-  return 'intel'
+): "market" | "threat" | "intel" {
+  if (!cat) return "intel";
+  if (cat === "crypto" || cat === "markets") return "market";
+  if (cat === "cyber") return "threat";
+  return "intel";
 }

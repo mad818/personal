@@ -1,37 +1,45 @@
 // ── api/cisa-kev ────────────────────────────────────────────
 // CISA KEV catalog API: fetch and cache CISA known exploited vulnerabilities.
 
-import { NextResponse } from 'next/server'
+import { NextResponse } from "next/server";
 // Free JSON feed — no key required.
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
-const KEV_URL = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'
+const KEV_URL =
+  "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json";
 
 export async function GET() {
   try {
     const r = await fetch(KEV_URL, {
-      headers: { 'Accept': 'application/json' },
+      headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(20000),
-    })
+    });
     if (!r.ok) {
-      return NextResponse.json({ error: `CISA KEV ${r.status}`, vulnerabilities: [] }, { status: 200 })
+      return NextResponse.json(
+        { error: `CISA KEV ${r.status}`, vulnerabilities: [] },
+        { status: 200 },
+      );
     }
-    const data = await r.json()
+    const data = await r.json();
     // Sort by dateAdded descending and return the most recent 50
     const sorted = (data.vulnerabilities ?? [])
-      .sort((a: { dateAdded: string }, b: { dateAdded: string }) =>
-        new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
+      .sort(
+        (a: { dateAdded: string }, b: { dateAdded: string }) =>
+          new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime(),
       )
-      .slice(0, 50)
+      .slice(0, 50);
     return NextResponse.json({
       vulnerabilities: sorted,
-      catalogVersion:  data.catalogVersion ?? '',
-      dateReleased:    data.dateReleased ?? '',
-      total:           data.count ?? 0,
-    })
+      catalogVersion: data.catalogVersion ?? "",
+      dateReleased: data.dateReleased ?? "",
+      total: data.count ?? 0,
+    });
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : 'Unknown'
-    return NextResponse.json({ error: msg, vulnerabilities: [] }, { status: 200 })
+    const msg = e instanceof Error ? e.message : "Unknown";
+    return NextResponse.json(
+      { error: msg, vulnerabilities: [] },
+      { status: 200 },
+    );
   }
 }

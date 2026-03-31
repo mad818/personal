@@ -1,134 +1,152 @@
-﻿'use client'
+﻿"use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react'
-import { useStore } from '@/store/useStore'
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useStore } from "@/store/useStore";
 import {
   OPSMAP_DATA_ATTRIBUTION,
   OPSMAP_FIRE_AUTO_REFRESH_MS,
   OPSMAP_FLIGHT_AUTO_REFRESH_MS,
   OPSMAP_FREE_AUTO_REFRESH_DEFAULT,
   OPSMAP_QUAKE_AUTO_REFRESH_MS,
-} from '@/lib/opsMapFreeTier'
+} from "@/lib/opsMapFreeTier";
 
 // â”€â”€ Quake colours by magnitude â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function quakeColor(mag: number): string {
-  if (mag >= 6)  return '#ef4444'
-  if (mag >= 5)  return '#f59e0b'
-  if (mag >= 4)  return '#a78bfa'
-  return '#6875a0'
+  if (mag >= 6) return "#ef4444";
+  if (mag >= 5) return "#f59e0b";
+  if (mag >= 4) return "#a78bfa";
+  return "#6875a0";
 }
 
 interface Quake {
-  id:    string
-  lat:   number
-  lng:   number
-  mag:   number
-  place: string
-  time:  number
+  id: string;
+  lat: number;
+  lng: number;
+  mag: number;
+  place: string;
+  time: number;
 }
 
 interface Fire {
-  lat:        number
-  lng:        number
-  brightness: number
-  acq_date:   string
+  lat: number;
+  lng: number;
+  brightness: number;
+  acq_date: string;
 }
 
 interface Flight {
-  icao:     string
-  callsign: string
-  lat:      number
-  lng:      number
-  alt:      number
-  vel:      number
-  hdg:      number
-  squawk:   string
+  icao: string;
+  callsign: string;
+  lat: number;
+  lng: number;
+  alt: number;
+  vel: number;
+  hdg: number;
+  squawk: string;
 }
 
 async function fetchQuakes(): Promise<Quake[]> {
   try {
-    const r = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson')
-    const d = await r.json()
+    const r = await fetch(
+      "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
+    );
+    const d = await r.json();
     return (d.features ?? []).map((f: any) => ({
-      id:    f.id,
-      lat:   f.geometry.coordinates[1],
-      lng:   f.geometry.coordinates[0],
-      mag:   f.properties.mag ?? 0,
-      place: f.properties.place ?? '',
-      time:  f.properties.time ?? 0,
-    }))
-  } catch { return [] }
+      id: f.id,
+      lat: f.geometry.coordinates[1],
+      lng: f.geometry.coordinates[0],
+      mag: f.properties.mag ?? 0,
+      place: f.properties.place ?? "",
+      time: f.properties.time ?? 0,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 async function fetchFlights(): Promise<Flight[]> {
   try {
-    const r = await fetch('https://opensky-network.org/api/states/all', { signal: AbortSignal.timeout(10000) })
-    const d = await r.json()
+    const r = await fetch("https://opensky-network.org/api/states/all", {
+      signal: AbortSignal.timeout(10000),
+    });
+    const d = await r.json();
     return ((d.states ?? []) as any[][])
       .filter((s) => s[5] != null && s[6] != null && !s[8]) // in air only (OpenSky index 8 = on_ground)
       .slice(0, 800) // cap to avoid overloading the map
       .map((s) => ({
-        icao:     s[0] ?? '',
-        callsign: (s[1] ?? '').trim(),
-        lat:      s[6],
-        lng:      s[5],
-        alt:      s[13] ?? s[7] ?? 0,
-        vel:      s[9] ?? 0,
-        hdg:      typeof s[10] === 'number' ? s[10] : 0,
-        squawk:   s[14] != null ? String(s[14]) : '',
-      }))
+        icao: s[0] ?? "",
+        callsign: (s[1] ?? "").trim(),
+        lat: s[6],
+        lng: s[5],
+        alt: s[13] ?? s[7] ?? 0,
+        vel: s[9] ?? 0,
+        hdg: typeof s[10] === "number" ? s[10] : 0,
+        squawk: s[14] != null ? String(s[14]) : "",
+      }));
   } catch {
-    return []
+    return [];
   }
 }
 
 /** Rotated plane marker (true track Â° from north) â€” direction + refresh cadence sell â€œliveâ€ vs a static dot */
-function flightDivIcon(L: { divIcon: (o: Record<string, unknown>) => unknown }, f: Flight) {
-  const heading = Number.isFinite(f.hdg) ? f.hdg : 0
-  const sq = f.squawk?.trim()
-  const emergency = sq === '7700' || sq === '7600'
-  const color = emergency ? '#ef4444' : '#60a5fa'
-  const glow = emergency ? 'rgba(239,68,68,0.75)' : 'rgba(96,165,250,0.55)'
+function flightDivIcon(
+  L: { divIcon: (o: Record<string, unknown>) => unknown },
+  f: Flight,
+) {
+  const heading = Number.isFinite(f.hdg) ? f.hdg : 0;
+  const sq = f.squawk?.trim();
+  const emergency = sq === "7700" || sq === "7600";
+  const color = emergency ? "#ef4444" : "#60a5fa";
+  const glow = emergency ? "rgba(239,68,68,0.75)" : "rgba(96,165,250,0.55)";
   return L.divIcon({
-    className: 'ops-flight-marker',
+    className: "ops-flight-marker",
     html: `<svg width="14" height="14" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
       style="transform:rotate(${heading}deg);transform-origin:center center;filter:drop-shadow(0 0 3px ${glow})">
       <polygon points="6,0 4.5,5 0,6 4.5,7.5 4,12 6,10.5 8,12 7.5,7.5 12,6 7.5,5" fill="${color}" opacity="0.9"/>
     </svg>`,
     iconSize: [14, 14],
     iconAnchor: [7, 7],
-  })
+  });
 }
 
 async function fetchFires(firmsKey: string): Promise<Fire[]> {
-  if (!firmsKey) return []
+  if (!firmsKey) return [];
   try {
     // FIRMS CSV â†’ parse manually (lightweight)
-    const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${firmsKey}/MODIS_NRT/world/1`
-    const r = await fetch(url, { signal: AbortSignal.timeout(12000) })
-    const txt = await r.text()
-    const lines = txt.trim().split('\n').slice(1)  // skip header
-    return lines.slice(0, 500).map((l) => {
-      const [lat, lng, brightness, , acq_date] = l.split(',')
-      return { lat: +lat, lng: +lng, brightness: +brightness, acq_date }
-    }).filter((f) => !isNaN(f.lat) && !isNaN(f.lng))
-  } catch { return [] }
+    const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${firmsKey}/MODIS_NRT/world/1`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    const txt = await r.text();
+    const lines = txt.trim().split("\n").slice(1); // skip header
+    return lines
+      .slice(0, 500)
+      .map((l) => {
+        const [lat, lng, brightness, , acq_date] = l.split(",");
+        return { lat: +lat, lng: +lng, brightness: +brightness, acq_date };
+      })
+      .filter((f) => !isNaN(f.lat) && !isNaN(f.lng));
+  } catch {
+    return [];
+  }
 }
 
 interface GeoDepDetection {
-  lat:        number
-  lng:        number
-  label:      string
-  confidence: number
+  lat: number;
+  lng: number;
+  label: string;
+  confidence: number;
 }
 
 async function fetchGeoDepData(): Promise<GeoDepDetection[]> {
   try {
-    const r = await fetch('/api/geo-scan', { signal: AbortSignal.timeout(15000) })
-    if (!r.ok) return []
-    const d = await r.json()
-    return (d.detections ?? []) as GeoDepDetection[]
-  } catch { return [] }
+    const r = await fetch("/api/geo-scan", {
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!r.ok) return [];
+    const d = await r.json();
+    return (d.detections ?? []) as GeoDepDetection[];
+  } catch {
+    return [];
+  }
 }
 
 // â”€â”€ Layer types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -136,334 +154,395 @@ async function fetchGeoDepData(): Promise<GeoDepDetection[]> {
 /** Six flat-top hex vertices around (lat, lng) with half-width r degrees. */
 function hexVertices(lat: number, lng: number, r: number): [number, number][] {
   return Array.from({ length: 6 }, (_, i) => {
-    const angle = (Math.PI / 3) * i
-    return [lat + r * Math.sin(angle), lng + r * Math.cos(angle)] as [number, number]
-  })
+    const angle = (Math.PI / 3) * i;
+    return [lat + r * Math.sin(angle), lng + r * Math.cos(angle)] as [
+      number,
+      number,
+    ];
+  });
 }
 
 /** Build a Leaflet layerGroup of coloured hex polygons sized by event density. */
-function buildDensityLayer(L: any, points: { lat: number; lng: number }[]): any { // eslint-disable-line @typescript-eslint/no-explicit-any
-  const CELL = 5 // ~500 km grid cells
-  const bins = new Map<string, number>()
-  points.forEach(p => {
-    const cy = Math.round(p.lat / CELL) * CELL
-    const cx = Math.round(p.lng / CELL) * CELL
-    bins.set(`${cy},${cx}`, (bins.get(`${cy},${cx}`) ?? 0) + 1)
-  })
-  const maxCount = Math.max(...Array.from(bins.values()), 1)
-  const group = L.layerGroup()
+function buildDensityLayer(
+  L: any,
+  points: { lat: number; lng: number }[],
+): any {
+  // eslint-disable-line @typescript-eslint/no-explicit-any
+  const CELL = 5; // ~500 km grid cells
+  const bins = new Map<string, number>();
+  points.forEach((p) => {
+    const cy = Math.round(p.lat / CELL) * CELL;
+    const cx = Math.round(p.lng / CELL) * CELL;
+    bins.set(`${cy},${cx}`, (bins.get(`${cy},${cx}`) ?? 0) + 1);
+  });
+  const maxCount = Math.max(...Array.from(bins.values()), 1);
+  const group = L.layerGroup();
   bins.forEach((count, key) => {
-    const [cy, cx] = key.split(',').map(Number)
-    const t = count / maxCount
-    const color = t > 0.7 ? '#ef4444' : t > 0.4 ? '#f59e0b' : t > 0.15 ? '#10b981' : '#60a5fa'
+    const [cy, cx] = key.split(",").map(Number);
+    const t = count / maxCount;
+    const color =
+      t > 0.7
+        ? "#ef4444"
+        : t > 0.4
+          ? "#f59e0b"
+          : t > 0.15
+            ? "#10b981"
+            : "#60a5fa";
     L.polygon(hexVertices(cy, cx, CELL * 0.52), {
-      color, fillColor: color,
+      color,
+      fillColor: color,
       fillOpacity: Math.min(0.12 + t * 0.45, 0.6),
-      weight: 0.5, opacity: 0.3,
+      weight: 0.5,
+      opacity: 0.3,
     })
-      .bindPopup(`${count} event${count !== 1 ? 's' : ''} in this cell`)
-      .addTo(group)
-  })
-  return group
+      .bindPopup(`${count} event${count !== 1 ? "s" : ""} in this cell`)
+      .addTo(group);
+  });
+  return group;
 }
 
-type LayerKey = 'quakes' | 'flights' | 'fires' | 'geodep'
+type LayerKey = "quakes" | "flights" | "fires" | "geodep";
 
-const LAYER_META: Record<LayerKey, { label: string; icon: string; needsKey?: string; serviceRequired?: boolean }> = {
-  quakes:  { label: 'Quakes',  icon: 'ðŸ”´' },
-  flights: { label: 'Flights', icon: 'âœˆï¸' },
-  fires:   { label: 'Fires',   icon: 'ðŸ”¥', needsKey: 'firmsKey' },
-  geodep:  { label: 'AI Scan', icon: 'ðŸ›°ï¸', serviceRequired: true },
-}
+const LAYER_META: Record<
+  LayerKey,
+  { label: string; icon: string; needsKey?: string; serviceRequired?: boolean }
+> = {
+  quakes: { label: "Quakes", icon: "ðŸ”´" },
+  flights: { label: "Flights", icon: "âœˆï¸" },
+  fires: { label: "Fires", icon: "ðŸ”¥", needsKey: "firmsKey" },
+  geodep: { label: "AI Scan", icon: "ðŸ›°ï¸", serviceRequired: true },
+};
 
 export default function OpsMap() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef       = useRef<any>(null)
-  const layerRefs    = useRef<Record<string, any>>({})
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<any>(null);
+  const layerRefs = useRef<Record<string, any>>({});
 
-  const firmsKey = useStore((s) => s.settings.firmsKey)
+  const firmsKey = useStore((s) => s.settings.firmsKey);
 
-  const [activeLayers, setActiveLayers] = useState<Set<LayerKey>>(new Set<LayerKey>(['quakes']))
-  const [layerLoading, setLayerLoading] = useState<Record<string, boolean>>({})
-  const [mapReady, setMapReady] = useState(false)
+  const [activeLayers, setActiveLayers] = useState<Set<LayerKey>>(
+    new Set<LayerKey>(["quakes"]),
+  );
+  const [layerLoading, setLayerLoading] = useState<Record<string, boolean>>({});
+  const [mapReady, setMapReady] = useState(false);
   /** Auto-refresh only free APIs (USGS / OpenSky / FIRMS) at conservative intervals. */
-  const [freeDataAutoRefresh, setFreeDataAutoRefresh] = useState(OPSMAP_FREE_AUTO_REFRESH_DEFAULT)
-  const [showDensity, setShowDensity] = useState(false)
+  const [freeDataAutoRefresh, setFreeDataAutoRefresh] = useState(
+    OPSMAP_FREE_AUTO_REFRESH_DEFAULT,
+  );
+  const [showDensity, setShowDensity] = useState(false);
 
   const toggleLayer = useCallback(async (key: LayerKey) => {
-    const map = mapRef.current
-    if (!map) return
+    const map = mapRef.current;
+    if (!map) return;
 
     setActiveLayers((prev) => {
-      const next = new Set<LayerKey>(prev)
+      const next = new Set<LayerKey>(prev);
       if (next.has(key)) {
         // Remove layer
         if (layerRefs.current[key]) {
-          map.removeLayer(layerRefs.current[key])
-          delete layerRefs.current[key]
+          map.removeLayer(layerRefs.current[key]);
+          delete layerRefs.current[key];
         }
-        next.delete(key)
+        next.delete(key);
       } else {
-        next.add(key)
+        next.add(key);
       }
-      return next
-    })
-  }, [])
+      return next;
+    });
+  }, []);
 
   const paintFlightsLayer = useCallback(async () => {
-    const map = mapRef.current
-    if (!map) return
-    setLayerLoading((p) => ({ ...p, flights: true }))
+    const map = mapRef.current;
+    if (!map) return;
+    setLayerLoading((p) => ({ ...p, flights: true }));
     try {
-      const L = await import('leaflet')
-      const flights = await fetchFlights()
-      if (!mapRef.current) return
-      const group = L.layerGroup()
+      const L = await import("leaflet");
+      const flights = await fetchFlights();
+      if (!mapRef.current) return;
+      const group = L.layerGroup();
       flights.forEach((f) => {
-        const sq = f.squawk?.trim()
-        const tip = `<b>${(f.callsign || f.icao || '?').trim()}</b>${sq ? `<br>Squawk ${sq}` : ''}<br>Alt ${Math.round(f.alt)} m Â· ${Math.round(f.vel * 3.6)} km/h Â· Hdg ${Math.round(f.hdg)}Â°`
+        const sq = f.squawk?.trim();
+        const tip = `<b>${(f.callsign || f.icao || "?").trim()}</b>${sq ? `<br>Squawk ${sq}` : ""}<br>Alt ${Math.round(f.alt)} m Â· ${Math.round(f.vel * 3.6)} km/h Â· Hdg ${Math.round(f.hdg)}Â°`;
         L.marker([f.lat, f.lng], {
-          icon: flightDivIcon(L, f) as import('leaflet').DivIcon,
+          icon: flightDivIcon(L, f) as import("leaflet").DivIcon,
         })
           .bindPopup(tip)
-          .addTo(group)
-      })
+          .addTo(group);
+      });
       if (layerRefs.current.flights) {
-        map.removeLayer(layerRefs.current.flights)
+        map.removeLayer(layerRefs.current.flights);
       }
-      group.addTo(map)
-      layerRefs.current.flights = group
+      group.addTo(map);
+      layerRefs.current.flights = group;
     } finally {
-      setLayerLoading((p) => ({ ...p, flights: false }))
+      setLayerLoading((p) => ({ ...p, flights: false }));
     }
-  }, [])
+  }, []);
 
   const refreshQuakes = useCallback(async () => {
-    const map = mapRef.current
-    if (!map || !activeLayers.has('quakes')) return
-    setLayerLoading((p) => ({ ...p, quakes: true }))
+    const map = mapRef.current;
+    if (!map || !activeLayers.has("quakes")) return;
+    setLayerLoading((p) => ({ ...p, quakes: true }));
     try {
-      const L = await import('leaflet')
-      const quakes = await fetchQuakes()
-      if (!mapRef.current) return
-      const group = L.layerGroup()
-      quakes.filter((q) => q.mag >= 2.5).forEach((q) => {
-        L.circleMarker([q.lat, q.lng], {
-          radius: Math.max(4, q.mag * 3),
-          color: quakeColor(q.mag), fillColor: quakeColor(q.mag),
-          fillOpacity: 0.5, weight: 1,
-        })
-          .addTo(group)
-          .bindPopup(`<b>M${q.mag.toFixed(1)}</b><br>${q.place}<br><small>${new Date(q.time).toUTCString()}</small>`)
-      })
+      const L = await import("leaflet");
+      const quakes = await fetchQuakes();
+      if (!mapRef.current) return;
+      const group = L.layerGroup();
+      quakes
+        .filter((q) => q.mag >= 2.5)
+        .forEach((q) => {
+          L.circleMarker([q.lat, q.lng], {
+            radius: Math.max(4, q.mag * 3),
+            color: quakeColor(q.mag),
+            fillColor: quakeColor(q.mag),
+            fillOpacity: 0.5,
+            weight: 1,
+          })
+            .addTo(group)
+            .bindPopup(
+              `<b>M${q.mag.toFixed(1)}</b><br>${q.place}<br><small>${new Date(q.time).toUTCString()}</small>`,
+            );
+        });
       if (layerRefs.current.quakes) {
-        map.removeLayer(layerRefs.current.quakes)
+        map.removeLayer(layerRefs.current.quakes);
       }
-      group.addTo(map)
-      layerRefs.current.quakes = group
+      group.addTo(map);
+      layerRefs.current.quakes = group;
     } finally {
-      setLayerLoading((p) => ({ ...p, quakes: false }))
+      setLayerLoading((p) => ({ ...p, quakes: false }));
     }
-  }, [activeLayers])
+  }, [activeLayers]);
 
   const refreshFires = useCallback(async () => {
-    const map = mapRef.current
-    if (!map || !activeLayers.has('fires') || !firmsKey) return
-    setLayerLoading((p) => ({ ...p, fires: true }))
+    const map = mapRef.current;
+    if (!map || !activeLayers.has("fires") || !firmsKey) return;
+    setLayerLoading((p) => ({ ...p, fires: true }));
     try {
-      const L = await import('leaflet')
-      const fires = await fetchFires(firmsKey)
-      if (!mapRef.current) return
-      const group = L.layerGroup()
+      const L = await import("leaflet");
+      const fires = await fetchFires(firmsKey);
+      if (!mapRef.current) return;
+      const group = L.layerGroup();
       fires.forEach((f) => {
         L.circleMarker([f.lat, f.lng], {
-          radius: 3, color: '#f97316', fillColor: '#f97316', fillOpacity: 0.6, weight: 0,
+          radius: 3,
+          color: "#f97316",
+          fillColor: "#f97316",
+          fillOpacity: 0.6,
+          weight: 0,
         })
           .addTo(group)
-          .bindPopup(`<b>ðŸ”¥ Fire</b><br>Brightness: ${f.brightness}K<br>${f.acq_date}`)
-      })
+          .bindPopup(
+            `<b>ðŸ”¥ Fire</b><br>Brightness: ${f.brightness}K<br>${f.acq_date}`,
+          );
+      });
       if (layerRefs.current.fires) {
-        map.removeLayer(layerRefs.current.fires)
+        map.removeLayer(layerRefs.current.fires);
       }
-      group.addTo(map)
-      layerRefs.current.fires = group
+      group.addTo(map);
+      layerRefs.current.fires = group;
     } finally {
-      setLayerLoading((p) => ({ ...p, fires: false }))
+      setLayerLoading((p) => ({ ...p, fires: false }));
     }
-  }, [activeLayers, firmsKey])
+  }, [activeLayers, firmsKey]);
 
   const refreshGeodep = useCallback(async () => {
-    const map = mapRef.current
-    if (!map || !activeLayers.has('geodep')) return
-    setLayerLoading((p) => ({ ...p, geodep: true }))
+    const map = mapRef.current;
+    if (!map || !activeLayers.has("geodep")) return;
+    setLayerLoading((p) => ({ ...p, geodep: true }));
     try {
-      const L = await import('leaflet')
-      const detections = await fetchGeoDepData()
-      if (!mapRef.current) return
-      const group = L.layerGroup()
+      const L = await import("leaflet");
+      const detections = await fetchGeoDepData();
+      if (!mapRef.current) return;
+      const group = L.layerGroup();
       detections.forEach((d) => {
         L.circleMarker([d.lat, d.lng], {
-          radius: 6, color: '#a78bfa', fillColor: '#7c3aed', fillOpacity: 0.7, weight: 1.5,
+          radius: 6,
+          color: "#a78bfa",
+          fillColor: "#7c3aed",
+          fillOpacity: 0.7,
+          weight: 1.5,
         })
           .addTo(group)
-          .bindPopup(`<b>ðŸ›°ï¸ ${d.label}</b><br>Confidence: ${Math.round(d.confidence * 100)}%`)
-      })
+          .bindPopup(
+            `<b>ðŸ›°ï¸ ${d.label}</b><br>Confidence: ${Math.round(d.confidence * 100)}%`,
+          );
+      });
       if (layerRefs.current.geodep) {
-        map.removeLayer(layerRefs.current.geodep)
+        map.removeLayer(layerRefs.current.geodep);
       }
-      group.addTo(map)
-      layerRefs.current.geodep = group
+      group.addTo(map);
+      layerRefs.current.geodep = group;
     } finally {
-      setLayerLoading((p) => ({ ...p, geodep: false }))
+      setLayerLoading((p) => ({ ...p, geodep: false }));
     }
-  }, [activeLayers])
+  }, [activeLayers]);
 
   /** Collect lat/lng from all visible Leaflet layer groups and repaint density hexes. */
   const computeAndPaintDensity = useCallback(async () => {
-    const map = mapRef.current
-    if (!map) return
-    const L = await import('leaflet')
-    const points: { lat: number; lng: number }[] = []
-    ;(['quakes', 'fires', 'flights'] as const).forEach(key => {
-      const group = layerRefs.current[key]
-      if (!group) return
+    const map = mapRef.current;
+    if (!map) return;
+    const L = await import("leaflet");
+    const points: { lat: number; lng: number }[] = [];
+    (["quakes", "fires", "flights"] as const).forEach((key) => {
+      const group = layerRefs.current[key];
+      if (!group) return;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       group.getLayers().forEach((layer: any) => {
-        if (typeof layer.getLatLng === 'function') {
-          const ll = layer.getLatLng()
-          points.push({ lat: ll.lat, lng: ll.lng })
+        if (typeof layer.getLatLng === "function") {
+          const ll = layer.getLatLng();
+          points.push({ lat: ll.lat, lng: ll.lng });
         }
-      })
-    })
+      });
+    });
     if (layerRefs.current.density) {
-      map.removeLayer(layerRefs.current.density)
-      delete layerRefs.current.density
+      map.removeLayer(layerRefs.current.density);
+      delete layerRefs.current.density;
     }
-    if (!points.length) return
-    const densityGroup = buildDensityLayer(L, points)
-    densityGroup.addTo(map)
-    layerRefs.current.density = densityGroup
-  }, [])
+    if (!points.length) return;
+    const densityGroup = buildDensityLayer(L, points);
+    densityGroup.addTo(map);
+    layerRefs.current.density = densityGroup;
+  }, []);
 
   // Load quakes + fires when activeLayers changes (flights handled separately)
   useEffect(() => {
-    const map = mapRef.current
-    if (!map || !mapReady) return
-    import('leaflet').then((L) => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    import("leaflet").then((L) => {
       activeLayers.forEach(async (key) => {
-        if (key === 'flights' || key === 'geodep') return
-        if (layerRefs.current[key]) return  // already loaded
-        setLayerLoading((p) => ({ ...p, [key]: true }))
+        if (key === "flights" || key === "geodep") return;
+        if (layerRefs.current[key]) return; // already loaded
+        setLayerLoading((p) => ({ ...p, [key]: true }));
 
-        if (key === 'quakes') {
-          const quakes = await fetchQuakes()
-          const group = L.layerGroup()
-          quakes.filter((q) => q.mag >= 2.5).forEach((q) => {
-            L.circleMarker([q.lat, q.lng], {
-              radius: Math.max(4, q.mag * 3),
-              color: quakeColor(q.mag), fillColor: quakeColor(q.mag),
-              fillOpacity: 0.5, weight: 1,
-            })
-              .addTo(group)
-              .bindPopup(`<b>M${q.mag.toFixed(1)}</b><br>${q.place}<br><small>${new Date(q.time).toUTCString()}</small>`)
-          })
-          group.addTo(map)
-          layerRefs.current[key] = group
-
-        } else if (key === 'fires') {
-          const fires = await fetchFires(firmsKey)
-          const group = L.layerGroup()
+        if (key === "quakes") {
+          const quakes = await fetchQuakes();
+          const group = L.layerGroup();
+          quakes
+            .filter((q) => q.mag >= 2.5)
+            .forEach((q) => {
+              L.circleMarker([q.lat, q.lng], {
+                radius: Math.max(4, q.mag * 3),
+                color: quakeColor(q.mag),
+                fillColor: quakeColor(q.mag),
+                fillOpacity: 0.5,
+                weight: 1,
+              })
+                .addTo(group)
+                .bindPopup(
+                  `<b>M${q.mag.toFixed(1)}</b><br>${q.place}<br><small>${new Date(q.time).toUTCString()}</small>`,
+                );
+            });
+          group.addTo(map);
+          layerRefs.current[key] = group;
+        } else if (key === "fires") {
+          const fires = await fetchFires(firmsKey);
+          const group = L.layerGroup();
           fires.forEach((f) => {
             L.circleMarker([f.lat, f.lng], {
-              radius: 3, color: '#f97316', fillColor: '#f97316', fillOpacity: 0.6, weight: 0,
+              radius: 3,
+              color: "#f97316",
+              fillColor: "#f97316",
+              fillOpacity: 0.6,
+              weight: 0,
             })
               .addTo(group)
-              .bindPopup(`<b>ðŸ”¥ Fire</b><br>Brightness: ${f.brightness}K<br>${f.acq_date}`)
-          })
-          group.addTo(map)
-          layerRefs.current[key] = group
+              .bindPopup(
+                `<b>ðŸ”¥ Fire</b><br>Brightness: ${f.brightness}K<br>${f.acq_date}`,
+              );
+          });
+          group.addTo(map);
+          layerRefs.current[key] = group;
         }
 
-        setLayerLoading((p) => ({ ...p, [key]: false }))
-      })
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeLayers, firmsKey, mapReady])
+        setLayerLoading((p) => ({ ...p, [key]: false }));
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeLayers, firmsKey, mapReady]);
 
   // Inject Leaflet CSS via useEffect â€” <link> in JSX is unreliable in Next.js
   useEffect(() => {
-    const id = 'leaflet-css'
+    const id = "leaflet-css";
     if (!document.getElementById(id)) {
-      const link = document.createElement('link')
-      link.id   = id
-      link.rel  = 'stylesheet'
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-      document.head.appendChild(link)
+      const link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(link);
     }
-    const sid = 'ops-flight-marker-css'
+    const sid = "ops-flight-marker-css";
     if (!document.getElementById(sid)) {
-      const st = document.createElement('style')
-      st.id = sid
+      const st = document.createElement("style");
+      st.id = sid;
       st.textContent =
-        '.leaflet-marker-icon.ops-flight-marker{background:transparent!important;border:none!important;margin-left:-7px!important;margin-top:-7px!important;}'
-      document.head.appendChild(st)
+        ".leaflet-marker-icon.ops-flight-marker{background:transparent!important;border:none!important;margin-left:-7px!important;margin-top:-7px!important;}";
+      document.head.appendChild(st);
     }
-  }, [])
+  }, []);
 
   // Flights: load once when layer turns on; optional slow auto-refresh (opt-in)
   useEffect(() => {
-    if (!mapReady || !activeLayers.has('flights')) return
-    void paintFlightsLayer()
+    if (!mapReady || !activeLayers.has("flights")) return;
+    void paintFlightsLayer();
     return () => {
-      const m = mapRef.current
+      const m = mapRef.current;
       if (m && layerRefs.current.flights) {
-        m.removeLayer(layerRefs.current.flights)
-        delete layerRefs.current.flights
+        m.removeLayer(layerRefs.current.flights);
+        delete layerRefs.current.flights;
       }
-    }
-  }, [activeLayers, mapReady, paintFlightsLayer])
+    };
+  }, [activeLayers, mapReady, paintFlightsLayer]);
 
   // Geodep: load once when layer turns on â€” no auto-refresh (expensive ML call, manual only)
   useEffect(() => {
-    if (!mapReady || !activeLayers.has('geodep')) return
-    void refreshGeodep()
+    if (!mapReady || !activeLayers.has("geodep")) return;
+    void refreshGeodep();
     return () => {
-      const m = mapRef.current
+      const m = mapRef.current;
       if (m && layerRefs.current.geodep) {
-        m.removeLayer(layerRefs.current.geodep)
-        delete layerRefs.current.geodep
+        m.removeLayer(layerRefs.current.geodep);
+        delete layerRefs.current.geodep;
       }
-    }
-  }, [activeLayers, mapReady, refreshGeodep])
+    };
+  }, [activeLayers, mapReady, refreshGeodep]);
 
   // Density overlay: repaint whenever toggled on or active layers change
   useEffect(() => {
-    if (!mapReady) return
+    if (!mapReady) return;
     if (!showDensity) {
-      const map = mapRef.current
+      const map = mapRef.current;
       if (map && layerRefs.current.density) {
-        map.removeLayer(layerRefs.current.density)
-        delete layerRefs.current.density
+        map.removeLayer(layerRefs.current.density);
+        delete layerRefs.current.density;
       }
-      return
+      return;
     }
-    void computeAndPaintDensity()
-  }, [showDensity, activeLayers, mapReady, computeAndPaintDensity])
+    void computeAndPaintDensity();
+  }, [showDensity, activeLayers, mapReady, computeAndPaintDensity]);
 
   // Auto-refresh active free layers only (polite cadence; toggle off anytime)
   useEffect(() => {
-    if (!mapReady || !freeDataAutoRefresh) return
-    const ids: ReturnType<typeof setInterval>[] = []
-    if (activeLayers.has('quakes')) {
-      ids.push(setInterval(() => void refreshQuakes(), OPSMAP_QUAKE_AUTO_REFRESH_MS))
+    if (!mapReady || !freeDataAutoRefresh) return;
+    const ids: ReturnType<typeof setInterval>[] = [];
+    if (activeLayers.has("quakes")) {
+      ids.push(
+        setInterval(() => void refreshQuakes(), OPSMAP_QUAKE_AUTO_REFRESH_MS),
+      );
     }
-    if (activeLayers.has('flights')) {
-      ids.push(setInterval(() => void paintFlightsLayer(), OPSMAP_FLIGHT_AUTO_REFRESH_MS))
+    if (activeLayers.has("flights")) {
+      ids.push(
+        setInterval(
+          () => void paintFlightsLayer(),
+          OPSMAP_FLIGHT_AUTO_REFRESH_MS,
+        ),
+      );
     }
-    if (activeLayers.has('fires') && firmsKey) {
-      ids.push(setInterval(() => void refreshFires(), OPSMAP_FIRE_AUTO_REFRESH_MS))
+    if (activeLayers.has("fires") && firmsKey) {
+      ids.push(
+        setInterval(() => void refreshFires(), OPSMAP_FIRE_AUTO_REFRESH_MS),
+      );
     }
-    return () => ids.forEach(clearInterval)
+    return () => ids.forEach(clearInterval);
   }, [
     mapReady,
     freeDataAutoRefresh,
@@ -472,123 +551,165 @@ export default function OpsMap() {
     refreshQuakes,
     paintFlightsLayer,
     refreshFires,
-  ])
+  ]);
 
   useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
+    const container = containerRef.current;
+    if (!container) return;
     if ((container as any)._leaflet_id) {
-      delete (container as any)._leaflet_id
+      delete (container as any)._leaflet_id;
     }
-    if (mapRef.current) return
+    if (mapRef.current) return;
 
-    import('leaflet').then((L) => {
-      if (!containerRef.current || mapRef.current) return
+    import("leaflet").then((L) => {
+      if (!containerRef.current || mapRef.current) return;
 
-      delete (L.Icon.Default.prototype as any)._getIconUrl
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      })
+        iconRetinaUrl:
+          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl:
+          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      });
 
       const map = L.map(containerRef.current!, {
-        center: [20, 0], zoom: 2,
+        center: [20, 0],
+        zoom: 2,
         zoomControl: true,
         attributionControl: true,
-      })
-      mapRef.current = map
+      });
+      mapRef.current = map;
 
       L.tileLayer(
-        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
         {
-          subdomains: 'abcd',
+          subdomains: "abcd",
           maxZoom: 18,
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        }
-      ).addTo(map)
+        },
+      ).addTo(map);
 
-      setMapReady(true)
-    })
+      setMapReady(true);
+    });
 
     return () => {
-      setMapReady(false)
+      setMapReady(false);
       if (mapRef.current) {
-        mapRef.current.remove()
-        mapRef.current = null
-        layerRefs.current = {}
+        mapRef.current.remove();
+        mapRef.current = null;
+        layerRefs.current = {};
       }
       if (container) {
-        delete (container as any)._leaflet_id
+        delete (container as any)._leaflet_id;
       }
-    }
-  }, [])
+    };
+  }, []);
 
   return (
-    <div style={{ marginTop: '18px' }}>
-
+    <div style={{ marginTop: "18px" }}>
       {/* Header + layer toggles */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-        <span style={{
-          fontSize: '11px', fontWeight: 700, color: 'var(--text3)',
-          textTransform: 'uppercase', letterSpacing: '.5px',
-        }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          marginBottom: "8px",
+          flexWrap: "wrap",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "11px",
+            fontWeight: 700,
+            color: "var(--text3)",
+            textTransform: "uppercase",
+            letterSpacing: ".5px",
+          }}
+        >
           ðŸŒ Live Map
         </span>
 
         {(Object.keys(LAYER_META) as LayerKey[]).map((key) => {
-          const meta    = LAYER_META[key]
-          const active  = activeLayers.has(key)
-          const loading = layerLoading[key]
-          const locked  = meta.needsKey === 'firmsKey' && !firmsKey
-          const svcHint = meta.serviceRequired ? 'Requires local GeoDeep AI service â€” see docs/deployment/geodep.md' : undefined
+          const meta = LAYER_META[key];
+          const active = activeLayers.has(key);
+          const loading = layerLoading[key];
+          const locked = meta.needsKey === "firmsKey" && !firmsKey;
+          const svcHint = meta.serviceRequired
+            ? "Requires local GeoDeep AI service â€” see docs/deployment/geodep.md"
+            : undefined;
           return (
             <button
               key={key}
               onClick={() => !locked && toggleLayer(key)}
-              title={locked ? 'Add NASA FIRMS key in Settings to enable fire layer' : svcHint}
+              title={
+                locked
+                  ? "Add NASA FIRMS key in Settings to enable fire layer"
+                  : svcHint
+              }
               style={{
-                height: '26px', padding: '0 10px', borderRadius: '6px',
-                fontSize: '10.5px', fontWeight: 700, cursor: locked ? 'default' : 'pointer',
-                border: '1px solid var(--border2)',
-                background: active ? 'var(--accent)' : 'transparent',
-                color: active ? '#fff' : locked ? 'var(--text3)' : 'var(--text2)',
+                height: "26px",
+                padding: "0 10px",
+                borderRadius: "6px",
+                fontSize: "10.5px",
+                fontWeight: 700,
+                cursor: locked ? "default" : "pointer",
+                border: "1px solid var(--border2)",
+                background: active ? "var(--accent)" : "transparent",
+                color: active
+                  ? "#fff"
+                  : locked
+                    ? "var(--text3)"
+                    : "var(--text2)",
                 opacity: locked ? 0.45 : 1,
-                display: 'flex', alignItems: 'center', gap: '4px',
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
               }}
             >
-              <span style={{ fontSize: '12px' }}>{meta.icon}</span>
-              {loading ? 'â€¦' : meta.label}
+              <span style={{ fontSize: "12px" }}>{meta.icon}</span>
+              {loading ? "â€¦" : meta.label}
             </button>
-          )
+          );
         })}
       </div>
 
       {/* Manual refresh â€” free APIs only; you choose when to hit the network */}
-      {(activeLayers.has('quakes') || activeLayers.has('flights') || activeLayers.has('fires') || activeLayers.has('geodep')) && (
+      {(activeLayers.has("quakes") ||
+        activeLayers.has("flights") ||
+        activeLayers.has("fires") ||
+        activeLayers.has("geodep")) && (
         <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '10px',
-            flexWrap: 'wrap',
-            fontSize: '10px',
-            color: 'var(--text3)',
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            marginBottom: "10px",
+            flexWrap: "wrap",
+            fontSize: "10px",
+            color: "var(--text3)",
           }}
         >
-          <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Map data</span>
+          <span
+            style={{
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.04em",
+            }}
+          >
+            Map data
+          </span>
           <label
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              cursor: 'pointer',
-              userSelect: 'none',
-              paddingRight: '4px',
-              borderRight: '1px solid var(--border2)',
-              marginRight: '2px',
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              cursor: "pointer",
+              userSelect: "none",
+              paddingRight: "4px",
+              borderRight: "1px solid var(--border2)",
+              marginRight: "2px",
             }}
             title="Only free public APIs: USGS (~5 min), OpenSky (~2 min), NASA FIRMS (~10 min). Turn off to fetch only when you click Refresh."
           >
@@ -599,140 +720,229 @@ export default function OpsMap() {
             />
             Auto free data
           </label>
-          {activeLayers.has('quakes') && (
+          {activeLayers.has("quakes") && (
             <button
               type="button"
               aria-label="Refresh earthquake layer from USGS"
               onClick={() => void refreshQuakes()}
               disabled={!!layerLoading.quakes}
               style={{
-                height: '24px',
-                padding: '0 10px',
-                borderRadius: '6px',
-                border: '1px solid var(--border2)',
-                background: 'var(--surface2)',
-                color: 'var(--text2)',
-                fontSize: '10px',
+                height: "24px",
+                padding: "0 10px",
+                borderRadius: "6px",
+                border: "1px solid var(--border2)",
+                background: "var(--surface2)",
+                color: "var(--text2)",
+                fontSize: "10px",
                 fontWeight: 600,
-                cursor: layerLoading.quakes ? 'wait' : 'pointer',
+                cursor: layerLoading.quakes ? "wait" : "pointer",
               }}
             >
-              {layerLoading.quakes ? 'â€¦' : 'â†» Refresh quakes'}
+              {layerLoading.quakes ? "â€¦" : "â†» Refresh quakes"}
             </button>
           )}
-          {activeLayers.has('flights') && (
+          {activeLayers.has("flights") && (
             <button
               type="button"
               aria-label="Refresh flight positions from OpenSky"
               onClick={() => void paintFlightsLayer()}
               disabled={!!layerLoading.flights}
               style={{
-                height: '24px',
-                padding: '0 10px',
-                borderRadius: '6px',
-                border: '1px solid var(--border2)',
-                background: 'var(--surface2)',
-                color: 'var(--text2)',
-                fontSize: '10px',
+                height: "24px",
+                padding: "0 10px",
+                borderRadius: "6px",
+                border: "1px solid var(--border2)",
+                background: "var(--surface2)",
+                color: "var(--text2)",
+                fontSize: "10px",
                 fontWeight: 600,
-                cursor: layerLoading.flights ? 'wait' : 'pointer',
+                cursor: layerLoading.flights ? "wait" : "pointer",
               }}
             >
-              {layerLoading.flights ? 'â€¦' : 'â†» Refresh flights'}
+              {layerLoading.flights ? "â€¦" : "â†» Refresh flights"}
             </button>
           )}
-          {activeLayers.has('fires') && firmsKey && (
+          {activeLayers.has("fires") && firmsKey && (
             <button
               type="button"
               aria-label="Refresh fire hotspots from NASA FIRMS"
               onClick={() => void refreshFires()}
               disabled={!!layerLoading.fires}
               style={{
-                height: '24px',
-                padding: '0 10px',
-                borderRadius: '6px',
-                border: '1px solid var(--border2)',
-                background: 'var(--surface2)',
-                color: 'var(--text2)',
-                fontSize: '10px',
+                height: "24px",
+                padding: "0 10px",
+                borderRadius: "6px",
+                border: "1px solid var(--border2)",
+                background: "var(--surface2)",
+                color: "var(--text2)",
+                fontSize: "10px",
                 fontWeight: 600,
-                cursor: layerLoading.fires ? 'wait' : 'pointer',
+                cursor: layerLoading.fires ? "wait" : "pointer",
               }}
             >
-              {layerLoading.fires ? 'â€¦' : 'â†» Refresh fires'}
+              {layerLoading.fires ? "â€¦" : "â†» Refresh fires"}
             </button>
           )}
-          {activeLayers.has('geodep') && (
+          {activeLayers.has("geodep") && (
             <button
               type="button"
               aria-label="Run AI object detection via local GeoDeep service"
               onClick={() => void refreshGeodep()}
               disabled={!!layerLoading.geodep}
               style={{
-                height: '24px',
-                padding: '0 10px',
-                borderRadius: '6px',
-                border: '1px solid var(--border2)',
-                background: 'var(--surface2)',
-                color: 'var(--text2)',
-                fontSize: '10px',
+                height: "24px",
+                padding: "0 10px",
+                borderRadius: "6px",
+                border: "1px solid var(--border2)",
+                background: "var(--surface2)",
+                color: "var(--text2)",
+                fontSize: "10px",
                 fontWeight: 600,
-                cursor: layerLoading.geodep ? 'wait' : 'pointer',
+                cursor: layerLoading.geodep ? "wait" : "pointer",
               }}
             >
-              {layerLoading.geodep ? 'â€¦' : 'â†» Run AI scan'}
+              {layerLoading.geodep ? "â€¦" : "â†» Run AI scan"}
             </button>
           )}
         </div>
       )}
 
       {/* Legend â€” any active layer */}
-      {(activeLayers.has('quakes') || activeLayers.has('flights') || activeLayers.has('fires') || activeLayers.has('geodep')) && (
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-          {activeLayers.has('quakes') &&
+      {(activeLayers.has("quakes") ||
+        activeLayers.has("flights") ||
+        activeLayers.has("fires") ||
+        activeLayers.has("geodep")) && (
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            marginBottom: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          {activeLayers.has("quakes") &&
             [
-              { color: '#ef4444', label: 'M6+' },
-              { color: '#f59e0b', label: 'M5â€“6' },
-              { color: '#a78bfa', label: 'M4â€“5' },
-              { color: '#6875a0', label: 'M2.5â€“4' },
+              { color: "#ef4444", label: "M6+" },
+              { color: "#f59e0b", label: "M5â€“6" },
+              { color: "#a78bfa", label: "M4â€“5" },
+              { color: "#6875a0", label: "M2.5â€“4" },
             ].map((l) => (
-              <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: l.color, display: 'inline-block' }} />
+              <span
+                key={l.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  fontSize: "10px",
+                  color: "var(--text3)",
+                }}
+              >
+                <span
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: l.color,
+                    display: "inline-block",
+                  }}
+                />
                 {l.label}
               </span>
             ))}
-          {activeLayers.has('flights') && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
-              <span style={{ fontSize: '11px' }} title="Free OpenSky â€” icon points forward (heading).">
+          {activeLayers.has("flights") && (
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                fontSize: "10px",
+                color: "var(--text3)",
+              }}
+            >
+              <span
+                style={{ fontSize: "11px" }}
+                title="Free OpenSky â€” icon points forward (heading)."
+              >
                 âœˆï¸
               </span>
               Flights â€” heading Â· free data
-              {freeDataAutoRefresh ? ` Â· auto ~${Math.round(OPSMAP_FLIGHT_AUTO_REFRESH_MS / 60_000)} min` : ' Â· manual only'}
+              {freeDataAutoRefresh
+                ? ` Â· auto ~${Math.round(OPSMAP_FLIGHT_AUTO_REFRESH_MS / 60_000)} min`
+                : " Â· manual only"}
             </span>
           )}
-          {activeLayers.has('fires') && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f97316', display: 'inline-block' }} />
+          {activeLayers.has("fires") && (
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                fontSize: "10px",
+                color: "var(--text3)",
+              }}
+            >
+              <span
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: "#f97316",
+                  display: "inline-block",
+                }}
+              />
               Fire hotspots
               {freeDataAutoRefresh && firmsKey
                 ? ` Â· auto ~${Math.round(OPSMAP_FIRE_AUTO_REFRESH_MS / 60_000)} min`
-                : ''}
+                : ""}
             </span>
           )}
-          {activeLayers.has('quakes') && freeDataAutoRefresh && (
-            <span style={{ fontSize: '10px', color: 'var(--text3)' }}>
-              Quakes auto ~{Math.round(OPSMAP_QUAKE_AUTO_REFRESH_MS / 60_000)} min (USGS)
+          {activeLayers.has("quakes") && freeDataAutoRefresh && (
+            <span style={{ fontSize: "10px", color: "var(--text3)" }}>
+              Quakes auto ~{Math.round(OPSMAP_QUAKE_AUTO_REFRESH_MS / 60_000)}{" "}
+              min (USGS)
             </span>
           )}
-          {activeLayers.has('geodep') && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7c3aed', display: 'inline-block' }} />
+          {activeLayers.has("geodep") && (
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                fontSize: "10px",
+                color: "var(--text3)",
+              }}
+            >
+              <span
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: "#7c3aed",
+                  display: "inline-block",
+                }}
+              />
               AI detections â€” local service Â· manual refresh only
             </span>
           )}
           {showDensity && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text3)' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#10b981', display: 'inline-block' }} />
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                fontSize: "10px",
+                color: "var(--text3)",
+              }}
+            >
+              <span
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "2px",
+                  background: "#10b981",
+                  display: "inline-block",
+                }}
+              />
               Density overlay
             </span>
           )}
@@ -741,11 +951,11 @@ export default function OpsMap() {
 
       <p
         style={{
-          margin: '0 0 8px',
-          fontSize: '9.5px',
+          margin: "0 0 8px",
+          fontSize: "9.5px",
           lineHeight: 1.45,
-          color: 'var(--text3)',
-          maxWidth: '720px',
+          color: "var(--text3)",
+          maxWidth: "720px",
         }}
       >
         {OPSMAP_DATA_ATTRIBUTION}
@@ -754,24 +964,33 @@ export default function OpsMap() {
       <div
         ref={containerRef}
         style={{
-          width: '100%', height: '420px',
-          borderRadius: '10px', overflow: 'hidden',
-          border: '1px solid var(--border)',
+          width: "100%",
+          height: "420px",
+          borderRadius: "10px",
+          overflow: "hidden",
+          border: "1px solid var(--border)",
         }}
       />
 
       {!firmsKey && (
-        <div style={{ marginTop: '6px', fontSize: '10px', color: 'var(--text3)' }}>
-          ðŸ”¥ Add a NASA FIRMS key in Settings to enable the fire hotspot layer.
+        <div
+          style={{ marginTop: "6px", fontSize: "10px", color: "var(--text3)" }}
+        >
+          ðŸ”¥ Add a NASA FIRMS key in Settings to enable the fire hotspot
+          layer.
         </div>
       )}
-      {activeLayers.has('geodep') && (
-        <div style={{ marginTop: '6px', fontSize: '10px', color: 'var(--text3)' }}>
-          ðŸ›°ï¸ AI Scan uses a local GeoDeep service. See <code style={{ fontFamily: 'monospace', fontSize: '9px' }}>docs/deployment/geodep.md</code> to set it up.
+      {activeLayers.has("geodep") && (
+        <div
+          style={{ marginTop: "6px", fontSize: "10px", color: "var(--text3)" }}
+        >
+          ðŸ›°ï¸ AI Scan uses a local GeoDeep service. See{" "}
+          <code style={{ fontFamily: "monospace", fontSize: "9px" }}>
+            docs/deployment/geodep.md
+          </code>{" "}
+          to set it up.
         </div>
       )}
     </div>
-  )
+  );
 }
-
-

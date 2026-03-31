@@ -1,7 +1,7 @@
 // ── lib/agent ───────────────────────────────────────────────
 // Agent orchestration and tool execution framework for autonomous tasks.
 
-'use client'
+"use client";
 
 /**
  * Nexus Agent Loop
@@ -30,361 +30,518 @@ import {
   type AIMode,
   type OperationalPhase,
   type TaskItem,
-} from '@/store/useStore'
-import { useStore } from '@/store/useStore'
-import { apiFetch } from '@/lib/apiFetch'
-import { DEFAULT_LOCAL_MODEL, MINIMAX_DEFAULT_AGENT_MODEL } from '@/lib/aiModelRouting'
+} from "@/store/useStore";
+import { useStore } from "@/store/useStore";
+import { apiFetch } from "@/lib/apiFetch";
 import {
-  remember  as memRemember,
-  recall    as memRecall,
+  DEFAULT_LOCAL_MODEL,
+  MINIMAX_DEFAULT_AGENT_MODEL,
+} from "@/lib/aiModelRouting";
+import {
+  remember as memRemember,
+  recall as memRecall,
   recallByType,
-} from '@/lib/memoryStore'
+} from "@/lib/memoryStore";
 
-type ToolRiskTier = 'tier0' | 'tier1' | 'tier2'
+type ToolRiskTier = "tier0" | "tier1" | "tier2";
 
 const TOOL_RISK: Record<string, ToolRiskTier> = {
   // Tier 0: read/search/analysis actions
-  web_search: 'tier0',
-  fetch_url: 'tier0',
-  read_file: 'tier0',
-  list_files: 'tier0',
-  read_project_file: 'tier0',
-  list_project_files: 'tier0',
-  calculate: 'tier0',
-  recall: 'tier0',
-  read_current_tab: 'tier0',
+  web_search: "tier0",
+  fetch_url: "tier0",
+  read_file: "tier0",
+  list_files: "tier0",
+  read_project_file: "tier0",
+  list_project_files: "tier0",
+  calculate: "tier0",
+  recall: "tier0",
+  read_current_tab: "tier0",
 
   // Tier 1: local/browser/session side-effects
-  remember: 'tier1',
-  ask_max: 'tier1',
-  navigate_to: 'tier1',
-  click_element: 'tier1',
-  type_text: 'tier1',
-  propose_project_edit: 'tier1',
-  draft_file: 'tier1',
+  remember: "tier1",
+  ask_max: "tier1",
+  navigate_to: "tier1",
+  click_element: "tier1",
+  type_text: "tier1",
+  propose_project_edit: "tier1",
+  draft_file: "tier1",
 
   // Tier 2: direct project mutation
-  write_file: 'tier2',
-  patch_project_file: 'tier2',
-  create_project_file: 'tier2',
-}
+  write_file: "tier2",
+  patch_project_file: "tier2",
+  create_project_file: "tier2",
+};
 
 function getToolRisk(name: string): ToolRiskTier {
-  return TOOL_RISK[name] ?? 'tier1'
+  return TOOL_RISK[name] ?? "tier1";
 }
 
 // ── Tool definitions (shown to the model) ────────────────────────────────────
 export const AGENT_TOOLS = [
   {
-    name:        'web_search',
-    description: 'Search the web for current news, facts, or information. Returns a list of article titles and URLs. Use this to find up-to-date information.',
+    name: "web_search",
+    description:
+      "Search the web for current news, facts, or information. Returns a list of article titles and URLs. Use this to find up-to-date information.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        query: { type: 'string', description: 'The search query' },
+        query: { type: "string", description: "The search query" },
       },
-      required: ['query'],
+      required: ["query"],
     },
   },
   {
-    name:        'fetch_url',
-    description: 'Fetch and read the text content of any public URL — articles, docs, pages. Use this after web_search to read a specific article in full.',
+    name: "fetch_url",
+    description:
+      "Fetch and read the text content of any public URL — articles, docs, pages. Use this after web_search to read a specific article in full.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        url: { type: 'string', description: 'The full URL to fetch' },
+        url: { type: "string", description: "The full URL to fetch" },
       },
-      required: ['url'],
+      required: ["url"],
     },
   },
   {
-    name:        'write_file',
-    description: 'Write content to a file in the workspace. Use this to save reports, plans, research notes, code, or any output the user wants to keep.',
+    name: "write_file",
+    description:
+      "Write content to a file in the workspace. Use this to save reports, plans, research notes, code, or any output the user wants to keep.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        filename: { type: 'string', description: 'Filename, e.g. report.md or script.py' },
-        content:  { type: 'string', description: 'The full content to write' },
+        filename: {
+          type: "string",
+          description: "Filename, e.g. report.md or script.py",
+        },
+        content: { type: "string", description: "The full content to write" },
       },
-      required: ['filename', 'content'],
+      required: ["filename", "content"],
     },
   },
   {
-    name:        'read_file',
-    description: 'Read a file from the workspace. Use this to check what was previously saved.',
+    name: "read_file",
+    description:
+      "Read a file from the workspace. Use this to check what was previously saved.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        filename: { type: 'string', description: 'Filename to read' },
+        filename: { type: "string", description: "Filename to read" },
       },
-      required: ['filename'],
+      required: ["filename"],
     },
   },
   {
-    name:        'list_files',
-    description: 'List all files currently in the workspace.',
+    name: "list_files",
+    description: "List all files currently in the workspace.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {},
       required: [],
     },
   },
   {
-    name:        'calculate',
-    description: 'Evaluate a mathematical expression and return the result. Use for arithmetic, percentages, financial calculations.',
+    name: "calculate",
+    description:
+      "Evaluate a mathematical expression and return the result. Use for arithmetic, percentages, financial calculations.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        expression: { type: 'string', description: 'Math expression, e.g. 4500 * 12 or (100 - 3.5) / 100' },
+        expression: {
+          type: "string",
+          description: "Math expression, e.g. 4500 * 12 or (100 - 3.5) / 100",
+        },
       },
-      required: ['expression'],
+      required: ["expression"],
     },
   },
   {
-    name:        'remember',
-    description: 'Save a note to persistent memory. Use this to record anything important the user mentions — preferences, context, facts to carry forward. These notes are read back at the start of future sessions.',
+    name: "remember",
+    description:
+      "Save a note to persistent memory. Use this to record anything important the user mentions — preferences, context, facts to carry forward. These notes are read back at the start of future sessions.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        note: { type: 'string', description: 'The note to save, e.g. "User prefers RSI over MACD for entries"' },
+        note: {
+          type: "string",
+          description:
+            'The note to save, e.g. "User prefers RSI over MACD for entries"',
+        },
       },
-      required: ['note'],
+      required: ["note"],
     },
   },
   {
-    name:        'recall',
-    description: 'Read all previously saved memory notes. Use this at the start of a session or when you need to check what you already know about the user or their context.',
+    name: "recall",
+    description:
+      "Read all previously saved memory notes. Use this at the start of a session or when you need to check what you already know about the user or their context.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {},
       required: [],
     },
   },
   {
-    name:        'ask_max',
-    description: 'Ask Max (your local OpenClaw AI agent) a question. Max has web search, file access, Notion, and Google Places tools. Use this when you need Max\'s perspective, want to delegate a task locally, or want a second opinion. Max runs at http://127.0.0.1:18789.',
+    name: "ask_max",
+    description:
+      "Ask Max (your local OpenClaw AI agent) a question. Max has web search, file access, Notion, and Google Places tools. Use this when you need Max's perspective, want to delegate a task locally, or want a second opinion. Max runs at http://127.0.0.1:18789.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        message: { type: 'string', description: 'The question or task to send to Max' },
+        message: {
+          type: "string",
+          description: "The question or task to send to Max",
+        },
       },
-      required: ['message'],
+      required: ["message"],
     },
   },
 
   // ── Project source code access ─────────────────────────────────────────────
   {
-    name:        'read_project_file',
-    description: 'Read a source file from the Nexus Prime project. Use this to understand the codebase before making changes — always read a file before editing it. Examples: "app/home/page.tsx", "components/home/HomeChat.tsx", "lib/agent.ts", "store/useStore.ts".',
+    name: "read_project_file",
+    description:
+      'Read a source file from the Nexus Prime project. Use this to understand the codebase before making changes — always read a file before editing it. Examples: "app/home/page.tsx", "components/home/HomeChat.tsx", "lib/agent.ts", "store/useStore.ts".',
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        path: { type: 'string', description: 'Relative path from project root, e.g. "components/home/HomeChat.tsx"' },
+        path: {
+          type: "string",
+          description:
+            'Relative path from project root, e.g. "components/home/HomeChat.tsx"',
+        },
       },
-      required: ['path'],
+      required: ["path"],
     },
   },
   {
-    name:        'list_project_files',
-    description: 'List files and folders in a project directory. Use this to explore the codebase structure. Examples: list "components" to see all component folders, list "app" to see all routes, list "lib" to see all utility files. Use "." to list the project root.',
+    name: "list_project_files",
+    description:
+      'List files and folders in a project directory. Use this to explore the codebase structure. Examples: list "components" to see all component folders, list "app" to see all routes, list "lib" to see all utility files. Use "." to list the project root.',
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        directory: { type: 'string', description: 'Relative directory path, e.g. "components/home" or "app" or "." for root' },
+        directory: {
+          type: "string",
+          description:
+            'Relative directory path, e.g. "components/home" or "app" or "." for root',
+        },
       },
-      required: ['directory'],
+      required: ["directory"],
     },
   },
   {
-    name:        'patch_project_file',
-    description: 'Make a targeted edit to a source file. Finds an exact string and replaces it with new content. IMPORTANT: Always read_project_file first to get the exact current text. Only edits files in: app/, components/, lib/, store/, public/, docs/, specs/. Returns an error if the old_string is not found exactly.',
+    name: "patch_project_file",
+    description:
+      "Make a targeted edit to a source file. Finds an exact string and replaces it with new content. IMPORTANT: Always read_project_file first to get the exact current text. Only edits files in: app/, components/, lib/, store/, public/, docs/, specs/. Returns an error if the old_string is not found exactly.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        path:       { type: 'string', description: 'Relative path to the file, e.g. "components/home/HomeChat.tsx"' },
-        old_string: { type: 'string', description: 'The exact text currently in the file that you want to replace. Must match character-for-character.' },
-        new_string: { type: 'string', description: 'The new text to replace it with.' },
+        path: {
+          type: "string",
+          description:
+            'Relative path to the file, e.g. "components/home/HomeChat.tsx"',
+        },
+        old_string: {
+          type: "string",
+          description:
+            "The exact text currently in the file that you want to replace. Must match character-for-character.",
+        },
+        new_string: {
+          type: "string",
+          description: "The new text to replace it with.",
+        },
       },
-      required: ['path', 'old_string', 'new_string'],
+      required: ["path", "old_string", "new_string"],
     },
   },
   {
-    name:        'create_project_file',
-    description: 'Create a new source file in the project. Use this to scaffold new components, hooks, pages, or utilities. Only creates files in: app/, components/, lib/, store/, public/, docs/, specs/, hooks/. Will fail if the file already exists — use patch_project_file to edit existing files.',
+    name: "create_project_file",
+    description:
+      "Create a new source file in the project. Use this to scaffold new components, hooks, pages, or utilities. Only creates files in: app/, components/, lib/, store/, public/, docs/, specs/, hooks/. Will fail if the file already exists — use patch_project_file to edit existing files.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        path:    { type: 'string', description: 'Relative path for the new file, e.g. "components/ui/NewWidget.tsx"' },
-        content: { type: 'string', description: 'The full content of the new file.' },
+        path: {
+          type: "string",
+          description:
+            'Relative path for the new file, e.g. "components/ui/NewWidget.tsx"',
+        },
+        content: {
+          type: "string",
+          description: "The full content of the new file.",
+        },
       },
-      required: ['path', 'content'],
+      required: ["path", "content"],
     },
   },
   {
-    name:        'propose_project_edit',
-    description: 'Propose a file change for the user to review BEFORE applying. Use this instead of patch_project_file when the change is large, risky, or touches critical logic. The user will see a diff with Approve/Reject buttons. Prefer this for changes over 30 lines or changes to core files like agent.ts, useStore.ts, layout.tsx.',
+    name: "propose_project_edit",
+    description:
+      "Propose a file change for the user to review BEFORE applying. Use this instead of patch_project_file when the change is large, risky, or touches critical logic. The user will see a diff with Approve/Reject buttons. Prefer this for changes over 30 lines or changes to core files like agent.ts, useStore.ts, layout.tsx.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        path:       { type: 'string',  description: 'Relative path to the file' },
-        old_string: { type: 'string',  description: 'Exact text to replace' },
-        new_string: { type: 'string',  description: 'Replacement text' },
-        reason:     { type: 'string',  description: 'Why this change is needed (shown to user)' },
-        risk:       { type: 'string',  description: 'Estimated risk: low | medium | high' },
+        path: { type: "string", description: "Relative path to the file" },
+        old_string: { type: "string", description: "Exact text to replace" },
+        new_string: { type: "string", description: "Replacement text" },
+        reason: {
+          type: "string",
+          description: "Why this change is needed (shown to user)",
+        },
+        risk: {
+          type: "string",
+          description: "Estimated risk: low | medium | high",
+        },
       },
-      required: ['path', 'old_string', 'new_string', 'reason', 'risk'],
+      required: ["path", "old_string", "new_string", "reason", "risk"],
     },
   },
 
   // ── Browser tools (client-side, use the user's actual browser session) ──────
   {
-    name:        'navigate_to',
-    description: 'Open a URL in the user\'s browser. Use this to navigate to a website, open a search result, or go to any page. The browser will navigate and the user can see it happen. After navigating, call read_current_tab to read the page content.',
+    name: "navigate_to",
+    description:
+      "Open a URL in the user's browser. Use this to navigate to a website, open a search result, or go to any page. The browser will navigate and the user can see it happen. After navigating, call read_current_tab to read the page content.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        url:       { type: 'string', description: 'Full URL to open, e.g. https://example.com' },
-        new_tab:   { type: 'string', description: 'Set to "true" to open in a new tab, "false" to navigate the current tab. Default: "true".' },
+        url: {
+          type: "string",
+          description: "Full URL to open, e.g. https://example.com",
+        },
+        new_tab: {
+          type: "string",
+          description:
+            'Set to "true" to open in a new tab, "false" to navigate the current tab. Default: "true".',
+        },
       },
-      required: ['url'],
+      required: ["url"],
     },
   },
   {
-    name:        'read_current_tab',
-    description: 'Read the text content of whatever page is currently open in the browser. Returns the page title, URL, and visible text. Use this after navigate_to to read what loaded, or to analyse any page the user currently has open.',
+    name: "read_current_tab",
+    description:
+      "Read the text content of whatever page is currently open in the browser. Returns the page title, URL, and visible text. Use this after navigate_to to read what loaded, or to analyse any page the user currently has open.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {},
       required: [],
     },
   },
   {
-    name:        'click_element',
-    description: 'Click an element on the current browser page by CSS selector or visible text. Use this to press buttons, follow links, open menus, or interact with any clickable element.',
+    name: "click_element",
+    description:
+      "Click an element on the current browser page by CSS selector or visible text. Use this to press buttons, follow links, open menus, or interact with any clickable element.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        selector: { type: 'string', description: 'CSS selector (e.g. "button.submit", "#login-btn") OR visible text content (e.g. "Sign in", "Submit")' },
+        selector: {
+          type: "string",
+          description:
+            'CSS selector (e.g. "button.submit", "#login-btn") OR visible text content (e.g. "Sign in", "Submit")',
+        },
       },
-      required: ['selector'],
+      required: ["selector"],
     },
   },
   {
-    name:        'type_text',
-    description: 'Type text into a browser input, textarea, or form field. Use this to fill in search boxes, forms, or any text input on the current page.',
+    name: "type_text",
+    description:
+      "Type text into a browser input, textarea, or form field. Use this to fill in search boxes, forms, or any text input on the current page.",
     input_schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        selector: { type: 'string', description: 'CSS selector for the input element, e.g. "input[name=q]" or "#search"' },
-        text:     { type: 'string', description: 'The text to type into the element' },
+        selector: {
+          type: "string",
+          description:
+            'CSS selector for the input element, e.g. "input[name=q]" or "#search"',
+        },
+        text: {
+          type: "string",
+          description: "The text to type into the element",
+        },
       },
-      required: ['selector', 'text'],
+      required: ["selector", "text"],
     },
   },
-]
+];
 
 // Draft-mode replacement for write_file
 const DRAFT_FILE_TOOL = {
-  name:        'draft_file',
-  description: '[DRAFT MODE] Save content as a pending draft. Claude will finalize it when the rate limit clears. Use this instead of write_file.',
+  name: "draft_file",
+  description:
+    "[DRAFT MODE] Save content as a pending draft. Claude will finalize it when the rate limit clears. Use this instead of write_file.",
   input_schema: {
-    type: 'object',
+    type: "object",
     properties: {
-      filename: { type: 'string', description: 'Filename, e.g. report.md' },
-      content:  { type: 'string', description: 'Full draft content to queue for review' },
+      filename: { type: "string", description: "Filename, e.g. report.md" },
+      content: {
+        type: "string",
+        description: "Full draft content to queue for review",
+      },
     },
-    required: ['filename', 'content'],
+    required: ["filename", "content"],
   },
-}
+};
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 export interface ToolCall {
-  id:    string
-  name:  string
-  input: Record<string, string>
+  id: string;
+  name: string;
+  input: Record<string, string>;
 }
 
 export interface AgentStep {
-  type:    'thinking' | 'tool_call' | 'tool_result' | 'answer' | 'phase' | 'task_plan'
-  content: string
-  tool?:   string
-  phase?:  OperationalPhase
-  plan?:   TaskItem[]
+  type:
+    | "thinking"
+    | "tool_call"
+    | "tool_result"
+    | "answer"
+    | "phase"
+    | "task_plan";
+  content: string;
+  tool?: string;
+  phase?: OperationalPhase;
+  plan?: TaskItem[];
 }
 
 // ── Heuristic task plan builder ───────────────────────────────────────────────
 // Decomposes the user message into visible steps shown in TaskPlanPanel.
 // No API call — purely heuristic for instant display.
 function buildTaskPlan(message: string): TaskItem[] {
-  const lower = message.toLowerCase()
-  const isCode = ['code','implement','build','fix','debug','write','create','component',
-    'function','patch','refactor','file','edit','typescript','react','next'].some(k => lower.includes(k))
-  const isEdit = ['edit','change','update','modify','patch','fix','refactor','improve',
-    'rewrite','restructure'].some(k => lower.includes(k))
-  const isResearch = ['research','find','search','what','how','why','news','latest',
-    'who','when','current','today','look up','summarize','explain','tell me'].some(k => lower.includes(k))
-  const isSecurity = ['security','cve','vulnerability','hack','exploit','threat',
-    'malware','breach','attack','encrypt'].some(k => lower.includes(k))
-  const isMarket = ['price','crypto','market','trade','btc','bitcoin','chart',
-    'signal','portfolio','momentum'].some(k => lower.includes(k))
+  const lower = message.toLowerCase();
+  const isCode = [
+    "code",
+    "implement",
+    "build",
+    "fix",
+    "debug",
+    "write",
+    "create",
+    "component",
+    "function",
+    "patch",
+    "refactor",
+    "file",
+    "edit",
+    "typescript",
+    "react",
+    "next",
+  ].some((k) => lower.includes(k));
+  const isEdit = [
+    "edit",
+    "change",
+    "update",
+    "modify",
+    "patch",
+    "fix",
+    "refactor",
+    "improve",
+    "rewrite",
+    "restructure",
+  ].some((k) => lower.includes(k));
+  const isResearch = [
+    "research",
+    "find",
+    "search",
+    "what",
+    "how",
+    "why",
+    "news",
+    "latest",
+    "who",
+    "when",
+    "current",
+    "today",
+    "look up",
+    "summarize",
+    "explain",
+    "tell me",
+  ].some((k) => lower.includes(k));
+  const isSecurity = [
+    "security",
+    "cve",
+    "vulnerability",
+    "hack",
+    "exploit",
+    "threat",
+    "malware",
+    "breach",
+    "attack",
+    "encrypt",
+  ].some((k) => lower.includes(k));
+  const isMarket = [
+    "price",
+    "crypto",
+    "market",
+    "trade",
+    "btc",
+    "bitcoin",
+    "chart",
+    "signal",
+    "portfolio",
+    "momentum",
+  ].some((k) => lower.includes(k));
 
   if (isCode || isEdit) {
     return [
-      { id: '1', label: 'Understand the request',       status: 'running' },
-      { id: '2', label: 'Read relevant source files',   status: 'pending' },
-      { id: '3', label: 'Apply changes to codebase',    status: 'pending' },
-      { id: '4', label: 'Verify changes compile',       status: 'pending' },
-    ]
+      { id: "1", label: "Understand the request", status: "running" },
+      { id: "2", label: "Read relevant source files", status: "pending" },
+      { id: "3", label: "Apply changes to codebase", status: "pending" },
+      { id: "4", label: "Verify changes compile", status: "pending" },
+    ];
   }
   if (isSecurity) {
     return [
-      { id: '1', label: 'Interpret threat context',      status: 'running' },
-      { id: '2', label: 'Query threat intelligence',     status: 'pending' },
-      { id: '3', label: 'Assess risk level',             status: 'pending' },
-      { id: '4', label: 'Compile security brief',        status: 'pending' },
-    ]
+      { id: "1", label: "Interpret threat context", status: "running" },
+      { id: "2", label: "Query threat intelligence", status: "pending" },
+      { id: "3", label: "Assess risk level", status: "pending" },
+      { id: "4", label: "Compile security brief", status: "pending" },
+    ];
   }
   if (isMarket) {
     return [
-      { id: '1', label: 'Parse market intent',           status: 'running' },
-      { id: '2', label: 'Fetch current price data',      status: 'pending' },
-      { id: '3', label: 'Analyse signals + momentum',    status: 'pending' },
-      { id: '4', label: 'Generate market brief',         status: 'pending' },
-    ]
+      { id: "1", label: "Parse market intent", status: "running" },
+      { id: "2", label: "Fetch current price data", status: "pending" },
+      { id: "3", label: "Analyse signals + momentum", status: "pending" },
+      { id: "4", label: "Generate market brief", status: "pending" },
+    ];
   }
   if (isResearch) {
     return [
-      { id: '1', label: 'Understand the question',       status: 'running' },
-      { id: '2', label: 'Search for live information',   status: 'pending' },
-      { id: '3', label: 'Validate and cross-reference',  status: 'pending' },
-      { id: '4', label: 'Compose response',              status: 'pending' },
-    ]
+      { id: "1", label: "Understand the question", status: "running" },
+      { id: "2", label: "Search for live information", status: "pending" },
+      { id: "3", label: "Validate and cross-reference", status: "pending" },
+      { id: "4", label: "Compose response", status: "pending" },
+    ];
   }
   return [
-    { id: '1', label: 'Interpret request',               status: 'running' },
-    { id: '2', label: 'Process and reason',              status: 'pending' },
-    { id: '3', label: 'Deliver response',                status: 'pending' },
-  ]
+    { id: "1", label: "Interpret request", status: "running" },
+    { id: "2", label: "Process and reason", status: "pending" },
+    { id: "3", label: "Deliver response", status: "pending" },
+  ];
 }
 
 export interface AgentOptions {
-  settings:       Settings
-  systemPrompt:   string
-  messages:       { role: string; content: string }[]
-  onStep:         (step: AgentStep) => void
-  onToken?:       (token: string) => void   // optional streaming callback for final answer
-  maxIterations?: number
-  draftMode?:     boolean
+  settings: Settings;
+  systemPrompt: string;
+  messages: { role: string; content: string }[];
+  onStep: (step: AgentStep) => void;
+  onToken?: (token: string) => void; // optional streaming callback for final answer
+  maxIterations?: number;
+  draftMode?: boolean;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function getSettings(): Settings {
-  if (typeof window === 'undefined') return DEFAULT_SETTINGS
+  if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
-    const raw = localStorage.getItem('nexus-settings')
-    return raw ? JSON.parse(raw).state?.settings ?? DEFAULT_SETTINGS : DEFAULT_SETTINGS
+    const raw = localStorage.getItem("nexus-settings");
+    return raw
+      ? (JSON.parse(raw).state?.settings ?? DEFAULT_SETTINGS)
+      : DEFAULT_SETTINGS;
   } catch {
-    return DEFAULT_SETTINGS
+    return DEFAULT_SETTINGS;
   }
 }
 
@@ -394,45 +551,55 @@ function getSettings(): Settings {
 async function handleRemember(note: string): Promise<string> {
   try {
     // Classify the note automatically based on simple heuristics
-    const lower = note.toLowerCase()
+    const lower = note.toLowerCase();
     const type =
-      lower.includes('prefer') || lower.includes('always') || lower.includes('never') || lower.includes('want')
-        ? 'preference'
-        : lower.includes('happened') || lower.includes('detected') || lower.includes('noticed') || lower.includes('observed')
-          ? 'episode'
-          : 'fact'
+      lower.includes("prefer") ||
+      lower.includes("always") ||
+      lower.includes("never") ||
+      lower.includes("want")
+        ? "preference"
+        : lower.includes("happened") ||
+            lower.includes("detected") ||
+            lower.includes("noticed") ||
+            lower.includes("observed")
+          ? "episode"
+          : "fact";
 
     // Extract simple tags: capitalized words, numbers with units
-    const rawTags = note.match(/\b[A-Z][a-z]{2,}\b|\b[A-Z]{2,}\b|\b\d+[%kKmMbB]+\b/g) ?? []
-    const tags = Array.from(new Set(rawTags.map(t => t.toLowerCase()))).slice(0, 8)
+    const rawTags =
+      note.match(/\b[A-Z][a-z]{2,}\b|\b[A-Z]{2,}\b|\b\d+[%kKmMbB]+\b/g) ?? [];
+    const tags = Array.from(new Set(rawTags.map((t) => t.toLowerCase()))).slice(
+      0,
+      8,
+    );
 
-    await memRemember(note, type, tags, 'agent')
-    return `Remembered (${type}): "${note.slice(0, 80)}${note.length > 80 ? '…' : ''}"`
+    await memRemember(note, type, tags, "agent");
+    return `Remembered (${type}): "${note.slice(0, 80)}${note.length > 80 ? "…" : ""}"`;
   } catch {
-    return `Failed to save memory — IndexedDB may be unavailable.`
+    return `Failed to save memory — IndexedDB may be unavailable.`;
   }
 }
 
 async function handleRecall(query: string): Promise<string> {
   try {
-    const q = query.trim()
+    const q = query.trim();
 
     // No query → return recent facts + preferences
     if (!q) {
       const [facts, prefs] = await Promise.all([
-        recallByType('fact', 12),
-        recallByType('preference', 8),
-      ])
-      const all = [...prefs, ...facts]
-      if (!all.length) return 'No memories saved yet.'
-      return all.map(m => `[${m.type}] ${m.content}`).join('\n')
+        recallByType("fact", 12),
+        recallByType("preference", 8),
+      ]);
+      const all = [...prefs, ...facts];
+      if (!all.length) return "No memories saved yet.";
+      return all.map((m) => `[${m.type}] ${m.content}`).join("\n");
     }
 
-    const memories = await memRecall(q, 10)
-    if (!memories.length) return `No memories found matching "${q}".`
-    return memories.map(m => `[${m.type}] ${m.content}`).join('\n')
+    const memories = await memRecall(q, 10);
+    if (!memories.length) return `No memories found matching "${q}".`;
+    return memories.map((m) => `[${m.type}] ${m.content}`).join("\n");
   } catch {
-    return 'Failed to read memory — IndexedDB may be unavailable.'
+    return "Failed to read memory — IndexedDB may be unavailable.";
   }
 }
 
@@ -441,124 +608,141 @@ async function handleRecall(query: string): Promise<string> {
 function browserNavigate(url: string, newTab = true): string {
   try {
     if (newTab) {
-      window.open(url, '_blank', 'noopener')
+      window.open(url, "_blank", "noopener");
     } else {
-      window.location.href = url
+      window.location.href = url;
     }
-    return `Navigated to: ${url}`
+    return `Navigated to: ${url}`;
   } catch (e) {
-    return `Could not navigate: ${e instanceof Error ? e.message : 'unknown error'}`
+    return `Could not navigate: ${e instanceof Error ? e.message : "unknown error"}`;
   }
 }
 
 function browserReadCurrentTab(): string {
   try {
-    const title = document.title
-    const url   = window.location.href
-    const text  = (document.body?.innerText ?? '').slice(0, 5000).trim()
-    return `PAGE: ${title}\nURL: ${url}\n\n${text || '(no readable text on this page)'}`
+    const title = document.title;
+    const url = window.location.href;
+    const text = (document.body?.innerText ?? "").slice(0, 5000).trim();
+    return `PAGE: ${title}\nURL: ${url}\n\n${text || "(no readable text on this page)"}`;
   } catch (e) {
-    return `Could not read page: ${e instanceof Error ? e.message : 'unknown error'}`
+    return `Could not read page: ${e instanceof Error ? e.message : "unknown error"}`;
   }
 }
 
 function browserClick(selector: string): string {
   try {
     // Try as CSS selector first, then fall back to visible text match
-    let el = document.querySelector(selector) as HTMLElement | null
+    let el = document.querySelector(selector) as HTMLElement | null;
     if (!el) {
       // Walk all elements looking for matching innerText
-      const all = Array.from(document.querySelectorAll('button, a, [role="button"], input[type="submit"]')) as HTMLElement[]
-      el = all.find(e => e.innerText?.trim().toLowerCase() === selector.toLowerCase()) ?? null
+      const all = Array.from(
+        document.querySelectorAll(
+          'button, a, [role="button"], input[type="submit"]',
+        ),
+      ) as HTMLElement[];
+      el =
+        all.find(
+          (e) => e.innerText?.trim().toLowerCase() === selector.toLowerCase(),
+        ) ?? null;
     }
-    if (!el) return `No element found for "${selector}"`
-    el.click()
-    return `Clicked: ${selector} (${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''})${el.innerText ? ' — "' + el.innerText.slice(0, 60) + '"' : ''}`
+    if (!el) return `No element found for "${selector}"`;
+    el.click();
+    return `Clicked: ${selector} (${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""})${el.innerText ? ' — "' + el.innerText.slice(0, 60) + '"' : ""}`;
   } catch (e) {
-    return `Click failed: ${e instanceof Error ? e.message : 'unknown error'}`
+    return `Click failed: ${e instanceof Error ? e.message : "unknown error"}`;
   }
 }
 
 function browserType(selector: string, text: string): string {
   try {
-    const el = document.querySelector(selector) as HTMLInputElement | HTMLTextAreaElement | null
-    if (!el) return `No input found for "${selector}"`
-    el.focus()
-    el.value = text
-    el.dispatchEvent(new Event('input', { bubbles: true }))
-    el.dispatchEvent(new Event('change', { bubbles: true }))
-    return `Typed into ${selector}: "${text.slice(0, 80)}${text.length > 80 ? '…' : ''}"`
+    const el = document.querySelector(selector) as
+      | HTMLInputElement
+      | HTMLTextAreaElement
+      | null;
+    if (!el) return `No input found for "${selector}"`;
+    el.focus();
+    el.value = text;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+    return `Typed into ${selector}: "${text.slice(0, 80)}${text.length > 80 ? "…" : ""}"`;
   } catch (e) {
-    return `Type failed: ${e instanceof Error ? e.message : 'unknown error'}`
+    return `Type failed: ${e instanceof Error ? e.message : "unknown error"}`;
   }
 }
 
-async function executeTool(name: string, input: Record<string, string>): Promise<string> {
-  const risk = getToolRisk(name)
+async function executeTool(
+  name: string,
+  input: Record<string, string>,
+): Promise<string> {
+  const risk = getToolRisk(name);
 
   // High-risk write operations require explicit proposal/approval flow by default.
-  if (risk === 'tier2') {
-    const store = useStore.getState()
-    const requireApproval = store.settings.agentHighRiskWritesRequireApproval ?? true
+  if (risk === "tier2") {
+    const store = useStore.getState();
+    const requireApproval =
+      store.settings.agentHighRiskWritesRequireApproval ?? true;
     if (requireApproval) {
-      const pathOrFile = input.path ?? input.filename ?? name
-      const blocked = `🔒 Blocked ${name} (${risk}). Use propose_project_edit first so the user can review and approve the change.`
+      const pathOrFile = input.path ?? input.filename ?? name;
+      const blocked = `🔒 Blocked ${name} (${risk}). Use propose_project_edit first so the user can review and approve the change.`;
       store.addChangeEntry({
         path: pathOrFile,
-        agent: 'orbit',
+        agent: "orbit",
         summary: `Policy blocked high-risk tool: ${name}`,
-        type: 'rejected',
+        type: "rejected",
         linesAdded: 0,
         linesRemoved: 0,
-      })
-      return blocked
+      });
+      return blocked;
     }
   }
 
   // ── Browser tools — run entirely in the user's browser window ──────────────
-  if (typeof window !== 'undefined') {
-    if (name === 'navigate_to') {
-      const newTab = (input.new_tab ?? 'true') !== 'false'
-      return browserNavigate(input.url ?? '', newTab)
+  if (typeof window !== "undefined") {
+    if (name === "navigate_to") {
+      const newTab = (input.new_tab ?? "true") !== "false";
+      return browserNavigate(input.url ?? "", newTab);
     }
-    if (name === 'read_current_tab') return browserReadCurrentTab()
-    if (name === 'click_element')    return browserClick(input.selector ?? '')
-    if (name === 'type_text')        return browserType(input.selector ?? '', input.text ?? '')
+    if (name === "read_current_tab") return browserReadCurrentTab();
+    if (name === "click_element") return browserClick(input.selector ?? "");
+    if (name === "type_text")
+      return browserType(input.selector ?? "", input.text ?? "");
   }
 
   // Intercept memory tools client-side — IndexedDB, no server round-trip
-  if (name === 'remember') return handleRemember(input.note ?? '')
-  if (name === 'recall')   return handleRecall(input.query ?? input.note ?? '')
+  if (name === "remember") return handleRemember(input.note ?? "");
+  if (name === "recall") return handleRecall(input.query ?? input.note ?? "");
 
   // Intercept propose_project_edit — queue for user review, do NOT apply yet
-  if (name === 'propose_project_edit') {
+  if (name === "propose_project_edit") {
     try {
-      const store = useStore.getState()
+      const store = useStore.getState();
       store.addPendingEdit({
-        path:       input.path       ?? 'unknown',
-        old_string: input.old_string ?? '',
-        new_string: input.new_string ?? '',
-        reason:     input.reason     ?? 'No reason provided.',
-        risk:       (input.risk ?? 'medium') as 'low' | 'medium' | 'high',
-        agentId:    'orbit',
-      })
-      return `⏳ Edit proposed for "${input.path}". User will see a diff and must approve before the file is changed.`
+        path: input.path ?? "unknown",
+        old_string: input.old_string ?? "",
+        new_string: input.new_string ?? "",
+        reason: input.reason ?? "No reason provided.",
+        risk: (input.risk ?? "medium") as "low" | "medium" | "high",
+        agentId: "orbit",
+      });
+      return `⏳ Edit proposed for "${input.path}". User will see a diff and must approve before the file is changed.`;
     } catch {
-      return 'Failed to queue proposed edit.'
+      return "Failed to queue proposed edit.";
     }
   }
 
   try {
-    const r = await apiFetch('/api/tools', {
-      method:  'POST',
-      body:    JSON.stringify({ tool: name, input }),
-      signal:  AbortSignal.timeout(TOOL_TIMEOUT_MS),
-    })
-    const d = await r.json()
-    return d.result ?? 'No result.'
+    const r = await apiFetch("/api/tools", {
+      method: "POST",
+      body: JSON.stringify({ tool: name, input }),
+      signal: AbortSignal.timeout(TOOL_TIMEOUT_MS),
+    });
+    const d = await r.json();
+    return d.result ?? "No result.";
   } catch (e) {
-    const isTimeout = e instanceof Error && e.name === 'TimeoutError'
-    return isTimeout ? `Tool "${name}" timed out after ${TOOL_TIMEOUT_MS / 1000}s.` : `Tool "${name}" failed.`
+    const isTimeout = e instanceof Error && e.name === "TimeoutError";
+    return isTimeout
+      ? `Tool "${name}" timed out after ${TOOL_TIMEOUT_MS / 1000}s.`
+      : `Tool "${name}" failed.`;
   }
 }
 
@@ -568,88 +752,96 @@ async function executeTool(name: string, input: Record<string, string>): Promise
 // Returns the full accumulated text.
 
 async function streamFinalAnswer(
-  payload:  object,
-  onToken:  (token: string) => void,
-  signal?:  AbortSignal,
+  payload: object,
+  onToken: (token: string) => void,
+  signal?: AbortSignal,
 ): Promise<string> {
-  let res: Response
+  let res: Response;
   try {
-    res = await apiFetch('/api/ai', {
-      method: 'POST',
-      body:   JSON.stringify({ ...payload, stream: true }),
+    res = await apiFetch("/api/ai", {
+      method: "POST",
+      body: JSON.stringify({ ...payload, stream: true }),
       signal: signal ?? AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
-    })
+    });
   } catch {
     // Fall back to non-streaming if the call fails
-    const fallback = await apiFetch('/api/ai', {
-      method: 'POST',
-      body:   JSON.stringify(payload),
+    const fallback = await apiFetch("/api/ai", {
+      method: "POST",
+      body: JSON.stringify(payload),
       signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
-    })
-    if (!fallback.ok) return ''
-    const d = await fallback.json()
-    const txt = (d.content as { type: string; text?: string }[])
-      ?.filter(b => b.type === 'text').map(b => b.text ?? '').join('') ?? ''
-    onToken(txt)
-    return txt
+    });
+    if (!fallback.ok) return "";
+    const d = await fallback.json();
+    const txt =
+      (d.content as { type: string; text?: string }[])
+        ?.filter((b) => b.type === "text")
+        .map((b) => b.text ?? "")
+        .join("") ?? "";
+    onToken(txt);
+    return txt;
   }
 
   if (!res.ok || !res.body) {
     // Parse error body if possible
     try {
-      const d = await res.json()
-      return d?.error?.message ?? ''
-    } catch { return '' }
-  }
-
-  const reader  = res.body.getReader()
-  const decoder = new TextDecoder()
-  let full = ''
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    const chunk = decoder.decode(value, { stream: true })
-    for (const line of chunk.split('\n')) {
-      const trimmed = line.trim()
-      if (!trimmed.startsWith('data:')) continue
-      const data = trimmed.slice(5).trim()
-      if (data === '[DONE]') continue
-      try {
-        const json = JSON.parse(data)
-        // Anthropic SSE: { type: 'content_block_delta', delta: { text } }
-        // OpenAI SSE:    { choices: [{ delta: { content } }] }
-        const token =
-          json.delta?.text ??
-          json.choices?.[0]?.delta?.content ??
-          ''
-        if (token) { full += token; onToken(token) }
-      } catch { /* skip malformed lines */ }
+      const d = await res.json();
+      return d?.error?.message ?? "";
+    } catch {
+      return "";
     }
   }
 
-  return full
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let full = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    for (const line of chunk.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith("data:")) continue;
+      const data = trimmed.slice(5).trim();
+      if (data === "[DONE]") continue;
+      try {
+        const json = JSON.parse(data);
+        // Anthropic SSE: { type: 'content_block_delta', delta: { text } }
+        // OpenAI SSE:    { choices: [{ delta: { content } }] }
+        const token =
+          json.delta?.text ?? json.choices?.[0]?.delta?.content ?? "";
+        if (token) {
+          full += token;
+          onToken(token);
+        }
+      } catch {
+        /* skip malformed lines */
+      }
+    }
+  }
+
+  return full;
 }
 
 // ── OpenAI-format tools (for Ollama) ─────────────────────────────────────────
 function toOAITools(tools: typeof AGENT_TOOLS) {
   return tools.map((t) => ({
-    type:     'function' as const,
+    type: "function" as const,
     function: {
-      name:        t.name,
+      name: t.name,
       description: t.description,
-      parameters:  t.input_schema,
+      parameters: t.input_schema,
     },
-  }))
+  }));
 }
 
 // ── Timeouts ──────────────────────────────────────────────────────────────────
 // Local Ollama: 90s per call (14b model can be slow on first token)
-const OLLAMA_TIMEOUT_MS  = 90_000
+const OLLAMA_TIMEOUT_MS = 90_000;
 // Cloud Claude: 45s (should respond much faster)
-const CLAUDE_TIMEOUT_MS  = 45_000
+const CLAUDE_TIMEOUT_MS = 45_000;
 // Tool execution: 15s (web search + fetch_url)
-const TOOL_TIMEOUT_MS    = 15_000
+const TOOL_TIMEOUT_MS = 15_000;
 
 // ── Memory context builder ────────────────────────────────────────────────────
 // Recalled before each agent run and injected into the system prompt.
@@ -658,51 +850,60 @@ const TOOL_TIMEOUT_MS    = 15_000
 async function buildMemoryContext(userMessage: string): Promise<string> {
   try {
     const [prefs, relevant] = await Promise.all([
-      recallByType('preference', 6),
+      recallByType("preference", 6),
       memRecall(userMessage, 8),
-    ])
+    ]);
 
     const prefBlock = prefs.length
-      ? `User preferences:\n${prefs.map(m => `• ${m.content}`).join('\n')}`
-      : ''
+      ? `User preferences:\n${prefs.map((m) => `• ${m.content}`).join("\n")}`
+      : "";
 
     // Filter out prefs already shown to avoid duplication
-    const prefIds = new Set(prefs.map(m => m.id))
-    const factBlock = relevant.filter(m => !prefIds.has(m.id)).length
-      ? `Relevant memory:\n${relevant.filter(m => !prefIds.has(m.id)).map(m => `• [${m.type}] ${m.content}`).join('\n')}`
-      : ''
+    const prefIds = new Set(prefs.map((m) => m.id));
+    const factBlock = relevant.filter((m) => !prefIds.has(m.id)).length
+      ? `Relevant memory:\n${relevant
+          .filter((m) => !prefIds.has(m.id))
+          .map((m) => `• [${m.type}] ${m.content}`)
+          .join("\n")}`
+      : "";
 
-    const parts = [prefBlock, factBlock].filter(Boolean)
+    const parts = [prefBlock, factBlock].filter(Boolean);
     return parts.length
-      ? `\n\n== MEMORY ==\n${parts.join('\n\n')}\n== END MEMORY ==`
-      : ''
+      ? `\n\n== MEMORY ==\n${parts.join("\n\n")}\n== END MEMORY ==`
+      : "";
   } catch {
-    return '' // memory unavailable — continue without it
+    return ""; // memory unavailable — continue without it
   }
 }
 
 type VerificationPayload = {
-  ok: boolean
-  adapters: { adapter: string; passed: boolean; summary: string }[]
-}
+  ok: boolean;
+  adapters: { adapter: string; passed: boolean; summary: string }[];
+};
 
 async function runVerificationAdapters(): Promise<VerificationPayload> {
   try {
-    const r = await apiFetch('/api/verify', {
-      method: 'POST',
-      body: JSON.stringify({ adapters: ['typecheck', 'lint', 'route_smoke'] }),
+    const r = await apiFetch("/api/verify", {
+      method: "POST",
+      body: JSON.stringify({ adapters: ["typecheck", "lint", "route_smoke"] }),
       signal: AbortSignal.timeout(240_000),
-    })
-    const d = await r.json()
+    });
+    const d = await r.json();
     return {
       ok: Boolean(r.ok && d?.ok),
       adapters: Array.isArray(d?.adapters) ? d.adapters : [],
-    }
+    };
   } catch {
     return {
       ok: false,
-      adapters: [{ adapter: 'route_smoke', passed: false, summary: 'Verification request failed' }],
-    }
+      adapters: [
+        {
+          adapter: "route_smoke",
+          passed: false,
+          summary: "Verification request failed",
+        },
+      ],
+    };
   }
 }
 
@@ -714,9 +915,9 @@ async function runVerificationAdapters(): Promise<VerificationPayload> {
 async function autoLearn(
   userMessage: string,
   agentAnswer: string,
-  settings:    Settings,
+  settings: Settings,
 ): Promise<void> {
-  if (!agentAnswer || agentAnswer.length < 40) return
+  if (!agentAnswer || agentAnswer.length < 40) return;
 
   try {
     const prompt = `You are a fact extractor. Extract up to 5 concise, standalone facts or preferences from this conversation that are worth remembering for future sessions.
@@ -725,71 +926,76 @@ User said: "${userMessage.slice(0, 400)}"
 Agent replied: "${agentAnswer.slice(0, 600)}"
 
 Output ONLY a JSON array of strings. Each string is one fact (max 120 chars). If nothing is worth saving, output [].
-Example: ["User is analyzing BTC/USD 4h chart", "User prefers RSI(14) over MACD for entries"]`
+Example: ["User is analyzing BTC/USD 4h chart", "User prefers RSI(14) over MACD for entries"]`;
 
-    let extracted: string[] = []
+    let extracted: string[] = [];
 
-    if (settings.aiProvider === 'anthropic') {
-      const res = await apiFetch('/api/ai', {
-        method: 'POST',
+    if (settings.aiProvider === "anthropic") {
+      const res = await apiFetch("/api/ai", {
+        method: "POST",
         body: JSON.stringify({
-          provider:   'anthropic',
-          model:      'claude-haiku-4-5-20251001',
+          provider: "anthropic",
+          model: "claude-haiku-4-5-20251001",
           max_tokens: 256,
-          messages:   [{ role: 'user', content: prompt }],
-          task:       'fast',
+          messages: [{ role: "user", content: prompt }],
+          task: "fast",
         }),
         signal: AbortSignal.timeout(15_000),
-      })
+      });
       if (res.ok) {
-        const data = await res.json()
-        const raw  = data.content?.[0]?.text ?? data.choices?.[0]?.message?.content ?? '[]'
-        const match = raw.match(/\[[\s\S]*\]/)
-        extracted = match ? JSON.parse(match[0]) : []
+        const data = await res.json();
+        const raw =
+          data.content?.[0]?.text ??
+          data.choices?.[0]?.message?.content ??
+          "[]";
+        const match = raw.match(/\[[\s\S]*\]/);
+        extracted = match ? JSON.parse(match[0]) : [];
       }
-    } else if (settings.aiProvider === 'minimax') {
-      const res = await apiFetch('/api/ai', {
-        method: 'POST',
+    } else if (settings.aiProvider === "minimax") {
+      const res = await apiFetch("/api/ai", {
+        method: "POST",
         body: JSON.stringify({
-          provider:   'minimax',
-          model:      MINIMAX_DEFAULT_AGENT_MODEL,
+          provider: "minimax",
+          model: MINIMAX_DEFAULT_AGENT_MODEL,
           max_tokens: 256,
-          messages:   [{ role: 'user', content: prompt }],
-          task:       'fast',
+          messages: [{ role: "user", content: prompt }],
+          task: "fast",
         }),
         signal: AbortSignal.timeout(15_000),
-      })
+      });
       if (res.ok) {
-        const data = await res.json()
-        const raw  = data.choices?.[0]?.message?.content ?? '[]'
-        const match = raw.match(/\[[\s\S]*\]/)
-        extracted = match ? JSON.parse(match[0]) : []
+        const data = await res.json();
+        const raw = data.choices?.[0]?.message?.content ?? "[]";
+        const match = raw.match(/\[[\s\S]*\]/);
+        extracted = match ? JSON.parse(match[0]) : [];
       }
     } else if (settings.localEndpoint && settings.localModel) {
       const res = await fetch(settings.localEndpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          ...(settings.localApiKey ? { Authorization: `Bearer ${settings.localApiKey}` } : {}),
+          "Content-Type": "application/json",
+          ...(settings.localApiKey
+            ? { Authorization: `Bearer ${settings.localApiKey}` }
+            : {}),
         },
         body: JSON.stringify({
-          model:      settings.localModel,
+          model: settings.localModel,
           max_tokens: 256,
-          messages:   [{ role: 'user', content: prompt }],
+          messages: [{ role: "user", content: prompt }],
         }),
         signal: AbortSignal.timeout(30_000),
-      })
+      });
       if (res.ok) {
-        const data  = await res.json()
-        const raw   = data.choices?.[0]?.message?.content ?? '[]'
-        const match = raw.match(/\[[\s\S]*\]/)
-        extracted = match ? JSON.parse(match[0]) : []
+        const data = await res.json();
+        const raw = data.choices?.[0]?.message?.content ?? "[]";
+        const match = raw.match(/\[[\s\S]*\]/);
+        extracted = match ? JSON.parse(match[0]) : [];
       }
     }
 
     for (const fact of extracted) {
-      if (typeof fact === 'string' && fact.trim().length > 5) {
-        await handleRemember(fact.trim())
+      if (typeof fact === "string" && fact.trim().length > 5) {
+        await handleRemember(fact.trim());
       }
     }
   } catch {
@@ -799,321 +1005,391 @@ Example: ["User is analyzing BTC/USD 4h chart", "User prefers RSI(14) over MACD 
 
 // ── Ollama agent loop (OpenAI-compat function calling) ────────────────────────
 async function runOllamaAgent(opts: AgentOptions): Promise<string> {
-  const { settings: s, systemPrompt, messages, onStep, maxIterations = 6, draftMode = false } = opts
-  const endpoint = s.localEndpoint || 'http://localhost:11434/v1/chat/completions'
-  const model    = s.localModel    || DEFAULT_LOCAL_MODEL
+  const {
+    settings: s,
+    systemPrompt,
+    messages,
+    onStep,
+    maxIterations = 6,
+    draftMode = false,
+  } = opts;
+  const endpoint =
+    s.localEndpoint || "http://localhost:11434/v1/chat/completions";
+  const model = s.localModel || DEFAULT_LOCAL_MODEL;
 
   // In draft mode, swap write_file out for draft_file
   const tools = draftMode
-    ? [...AGENT_TOOLS.filter((t) => t.name !== 'write_file'), DRAFT_FILE_TOOL]
-    : AGENT_TOOLS
+    ? [...AGENT_TOOLS.filter((t) => t.name !== "write_file"), DRAFT_FILE_TOOL]
+    : AGENT_TOOLS;
 
-  if (typeof window !== 'undefined') useStore.getState().setCurrentPhase('executing')
-  onStep({ type: 'phase', content: 'executing', phase: 'executing' })
+  if (typeof window !== "undefined")
+    useStore.getState().setCurrentPhase("executing");
+  onStep({ type: "phase", content: "executing", phase: "executing" });
 
   if (draftMode) {
     onStep({
-      type:    'thinking',
+      type: "thinking",
       content: `⚠️ Draft mode — using ${model}. File writes are queued for Claude to finalize.`,
-    })
+    });
   } else {
-    onStep({ type: 'thinking', content: `Using local model: ${model}` })
+    onStep({ type: "thinking", content: `Using local model: ${model}` });
   }
 
   type OAIMsg = {
-    role:          string
-    content:       string | null
-    tool_calls?:   object[]
-    tool_call_id?: string
-    name?:         string
-  }
+    role: string;
+    content: string | null;
+    tool_calls?: object[];
+    tool_call_id?: string;
+    name?: string;
+  };
 
   const conv: OAIMsg[] = [
-    { role: 'system', content: systemPrompt },
+    { role: "system", content: systemPrompt },
     ...messages.map((m) => ({ role: m.role, content: m.content })),
-  ]
+  ];
 
-  let finalAnswer = ''
+  let finalAnswer = "";
 
   for (let iter = 0; iter < maxIterations; iter++) {
-    let res: Response
+    let res: Response;
     try {
       res = await fetch(endpoint, {
-        method:  'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          ...(s.localApiKey ? { Authorization: `Bearer ${s.localApiKey}` } : {}),
+          "Content-Type": "application/json",
+          ...(s.localApiKey
+            ? { Authorization: `Bearer ${s.localApiKey}` }
+            : {}),
         },
         body: JSON.stringify({
           model,
-          max_tokens:  4096,
-          messages:    conv,
-          tools:       toOAITools(tools),
-          tool_choice: 'auto',
+          max_tokens: 4096,
+          messages: conv,
+          tools: toOAITools(tools),
+          tool_choice: "auto",
         }),
         signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
-      })
+      });
     } catch (e) {
-      const isTimeout = e instanceof Error && e.name === 'TimeoutError'
+      const isTimeout = e instanceof Error && e.name === "TimeoutError";
       finalAnswer = isTimeout
         ? `Ollama took too long to respond (${OLLAMA_TIMEOUT_MS / 1000}s). The model may still be loading — try again in a moment.`
-        : `Could not reach Ollama at ${endpoint}. Make sure Ollama is running: open a terminal and run \`ollama serve\`.`
-      onStep({ type: 'answer', content: finalAnswer })
-      break
+        : `Could not reach Ollama at ${endpoint}. Make sure Ollama is running: open a terminal and run \`ollama serve\`.`;
+      onStep({ type: "answer", content: finalAnswer });
+      break;
     }
 
-    let data: Record<string, unknown>
+    let data: Record<string, unknown>;
     try {
-      data = await res.json()
+      data = await res.json();
     } catch {
-      finalAnswer = 'Ollama returned an unreadable response. Try again.'
-      onStep({ type: 'answer', content: finalAnswer })
-      break
+      finalAnswer = "Ollama returned an unreadable response. Try again.";
+      onStep({ type: "answer", content: finalAnswer });
+      break;
     }
 
     if (!res.ok) {
-      finalAnswer = (data?.error as { message?: string })?.message ?? `Ollama error (HTTP ${res.status}).`
-      onStep({ type: 'answer', content: finalAnswer })
-      break
+      finalAnswer =
+        (data?.error as { message?: string })?.message ??
+        `Ollama error (HTTP ${res.status}).`;
+      onStep({ type: "answer", content: finalAnswer });
+      break;
     }
 
-    type OAIChoice = { message?: { content?: string | null; tool_calls?: { id: string; function: { name: string; arguments: string } }[] }; finish_reason?: string }
-    const choices    = data.choices as OAIChoice[] | undefined
-    const msg        = choices?.[0]?.message
-    const stopReason = choices?.[0]?.finish_reason ?? ''
+    type OAIChoice = {
+      message?: {
+        content?: string | null;
+        tool_calls?: {
+          id: string;
+          function: { name: string; arguments: string };
+        }[];
+      };
+      finish_reason?: string;
+    };
+    const choices = data.choices as OAIChoice[] | undefined;
+    const msg = choices?.[0]?.message;
+    const stopReason = choices?.[0]?.finish_reason ?? "";
 
     // No tool calls → final answer
     if (!msg?.tool_calls?.length) {
-      finalAnswer = msg?.content ?? ''
-      onStep({ type: 'answer', content: finalAnswer })
-      break
+      finalAnswer = msg?.content ?? "";
+      onStep({ type: "answer", content: finalAnswer });
+      break;
     }
 
     // Add assistant turn with tool_calls
-    conv.push({ role: 'assistant', content: msg.content ?? null, tool_calls: msg.tool_calls })
+    conv.push({
+      role: "assistant",
+      content: msg.content ?? null,
+      tool_calls: msg.tool_calls,
+    });
 
     // Execute tool calls sequentially
     for (const tc of msg.tool_calls) {
-      const name = tc.function.name
-      let   input: Record<string, string> = {}
-      try { input = JSON.parse(tc.function.arguments) } catch { /* ignore parse errors */ }
-
-      const risk = getToolRisk(name)
-      onStep({
-        type: 'tool_call',
-        content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
-        tool: name,
-      })
-
-      let result: string
-
-      if (name === 'draft_file' && draftMode) {
-        // Queue as a pending draft instead of writing to disk
-        const store = useStore.getState()
-        store.addPendingDraft({
-          filename: input.filename ?? 'draft.md',
-          content:  input.content  ?? '',
-          model,
-          prompt:   messages.at(-1)?.content ?? '',
-        })
-        result = `📝 Draft saved: "${input.filename ?? 'draft.md'}" — queued for Claude to finalize.`
-      } else {
-        result = await executeTool(name, input)
+      const name = tc.function.name;
+      let input: Record<string, string> = {};
+      try {
+        input = JSON.parse(tc.function.arguments);
+      } catch {
+        /* ignore parse errors */
       }
 
-      onStep({ type: 'tool_result', content: result, tool: name })
-      conv.push({ role: 'tool', tool_call_id: tc.id, name, content: result })
+      const risk = getToolRisk(name);
+      onStep({
+        type: "tool_call",
+        content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
+        tool: name,
+      });
+
+      let result: string;
+
+      if (name === "draft_file" && draftMode) {
+        // Queue as a pending draft instead of writing to disk
+        const store = useStore.getState();
+        store.addPendingDraft({
+          filename: input.filename ?? "draft.md",
+          content: input.content ?? "",
+          model,
+          prompt: messages.at(-1)?.content ?? "",
+        });
+        result = `📝 Draft saved: "${input.filename ?? "draft.md"}" — queued for Claude to finalize.`;
+      } else {
+        result = await executeTool(name, input);
+      }
+
+      onStep({ type: "tool_result", content: result, tool: name });
+      conv.push({ role: "tool", tool_call_id: tc.id, name, content: result });
     }
 
-    if (stopReason === 'stop') break
+    if (stopReason === "stop") break;
   }
 
-  return finalAnswer
+  return finalAnswer;
 }
 
 // ── MiniMax agent loop (OpenAI-compat tools via /api/ai — key server-side) ────
 async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
-  const { settings: s, systemPrompt, messages, onStep, maxIterations = 6 } = opts
-  const model = MINIMAX_DEFAULT_AGENT_MODEL
-  const tools = AGENT_TOOLS
+  const {
+    settings: s,
+    systemPrompt,
+    messages,
+    onStep,
+    maxIterations = 6,
+  } = opts;
+  const model = MINIMAX_DEFAULT_AGENT_MODEL;
+  const tools = AGENT_TOOLS;
 
-  if (typeof window !== 'undefined') useStore.getState().setCurrentPhase('executing')
-  onStep({ type: 'phase', content: 'executing', phase: 'executing' })
-  onStep({ type: 'thinking', content: `Using MiniMax (${model}) via server proxy…` })
+  if (typeof window !== "undefined")
+    useStore.getState().setCurrentPhase("executing");
+  onStep({ type: "phase", content: "executing", phase: "executing" });
+  onStep({
+    type: "thinking",
+    content: `Using MiniMax (${model}) via server proxy…`,
+  });
 
   type OAIMsg = {
-    role:          string
-    content:       string | null
-    tool_calls?:   object[]
-    tool_call_id?: string
-    name?:         string
-  }
+    role: string;
+    content: string | null;
+    tool_calls?: object[];
+    tool_call_id?: string;
+    name?: string;
+  };
 
   const conv: OAIMsg[] = [
-    { role: 'system', content: systemPrompt },
+    { role: "system", content: systemPrompt },
     ...messages.map((m) => ({ role: m.role, content: m.content })),
-  ]
+  ];
 
-  let finalAnswer = ''
+  let finalAnswer = "";
 
   for (let iter = 0; iter < maxIterations; iter++) {
-    const systemOut = conv[0]?.role === 'system' ? String(conv[0].content ?? '') : undefined
-    const msgs      = conv[0]?.role === 'system' ? conv.slice(1) : [...conv]
+    const systemOut =
+      conv[0]?.role === "system" ? String(conv[0].content ?? "") : undefined;
+    const msgs = conv[0]?.role === "system" ? conv.slice(1) : [...conv];
 
-    let res: Response
+    let res: Response;
     try {
-      res = await apiFetch('/api/ai', {
-        method: 'POST',
+      res = await apiFetch("/api/ai", {
+        method: "POST",
         body: JSON.stringify({
-          provider:    'minimax',
+          provider: "minimax",
           model,
-          max_tokens:  4096,
-          system:      systemOut,
-          messages:    msgs,
-          tools:       toOAITools(tools),
-          tool_choice: 'auto',
+          max_tokens: 4096,
+          system: systemOut,
+          messages: msgs,
+          tools: toOAITools(tools),
+          tool_choice: "auto",
         }),
         signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
-      })
+      });
     } catch (e) {
-      const isTimeout = e instanceof Error && e.name === 'TimeoutError'
+      const isTimeout = e instanceof Error && e.name === "TimeoutError";
       finalAnswer = isTimeout
         ? `MiniMax took too long (${OLLAMA_TIMEOUT_MS / 1000}s). Try again or switch provider.`
-        : 'Network error reaching MiniMax via /api/ai.'
-      onStep({ type: 'answer', content: finalAnswer })
-      break
+        : "Network error reaching MiniMax via /api/ai.";
+      onStep({ type: "answer", content: finalAnswer });
+      break;
     }
 
-    let data: Record<string, unknown>
+    let data: Record<string, unknown>;
     try {
-      data = await res.json()
+      data = await res.json();
     } catch {
-      finalAnswer = 'MiniMax returned an unreadable response.'
-      onStep({ type: 'answer', content: finalAnswer })
-      break
+      finalAnswer = "MiniMax returned an unreadable response.";
+      onStep({ type: "answer", content: finalAnswer });
+      break;
     }
 
     if (!res.ok) {
       const msg =
         (data?.error as { message?: string })?.message ??
-        (typeof data?.message === 'string' ? data.message : null) ??
-        `MiniMax error (HTTP ${res.status}). Is MINIMAX_API_KEY set?`
-      finalAnswer = msg
-      onStep({ type: 'answer', content: finalAnswer })
-      break
+        (typeof data?.message === "string" ? data.message : null) ??
+        `MiniMax error (HTTP ${res.status}). Is MINIMAX_API_KEY set?`;
+      finalAnswer = msg;
+      onStep({ type: "answer", content: finalAnswer });
+      break;
     }
 
     type OAIChoice = {
       message?: {
-        content?:      string | null
-        tool_calls?: { id: string; function: { name: string; arguments: string } }[]
-      }
-      finish_reason?: string
-    }
-    const choices    = data.choices as OAIChoice[] | undefined
-    const msg        = choices?.[0]?.message
-    const stopReason = choices?.[0]?.finish_reason ?? ''
+        content?: string | null;
+        tool_calls?: {
+          id: string;
+          function: { name: string; arguments: string };
+        }[];
+      };
+      finish_reason?: string;
+    };
+    const choices = data.choices as OAIChoice[] | undefined;
+    const msg = choices?.[0]?.message;
+    const stopReason = choices?.[0]?.finish_reason ?? "";
 
     if (!msg?.tool_calls?.length) {
-      finalAnswer = msg?.content ?? ''
-      onStep({ type: 'answer', content: finalAnswer })
-      break
+      finalAnswer = msg?.content ?? "";
+      onStep({ type: "answer", content: finalAnswer });
+      break;
     }
 
-    conv.push({ role: 'assistant', content: msg.content ?? null, tool_calls: msg.tool_calls })
+    conv.push({
+      role: "assistant",
+      content: msg.content ?? null,
+      tool_calls: msg.tool_calls,
+    });
 
     for (const tc of msg.tool_calls) {
-      const name = tc.function.name
-      let   input: Record<string, string> = {}
-      try { input = JSON.parse(tc.function.arguments) } catch { /* ignore */ }
+      const name = tc.function.name;
+      let input: Record<string, string> = {};
+      try {
+        input = JSON.parse(tc.function.arguments);
+      } catch {
+        /* ignore */
+      }
 
-      const risk = getToolRisk(name)
+      const risk = getToolRisk(name);
       onStep({
-        type:    'tool_call',
+        type: "tool_call",
         content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
-        tool:    name,
-      })
+        tool: name,
+      });
 
-      const result = await executeTool(name, input)
-      onStep({ type: 'tool_result', content: result, tool: name })
-      conv.push({ role: 'tool', tool_call_id: tc.id, name, content: result })
+      const result = await executeTool(name, input);
+      onStep({ type: "tool_result", content: result, tool: name });
+      conv.push({ role: "tool", tool_call_id: tc.id, name, content: result });
     }
 
-    if (stopReason === 'stop') break
+    if (stopReason === "stop") break;
   }
 
-  return finalAnswer
+  return finalAnswer;
 }
 
 // ── Main agent loop ───────────────────────────────────────────────────────────
 export async function runAgent(opts: AgentOptions): Promise<string> {
-  const { settings, systemPrompt, messages, onStep, maxIterations = 8, onToken } = opts
-  void onToken // referenced via opts.onToken in loop body
-  const s = settings ?? getSettings()
-  const runId = `run_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
-  const phaseStart = new Map<OperationalPhase, number>()
-  const phaseDurations: Partial<Record<OperationalPhase, number>> = {}
+  const {
+    settings,
+    systemPrompt,
+    messages,
+    onStep,
+    maxIterations = 8,
+    onToken,
+  } = opts;
+  void onToken; // referenced via opts.onToken in loop body
+  const s = settings ?? getSettings();
+  const runId = `run_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const phaseStart = new Map<OperationalPhase, number>();
+  const phaseDurations: Partial<Record<OperationalPhase, number>> = {};
   const markPhase = (phase: OperationalPhase) => {
-    const now = Date.now()
-    const current = typeof window !== 'undefined' ? useStore.getState().currentPhase : undefined
+    const now = Date.now();
+    const current =
+      typeof window !== "undefined"
+        ? useStore.getState().currentPhase
+        : undefined;
     if (current && phaseStart.has(current)) {
-      phaseDurations[current] = (phaseDurations[current] ?? 0) + Math.max(0, now - (phaseStart.get(current) ?? now))
+      phaseDurations[current] =
+        (phaseDurations[current] ?? 0) +
+        Math.max(0, now - (phaseStart.get(current) ?? now));
     }
-    phaseStart.set(phase, now)
-    if (typeof window !== 'undefined') {
-      const st = useStore.getState()
-      st.setCurrentPhase(phase)
-      st.markAgentPhase(phase)
+    phaseStart.set(phase, now);
+    if (typeof window !== "undefined") {
+      const st = useStore.getState();
+      st.setCurrentPhase(phase);
+      st.markAgentPhase(phase);
     }
-    onStep({ type: 'phase', content: phase, phase })
-  }
+    onStep({ type: "phase", content: phase, phase });
+  };
 
-  if (typeof window !== 'undefined') useStore.getState().beginAgentRun(runId)
+  if (typeof window !== "undefined") useStore.getState().beginAgentRun(runId);
 
   // ── Phase: interpreting ───────────────────────────────────────────────────
-  const userMessage = messages.findLast(m => m.role === 'user')?.content ?? ''
-  markPhase('interpreting')
+  const userMessage =
+    messages.findLast((m) => m.role === "user")?.content ?? "";
+  markPhase("interpreting");
 
   // ── Task plan: heuristic decomposition ───────────────────────────────────
-  const plan = buildTaskPlan(userMessage)
-  if (typeof window !== 'undefined') {
-    useStore.getState().setTaskPlan(plan)
+  const plan = buildTaskPlan(userMessage);
+  if (typeof window !== "undefined") {
+    useStore.getState().setTaskPlan(plan);
   }
-  onStep({ type: 'task_plan', content: JSON.stringify(plan), plan })
-  markPhase('planning')
+  onStep({ type: "task_plan", content: JSON.stringify(plan), plan });
+  markPhase("planning");
 
   // ── Auto-recall: inject relevant memories into system prompt ─────────────
-  const memoryContext   = await buildMemoryContext(userMessage)
-  const enrichedPrompt  = systemPrompt + memoryContext
-  const contextChars = memoryContext.length
-  const contextCompacted = memoryContext.includes('[CONTEXT COMPACTED')
+  const memoryContext = await buildMemoryContext(userMessage);
+  const enrichedPrompt = systemPrompt + memoryContext;
+  const contextChars = memoryContext.length;
+  const contextCompacted = memoryContext.includes("[CONTEXT COMPACTED");
 
   // Read current AI mode from store (outside React — getState() is safe)
   const storeAiMode: AIMode =
-    typeof window !== 'undefined' ? useStore.getState().aiMode : 'auto'
+    typeof window !== "undefined" ? useStore.getState().aiMode : "auto";
 
-  const enrichedOpts = { ...opts, systemPrompt: enrichedPrompt }
+  const enrichedOpts = { ...opts, systemPrompt: enrichedPrompt };
 
   const finalizeRunState = (ok: boolean) => {
-    if (typeof window === 'undefined') return
-    const store = useStore.getState()
+    if (typeof window === "undefined") return;
+    const store = useStore.getState();
     if (ok) {
-      store.setCurrentPhase('done')
+      store.setCurrentPhase("done");
       store.taskPlan.forEach((t) => {
-        if (t.status !== 'failed') store.updateTaskItem(t.id, 'done')
-      })
-      return
+        if (t.status !== "failed") store.updateTaskItem(t.id, "done");
+      });
+      return;
     }
     // Mark active/pending steps as failed so stale partial plans don't linger.
     store.taskPlan.forEach((t) => {
-      if (t.status === 'pending' || t.status === 'running') store.updateTaskItem(t.id, 'failed')
-    })
-    store.setCurrentPhase('done')
-  }
+      if (t.status === "pending" || t.status === "running")
+        store.updateTaskItem(t.id, "failed");
+    });
+    store.setCurrentPhase("done");
+  };
 
-  const finishDiagnostics = (args: { ok: boolean; failureCause?: string; verification?: VerificationPayload }) => {
-    if (typeof window === 'undefined') return
-    const v = args.verification
+  const finishDiagnostics = (args: {
+    ok: boolean;
+    failureCause?: string;
+    verification?: VerificationPayload;
+  }) => {
+    if (typeof window === "undefined") return;
+    const v = args.verification;
     const verification = v
       ? {
           required: true,
@@ -1128,233 +1404,273 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
           passed: true,
           adapters: [],
           details: [],
-        }
+        };
     useStore.getState().finishAgentRun({
-      status: args.ok ? (verification.passed ? 'verified' : 'degraded') : 'failed',
+      status: args.ok
+        ? verification.passed
+          ? "verified"
+          : "degraded"
+        : "failed",
       failureCause: args.failureCause,
       verification,
       contextChars,
       contextCompacted,
-    })
-  }
+    });
+  };
 
   // No API key in settings AND not a server-cloud default → Ollama in regular mode
   // Anthropic / MiniMax always try /api/ai (keys in .env). OpenAI path uses legacy apiKey or auto chain.
-  if (s.aiProvider !== 'anthropic' && s.aiProvider !== 'minimax' && !s.apiKey) {
+  if (s.aiProvider !== "anthropic" && s.aiProvider !== "minimax" && !s.apiKey) {
     try {
-      const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: false })
-      finalizeRunState(Boolean(answer))
-      finishDiagnostics({ ok: Boolean(answer) })
-      void autoLearn(userMessage, answer, s)
-      return answer
+      const answer = await runOllamaAgent({
+        ...enrichedOpts,
+        draftMode: false,
+      });
+      finalizeRunState(Boolean(answer));
+      finishDiagnostics({ ok: Boolean(answer) });
+      void autoLearn(userMessage, answer, s);
+      return answer;
     } catch {
-      const err = 'Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.'
-      finalizeRunState(false)
-      finishDiagnostics({ ok: false, failureCause: err })
-      onStep({ type: 'answer', content: err })
-      return err
+      const err =
+        "Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.";
+      finalizeRunState(false);
+      finishDiagnostics({ ok: false, failureCause: err });
+      onStep({ type: "answer", content: err });
+      return err;
     }
   }
 
   // User forced local/draft mode explicitly
-  if (storeAiMode === 'local') {
+  if (storeAiMode === "local") {
     try {
-      const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: true })
-      finalizeRunState(Boolean(answer))
-      finishDiagnostics({ ok: Boolean(answer) })
-      void autoLearn(userMessage, answer, s)
-      return answer
+      const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: true });
+      finalizeRunState(Boolean(answer));
+      finishDiagnostics({ ok: Boolean(answer) });
+      void autoLearn(userMessage, answer, s);
+      return answer;
     } catch {
-      const err = 'Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.'
-      finalizeRunState(false)
-      finishDiagnostics({ ok: false, failureCause: err })
-      onStep({ type: 'answer', content: err })
-      return err
+      const err =
+        "Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.";
+      finalizeRunState(false);
+      finishDiagnostics({ ok: false, failureCause: err });
+      onStep({ type: "answer", content: err });
+      return err;
     }
   }
 
   // ── MiniMax — OpenAI-format tool loop (server-side MINIMAX_API_KEY)
-  if (s.aiProvider === 'minimax') {
+  if (s.aiProvider === "minimax") {
     try {
-      const answer = await runMiniMaxAgent(enrichedOpts)
-      finalizeRunState(Boolean(answer))
-      finishDiagnostics({ ok: Boolean(answer) })
-      void autoLearn(userMessage, answer, s)
-      return answer
+      const answer = await runMiniMaxAgent(enrichedOpts);
+      finalizeRunState(Boolean(answer));
+      finishDiagnostics({ ok: Boolean(answer) });
+      void autoLearn(userMessage, answer, s);
+      return answer;
     } catch {
       const err =
-        'MiniMax agent failed. Set MINIMAX_API_KEY in Settings, save, then restart `npm run dev`.'
-      finalizeRunState(false)
-      finishDiagnostics({ ok: false, failureCause: err })
-      onStep({ type: 'answer', content: err })
-      return err
+        "MiniMax agent failed. Set MINIMAX_API_KEY in Settings, save, then restart `npm run dev`.";
+      finalizeRunState(false);
+      finishDiagnostics({ ok: false, failureCause: err });
+      onStep({ type: "answer", content: err });
+      return err;
     }
   }
 
   // ── Anthropic tool-use loop (routed through /api/ai — key stays server-side)
-  type AnthMsg = { role: 'user' | 'assistant'; content: string | object[] }
+  type AnthMsg = { role: "user" | "assistant"; content: string | object[] };
   const conv: AnthMsg[] = messages.map((m) => ({
-    role:    m.role === 'user' ? 'user' : 'assistant',
+    role: m.role === "user" ? "user" : "assistant",
     content: m.content,
-  }))
+  }));
 
-  let finalAnswer = ''
+  let finalAnswer = "";
 
   for (let iter = 0; iter < maxIterations; iter++) {
-    let res: Response
+    let res: Response;
     try {
-      res = await apiFetch('/api/ai', {
-        method: 'POST',
+      res = await apiFetch("/api/ai", {
+        method: "POST",
         body: JSON.stringify({
-          provider:   'anthropic',
-          model:      'claude-opus-4-5',
+          provider: "anthropic",
+          model: "claude-opus-4-5",
           max_tokens: 4096,
-          system:     enrichedPrompt,
-          tools:      AGENT_TOOLS,
-          messages:   conv,
+          system: enrichedPrompt,
+          tools: AGENT_TOOLS,
+          messages: conv,
         }),
         signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
-      })
+      });
     } catch (e) {
-      const isTimeout = e instanceof Error && e.name === 'TimeoutError'
+      const isTimeout = e instanceof Error && e.name === "TimeoutError";
       finalAnswer = isTimeout
-        ? 'Claude took too long to respond. Switching to local model…'
-        : 'Network error reaching Claude API.'
+        ? "Claude took too long to respond. Switching to local model…"
+        : "Network error reaching Claude API.";
       // On timeout, try Ollama as fallback
       if (isTimeout) {
         try {
-          const fallback = await runOllamaAgent({ ...enrichedOpts, draftMode: false })
-          finalizeRunState(Boolean(fallback))
-          finishDiagnostics({ ok: Boolean(fallback) })
-          return fallback
-        } catch { /* ignore */ }
+          const fallback = await runOllamaAgent({
+            ...enrichedOpts,
+            draftMode: false,
+          });
+          finalizeRunState(Boolean(fallback));
+          finishDiagnostics({ ok: Boolean(fallback) });
+          return fallback;
+        } catch {
+          /* ignore */
+        }
       }
-      finalizeRunState(false)
-      finishDiagnostics({ ok: false, failureCause: finalAnswer })
-      onStep({ type: 'answer', content: finalAnswer })
-      break
+      finalizeRunState(false);
+      finishDiagnostics({ ok: false, failureCause: finalAnswer });
+      onStep({ type: "answer", content: finalAnswer });
+      break;
     }
 
-    const data = await res.json()
+    const data = await res.json();
 
     // 429 or overloaded → auto-fall to Ollama in draft mode
-    if (res.status === 429 || data?.error?.type === 'overloaded_error') {
+    if (res.status === 429 || data?.error?.type === "overloaded_error") {
       onStep({
-        type:    'thinking',
-        content: '⚠️ Claude rate limit hit — switching to local model. File writes queued as drafts.',
-      })
-      useStore.getState().setAIMode('local')
+        type: "thinking",
+        content:
+          "⚠️ Claude rate limit hit — switching to local model. File writes queued as drafts.",
+      });
+      useStore.getState().setAIMode("local");
       try {
-        const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: true })
-        finalizeRunState(Boolean(answer))
-        finishDiagnostics({ ok: Boolean(answer) })
-        void autoLearn(userMessage, answer, s)
-        return answer
+        const answer = await runOllamaAgent({
+          ...enrichedOpts,
+          draftMode: true,
+        });
+        finalizeRunState(Boolean(answer));
+        finishDiagnostics({ ok: Boolean(answer) });
+        void autoLearn(userMessage, answer, s);
+        return answer;
       } catch {
-        const err = 'Claude rate limited and Ollama is not reachable. Try again later.'
-        finalizeRunState(false)
-        finishDiagnostics({ ok: false, failureCause: err })
-        onStep({ type: 'answer', content: err })
-        return err
+        const err =
+          "Claude rate limited and Ollama is not reachable. Try again later.";
+        finalizeRunState(false);
+        finishDiagnostics({ ok: false, failureCause: err });
+        onStep({ type: "answer", content: err });
+        return err;
       }
     }
 
     if (!res.ok) {
-      finalAnswer = data?.error?.message ?? 'Claude API error.'
-      finalizeRunState(false)
-      finishDiagnostics({ ok: false, failureCause: finalAnswer })
-      break
+      finalAnswer = data?.error?.message ?? "Claude API error.";
+      finalizeRunState(false);
+      finishDiagnostics({ ok: false, failureCause: finalAnswer });
+      break;
     }
 
-    const stopReason = data.stop_reason as string
-    const content    = data.content as {
-      type:   string
-      text?:  string
-      id?:    string
-      name?:  string
-      input?: Record<string, string>
-    }[]
+    const stopReason = data.stop_reason as string;
+    const content = data.content as {
+      type: string;
+      text?: string;
+      id?: string;
+      name?: string;
+      input?: Record<string, string>;
+    }[];
 
-    const textBlocks = content.filter((b) => b.type === 'text').map((b) => b.text ?? '').join('')
-    if (textBlocks) onStep({ type: 'thinking', content: textBlocks })
+    const textBlocks = content
+      .filter((b) => b.type === "text")
+      .map((b) => b.text ?? "")
+      .join("");
+    if (textBlocks) onStep({ type: "thinking", content: textBlocks });
 
-    if (stopReason === 'end_turn' || !content.find((b) => b.type === 'tool_use')) {
-      finalAnswer = textBlocks
+    if (
+      stopReason === "end_turn" ||
+      !content.find((b) => b.type === "tool_use")
+    ) {
+      finalAnswer = textBlocks;
 
       // ── Streaming delivery: push tokens progressively if caller wants it ────
       // Splits the final text into ~4-char chunks and calls onToken with a small
       // delay between each, giving a live-typing appearance without a second API call.
       if (opts.onToken && textBlocks.length > 0) {
-        markPhase('responding')
-        const CHUNK = 4
+        markPhase("responding");
+        const CHUNK = 4;
         for (let i = 0; i < textBlocks.length; i += CHUNK) {
-          opts.onToken(textBlocks.slice(i, i + CHUNK))
-          await new Promise(r => setTimeout(r, 8))
+          opts.onToken(textBlocks.slice(i, i + CHUNK));
+          await new Promise((r) => setTimeout(r, 8));
         }
       } else {
-        onStep({ type: 'answer', content: textBlocks })
+        onStep({ type: "answer", content: textBlocks });
       }
-      break
+      break;
     }
 
-    conv.push({ role: 'assistant', content })
+    conv.push({ role: "assistant", content });
 
-    const toolUseBlocks = content.filter((b) => b.type === 'tool_use')
-    const toolResults: object[] = []
+    const toolUseBlocks = content.filter((b) => b.type === "tool_use");
+    const toolResults: object[] = [];
 
     // First tool call → transition to executing phase
     if (toolUseBlocks.length > 0) {
-      markPhase('executing')
+      markPhase("executing");
       // Advance task plan: step 1 done, step 2 running
-      if (typeof window !== 'undefined') {
-        const store = useStore.getState()
-        const tp = store.taskPlan
+      if (typeof window !== "undefined") {
+        const store = useStore.getState();
+        const tp = store.taskPlan;
         if (tp.length >= 2) {
-          store.updateTaskItem(tp[0].id, 'done')
-          store.updateTaskItem(tp[1].id, 'running')
+          store.updateTaskItem(tp[0].id, "done");
+          store.updateTaskItem(tp[1].id, "running");
         }
       }
     }
 
     await Promise.all(
       toolUseBlocks.map(async (b) => {
-        const name  = b.name  ?? ''
-        const input = (b.input ?? {}) as Record<string, string>
-        const risk = getToolRisk(name)
+        const name = b.name ?? "";
+        const input = (b.input ?? {}) as Record<string, string>;
+        const risk = getToolRisk(name);
         onStep({
-          type: 'tool_call',
+          type: "tool_call",
           content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
           tool: name,
-        })
-        const result = await executeTool(name, input)
-        onStep({ type: 'tool_result', content: result, tool: name })
-        toolResults.push({ type: 'tool_result', tool_use_id: b.id, content: result })
-      })
-    )
+        });
+        const result = await executeTool(name, input);
+        onStep({ type: "tool_result", content: result, tool: name });
+        toolResults.push({
+          type: "tool_result",
+          tool_use_id: b.id,
+          content: result,
+        });
+      }),
+    );
 
-    conv.push({ role: 'user', content: toolResults })
+    conv.push({ role: "user", content: toolResults });
   }
 
   // Final phase transition + mark task plan complete
   if (finalAnswer) {
-    markPhase('validating')
-    let verification: VerificationPayload | undefined
+    markPhase("validating");
+    let verification: VerificationPayload | undefined;
     if (!s.agentHighRiskWritesRequireApproval) {
-      verification = await runVerificationAdapters()
+      verification = await runVerificationAdapters();
       if (!verification.ok) {
-        onStep({ type: 'thinking', content: 'Verification failed: run marked DEGRADED (typecheck/lint/route smoke).' })
+        onStep({
+          type: "thinking",
+          content:
+            "Verification failed: run marked DEGRADED (typecheck/lint/route smoke).",
+        });
       } else {
-        onStep({ type: 'thinking', content: 'Verification passed: typecheck, lint, route smoke.' })
+        onStep({
+          type: "thinking",
+          content: "Verification passed: typecheck, lint, route smoke.",
+        });
       }
     }
-    finalizeRunState(true)
-    markPhase('done')
-    finishDiagnostics({ ok: true, verification })
+    finalizeRunState(true);
+    markPhase("done");
+    finishDiagnostics({ ok: true, verification });
   }
 
   // Auto-learn from completed conversation — runs silently in background
-  if (finalAnswer) void autoLearn(userMessage, finalAnswer, s)
-  if (!finalAnswer) finishDiagnostics({ ok: false, failureCause: 'Run ended without final answer' })
+  if (finalAnswer) void autoLearn(userMessage, finalAnswer, s);
+  if (!finalAnswer)
+    finishDiagnostics({
+      ok: false,
+      failureCause: "Run ended without final answer",
+    });
 
-  return finalAnswer
+  return finalAnswer;
 }

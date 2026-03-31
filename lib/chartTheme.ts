@@ -4,41 +4,41 @@
 
 export const CHART = {
   // Primary palette
-  burgundy:   '#6b1d2a',
-  rose:       '#c4485a',
-  gold:       '#d4956a',
-  blush:      '#e8a0aa',
-  bg:         '#0a0708',
-  
+  burgundy: "#6b1d2a",
+  rose: "#c4485a",
+  gold: "#d4956a",
+  blush: "#e8a0aa",
+  bg: "#0a0708",
+
   // Extended data viz colors (harmonious with theme)
-  teal:       '#2dd4bf',
-  cyan:       '#22d3ee',
-  violet:     '#a78bfa',
-  amber:      '#f59e0b',
-  emerald:    '#10b981',
-  red:        '#ef4444',
-  sky:        '#38bdf8',
-  pink:       '#ec4899',
-  lime:       '#84cc16',
-  orange:     '#f97316',
+  teal: "#2dd4bf",
+  cyan: "#22d3ee",
+  violet: "#a78bfa",
+  amber: "#f59e0b",
+  emerald: "#10b981",
+  red: "#ef4444",
+  sky: "#38bdf8",
+  pink: "#ec4899",
+  lime: "#84cc16",
+  orange: "#f97316",
 
   // Surfaces
-  surf:       '#110e0d',
-  surf2:      '#1a1412',
-  surf3:      '#241c19',
-  border:     '#2a2220',
-  border2:    '#3a2e2b',
+  surf: "#110e0d",
+  surf2: "#1a1412",
+  surf3: "#241c19",
+  border: "#2a2220",
+  border2: "#3a2e2b",
 
   // Text
-  text:       '#ece5df',
-  text2:      '#b8a99e',
-  text3:      '#7a6b62',
+  text: "#ece5df",
+  text2: "#b8a99e",
+  text3: "#7a6b62",
 
   // Semantic
-  up:         '#10b981',
-  down:       '#ef4444',
-  neutral:    '#f59e0b',
-} as const
+  up: "#10b981",
+  down: "#ef4444",
+  neutral: "#f59e0b",
+} as const;
 
 // Series color rotation for multi-line/bar charts
 export const SERIES_COLORS = [
@@ -52,35 +52,35 @@ export const SERIES_COLORS = [
   CHART.sky,
   CHART.pink,
   CHART.lime,
-] as const
+] as const;
 
 // Recharts common axis/grid/tooltip styles
 export const AXIS_STYLE = {
   fontSize: 10,
-  fontFamily: 'monospace',
+  fontFamily: "monospace",
   fill: CHART.text3,
-}
+};
 
 export const GRID_STYLE = {
   stroke: CHART.border,
-  strokeDasharray: '3 3',
-}
+  strokeDasharray: "3 3",
+};
 
 export const TOOLTIP_STYLE = {
   contentStyle: {
     background: CHART.surf2,
     border: `1px solid ${CHART.border2}`,
-    borderRadius: '8px',
-    padding: '8px 12px',
-    fontSize: '11px',
-    fontFamily: 'monospace',
+    borderRadius: "8px",
+    padding: "8px 12px",
+    fontSize: "11px",
+    fontFamily: "monospace",
     color: CHART.text,
     boxShadow: `0 8px 32px ${CHART.bg}cc`,
   },
-  itemStyle: { color: CHART.text2, fontSize: '10px', padding: '1px 0' },
-  labelStyle: { color: CHART.text, fontWeight: 700, marginBottom: '4px' },
+  itemStyle: { color: CHART.text2, fontSize: "10px", padding: "1px 0" },
+  labelStyle: { color: CHART.text, fontWeight: 700, marginBottom: "4px" },
   cursor: { fill: `${CHART.rose}11` },
-}
+};
 
 // Glow filter for SVG charts
 export const GLOW_FILTER = `
@@ -94,7 +94,7 @@ export const GLOW_FILTER = `
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
   </defs>
-`
+`;
 
 // Animated pulse keyframes (inject once in layout)
 export const PULSE_CSS = `
@@ -126,4 +126,4 @@ export const PULSE_CSS = `
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-`
+`;

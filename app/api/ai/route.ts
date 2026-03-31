@@ -157,6 +157,14 @@ const RESEARCH_CHAIN = [
   "openai",
 ];
 
+const FREE_DEFAULT_PROVIDERS = new Set(["ollama"]);
+const ALLOW_PAID_APIS = process.env.NEXUS_ALLOW_PAID_APIS === "true";
+
+function providerAllowedByPolicy(providerName: string) {
+  if (ALLOW_PAID_APIS) return true;
+  return FREE_DEFAULT_PROVIDERS.has(providerName);
+}
+
 // ── Call a single provider ────────────────────────────────────────────────────
 async function callProvider(
   providerName: string,
@@ -275,6 +283,18 @@ export async function POST(req: NextRequest) {
     let resolvedModel: string | undefined;
 
     if (provider && PROVIDERS[provider]) {
+      if (!providerAllowedByPolicy(provider)) {
+        return NextResponse.json(
+          {
+            error: {
+              message:
+                `Provider "${provider}" is blocked by free-use policy. ` +
+                "Set NEXUS_ALLOW_PAID_APIS=true to opt in.",
+            },
+          },
+          { status: 403 },
+        );
+      }
       // Explicit provider requested
       chain = [provider];
       resolvedModel = model ?? PROVIDERS[provider].model;
@@ -287,8 +307,21 @@ export async function POST(req: NextRequest) {
       resolvedModel = taskModel ?? model;
     }
 
+    const policyFilteredChain = chain.filter(providerAllowedByPolicy);
+    if (policyFilteredChain.length === 0) {
+      return NextResponse.json(
+        {
+          error: {
+            message:
+              "No providers allowed by free-use policy. Set NEXUS_ALLOW_PAID_APIS=true to opt in.",
+          },
+        },
+        { status: 403 },
+      );
+    }
+
     // Walk the chain until one succeeds
-    for (const providerName of chain) {
+    for (const providerName of policyFilteredChain) {
       // For cloud providers in the auto chain, use provider's default model
       const effectiveModel =
         providerName === "ollama"

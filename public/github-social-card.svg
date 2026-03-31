@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-labelledby="ogtitle ogdesc">
-  <title id="ogtitle">Nexus Prime — repository social preview</title>
+  <title id="ogtitle">Nexus Prime - repository social preview</title>
   <desc id="ogdesc">Title, tagline, and keywords for Open Graph / GitHub social image</desc>
   <defs>
     <linearGradient id="ogbg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -35,5 +35,5 @@
     <text x="620" y="500" fill="#6b7280">+</text>
     <text x="648" y="500" fill="#a8a29e">Claude / MiniMax / Ollama</text>
   </g>
-  <text x="120" y="560" fill="#5c5356" font-family="system-ui,sans-serif" font-size="16">github.com/mad818/personal - README: SVG infographics</text>
+  <text x="120" y="560" fill="#5c5356" font-family="system-ui,sans-serif" font-size="16">Internal deployment package - README infographics</text>
 </svg>

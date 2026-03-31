@@ -5,6 +5,7 @@
 "use client";
 
 import { useState } from "react";
+import { sanitizeHtml } from "@/lib/security/sanitizeHtml";
 
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -255,7 +256,7 @@ export default function PassiveDnsPanel() {
               </div>
               <div
                 style={{ fontSize: "11px", lineHeight: 1.6 }}
-                dangerouslySetInnerHTML={{ __html: pdns }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(pdns) }}
               />
             </div>
           )}
@@ -273,7 +274,7 @@ export default function PassiveDnsPanel() {
               </div>
               <div
                 style={{ fontSize: "11px", lineHeight: 1.6 }}
-                dangerouslySetInnerHTML={{ __html: revIp }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(revIp) }}
               />
             </div>
           )}

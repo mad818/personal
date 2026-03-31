@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── VT323 pixel font (openclaw style) ──────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-
 /* ── Sadie Sink Theme — Design tokens ─────────────────────────────────────── */
 :root {
   --bg:      #0a0708;

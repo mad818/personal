@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { DEFAULT_LOCAL_MODEL, TASK_MODELS } from "@/lib/aiModelRouting";
 import { gradeFromEvalScore } from "@/lib/helpers";
+import { readNetworkMode } from "@/lib/security/routePolicy";
+import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
@@ -157,6 +159,10 @@ export async function GET() {
     highRiskWritesRequireApproval:
       (process.env.NEXUS_HIGH_RISK_WRITES_REQUIRE_APPROVAL ?? "true") !==
       "false",
+    networkMode: readNetworkMode(),
+    highRiskRoutesEnabled: process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true",
+    allowPaidApis: process.env.NEXUS_ALLOW_PAID_APIS === "true",
+    connectorPolicy: readConnectorPolicy(),
   };
 
   const aiRouting = {

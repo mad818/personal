@@ -1,4 +1,4 @@
-# Claude-Code First Assimilation Plan (Purpose-Driven Innovation)
+# Nexus Runtime Assimilation Plan (Purpose-Driven Innovation)
 
 > Status: Approved planning baseline.
 > Date: 2026-03-31.
@@ -8,7 +8,7 @@
 
 ## 1) Decision Lock
 
-We are not collecting ideas passively. We are adopting `instructkr/claude-code` as the first implementation baseline and integrating it into Nexus Prime's existing multi-tab intelligence platform.
+We are not collecting ideas passively. We are adopting an external `claude-code`-style runtime baseline and integrating it into Nexus Prime's existing multi-tab intelligence platform.
 
 This plan defines **why each imported system exists**, **what product outcome it must improve**, and **how we evolve beyond upstream parity**.
 
@@ -30,7 +30,7 @@ Build a Nexus-native agent runtime that is:
 
 ### Core layers
 
-1. **Runtime Layer (Claude-Code baseline)**
+1. **Runtime Layer (Nexus runtime baseline)**
    - ReAct loop, planning/execution/finalization workflow, task orchestration.
 2. **State Layer (AgentFS-inspired)**
    - Session filesystem + structured run history + replay artifacts.
@@ -56,7 +56,7 @@ Every imported idea must map to one of the above layers and ship with:
 
 | Source | Assimilate into Nexus | Purpose in product | Evolution beyond source |
 |---|---|---|---|
-| instructkr/claude-code | Runtime engine, CLI discipline, task orchestration | Establish fast baseline for reliable agent operations | Nexus-specific routing, UI telemetry, policy hooks |
+| External runtime baseline | Runtime engine, CLI discipline, task orchestration | Establish fast baseline for reliable agent operations | Nexus-specific routing, UI telemetry, policy hooks |
 | Polymarket CLI | Command ergonomics + output contracts | Deterministic automation and scriptability | Unified command semantics across HQ and APIs |
 | Anthropic Cybersecurity Skills | Skill-pack structure and security workflows | Harden cyber and recon workflows with repeatable procedures | Nexus risk-scored execution + operator approval gates |
 | turbo | plan/implement/finalize operating cadence | Enforce delivery discipline and cleaner run lifecycle | Mission-specific phase templates per agent role |
@@ -75,7 +75,7 @@ Every imported idea must map to one of the above layers and ship with:
 ## Track A — Baseline Runtime Assimilation (Week 1)
 
 ### Objective
-Integrate `instructkr/claude-code` as first-class runtime substrate.
+Integrate the external runtime baseline as first-class runtime substrate.
 
 ### Deliverables
 - Runtime imported under a dedicated integration boundary.
@@ -164,7 +164,7 @@ If a new integration does not improve at least one KPI within two sprints, it sh
 ## 7) Assimilation Backlog (execution-ready)
 
 ### P0 — Must ship first
-- [ ] Import and wire `instructkr/claude-code` runtime boundary.
+- [ ] Import and wire external runtime boundary.
 - [ ] Define runtime adapter contract (`plan`, `implement`, `finalize`, status events).
 - [ ] Persist run artifacts (inputs, tool traces, outputs, verification summary).
 - [ ] Add rollout flag for old/new runtime switching.
@@ -201,4 +201,3 @@ A source is considered *assimilated* only when all are true:
 - Security and audit requirements are satisfied.
 - Operator documentation and rollback path exist.
 - The feature is distinctly Nexus-native (not a loose bolt-on).
-

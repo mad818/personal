@@ -169,15 +169,15 @@ The graphic is the cheat sheet; in one line: **Next.js 14 App Router + TypeScrip
 
 <div align="center">
 
-<img src="./public/github-section-quickstart.svg" width="100%" alt="Quickstart: clone mad818/personal, npm install, cp .env.example, NEXUS_TOKEN and ANTHROPIC example, npm run dev, localhost PWA, npm run verify" />
+<img src="./public/github-section-quickstart.svg" width="100%" alt="Quickstart: clone your internal repo, npm install, cp .env.example, NEXUS_TOKEN and ANTHROPIC example, npm run dev, localhost PWA, npm run verify" />
 
 </div>
 
 1. **Clone & install**
 
 ```bash
-git clone https://github.com/mad818/personal.git
-cd personal
+git clone <your-internal-repo-url>
+cd <your-project-folder>
 npm install
 ```
 
@@ -209,6 +209,9 @@ ANTHROPIC_API_KEY=sk-ant-...
 - **`NEXUS_TOKEN`** — Required for the browser to call `/api/*` (Bearer token). Pick any strong random string.
 - **AI providers** — `ANTHROPIC_API_KEY`, `MINIMAX_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, `GOOGLE_AI_KEY`, etc. The server tries configured providers in order and skips missing keys.
 - **Data / intel** — CoinGecko, Finnhub, Guardian, FRED, OTX, NVD, Firecrawl, Brave, AISstream, FIRMS, … all **optional**; the UI degrades gracefully.
+- **Network mode controls** — `NEXUS_NETWORK_MODE=isolated|internal|connected` and `NEXUS_ENABLE_HIGH_RISK_TOOLS=true|false` gate which `/api/*` classes are allowed at runtime (default is safest: `isolated` + high-risk off).
+- **Free-use safeguard** — paid AI providers are blocked by default; set `NEXUS_ALLOW_PAID_APIS=true` only when you explicitly choose to use paid APIs.
+- **Connector policy override** — optional `NEXUS_CONNECTOR_POLICY_JSON` lets operators disable specific connectors (`{"news":true,"flights":false}`) without changing code.
 
 **Canonical list with comments and signup links:** [`.env.example`](./.env.example).
 

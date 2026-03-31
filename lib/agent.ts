@@ -532,6 +532,8 @@ export interface AgentOptions {
   draftMode?: boolean;
 }
 
+export type AgentRuntimeEngine = "nexus" | "claudeCode";
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function getSettings(): Settings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
@@ -1303,8 +1305,12 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
   return finalAnswer;
 }
 
-// ── Main agent loop ───────────────────────────────────────────────────────────
-export async function runAgent(opts: AgentOptions): Promise<string> {
+function getRuntimeEngine(settings: Settings): AgentRuntimeEngine {
+  return settings.agentRuntimeEngine ?? "nexus";
+}
+
+// ── Main agent loop (legacy Nexus runtime core) ─────────────────────────────
+async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   const {
     settings,
     systemPrompt,
@@ -1316,6 +1322,13 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
   void onToken; // referenced via opts.onToken in loop body
   const s = settings ?? getSettings();
   const runId = `run_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const runStartedAt = Date.now();
+  const toolTraces: {
+    tool: string;
+    risk: ToolRiskTier;
+    input: string;
+    output?: string;
+  }[] = [];
   const phaseStart = new Map<OperationalPhase, number>();
   const phaseDurations: Partial<Record<OperationalPhase, number>> = {};
   const markPhase = (phase: OperationalPhase) => {
@@ -1358,6 +1371,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
   const enrichedPrompt = systemPrompt + memoryContext;
   const contextChars = memoryContext.length;
   const contextCompacted = memoryContext.includes("[CONTEXT COMPACTED");
+  const runtimeEngine = getRuntimeEngine(s);
 
   // Read current AI mode from store (outside React — getState() is safe)
   const storeAiMode: AIMode =
@@ -1387,6 +1401,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     ok: boolean;
     failureCause?: string;
     verification?: VerificationPayload;
+    finalAnswer?: string;
   }) => {
     if (typeof window === "undefined") return;
     const v = args.verification;
@@ -1416,6 +1431,27 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
       contextChars,
       contextCompacted,
     });
+    const verificationSummary = v
+      ? v.adapters
+          .map((a) => `${a.adapter}:${a.passed ? "ok" : "fail"}`)
+          .join(", ")
+      : verification.required
+        ? verification.passed
+          ? "required:passed"
+          : "required:failed"
+        : "not-required";
+    useStore.getState().addAgentRunArtifact({
+      runId,
+      runtimeEngine,
+      startedAt: runStartedAt,
+      finishedAt: Date.now(),
+      userMessage,
+      finalAnswer: args.finalAnswer ?? "",
+      verificationSummary,
+      contextChars,
+      contextCompacted,
+      toolTraces,
+    });
   };
 
   // No API key in settings AND not a server-cloud default → Ollama in regular mode
@@ -1427,14 +1463,14 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
         draftMode: false,
       });
       finalizeRunState(Boolean(answer));
-      finishDiagnostics({ ok: Boolean(answer) });
+      finishDiagnostics({ ok: Boolean(answer), finalAnswer: answer });
       void autoLearn(userMessage, answer, s);
       return answer;
     } catch {
       const err =
         "Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.";
       finalizeRunState(false);
-      finishDiagnostics({ ok: false, failureCause: err });
+      finishDiagnostics({ ok: false, failureCause: err, finalAnswer: err });
       onStep({ type: "answer", content: err });
       return err;
     }
@@ -1445,14 +1481,14 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     try {
       const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: true });
       finalizeRunState(Boolean(answer));
-      finishDiagnostics({ ok: Boolean(answer) });
+      finishDiagnostics({ ok: Boolean(answer), finalAnswer: answer });
       void autoLearn(userMessage, answer, s);
       return answer;
     } catch {
       const err =
         "Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.";
       finalizeRunState(false);
-      finishDiagnostics({ ok: false, failureCause: err });
+      finishDiagnostics({ ok: false, failureCause: err, finalAnswer: err });
       onStep({ type: "answer", content: err });
       return err;
     }
@@ -1463,14 +1499,14 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     try {
       const answer = await runMiniMaxAgent(enrichedOpts);
       finalizeRunState(Boolean(answer));
-      finishDiagnostics({ ok: Boolean(answer) });
+      finishDiagnostics({ ok: Boolean(answer), finalAnswer: answer });
       void autoLearn(userMessage, answer, s);
       return answer;
     } catch {
       const err =
         "MiniMax agent failed. Set MINIMAX_API_KEY in Settings, save, then restart `npm run dev`.";
       finalizeRunState(false);
-      finishDiagnostics({ ok: false, failureCause: err });
+      finishDiagnostics({ ok: false, failureCause: err, finalAnswer: err });
       onStep({ type: "answer", content: err });
       return err;
     }
@@ -1513,14 +1549,18 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
             draftMode: false,
           });
           finalizeRunState(Boolean(fallback));
-          finishDiagnostics({ ok: Boolean(fallback) });
+          finishDiagnostics({ ok: Boolean(fallback), finalAnswer: fallback });
           return fallback;
         } catch {
           /* ignore */
         }
       }
       finalizeRunState(false);
-      finishDiagnostics({ ok: false, failureCause: finalAnswer });
+      finishDiagnostics({
+        ok: false,
+        failureCause: finalAnswer,
+        finalAnswer,
+      });
       onStep({ type: "answer", content: finalAnswer });
       break;
     }
@@ -1541,14 +1581,14 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
           draftMode: true,
         });
         finalizeRunState(Boolean(answer));
-        finishDiagnostics({ ok: Boolean(answer) });
+        finishDiagnostics({ ok: Boolean(answer), finalAnswer: answer });
         void autoLearn(userMessage, answer, s);
         return answer;
       } catch {
         const err =
           "Claude rate limited and Ollama is not reachable. Try again later.";
         finalizeRunState(false);
-        finishDiagnostics({ ok: false, failureCause: err });
+        finishDiagnostics({ ok: false, failureCause: err, finalAnswer: err });
         onStep({ type: "answer", content: err });
         return err;
       }
@@ -1557,7 +1597,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     if (!res.ok) {
       finalAnswer = data?.error?.message ?? "Claude API error.";
       finalizeRunState(false);
-      finishDiagnostics({ ok: false, failureCause: finalAnswer });
+      finishDiagnostics({ ok: false, failureCause: finalAnswer, finalAnswer });
       break;
     }
 
@@ -1622,12 +1662,24 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
         const name = b.name ?? "";
         const input = (b.input ?? {}) as Record<string, string>;
         const risk = getToolRisk(name);
+        const trace: {
+          tool: string;
+          risk: ToolRiskTier;
+          input: string;
+          output?: string;
+        } = {
+          tool: name,
+          risk,
+          input: JSON.stringify(input),
+        };
+        toolTraces.push(trace);
         onStep({
           type: "tool_call",
           content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
           tool: name,
         });
         const result = await executeTool(name, input);
+        trace.output = result;
         onStep({ type: "tool_result", content: result, tool: name });
         toolResults.push({
           type: "tool_result",
@@ -1661,7 +1713,7 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     }
     finalizeRunState(true);
     markPhase("done");
-    finishDiagnostics({ ok: true, verification });
+    finishDiagnostics({ ok: true, verification, finalAnswer });
   }
 
   // Auto-learn from completed conversation — runs silently in background
@@ -1670,7 +1722,28 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     finishDiagnostics({
       ok: false,
       failureCause: "Run ended without final answer",
+      finalAnswer: "",
     });
 
   return finalAnswer;
+}
+
+// ── Runtime adapter boundary (Claude-code-first assimilation) ───────────────
+export async function runAgent(opts: AgentOptions): Promise<string> {
+  const settings = opts.settings ?? getSettings();
+  const runtime = getRuntimeEngine(settings);
+
+  opts.onStep({
+    type: "thinking",
+    content:
+      runtime === "claudeCode"
+        ? "[runtime] claudeCode adapter active (compat mode)"
+        : "[runtime] nexus adapter active",
+  });
+
+  // Current assimilation milestone: keep behavior compatibility by routing
+  // both engines through Nexus runtime while preserving an explicit boundary.
+  // This lets us ship runtime toggles + telemetry now and swap in claude-code
+  // internals incrementally without breaking HQ flows.
+  return runNexusRuntime({ ...opts, settings });
 }

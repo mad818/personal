@@ -3,7 +3,7 @@
 ## What this is
 **Product invariant:** Nexus Prime is **free (MIT)** — **no in-app charges**, subscriptions, or Nexus-side billing. Optional keys are BYOK. See `lib/productGuarantees.ts` and `assertNexusDoesNotChargeUsers()` in `app/layout.tsx`.
 
-Nexus Prime is a unified React/Next.js 14 intelligence dashboard at `localhost:3000`.
+Nexus Prime is a unified React/Next.js 14 intelligence dashboard at `localhost:3000`, with a native **desktop app for Windows and macOS** via Tauri (`desktop/`).
 The legacy HTML app (`nexus-final.html`) has been archived to `archive/`. Do not restore it or reference it in new code — all development happens in the React app.
 
 ## Commands
@@ -12,6 +12,10 @@ npm run dev      # start dev server (localhost:3000)
 npm run verify   # type-check + lint + path safety (same as CI)
 npx tsc --noEmit # type-check only
 # PWA: public/manifest.json + public/icon.svg — Chrome/Edge Install; iPhone Safari → Add to Home Screen
+# Desktop (Tauri):
+npm run desktop:build-runtime  # build Next.js standalone
+npm run desktop:start-runtime  # run at 127.0.0.1:3000
+npm run desktop:tauri:dev      # open Tauri dev shell
 ```
 
 ## Handoff (Cursor, Claude, or any editor — same rules)

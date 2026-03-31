@@ -10,6 +10,7 @@
 [![Claude AI](https://img.shields.io/badge/Claude-Anthropic-d97706?style=for-the-badge)](https://anthropic.com)
 [![MiniMax](https://img.shields.io/badge/MiniMax-API-1a1a2e?style=for-the-badge)](https://platform.minimax.io)
 [![Ollama](https://img.shields.io/badge/Ollama-Local_AI-10b981?style=for-the-badge)](https://ollama.ai)
+[![Tauri](https://img.shields.io/badge/Tauri-Desktop-24c8d8?style=for-the-badge&logo=tauri&logoColor=white)](desktop/README.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
 
 <br>
@@ -30,7 +31,7 @@
 
 ## What it is
 
-**Nexus Prime** is a self-hosted intelligence dashboard (Next.js 14, MIT). There is no Nexus subscription: optional APIs are bring-your-own. Live markets, geopolitics, cyber, maps, and a multi-provider **AI agent** (Claude, MiniMax, OpenAI-family chain, or **Ollama** offline) run on your machine — no cloud app backend, no database. Curated learning links live at **`/resources`**; secrets stay in **`.env.local`** (gitignored).
+**Nexus Prime** is a self-hosted intelligence dashboard (Next.js 14, MIT) with a native **desktop app for Windows and macOS** (Tauri). There is no Nexus subscription: optional APIs are bring-your-own. Live markets, geopolitics, cyber, maps, and a multi-provider **AI agent** (Claude, MiniMax, OpenAI-family chain, or **Ollama** offline) run on your machine — no cloud app backend, no database. Run it in your browser at `localhost:3000`, or as a native desktop window via Tauri. Curated learning links live at **`/resources`**; secrets stay in **`.env.local`** (gitignored).
 
 ---
 
@@ -255,6 +256,35 @@ docker run --rm -p 3000:3000 --env-file .env.local nexus-prime
 
 ---
 
+## Desktop App (Windows & macOS)
+
+Nexus Prime runs as a native desktop app via **Tauri** — no browser tab required, binds to `127.0.0.1` only by default.
+
+```bash
+# Build the Next.js standalone runtime first
+npm run desktop:build-runtime
+
+# Start the local runtime (127.0.0.1:3000)
+npm run desktop:start-runtime
+
+# Open Tauri dev shell
+npm run desktop:tauri:dev
+```
+
+Security profile is controlled by two env vars:
+
+```env
+NEXUS_NETWORK_MODE=isolated   # isolated | internal | connected
+NEXUS_ENABLE_HIGH_RISK_TOOLS=false
+```
+
+- **Scaffold & config** — `desktop/src-tauri/`
+- **Security checklist** — [`docs/deployment/tauri-security-checklist.md`](docs/deployment/tauri-security-checklist.md)
+- **Runbook** — [`docs/deployment/desktop-secured-runbook.md`](docs/deployment/desktop-secured-runbook.md)
+- **Migration map** — [`docs/plans/desktop-app-secure-migration-map.md`](docs/plans/desktop-app-secure-migration-map.md)
+
+---
+
 ## Project structure
 
 <div align="center">
@@ -263,14 +293,4 @@ docker run --rm -p 3000:3000 --env-file .env.local nexus-prime
 
 </div>
 
-- **`app/`** — App Router routes (`command`, `signals`, `intel`, …) plus **`app/api/*`** (AI, tools, search, health, …). Root `page.tsx` redirects to `/command`; `layout.tsx` holds shell + **CommandBar**.
-- **`components/`** — Tab UI, **`ui/`** (Radix), **`system/`**, **`nav/`**.
-- **`lib/`** — `ai.ts`, `agent.ts`, `helpers.ts`, `liveContext.ts`, `aiModelRouting.ts`, …
-- **`store/useStore.ts`** — Zustand (persisted settings + session data).
-- **Meta** — `.claude/skills/`, `tasks/`, `docs/` (including deployment), **`Dockerfile`**, **`middleware.ts`**, **`nexus-final.html`** (legacy single-file reference).
-
----
-
-## License
-
-MIT
+- **`app/`** — App Router routes (`command`, `signals`, `intel`, …) plus **`app/api/*`** 

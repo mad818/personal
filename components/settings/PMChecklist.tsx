@@ -8,22 +8,21 @@ const CATEGORY_LABELS: Record<PMChecklistItem["category"], string> = {
   "pre-push": "🚀 Pre-Push",
   "post-incident": "🔥 Post-Incident",
 };
+const CATEGORIES: PMChecklistItem["category"][] = [
+  "daily",
+  "pre-push",
+  "post-incident",
+];
 
 export function PMChecklist() {
   const checklist = useStore((s) => s.pmChecklist);
   const toggleItem = useStore((s) => s.togglePMChecklistItem);
   const reset = useStore((s) => s.resetPMChecklist);
 
-  const categories: PMChecklistItem["category"][] = [
-    "daily",
-    "pre-push",
-    "post-incident",
-  ];
-
   const copyDiagnostics = useCallback(() => {
     const ts = new Date().toISOString().slice(0, 16).replace("T", " ");
     const lines = [`# PM Checklist — ${ts}`, ""];
-    categories.forEach((cat) => {
+    CATEGORIES.forEach((cat) => {
       const items = checklist.filter((i) => i.category === cat);
       if (!items.length) return;
       lines.push(`## ${CATEGORY_LABELS[cat]}`);
@@ -33,7 +32,7 @@ export function PMChecklist() {
       lines.push("");
     });
     navigator.clipboard.writeText(lines.join("\n")).catch(() => {});
-  }, [checklist, categories]);
+  }, [checklist]);
 
   const totalChecked = checklist.filter((i) => i.checked).length;
   const total = checklist.length;
@@ -130,7 +129,7 @@ export function PMChecklist() {
       </div>
 
       {/* Items grouped by category */}
-      {categories.map((cat) => {
+      {CATEGORIES.map((cat) => {
         const items = checklist.filter((i) => i.category === cat);
         if (!items.length) return null;
         const catChecked = items.filter((i) => i.checked).length;

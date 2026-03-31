@@ -7,6 +7,7 @@
 
 import { useState, useCallback } from "react";
 import { useStore } from "@/store/useStore";
+import { sanitizeHtml } from "@/lib/security/sanitizeHtml";
 
 // ── types ─────────────────────────────────────────────────────────────────────
 type TargetType =
@@ -714,7 +715,7 @@ function Panel({
       {loading ? (
         <div style={{ color: "var(--text3)", fontSize: "11px" }}>Scanning…</div>
       ) : content ? (
-        <div dangerouslySetInnerHTML={{ __html: content }} />
+        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
       ) : (
         <div style={{ color: "var(--text3)", fontSize: "11px" }}>—</div>
       )}

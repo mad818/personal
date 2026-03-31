@@ -142,8 +142,8 @@
 
 ## Next Up
 
-### Claude-Code First Assimilation (see `docs/plans/claude-code-first-assimilation-plan.md`)
-- [x] A1 — Import and wire `instructkr/claude-code` runtime boundary into Nexus execution path *(compat adapter boundary + runtime marker events shipped in `lib/agent.ts`)*
+### Nexus Runtime Assimilation (see `docs/plans/nexus-runtime-assimilation-plan.md`)
+- [x] A1 — Import and wire external runtime boundary into Nexus execution path *(compat adapter boundary + runtime marker events shipped in `lib/agent.ts`)*
 - [x] A2 — Define runtime adapter contract (`plan` / `implement` / `finalize`) and HQ status-event bridge *(runtime engine selector + adapter dispatch scaffolding shipped in `lib/agent.ts`)*
 - [x] A3 — Persist run artifacts for replay/audit (input, tool traces, output, verification summary) *(store now tracks `agentRunHistory` artifacts with runtime engine, context compaction, verification summary, and per-tool traces from `lib/agent.ts`/`store/useStore.ts`)*
 - [x] A4 — Add runtime rollout flag to switch between legacy and assimilated engine *(settings flag `agentRuntimeEngine` added to Zustand defaults)*
@@ -166,6 +166,14 @@
 
 ### Phase 4 — Automation Backbone
 - [x] n8n deployment doc + agent tool wrapper (document like Coolify, runs alongside Nexus)
+
+### Phase 5 — Desktop Migration (secure + connected map)
+- [x] D1 — Scaffold desktop app host and startup orchestration *(added `desktop/README.md` bootstrap + `desktop:build-runtime` / `desktop:start-runtime` scripts for local standalone host)*.
+- [x] D2 — Implement policy-driven route registry and connector mode controls *(shipped `lib/security/routePolicy.ts`; middleware now enforces route class + `NEXUS_NETWORK_MODE` + `NEXUS_ENABLE_HIGH_RISK_TOOLS` gating)*.
+- [x] D3 — Add diagnostics + secured-network runbook *(added `/api/diagnostics` redacted posture payload + `docs/deployment/desktop-secured-runbook.md` baseline/escalation procedures)*.
+- [x] D4 — Expose security profile controls in Settings (`NEXUS_NETWORK_MODE`, high-risk routes, paid API opt-in) backed by `/api/settings`.
+- [ ] D5 — Implement Tauri isolation pattern and minimal capabilities (command boundary + sidecar subprocess guards + capability lockdown checks shipped; remaining: end-to-end isolation tests).
+- [ ] D6 — Implement binary signing + trusted release verification for desktop artifacts (verify workflow + checksum generation shipped; signing + SBOM still pending).
 
 ### PM Cockpit
 - [x] PM cockpit Phase A — read-only health strip (see `docs/pm-cockpit-plan.md` + handoff supplement)

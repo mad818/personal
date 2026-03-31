@@ -4,6 +4,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as fs from "fs/promises";
 import * as path from "path";
+import {
+  DEFAULT_CONNECTOR_POLICY,
+  parseConnectorPolicy,
+} from "@/lib/security/connectorPolicy";
 
 /**
  * Server-side settings store — OpenClaw-style.
@@ -34,6 +38,10 @@ const SENSITIVE_KEYS = [
   "FIRECRAWL_KEY",
   "OPENCLAW_TOKEN",
   "NEXUS_TOKEN",
+  "NEXUS_NETWORK_MODE",
+  "NEXUS_ENABLE_HIGH_RISK_TOOLS",
+  "NEXUS_ALLOW_PAID_APIS",
+  "NEXUS_CONNECTOR_POLICY_JSON",
 ];
 
 // Legacy keys accepted for backward compatibility while we normalize naming.
@@ -88,6 +96,22 @@ async function writeEnvFile(env: Record<string, string>): Promise<void> {
   await fs.writeFile(ENV_FILE, content, "utf-8");
 }
 
+function normalizeConfigValue(key: string, value: string): string {
+  const v = String(value).trim().toLowerCase();
+  if (key === "NEXUS_NETWORK_MODE") {
+    if (v === "internal" || v === "connected") return v;
+    return "isolated";
+  }
+  if (key === "NEXUS_ENABLE_HIGH_RISK_TOOLS" || key === "NEXUS_ALLOW_PAID_APIS") {
+    return v === "true" ? "true" : "false";
+  }
+  if (key === "NEXUS_CONNECTOR_POLICY_JSON") {
+    const policy = parseConnectorPolicy(value);
+    return JSON.stringify(policy);
+  }
+  return value;
+}
+
 // GET — return which keys are set (true/false), not the values
 export async function GET() {
   const env = await readEnvFile();
@@ -102,7 +126,20 @@ export async function GET() {
       (legacyMatch ? (env[legacyMatch] ?? process.env[legacyMatch]) : "")
     );
   }
-  return NextResponse.json({ status });
+  const config = {
+    NEXUS_NETWORK_MODE:
+      env.NEXUS_NETWORK_MODE ?? process.env.NEXUS_NETWORK_MODE ?? "isolated",
+    NEXUS_ENABLE_HIGH_RISK_TOOLS:
+      env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
+      process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
+      "false",
+    NEXUS_ALLOW_PAID_APIS:
+      env.NEXUS_ALLOW_PAID_APIS ?? process.env.NEXUS_ALLOW_PAID_APIS ?? "false",
+    NEXUS_CONNECTOR_POLICY_JSON: parseConnectorPolicy(
+      env.NEXUS_CONNECTOR_POLICY_JSON ?? process.env.NEXUS_CONNECTOR_POLICY_JSON,
+    ),
+  };
+  return NextResponse.json({ status, config });
 }
 
 // POST — update one or more keys in .env.local
@@ -121,7 +158,7 @@ export async function POST(req: NextRequest) {
         SENSITIVE_KEYS.includes(canonicalKey) &&
         !READONLY_KEYS.has(canonicalKey)
       ) {
-        updates[canonicalKey] = String(v);
+        updates[canonicalKey] = normalizeConfigValue(canonicalKey, String(v));
       }
     }
 

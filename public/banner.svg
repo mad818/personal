@@ -66,13 +66,13 @@
   <polyline points="1170,150 1145,130 1125,155 1105,125 1085,145 1065,140" stroke="#7c3aed" stroke-width="1.5" fill="none" opacity="0.4"/>
 
   <!-- Main logo / bolt icon area -->
-  <text x="600" y="108" font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#4f6ef7" text-anchor="middle" letter-spacing="8" opacity="0.9">⚡ NEXUS PRIME</text>
+  <text x="600" y="108" font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#4f6ef7" text-anchor="middle" letter-spacing="8" opacity="0.9">High Performance NEXUS PRIME</text>
 
   <!-- Main title -->
   <text x="600" y="175" font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="52" font-weight="800" fill="#dde1f0" text-anchor="middle" letter-spacing="-1">Intelligence Dashboard</text>
 
   <!-- Subtitle -->
-  <text x="600" y="218" font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="16" font-weight="400" fill="#6875a0" text-anchor="middle" letter-spacing="0.5">Crypto · Geopolitical · Cyber · IoT · AI Agent · 12 Live Tabs</text>
+  <text x="600" y="218" font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="16" font-weight="400" fill="#6875a0" text-anchor="middle" letter-spacing="0.5">Crypto - Geopolitical - Cyber - IoT - AI Agent - 12 Live Tabs</text>
 
   <!-- Pill tags row -->
   <!-- Next.js pill -->

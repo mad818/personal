@@ -36,7 +36,7 @@
       <text x="68" y="78" text-anchor="middle" fill="#e9e0ff" font-size="13" font-weight="800">CYBER</text>
       <text x="68" y="96" text-anchor="middle" fill="#8a7a7e" font-size="9">CVEs / OTX / CISA</text>
       <text x="68" y="110" text-anchor="middle" fill="#a78bfa" font-size="9" font-weight="700">+ OSINT RECON</text>
-      <text x="68" y="124" text-anchor="middle" fill="#8a7a7e" font-size="8">WHOIS · DNS · Certs</text>
+      <text x="68" y="124" text-anchor="middle" fill="#8a7a7e" font-size="8">WHOIS - DNS - Certs</text>
     </g>
     <g transform="translate(490,72)">
       <rect width="136" height="196" rx="10" fill="#141011" stroke="#34d399" stroke-opacity="0.3"/>

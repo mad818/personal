@@ -67,6 +67,20 @@ const SENSITIVE_FIELDS: {
   { key: "firecrawlKey", label: "Firecrawl Key", envKey: "FIRECRAWL_KEY" },
 ];
 
+type SecurityConfig = {
+  NEXUS_NETWORK_MODE: "isolated" | "internal" | "connected";
+  NEXUS_ENABLE_HIGH_RISK_TOOLS: "true" | "false";
+  NEXUS_ALLOW_PAID_APIS: "true" | "false";
+  NEXUS_CONNECTOR_POLICY_JSON: string;
+};
+
+const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
+  NEXUS_NETWORK_MODE: "isolated",
+  NEXUS_ENABLE_HIGH_RISK_TOOLS: "false",
+  NEXUS_ALLOW_PAID_APIS: "false",
+  NEXUS_CONNECTOR_POLICY_JSON: "",
+};
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -86,6 +100,9 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
   );
   // Server-side key status from GET /api/settings
   const [keyStatus, setKeyStatus] = useState<Record<string, boolean>>({});
+  const [securityConfig, setSecurityConfig] = useState<SecurityConfig>(
+    DEFAULT_SECURITY_CONFIG,
+  );
 
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -98,6 +115,24 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
       .then((r) => r.json())
       .then((d) => {
         if (d.status) setKeyStatus(d.status);
+        if (d.config) {
+          setSecurityConfig({
+            NEXUS_NETWORK_MODE:
+              d.config.NEXUS_NETWORK_MODE === "internal" ||
+              d.config.NEXUS_NETWORK_MODE === "connected"
+                ? d.config.NEXUS_NETWORK_MODE
+                : "isolated",
+            NEXUS_ENABLE_HIGH_RISK_TOOLS:
+              d.config.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true"
+                ? "true"
+                : "false",
+            NEXUS_ALLOW_PAID_APIS:
+              d.config.NEXUS_ALLOW_PAID_APIS === "true" ? "true" : "false",
+            NEXUS_CONNECTOR_POLICY_JSON: d.config.NEXUS_CONNECTOR_POLICY_JSON
+              ? JSON.stringify(d.config.NEXUS_CONNECTOR_POLICY_JSON, null, 0)
+              : "",
+          });
+        }
       })
       .catch(() => {
         /* non-fatal */
@@ -113,12 +148,13 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
     setSaveErr("");
 
     // POST sensitive keys to server if any were edited
-    const hasServerKeys = Object.keys(sensitiveEdits).length > 0;
-    if (hasServerKeys) {
+    const serverPayload = { ...sensitiveEdits, ...securityConfig };
+    const hasServerUpdates = Object.keys(serverPayload).length > 0;
+    if (hasServerUpdates) {
       try {
         const r = await apiFetch("/api/settings", {
           method: "POST",
-          body: JSON.stringify(sensitiveEdits),
+          body: JSON.stringify(serverPayload),
         });
         const d = await r.json();
         if (!d.ok) {
@@ -148,7 +184,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 1800);
-  }, [sensitiveEdits]);
+  }, [sensitiveEdits, securityConfig]);
 
   const reset = useCallback(() => {
     updateSettings(DEFAULT_SETTINGS);
@@ -334,6 +370,139 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                 );
               })}
             </div>
+          </div>
+
+          {/* ── Security profile / route policy controls ── */}
+          <div
+            style={{
+              padding: "10px",
+              border: "1px solid var(--border)",
+              borderRadius: 8,
+              background: "var(--surf2)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "10px",
+                fontWeight: 700,
+                color: "var(--accent)",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                marginBottom: "12px",
+              }}
+            >
+              Security Profile (server)
+            </div>
+
+            <label
+              style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}
+            >
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "var(--text3)",
+                  textTransform: "uppercase",
+                }}
+              >
+                Network Mode
+              </span>
+              <select
+                value={securityConfig.NEXUS_NETWORK_MODE}
+                onChange={(e) =>
+                  setSecurityConfig((prev) => ({
+                    ...prev,
+                    NEXUS_NETWORK_MODE: e.target.value as SecurityConfig["NEXUS_NETWORK_MODE"],
+                  }))
+                }
+                style={{
+                  background: "var(--surf)",
+                  border: "1px solid var(--border2)",
+                  borderRadius: "6px",
+                  color: "var(--text)",
+                  fontSize: "12px",
+                  padding: "7px 10px",
+                  outline: "none",
+                  width: "100%",
+                  boxSizing: "border-box",
+                }}
+              >
+                <option value="isolated">isolated (default safe)</option>
+                <option value="internal">internal</option>
+                <option value="connected">connected</option>
+              </select>
+            </label>
+
+            <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <input
+                type="checkbox"
+                checked={securityConfig.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true"}
+                onChange={(e) =>
+                  setSecurityConfig((prev) => ({
+                    ...prev,
+                    NEXUS_ENABLE_HIGH_RISK_TOOLS: e.target.checked ? "true" : "false",
+                  }))
+                }
+              />
+              <span style={{ fontSize: 12, color: "var(--text)" }}>
+                Enable high-risk API routes
+              </span>
+            </label>
+
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={securityConfig.NEXUS_ALLOW_PAID_APIS === "true"}
+                onChange={(e) =>
+                  setSecurityConfig((prev) => ({
+                    ...prev,
+                    NEXUS_ALLOW_PAID_APIS: e.target.checked ? "true" : "false",
+                  }))
+                }
+              />
+              <span style={{ fontSize: 12, color: "var(--text)" }}>
+                Allow paid AI providers (opt-in)
+              </span>
+            </label>
+
+            <label
+              style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 10 }}
+            >
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "var(--text3)",
+                  textTransform: "uppercase",
+                }}
+              >
+                Connector Policy JSON (optional overrides)
+              </span>
+              <textarea
+                value={securityConfig.NEXUS_CONNECTOR_POLICY_JSON}
+                onChange={(e) =>
+                  setSecurityConfig((prev) => ({
+                    ...prev,
+                    NEXUS_CONNECTOR_POLICY_JSON: e.target.value,
+                  }))
+                }
+                rows={4}
+                placeholder='{"news":true,"flights":false}'
+                style={{
+                  background: "var(--surf)",
+                  border: "1px solid var(--border2)",
+                  borderRadius: "6px",
+                  color: "var(--text)",
+                  fontSize: "12px",
+                  padding: "7px 10px",
+                  outline: "none",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  fontFamily: "monospace",
+                  resize: "vertical",
+                }}
+              />
+            </label>
           </div>
 
           {/* ── Local settings section ── */}

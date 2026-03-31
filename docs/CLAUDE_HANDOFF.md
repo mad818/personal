@@ -65,6 +65,8 @@ git show --stat HEAD
 - A7 — Add TimesFM forecasting adapter spike + eval metric hook for decision-lift measurement
 - 2B — Simplify pass: dead props + redundant state in OfficeRoom3D, SettingsDrawer, prompts.ts
 - 2C — Animation polish: consistent `var(--t)` usage + drawer exit animation
+- D5 — Implement Tauri isolation pattern and minimal capabilities (command boundary + sidecar subprocess guards + capability lockdown checks shipped; remaining: end-to-end isolation tests).
+- D6 — Implement binary signing + trusted release verification for desktop artifacts (verify workflow + checksum generation shipped; signing + SBOM still pending).
 
 ### Where to look
 

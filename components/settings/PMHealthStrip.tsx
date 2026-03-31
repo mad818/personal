@@ -193,11 +193,9 @@ export function PMHealthStrip() {
           )}
         </span>
 
-        {/* NEXT UP — static link to GitHub */}
+        {/* NEXT UP — internal route, no external repo reference */}
         <a
-          href="https://github.com/mad818/personal/blob/main/tasks/todo.md"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/resources"
           style={{
             ...chipStyle("muted"),
             textDecoration: "none",

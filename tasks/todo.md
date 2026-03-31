@@ -145,7 +145,7 @@
 ### Claude-Code First Assimilation (see `docs/plans/claude-code-first-assimilation-plan.md`)
 - [x] A1 — Import and wire `instructkr/claude-code` runtime boundary into Nexus execution path *(compat adapter boundary + runtime marker events shipped in `lib/agent.ts`)*
 - [x] A2 — Define runtime adapter contract (`plan` / `implement` / `finalize`) and HQ status-event bridge *(runtime engine selector + adapter dispatch scaffolding shipped in `lib/agent.ts`)*
-- [ ] A3 — Persist run artifacts for replay/audit (input, tool traces, output, verification summary)
+- [x] A3 — Persist run artifacts for replay/audit (input, tool traces, output, verification summary) *(store now tracks `agentRunHistory` artifacts with runtime engine, context compaction, verification summary, and per-tool traces from `lib/agent.ts`/`store/useStore.ts`)*
 - [x] A4 — Add runtime rollout flag to switch between legacy and assimilated engine *(settings flag `agentRuntimeEngine` added to Zustand defaults)*
 - [ ] A5 — Enable prompt caching and batch pathway for scheduled non-interactive missions
 - [ ] A6 — Add skill governance metadata (risk tier, approval requirement, domain tags) and cyber pack baseline

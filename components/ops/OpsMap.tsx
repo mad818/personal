@@ -167,7 +167,6 @@ function buildDensityLayer(
   L: any,
   points: { lat: number; lng: number }[],
 ): any {
-  // eslint-disable-line @typescript-eslint/no-explicit-any
   const CELL = 5; // ~500 km grid cells
   const bins = new Map<string, number>();
   points.forEach((p) => {
@@ -386,7 +385,6 @@ export default function OpsMap() {
     (["quakes", "fires", "flights"] as const).forEach((key) => {
       const group = layerRefs.current[key];
       if (!group) return;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       group.getLayers().forEach((layer: any) => {
         if (typeof layer.getLatLng === "function") {
           const ll = layer.getLatLng();

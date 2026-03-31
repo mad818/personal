@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 set -eu
 
-npm run handoff:sync
+npm run handoff:check
 npm run type-check
 npm run lint

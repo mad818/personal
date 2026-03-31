@@ -1,7 +1,7 @@
 {
   "name": "nexus-prime",
   "private": true,
-  "description": "Self-hosted intelligence dashboard (Next.js): markets, intel, cyber, maps, TradingView, multi-provider AI. README includes SVG infographics. MIT — no in-app charges; optional BYOK API keys.",
+  "description": "Self-hosted intelligence dashboard (Next.js + Tauri desktop for Windows/macOS): markets, intel, cyber, maps, multi-provider AI agent. MIT — no in-app charges; optional BYOK API keys.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

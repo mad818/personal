@@ -129,7 +129,7 @@ export function PMChecklist() {
       </div>
 
       {/* Items grouped by category */}
-      {categories.map((cat) => {
+      {CATEGORIES.map((cat) => {
         const items = checklist.filter((i) => i.category === cat);
         if (!items.length) return null;
         const catChecked = items.filter((i) => i.checked).length;

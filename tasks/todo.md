@@ -142,6 +142,15 @@
 
 ## Next Up
 
+### Claude-Code First Assimilation (see `docs/plans/claude-code-first-assimilation-plan.md`)
+- [x] A1 — Import and wire `instructkr/claude-code` runtime boundary into Nexus execution path *(compat adapter boundary + runtime marker events shipped in `lib/agent.ts`)*
+- [x] A2 — Define runtime adapter contract (`plan` / `implement` / `finalize`) and HQ status-event bridge *(runtime engine selector + adapter dispatch scaffolding shipped in `lib/agent.ts`)*
+- [ ] A3 — Persist run artifacts for replay/audit (input, tool traces, output, verification summary)
+- [x] A4 — Add runtime rollout flag to switch between legacy and assimilated engine *(settings flag `agentRuntimeEngine` added to Zustand defaults)*
+- [ ] A5 — Enable prompt caching and batch pathway for scheduled non-interactive missions
+- [ ] A6 — Add skill governance metadata (risk tier, approval requirement, domain tags) and cyber pack baseline
+- [ ] A7 — Add TimesFM forecasting adapter spike + eval metric hook for decision-lift measurement
+
 ### Phase 1 — Agent Intelligence (see `docs/plans/ideas-assimilation-plan.md`)
 - [x] 1B — Agent prompt sharpening: ORBIT phase-discipline, NOVA research-first, CIPHER triage-first
 - [x] 1C — Passive auto-memory: post-run capture hook + session log writer

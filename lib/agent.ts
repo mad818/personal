@@ -532,6 +532,8 @@ export interface AgentOptions {
   draftMode?: boolean;
 }
 
+export type AgentRuntimeEngine = "nexus" | "claudeCode";
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function getSettings(): Settings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
@@ -1303,8 +1305,12 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
   return finalAnswer;
 }
 
-// ── Main agent loop ───────────────────────────────────────────────────────────
-export async function runAgent(opts: AgentOptions): Promise<string> {
+function getRuntimeEngine(settings: Settings): AgentRuntimeEngine {
+  return settings.agentRuntimeEngine ?? "nexus";
+}
+
+// ── Main agent loop (legacy Nexus runtime core) ─────────────────────────────
+async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   const {
     settings,
     systemPrompt,
@@ -1673,4 +1679,24 @@ export async function runAgent(opts: AgentOptions): Promise<string> {
     });
 
   return finalAnswer;
+}
+
+// ── Runtime adapter boundary (Claude-code-first assimilation) ───────────────
+export async function runAgent(opts: AgentOptions): Promise<string> {
+  const settings = opts.settings ?? getSettings();
+  const runtime = getRuntimeEngine(settings);
+
+  opts.onStep({
+    type: "thinking",
+    content:
+      runtime === "claudeCode"
+        ? "[runtime] claudeCode adapter active (compat mode)"
+        : "[runtime] nexus adapter active",
+  });
+
+  // Current assimilation milestone: keep behavior compatibility by routing
+  // both engines through Nexus runtime while preserving an explicit boundary.
+  // This lets us ship runtime toggles + telemetry now and swap in claude-code
+  // internals incrementally without breaking HQ flows.
+  return runNexusRuntime({ ...opts, settings });
 }

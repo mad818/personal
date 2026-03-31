@@ -139,6 +139,8 @@ export const DEFAULT_SETTINGS = {
   localModel:        DEFAULT_LOCAL_MODEL,
   localApiKey:       '',
   useLocalReasoning: true,   // Use local deepseek-r1:14b for Think mode
+  // Runtime engine rollout flag: "nexus" (current) | "claudeCode" (assimilation path)
+  agentRuntimeEngine: 'nexus' as 'nexus' | 'claudeCode',
   agentHighRiskWritesRequireApproval: true,
   // Data APIs
   cgKey:         '',

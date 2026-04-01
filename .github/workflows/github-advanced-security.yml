@@ -75,6 +75,10 @@ jobs:
           mkdir -p .next/standalone
           printf '<!doctype html><title>Nexus CodeQL placeholder</title>\n' > .next/standalone/index.html
 
+      - name: Ensure Tauri icons for Rust scan
+        if: matrix.language == 'rust'
+        run: node scripts/ensure-tauri-icon.mjs
+
       - name: Build Rust (Tauri)
         if: matrix.language == 'rust'
         run: |

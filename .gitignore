@@ -11,6 +11,7 @@ yarn-debug.log*
 *.tsbuildinfo
 tsconfig.tsbuildinfo
 .env.local
+desktop/src-tauri/target/
 
 # Claude local overrides (personal, not committed)
 CLAUDE.local.md

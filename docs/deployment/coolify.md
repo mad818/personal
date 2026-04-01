@@ -27,11 +27,20 @@ You can deploy in two ways:
 5. **Environment variables**: copy names from [`.env.example`](../../.env.example) into Coolify’s secret env UI. Minimum for a working agent:
    - `ANTHROPIC_API_KEY` (or rely on other providers you configure)
    - `NEXUS_TOKEN` (random string; protects `/api/*` per `middleware.ts`)
+   - `NEXUS_DEPLOYMENT_PROFILE=web-self-hosted`
 6. **Domain**: assign a hostname and TLS in Coolify; enable health checks if offered.
 
 ## After deploy
 
 - Smoke-test: open the tab routes, confirm `/api/*` calls succeed with `Authorization: Bearer <NEXUS_TOKEN>` where the client sends it.
+- Run the shared release smoke script against the deployed host:
+
+```bash
+NEXUS_RELEASE_BASE_URL=https://your-host.example \
+NEXUS_TOKEN=your-token \
+npm run release:smoke
+```
+
 - Rotate `NEXUS_TOKEN` if the UI was ever exposed without TLS.
 
 ## Related

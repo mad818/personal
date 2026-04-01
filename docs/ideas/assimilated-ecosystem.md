@@ -10,6 +10,7 @@ We **do not** vendor these codebases. This document **formats ideas** from each 
 | [Coolify](https://github.com/coollabsio/coolify) | Self-hosted PaaS (deploy apps/DBs on your VPS) | Hosting the Next.js app + env secrets off your laptop | **Ops pattern** — [`docs/deployment/coolify.md`](../deployment/coolify.md); no Coolify code in repo |
 | [ai-website-cloner-template](https://github.com/JCodesMore/ai-website-cloner-template) | Multi-phase site clone via Chrome MCP + worktrees | Not core to an intel dashboard | **Defer** — only relevant if we add a “marketing site clone” experiment |
 | [atlas-gic](https://github.com/chrisworsey55/atlas-gic) | Autoresearch loop: keep/revert prompts vs **measurable fitness** (e.g. Sharpe) | `npm run eval:agent-runtime:ci`, `tasks/lessons.md`, handoff discipline | **Pattern** — tie agent changes to **measurable checks** before merge |
+| [a-evolve](https://github.com/A-EVO-Lab/a-evolve) | Benchmark-gated agent evolution: mutate prompts, skills, memory, and tools; keep only measured wins | `lib/agent.ts`, `scripts/eval-agent-runtime.js`, HQ approval UX, Vault experiment archive | **Adapted pattern** — approval-gated runtime improver, not autonomous self-modification; stays aligned with free/BYOK product constraints |
 | [deep-eye](https://github.com/zakirkun/deep-eye) | AI-assisted vuln scanning / pentest modules | CYBER tab, `/api/*`, CSP, tool risk tiers in `lib/agent.ts` | **Boundary** — we stay **read-only / advisory**; no automated exploitation against arbitrary URLs from Nexus |
 | [UncommonRoute](https://github.com/CommonstackAI/UncommonRoute) | Local router: cheap vs strong models by difficulty | Ollama + Claude in `lib/ai.ts`, cost-conscious routing | **Optional local setup** — document pointing Cursor `OPENAI_BASE_URL` at a router when user runs one |
 | [awesome-autoresearch](https://github.com/alvinunreal/awesome-autoresearch) | Curated autoresearch & agent-improvement links | Same *spirit* as eval + lessons loop | **Reading list** — link hub; no code |
@@ -59,7 +60,7 @@ We **do not** vendor these codebases. This document **formats ideas** from each 
 | RSS + fallback + GDELT | `app/api/news/route.ts`, `hooks/useArticles.ts` |
 | Tool risk / approvals | `lib/agent.ts`, `app/api/tools/*` |
 | Agent quality gate | `npm run eval:agent-runtime:ci`, `.github/workflows/quality-gates.yml` |
-| Handoff + continuity | `docs/CLAUDE_HANDOFF.md`, `npm run handoff:sync`, `tasks/todo.md` |
+| Handoff + continuity | `docs/AGENT_HANDOFF.md` (+ tool aliases), `npm run handoff:sync`, `tasks/todo.md` |
 | PWA / install | `public/manifest.json`, `public/icon.svg`, `app/layout.tsx` |
 
 ---

@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
 import { DEFAULT_LOCAL_MODEL, TASK_MODELS } from "@/lib/aiModelRouting";
+import { readTimesfmSpikeStatus } from "@/lib/experiments";
 import { gradeFromEvalScore } from "@/lib/helpers";
+import { summarizeSkillGovernance } from "@/lib/skillMetadata";
 import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
+import {
+  PRODUCT_SURFACES,
+  readBuildChannel,
+  readBuildVersion,
+  readDeploymentProfile,
+  RELEASE_DEFAULTS,
+  summarizeConnectorReadiness,
+  summarizeSurfaceTiers,
+} from "@/lib/releaseMatrix";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
@@ -164,6 +175,27 @@ export async function GET() {
     allowPaidApis: process.env.NEXUS_ALLOW_PAID_APIS === "true",
     connectorPolicy: readConnectorPolicy(),
   };
+  const connectorReadiness = summarizeConnectorReadiness(
+    policies.networkMode,
+    policies.connectorPolicy,
+  );
+  const surfaceSummary = summarizeSurfaceTiers();
+  const release = {
+    service: "nexus-prime",
+    channel: readBuildChannel(),
+    version: readBuildVersion(),
+    deploymentProfile: readDeploymentProfile(),
+    canonicalDeploymentLane: RELEASE_DEFAULTS.canonicalDeploymentLane,
+    supportedSurfacePolicy: RELEASE_DEFAULTS.supportedSurfacePolicy,
+    surfaces: {
+      counts: surfaceSummary.counts,
+      ga: surfaceSummary.tiers.ga.map((surface) => surface.href),
+      beta: surfaceSummary.tiers.beta.map((surface) => surface.href),
+      internal: surfaceSummary.tiers.internal.map((surface) => surface.href),
+      nav: PRODUCT_SURFACES.filter((surface) => surface.inNav).map((surface) => surface.href),
+    },
+    connectorReadiness,
+  };
 
   const aiRouting = {
     defaultLocalModel: DEFAULT_LOCAL_MODEL,
@@ -173,7 +205,7 @@ export async function GET() {
   const queue = {
     runQueueMode: "single-flight",
     verifyEndpoint: "/api/verify",
-    adapters: ["typecheck", "lint", "route_smoke"],
+    adapters: ["typecheck", "lint", "route_smoke", "release_smoke"],
   };
 
   const evalPolicy = {
@@ -237,6 +269,10 @@ export async function GET() {
       ],
     },
   };
+  const skillGovernance = summarizeSkillGovernance();
+  const experiments = {
+    timesfmSpike: readTimesfmSpikeStatus(),
+  };
 
   return NextResponse.json({
     status: "ok",
@@ -248,9 +284,12 @@ export async function GET() {
       dataSources,
       auth,
       policies,
+      release,
       aiRouting,
       queue,
       evalPolicy,
+      skillGovernance,
+      experiments,
     },
   });
 }

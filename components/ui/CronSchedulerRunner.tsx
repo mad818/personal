@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useStore, type ScheduledJob } from "@/store/useStore";
-import { callAI, buildSystemPrompt } from "@/lib/ai";
+import { buildCachedSystemPrompt, callNonInteractiveAI } from "@/lib/ai";
 import { OFFICE_OPERATIONAL_PROFILES } from "@/components/home/office/constants";
 import {
   getAutoJobsForMode,
@@ -83,12 +83,14 @@ export default function CronSchedulerRunner() {
       let autoStatus: ScheduledJob["lastStatus"] = "ok";
       let autoSummary = "Completed.";
       try {
-        const systemPrompt = buildSystemPrompt(settings);
-        const result = await callAI(
-          `${systemPrompt}\n\n${profile.promptPrefix}\n\n[Mode Auto Job: ${autoJob.name}]\n${autoJob.prompt}`,
-          260,
-          "fast",
-        );
+        const systemPrompt = buildCachedSystemPrompt(settings);
+        const result = await callNonInteractiveAI({
+          systemPrompt,
+          userPrompt: `${profile.promptPrefix}\n\n[Mode Auto Job: ${autoJob.name}]\n${autoJob.prompt}`,
+          maxTokens: 260,
+          task: "fast",
+          singleFlightKey: `auto:${mode}:${autoJob.id}:${Math.floor(Date.now() / 60000)}`,
+        });
         autoSummary = (result || "Completed with no output.").slice(0, 200);
       } catch (e) {
         autoStatus = "error";
@@ -210,12 +212,14 @@ export default function CronSchedulerRunner() {
           let status: ScheduledJob["lastStatus"] = "ok";
           let summary = "Completed.";
           try {
-            const systemPrompt = buildSystemPrompt(settings);
-            const result = await callAI(
-              `${systemPrompt}\n\n${profile.promptPrefix}\n\n[Scheduled Task]\n${job.prompt}`,
-              300,
-              "fast",
-            );
+            const systemPrompt = buildCachedSystemPrompt(settings);
+            const result = await callNonInteractiveAI({
+              systemPrompt,
+              userPrompt: `${profile.promptPrefix}\n\n[Scheduled Task]\n${job.prompt}`,
+              maxTokens: 300,
+              task: "fast",
+              singleFlightKey: `scheduled:${job.id}:${Math.floor(Date.now() / 60000)}`,
+            });
             summary = (result || "Completed with no output.").slice(0, 200);
           } catch (e) {
             status = "error";

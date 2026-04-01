@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { spawn } from "child_process";
 
-type VerificationAdapter = "typecheck" | "lint" | "route_smoke";
+type VerificationAdapter =
+  | "typecheck"
+  | "lint"
+  | "route_smoke"
+  | "release_smoke";
 
 type AdapterResult = {
   adapter: VerificationAdapter;
@@ -104,7 +108,10 @@ export async function POST(req: NextRequest) {
     ) as VerificationAdapter[];
     const uniq = Array.from(new Set(adapters)).filter(
       (a): a is VerificationAdapter =>
-        a === "typecheck" || a === "lint" || a === "route_smoke",
+        a === "typecheck" ||
+        a === "lint" ||
+        a === "route_smoke" ||
+        a === "release_smoke",
     );
 
     const results: AdapterResult[] = [];
@@ -138,6 +145,17 @@ export async function POST(req: NextRequest) {
       }
       if (adapter === "route_smoke") {
         results.push(await checkRouteSmoke(req));
+        continue;
+      }
+      if (adapter === "release_smoke") {
+        const r = await runCommand("npm", ["run", "release:smoke"], 180000);
+        results.push({
+          adapter,
+          passed: r.ok,
+          summary: r.ok
+            ? "Release smoke passed"
+            : `Release smoke failed: ${r.output || "unknown error"}`,
+        });
       }
     }
 

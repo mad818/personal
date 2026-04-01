@@ -17,6 +17,7 @@
     "type-check": "tsc --noEmit",
     "security-scan": "node scripts/security-scan.js",
     "security:tauri": "node scripts/check-tauri-security.mjs",
+    "release:smoke": "node scripts/release-smoke.mjs",
     "release:checksums": "node scripts/generate-desktop-checksums.mjs",
     "orbit:next": "node scripts/orbit.js",
     "audit:full": "node scripts/audit.js",

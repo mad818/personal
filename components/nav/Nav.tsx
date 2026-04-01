@@ -11,20 +11,12 @@ import {
   NEXUS_FREE_USE_DESCRIPTION,
   NEXUS_FREE_USE_LABEL,
 } from "@/lib/productGuarantees";
-
-const TABS = [
-  { href: "/home", label: "🤖 HQ" },
-  { href: "/command", label: "⚡ COMMAND" },
-  { href: "/intel", label: "📡 INTEL" },
-  { href: "/alpha", label: "🎯 ALPHA" },
-  { href: "/cyber", label: "🔒 CYBER" },
-  { href: "/recon", label: "🕵️ RECON" },
-  { href: "/vault", label: "🗂 VAULT" },
-];
+import { getNavProductSurfaces } from "@/lib/releaseMatrix";
 
 export default function Nav() {
   const pathname = usePathname();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const tabs = getNavProductSurfaces();
 
   return (
     <>
@@ -50,7 +42,7 @@ export default function Nav() {
           overflowX: "auto",
         }}
       >
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           const active =
             pathname === tab.href || (pathname === "/" && tab.href === "/home");
           return (

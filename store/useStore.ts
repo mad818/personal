@@ -159,6 +159,8 @@ export const DEFAULT_SETTINGS = {
   localModel:        DEFAULT_LOCAL_MODEL,
   localApiKey:       '',
   useLocalReasoning: true,   // Use local deepseek-r1:14b for Think mode
+  deploymentLanePreference: 'dualTrack' as 'webFirst' | 'dualTrack' | 'desktopFirst',
+  surfaceVisibilityPreference: 'gaOnly' as 'gaOnly' | 'includeBeta',
   // Runtime engine rollout flag: "nexus" (current) | "claudeCode" (assimilation path)
   agentRuntimeEngine: 'nexus' as 'nexus' | 'claudeCode',
   agentHighRiskWritesRequireApproval: true,

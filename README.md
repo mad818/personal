@@ -271,6 +271,13 @@ npm run desktop:start-runtime
 npm run desktop:tauri:dev
 ```
 
+If `npm run desktop:tauri:dev` fails with `could not determine executable to run`, invoke the CLI explicitly:
+
+```bash
+cd desktop/src-tauri
+npx --yes --package @tauri-apps/cli tauri dev
+```
+
 Security profile is controlled by two env vars:
 
 ```env

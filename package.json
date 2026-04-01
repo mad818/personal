@@ -28,8 +28,8 @@
     "handoff:pull": "git pull",
     "desktop:build-runtime": "next build",
     "desktop:start-runtime": "node scripts/desktop-start-runtime.mjs",
-    "desktop:tauri:dev": "cd desktop/src-tauri && npx tauri dev",
-    "desktop:tauri:build": "cd desktop/src-tauri && npx tauri build",
+    "desktop:tauri:dev": "node scripts/ensure-tauri-icon.mjs && cd desktop/src-tauri && npx --yes --package @tauri-apps/cli tauri dev",
+    "desktop:tauri:build": "node scripts/ensure-tauri-icon.mjs && cd desktop/src-tauri && npx --yes --package @tauri-apps/cli tauri build",
     "format:write": "prettier --write \"{app,lib,components}/**/*.{ts,tsx,mdx}\" --cache",
     "format:check": "prettier --check \"{app,lib,components}**/*.{ts,tsx,mdx}\" --cache",
     "prepare": "husky"

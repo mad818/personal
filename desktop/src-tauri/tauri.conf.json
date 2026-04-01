@@ -3,14 +3,14 @@
   "productName": "Nexus",
   "identifier": "com.nexus.desktop",
   "build": {
-    "beforeDevCommand": "npm run desktop:start-runtime",
+    "beforeDevCommand": "npm run desktop:build-runtime && npm run desktop:start-runtime",
     "beforeBuildCommand": "npm run desktop:build-runtime",
     "devUrl": "http://127.0.0.1:3000",
     "frontendDist": "../.next/standalone"
   },
   "app": {
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:*; frame-src 'none'; object-src 'none';"
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:*; frame-src 'none'; object-src 'none';"
     },
     "windows": [
       {
@@ -23,6 +23,7 @@
   },
   "bundle": {
     "active": true,
+    "icon": ["icons/icon.ico"],
     "targets": ["app", "dmg", "msi", "appimage"],
     "macOS": {
       "signingIdentity": null

@@ -1,6 +1,7 @@
 name: GitHub Advanced Security
 
 on:
+  pull_request:
   workflow_dispatch:
   schedule:
     - cron: "19 4 * * 1"

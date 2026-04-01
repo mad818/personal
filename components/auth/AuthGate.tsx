@@ -22,11 +22,18 @@ export default function AuthGate({ children }: Props) {
 
   useEffect(() => {
     const existing = getSessionToken();
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      setAuthed(false);
+      controller.abort();
+    }, 8000);
+
     if (existing) {
       fetch("/api/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: existing }),
+        signal: controller.signal,
       })
         .then((r) => r.json())
         .then((d) => setAuthed(!!d.ok))
@@ -34,6 +41,11 @@ export default function AuthGate({ children }: Props) {
     } else {
       setAuthed(false);
     }
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, []);
 
   const submit = useCallback(async () => {

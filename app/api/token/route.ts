@@ -2,20 +2,65 @@
 // Token info API: blockchain token metadata and on-chain analytics.
 
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 
 type AttemptInfo = { count: number; resetAt: number };
+type TokenCode =
+  | "ok"
+  | "invalid_token"
+  | "rate_limited"
+  | "bad_request"
+  | "server_error";
+type TokenResponse = {
+  ok: boolean;
+  code: TokenCode;
+  retryable: boolean;
+  error?: string;
+};
 const TOKEN_ATTEMPTS = new Map<string, AttemptInfo>();
+const TOKEN_METRICS: Record<TokenCode, number> = {
+  ok: 0,
+  invalid_token: 0,
+  rate_limited: 0,
+  bad_request: 0,
+  server_error: 0,
+};
 const WINDOW_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 10;
 
+function anonymizeClientId(rawClientId: string): string {
+  return createHash("sha256").update(rawClientId).digest("hex");
+}
+
 function getClientId(req: NextRequest): string {
   const xff = req.headers.get("x-forwarded-for") ?? "";
-  return (
+  const rawClientId =
     xff.split(",")[0]?.trim() ||
     req.headers.get("x-real-ip") ||
     req.headers.get("cf-connecting-ip") ||
-    "unknown"
-  );
+    "unknown";
+  return anonymizeClientId(rawClientId);
+}
+
+function cleanupExpiredAttempts(now: number) {
+  TOKEN_ATTEMPTS.forEach((info, clientId) => {
+    if (info.resetAt < now) TOKEN_ATTEMPTS.delete(clientId);
+  });
+}
+
+function tokenJson(body: TokenResponse, status = 200) {
+  TOKEN_METRICS[body.code] += 1;
+  return NextResponse.json(body, { status });
+}
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    attemptsTracked: TOKEN_ATTEMPTS.size,
+    metrics: TOKEN_METRICS,
+    windowMs: WINDOW_MS,
+    maxAttempts: MAX_ATTEMPTS,
+  });
 }
 
 /**
@@ -30,18 +75,45 @@ function getClientId(req: NextRequest): string {
  */
 export async function POST(req: NextRequest) {
   try {
-    const clientId = getClientId(req);
     const now = Date.now();
+    cleanupExpiredAttempts(now);
+
+    const clientId = getClientId(req);
     const prev = TOKEN_ATTEMPTS.get(clientId);
     if (prev && now <= prev.resetAt && prev.count >= MAX_ATTEMPTS) {
-      return NextResponse.json(
-        { ok: false, error: "Too many attempts. Try again in a few minutes." },
-        { status: 429 },
+      const retryAfterSeconds = Math.max(
+        1,
+        Math.ceil((prev.resetAt - now) / 1000),
       );
+      const response = tokenJson(
+        {
+          ok: false,
+          code: "rate_limited",
+          retryable: true,
+          error: "Too many attempts. Try again in a few minutes.",
+        },
+        429,
+      );
+      response.headers.set("Retry-After", String(retryAfterSeconds));
+      return response;
     }
 
-    const { token } = (await req.json()) as { token?: string };
-    const serverToken = process.env.NEXUS_TOKEN ?? "";
+    const rawBody = (await req.json()) as { token?: unknown };
+    const token =
+      typeof rawBody.token === "string" ? rawBody.token.trim() : undefined;
+    const serverToken = (process.env.NEXUS_TOKEN ?? "").trim();
+
+    if (!serverToken) {
+      return tokenJson(
+        {
+          ok: false,
+          code: "server_error",
+          retryable: false,
+          error: "Token validation is not configured on the server.",
+        },
+        500,
+      );
+    }
 
     if (!serverToken || !token || token !== serverToken) {
       const active =
@@ -49,18 +121,18 @@ export async function POST(req: NextRequest) {
           ? { count: prev.count + 1, resetAt: prev.resetAt }
           : { count: 1, resetAt: now + WINDOW_MS };
       TOKEN_ATTEMPTS.set(clientId, active);
-      return NextResponse.json(
-        { ok: false, error: "Invalid token" },
-        { status: 401 },
+      return tokenJson(
+        { ok: false, code: "invalid_token", retryable: false, error: "Invalid token" },
+        401,
       );
     }
 
     TOKEN_ATTEMPTS.delete(clientId);
-    return NextResponse.json({ ok: true });
+    return tokenJson({ ok: true, code: "ok", retryable: false });
   } catch {
-    return NextResponse.json(
-      { ok: false, error: "Bad request" },
-      { status: 400 },
+    return tokenJson(
+      { ok: false, code: "bad_request", retryable: false, error: "Bad request" },
+      400,
     );
   }
 }

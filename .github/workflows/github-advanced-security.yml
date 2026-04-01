@@ -1,0 +1,69 @@
+name: GitHub Advanced Security
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - work
+  schedule:
+    - cron: "19 4 * * 1"
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["javascript-typescript", "rust"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: matrix.language == 'javascript-typescript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install JS dependencies
+        if: matrix.language == 'javascript-typescript'
+        run: npm ci
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Build JS/TS
+        if: matrix.language == 'javascript-typescript'
+        run: npm run type-check
+
+      - name: Build Rust (Tauri)
+        if: matrix.language == 'rust'
+        run: |
+          cd desktop/src-tauri
+          cargo build --locked
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4

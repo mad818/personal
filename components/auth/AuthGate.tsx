@@ -7,8 +7,14 @@
  * AuthGate — Sadie Sink themed token gate.
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { getSessionToken, validateAndStoreToken } from "@/lib/apiFetch";
+import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  getSessionToken,
+  probeRuntimeHealth,
+  TOKEN_VALIDATION_TIMEOUT_MS,
+  validateAndStoreToken,
+  validateToken,
+} from "@/lib/apiFetch";
 
 interface Props {
   children: React.ReactNode;
@@ -19,47 +25,97 @@ export default function AuthGate({ children }: Props) {
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [runtimeOnline, setRuntimeOnline] = useState<boolean | null>(null);
+  const [checkingRuntime, setCheckingRuntime] = useState(false);
+  const submitAttemptRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    probeRuntimeHealth().then((ok) => {
+      if (mountedRef.current) setRuntimeOnline(ok);
+    });
+  }, []);
 
   useEffect(() => {
     const existing = getSessionToken();
-    const controller = new AbortController();
-const timeout = window.setTimeout(() => controller.abort(), 8000);
+    let active = true;
 
     if (existing) {
-      fetch("/api/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: existing }),
-        signal: controller.signal,
+      validateToken(existing, {
+        timeoutMs: TOKEN_VALIDATION_TIMEOUT_MS,
+        persistOnSuccess: false,
       })
-        .then((r) => r.json())
-        .then((d) => setAuthed(!!d.ok))
+        .then((status) => {
+          if (active && mountedRef.current) setAuthed(status === "ok");
+        })
         .catch(() => {
           // Keep lock screen if validation fails or times out.
         });
     }
 
     return () => {
-      clearTimeout(timeout);
-      controller.abort();
+      active = false;
     };
   }, []);
 
   const submit = useCallback(async () => {
-    if (!token.trim()) {
+    const normalizedToken = token.trim();
+    if (!normalizedToken) {
       setError("Enter your access token.");
       return;
     }
+    if (loading) return;
+
+    submitAttemptRef.current += 1;
+    const attemptId = submitAttemptRef.current;
     setLoading(true);
     setError("");
-    const ok = await validateAndStoreToken(token.trim());
-    if (ok) {
-      setAuthed(true);
-    } else {
-      setError("Invalid token. Check your .env.local NEXUS_TOKEN.");
+    try {
+      const status = await validateAndStoreToken(normalizedToken);
+
+      // Ignore stale responses if a newer submit has already started.
+      if (attemptId !== submitAttemptRef.current || !mountedRef.current) return;
+
+      if (status === "ok") {
+        setAuthed(true);
+        setRuntimeOnline(true);
+      } else if (status === "invalid") {
+        setError("Invalid token. Check your .env.local NEXUS_TOKEN.");
+        setRuntimeOnline(true);
+      } else {
+        setError(
+          "Token check could not reach the server. Is desktop runtime running?",
+        );
+        setRuntimeOnline(false);
+      }
+    } finally {
+      if (attemptId === submitAttemptRef.current && mountedRef.current) {
+        setLoading(false);
+      }
     }
-    setLoading(false);
-  }, [token]);
+  }, [loading, token]);
+
+  const checkRuntime = useCallback(async () => {
+    if (checkingRuntime) return;
+    setCheckingRuntime(true);
+    try {
+      const ok = await probeRuntimeHealth();
+      if (mountedRef.current) {
+        setRuntimeOnline(ok);
+        if (ok) setError("");
+      }
+    } finally {
+      if (mountedRef.current) {
+        setCheckingRuntime(false);
+      }
+    }
+  }, [checkingRuntime]);
 
   const handleKey = useCallback(
     (e: React.KeyboardEvent) => {
@@ -207,9 +263,35 @@ const timeout = window.setTimeout(() => controller.abort(), 8000);
             }}
           />
           {error && (
-            <span style={{ fontSize: "11px", color: "var(--flo)" }}>
-              {error}
-            </span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "8px",
+              }}
+            >
+              <span style={{ fontSize: "11px", color: "var(--flo)" }}>
+                {error}
+              </span>
+              {runtimeOnline === false && (
+                <button
+                  onClick={checkRuntime}
+                  disabled={checkingRuntime}
+                  style={{
+                    border: "1px solid rgba(196,72,90,0.4)",
+                    background: "transparent",
+                    color: "var(--text2)",
+                    borderRadius: "6px",
+                    fontSize: "10px",
+                    padding: "4px 8px",
+                    cursor: checkingRuntime ? "wait" : "pointer",
+                  }}
+                >
+                  {checkingRuntime ? "Checking..." : "Check runtime"}
+                </button>
+              )}
+            </div>
           )}
         </div>
 

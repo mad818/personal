@@ -22,17 +22,29 @@ const inflightRequests = new Map<string, Promise<Response>>();
 
 export function getSessionToken(): string {
   if (typeof window === "undefined") return "";
-  return sessionStorage.getItem(TOKEN_KEY) ?? "";
+  try {
+    return sessionStorage.getItem(TOKEN_KEY) ?? "";
+  } catch {
+    return "";
+  }
 }
 
 export function setSessionToken(token: string) {
   if (typeof window === "undefined") return;
-  sessionStorage.setItem(TOKEN_KEY, token);
+  try {
+    sessionStorage.setItem(TOKEN_KEY, token);
+  } catch {
+    // Ignore storage write failures (private mode / policy-restricted webviews).
+  }
 }
 
 export function clearSessionToken() {
   if (typeof window === "undefined") return;
-  sessionStorage.removeItem(TOKEN_KEY);
+  try {
+    sessionStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // Ignore storage delete failures.
+  }
 }
 
 export async function apiFetch(

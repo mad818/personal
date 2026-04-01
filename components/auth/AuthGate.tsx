@@ -23,7 +23,7 @@ export default function AuthGate({ children }: Props) {
   useEffect(() => {
     const existing = getSessionToken();
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 8000);
+const timeout = window.setTimeout(() => controller.abort(), 8000);
 
     if (existing) {
       fetch("/api/token", {

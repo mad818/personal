@@ -15,7 +15,7 @@ interface Props {
 }
 
 export default function AuthGate({ children }: Props) {
-  const [authed, setAuthed] = useState<boolean | null>(null);
+  const [authed, setAuthed] = useState(false);
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,10 +23,7 @@ export default function AuthGate({ children }: Props) {
   useEffect(() => {
     const existing = getSessionToken();
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => {
-      setAuthed(false);
-      controller.abort();
-    }, 8000);
+const timeout = window.setTimeout(() => controller.abort(), 8000);
 
     if (existing) {
       fetch("/api/token", {
@@ -37,9 +34,9 @@ export default function AuthGate({ children }: Props) {
       })
         .then((r) => r.json())
         .then((d) => setAuthed(!!d.ok))
-        .catch(() => setAuthed(false));
-    } else {
-      setAuthed(false);
+        .catch(() => {
+          // Keep lock screen if validation fails or times out.
+        });
     }
 
     return () => {
@@ -70,25 +67,6 @@ export default function AuthGate({ children }: Props) {
     },
     [submit],
   );
-
-  // Still checking sessionStorage
-  if (authed === null) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "var(--bg)",
-        }}
-      >
-        <span style={{ color: "var(--text3)", fontSize: "13px" }}>
-          Checking session…
-        </span>
-      </div>
-    );
-  }
 
   // Authenticated — show the app
   if (authed) return <>{children}</>;

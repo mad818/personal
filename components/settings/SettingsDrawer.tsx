@@ -84,6 +84,44 @@ const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
   NEXUS_DEPLOYMENT_PROFILE: "local-dev",
 };
 
+function coerceSecurityConfig(config?: Partial<SecurityConfig>): SecurityConfig {
+  return {
+    NEXUS_NETWORK_MODE:
+      config?.NEXUS_NETWORK_MODE === "internal" ||
+      config?.NEXUS_NETWORK_MODE === "connected"
+        ? config.NEXUS_NETWORK_MODE
+        : "isolated",
+    NEXUS_ENABLE_HIGH_RISK_TOOLS:
+      config?.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true" ? "true" : "false",
+    NEXUS_ALLOW_PAID_APIS:
+      config?.NEXUS_ALLOW_PAID_APIS === "true" ? "true" : "false",
+    NEXUS_CONNECTOR_POLICY_JSON:
+      typeof config?.NEXUS_CONNECTOR_POLICY_JSON === "string"
+        ? config.NEXUS_CONNECTOR_POLICY_JSON
+        : config?.NEXUS_CONNECTOR_POLICY_JSON
+          ? JSON.stringify(config.NEXUS_CONNECTOR_POLICY_JSON)
+          : "",
+    NEXUS_DEPLOYMENT_PROFILE:
+      config?.NEXUS_DEPLOYMENT_PROFILE === "web-self-hosted" ||
+      config?.NEXUS_DEPLOYMENT_PROFILE === "desktop-secure"
+        ? config.NEXUS_DEPLOYMENT_PROFILE
+        : "local-dev",
+  };
+}
+
+function getChangedSecurityConfig(
+  current: SecurityConfig,
+  baseline: SecurityConfig,
+): Partial<SecurityConfig> {
+  const changed: Partial<SecurityConfig> = {};
+  (Object.keys(current) as Array<keyof SecurityConfig>).forEach((key) => {
+    if (current[key] !== baseline[key]) {
+      Object.assign(changed, { [key]: current[key] });
+    }
+  });
+  return changed;
+}
+
 type ReleaseInfo = {
   buildChannel: string;
   buildVersion: string;
@@ -122,6 +160,8 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
   const [securityConfig, setSecurityConfig] = useState<SecurityConfig>(
     DEFAULT_SECURITY_CONFIG,
   );
+  const [initialSecurityConfig, setInitialSecurityConfig] =
+    useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>(null);
 
   const [saved, setSaved] = useState(false);
@@ -136,27 +176,14 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
       .then((d) => {
         if (d.status) setKeyStatus(d.status);
         if (d.config) {
-          setSecurityConfig({
-            NEXUS_NETWORK_MODE:
-              d.config.NEXUS_NETWORK_MODE === "internal" ||
-              d.config.NEXUS_NETWORK_MODE === "connected"
-                ? d.config.NEXUS_NETWORK_MODE
-                : "isolated",
-            NEXUS_ENABLE_HIGH_RISK_TOOLS:
-              d.config.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true"
-                ? "true"
-                : "false",
-            NEXUS_ALLOW_PAID_APIS:
-              d.config.NEXUS_ALLOW_PAID_APIS === "true" ? "true" : "false",
+          const nextSecurityConfig = coerceSecurityConfig({
+            ...d.config,
             NEXUS_CONNECTOR_POLICY_JSON: d.config.NEXUS_CONNECTOR_POLICY_JSON
               ? JSON.stringify(d.config.NEXUS_CONNECTOR_POLICY_JSON, null, 0)
               : "",
-            NEXUS_DEPLOYMENT_PROFILE:
-              d.config.NEXUS_DEPLOYMENT_PROFILE === "web-self-hosted" ||
-              d.config.NEXUS_DEPLOYMENT_PROFILE === "desktop-secure"
-                ? d.config.NEXUS_DEPLOYMENT_PROFILE
-                : "local-dev",
           });
+          setSecurityConfig(nextSecurityConfig);
+          setInitialSecurityConfig(nextSecurityConfig);
         }
         if (d.release) setReleaseInfo(d.release);
       })
@@ -174,7 +201,11 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
     setSaveErr("");
 
     // POST sensitive keys to server if any were edited
-    const serverPayload = { ...sensitiveEdits, ...securityConfig };
+    const changedSecurityConfig = getChangedSecurityConfig(
+      securityConfig,
+      initialSecurityConfig,
+    );
+    const serverPayload = { ...sensitiveEdits, ...changedSecurityConfig };
     const hasServerUpdates = Object.keys(serverPayload).length > 0;
     if (hasServerUpdates) {
       try {
@@ -200,6 +231,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
           .catch(() => {});
         // Clear the in-memory edits
         setSensitiveEdits({});
+        setInitialSecurityConfig(securityConfig);
       } catch {
         setSaveErr("Could not reach the server. Is Next.js running?");
         setSaving(false);
@@ -210,12 +242,14 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 1800);
-  }, [sensitiveEdits, securityConfig]);
+  }, [initialSecurityConfig, securityConfig, sensitiveEdits]);
 
   const reset = useCallback(() => {
     updateSettings(DEFAULT_SETTINGS);
     setSensitiveEdits({});
-  }, [updateSettings]);
+    setSecurityConfig(initialSecurityConfig);
+    setSaveErr("");
+  }, [initialSecurityConfig, updateSettings]);
 
   // ── Exit animation ───────────────────────────────────────────────────────────
   const [closing, setClosing] = useState(false);
@@ -227,6 +261,20 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
     }, 220);
   }, [onClose]);
 
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") handleClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [handleClose, open]);
+
   if (!open) return null;
 
   return (
@@ -234,6 +282,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
       {/* Backdrop */}
       <div
         onClick={handleClose}
+        aria-hidden="true"
         style={{
           position: "fixed",
           inset: 0,
@@ -246,6 +295,9 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
 
       {/* Drawer */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Settings"
         style={{
           position: "fixed",
           top: 0,
@@ -281,6 +333,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
             ⚙️ Settings
           </span>
           <button
+            type="button"
             onClick={handleClose}
             style={{
               marginLeft: "auto",
@@ -991,6 +1044,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
           )}
           <div style={{ display: "flex", gap: "8px" }}>
             <button
+              type="button"
               onClick={save}
               disabled={saving}
               style={{
@@ -1008,6 +1062,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
               {saved ? "✓ Saved" : saving ? "Saving…" : "Save Settings"}
             </button>
             <button
+              type="button"
               onClick={reset}
               style={{
                 height: "34px",

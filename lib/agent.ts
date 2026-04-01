@@ -883,11 +883,20 @@ type VerificationPayload = {
   adapters: { adapter: string; passed: boolean; summary: string }[];
 };
 
+const RUNTIME_VERIFICATION_ADAPTERS = [
+  "typecheck",
+  "lint",
+  "route_smoke",
+  "route_integrity",
+] as const;
+const RUNTIME_VERIFICATION_LABEL =
+  "typecheck, lint, route smoke, route integrity";
+
 async function runVerificationAdapters(): Promise<VerificationPayload> {
   try {
     const r = await apiFetch("/api/verify", {
       method: "POST",
-      body: JSON.stringify({ adapters: ["typecheck", "lint", "route_smoke"] }),
+      body: JSON.stringify({ adapters: [...RUNTIME_VERIFICATION_ADAPTERS] }),
       signal: AbortSignal.timeout(240_000),
     });
     const d = await r.json();
@@ -900,7 +909,7 @@ async function runVerificationAdapters(): Promise<VerificationPayload> {
       ok: false,
       adapters: [
         {
-          adapter: "route_smoke",
+          adapter: "verification_request",
           passed: false,
           summary: "Verification request failed",
         },
@@ -1702,12 +1711,12 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
         onStep({
           type: "thinking",
           content:
-            "Verification failed: run marked DEGRADED (typecheck/lint/route smoke).",
+            `Verification failed: run marked DEGRADED (${RUNTIME_VERIFICATION_LABEL}).`,
         });
       } else {
         onStep({
           type: "thinking",
-          content: "Verification passed: typecheck, lint, route smoke.",
+          content: `Verification passed: ${RUNTIME_VERIFICATION_LABEL}.`,
         });
       }
     }

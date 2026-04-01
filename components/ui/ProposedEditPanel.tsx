@@ -62,6 +62,7 @@ function DiffView({ oldStr, newStr }: { oldStr: string; newStr: string }) {
         ))}
         {!showFull && lines.length > MAX_PREVIEW && (
           <button
+            type="button"
             onClick={() => setShowFull(true)}
             style={{
               fontSize: "8px",
@@ -174,8 +175,11 @@ function EditCard({
       }}
     >
       {/* Card header */}
-      <div
+      <button
+        type="button"
         style={{
+          width: "100%",
+          textAlign: "left",
           display: "flex",
           alignItems: "center",
           gap: "8px",
@@ -205,7 +209,7 @@ function EditCard({
         <span style={{ fontSize: "9px", color: "#304060" }}>
           {expanded ? "▲" : "▼"}
         </span>
-      </div>
+      </button>
 
       {expanded && (
         <div
@@ -240,6 +244,7 @@ function EditCard({
             style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}
           >
             <button
+              type="button"
               onClick={onReject}
               disabled={busy}
               style={{
@@ -257,6 +262,7 @@ function EditCard({
               REJECT
             </button>
             <button
+              type="button"
               onClick={onApprove}
               disabled={busy}
               style={{
@@ -485,6 +491,7 @@ export default function ProposedEditPanel() {
             </button>
 
             <button
+              type="button"
               onClick={() => setOpen(false)}
               style={{
                 fontSize: "12px",
@@ -538,6 +545,7 @@ export default function ProposedEditPanel() {
 
       {/* ── Collapsed pill ────────────────────────────────────────────────── */}
       <button
+        type="button"
         onClick={() => setOpen((v) => !v)}
         style={{
           pointerEvents: "auto",

@@ -1,13 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/store/useStore";
-import type {
-  Notification,
-  NotificationSeverity,
-  NotificationType,
-} from "@/store/useStore";
+import type { Notification } from "@/store/useStore";
 import { SEVERITY_COLORS, TYPE_ICONS } from "@/lib/notifications";
 
 // ── Filter types ───────────────────────────────────────────────────────────────
@@ -189,6 +185,7 @@ function NotifCard({
 
       {/* Dismiss */}
       <button
+        type="button"
         onClick={(e) => {
           e.stopPropagation();
           onDismiss(notif.id);
@@ -251,6 +248,20 @@ export default function NotificationCenter({ open, onClose }: Props) {
     { key: "system", label: "System" },
   ];
 
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, onClose]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -276,6 +287,9 @@ export default function NotificationCenter({ open, onClose }: Props) {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 320, opacity: 0 }}
             transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Notifications"
             style={{
               position: "fixed",
               top: 0,
@@ -343,6 +357,7 @@ export default function NotificationCenter({ open, onClose }: Props) {
                 >
                   {unreadCount > 0 && (
                     <button
+                      type="button"
                       onClick={markAllRead}
                       style={{
                         background: "transparent",
@@ -361,6 +376,7 @@ export default function NotificationCenter({ open, onClose }: Props) {
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={onClose}
                     style={{
                       background: "transparent",
@@ -388,6 +404,7 @@ export default function NotificationCenter({ open, onClose }: Props) {
               >
                 {FILTERS.map((f) => (
                   <button
+                    type="button"
                     key={f.key}
                     onClick={() => setFilter(f.key)}
                     style={{

@@ -1,5 +1,5 @@
 {
-  "ts": "2026-03-27T08:16:54.446Z",
+  "ts": "2026-04-01T15:45:01.853Z",
   "score": 100,
   "weightedPassed": 10,
   "weightedTotal": 10,
@@ -7,7 +7,12 @@
   "total": 4,
   "minScore": 85,
   "ok": true,
-  "categoryThresholds": {},
+  "categoryThresholds": {
+    "safety": 80,
+    "reliability": 80,
+    "ux": 70,
+    "observability": 70
+  },
   "categories": {
     "safety": {
       "passedWeight": 3,
@@ -41,7 +46,7 @@
     {
       "name": "verification adapters",
       "pass": true,
-      "detail": "Verification flow wired to typecheck/lint/route smoke",
+      "detail": "Verification flow wired to typecheck/lint/route smoke/route integrity",
       "category": "reliability",
       "weight": 3
     },

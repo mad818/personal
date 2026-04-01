@@ -6,7 +6,7 @@
     "beforeDevCommand": "npm run desktop:build-runtime && npm run desktop:start-runtime",
     "beforeBuildCommand": "npm run desktop:build-runtime",
     "devUrl": "http://127.0.0.1:3000",
-    "frontendDist": "../.next/standalone"
+    "frontendDist": "../../.next/standalone"
   },
   "app": {
     "security": {

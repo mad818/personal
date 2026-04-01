@@ -23,7 +23,9 @@ npm run desktop:start-runtime
 npm run desktop:tauri:dev
 ```
 
-The runtime launcher uses `.next/standalone/server.js` and defaults to:
+The runtime launcher uses the repo-root `.next/standalone/server.js`, and the Tauri shell consumes the same bundle via `../../.next/standalone` from `desktop/src-tauri/tauri.conf.json`.
+
+It defaults to:
 - `HOSTNAME=127.0.0.1`
 - `PORT=3000`
 

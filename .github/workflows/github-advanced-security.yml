@@ -69,6 +69,12 @@ jobs:
         if: matrix.language == 'rust'
         run: echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig" >> "$GITHUB_ENV"
 
+      - name: Prepare placeholder frontend bundle for Rust scan
+        if: matrix.language == 'rust'
+        run: |
+          mkdir -p .next/standalone
+          printf '<!doctype html><title>Nexus CodeQL placeholder</title>\n' > .next/standalone/index.html
+
       - name: Build Rust (Tauri)
         if: matrix.language == 'rust'
         run: |

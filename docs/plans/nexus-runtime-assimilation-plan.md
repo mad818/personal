@@ -64,9 +64,11 @@ Every imported idea must map to one of the above layers and ship with:
 | IRONSIGHT | Real-time fused intelligence display patterns | Better incident and world-event situational awareness | Nexus-native data blend (world risk + cyber + markets) |
 | agent-lightning | Training/optimization framework concepts | Improve policy/prompt/runtime behavior over time | Eval-gated tuning with category thresholds already in Nexus |
 | agentfs | Durable filesystem-backed agent memory | Reproducibility + state continuity | Run replay + memory-diff hooks in HQ |
+| Self-evolving Claude Code guide | Runtime governance, rule verification, correction-to-lesson loop | Reduce repeated operator corrections and improve session continuity | Approval-gated rule graduation; no autonomous mutation of core runtime rules |
 | TimesFM | Time-series forecasting adapter | Better foresight for market/risk scheduler decisions | Ensemble + confidence controls + fallback heuristics |
 | Claude prompt caching docs | Cache breakpoints and prompt reuse | Lower latency and token cost in repeated runs | Adaptive cache strategy per agent profile |
 | Claude batch processing docs | Async bulk generation and processing patterns | Higher throughput for nightly/recurring missions | Batch-aware scheduler missions with reporting |
+| TurboQuant / KV-cache compression | Efficiency layer and local inference capability tracking | Lower latency/cost for long-context local runs when upstream runtimes support it | Capability-aware routing + measured benchmarks before rollout |
 
 ---
 
@@ -174,12 +176,14 @@ If a new integration does not improve at least one KPI within two sprints, it sh
 - [ ] Batch mission path for scheduler-driven background tasks.
 - [ ] Skill metadata enrichment: risk tier + approval requirement + domain tags.
 - [ ] Cyber skill pack assimilation with operator approval by default.
+- [ ] Add session boot + rule-verification flow with approval-gated graduation of repeated lessons.
 
 ### P2 — Evolution layer
 - [ ] TimesFM forecasting adapter + confidence/fallback policy.
 - [ ] IRONSIGHT-style fused ops pane for source-confidence monitoring.
 - [ ] Agent-lightning-inspired optimization loop tied to runtime eval gates.
 - [ ] Optional build123d plugin mission flow for engineering use-cases.
+- [ ] Track local runtime capabilities (prompt cache, context length, KV-cache compression support) and benchmark before enabling provider-specific optimizations.
 
 ---
 

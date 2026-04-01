@@ -22,10 +22,12 @@
 
 - [README.md](https://github.com/mad818/personal/blob/main/README.md) — Self-hosting section, project tree includes `Dockerfile`, `docs/deployment/`, `docs/ideas/assimilated-ecosystem.md`.
 - [CLAUDE.md](https://github.com/mad818/personal/blob/main/CLAUDE.md) — `docs/` paths + assimilated ecosystem pointer.
+- [docs/release-support-matrix.md](https://github.com/mad818/personal/blob/main/docs/release-support-matrix.md) — GA vs beta vs internal product surface policy for this cycle.
+- [docs/deployment/release-readiness-checklist.md](https://github.com/mad818/personal/blob/main/docs/deployment/release-readiness-checklist.md) — shared web/desktop release gate checklist.
 
 **Handoff automation**
 
-- [scripts/generate-handoff.js](https://github.com/mad818/personal/blob/main/scripts/generate-handoff.js) — **branch** tree + commit history links from `origin`, plus this file appended into `docs/CLAUDE_HANDOFF.md` (no per-commit SHA — avoids handoff sync oscillation).
+- [scripts/generate-handoff.js](https://github.com/mad818/personal/blob/main/scripts/generate-handoff.js) — **branch** tree + commit history links from `origin`, plus this file appended into `docs/AGENT_HANDOFF.md` and compatibility copies (no per-commit SHA — avoids handoff sync oscillation).
 
 **PM operator + cockpit (planned)**
 
@@ -61,5 +63,5 @@ Agents and IDE sessions should close with this structure in their final message:
 - [suggested next task] — owner: [agent or Mario]
 ```
 
-This template feeds `docs/CLAUDE_HANDOFF.md` via `npm run handoff:write`.
+This template feeds `docs/AGENT_HANDOFF.md` via `npm run handoff:write`, along with tool-compatible copies for Claude, Codex, and Cursor.
 If nothing broke and verify is green, state that explicitly — "No known issues."

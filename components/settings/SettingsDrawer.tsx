@@ -7,6 +7,7 @@ import { apiFetch } from "@/lib/apiFetch";
 import RuntimeEvalTrend from "@/components/ui/RuntimeEvalTrend";
 import { PMHealthStrip } from "@/components/settings/PMHealthStrip";
 import { PMChecklist } from "@/components/settings/PMChecklist";
+import { RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
 
 // ── Non-sensitive fields — stored in Zustand / localStorage ──────────────────
 const LOCAL_FIELDS: {
@@ -72,6 +73,7 @@ type SecurityConfig = {
   NEXUS_ENABLE_HIGH_RISK_TOOLS: "true" | "false";
   NEXUS_ALLOW_PAID_APIS: "true" | "false";
   NEXUS_CONNECTOR_POLICY_JSON: string;
+  NEXUS_DEPLOYMENT_PROFILE: "local-dev" | "web-self-hosted" | "desktop-secure";
 };
 
 const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
@@ -79,6 +81,21 @@ const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
   NEXUS_ENABLE_HIGH_RISK_TOOLS: "false",
   NEXUS_ALLOW_PAID_APIS: "false",
   NEXUS_CONNECTOR_POLICY_JSON: "",
+  NEXUS_DEPLOYMENT_PROFILE: "local-dev",
+};
+
+type ReleaseInfo = {
+  buildChannel: string;
+  buildVersion: string;
+  supportedSurfacePolicy: string;
+  canonicalDeploymentLane: string;
+  surfaces: {
+    total: number;
+    ga: number;
+    beta: number;
+    internal: number;
+    gaNav: number;
+  };
 };
 
 interface Props {
@@ -103,6 +120,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
   const [securityConfig, setSecurityConfig] = useState<SecurityConfig>(
     DEFAULT_SECURITY_CONFIG,
   );
+  const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>(null);
 
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -131,8 +149,14 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
             NEXUS_CONNECTOR_POLICY_JSON: d.config.NEXUS_CONNECTOR_POLICY_JSON
               ? JSON.stringify(d.config.NEXUS_CONNECTOR_POLICY_JSON, null, 0)
               : "",
+            NEXUS_DEPLOYMENT_PROFILE:
+              d.config.NEXUS_DEPLOYMENT_PROFILE === "web-self-hosted" ||
+              d.config.NEXUS_DEPLOYMENT_PROFILE === "desktop-secure"
+                ? d.config.NEXUS_DEPLOYMENT_PROFILE
+                : "local-dev",
           });
         }
+        if (d.release) setReleaseInfo(d.release);
       })
       .catch(() => {
         /* non-fatal */
@@ -433,6 +457,46 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
               </select>
             </label>
 
+            <label
+              style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}
+            >
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "var(--text3)",
+                  textTransform: "uppercase",
+                }}
+              >
+                Deployment Profile
+              </span>
+              <select
+                value={securityConfig.NEXUS_DEPLOYMENT_PROFILE}
+                onChange={(e) =>
+                  setSecurityConfig((prev) => ({
+                    ...prev,
+                    NEXUS_DEPLOYMENT_PROFILE:
+                      e.target.value as SecurityConfig["NEXUS_DEPLOYMENT_PROFILE"],
+                  }))
+                }
+                style={{
+                  background: "var(--surf)",
+                  border: "1px solid var(--border2)",
+                  borderRadius: "6px",
+                  color: "var(--text)",
+                  fontSize: "12px",
+                  padding: "7px 10px",
+                  outline: "none",
+                  width: "100%",
+                  boxSizing: "border-box",
+                }}
+              >
+                <option value="local-dev">local-dev</option>
+                <option value="web-self-hosted">web-self-hosted</option>
+                <option value="desktop-secure">desktop-secure</option>
+              </select>
+            </label>
+
             <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <input
                 type="checkbox"
@@ -502,6 +566,136 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                   resize: "vertical",
                 }}
               />
+            </label>
+
+            <div
+              style={{
+                marginTop: 12,
+                padding: "10px 12px",
+                borderRadius: 8,
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid var(--border2)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "var(--text3)",
+                  textTransform: "uppercase",
+                }}
+              >
+                Release Scope
+              </span>
+              <span style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.45 }}>
+                Supported surface policy: {releaseInfo?.supportedSurfacePolicy ?? RELEASE_DEFAULTS.supportedSurfacePolicy}. Canonical deployment lane: {releaseInfo?.canonicalDeploymentLane ?? RELEASE_DEFAULTS.canonicalDeploymentLane}.
+              </span>
+              <span style={{ fontSize: 12, color: "var(--text2)" }}>
+                GA nav tabs: {releaseInfo?.surfaces.gaNav ?? 7}. Beta surfaces: {releaseInfo?.surfaces.beta ?? 0}. Internal surfaces: {releaseInfo?.surfaces.internal ?? 0}.
+              </span>
+              <span style={{ fontSize: 12, color: "var(--text3)" }}>
+                Build: {releaseInfo?.buildChannel ?? "dev"} / {releaseInfo?.buildVersion ?? "local-dev"}
+              </span>
+            </div>
+          </div>
+
+          <div
+            style={{
+              padding: "10px",
+              border: "1px solid var(--border)",
+              borderRadius: 8,
+              background: "var(--surf2)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "10px",
+                fontWeight: 700,
+                color: "var(--text3)",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                marginBottom: "12px",
+              }}
+            >
+              Release Preferences (local)
+            </div>
+
+            <label
+              style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}
+            >
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "var(--text3)",
+                  textTransform: "uppercase",
+                }}
+              >
+                Preferred deployment lane
+              </span>
+              <select
+                value={settings.deploymentLanePreference}
+                onChange={(e) =>
+                  updateSettings({
+                    deploymentLanePreference:
+                      e.target.value as Settings["deploymentLanePreference"],
+                  })
+                }
+                style={{
+                  background: "var(--surf)",
+                  border: "1px solid var(--border2)",
+                  borderRadius: "6px",
+                  color: "var(--text)",
+                  fontSize: "12px",
+                  padding: "7px 10px",
+                  outline: "none",
+                  width: "100%",
+                  boxSizing: "border-box",
+                }}
+              >
+                <option value="webFirst">webFirst</option>
+                <option value="dualTrack">dualTrack</option>
+                <option value="desktopFirst">desktopFirst</option>
+              </select>
+            </label>
+
+            <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "var(--text3)",
+                  textTransform: "uppercase",
+                }}
+              >
+                Surface visibility preference
+              </span>
+              <select
+                value={settings.surfaceVisibilityPreference}
+                onChange={(e) =>
+                  updateSettings({
+                    surfaceVisibilityPreference:
+                      e.target.value as Settings["surfaceVisibilityPreference"],
+                  })
+                }
+                style={{
+                  background: "var(--surf)",
+                  border: "1px solid var(--border2)",
+                  borderRadius: "6px",
+                  color: "var(--text)",
+                  fontSize: "12px",
+                  padding: "7px 10px",
+                  outline: "none",
+                  width: "100%",
+                  boxSizing: "border-box",
+                }}
+              >
+                <option value="gaOnly">gaOnly</option>
+                <option value="includeBeta">includeBeta</option>
+              </select>
             </label>
           </div>
 

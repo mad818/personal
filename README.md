@@ -37,6 +37,8 @@
 
 ## Tabs
 
+**Supported release surface for this cycle:** the GA product is the 7-tab nav (`HQ`, `COMMAND`, `INTEL`, `ALPHA`, `CYBER`, `RECON`, `VAULT`) plus `/resources`. Additional repo routes exist as beta/internal surfaces and are not part of the current public support contract unless explicitly promoted.
+
 One unified React app — seven tabs, single nav bar, one URL.
 
 <table>

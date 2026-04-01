@@ -18,11 +18,16 @@ npm run desktop:start-runtime  # run at 127.0.0.1:3000
 npm run desktop:tauri:dev      # open Tauri dev shell
 ```
 
-## Handoff (Cursor, Claude, or any editor — same rules)
+## Handoff (Cursor, Claude, Codex, or any editor — same rules)
 
-There is **one** handoff file: `docs/CLAUDE_HANDOFF.md`. It is **not** chat history. It is **rebuilt from the repo** (latest commit + file list + `tasks/todo.md` “what’s next”). **Old text is replaced** every time it is regenerated.
+There is **one canonical handoff document**: `docs/AGENT_HANDOFF.md`. It is **not** chat history. It is **rebuilt from the repo** (`tasks/todo.md` “what’s next” + committed supplement + stable project context). **Old text is replaced** every time it is regenerated.
 
-**When you open this project (any machine, Cursor or Claude):** run `npm run handoff:pull` (same as `git pull`) so your disk matches GitHub and you read the latest handoff.
+For tool compatibility, the same generated content is also written to:
+- `docs/CLAUDE_HANDOFF.md`
+- `docs/CODEX_HANDOFF.md`
+- `docs/CURSOR_HANDOFF.md`
+
+**When you open this project (any machine, Cursor / Claude / Codex):** run `npm run handoff:pull` (same as `git pull`) so your disk matches GitHub and you read the latest handoff.
 
 **When you finish work:** commit your changes, then `git push`. A **git hook** runs `npm run handoff:sync` before the push so the handoff on GitHub stays current. **Same commands in Cursor and in Claude** — same folder, same git, same GitHub.
 
@@ -86,7 +91,7 @@ app/api/                  ← Next.js server routes
 
 **External ecosystem (ideas only, not copied code):** `docs/ideas/assimilated-ecosystem.md` — maps other OSS projects (PM workflows, Coolify, autoresearch, routers, etc.) to Nexus patterns.
 
-**Handoff supplement (optional, committed):** `docs/handoff-supplement.md` — narrative + `blob/main` links merged into `docs/CLAUDE_HANDOFF.md` by `scripts/generate-handoff.js`.
+**Handoff supplement (optional, committed):** `docs/handoff-supplement.md` — narrative + `blob/main` links merged into `docs/AGENT_HANDOFF.md` and its compatibility copies by `scripts/generate-handoff.js`.
 
 ## Rules (auto-loaded by path — do not repeat here)
 @.claude/rules/security.md

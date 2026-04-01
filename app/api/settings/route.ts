@@ -8,6 +8,13 @@ import {
   DEFAULT_CONNECTOR_POLICY,
   parseConnectorPolicy,
 } from "@/lib/security/connectorPolicy";
+import {
+  readBuildChannel,
+  readBuildVersion,
+  readDeploymentProfile,
+  RELEASE_DEFAULTS,
+  summarizeSurfaceTiers,
+} from "@/lib/releaseMatrix";
 
 /**
  * Server-side settings store — OpenClaw-style.
@@ -42,6 +49,7 @@ const SENSITIVE_KEYS = [
   "NEXUS_ENABLE_HIGH_RISK_TOOLS",
   "NEXUS_ALLOW_PAID_APIS",
   "NEXUS_CONNECTOR_POLICY_JSON",
+  "NEXUS_DEPLOYMENT_PROFILE",
 ];
 
 // Legacy keys accepted for backward compatibility while we normalize naming.
@@ -109,7 +117,19 @@ function normalizeConfigValue(key: string, value: string): string {
     const policy = parseConnectorPolicy(value);
     return JSON.stringify(policy);
   }
+  if (key === "NEXUS_DEPLOYMENT_PROFILE") {
+    if (v === "web-self-hosted" || v === "desktop-secure") return v;
+    return "local-dev";
+  }
   return value;
+}
+
+function readPendingDeploymentProfile(env: Record<string, string>) {
+  const raw = env.NEXUS_DEPLOYMENT_PROFILE ?? process.env.NEXUS_DEPLOYMENT_PROFILE;
+  if (!raw) return readDeploymentProfile();
+  const v = raw.trim().toLowerCase();
+  if (v === "web-self-hosted" || v === "desktop-secure") return v;
+  return "local-dev";
 }
 
 // GET — return which keys are set (true/false), not the values
@@ -138,8 +158,19 @@ export async function GET() {
     NEXUS_CONNECTOR_POLICY_JSON: parseConnectorPolicy(
       env.NEXUS_CONNECTOR_POLICY_JSON ?? process.env.NEXUS_CONNECTOR_POLICY_JSON,
     ),
+    NEXUS_DEPLOYMENT_PROFILE: readPendingDeploymentProfile(env),
   };
-  return NextResponse.json({ status, config });
+  return NextResponse.json({
+    status,
+    config,
+    release: {
+      buildChannel: readBuildChannel(),
+      buildVersion: readBuildVersion(),
+      supportedSurfacePolicy: RELEASE_DEFAULTS.supportedSurfacePolicy,
+      canonicalDeploymentLane: RELEASE_DEFAULTS.canonicalDeploymentLane,
+      surfaces: summarizeSurfaceTiers().counts,
+    },
+  });
 }
 
 // POST — update one or more keys in .env.local

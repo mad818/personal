@@ -1,75 +1,179 @@
-# Nexus Prime — Architecture
+# Nexus Prime — Current Architecture
 
 ## Overview
-Single-file browser dashboard. No build step. No backend. No server required.
-Open `nexus-final.html` in any modern browser and it works.
 
-## File
-`nexus-final.html` — ~11,500 lines, ~600KB
+Nexus Prime is a **Next.js 14 App Router application** with a **local-first desktop shell** via Tauri and a **self-hosted web deployment** path via Docker/Coolify.
 
-## Tech stack
-| Layer | Technology |
-|-------|-----------|
-| UI | Vanilla HTML/CSS/JS |
-| Maps | Leaflet.js 1.9.4 + MarkerCluster |
-| Satellite tracking | satellite.js 4.0.0 (SGP4 propagation) |
-| Charts | Chart.js (inline) |
-| Fonts | Inter (Google Fonts) |
-| Storage | localStorage only |
-| AI | Ollama (local) or Anthropic/OpenAI (API key) |
+This repo is no longer a single-file browser artifact. The historical `nexus-final.html` remains as legacy reference only. The active architecture is:
+- `app/` for routes and API handlers,
+- `components/` for UI,
+- `lib/` for runtime logic and policies,
+- `store/useStore.ts` for persisted client state,
+- `desktop/src-tauri/` for the desktop host.
 
-## Data flow
-```
-loadAll() on page init
-    ├── loadCGData()        → S.prices, S.sparklines, S.signals.fg
-    ├── loadSources()       → S.articles
-    ├── loadCVEs()          → S.cves
-    └── initConflictTicker() → conflict data
+## Product surface policy
 
-switchTab(tab)
-    └── init function for tab → renders from S.*
-```
+Release scope for the current cycle is intentionally narrower than the full repo route inventory.
 
-## Key globals
-- `S` — all runtime state
-- `SOURCES` — news source definitions
-- `DEFAULT_CFG` — settings defaults
-- `SB` — Shadowbroker live intel layer state
-- `_botResults` — Buy Bot scan results
-- `_pmEvents` — Polymarket events cache
-- `_fcContext` — Firecrawl scraped content (injected into AI thesis)
+### Supported GA surfaces
+- `/home` — HQ
+- `/command` — COMMAND
+- `/intel` — INTEL
+- `/alpha` — ALPHA
+- `/cyber` — CYBER
+- `/recon` — RECON
+- `/vault` — VAULT
+- `/resources` — field manual and operator references
 
-## AI architecture
-- Default: Ollama at `localhost:11434` (no key needed)
-- Optional: Anthropic Claude or any OpenAI-compatible endpoint
-- All calls go through `stratAICall(prompt)` or `callAI(prompt, maxTokens)`
-- Never call provider APIs directly
+### Beta / internal surfaces
+- Beta: `/signals`, `/ops`, `/security`
+- Internal: `/iot`, `/vehicle`, `/skills`, `/reset`
 
-## Live intel layers (OPS tab)
-```
-SB object manages:
-├── flights    → OpenSky Network (60s refresh)
-├── ships      → aisstream.io WebSocket (real-time)
-├── sats       → CelesTrak TLE + local SGP4 (8s refresh)
-├── quakes     → USGS GeoJSON (5m refresh)
-├── fires      → NASA FIRMS VIIRS (10m refresh)
-├── jamming    → gpsjam.org (5m refresh)
-└── space      → NOAA SWPC (2m refresh)
-```
+These routes may exist and function, but they are **not** part of the current GA support contract unless explicitly promoted.
 
-## Momentum scanner data pipeline (ALPHA tab)
-```
-runMomentumScan()
-├── fetchYahooGainers()      → top gainers from Yahoo Finance screener
-├── fetchUniverseScan()      → 100-ticker curated universe batch quote
-├── scoreAsset()             → RSI, BB, EMA, volume, trend → 0-100 score
-├── filter by verdict/chg    → BUY / WATCH / SKIP
-└── renderScannerResults()   → table with thesis + position calc actions
-```
+## Delivery lanes
 
-## Decisions log
-- **Single file**: keeps deployment trivial — share one file, no dependencies
-- **localStorage only**: no auth, no server, privacy by default
-- **Ollama default**: works offline, no API cost, users can swap to cloud AI
-- **CSS variables**: enables dark/light theme with zero JS
-- **CORS-free APIs**: all data sources chosen for browser accessibility
+Nexus currently ships through two aligned deployment lanes:
+
+1. **Web self-hosted**
+   - Docker and Coolify/VPS deployment
+   - Next.js standalone server
+   - protected `/api/*` routes behind `NEXUS_TOKEN`
+
+2. **Desktop secure**
+   - Tauri shell
+   - local standalone runtime bound to `127.0.0.1`
+   - route-policy and network-mode controls
+
+Both lanes share the same release baseline:
+- auth/token behavior,
+- runtime eval gates,
+- route-policy enforcement,
+- diagnostics payloads,
+- connector governance,
+- rollback documentation.
+
+## Runtime layers
+
+| Layer | Responsibility |
+|---|---|
+| `app/*` | Supported app routes and route-local UI composition |
+| `app/api/*` | Gateway for AI, tools, diagnostics, feeds, verification, and settings |
+| `lib/agent.ts` | Agent orchestration, tool risk policy, run artifacts |
+| `lib/ai.ts` | AI provider calls, prompt building, non-interactive mission path |
+| `lib/security/*` | route policy, connector policy, secure runtime controls |
+| `lib/releaseMatrix.ts` | canonical release surface and connector metadata |
+| `store/useStore.ts` | persisted UI/runtime settings and app state |
+| `desktop/src-tauri/*` | desktop host shell, capability config, secure command boundary |
+
+## API gateway model
+
+### Protected control plane
+- `/api/token`
+- `/api/health`
+- `/api/status`
+- `/api/diagnostics`
+- `/api/settings`
+- `/api/project`
+- `/api/verify`
+
+### Runtime / agent plane
+- `/api/ai`
+- `/api/tools`
+- `/api/agent-reach`
+- `/api/mqtt`
+- `/api/telegram`
+
+### Connector plane
+- `/api/news`
+- `/api/gdelt`
+- `/api/conflict`
+- `/api/cves`
+- `/api/cisa-kev`
+- `/api/threat-intel`
+- `/api/sec-filings`
+- `/api/prices`
+- `/api/metals`
+- `/api/commodities`
+- `/api/fx`
+- `/api/fear-greed`
+- `/api/defi`
+- `/api/polymarket`
+- `/api/weather`
+- `/api/earthquakes`
+- `/api/fires`
+- `/api/flights`
+- `/api/maritime`
+- `/api/geo-scan`
+- `/api/hacker-news`
+- `/api/headers`
+
+## Security and policy model
+
+### Network modes
+- `isolated`
+- `internal`
+- `connected`
+
+### Route classes
+- `local_only`
+- `connector_opt_in`
+- `high_risk`
+
+### Enforcement
+- `middleware.ts` enforces auth and route-policy decisions for `/api/*`
+- `lib/security/routePolicy.ts` classifies route prefixes
+- `lib/security/connectorPolicy.ts` enables/disables individual connectors
+- `NEXUS_ALLOW_PAID_APIS=false` keeps the product in free-first posture unless explicitly opted in
+
+## State model
+
+### Client-side persisted state
+- user profile and preferences
+- watchlist and vault state
+- scheduler settings
+- office UI preferences
+- deployment lane and surface-visibility preferences
+
+### Server-side persisted config
+- protected keys in `.env.local`
+- network mode
+- high-risk route enablement
+- paid API opt-in
+- connector policy JSON
+- deployment profile
+
+## Release and observability
+
+Release metadata now flows from one canonical source into:
+- `Nav` (GA tabs only)
+- `/api/status`
+- `/api/diagnostics`
+- `/api/settings`
+- deployment smoke tooling
+
+The runtime baseline is monitored through:
+- `docs/metrics/agent-runtime-latest.json`
+- `docs/metrics/agent-runtime-history.jsonl`
+- `/api/metrics/runtime-eval*`
+- Settings runtime eval panel
+- HQ telemetry surfaces
+
+## Current stage
+
+Nexus Prime is **post-migration and pre-GA hardening**.
+
+What is already in place:
+- active Next.js app
+- working self-hosted web path
+- Tauri desktop bootstrap
+- runtime eval tooling
+- route-policy enforcement
+- connector policy controls
+- deployment runbooks and security checklists
+
+What remains before a cleaner GA baseline:
+- final deployment and release smoke discipline
+- desktop signing and trusted release verification
+- broader isolation test coverage
+- remaining runtime hardening items and rollout cleanup

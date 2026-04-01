@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
+import { readTimesfmSpikeStatus } from "@/lib/experiments";
+import {
+  readBuildChannel,
+  readBuildVersion,
+  readDeploymentProfile,
+  RELEASE_DEFAULTS,
+  summarizeConnectorReadiness,
+  summarizeSurfaceTiers,
+} from "@/lib/releaseMatrix";
+import { summarizeSkillGovernance } from "@/lib/skillMetadata";
 
 function present(v: string | undefined) {
   return Boolean(v && v.trim().length > 0);
@@ -17,6 +27,22 @@ export async function GET() {
     connectorPolicy: readConnectorPolicy(),
     tokenConfigured: present(process.env.NEXUS_TOKEN),
   };
+  const connectorReadiness = summarizeConnectorReadiness(
+    security.networkMode,
+    security.connectorPolicy,
+  );
+  const surfaceSummary = summarizeSurfaceTiers();
+  const rollbackHints = [
+    !security.tokenConfigured
+      ? "Set NEXUS_TOKEN before exposing protected API routes."
+      : null,
+    security.networkMode === "connected" && security.highRiskRoutesEnabled
+      ? "If behavior looks unsafe, revert to isolated mode and disable high-risk routes."
+      : null,
+    security.allowPaidApis
+      ? "Paid APIs are enabled; revert NEXUS_ALLOW_PAID_APIS=false to return to the free-default posture."
+      : null,
+  ].filter(Boolean);
 
   const providers = {
     local: {
@@ -48,6 +74,17 @@ export async function GET() {
 
   return NextResponse.json({
     generatedAt: now,
+    release: {
+      service: "nexus-prime",
+      channel: readBuildChannel(),
+      version: readBuildVersion(),
+      deploymentProfile: readDeploymentProfile(),
+      canonicalDeploymentLane: RELEASE_DEFAULTS.canonicalDeploymentLane,
+      supportedSurfacePolicy: RELEASE_DEFAULTS.supportedSurfacePolicy,
+      surfaceCounts: surfaceSummary.counts,
+      connectorReadiness: connectorReadiness.counts,
+      rollbackHints,
+    },
     runtime: {
       node: process.version,
       platform: process.platform,
@@ -56,6 +93,10 @@ export async function GET() {
     security,
     providers,
     dataSources,
+    skillGovernance: summarizeSkillGovernance(),
+    experiments: {
+      timesfmSpike: readTimesfmSpikeStatus(),
+    },
     notes: [
       "All values are redacted to booleans/metadata only.",
       "Use this payload for secured-network diagnostics exports.",

@@ -6,6 +6,7 @@ import { DEFAULT_SETTINGS, type Settings } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
 import { MINIMAX_DEFAULT_CHAT_MODEL, TASK_MODELS } from "@/lib/aiModelRouting";
 import { NEXUS_AGENT_NO_BILLING_RULE } from "@/lib/productGuarantees";
+import { getNavProductSurfaces, summarizeSurfaceTiers } from "@/lib/releaseMatrix";
 
 function getSettings(): Settings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
@@ -30,6 +31,40 @@ function aiReady(s: Settings): boolean {
   // Local Ollama — needs endpoint + model
   if (s.localEndpoint && s.localModel) return true;
   return false;
+}
+
+const NON_INTERACTIVE_SINGLE_FLIGHT = new Map<string, Promise<string>>();
+const SYSTEM_PROMPT_CACHE = new Map<string, string>();
+
+function stableHash(input: string): string {
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function buildPromptProfileSignature(s: Settings, liveContext: string) {
+  return JSON.stringify({
+    userName: s.userName,
+    userGoals: s.userGoals,
+    userSkills: s.userSkills,
+    userLearning: s.userLearning,
+    userContext: s.userContext,
+    deploymentLanePreference: s.deploymentLanePreference,
+    surfaceVisibilityPreference: s.surfaceVisibilityPreference,
+    liveContextHash: stableHash(liveContext),
+  });
+}
+
+export function buildCachedSystemPrompt(s: Settings, liveContext = ""): string {
+  const key = buildPromptProfileSignature(s, liveContext);
+  const cached = SYSTEM_PROMPT_CACHE.get(key);
+  if (cached) return cached;
+  const prompt = buildSystemPrompt(s, liveContext);
+  SYSTEM_PROMPT_CACHE.set(key, prompt);
+  return prompt;
 }
 
 // ── Streaming helper ──────────────────────────────────────────────────────────
@@ -76,6 +111,33 @@ async function streamRequest(
   return full;
 }
 
+async function callLocalModel(
+  s: Settings,
+  body: {
+    max_tokens: number;
+    messages: { role: string; content: string }[];
+    task?: string;
+  },
+) {
+  const model = body.task
+    ? (TASK_MODELS[body.task as keyof typeof TASK_MODELS] ?? s.localModel)
+    : s.localModel;
+  const res = await fetch(s.localEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(s.localApiKey ? { Authorization: `Bearer ${s.localApiKey}` } : {}),
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: body.max_tokens,
+      messages: body.messages,
+    }),
+  });
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? "";
+}
+
 // ── Main AI call (non-streaming) ──────────────────────────────────────────────
 export async function callAI(
   prompt: string,
@@ -109,30 +171,103 @@ export async function callAI(
       }),
     });
     const data = await res.json();
-    if (!res.ok)
+    if (!res.ok) {
+      if (s.localEndpoint && s.localModel) {
+        return callLocalModel(s, {
+          max_tokens: maxTokens,
+          messages: [{ role: "user", content: prompt }],
+          task,
+        });
+      }
       throw new Error(data?.error?.message ?? `API error ${res.status}`);
+    }
     // Anthropic returns content array; OpenAI-compat returns choices
     return data.content?.[0]?.text ?? data.choices?.[0]?.message?.content ?? "";
   }
 
   // Local Ollama — pick model by task hint
-  const model = task
-    ? (TASK_MODELS[task as keyof typeof TASK_MODELS] ?? s.localModel)
-    : s.localModel;
-  const res = await fetch(s.localEndpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(s.localApiKey ? { Authorization: `Bearer ${s.localApiKey}` } : {}),
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      messages: [{ role: "user", content: prompt }],
-    }),
+  return callLocalModel(s, {
+    max_tokens: maxTokens,
+    messages: [{ role: "user", content: prompt }],
+    task,
   });
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
+}
+
+export async function callNonInteractiveAI(opts: {
+  systemPrompt: string;
+  userPrompt: string;
+  maxTokens?: number;
+  task?: string;
+  singleFlightKey?: string;
+}): Promise<string> {
+  const { systemPrompt, userPrompt, maxTokens = 300, task = "fast", singleFlightKey } = opts;
+  const existing = singleFlightKey
+    ? NON_INTERACTIVE_SINGLE_FLIGHT.get(singleFlightKey)
+    : null;
+  if (existing) return existing;
+
+  const run = async () => {
+    const s = getSettings();
+    if (!aiReady(s)) throw new Error("No AI configured");
+
+    if (
+      s.aiProvider === "anthropic" ||
+      s.aiProvider === "openai" ||
+      s.aiProvider === "minimax"
+    ) {
+      const cloudProvider = s.aiProvider;
+      const cloudModel =
+        cloudProvider === "anthropic"
+          ? "claude-opus-4-5"
+          : cloudProvider === "minimax"
+            ? MINIMAX_DEFAULT_CHAT_MODEL
+            : "gpt-4o-mini";
+      const res = await apiFetch("/api/ai", {
+        method: "POST",
+        body: JSON.stringify({
+          provider: cloudProvider,
+          model: cloudModel,
+          max_tokens: maxTokens,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userPrompt }],
+          task,
+          non_interactive: true,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (s.localEndpoint && s.localModel) {
+          return callLocalModel(s, {
+            max_tokens: maxTokens,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            task,
+          });
+        }
+        throw new Error(data?.error?.message ?? `API error ${res.status}`);
+      }
+      return (
+        data.content?.[0]?.text ?? data.choices?.[0]?.message?.content ?? ""
+      );
+    }
+
+    return callLocalModel(s, {
+      max_tokens: maxTokens,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      task,
+    });
+  };
+
+  const promise = run().finally(() => {
+    if (singleFlightKey) NON_INTERACTIVE_SINGLE_FLIGHT.delete(singleFlightKey);
+  });
+  if (singleFlightKey) NON_INTERACTIVE_SINGLE_FLIGHT.set(singleFlightKey, promise);
+  return promise;
 }
 
 // ── Streaming AI call ─────────────────────────────────────────────────────────
@@ -312,6 +447,10 @@ export async function streamAIWithThinking(
 // When provided, agents reason from live dashboard data instead of stale memory.
 export function buildSystemPrompt(s: Settings, liveContext = ""): string {
   const name = s.userName || "Mario";
+  const supportedTabs = getNavProductSurfaces()
+    .map((surface) => surface.href.replace("/", ""))
+    .join(", ");
+  const surfaceSummary = summarizeSurfaceTiers().counts;
   const parts: string[] = [];
   if (s.userGoals) parts.push(`Goals: ${s.userGoals}`);
   if (s.userSkills) parts.push(`Building: ${s.userSkills}`);
@@ -331,11 +470,16 @@ You have full access to the Nexus Prime project source code through these tools:
 - fetch_url('/api/project') — read CLAUDE.md, active tasks, and lessons learned
 
 Project structure:
-- app/ — Next.js routes (one folder per tab: home, command, alpha, signals, ops, intel, cyber, security, skills, iot, vehicle, vault)
+- app/ — Next.js routes. Supported GA tabs this cycle: ${supportedTabs}
 - components/ — UI components grouped by tab
 - lib/ — utilities (agent.ts, ai.ts, liveContext.ts, helpers.ts, etc.)
 - store/useStore.ts — all global state (Zustand)
 - public/ — static assets
+
+Surface policy:
+- Supported nav surface: 7 GA tabs only (HQ, COMMAND, INTEL, ALPHA, CYBER, RECON, VAULT)
+- Additional routes exist in the repo as beta/internal surfaces and must not be treated as launch-critical by default
+- Current counts: ${surfaceSummary.ga} ga / ${surfaceSummary.beta} beta / ${surfaceSummary.internal} internal
 
 Rules for editing:
 1. Always read_project_file before patching — never guess at the current content

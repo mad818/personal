@@ -29,7 +29,7 @@ It is **not** “every model is always streaming.” It **is**:
 | Code + review | HQ **EL (orbit)** for edits; MAX for synthesis |
 | Health check | **Settings** diagnostics, `/api/status`, **Quality Gates** workflow |
 | Lessons | `tasks/lessons.md` after any correction |
-| Handoff between sessions | `docs/CLAUDE_HANDOFF.md` + `npm run handoff:write` |
+| Handoff between sessions | `docs/AGENT_HANDOFF.md` + `npm run handoff:write` |
 
 ## In-app fiction vs real life
 

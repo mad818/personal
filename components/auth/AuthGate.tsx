@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   getSessionToken,
   probeRuntimeHealth,
@@ -15,16 +16,20 @@ import {
   validateAndStoreToken,
   validateToken,
 } from "@/lib/apiFetch";
+import { getDefaultEntrypoint } from "@/lib/releaseMatrix";
 
 interface Props {
   children: React.ReactNode;
 }
 
 export default function AuthGate({ children }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [authed, setAuthed] = useState(false);
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
   const [runtimeOnline, setRuntimeOnline] = useState<boolean | null>(null);
   const [checkingRuntime, setCheckingRuntime] = useState(false);
   const submitAttemptRef = useRef(0);
@@ -68,6 +73,7 @@ export default function AuthGate({ children }: Props) {
     const normalizedToken = token.trim();
     if (!normalizedToken) {
       setError("Enter your access token.");
+      setStatusMessage("");
       return;
     }
     if (loading) return;
@@ -76,6 +82,7 @@ export default function AuthGate({ children }: Props) {
     const attemptId = submitAttemptRef.current;
     setLoading(true);
     setError("");
+    setStatusMessage("Checking token...");
     try {
       const status = await validateAndStoreToken(normalizedToken);
 
@@ -83,23 +90,37 @@ export default function AuthGate({ children }: Props) {
       if (attemptId !== submitAttemptRef.current || !mountedRef.current) return;
 
       if (status === "ok") {
+        const destination = pathname === "/" ? getDefaultEntrypoint() : pathname;
         setAuthed(true);
         setRuntimeOnline(true);
+        setStatusMessage("Validated. Entering Nexus...");
+        router.replace(destination);
+        router.refresh();
       } else if (status === "invalid") {
         setError("Invalid token. Check your .env.local NEXUS_TOKEN.");
         setRuntimeOnline(true);
+        setStatusMessage("");
+      } else if (status === "rate_limited") {
+        setError("Too many token attempts. Wait a few minutes and try again.");
+        setRuntimeOnline(true);
+        setStatusMessage("");
+      } else if (status === "server_error") {
+        setError("Token validation is not configured on the server.");
+        setRuntimeOnline(false);
+        setStatusMessage("");
       } else {
         setError(
           "Token check could not reach the server. Is desktop runtime running?",
         );
         setRuntimeOnline(false);
+        setStatusMessage("");
       }
     } finally {
       if (attemptId === submitAttemptRef.current && mountedRef.current) {
         setLoading(false);
       }
     }
-  }, [loading, token]);
+  }, [loading, pathname, router, token]);
 
   const checkRuntime = useCallback(async () => {
     if (checkingRuntime) return;
@@ -109,6 +130,7 @@ export default function AuthGate({ children }: Props) {
       if (mountedRef.current) {
         setRuntimeOnline(ok);
         if (ok) setError("");
+        if (ok) setStatusMessage("Runtime reachable. Try Connect again.");
       }
     } finally {
       if (mountedRef.current) {
@@ -271,6 +293,16 @@ export default function AuthGate({ children }: Props) {
               e.currentTarget.style.boxShadow = "none";
             }}
           />
+          <div
+            aria-live="polite"
+            style={{
+              minHeight: "16px",
+              fontSize: "11px",
+              color: error ? "var(--flo)" : "var(--text2)",
+            }}
+          >
+            {error || statusMessage || "Token validation happens locally against your server."}
+          </div>
           {error && (
             <div
               style={{

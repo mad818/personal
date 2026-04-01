@@ -80,7 +80,12 @@ export async function apiFetch(
   return fetch(url, { ...options, headers });
 }
 
-export type TokenValidationStatus = "ok" | "invalid" | "unreachable";
+export type TokenValidationStatus =
+  | "ok"
+  | "invalid"
+  | "rate_limited"
+  | "server_error"
+  | "unreachable";
 export const TOKEN_VALIDATION_TIMEOUT_MS = 8000;
 
 interface ValidateTokenOptions {
@@ -118,10 +123,13 @@ export async function validateToken(
       try {
         const d = await r.json();
         if (d?.code === "invalid_token") return "invalid";
-        if (d?.code === "rate_limited") return "unreachable";
+        if (d?.code === "rate_limited") return "rate_limited";
+        if (d?.code === "server_error") return "server_error";
       } catch {
         // Fall through to status-based mapping.
       }
+      if (r.status === 429) return "rate_limited";
+      if (r.status >= 500) return "server_error";
       return r.status === 401 || r.status === 403 ? "invalid" : "unreachable";
     }
 

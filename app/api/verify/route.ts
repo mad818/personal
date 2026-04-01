@@ -5,7 +5,6 @@ type VerificationAdapter =
   | "typecheck"
   | "lint"
   | "route_smoke"
-  | "route_integrity"
   | "release_smoke";
 
 type AdapterResult = {
@@ -112,7 +111,6 @@ export async function POST(req: NextRequest) {
         a === "typecheck" ||
         a === "lint" ||
         a === "route_smoke" ||
-        a === "route_integrity" ||
         a === "release_smoke",
     );
 
@@ -147,17 +145,6 @@ export async function POST(req: NextRequest) {
       }
       if (adapter === "route_smoke") {
         results.push(await checkRouteSmoke(req));
-        continue;
-      }
-      if (adapter === "route_integrity") {
-        const r = await runCommand("npm", ["run", "route:integrity"], 120000);
-        results.push({
-          adapter,
-          passed: r.ok,
-          summary: r.ok
-            ? "Route integrity passed"
-            : `Route integrity failed: ${r.output || "unknown error"}`,
-        });
         continue;
       }
       if (adapter === "release_smoke") {

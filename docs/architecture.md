@@ -16,7 +16,7 @@ This repo is no longer a single-file browser artifact. The historical `nexus-fin
 Release scope for the current cycle is intentionally narrower than the full repo route inventory.
 
 ### Supported GA surfaces
-- `/hq` — HQ
+- `/home` — HQ
 - `/command` — COMMAND
 - `/intel` — INTEL
 - `/alpha` — ALPHA
@@ -26,18 +26,8 @@ Release scope for the current cycle is intentionally narrower than the full repo
 - `/resources` — field manual and operator references
 
 ### Beta / internal surfaces
-- Beta: `/labs/signals`, `/labs/ops`, `/labs/security`
-- Internal: `/internal/iot`, `/internal/vehicle`, `/internal/skills`, `/internal/reset`
-
-Legacy aliases remain active for compatibility:
-- `/home` -> `/hq`
-- `/signals` -> `/labs/signals`
-- `/ops` -> `/labs/ops`
-- `/security` -> `/labs/security`
-- `/iot` -> `/internal/iot`
-- `/vehicle` -> `/internal/vehicle`
-- `/skills` -> `/internal/skills`
-- `/reset` -> `/internal/reset`
+- Beta: `/signals`, `/ops`, `/security`
+- Internal: `/iot`, `/vehicle`, `/skills`, `/reset`
 
 These routes may exist and function, but they are **not** part of the current GA support contract unless explicitly promoted.
 

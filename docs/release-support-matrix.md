@@ -4,15 +4,13 @@
 
 - **Deployment lane:** dual-track (`web` + `desktop`)
 - **Supported surface policy:** `ga-only`
-- **Default entrypoint:** `/hq`
-- **UI shell version:** `cinematic-ia-v1`
 - **Business invariant:** Nexus remains free to use, does not charge users, and keeps paid integrations optional as BYOK only
 
 ## Supported GA surfaces
 
 | Surface | Route | Track | Notes |
 |---|---|---|---|
-| HQ | `/hq` | web, desktop | Primary operator surface |
+| HQ | `/home` | web, desktop | Primary operator surface |
 | COMMAND | `/command` | web, desktop | Scheduler, mission control, ops |
 | INTEL | `/intel` | web, desktop | News, strategy, world intelligence |
 | ALPHA | `/alpha` | web, desktop | Markets and decision support |
@@ -25,29 +23,18 @@
 
 | Surface | Route | Notes |
 |---|---|---|
-| Signals | `/labs/signals` | Experimental or not yet promoted to GA support |
-| Ops | `/labs/ops` | Extended ops visualization beyond supported nav |
-| Security | `/labs/security` | Supplemental security workbench |
+| Signals | `/signals` | Experimental or not yet promoted to GA support |
+| Ops | `/ops` | Extended ops visualization beyond supported nav |
+| Security | `/security` | Supplemental security workbench |
 
 ## Internal surfaces
 
 | Surface | Route | Notes |
 |---|---|---|
-| IoT | `/internal/iot` | Internal/future-facing surface |
-| Vehicle | `/internal/vehicle` | Internal/future-facing surface |
-| Skills | `/internal/skills` | Internal skill workbench |
-| Reset | `/internal/reset` | Internal recovery utility |
-
-## Legacy aliases
-
-- `/home` -> `/hq`
-- `/signals` -> `/labs/signals`
-- `/ops` -> `/labs/ops`
-- `/security` -> `/labs/security`
-- `/iot` -> `/internal/iot`
-- `/vehicle` -> `/internal/vehicle`
-- `/skills` -> `/internal/skills`
-- `/reset` -> `/internal/reset`
+| IoT | `/iot` | Internal/future-facing surface |
+| Vehicle | `/vehicle` | Internal/future-facing surface |
+| Skills | `/skills` | Internal skill workbench |
+| Reset | `/reset` | Internal recovery utility |
 
 ## Connector policy
 
@@ -70,7 +57,6 @@ These values are exposed in:
 - `/api/settings`
 - `components/nav/Nav.tsx`
 - `scripts/release-smoke.mjs`
-- `scripts/route-integrity.mjs`
 
 The canonical source of record is:
 - `lib/release-matrix.json`

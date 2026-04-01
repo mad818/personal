@@ -10,8 +10,6 @@ import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
 import { readTimesfmSpikeStatus } from "@/lib/experiments";
 import {
-  getDefaultEntrypoint,
-  listSurfaceAliases,
   readBuildChannel,
   readBuildVersion,
   readDeploymentProfile,
@@ -20,9 +18,6 @@ import {
   summarizeSurfaceTiers,
 } from "@/lib/releaseMatrix";
 import { summarizeSkillGovernance } from "@/lib/skillMetadata";
-import { applyNoStoreHeaders, readRuntimeIdentity } from "@/lib/runtimeIdentity";
-
-export const dynamic = "force-dynamic";
 
 function present(v: string | undefined) {
   return Boolean(v && v.trim().length > 0);
@@ -89,21 +84,13 @@ export async function GET() {
   const response = NextResponse.json({
     generatedAt: now,
     release: {
-      service: getBrandServiceName(),
-      brand: {
-        name: BRAND_NAME,
-        tagline: BRAND_TAGLINE,
-        descriptor: BRAND_DESCRIPTOR,
-      },
+      service: "nexus-prime",
       channel: readBuildChannel(),
       version: readBuildVersion(),
       deploymentProfile: readDeploymentProfile(),
       canonicalDeploymentLane: RELEASE_DEFAULTS.canonicalDeploymentLane,
       supportedSurfacePolicy: RELEASE_DEFAULTS.supportedSurfacePolicy,
-      defaultEntrypoint: getDefaultEntrypoint(),
-      uiShellVersion: RELEASE_DEFAULTS.uiShellVersion,
       surfaceCounts: surfaceSummary.counts,
-      surfaceAliases: listSurfaceAliases(),
       connectorReadiness: connectorReadiness.counts,
       rollbackHints,
     },

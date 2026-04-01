@@ -9,17 +9,6 @@ import {
   parseConnectorPolicy,
 } from "@/lib/security/connectorPolicy";
 import {
-  BRAND_NAME,
-  BRAND_TAGLINE,
-  summarizeProviderReadiness,
-} from "@/lib/brand";
-import {
-  getDefaultNetworkMode,
-  readNetworkMode,
-} from "@/lib/security/routePolicy";
-import {
-  getDefaultEntrypoint,
-  listSurfaceAliases,
   readBuildChannel,
   readBuildVersion,
   readDeploymentProfile,
@@ -178,19 +167,11 @@ export async function GET() {
   return NextResponse.json({
     status,
     config,
-    brand: {
-      name: BRAND_NAME,
-      tagline: BRAND_TAGLINE,
-    },
-    providers: summarizeProviderReadiness(effectiveEnv),
     release: {
       buildChannel: readBuildChannel(),
       buildVersion: readBuildVersion(),
       supportedSurfacePolicy: RELEASE_DEFAULTS.supportedSurfacePolicy,
       canonicalDeploymentLane: RELEASE_DEFAULTS.canonicalDeploymentLane,
-      defaultEntrypoint: getDefaultEntrypoint(),
-      uiShellVersion: RELEASE_DEFAULTS.uiShellVersion,
-      aliases: listSurfaceAliases(),
       surfaces: summarizeSurfaceTiers().counts,
     },
   });

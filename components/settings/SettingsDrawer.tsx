@@ -7,11 +7,6 @@ import { apiFetch } from "@/lib/apiFetch";
 import RuntimeEvalTrend from "@/components/ui/RuntimeEvalTrend";
 import { PMHealthStrip } from "@/components/settings/PMHealthStrip";
 import { PMChecklist } from "@/components/settings/PMChecklist";
-import {
-  AI_PROVIDER_BRANDING,
-  BILLING_TIER_LABELS,
-  BRAND_NAME,
-} from "@/lib/brand";
 import { RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
 
 // ── Non-sensitive fields — stored in Zustand / localStorage ──────────────────
@@ -117,51 +112,11 @@ const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
   NEXUS_DEPLOYMENT_PROFILE: "local-dev",
 };
 
-function coerceSecurityConfig(config?: Partial<SecurityConfig>): SecurityConfig {
-  return {
-    NEXUS_NETWORK_MODE:
-      config?.NEXUS_NETWORK_MODE === "internal" ||
-      config?.NEXUS_NETWORK_MODE === "connected"
-        ? config.NEXUS_NETWORK_MODE
-        : DEFAULT_SECURITY_CONFIG.NEXUS_NETWORK_MODE,
-    NEXUS_ENABLE_HIGH_RISK_TOOLS:
-      config?.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true" ? "true" : "false",
-    NEXUS_ALLOW_PAID_APIS:
-      config?.NEXUS_ALLOW_PAID_APIS === "true" ? "true" : "false",
-    NEXUS_CONNECTOR_POLICY_JSON:
-      typeof config?.NEXUS_CONNECTOR_POLICY_JSON === "string"
-        ? config.NEXUS_CONNECTOR_POLICY_JSON
-        : config?.NEXUS_CONNECTOR_POLICY_JSON
-          ? JSON.stringify(config.NEXUS_CONNECTOR_POLICY_JSON)
-          : "",
-    NEXUS_DEPLOYMENT_PROFILE:
-      config?.NEXUS_DEPLOYMENT_PROFILE === "web-self-hosted" ||
-      config?.NEXUS_DEPLOYMENT_PROFILE === "desktop-secure"
-        ? config.NEXUS_DEPLOYMENT_PROFILE
-        : "local-dev",
-  };
-}
-
-function getChangedSecurityConfig(
-  current: SecurityConfig,
-  baseline: SecurityConfig,
-): Partial<SecurityConfig> {
-  const changed: Partial<SecurityConfig> = {};
-  (Object.keys(current) as Array<keyof SecurityConfig>).forEach((key) => {
-    if (current[key] !== baseline[key]) {
-      Object.assign(changed, { [key]: current[key] });
-    }
-  });
-  return changed;
-}
-
 type ReleaseInfo = {
   buildChannel: string;
   buildVersion: string;
   supportedSurfacePolicy: string;
   canonicalDeploymentLane: string;
-  defaultEntrypoint: string;
-  uiShellVersion: string;
   surfaces: {
     total: number;
     ga: number;
@@ -193,8 +148,6 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
   const [securityConfig, setSecurityConfig] = useState<SecurityConfig>(
     DEFAULT_SECURITY_CONFIG,
   );
-  const [initialSecurityConfig, setInitialSecurityConfig] =
-    useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>(null);
 
   const [saved, setSaved] = useState(false);
@@ -220,6 +173,11 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
             NEXUS_CONNECTOR_POLICY_JSON: d.config.NEXUS_CONNECTOR_POLICY_JSON
               ? JSON.stringify(d.config.NEXUS_CONNECTOR_POLICY_JSON, null, 0)
               : "",
+            NEXUS_DEPLOYMENT_PROFILE:
+              d.config.NEXUS_DEPLOYMENT_PROFILE === "web-self-hosted" ||
+              d.config.NEXUS_DEPLOYMENT_PROFILE === "desktop-secure"
+                ? d.config.NEXUS_DEPLOYMENT_PROFILE
+                : "local-dev",
           });
           setSecurityConfig(nextSecurityConfig);
           setInitialSecurityConfig(nextSecurityConfig);
@@ -754,9 +712,6 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
               </span>
               <span style={{ fontSize: 12, color: "var(--text2)" }}>
                 GA nav tabs: {releaseInfo?.surfaces.gaNav ?? 7}. Beta surfaces: {releaseInfo?.surfaces.beta ?? 0}. Internal surfaces: {releaseInfo?.surfaces.internal ?? 0}.
-              </span>
-              <span style={{ fontSize: 12, color: "var(--text2)" }}>
-                Default entrypoint: {releaseInfo?.defaultEntrypoint ?? RELEASE_DEFAULTS.defaultEntrypoint}. Shell version: {releaseInfo?.uiShellVersion ?? RELEASE_DEFAULTS.uiShellVersion}.
               </span>
               <span style={{ fontSize: 12, color: "var(--text3)" }}>
                 Build: {releaseInfo?.buildChannel ?? "dev"} / {releaseInfo?.buildVersion ?? "local-dev"}

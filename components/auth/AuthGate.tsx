@@ -3,84 +3,45 @@
 
 "use client";
 
-import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { BRAND_NAME } from "@/lib/brand";
+/**
+ * AuthGate — Sadie Sink themed token gate.
+ */
+
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
-  clearSessionToken,
   getSessionToken,
-  setSessionToken,
+  probeRuntimeHealth,
   TOKEN_VALIDATION_TIMEOUT_MS,
+  validateAndStoreToken,
   validateToken,
 } from "@/lib/apiFetch";
-import { getDefaultEntrypoint } from "@/lib/releaseMatrix";
 
 interface Props {
   children: React.ReactNode;
   initiallyAuthed?: boolean;
 }
 
-type AuthDiagnostics = {
-  runtime: {
-    online?: boolean;
-    bootId?: string;
-    startedAt?: string;
-    ageSeconds?: number;
-  };
-  auth: {
-    tokenConfigured?: boolean;
-    authenticated?: boolean;
-    cookiePresent?: boolean;
-  };
-  release?: {
-    uiShellVersion?: string;
-  };
-};
-
-async function probeAuthDiagnostics(timeoutMs = 4000) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const response = await fetch("/api/auth-diagnostics", {
-      method: "GET",
-      cache: "no-store",
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    return (await response.json().catch(() => null)) as AuthDiagnostics | null;
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-export default function AuthGate({
-  children,
-  initiallyAuthed = false,
-}: Props) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const mountedRef = useRef(true);
-
-  const [authed, setAuthed] = useState(initiallyAuthed);
+export default function AuthGate({ children }: Props) {
+  const [authed, setAuthed] = useState(false);
+  const [token, setToken] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [runtimeOnline, setRuntimeOnline] = useState<boolean | null>(null);
   const [checkingRuntime, setCheckingRuntime] = useState(false);
-  const [tokenRouteWarm, setTokenRouteWarm] = useState<
-    "warming" | "ready" | "failed"
-  >("warming");
-  const [transientStatus, setTransientStatus] = useState("");
-  const [tokenInput, setTokenInput] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [runtimeBootId, setRuntimeBootId] = useState("");
-  const [runtimeAgeSeconds, setRuntimeAgeSeconds] = useState<number | null>(null);
-  const [tokenConfigured, setTokenConfigured] = useState<boolean | null>(null);
+  const submitAttemptRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    probeRuntimeHealth().then((ok) => {
+      if (mountedRef.current) setRuntimeOnline(ok);
+    });
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -132,20 +93,12 @@ export default function AuthGate({
     let active = true;
 
     if (existing) {
-      clearSessionToken();
       validateToken(existing, {
         timeoutMs: TOKEN_VALIDATION_TIMEOUT_MS,
         persistOnSuccess: false,
       })
         .then((status) => {
-          if (!active || !mountedRef.current) return;
-          if (status === "ok") {
-            setSessionToken(existing);
-            setAuthed(true);
-            setRuntimeOnline(true);
-            return;
-          }
-          clearSessionToken();
+          if (active && mountedRef.current) setAuthed(status === "ok");
         })
         .catch(() => {
           clearSessionToken();
@@ -194,6 +147,67 @@ export default function AuthGate({
     }
   }, []);
 
+  const submit = useCallback(async () => {
+    const normalizedToken = token.trim();
+    if (!normalizedToken) {
+      setError("Enter your access token.");
+      return;
+    }
+    if (loading) return;
+
+    submitAttemptRef.current += 1;
+    const attemptId = submitAttemptRef.current;
+    setLoading(true);
+    setError("");
+    try {
+      const status = await validateAndStoreToken(normalizedToken);
+
+      // Ignore stale responses if a newer submit has already started.
+      if (attemptId !== submitAttemptRef.current || !mountedRef.current) return;
+
+      if (status === "ok") {
+        setAuthed(true);
+        setRuntimeOnline(true);
+      } else if (status === "invalid") {
+        setError("Invalid token. Check your .env.local NEXUS_TOKEN.");
+        setRuntimeOnline(true);
+      } else {
+        setError(
+          "Token check could not reach the server. Is desktop runtime running?",
+        );
+        setRuntimeOnline(false);
+      }
+    } finally {
+      if (attemptId === submitAttemptRef.current && mountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, [loading, token]);
+
+  const checkRuntime = useCallback(async () => {
+    if (checkingRuntime) return;
+    setCheckingRuntime(true);
+    try {
+      const ok = await probeRuntimeHealth();
+      if (mountedRef.current) {
+        setRuntimeOnline(ok);
+        if (ok) setError("");
+      }
+    } finally {
+      if (mountedRef.current) {
+        setCheckingRuntime(false);
+      }
+    }
+  }, [checkingRuntime]);
+
+  const handleKey = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") submit();
+    },
+    [submit],
+  );
+
+  // Authenticated — show the app
   if (authed) return <>{children}</>;
 
   const destination = pathname === "/" ? getDefaultEntrypoint() : pathname;
@@ -820,7 +834,129 @@ export default function AuthGate({
             on the server. Runtime boot <strong>{runtimeBootLabel}</strong>
             {runtimeAgeSeconds !== null ? ` • ${runtimeAgeSeconds}s old` : ""}.
           </div>
-        </section>
+        </div>
+
+        {/* Token input */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label
+            style={{
+              fontSize: "10.5px",
+              fontWeight: 700,
+              color: "var(--text2)",
+              textTransform: "uppercase",
+              letterSpacing: "1px",
+            }}
+          >
+            Access Token
+          </label>
+          <input
+            type="password"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            onKeyDown={handleKey}
+            placeholder="Paste your NEXUS_TOKEN…"
+            autoFocus
+            style={{
+              background: "rgba(26, 18, 20, 0.8)",
+              border: `1px solid ${error ? "var(--flo)" : "rgba(196,72,90,0.2)"}`,
+              borderRadius: "8px",
+              color: "var(--text)",
+              fontSize: "13px",
+              padding: "11px 14px",
+              outline: "none",
+              width: "100%",
+              boxSizing: "border-box",
+              fontFamily: "monospace",
+              transition: "border-color var(--t), box-shadow var(--t)",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "rgba(196,72,90,0.5)";
+              e.currentTarget.style.boxShadow = "0 0 16px rgba(196,72,90,.12)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = error
+                ? "var(--flo)"
+                : "rgba(196,72,90,0.2)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          />
+          {error && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "8px",
+              }}
+            >
+              <span style={{ fontSize: "11px", color: "var(--flo)" }}>
+                {error}
+              </span>
+              {runtimeOnline === false && (
+                <button
+                  onClick={checkRuntime}
+                  disabled={checkingRuntime}
+                  style={{
+                    border: "1px solid rgba(196,72,90,0.4)",
+                    background: "transparent",
+                    color: "var(--text2)",
+                    borderRadius: "6px",
+                    fontSize: "10px",
+                    padding: "4px 8px",
+                    cursor: checkingRuntime ? "wait" : "pointer",
+                  }}
+                >
+                  {checkingRuntime ? "Checking..." : "Check runtime"}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Submit */}
+        <button
+          onClick={submit}
+          disabled={loading}
+          style={{
+            height: "40px",
+            borderRadius: "8px",
+            background: loading
+              ? "var(--border2)"
+              : "linear-gradient(135deg, #c4485a 0%, #d4956a 100%)",
+            border: "none",
+            color: "#fff",
+            fontSize: "13px",
+            fontWeight: 700,
+            cursor: loading ? "not-allowed" : "pointer",
+            transition: "all var(--t)",
+            letterSpacing: "0.5px",
+            boxShadow: loading ? "none" : "0 4px 20px rgba(196,72,90,.25)",
+          }}
+        >
+          {loading ? "Checking…" : "Connect"}
+        </button>
+
+        <div
+          style={{
+            fontSize: "11px",
+            color: "var(--text3)",
+            textAlign: "center",
+            lineHeight: 1.5,
+          }}
+        >
+          Your NEXUS_TOKEN is set in{" "}
+          <code
+            style={{
+              background: "var(--surf2)",
+              padding: "1px 5px",
+              borderRadius: "4px",
+              color: "var(--text2)",
+            }}
+          >
+            .env.local
+          </code>{" "}
+          on the server.
+        </div>
       </div>
     </div>
   );

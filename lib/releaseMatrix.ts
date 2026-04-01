@@ -14,11 +14,14 @@ export interface ReleaseDefaults {
   canonicalDeploymentLane: "dual-track" | "web-first" | "desktop-first";
   defaultDeploymentProfile: DeploymentProfile;
   defaultBuildChannel: BuildChannel;
+  defaultEntrypoint: string;
+  uiShellVersion: string;
 }
 
 export interface ProductSurface {
   id: string;
   href: string;
+  aliases?: string[];
   label: string;
   tier: SurfaceTier;
   kind: SurfaceKind;
@@ -49,8 +52,38 @@ export const RELEASE_DEFAULTS = RELEASE_MATRIX.releaseDefaults;
 export const PRODUCT_SURFACES = RELEASE_MATRIX.surfaces;
 export const CONNECTOR_METADATA = RELEASE_MATRIX.connectors;
 
+const SURFACE_PATH_INDEX = new Map<string, ProductSurface>(
+  PRODUCT_SURFACES.flatMap((surface) => [
+    [surface.href, surface],
+    ...(surface.aliases ?? []).map((alias) => [alias, surface] as const),
+  ]),
+);
+
 export function getNavProductSurfaces(): ProductSurface[] {
   return PRODUCT_SURFACES.filter((surface) => surface.inNav && surface.tier === "ga");
+}
+
+export function getDefaultEntrypoint() {
+  return RELEASE_DEFAULTS.defaultEntrypoint;
+}
+
+export function findSurfaceByPath(pathname?: string | null): ProductSurface | null {
+  if (!pathname) return null;
+  return SURFACE_PATH_INDEX.get(pathname) ?? null;
+}
+
+export function normalizeSurfaceHref(pathname?: string | null) {
+  return findSurfaceByPath(pathname)?.href ?? pathname ?? RELEASE_DEFAULTS.defaultEntrypoint;
+}
+
+export function listSurfaceAliases() {
+  return PRODUCT_SURFACES.flatMap((surface) =>
+    (surface.aliases ?? []).map((alias) => ({
+      alias,
+      canonicalHref: surface.href,
+      id: surface.id,
+    })),
+  );
 }
 
 export function summarizeSurfaceTiers() {

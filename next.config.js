@@ -7,6 +7,32 @@ module.exports = {
   // Air-gapped profile: do not allow optimized remote images.
   images: {},
 
+  async redirects() {
+    return [
+      { source: '/home', destination: '/hq', permanent: false },
+      { source: '/signals', destination: '/labs/signals', permanent: false },
+      { source: '/ops', destination: '/labs/ops', permanent: false },
+      { source: '/security', destination: '/labs/security', permanent: false },
+      { source: '/iot', destination: '/internal/iot', permanent: false },
+      { source: '/vehicle', destination: '/internal/vehicle', permanent: false },
+      { source: '/skills', destination: '/internal/skills', permanent: false },
+      { source: '/reset', destination: '/internal/reset', permanent: false },
+    ]
+  },
+
+  async rewrites() {
+    return [
+      { source: '/hq', destination: '/home' },
+      { source: '/labs/signals', destination: '/intel?view=news' },
+      { source: '/labs/ops', destination: '/intel?view=world' },
+      { source: '/labs/security', destination: '/security' },
+      { source: '/internal/iot', destination: '/iot' },
+      { source: '/internal/vehicle', destination: '/vehicle' },
+      { source: '/internal/skills', destination: '/skills' },
+      { source: '/internal/reset', destination: '/reset' },
+    ]
+  },
+
   // ── Security headers ─────────────────────────────────────────────────────────
   async headers() {
     return [

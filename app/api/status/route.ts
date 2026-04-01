@@ -6,6 +6,8 @@ import { summarizeSkillGovernance } from "@/lib/skillMetadata";
 import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
 import {
+  getDefaultEntrypoint,
+  listSurfaceAliases,
   PRODUCT_SURFACES,
   readBuildChannel,
   readBuildVersion,
@@ -187,12 +189,24 @@ export async function GET() {
     deploymentProfile: readDeploymentProfile(),
     canonicalDeploymentLane: RELEASE_DEFAULTS.canonicalDeploymentLane,
     supportedSurfacePolicy: RELEASE_DEFAULTS.supportedSurfacePolicy,
+    defaultEntrypoint: getDefaultEntrypoint(),
+    uiShellVersion: RELEASE_DEFAULTS.uiShellVersion,
     surfaces: {
       counts: surfaceSummary.counts,
-      ga: surfaceSummary.tiers.ga.map((surface) => surface.href),
-      beta: surfaceSummary.tiers.beta.map((surface) => surface.href),
-      internal: surfaceSummary.tiers.internal.map((surface) => surface.href),
+      ga: surfaceSummary.tiers.ga.map((surface) => ({
+        href: surface.href,
+        aliases: surface.aliases ?? [],
+      })),
+      beta: surfaceSummary.tiers.beta.map((surface) => ({
+        href: surface.href,
+        aliases: surface.aliases ?? [],
+      })),
+      internal: surfaceSummary.tiers.internal.map((surface) => ({
+        href: surface.href,
+        aliases: surface.aliases ?? [],
+      })),
       nav: PRODUCT_SURFACES.filter((surface) => surface.inNav).map((surface) => surface.href),
+      aliases: listSurfaceAliases(),
     },
     connectorReadiness,
   };
@@ -205,7 +219,13 @@ export async function GET() {
   const queue = {
     runQueueMode: "single-flight",
     verifyEndpoint: "/api/verify",
-    adapters: ["typecheck", "lint", "route_smoke", "release_smoke"],
+    adapters: [
+      "typecheck",
+      "lint",
+      "route_smoke",
+      "route_integrity",
+      "release_smoke",
+    ],
   };
 
   const evalPolicy = {

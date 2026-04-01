@@ -53,7 +53,7 @@ export default function RootLayout({
         <AuthGate>
           <ErrorBoundary label="RootLayout">
             <Nav />
-            <main style={{ paddingTop: "48px", minHeight: "100vh" }}>
+            <main style={{ paddingTop: "var(--top-rail-height)", minHeight: "100vh" }}>
               {children}
             </main>
             {/* Global data — loads articles + keyword alerts on every page */}

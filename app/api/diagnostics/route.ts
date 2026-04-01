@@ -3,6 +3,8 @@ import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
 import { readTimesfmSpikeStatus } from "@/lib/experiments";
 import {
+  getDefaultEntrypoint,
+  listSurfaceAliases,
   readBuildChannel,
   readBuildVersion,
   readDeploymentProfile,
@@ -81,7 +83,10 @@ export async function GET() {
       deploymentProfile: readDeploymentProfile(),
       canonicalDeploymentLane: RELEASE_DEFAULTS.canonicalDeploymentLane,
       supportedSurfacePolicy: RELEASE_DEFAULTS.supportedSurfacePolicy,
+      defaultEntrypoint: getDefaultEntrypoint(),
+      uiShellVersion: RELEASE_DEFAULTS.uiShellVersion,
       surfaceCounts: surfaceSummary.counts,
+      surfaceAliases: listSurfaceAliases(),
       connectorReadiness: connectorReadiness.counts,
       rollbackHints,
     },

@@ -89,6 +89,8 @@ type ReleaseInfo = {
   buildVersion: string;
   supportedSurfacePolicy: string;
   canonicalDeploymentLane: string;
+  defaultEntrypoint: string;
+  uiShellVersion: string;
   surfaces: {
     total: number;
     ga: number;
@@ -595,6 +597,9 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
               </span>
               <span style={{ fontSize: 12, color: "var(--text2)" }}>
                 GA nav tabs: {releaseInfo?.surfaces.gaNav ?? 7}. Beta surfaces: {releaseInfo?.surfaces.beta ?? 0}. Internal surfaces: {releaseInfo?.surfaces.internal ?? 0}.
+              </span>
+              <span style={{ fontSize: 12, color: "var(--text2)" }}>
+                Default entrypoint: {releaseInfo?.defaultEntrypoint ?? RELEASE_DEFAULTS.defaultEntrypoint}. Shell version: {releaseInfo?.uiShellVersion ?? RELEASE_DEFAULTS.uiShellVersion}.
               </span>
               <span style={{ fontSize: 12, color: "var(--text3)" }}>
                 Build: {releaseInfo?.buildChannel ?? "dev"} / {releaseInfo?.buildVersion ?? "local-dev"}

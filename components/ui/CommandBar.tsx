@@ -28,6 +28,7 @@ import { usePathname } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { buildSystemPrompt } from "@/lib/ai";
 import { runAgent, type AgentStep } from "@/lib/agent";
+import { normalizeSurfaceHref } from "@/lib/releaseMatrix";
 import type { OperationalPhase } from "@/store/useStore";
 
 // ── Palette (mirrors AgentOffice) ─────────────────────────────────────────────
@@ -306,13 +307,17 @@ const AGENT_ORDER: AgentId[] = ["cipher", "orbit", "jansky", "nova", "flux"];
 
 // Route → on-duty agent for that page
 const ROUTE_AGENT: Record<string, AgentId> = {
-  "/": "jansky",
-  "/home": "jansky",
-  "/signals": "nova",
+  "/hq": "jansky",
+  "/command": "jansky",
+  "/labs/signals": "nova",
   "/alpha": "flux",
-  "/ops": "jansky",
+  "/labs/ops": "jansky",
   "/intel": "flux",
   "/cyber": "cipher",
+  "/labs/security": "cipher",
+  "/internal/skills": "orbit",
+  "/internal/vehicle": "cipher",
+  "/internal/iot": "nova",
   "/vault": "jansky",
 };
 
@@ -655,7 +660,8 @@ export default function CommandBar() {
     if (expanded) setTimeout(() => inputRef.current?.focus(), 60);
   }, [expanded]);
 
-  const dutyAgent = ROUTE_AGENT[pathname ?? "/"] ?? "jansky";
+  const canonicalPath = normalizeSurfaceHref(pathname);
+  const dutyAgent = ROUTE_AGENT[canonicalPath] ?? "jansky";
   const accentColor = AGENTS[dutyAgent].color;
   const unread = messages.filter((m) => m.role === "agent").length;
 

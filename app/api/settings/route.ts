@@ -9,6 +9,8 @@ import {
   parseConnectorPolicy,
 } from "@/lib/security/connectorPolicy";
 import {
+  getDefaultEntrypoint,
+  listSurfaceAliases,
   readBuildChannel,
   readBuildVersion,
   readDeploymentProfile,
@@ -168,6 +170,9 @@ export async function GET() {
       buildVersion: readBuildVersion(),
       supportedSurfacePolicy: RELEASE_DEFAULTS.supportedSurfacePolicy,
       canonicalDeploymentLane: RELEASE_DEFAULTS.canonicalDeploymentLane,
+      defaultEntrypoint: getDefaultEntrypoint(),
+      uiShellVersion: RELEASE_DEFAULTS.uiShellVersion,
+      aliases: listSurfaceAliases(),
       surfaces: summarizeSurfaceTiers().counts,
     },
   });

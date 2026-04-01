@@ -118,8 +118,11 @@ export default function AuthGate({ children }: Props) {
   }, [checkingRuntime]);
 
   const handleKey = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") submit();
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        void submit();
+      }
     },
     [submit],
   );
@@ -139,6 +142,7 @@ export default function AuthGate({ children }: Props) {
         fontFamily: "var(--font-sans, system-ui, sans-serif)",
         position: "relative",
         overflow: "hidden",
+        isolation: "isolate",
       }}
     >
       {/* Background image */}
@@ -146,11 +150,13 @@ export default function AuthGate({ children }: Props) {
         style={{
           position: "absolute",
           inset: 0,
+          zIndex: 0,
           backgroundImage: "url(/theme/sadie-portrait.jpg)",
           backgroundSize: "cover",
           backgroundPosition: "center 20%",
           opacity: 0.2,
           filter: "blur(1px) saturate(0.7)",
+          pointerEvents: "none",
         }}
       />
       {/* Gradient overlay */}
@@ -158,10 +164,12 @@ export default function AuthGate({ children }: Props) {
         style={{
           position: "absolute",
           inset: 0,
+          zIndex: 1,
           background: `
           radial-gradient(ellipse 50% 50% at 50% 50%, transparent 0%, var(--bg) 80%),
           linear-gradient(180deg, rgba(10,7,8,.4) 0%, rgba(10,7,8,.9) 100%)
         `,
+          pointerEvents: "none",
         }}
       />
 
@@ -179,6 +187,7 @@ export default function AuthGate({ children }: Props) {
           boxShadow: "0 0 60px rgba(196,72,90,.08), 0 25px 60px rgba(0,0,0,.6)",
           position: "relative",
           zIndex: 2,
+          pointerEvents: "auto",
         }}
       >
         {/* Logo / title */}
@@ -276,6 +285,7 @@ export default function AuthGate({ children }: Props) {
               </span>
               {runtimeOnline === false && (
                 <button
+                  type="button"
                   onClick={checkRuntime}
                   disabled={checkingRuntime}
                   style={{
@@ -297,7 +307,8 @@ export default function AuthGate({ children }: Props) {
 
         {/* Submit */}
         <button
-          onClick={submit}
+          type="button"
+          onClick={() => void submit()}
           disabled={loading}
           style={{
             height: "40px",

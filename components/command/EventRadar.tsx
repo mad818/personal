@@ -49,6 +49,7 @@ const SEV_LABEL = (n: number) => (n >= 3 ? "HIGH" : n >= 2 ? "MED" : "LOW");
 
 export default function EventRadar() {
   const articles = useStore((s) => s.articles);
+  const articlesLoaded = useStore((s) => s.articlesLoaded);
 
   const events = articles
     .map((a: Article) => ({ ...a, risk: riskScore(a.title) }))
@@ -56,7 +57,36 @@ export default function EventRadar() {
     .sort((a, b) => b.risk - a.risk)
     .slice(0, 8);
 
-  if (!events.length) return null;
+  if (!events.length) {
+    return (
+      <div
+        style={{
+          background: "var(--surf2)",
+          border: "1px solid var(--border)",
+          borderRadius: "10px",
+          padding: "18px 16px",
+          color: "var(--text3)",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "11px",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: ".6px",
+            marginBottom: "8px",
+          }}
+        >
+          ⚡ Event Radar
+        </div>
+        <div style={{ fontSize: "12px", lineHeight: 1.55 }}>
+          {articlesLoaded
+            ? "No high-risk headlines are spiking in the current free news mix."
+            : "Warming the news radar…"}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ marginTop: "18px" }}>

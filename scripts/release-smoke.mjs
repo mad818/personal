@@ -9,7 +9,8 @@ const matrix = JSON.parse(fs.readFileSync(matrixPath, "utf8"));
 const baseUrl = process.env.NEXUS_RELEASE_BASE_URL ?? "http://127.0.0.1:3000";
 const token = process.env.NEXUS_TOKEN ?? "";
 
-const gaSurfaces = matrix.surfaces.filter(
+const gaSurfaces = matrix.surfaces.filter((surface) => surface.tier === "ga");
+const gaNavTabs = matrix.surfaces.filter(
   (surface) => surface.tier === "ga" && surface.kind === "tab",
 );
 
@@ -96,8 +97,8 @@ async function main() {
   } else {
     if (!statusRes.ok) fail(`/api/status returned ${statusRes.status}`);
     const counts = statusRes.json?.readiness?.release?.surfaces?.counts;
-    if (!counts || counts.gaNav !== gaSurfaces.length) {
-      fail(`/api/status release surface counts mismatch (expected gaNav=${gaSurfaces.length})`);
+    if (!counts || counts.gaNav !== gaNavTabs.length) {
+      fail(`/api/status release surface counts mismatch (expected gaNav=${gaNavTabs.length})`);
     }
     console.log(`✅ /api/status ${statusRes.status}`);
   }

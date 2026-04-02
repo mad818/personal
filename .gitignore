@@ -1,9 +1,11 @@
 node_modules/
 .next/
+.next-fresh-runtime/
 .turbo/
 out/
 dist/
 *.log
+.nexus-runtime-identity.json
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
@@ -12,6 +14,8 @@ yarn-debug.log*
 tsconfig.tsbuildinfo
 .env.local
 desktop/src-tauri/target/
+playwright-report/
+test-results/
 
 # Claude local overrides (personal, not committed)
 CLAUDE.local.md

@@ -43,6 +43,7 @@ function guessCatFromTitle(title: string): string {
 
 export function useArticles() {
   const setArticles  = useStore((s) => s.setArticles)
+  const setArticlesLoaded = useStore((s) => s.setArticlesLoaded)
   const guardianKey  = useStore((s) => s.settings.guardianKey)
 
   const [loading, setLoading] = useState(false)
@@ -130,9 +131,10 @@ export function useArticles() {
     } catch {
       setError('Could not fetch articles.')
     } finally {
+      setArticlesLoaded(true)
       setLoading(false)
     }
-  }, [guardianKey, setArticles])
+  }, [guardianKey, setArticles, setArticlesLoaded])
 
   return { fetchArticles, loading, error }
 }

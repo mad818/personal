@@ -1,14 +1,14 @@
-// ── NEXUS PRIME Chart Theme ──────────────────────────────────────────────────
-// Sadie Sink dark palette — burgundy, rose, gold, blush
+// ── AEGIS VECTOR Chart Theme ─────────────────────────────────────────────────
+// Command-shell palette — steel, cyan, amber, and signal tones
 // Shared constants for all Recharts + custom SVG visualizations
 
 export const CHART = {
   // Primary palette
-  burgundy: "#6b1d2a",
-  rose: "#c4485a",
-  gold: "#d4956a",
-  blush: "#e8a0aa",
-  bg: "#0a0708",
+  burgundy: "#0f172a",
+  rose: "#22d3ee",
+  gold: "#f59e0b",
+  blush: "#bae6fd",
+  bg: "#050b14",
 
   // Extended data viz colors (harmonious with theme)
   teal: "#2dd4bf",
@@ -23,16 +23,16 @@ export const CHART = {
   orange: "#f97316",
 
   // Surfaces
-  surf: "#110e0d",
-  surf2: "#1a1412",
-  surf3: "#241c19",
-  border: "#2a2220",
-  border2: "#3a2e2b",
+  surf: "#0b1220",
+  surf2: "#101826",
+  surf3: "#172033",
+  border: "#1e293b",
+  border2: "#334155",
 
   // Text
-  text: "#ece5df",
-  text2: "#b8a99e",
-  text3: "#7a6b62",
+  text: "#e2e8f0",
+  text2: "#cbd5e1",
+  text3: "#94a3b8",
 
   // Semantic
   up: "#10b981",

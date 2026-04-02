@@ -1068,7 +1068,7 @@ function WallMountedPanels({
                       >
                         {st
                           ? `${st.totalTasks}T ${Math.round(conf)}%`
-                          : "NO DATA"}
+                          : "IDLE"}
                       </span>
                     </div>
                   </div>

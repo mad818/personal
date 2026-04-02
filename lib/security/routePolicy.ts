@@ -11,6 +11,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   // local control plane
   { prefix: "/api/token", routeClass: "local_only", public: true },
   { prefix: "/api/health", routeClass: "local_only", public: true },
+  { prefix: "/api/auth-diagnostics", routeClass: "local_only", public: true },
   { prefix: "/api/status", routeClass: "local_only", public: false },
   { prefix: "/api/project", routeClass: "local_only", public: false },
   { prefix: "/api/settings", routeClass: "local_only", public: false },
@@ -53,10 +54,16 @@ export function getRoutePolicy(pathname: string): RoutePolicy | null {
   return ROUTE_POLICIES.find((p) => pathname.startsWith(p.prefix)) ?? null;
 }
 
+export function getDefaultNetworkMode(): NetworkMode {
+  return process.env.NODE_ENV === "development" ? "internal" : "isolated";
+}
+
 export function readNetworkMode(): NetworkMode {
-  const raw = (process.env.NEXUS_NETWORK_MODE ?? "isolated").toLowerCase();
+  const raw = (
+    process.env.NEXUS_NETWORK_MODE ?? getDefaultNetworkMode()
+  ).toLowerCase();
   if (raw === "internal" || raw === "connected") return raw;
-  return "isolated";
+  return getDefaultNetworkMode();
 }
 
 export function isRouteAllowedInMode(

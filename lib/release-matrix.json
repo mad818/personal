@@ -5,14 +5,14 @@
     "defaultDeploymentProfile": "local-dev",
     "defaultBuildChannel": "dev",
     "defaultEntrypoint": "/hq",
-    "uiShellVersion": "cinematic-ia-v1"
+    "uiShellVersion": "aegis-vector-v1"
   },
   "surfaces": [
     {
       "id": "hq",
       "href": "/hq",
       "aliases": ["/home"],
-      "label": "🤖 HQ",
+      "label": "CITADEL",
       "tier": "ga",
       "kind": "tab",
       "inNav": true,
@@ -22,7 +22,7 @@
     {
       "id": "command",
       "href": "/command",
-      "label": "⚡ COMMAND",
+      "label": "VECTOR",
       "tier": "ga",
       "kind": "tab",
       "inNav": true,
@@ -32,7 +32,7 @@
     {
       "id": "intel",
       "href": "/intel",
-      "label": "📡 INTEL",
+      "label": "SPECTRA",
       "tier": "ga",
       "kind": "tab",
       "inNav": true,
@@ -42,7 +42,7 @@
     {
       "id": "alpha",
       "href": "/alpha",
-      "label": "🎯 ALPHA",
+      "label": "QUANT",
       "tier": "ga",
       "kind": "tab",
       "inNav": true,
@@ -52,7 +52,7 @@
     {
       "id": "cyber",
       "href": "/cyber",
-      "label": "🔒 CYBER",
+      "label": "BASTION",
       "tier": "ga",
       "kind": "tab",
       "inNav": true,
@@ -62,7 +62,7 @@
     {
       "id": "recon",
       "href": "/recon",
-      "label": "🕵️ RECON",
+      "label": "PARALLAX",
       "tier": "ga",
       "kind": "tab",
       "inNav": true,
@@ -72,7 +72,7 @@
     {
       "id": "vault",
       "href": "/vault",
-      "label": "🗂 VAULT",
+      "label": "ARCHIVE",
       "tier": "ga",
       "kind": "tab",
       "inNav": true,
@@ -83,7 +83,7 @@
       "id": "resources",
       "href": "/resources",
       "aliases": [],
-      "label": "Resources",
+      "label": "FIELD MANUAL",
       "tier": "ga",
       "kind": "support",
       "inNav": false,
@@ -143,7 +143,7 @@
       "kind": "tab",
       "inNav": false,
       "deploymentTracks": ["web", "desktop"],
-      "description": "Internal or future-facing vehicle surface."
+      "description": "Internal vehicle and future drone operations lab."
     },
     {
       "id": "skills",
@@ -224,7 +224,7 @@
       "routePrefix": "/api/threat-intel",
       "routeClass": "connector_opt_in",
       "primarySurface": "cyber",
-      "access": "byok_optional",
+      "access": "free_tier_optional",
       "defaultEnabled": true,
       "requiresEnv": "OTX_KEY",
       "description": "Threat intelligence with optional OTX key."
@@ -344,7 +344,7 @@
       "routePrefix": "/api/flights",
       "routeClass": "connector_opt_in",
       "primarySurface": "command",
-      "access": "byok_optional",
+      "access": "free_public",
       "defaultEnabled": true,
       "requiresEnv": null,
       "description": "Flight tracking with optional provider upgrades."
@@ -354,7 +354,7 @@
       "routePrefix": "/api/maritime",
       "routeClass": "connector_opt_in",
       "primarySurface": "command",
-      "access": "byok_optional",
+      "access": "free_tier_optional",
       "defaultEnabled": true,
       "requiresEnv": "AISSTREAM_KEY",
       "description": "Maritime tracking with optional AISStream key."
@@ -364,7 +364,7 @@
       "routePrefix": "/api/geo-scan",
       "routeClass": "connector_opt_in",
       "primarySurface": "command",
-      "access": "byok_optional",
+      "access": "free_tier_optional",
       "defaultEnabled": true,
       "requiresEnv": "FIRMS_MAP_KEY",
       "description": "GeoDeep and geospatial scan adapters."

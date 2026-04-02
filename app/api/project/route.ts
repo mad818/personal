@@ -1,5 +1,5 @@
 // ── app/api/project/route.ts ───────────────────────────────────────────────────
-// Project context bridge — serves the live state of the Nexus Prime project
+// Project context bridge — serves the live state of the Aegis Vector project
 // to any caller (agents, dashboard panels, or external tools).
 //
 // GET /api/project
@@ -17,6 +17,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { join, relative } from "path";
+import { BRAND_NAME } from "@/lib/brand";
 
 // Project root — resolved relative to the Next.js server process CWD
 const ROOT = process.cwd();
@@ -139,7 +140,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     meta: {
       generatedAt: new Date().toISOString(),
-      projectName: "Nexus Prime",
+      projectName: BRAND_NAME,
       root: ROOT,
       counts,
     },

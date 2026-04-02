@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Production image for Next.js standalone output (`next.config.js` → output: 'standalone').
-# Build: docker build -t nexus-prime .
-# Run:   docker run --rm -p 3000:3000 -e ANTHROPIC_API_KEY=... -e NEXUS_TOKEN=... nexus-prime
+# Build: docker build -t aegis-vector .
+# Run:   docker run --rm -p 3000:3000 -e ANTHROPIC_API_KEY=... -e NEXUS_TOKEN=... aegis-vector
 
 FROM node:20-alpine AS deps
 WORKDIR /app

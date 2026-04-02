@@ -123,6 +123,7 @@ function ScoreBar({ score }: { score: number }) {
 // ── Main component ────────────────────────────────────────────────────────────
 export default function MomentumScanner() {
   const prices = useStore((s) => s.prices);
+  const pricesLoaded = useStore((s) => s.pricesLoaded);
   const sparklines = useStore((s) => s.sparklines);
 
   const signals: Signal[] = useMemo(() => {
@@ -159,7 +160,9 @@ export default function MomentumScanner() {
           fontSize: "13px",
         }}
       >
-        Loading market data…
+        {pricesLoaded
+          ? "No market data returned from the active free price feeds."
+          : "Loading market data…"}
       </div>
     );
   }

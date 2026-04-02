@@ -15,6 +15,7 @@ import {
   pruneOldMemories,
   exportMemories,
 } from "@/lib/memoryStore";
+import ClientStyleMount from "@/components/ui/ClientStyleMount";
 
 // ── Read all memories (not exported from memoryStore — inline here) ─────────
 async function listAllMemories(): Promise<Memory[]> {
@@ -593,9 +594,9 @@ export default function MemoryPanel({ open, onClose }: MemoryPanelProps) {
         </div>
       </div>
 
-      <style
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: MEMORY_PANEL_ANIMATIONS_CSS }}
+      <ClientStyleMount
+        id="memory-panel-animations"
+        cssText={MEMORY_PANEL_ANIMATIONS_CSS}
       />
     </>
   );

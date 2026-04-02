@@ -661,19 +661,19 @@ export default function HomeChat() {
                 height: "80px",
                 borderRadius: "50%",
                 overflow: "hidden",
-                border: "2px solid rgba(196,72,90,0.3)",
-                boxShadow: "0 0 30px rgba(196,72,90,.15)",
+                border: "2px solid rgba(103,232,249,0.28)",
+                boxShadow: "0 0 30px rgba(8,145,178,.16)",
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/theme/sadie-armani.jpg"
+                src="/theme/citadel.svg"
                 alt=""
                 style={{
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  objectPosition: "center 15%",
+                  objectPosition: "center",
                 }}
               />
             </div>
@@ -681,7 +681,7 @@ export default function HomeChat() {
               style={{
                 fontSize: "13px",
                 fontWeight: 700,
-                color: "var(--blush, #e8a0aa)",
+                color: "var(--accent, #67e8f9)",
               }}
             >
               Agent — Ready

@@ -9,6 +9,7 @@ import {
   NEXUS_SESSION_COOKIE,
 } from "@/lib/authSession";
 import { normalizeTokenCandidate } from "@/lib/authToken";
+import { applyNoStoreHeaders } from "@/lib/runtimeIdentity";
 
 type AttemptInfo = { count: number; resetAt: number };
 type TokenCode =
@@ -56,12 +57,14 @@ function cleanupExpiredAttempts(now: number) {
 
 function tokenJson(body: TokenResponse, status = 200) {
   TOKEN_METRICS[body.code] += 1;
-  return NextResponse.json(body, { status });
+  const response = NextResponse.json(body, { status });
+  applyNoStoreHeaders(response.headers);
+  return response;
 }
 
 export async function GET(req: NextRequest) {
   const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? "";
-  return NextResponse.json({
+  const response = NextResponse.json({
     ok: true,
     attemptsTracked: TOKEN_ATTEMPTS.size,
     metrics: TOKEN_METRICS,
@@ -69,6 +72,8 @@ export async function GET(req: NextRequest) {
     maxAttempts: MAX_ATTEMPTS,
     authenticated: matchesConfiguredNexusToken(sessionCookie),
   });
+  applyNoStoreHeaders(response.headers);
+  return response;
 }
 
 /**

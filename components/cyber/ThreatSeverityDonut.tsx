@@ -65,6 +65,7 @@ function CenterLabel({
 
 export default function ThreatSeverityDonut() {
   const threatIntel = useStore((s) => s.threatIntel);
+  const threatIntelLoaded = useStore((s) => s.threatIntelLoaded);
 
   const pieData = useMemo(() => {
     const iocs = threatIntel?.threatfox ?? [];
@@ -104,7 +105,9 @@ export default function ThreatSeverityDonut() {
         }}
       >
         <div style={{ fontSize: "22px", marginBottom: "8px" }}>🔴</div>
-        Loading threat data…
+        {threatIntelLoaded
+          ? "No threat indicators returned from the current free intelligence sources."
+          : "Loading threat data…"}
       </div>
     );
   }

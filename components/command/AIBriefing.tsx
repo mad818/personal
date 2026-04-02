@@ -10,7 +10,9 @@ import { callAI } from "@/lib/ai";
 export default function AIBriefing() {
   const settings = useStore((s) => s.settings);
   const articles = useStore((s) => s.articles);
+  const articlesLoaded = useStore((s) => s.articlesLoaded);
   const prices = useStore((s) => s.prices);
+  const pricesLoaded = useStore((s) => s.pricesLoaded);
   const signals = useStore((s) => s.signals);
 
   const [output, setOutput] = useState("");
@@ -46,7 +48,9 @@ Under 250 words. Direct and specific.`;
       const resp = await callAI(prompt, 500);
       setOutput(resp);
     } catch {
-      setOutput("Could not generate briefing. Check your API key.");
+      setOutput(
+        "Could not generate briefing right now. Check your local model or optional cloud provider settings.",
+      );
     } finally {
       setLoading(false);
     }
@@ -109,7 +113,9 @@ Under 250 words. Direct and specific.`;
         }}
       >
         {output ||
-          "Hit Generate Briefing to get a synthesis across market signals, world risk, news, and alerts."}
+          (articlesLoaded || pricesLoaded
+            ? "Hit Generate Briefing to synthesize the current market signals, world risk, news, and alerts."
+            : "Warming the free data feeds for briefing context…")}
       </div>
     </div>
   );

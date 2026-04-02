@@ -51,13 +51,13 @@ export default function ReconPage() {
     <ShellPage
       width="wide"
       surface="recon"
-      eyebrow="Privacy-first reconnaissance"
-      title="RECON"
-      description="Free-first OSINT workflows for domains, usernames, headers, metadata, and OPSEC checks without forcing paid connectors."
+      eyebrow="Triangulation sweep"
+      title="PARALLAX"
+      description="Free-first reconnaissance for domains, usernames, headers, metadata, and OPSEC checks without forcing paid connectors."
       actions={
         <>
           <ShellBadge tone="success">Free by default</ShellBadge>
-          <ShellBadge tone="muted">BYOK optional</ShellBadge>
+          <ShellBadge tone="muted">Passive-first tooling</ShellBadge>
         </>
       }
     >

@@ -6,6 +6,7 @@
 
 import { useMemo } from "react";
 import { CHART } from "@/lib/chartTheme";
+import ClientStyleMount from "@/components/ui/ClientStyleMount";
 
 interface Particle {
   id: number;
@@ -66,9 +67,9 @@ export default function ParticleBackground() {
 
   return (
     <>
-      <style
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: particleAnimationsCss }}
+      <ClientStyleMount
+        id="particle-background-animations"
+        cssText={particleAnimationsCss}
       />
 
       <div

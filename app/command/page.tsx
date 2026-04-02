@@ -14,6 +14,7 @@ import {
   ShellStack,
 } from "@/components/ui/shell";
 import {
+  ArticlesLoader,
   PricesLoader,
   FearGreedLoader,
   CVEsLoader,
@@ -64,6 +65,7 @@ export default function CommandPage() {
   return (
     <>
       <PricesLoader />
+      <ArticlesLoader />
       <FearGreedLoader />
       <CVEsLoader />
       <WorldRiskLoader />
@@ -71,19 +73,19 @@ export default function CommandPage() {
       <ShellPage
         width="wide"
         surface="command"
-        eyebrow="Operational Surface"
-        title="COMMAND"
-        description="Mission control for live telemetry, AI briefings, world risk, and operator decision support."
+        eyebrow="Mission lane"
+        title="VECTOR"
+        description="Mission control for live telemetry, world risk, and operator decision support inside the Aegis Vector command lane."
         actions={
           <>
-            <ShellBadge tone="accent">Live ops</ShellBadge>
+            <ShellBadge tone="accent">Tactical routing</ShellBadge>
             <ShellBadge tone="success">Free-first feeds</ShellBadge>
           </>
         }
       >
         <ShellStack>
           <ShellPanel tone="hero">
-            <SectionLabel detail="KPI stack + readiness ring">Command snapshot</SectionLabel>
+            <SectionLabel detail="KPI stack + readiness ring">Vector snapshot</SectionLabel>
             <ShellGrid columns="minmax(0, 1.4fr) minmax(280px, 0.6fr)" align="start">
               <LazyKPICards />
               <LazySystemStatusRing />

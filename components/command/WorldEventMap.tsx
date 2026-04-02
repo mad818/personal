@@ -242,14 +242,25 @@ export default function WorldEventMap() {
     return earthquakes
       .slice(0, 40)
       .map((eq: Record<string, unknown>, i: number) => {
-        // USGS format: properties.mag, geometry.coordinates [lon, lat, depth]
         const props = (eq.properties as Record<string, unknown>) ?? {};
         const geo = (eq.geometry as Record<string, unknown>) ?? {};
         const coords = (geo.coordinates as number[]) ?? [0, 0];
-        const mag = typeof props.mag === "number" ? props.mag : 2;
-        const lon = coords[0] ?? 0;
-        const lat = coords[1] ?? 0;
-        const place = typeof props.place === "string" ? props.place : "Unknown";
+        const mag =
+          typeof eq.magnitude === "number"
+            ? eq.magnitude
+            : typeof props.mag === "number"
+              ? props.mag
+              : 2;
+        const lon =
+          typeof eq.longitude === "number" ? eq.longitude : (coords[0] ?? 0);
+        const lat =
+          typeof eq.latitude === "number" ? eq.latitude : (coords[1] ?? 0);
+        const place =
+          typeof eq.place === "string"
+            ? eq.place
+            : typeof props.place === "string"
+              ? props.place
+              : "Unknown";
         const [x, y] = latLonToXY(lat, lon);
         return { x, y, mag, place, id: `eq-${i}` };
       })
@@ -276,10 +287,26 @@ export default function WorldEventMap() {
     if (!weather) return null;
     // weather may have lat/lon or a city name
     const w = weather as Record<string, unknown>;
-    const lat = typeof w.lat === "number" ? w.lat : 34.05;
-    const lon = typeof w.lon === "number" ? w.lon : -118.24;
+    const lat =
+      typeof w.lat === "number"
+        ? w.lat
+        : typeof w.latitude === "number"
+          ? w.latitude
+          : 34.05;
+    const lon =
+      typeof w.lon === "number"
+        ? w.lon
+        : typeof w.longitude === "number"
+          ? w.longitude
+          : -118.24;
     const [x, y] = latLonToXY(lat, lon);
-    const name = typeof w.name === "string" ? w.name : "Weather Alert";
+    const name =
+      typeof w.name === "string"
+        ? w.name
+        : typeof (w.current as Record<string, unknown> | undefined)?.condition ===
+            "string"
+          ? String((w.current as Record<string, unknown>).condition)
+          : "Weather Alert";
     return { x, y, name };
   }, [weather]);
 

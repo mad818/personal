@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useStore } from "@/store/useStore";
+import ClientStyleMount from "@/components/ui/ClientStyleMount";
 import { normalizeSurfaceHref } from "@/lib/releaseMatrix";
 
 // ── Pixel palette ─────────────────────────────────────────────────────────────
@@ -615,9 +616,9 @@ export default function AgentStatusBar() {
         />
       </div>
 
-      <style
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: AGENT_STATUS_BAR_ANIMATIONS_CSS }}
+      <ClientStyleMount
+        id="agent-status-bar-animations"
+        cssText={AGENT_STATUS_BAR_ANIMATIONS_CSS}
       />
     </div>
   );

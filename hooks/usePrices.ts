@@ -22,6 +22,7 @@ const DEFAULT_SYM: Record<string, string> = {
 
 export function usePrices() {
   const setPrices       = useStore((s) => s.setPrices)
+  const setPricesLoaded = useStore((s) => s.setPricesLoaded)
   const setSparklines   = useStore((s) => s.setSparklines)
   const addNotification = useStore((s) => s.addNotification)
   const watchlist       = useStore((s) => s.settings.watchlist)
@@ -91,9 +92,10 @@ export function usePrices() {
     } catch {
       setError('Could not fetch prices.')
     } finally {
+      setPricesLoaded(true)
       setLoading(false)
     }
-  }, [setPrices, setSparklines, addNotification, watchlist])
+  }, [setPrices, setPricesLoaded, setSparklines, addNotification, watchlist])
 
   const start = useCallback((intervalMs = 60_000) => {
     fetchPrices()

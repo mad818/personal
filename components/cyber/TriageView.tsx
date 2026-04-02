@@ -311,9 +311,11 @@ type SourceFilter = "all" | "CVE" | "OTX" | "CISA";
 
 export default function TriageView() {
   const cves = useStore((s) => s.cves) as CVE[];
+  const cvesLoaded = useStore((s) => s.cvesLoaded);
   const otxPulses = useStore((s) => s.otxPulses);
   const [kevEntries, setKevEntries] = useState<KEVEntry[]>([]);
   const [kevLoading, setKevLoading] = useState(false);
+  const [kevLoaded, setKevLoaded] = useState(false);
 
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
@@ -336,6 +338,7 @@ export default function TriageView() {
     } catch {
       // silent fail
     } finally {
+      setKevLoaded(true);
       setKevLoading(false);
     }
   }, [kevLoading, kevEntries.length]);
@@ -366,6 +369,7 @@ export default function TriageView() {
     cves.length > 0 || otxPulses.length > 0 || kevEntries.length > 0;
 
   if (!hasData) {
+    const isStillLoading = !cvesLoaded || kevLoading || !kevLoaded;
     return (
       <div
         style={{
@@ -376,7 +380,11 @@ export default function TriageView() {
         }}
       >
         <div style={{ fontSize: "32px", marginBottom: "10px" }}>🧠</div>
-        <div>Loading threat feeds…</div>
+        <div>
+          {isStillLoading
+            ? "Loading threat feeds…"
+            : "No active cyber triage items were returned from the current feeds."}
+        </div>
         <div style={{ fontSize: "11px", marginTop: "6px" }}>
           CVEs and OTX pulses load automatically. CISA KEV is fetched here.
         </div>

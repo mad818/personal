@@ -26,6 +26,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { useStore } from "@/store/useStore";
+import ClientStyleMount from "@/components/ui/ClientStyleMount";
 import { buildSystemPrompt } from "@/lib/ai";
 import { runAgent, type AgentStep } from "@/lib/agent";
 import { normalizeSurfaceHref } from "@/lib/releaseMatrix";
@@ -1235,9 +1236,9 @@ export default function CommandBar() {
         )}
       </button>
 
-      <style
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: COMMAND_BAR_ANIMATIONS_CSS }}
+      <ClientStyleMount
+        id="command-bar-animations"
+        cssText={COMMAND_BAR_ANIMATIONS_CSS}
       />
     </div>
   );

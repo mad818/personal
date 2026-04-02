@@ -6,10 +6,11 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { BRAND_NAME } from "@/lib/brand";
 import {
   clearSessionToken,
   getSessionToken,
-  probeRuntimeHealth,
+  setSessionToken,
   TOKEN_VALIDATION_TIMEOUT_MS,
   validateToken,
 } from "@/lib/apiFetch";
@@ -20,31 +21,41 @@ interface Props {
   initiallyAuthed?: boolean;
 }
 
-async function probeTokenRoute(timeoutMs = 4000) {
+type AuthDiagnostics = {
+  runtime: {
+    online?: boolean;
+    bootId?: string;
+    startedAt?: string;
+    ageSeconds?: number;
+  };
+  auth: {
+    tokenConfigured?: boolean;
+    authenticated?: boolean;
+    cookiePresent?: boolean;
+  };
+  release?: {
+    uiShellVersion?: string;
+  };
+};
+
+async function probeAuthDiagnostics(timeoutMs = 4000) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch("/api/token", {
+    const response = await fetch("/api/auth-diagnostics", {
       method: "GET",
       cache: "no-store",
       signal: controller.signal,
     });
 
     if (!response.ok) {
-      return { routeState: "failed" as const, authenticated: false };
+      return null;
     }
 
-    const payload = (await response.json().catch(() => null)) as
-      | { authenticated?: boolean }
-      | null;
-
-    return {
-      routeState: "ready" as const,
-      authenticated: Boolean(payload?.authenticated),
-    };
+    return (await response.json().catch(() => null)) as AuthDiagnostics | null;
   } catch {
-    return { routeState: "failed" as const, authenticated: false };
+    return null;
   } finally {
     clearTimeout(timeout);
   }
@@ -57,6 +68,7 @@ export default function AuthGate({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const mountedRef = useRef(true);
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   const [authed, setAuthed] = useState(initiallyAuthed);
   const [runtimeOnline, setRuntimeOnline] = useState<boolean | null>(null);
@@ -66,6 +78,10 @@ export default function AuthGate({
   >("warming");
   const [transientStatus, setTransientStatus] = useState("");
   const [tokenInput, setTokenInput] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [runtimeBootId, setRuntimeBootId] = useState("");
+  const [runtimeAgeSeconds, setRuntimeAgeSeconds] = useState<number | null>(null);
+  const [tokenConfigured, setTokenConfigured] = useState<boolean | null>(null);
 
   useEffect(() => {
     return () => {
@@ -81,18 +97,25 @@ export default function AuthGate({
   }, [initiallyAuthed]);
 
   useEffect(() => {
-    probeRuntimeHealth().then((ok) => {
-      if (mountedRef.current) setRuntimeOnline(ok);
-    });
-  }, []);
-
-  useEffect(() => {
     let active = true;
 
-    probeTokenRoute().then(({ routeState, authenticated }) => {
+    probeAuthDiagnostics().then((payload) => {
       if (!active || !mountedRef.current) return;
-      setTokenRouteWarm(routeState);
-      if (authenticated) {
+      if (!payload) {
+        setTokenRouteWarm("failed");
+        setRuntimeOnline(false);
+        return;
+      }
+      setTokenRouteWarm("ready");
+      setRuntimeOnline(payload.runtime.online ?? true);
+      setRuntimeBootId(payload.runtime.bootId ?? "");
+      setRuntimeAgeSeconds(
+        typeof payload.runtime.ageSeconds === "number"
+          ? payload.runtime.ageSeconds
+          : null,
+      );
+      setTokenConfigured(Boolean(payload.auth.tokenConfigured));
+      if (payload.auth.authenticated) {
         setAuthed(true);
         setRuntimeOnline(true);
       }
@@ -110,6 +133,7 @@ export default function AuthGate({
     let active = true;
 
     if (existing) {
+      clearSessionToken();
       validateToken(existing, {
         timeoutMs: TOKEN_VALIDATION_TIMEOUT_MS,
         persistOnSuccess: false,
@@ -117,6 +141,7 @@ export default function AuthGate({
         .then((status) => {
           if (!active || !mountedRef.current) return;
           if (status === "ok") {
+            setSessionToken(existing);
             setAuthed(true);
             setRuntimeOnline(true);
             return;
@@ -137,10 +162,24 @@ export default function AuthGate({
     if (checkingRuntime) return;
     setCheckingRuntime(true);
     try {
-      const ok = await probeRuntimeHealth();
+      const payload = await probeAuthDiagnostics();
       if (mountedRef.current) {
-        setRuntimeOnline(ok);
-        setTransientStatus(ok ? "Runtime reachable. Try Connect again." : "");
+        if (!payload) {
+          setRuntimeOnline(false);
+          setTokenRouteWarm("failed");
+          setTransientStatus("Runtime diagnostics are unreachable.");
+          return;
+        }
+        setRuntimeOnline(payload.runtime.online ?? true);
+        setTokenRouteWarm("ready");
+        setRuntimeBootId(payload.runtime.bootId ?? "");
+        setRuntimeAgeSeconds(
+          typeof payload.runtime.ageSeconds === "number"
+            ? payload.runtime.ageSeconds
+            : null,
+        );
+        setTokenConfigured(Boolean(payload.auth.tokenConfigured));
+        setTransientStatus("Runtime diagnostics refreshed.");
       }
     } finally {
       if (mountedRef.current) {
@@ -151,9 +190,15 @@ export default function AuthGate({
 
   const handleNativeSubmit = useCallback(() => {
     if (mountedRef.current) {
-      setTransientStatus("Handing off to secure local login...");
+      setSubmitting(true);
+      setTransientStatus("Submitting secure local login...");
     }
   }, []);
+
+  const handleSubmitIntent = useCallback(() => {
+    if (submitting) return;
+    formRef.current?.requestSubmit();
+  }, [submitting]);
 
   if (authed) return <>{children}</>;
 
@@ -170,9 +215,11 @@ export default function AuthGate({
     authErrorMessage ||
     transientStatus ||
     "Token validation happens locally against your server.";
+  const runtimeBootLabel = runtimeBootId ? runtimeBootId.slice(0, 8) : "unknown";
 
   return (
     <div
+      data-testid="auth-gate"
       style={{
         minHeight: "100vh",
         display: "flex",
@@ -190,11 +237,11 @@ export default function AuthGate({
           position: "absolute",
           inset: 0,
           zIndex: 0,
-          backgroundImage: "url(/theme/sadie-cover.jpg)",
+          backgroundImage: "url(/theme/aegis-cosmos.svg)",
           backgroundSize: "cover",
           backgroundPosition: "center center",
-          opacity: 0.24,
-          filter: "blur(4px) saturate(0.9)",
+          opacity: 0.45,
+          filter: "blur(2px) saturate(1.05)",
           pointerEvents: "none",
         }}
       />
@@ -204,9 +251,9 @@ export default function AuthGate({
           inset: 0,
           zIndex: 1,
           background: `
-          radial-gradient(circle at 20% 20%, rgba(212, 126, 92, 0.18), transparent 32%),
-          radial-gradient(circle at 82% 14%, rgba(196, 72, 90, 0.18), transparent 24%),
-          linear-gradient(120deg, rgba(9, 6, 8, 0.94) 0%, rgba(9, 6, 8, 0.8) 42%, rgba(9, 6, 8, 0.96) 100%)
+          radial-gradient(circle at 18% 20%, rgba(103, 232, 249, 0.18), transparent 32%),
+          radial-gradient(circle at 82% 14%, rgba(245, 158, 11, 0.16), transparent 24%),
+          linear-gradient(120deg, rgba(5, 10, 16, 0.96) 0%, rgba(7, 13, 20, 0.82) 42%, rgba(4, 9, 15, 0.98) 100%)
         `,
           pointerEvents: "none",
         }}
@@ -234,18 +281,18 @@ export default function AuthGate({
             border: "1px solid rgba(255,255,255,0.08)",
             boxShadow: "0 30px 90px rgba(0,0,0,0.45)",
             background:
-              "linear-gradient(135deg, rgba(20,12,15,0.92) 0%, rgba(15,9,12,0.78) 100%)",
+              "linear-gradient(135deg, rgba(7,15,23,0.94) 0%, rgba(4,10,16,0.82) 100%)",
           }}
         >
           <div
             style={{
               position: "absolute",
               inset: 0,
-              backgroundImage: "url(/theme/sadie-portrait.jpg)",
+              backgroundImage: "url(/theme/citadel.svg)",
               backgroundSize: "cover",
-              backgroundPosition: "50% 12%",
-              transform: "scale(1.02)",
-              filter: "saturate(1.04) contrast(1.06) brightness(0.94)",
+              backgroundPosition: "center center",
+              transform: "scale(1.01)",
+              filter: "saturate(1.08) contrast(1.04) brightness(0.92)",
             }}
           />
           <div
@@ -253,7 +300,7 @@ export default function AuthGate({
               position: "absolute",
               inset: 0,
               background:
-                "linear-gradient(140deg, rgba(8,4,6,0.04) 0%, rgba(8,4,6,0.46) 42%, rgba(8,4,6,0.90) 100%)",
+                "linear-gradient(140deg, rgba(4,8,12,0.06) 0%, rgba(4,8,12,0.42) 42%, rgba(4,8,12,0.9) 100%)",
             }}
           />
           <div
@@ -261,7 +308,7 @@ export default function AuthGate({
               position: "absolute",
               inset: 0,
               background:
-                "radial-gradient(circle at 50% 20%, rgba(255,214,217,0.18), transparent 16%), radial-gradient(circle at 56% 38%, rgba(232,160,170,0.10), transparent 20%), radial-gradient(circle at 64% 72%, rgba(212,149,106,0.13), transparent 28%)",
+                "radial-gradient(circle at 50% 20%, rgba(125,211,252,0.2), transparent 16%), radial-gradient(circle at 56% 38%, rgba(96,165,250,0.11), transparent 20%), radial-gradient(circle at 64% 72%, rgba(245,158,11,0.12), transparent 28%)",
               mixBlendMode: "screen",
             }}
           />
@@ -290,7 +337,7 @@ export default function AuthGate({
                   gap: "8px",
                   padding: "8px 12px",
                   borderRadius: "999px",
-                  background: "rgba(13, 9, 11, 0.55)",
+                  background: "rgba(8, 16, 24, 0.62)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   color: "var(--text2)",
                   fontSize: "11px",
@@ -318,7 +365,7 @@ export default function AuthGate({
                           : "none",
                   }}
                 />
-                Local Intelligence Console
+                Local-first command lattice
               </div>
               <div
                 style={{
@@ -327,10 +374,10 @@ export default function AuthGate({
                   alignItems: "stretch",
                 }}
               >
-                {[ 
-                  "/theme/sadie-cover.jpg",
-                  "/theme/sadie-armani.jpg",
-                  "/theme/sadie-portrait.jpg",
+                {[
+                  "/theme/citadel.svg",
+                  "/theme/vector.svg",
+                  "/theme/spectra.svg",
                 ].map((src, index) => (
                   <div
                     key={src}
@@ -346,7 +393,7 @@ export default function AuthGate({
                   >
                     <Image
                       src={src}
-                      alt="Sadie Sink editorial portrait"
+                      alt="Aegis Vector surface schematic"
                       width={108}
                       height={136}
                       sizes="(max-width: 900px) 25vw, 108px"
@@ -354,12 +401,7 @@ export default function AuthGate({
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
-                        objectPosition:
-                          src === "/theme/sadie-armani.jpg"
-                            ? "50% 18%"
-                            : src === "/theme/sadie-portrait.jpg"
-                              ? "50% 16%"
-                              : "50% 24%",
+                        objectPosition: "center",
                         display: "block",
                       }}
                     />
@@ -384,16 +426,16 @@ export default function AuthGate({
                   width: "fit-content",
                   padding: "8px 12px",
                   borderRadius: "999px",
-                  background: "rgba(13, 9, 11, 0.55)",
+                  background: "rgba(8, 16, 24, 0.62)",
                   border: "1px solid rgba(255,255,255,0.08)",
-                  color: "rgba(255,232,234,0.82)",
+                  color: "rgba(208, 239, 255, 0.84)",
                   fontSize: "11px",
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
                   backdropFilter: "blur(16px)",
                 }}
               >
-                Sadie Edition
+                Citadel ingress
               </div>
               <div
                 style={{
@@ -401,26 +443,25 @@ export default function AuthGate({
                   lineHeight: 0.94,
                   fontWeight: 900,
                   letterSpacing: "-0.05em",
-                  color: "#fff2f1",
+                  color: "#ecfeff",
                   textWrap: "balance",
                   textShadow: "0 10px 36px rgba(0,0,0,.28)",
                 }}
               >
-                Nexus Prime
+                {BRAND_NAME}
                 <br />
-                in a lower light.
+                enters the grid.
               </div>
               <div
                 style={{
-                  color: "rgba(255,226,228,0.74)",
+                  color: "rgba(214, 238, 247, 0.78)",
                   fontSize: "14px",
                   lineHeight: 1.6,
                   maxWidth: "420px",
                 }}
               >
-                Closer framing, warmer contrast, and a more glamorous, intimate
-                editorial entrance built around the Sadie image set already in
-                the repo.
+                Authenticate into a hardened local command shell with orbital
+                telemetry, stable routes, and a free-first operator posture.
               </div>
             </div>
           </div>
@@ -430,15 +471,15 @@ export default function AuthGate({
           style={{
             width: "min(420px, 100%)",
             flex: "0 1 420px",
-            background: "rgba(17, 13, 14, 0.88)",
-            border: "1px solid rgba(196,72,90,0.22)",
+            background: "rgba(7, 14, 22, 0.9)",
+            border: "1px solid rgba(103,232,249,0.16)",
             borderRadius: "28px",
             padding: "34px 28px 28px",
             display: "flex",
             flexDirection: "column",
             gap: "22px",
             backdropFilter: "blur(22px)",
-            boxShadow: "0 0 70px rgba(196,72,90,.08), 0 28px 70px rgba(0,0,0,.58)",
+            boxShadow: "0 0 70px rgba(103,232,249,.08), 0 28px 70px rgba(0,0,0,.58)",
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -450,8 +491,8 @@ export default function AuthGate({
                 width: "fit-content",
                 padding: "7px 11px",
                 borderRadius: "999px",
-                background: "rgba(196,72,90,0.08)",
-                border: "1px solid rgba(196,72,90,0.18)",
+                background: "rgba(103,232,249,0.08)",
+                border: "1px solid rgba(103,232,249,0.18)",
                 color: "var(--text2)",
                 fontSize: "10px",
                 letterSpacing: "0.12em",
@@ -459,7 +500,7 @@ export default function AuthGate({
               }}
             >
               <span style={{ fontSize: "14px" }}>🔐</span>
-              Secure local token gate
+              Secure local operator gate
             </div>
             <div
               style={{
@@ -470,7 +511,7 @@ export default function AuthGate({
                 letterSpacing: "-0.04em",
               }}
             >
-              Connect to Nexus
+              Authorize the Citadel
             </div>
             <div
               style={{
@@ -487,15 +528,18 @@ export default function AuthGate({
           </div>
 
           <form
+            ref={formRef}
             action="/auth/connect"
             method="POST"
             onSubmit={handleNativeSubmit}
+            data-testid="auth-form"
             style={{ display: "flex", flexDirection: "column", gap: "18px" }}
           >
             <input type="hidden" name="next" value={destination} />
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <label
+                htmlFor="nexus-access-token"
                 style={{
                   fontSize: "10.5px",
                   fontWeight: 700,
@@ -507,6 +551,8 @@ export default function AuthGate({
                 Access Token
               </label>
               <input
+                id="nexus-access-token"
+                data-testid="auth-token-input"
                 type="password"
                 name="token"
                 required
@@ -514,6 +560,12 @@ export default function AuthGate({
                 onChange={(e) => setTokenInput(e.target.value)}
                 placeholder="Paste your NEXUS_TOKEN…"
                 autoFocus
+                disabled={submitting}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return;
+                  event.preventDefault();
+                  handleSubmitIntent();
+                }}
                 style={{
                   background: "rgba(26, 18, 20, 0.84)",
                   border: `1px solid ${authErrorMessage ? "var(--flo)" : "rgba(196,72,90,0.22)"}`,
@@ -527,6 +579,7 @@ export default function AuthGate({
                   fontFamily: "monospace",
                   transition:
                     "border-color var(--t), box-shadow var(--t), opacity var(--t)",
+                  opacity: submitting ? 0.72 : 1,
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = "rgba(196,72,90,0.55)";
@@ -543,6 +596,7 @@ export default function AuthGate({
 
               <div
                 aria-live="polite"
+                data-testid="auth-status"
                 style={{
                   minHeight: "18px",
                   fontSize: "11px",
@@ -647,7 +701,7 @@ export default function AuthGate({
                     onClick={checkRuntime}
                     disabled={checkingRuntime}
                     style={{
-                      border: "1px solid rgba(196,72,90,0.34)",
+                      border: "1px solid rgba(103,232,249,0.22)",
                       background: "rgba(255,255,255,0.02)",
                       color: "var(--text2)",
                       borderRadius: "10px",
@@ -665,22 +719,26 @@ export default function AuthGate({
             </div>
 
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmitIntent}
+              data-testid="auth-submit"
+              disabled={submitting}
               style={{
                 height: "50px",
                 borderRadius: "14px",
-                background: "linear-gradient(135deg, #c4485a 0%, #d4956a 100%)",
+                background: "linear-gradient(135deg, #0891b2 0%, #f59e0b 100%)",
                 border: "none",
                 color: "#fff",
                 fontSize: "13px",
                 fontWeight: 800,
-                cursor: "pointer",
+                cursor: submitting ? "progress" : "pointer",
                 transition: "all var(--t)",
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                boxShadow: "0 12px 30px rgba(196,72,90,.28)",
+                boxShadow: "0 12px 30px rgba(8,145,178,.28)",
                 position: "relative",
                 overflow: "hidden",
+                opacity: submitting ? 0.82 : 1,
               }}
             >
               <span
@@ -692,7 +750,7 @@ export default function AuthGate({
                   gap: "8px",
                 }}
               >
-                Connect
+                {submitting ? "Connecting" : "Connect"}
                 <span style={{ opacity: 0.84 }}>→</span>
               </span>
             </button>
@@ -715,7 +773,10 @@ export default function AuthGate({
                     : "checking",
               },
               { label: "route", value: tokenRouteWarm },
-              { label: "state", value: "native submit" },
+              {
+                label: "state",
+                value: submitting ? "submitting" : "native submit",
+              },
             ].map((item) => (
               <div
                 key={item.label}
@@ -758,7 +819,7 @@ export default function AuthGate({
               lineHeight: 1.6,
             }}
           >
-            Your NEXUS_TOKEN is set in{" "}
+            {BRAND_NAME} expects your NEXUS_TOKEN {tokenConfigured ? "configured in" : "in"}{" "}
             <code
               style={{
                 background: "var(--surf2)",
@@ -769,7 +830,8 @@ export default function AuthGate({
             >
               .env.local
             </code>{" "}
-            on the server.
+            on the server. Runtime boot <strong>{runtimeBootLabel}</strong>
+            {runtimeAgeSeconds !== null ? ` • ${runtimeAgeSeconds}s old` : ""}.
           </div>
         </section>
       </div>

@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { useStore } from "@/store/useStore";
 
 interface ConflictItem {
   title: string;
@@ -375,6 +376,7 @@ function HeatCell({
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function GeoHeatmap() {
+  const gdeltEvents = useStore((s) => s.gdeltEvents);
   const [items, setItems] = useState<ConflictItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [panel, setPanel] = useState<Impact | null>(null);
@@ -391,20 +393,64 @@ export default function GeoHeatmap() {
         url: string;
         seendate?: string;
       }[];
-      setItems(
-        raw.map((a) => ({
-          title: a.title,
-          url: a.url,
-          impact: scoreImpact(a.title),
-          date: a.seendate ?? "",
-        })),
-      );
+      const parsed = raw.map((a) => ({
+        title: a.title,
+        url: a.url,
+        impact: scoreImpact(a.title),
+        date: a.seendate ?? "",
+      }));
+      const fallback = (gdeltEvents as Record<string, unknown>[])
+        .map((event) => ({
+          title: typeof event.title === "string" ? event.title : "",
+          url:
+            typeof event.url === "string"
+              ? event.url
+              : typeof event.link === "string"
+                ? event.link
+                : "",
+          impact:
+            typeof event.title === "string"
+              ? scoreImpact(event.title)
+              : "low",
+          date:
+            typeof event.seendate === "string"
+              ? event.seendate
+              : typeof event.date === "string"
+                ? event.date
+                : "",
+        }))
+        .filter(
+          (event): event is ConflictItem => Boolean(event.title && event.url),
+        );
+      setItems(parsed.length > 0 ? parsed : fallback);
     } catch {
-      // silent — ConflictFeed below will show the error
+      const fallback = (gdeltEvents as Record<string, unknown>[])
+        .map((event) => {
+          const title = typeof event.title === "string" ? event.title : "";
+          const url =
+            typeof event.url === "string"
+              ? event.url
+              : typeof event.link === "string"
+                ? event.link
+                : "";
+          return {
+            title,
+            url,
+            impact: scoreImpact(title),
+            date:
+              typeof event.seendate === "string"
+                ? event.seendate
+                : typeof event.date === "string"
+                  ? event.date
+                  : "",
+          } satisfies ConflictItem;
+        })
+        .filter((event) => event.title && event.url);
+      setItems(fallback);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [gdeltEvents]);
 
   useEffect(() => {
     load();
@@ -439,7 +485,7 @@ export default function GeoHeatmap() {
         <div style={{ fontSize: "24px", marginBottom: "8px" }}>🌍</div>
         {loading
           ? "Loading conflict intelligence…"
-          : "No conflict data available."}
+          : "No conflict events matched the current free world feeds."}
       </div>
     );
 

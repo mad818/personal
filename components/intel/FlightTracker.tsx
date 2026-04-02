@@ -240,10 +240,17 @@ export default function FlightTracker() {
           originCountry: f.origin_country ?? f[2] ?? "Unknown",
           longitude: f.longitude ?? f[5] ?? 0,
           latitude: f.latitude ?? f[6] ?? 0,
-          altitude: f.baro_altitude ?? f.geo_altitude ?? f[7] ?? f[13] ?? 0,
+          altitude:
+            f.baro_altitude_m ??
+            f.geo_altitude_m ??
+            f.baro_altitude ??
+            f.geo_altitude ??
+            f[7] ??
+            f[13] ??
+            0,
           onGround: f.on_ground ?? f[8] ?? false,
-          velocity: f.velocity ?? f[9] ?? 0,
-          heading: f.true_track ?? f[10] ?? 0,
+          velocity: f.velocity_ms ?? f.velocity ?? f[9] ?? 0,
+          heading: f.true_track ?? f.heading ?? f[10] ?? 0,
         }))
         .filter((f) => !f.onGround && f.altitude > 0);
       setFlights(mapped);

@@ -7,6 +7,11 @@ import { apiFetch } from "@/lib/apiFetch";
 import RuntimeEvalTrend from "@/components/ui/RuntimeEvalTrend";
 import { PMHealthStrip } from "@/components/settings/PMHealthStrip";
 import { PMChecklist } from "@/components/settings/PMChecklist";
+import {
+  AI_PROVIDER_BRANDING,
+  BILLING_TIER_LABELS,
+  BRAND_NAME,
+} from "@/lib/brand";
 import { RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
 
 // ── Non-sensitive fields — stored in Zustand / localStorage ──────────────────
@@ -16,7 +21,10 @@ const LOCAL_FIELDS: {
   type?: string;
   placeholder?: string;
 }[] = [
-  { key: "aiProvider", label: "AI Provider (openai | anthropic | minimax)" },
+  {
+    key: "aiProvider",
+    label: "Preferred AI lane (ollama | groq | google | anthropic | openai | minimax)",
+  },
   {
     key: "localEndpoint",
     label: "Local LLM Endpoint",
@@ -34,16 +42,40 @@ const LOCAL_FIELDS: {
 
 // ── Sensitive fields shown in the drawer ─────────────────────────────────────
 const SENSITIVE_FIELDS: {
-  key: keyof Settings;
+  key: string;
   label: string;
   envKey: string;
   placeholder?: string;
 }[] = [
   {
-    key: "apiKey",
+    key: "anthropicKey",
     label: "Claude / Anthropic API Key",
     envKey: "ANTHROPIC_API_KEY",
     placeholder: "sk-ant-...",
+  },
+  {
+    key: "openaiKey",
+    label: "OpenAI API Key",
+    envKey: "OPENAI_API_KEY",
+    placeholder: "sk-...",
+  },
+  {
+    key: "groqKey",
+    label: "Groq API Key",
+    envKey: "GROQ_API_KEY",
+    placeholder: "gsk_...",
+  },
+  {
+    key: "googleAiKey",
+    label: "Google AI Key",
+    envKey: "GOOGLE_AI_KEY",
+    placeholder: "AIza...",
+  },
+  {
+    key: "openrouterKey",
+    label: "OpenRouter API Key",
+    envKey: "OPENROUTER_API_KEY",
+    placeholder: "sk-or-...",
   },
   {
     key: "minimaxKey",
@@ -77,7 +109,8 @@ type SecurityConfig = {
 };
 
 const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
-  NEXUS_NETWORK_MODE: "isolated",
+  NEXUS_NETWORK_MODE:
+    process.env.NODE_ENV === "development" ? "internal" : "isolated",
   NEXUS_ENABLE_HIGH_RISK_TOOLS: "false",
   NEXUS_ALLOW_PAID_APIS: "false",
   NEXUS_CONNECTOR_POLICY_JSON: "",
@@ -90,7 +123,7 @@ function coerceSecurityConfig(config?: Partial<SecurityConfig>): SecurityConfig 
       config?.NEXUS_NETWORK_MODE === "internal" ||
       config?.NEXUS_NETWORK_MODE === "connected"
         ? config.NEXUS_NETWORK_MODE
-        : "isolated",
+        : DEFAULT_SECURITY_CONFIG.NEXUS_NETWORK_MODE,
     NEXUS_ENABLE_HIGH_RISK_TOOLS:
       config?.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true" ? "true" : "false",
     NEXUS_ALLOW_PAID_APIS:
@@ -167,6 +200,12 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState("");
+  const primaryProviders = AI_PROVIDER_BRANDING.filter(
+    (provider) => provider.surface === "primary",
+  );
+  const advancedProviders = AI_PROVIDER_BRANDING.filter(
+    (provider) => provider.surface === "advanced",
+  );
 
   // Load key status whenever drawer opens
   useEffect(() => {
@@ -281,13 +320,10 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
     <>
       {/* Backdrop */}
       <div
+        className="nexus-overlay-backdrop"
         onClick={handleClose}
         aria-hidden="true"
         style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,.55)",
-          zIndex: 1100,
           opacity: closing ? 0 : 1,
           transition: "opacity .22s var(--t, ease)",
         }}
@@ -295,68 +331,136 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
 
       {/* Drawer */}
       <div
+        className="nexus-sidepanel nexus-sidepanel--settings"
         role="dialog"
         aria-modal="true"
         aria-label="Settings"
+        id="nexus-settings-dialog"
+        data-testid="settings-dialog"
         style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          bottom: 0,
           width: "min(440px, 100vw)",
-          background: "var(--surf)",
-          borderLeft: "1px solid var(--border)",
-          zIndex: 1200,
-          display: "flex",
-          flexDirection: "column",
-          overflowY: "auto",
           transform: closing ? "translateX(100%)" : "translateX(0)",
           transition: "transform .22s cubic-bezier(.4,0,.2,1)",
         }}
       >
         {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            padding: "16px 18px",
-            borderBottom: "1px solid var(--border)",
-            position: "sticky",
-            top: 0,
-            background: "var(--surf)",
-            zIndex: 1,
-          }}
-        >
-          <span
-            style={{ fontWeight: 900, fontSize: "14px", color: "var(--text)" }}
-          >
-            ⚙️ Settings
-          </span>
+        <div className="nexus-sidepanel__header">
+          <div className="nexus-sidepanel__header-copy">
+            <span className="nexus-sidepanel__eyebrow">Control surface</span>
+            <span className="nexus-sidepanel__title">Settings</span>
+            <span className="nexus-sidepanel__subtitle">
+              {BRAND_NAME} preferences, provider posture, and deployment policy in one place.
+            </span>
+          </div>
           <button
             type="button"
             onClick={handleClose}
-            style={{
-              marginLeft: "auto",
-              background: "transparent",
-              border: "none",
-              color: "var(--text2)",
-              fontSize: "18px",
-              cursor: "pointer",
-              padding: "0 4px",
-            }}
+            className="nexus-sidepanel__close"
+            data-testid="settings-close"
+            aria-label="Close settings"
           >
             ✕
           </button>
         </div>
 
-        <div
-          style={{
-            padding: "16px 18px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "20px",
-          }}
-        >
+        <div className="nexus-sidepanel__body">
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "20px",
+            }}
+          >
+          <div
+            style={{
+              padding: "12px",
+              border: "1px solid var(--border)",
+              borderRadius: 10,
+              background:
+                "linear-gradient(180deg, rgba(103,232,249,0.08) 0%, rgba(8,18,26,0.78) 100%)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "10px",
+                fontWeight: 700,
+                color: "var(--accent)",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                marginBottom: "8px",
+              }}
+            >
+              Provider posture
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.55, marginBottom: 12 }}>
+              {BRAND_NAME} keeps the primary operator lane free-first. Local and free-tier providers stay in the main path; paid-compatible lanes remain advanced and hidden unless you opt in.
+            </div>
+            <div style={{ display: "grid", gap: 8 }}>
+              {[...primaryProviders, ...advancedProviders].map((provider) => {
+                const configured = provider.envKey ? keyStatus[provider.envKey] === true : true;
+                const advancedLocked =
+                  provider.surface === "advanced" &&
+                  securityConfig.NEXUS_ALLOW_PAID_APIS !== "true";
+                return (
+                  <div
+                    key={provider.id}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "minmax(0, 1fr) auto auto",
+                      gap: 10,
+                      alignItems: "center",
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      background: "rgba(255,255,255,0.025)",
+                      border: "1px solid rgba(125,211,252,0.14)",
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)" }}>
+                        {provider.label}
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--text3)", lineHeight: 1.45 }}>
+                        {provider.description}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: "var(--text2)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {BILLING_TIER_LABELS[provider.billingTier]}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: advancedLocked
+                          ? "var(--text3)"
+                          : configured
+                            ? "var(--fhi)"
+                            : "var(--fmd)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {advancedLocked
+                        ? "hidden"
+                        : configured
+                          ? "ready"
+                          : provider.envKey
+                            ? "needs key"
+                            : "local"}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* ── Server-Side API Keys section ── */}
           <div>
             <div
@@ -381,7 +485,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                   textTransform: "none",
                 }}
               >
-                — stored server-side in .env.local, never in browser
+                — stored server-side in .env.local, never in the browser session
               </span>
             </div>
 
@@ -580,7 +684,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                 }
               />
               <span style={{ fontSize: 12, color: "var(--text)" }}>
-                Allow paid AI providers (opt-in)
+                Unlock advanced paid-compatible AI lanes
               </span>
             </label>
 
@@ -1002,20 +1106,10 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
             <RuntimeEvalTrend />
           </div>
         </div>
+        </div>
 
         {/* Footer */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-            padding: "16px 18px",
-            borderTop: "1px solid var(--border)",
-            position: "sticky",
-            bottom: 0,
-            background: "var(--surf)",
-          }}
-        >
+        <div className="nexus-sidepanel__footer">
           <Link
             href="/resources"
             onClick={onClose}

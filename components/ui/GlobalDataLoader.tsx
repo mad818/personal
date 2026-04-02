@@ -13,9 +13,28 @@ export default function GlobalDataLoader() {
   useKeywordAlerts();
 
   useEffect(() => {
-    fetchAll();
-    const id = setInterval(fetchAll, 5 * 60_000); // refresh every 5 min
-    return () => clearInterval(id);
+    const run = () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      void fetchAll();
+    };
+
+    run();
+    const id = setInterval(run, 5 * 60_000);
+    const onVisible = () => {
+      if (typeof document === "undefined" || document.hidden) return;
+      void fetchAll();
+    };
+
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisible);
+    }
+
+    return () => {
+      clearInterval(id);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisible);
+      }
+    };
   }, [fetchAll]);
 
   // Manual refresh trigger from SystemStatusFooter

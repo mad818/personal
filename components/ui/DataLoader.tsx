@@ -17,6 +17,31 @@ import { useOTX } from "@/hooks/useOTX";
 import { useStore } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
 
+function startVisiblePolling(fn: () => void | Promise<void>, intervalMs: number) {
+  const run = () => {
+    if (typeof document !== "undefined" && document.hidden) return;
+    void fn();
+  };
+
+  run();
+  const id = setInterval(run, intervalMs);
+  const onVisible = () => {
+    if (typeof document === "undefined" || document.hidden) return;
+    void fn();
+  };
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", onVisible);
+  }
+
+  return () => {
+    clearInterval(id);
+    if (typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", onVisible);
+    }
+  };
+}
+
 // ── Prices (ALPHA + COMMAND tabs) ─────────────────────────────────────────────
 export function PricesLoader() {
   const { start, stop } = usePrices();
@@ -31,9 +56,7 @@ export function PricesLoader() {
 export function ArticlesLoader() {
   const { fetchArticles } = useArticles();
   useEffect(() => {
-    fetchArticles();
-    const id = setInterval(fetchArticles, 5 * 60_000); // refresh every 5min
-    return () => clearInterval(id);
+    return startVisiblePolling(fetchArticles, 5 * 60_000);
   }, [fetchArticles]);
   return null;
 }
@@ -42,9 +65,7 @@ export function ArticlesLoader() {
 export function CVEsLoader() {
   const { fetchCVEs } = useCVEs();
   useEffect(() => {
-    fetchCVEs();
-    const id = setInterval(fetchCVEs, 15 * 60_000); // refresh every 15min
-    return () => clearInterval(id);
+    return startVisiblePolling(fetchCVEs, 15 * 60_000);
   }, [fetchCVEs]);
   return null;
 }
@@ -53,9 +74,7 @@ export function CVEsLoader() {
 export function OTXLoader() {
   const { fetchOTX } = useOTX();
   useEffect(() => {
-    fetchOTX();
-    const id = setInterval(fetchOTX, 15 * 60_000); // refresh every 15min
-    return () => clearInterval(id);
+    return startVisiblePolling(fetchOTX, 15 * 60_000);
   }, [fetchOTX]);
   return null;
 }
@@ -103,9 +122,7 @@ export function WorldRiskLoader() {
         /* silent */
       }
     }
-    load();
-    const id = setInterval(load, 15 * 60_000);
-    return () => clearInterval(id);
+    return startVisiblePolling(load, 15 * 60_000);
   }, [setWorldRisk]);
 
   return null;
@@ -116,16 +133,18 @@ export function FearGreedLoader() {
   const setSignals = useStore((s) => s.setSignals);
 
   useEffect(() => {
-    async function fetch_fg() {
+    async function fetchFearGreed() {
       try {
-        const r = await fetch("https://api.alternative.me/fng/?limit=1");
+        const r = await apiFetch("/api/fear-greed", {
+          signal: AbortSignal.timeout(10_000),
+        });
         const d = await r.json();
-        const entry = d?.data?.[0];
-        if (entry) {
+        const entry = d?.current;
+        if (entry?.value != null) {
           setSignals({
             fg: {
               value: Number(entry.value),
-              label: entry.value_classification ?? "",
+              label: entry.classification ?? "",
             },
           });
         }
@@ -133,9 +152,7 @@ export function FearGreedLoader() {
         /* silent */
       }
     }
-    fetch_fg();
-    const id = setInterval(fetch_fg, 10 * 60_000);
-    return () => clearInterval(id);
+    return startVisiblePolling(fetchFearGreed, 10 * 60_000);
   }, [setSignals]);
 
   return null;

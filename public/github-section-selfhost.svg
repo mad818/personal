@@ -18,9 +18,9 @@
 
   <rect x="28" y="78" width="452" height="132" rx="12" fill="#141011" stroke="#60a5fa" stroke-opacity="0.42"/>
   <text x="254" y="102" text-anchor="middle" fill="#93c5fd" font-family="system-ui,sans-serif" font-size="10" font-weight="800">CONTAINER SMOKE</text>
-  <text x="254" y="124" text-anchor="middle" fill="#c4b4b8" font-family="ui-monospace,monospace" font-size="8">docker build -t nexus-prime .</text>
+  <text x="254" y="124" text-anchor="middle" fill="#c4b4b8" font-family="ui-monospace,monospace" font-size="8">docker build -t aegis-vector .</text>
   <text x="254" y="142" text-anchor="middle" fill="#c4b4b8" font-family="ui-monospace,monospace" font-size="7.5">docker run --rm -p 3000:3000 \</text>
-  <text x="254" y="158" text-anchor="middle" fill="#c4b4b8" font-family="ui-monospace,monospace" font-size="7.5">  --env-file .env.local nexus-prime</text>
+  <text x="254" y="158" text-anchor="middle" fill="#c4b4b8" font-family="ui-monospace,monospace" font-size="7.5">  --env-file .env.local aegis-vector</text>
   <text x="254" y="182" text-anchor="middle" fill="#78716c" font-size="7">Needs NEXUS_TOKEN at minimum</text>
   <text x="254" y="198" text-anchor="middle" fill="#78716c" font-size="7">Add AI and data keys like local</text>
 

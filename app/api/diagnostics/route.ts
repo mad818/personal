@@ -1,4 +1,11 @@
 import { NextResponse } from "next/server";
+import {
+  BRAND_DESCRIPTOR,
+  BRAND_NAME,
+  BRAND_TAGLINE,
+  getBrandServiceName,
+  summarizeProviderReadiness,
+} from "@/lib/brand";
 import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
 import { readTimesfmSpikeStatus } from "@/lib/experiments";
@@ -13,12 +20,16 @@ import {
   summarizeSurfaceTiers,
 } from "@/lib/releaseMatrix";
 import { summarizeSkillGovernance } from "@/lib/skillMetadata";
+import { applyNoStoreHeaders, readRuntimeIdentity } from "@/lib/runtimeIdentity";
+
+export const dynamic = "force-dynamic";
 
 function present(v: string | undefined) {
   return Boolean(v && v.trim().length > 0);
 }
 
 export async function GET() {
+  const runtimeIdentity = readRuntimeIdentity();
   const now = new Date().toISOString();
   const mode = readNetworkMode();
 
@@ -59,6 +70,7 @@ export async function GET() {
       openrouter: present(process.env.OPENROUTER_API_KEY),
       google: present(process.env.GOOGLE_AI_KEY),
     },
+    posture: summarizeProviderReadiness(),
   };
 
   const dataSources = {
@@ -74,10 +86,15 @@ export async function GET() {
     brave: present(process.env.BRAVE_SEARCH_KEY),
   };
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     generatedAt: now,
     release: {
-      service: "nexus-prime",
+      service: getBrandServiceName(),
+      brand: {
+        name: BRAND_NAME,
+        tagline: BRAND_TAGLINE,
+        descriptor: BRAND_DESCRIPTOR,
+      },
       channel: readBuildChannel(),
       version: readBuildVersion(),
       deploymentProfile: readDeploymentProfile(),
@@ -91,9 +108,13 @@ export async function GET() {
       rollbackHints,
     },
     runtime: {
-      node: process.version,
-      platform: process.platform,
-      arch: process.arch,
+      bootId: runtimeIdentity.bootId,
+      startedAt: runtimeIdentity.startedAt,
+      ageSeconds: runtimeIdentity.ageSeconds,
+      pid: runtimeIdentity.pid,
+      node: runtimeIdentity.node,
+      platform: runtimeIdentity.platform,
+      arch: runtimeIdentity.arch,
     },
     security,
     providers,
@@ -107,4 +128,6 @@ export async function GET() {
       "Use this payload for secured-network diagnostics exports.",
     ],
   });
+  applyNoStoreHeaders(response.headers);
+  return response;
 }

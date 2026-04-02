@@ -1,6 +1,6 @@
 <div align="center">
 
-![Nexus Prime Banner](./public/banner.svg)
+![Aegis Vector Banner](./public/banner.svg)
 
 <br>
 
@@ -17,9 +17,9 @@
 
 ### At a glance
 
-<img src="./public/github-infographic-features.svg" width="100%" alt="Nexus Prime feature infographic: Intel, Markets, Cyber, AI agent with Claude and MiniMax and Ollama, privacy, MIT license" />
+<img src="./public/github-infographic-features.svg" width="100%" alt="Aegis Vector feature infographic: command surfaces, free-first providers, privacy, and self-hosted deployment" />
 
-<img src="./public/github-infographic-stack.svg" width="100%" alt="Nexus Prime stack infographic: Next.js, TypeScript, Zustand, API routes, feeds and LLM proxy" />
+<img src="./public/github-infographic-stack.svg" width="100%" alt="Aegis Vector stack infographic: Next.js, TypeScript, Zustand, API routes, feeds, and LLM proxy" />
 
 <img src="./public/github-readme-overview.svg" width="100%" alt="Overview: self-hosted dashboard, MIT no in-app charges, BYOK, npm run dev, Field manual at /resources, social preview export hint" />
 
@@ -31,13 +31,13 @@
 
 ## What it is
 
-**Nexus Prime** is a self-hosted intelligence dashboard (Next.js 14, MIT) with a native **desktop app for Windows and macOS** (Tauri). There is no Nexus subscription: optional APIs are bring-your-own. Live markets, geopolitics, cyber, maps, and a multi-provider **AI agent** (Claude, MiniMax, OpenAI-family chain, or **Ollama** offline) run on your machine — no cloud app backend, no database. Run it in your browser at `localhost:3000`, or as a native desktop window via Tauri. Curated learning links live at **`/resources`**; secrets stay in **`.env.local`** (gitignored).
+**Aegis Vector** is a local-first command-and-intelligence workspace (Next.js 14, MIT) with a native **desktop app for Windows and macOS** (Tauri). It is self-hosted, free-first, and does not charge end users in-app: optional providers are bring-your-own, and paid-compatible AI lanes stay hidden unless you explicitly opt in. Markets, geopolitics, cyber, recon, maps, and operator AI all run on your machine with no cloud app backend and no database. Run it in your browser at `localhost:3000`, or as a native desktop window via Tauri. Curated links live at **`/resources`**; secrets stay in **`.env.local`** (gitignored).
 
 ---
 
 ## Tabs
 
-**Supported release surface for this cycle:** the GA product is the 7-tab nav (`HQ`, `COMMAND`, `INTEL`, `ALPHA`, `CYBER`, `RECON`, `VAULT`) plus `/resources`. Additional repo routes exist as beta/internal surfaces and are not part of the current public support contract unless explicitly promoted.
+**Supported release surface for this cycle:** the GA product is the 7-tab nav (`CITADEL`, `VECTOR`, `SPECTRA`, `QUANT`, `BASTION`, `PARALLAX`, `ARCHIVE`) plus `/resources` (`FIELD MANUAL`). Additional repo routes exist as beta/internal surfaces and are not part of the current public support contract unless explicitly promoted.
 
 One unified React app — seven tabs, single nav bar, one URL.
 
@@ -45,28 +45,28 @@ One unified React app — seven tabs, single nav bar, one URL.
 <tr>
 <td width="50%" valign="top">
 
-### 🤖 HQ
+### CITADEL
 5-agent AI office (JANSKY, ORBIT, NOVA, CIPHER, FLUX). 3D workspace with live briefings and a full ReAct reasoning loop. Streams tool calls live.
 
-### ⚡ Command
+### VECTOR
 Mission control — KPI cards, Fear & Greed index, live BTC price, AI daily briefing, event radar, threat heatmap, world event map, business intelligence, job risk analyser.
 
-### 📡 Intel
+### SPECTRA
 Live news (RSS + GDELT fallback; optional Guardian key). Bias tagging, story threads, article clusters. Geopolitical heatmap, conflict feed, Polymarket prediction odds, strategy frameworks.
 
-### 🎯 Alpha
+### QUANT
 Momentum scanner with RSI/BB/EMA scoring, Buy Bot signals, 7-day sparklines, position sizing calculator, watchlist manager.
 
 </td>
 <td width="50%" valign="top">
 
-### 🔒 Cyber
+### BASTION
 Live CVEs (CRITICAL → LOW), OTX threat intel feed, CISA KEV advisories, attack vector charts, triage view, cyber heatmap.
 
-### 🕵️ Recon
+### PARALLAX
 OSINT toolkit: RDAP/WHOIS, DNS records, crt.sh cert transparency, IP geolocation — all free, no key required. HIBP breach check, VirusTotal, Shodan (BYOK, optional). Local WebRTC leak probe, fingerprint entropy analyser, OPSEC score — all client-side only.
 
-### 🗂 Vault
+### ARCHIVE
 Bookmarked articles. Full-text search, folder organisation by category, JSON export. Persisted across sessions.
 
 </td>
@@ -98,7 +98,7 @@ flowchart LR
     style S fill:#151820,stroke:#10b981,color:#dde1f0
 ```
 
-Tool calls appear as collapsible badges in the chat UI in real time. The agent works with Claude (server-side key, never exposed to the client) or a local Ollama model for fully offline use.
+Tool calls appear as collapsible badges in the chat UI in real time. The agent works in a free-first posture with local Ollama by default, then optional BYOK providers when operators explicitly configure them.
 
 ---
 
@@ -249,8 +249,8 @@ In the app: **Settings** → **Provider: Local** → endpoint `http://localhost:
 - **Docker smoke test**
 
 ```bash
-docker build -t nexus-prime .
-docker run --rm -p 3000:3000 --env-file .env.local nexus-prime
+docker build -t aegis-vector .
+docker run --rm -p 3000:3000 --env-file .env.local aegis-vector
 ```
 
 - **Health** — `GET /api/health` (public, no Bearer).
@@ -260,7 +260,7 @@ docker run --rm -p 3000:3000 --env-file .env.local nexus-prime
 
 ## Desktop App (Windows & macOS)
 
-Nexus Prime runs as a native desktop app via **Tauri** — no browser tab required, binds to `127.0.0.1` only by default.
+Aegis Vector runs as a native desktop app via **Tauri** — no browser tab required, binds to `127.0.0.1` only by default.
 
 ```bash
 # Build the Next.js standalone runtime first

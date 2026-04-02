@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 
+const SAMPLE_DETECTIONS = [
+  { lat: 37.7749, lng: -122.4194, label: "Port logistics cluster", confidence: 0.74 },
+  { lat: 25.7617, lng: -80.1918, label: "Maritime staging node", confidence: 0.68 },
+  { lat: 35.6895, lng: 139.6917, label: "Dense urban traffic pattern", confidence: 0.63 },
+];
+
 /**
  * GET /api/geo-scan
  *
@@ -23,9 +29,9 @@ export async function GET() {
     if (!r.ok) {
       return NextResponse.json(
         {
-          detections: [],
-          status: "error",
-          message: `GeoDeep service returned ${r.status}`,
+          detections: SAMPLE_DETECTIONS,
+          status: "sample",
+          message: `GeoDeep service returned ${r.status}; showing sample detections instead.`,
         },
         { status: 200 },
       );
@@ -59,11 +65,11 @@ export async function GET() {
     const isTimeout = err instanceof Error && err.name === "TimeoutError";
     return NextResponse.json(
       {
-        detections: [],
-        status: "unavailable",
+        detections: SAMPLE_DETECTIONS,
+        status: "sample",
         message: isTimeout
-          ? "GeoDeep service timed out"
-          : "GeoDeep service not reachable — start scripts/geodep-service.py",
+          ? "GeoDeep service timed out; showing sample detections."
+          : "GeoDeep service not reachable; showing sample detections until the local scan service is started.",
       },
       { status: 200 },
     );

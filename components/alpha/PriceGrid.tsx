@@ -36,6 +36,7 @@ function Sparkline({ data, positive }: { data: number[]; positive: boolean }) {
 
 export default function PriceGrid() {
   const prices = useStore((s) => s.prices);
+  const pricesLoaded = useStore((s) => s.pricesLoaded);
   const sparklines = useStore((s) => s.sparklines);
   const entries = Object.entries(prices);
 
@@ -49,7 +50,9 @@ export default function PriceGrid() {
           fontSize: "13px",
         }}
       >
-        Loading prices…
+        {pricesLoaded
+          ? "No live prices returned from the current free market feeds."
+          : "Loading prices…"}
       </div>
     );
 

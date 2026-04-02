@@ -70,9 +70,14 @@ Completed in code:
 - Stale local session cleanup
 - Release smoke coverage for invalid and valid auth
 - Explicit form-handoff verification
+- Browser E2E auth coverage for invalid login, valid login, refresh persistence, stale-session reset, HQ shell hydration safety, overlay behavior, and canonical route contract checks
+- Deterministic Playwright auth lane tuned for release gating (`workers: 1` + fresh web server)
 
 Remaining recommended work:
 
-- Browser E2E auth automation
+- Expand the new `npm run auth:regression` flow into full browser-driven coverage
+- Keep `npm run auth:e2e` green as the browser-level auth gate
+- Keep `npm run hq:e2e` and `npm run route:e2e` available for focused reruns while `npm run auth:e2e` remains the full gate
+- Keep `npm run runtime:consistency` and `npm run runtime:fresh-proof` green so auth is verified against the runtime the user is actually hitting
 - Lightweight auth diagnostics panel for local troubleshooting
 - Logout/session reset UX if desired

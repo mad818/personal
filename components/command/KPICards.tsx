@@ -50,10 +50,13 @@ export default function KPICards() {
   const sparklines = useStore((s) => s.sparklines);
   const signals = useStore((s) => s.signals);
   const cves = useStore((s) => s.cves);
+  const cvesLoaded = useStore((s) => s.cvesLoaded);
   const worldRisk = useStore((s) => s.worldRisk);
+  const unreadNotifications = useStore((s) => s.unreadCount);
 
   const btc = prices["bitcoin"];
   const fg = signals?.fg;
+  const hasPrices = Object.keys(prices).length > 0;
 
   // Count assets with momentum score ≥ 60 (BUY or STRONG BUY)
   const buySignals = useMemo(() => {
@@ -88,23 +91,34 @@ export default function KPICards() {
     {
       icon: "🎯",
       label: "Buy Signals",
-      val: Object.keys(prices).length > 0 ? String(buySignals) : "—",
+      val: hasPrices ? String(buySignals) : "—",
       sub:
-        buySignals > 0 ? `of ${Object.keys(prices).length} assets` : "Loading…",
+        !hasPrices
+          ? "Loading market breadth"
+          : buySignals > 0
+            ? `of ${Object.keys(prices).length} assets`
+            : `Watching ${Object.keys(prices).length} assets`,
       cls: buySignals >= 7 ? "up" : buySignals >= 4 ? "neutral" : "dn",
     },
     {
       icon: "🔒",
       label: "CVE Threats",
-      val: cves.length ? String(cves.length) : "—",
-      sub: cves.length ? "Last 30 days" : "Loading…",
+      val: cves.length ? String(cves.length) : cvesLoaded ? "0" : "—",
+      sub: cves.length
+        ? "Last 30 days"
+        : cvesLoaded
+          ? "No active CVEs returned"
+          : "Loading threat feed",
       cls: cves.length > 20 ? "dn" : cves.length > 10 ? "neutral" : "up",
     },
     {
       icon: "🔔",
       label: "Alerts",
-      val: "—",
-      sub: "No alerts",
+      val: unreadNotifications > 0 ? String(unreadNotifications) : "0",
+      sub:
+        unreadNotifications > 0
+          ? "Unread notifications"
+          : "No unread alerts",
     },
     {
       icon: "😱",

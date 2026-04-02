@@ -3,34 +3,48 @@
 
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
+import dynamic from "next/dynamic";
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 import {
   assertNexusDoesNotChargeUsers,
   NEXUS_FREE_USE_DESCRIPTION,
 } from "@/lib/productGuarantees";
+import { BRAND_DESCRIPTOR, BRAND_NAME } from "@/lib/brand";
 import {
   matchesConfiguredNexusToken,
   NEXUS_SESSION_COOKIE,
 } from "@/lib/authSession";
 import Nav from "@/components/nav/Nav";
 import AuthGate from "@/components/auth/AuthGate";
-import CommandBar from "@/components/ui/CommandBar";
 import GlobalDataLoader from "@/components/ui/GlobalDataLoader";
 import { ArticlesLoader } from "@/components/ui/DataLoader";
-import ProposedEditPanel from "@/components/ui/ProposedEditPanel";
-import ChangeLogPanel from "@/components/ui/ChangeLogPanel";
 import CronSchedulerRunner from "@/components/ui/CronSchedulerRunner";
 import ErrorBoundary from "@/components/system/ErrorBoundary";
-import ClickDebug from "@/components/ui/ClickDebug";
 import ToastContainer from "@/components/ui/Toast";
 import NotificationToastBridge from "@/components/ui/NotificationToastBridge";
 import ParticleBackground from "@/components/ui/ParticleBackground";
 
+const CommandBar = dynamic(() => import("@/components/ui/CommandBar"), {
+  ssr: false,
+});
+const ProposedEditPanel = dynamic(
+  () => import("@/components/ui/ProposedEditPanel"),
+  { ssr: false },
+);
+const ChangeLogPanel = dynamic(
+  () => import("@/components/ui/ChangeLogPanel"),
+  { ssr: false },
+);
+const ClickDebug = dynamic(() => import("@/components/ui/ClickDebug"), {
+  ssr: false,
+});
+
 assertNexusDoesNotChargeUsers();
 
 export const metadata: Metadata = {
-  title: "Nexus Prime",
-  description: `${NEXUS_FREE_USE_DESCRIPTION} Personal intelligence dashboard.`,
+  title: BRAND_NAME,
+  description: `${NEXUS_FREE_USE_DESCRIPTION} ${BRAND_DESCRIPTOR}`,
   manifest: "/manifest.json",
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml", sizes: "512x512" }],
@@ -38,7 +52,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Nexus Prime",
+    title: BRAND_NAME,
     statusBarStyle: "black-translucent",
   },
 };

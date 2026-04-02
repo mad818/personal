@@ -11,6 +11,9 @@ Use this checklist for both deployment lanes before promoting a release.
 - [ ] `npm run security:tauri`
 - [ ] `npm run eval:agent-runtime:ci`
 - [ ] `npm run release:smoke` against the target runtime
+- [ ] `npm run runtime:consistency` reports one coherent runtime boot identity
+- [ ] `npm run runtime:fresh-proof` passes on an isolated clean runtime
+- [ ] Build, Playwright, and fresh-runtime lanes are run serially when they share the same local `.next` workspace
 
 ## Scope and support
 
@@ -23,9 +26,21 @@ Use this checklist for both deployment lanes before promoting a release.
 
 - [ ] `/api/health` is green
 - [ ] `/api/token` auth flow behaves correctly
+- [ ] `npm run auth:regression` passes against the target runtime
+- [ ] `npm run auth:e2e` passes against the target runtime
+- [ ] `npm run hq:e2e` and `npm run route:e2e` are available for focused reruns when the full auth/browser lane fails
 - [ ] `/api/status` returns authenticated release/readiness payload
 - [ ] scheduler and non-interactive mission path run without duplicate dispatch
 - [ ] runtime eval is fresh and above thresholds
+
+## Regression memory
+
+- [ ] auth regression suite is green (valid token, invalid token, stale session recovery, logout/reset)
+- [ ] no stale-runtime or stale-bundle symptoms were observed during target-runtime testing
+- [ ] no hydration mismatch warnings on HQ or always-mounted UI surfaces
+- [ ] no hidden overlay, backdrop, or decorative layer steals pointer/focus access
+- [ ] root and alias routes resolve to canonical surfaces correctly
+- [ ] cinematic shell is visually consistent across all GA tabs for the target release
 
 ## Domain validation
 

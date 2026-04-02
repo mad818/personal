@@ -82,13 +82,13 @@ export default function IntelPage() {
   return (
     <ShellPage
       surface="intel"
-      eyebrow="Signals and strategy"
-      title="INTEL"
-      description="Narrative monitoring, geopolitical posture, and prediction markets with one consistent command-center lens."
+      eyebrow="Signal interference field"
+      title="SPECTRA"
+      description="Narrative monitoring, geopolitical posture, and prediction markets with one coherent Aegis Vector signal lens."
       actions={
         <>
           <ShellBadge tone="accent">Narrative aware</ShellBadge>
-          <ShellBadge tone="muted">Shareable view state</ShellBadge>
+          <ShellBadge tone="muted">Deep-linkable state</ShellBadge>
         </>
       }
     >

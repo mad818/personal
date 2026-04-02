@@ -9,6 +9,15 @@ import {
   parseConnectorPolicy,
 } from "@/lib/security/connectorPolicy";
 import {
+  BRAND_NAME,
+  BRAND_TAGLINE,
+  summarizeProviderReadiness,
+} from "@/lib/brand";
+import {
+  getDefaultNetworkMode,
+  readNetworkMode,
+} from "@/lib/security/routePolicy";
+import {
   getDefaultEntrypoint,
   listSurfaceAliases,
   readBuildChannel,
@@ -34,6 +43,9 @@ import {
 const SENSITIVE_KEYS = [
   "ANTHROPIC_API_KEY",
   "OPENAI_API_KEY",
+  "GROQ_API_KEY",
+  "GOOGLE_AI_KEY",
+  "OPENROUTER_API_KEY",
   "MINIMAX_API_KEY",
   "BRAVE_SEARCH_KEY",
   "COINGECKO_KEY",
@@ -110,7 +122,7 @@ function normalizeConfigValue(key: string, value: string): string {
   const v = String(value).trim().toLowerCase();
   if (key === "NEXUS_NETWORK_MODE") {
     if (v === "internal" || v === "connected") return v;
-    return "isolated";
+    return getDefaultNetworkMode();
   }
   if (key === "NEXUS_ENABLE_HIGH_RISK_TOOLS" || key === "NEXUS_ALLOW_PAID_APIS") {
     return v === "true" ? "true" : "false";
@@ -137,6 +149,7 @@ function readPendingDeploymentProfile(env: Record<string, string>) {
 // GET — return which keys are set (true/false), not the values
 export async function GET() {
   const env = await readEnvFile();
+  const effectiveEnv = { ...process.env, ...env };
   const status: Record<string, boolean> = {};
   for (const key of SENSITIVE_KEYS) {
     const legacyMatch = Object.entries(LEGACY_KEY_ALIASES).find(
@@ -150,7 +163,7 @@ export async function GET() {
   }
   const config = {
     NEXUS_NETWORK_MODE:
-      env.NEXUS_NETWORK_MODE ?? process.env.NEXUS_NETWORK_MODE ?? "isolated",
+      env.NEXUS_NETWORK_MODE ?? process.env.NEXUS_NETWORK_MODE ?? readNetworkMode(),
     NEXUS_ENABLE_HIGH_RISK_TOOLS:
       env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
       process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
@@ -165,6 +178,11 @@ export async function GET() {
   return NextResponse.json({
     status,
     config,
+    brand: {
+      name: BRAND_NAME,
+      tagline: BRAND_TAGLINE,
+    },
+    providers: summarizeProviderReadiness(effectiveEnv),
     release: {
       buildChannel: readBuildChannel(),
       buildVersion: readBuildVersion(),

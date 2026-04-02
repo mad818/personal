@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 import { clsx } from "clsx";
 import PageTransition from "@/components/ui/PageTransition";
+import { getSurfaceBranding } from "@/lib/brand";
 
 type ShellWidth = "standard" | "wide" | "full";
 type ShellSurface =
@@ -13,7 +15,99 @@ type ShellSurface =
   | "alpha"
   | "cyber"
   | "recon"
-  | "vault";
+  | "vault"
+  | "vehicle"
+  | "resources";
+
+const SURFACE_ART: Record<
+  ShellSurface,
+  {
+    heroSrc: string;
+    heroPosition: string;
+    stack: Array<{ src: string; position: string }>;
+  }
+> = {
+  default: {
+    heroSrc: "/theme/citadel.svg",
+    heroPosition: "50% 50%",
+    stack: [
+      { src: "/theme/aegis-cosmos.svg", position: "50% 50%" },
+      { src: "/theme/manual.svg", position: "50% 50%" },
+    ],
+  },
+  hq: {
+    heroSrc: "/theme/citadel.svg",
+    heroPosition: "50% 50%",
+    stack: [
+      { src: "/theme/vector.svg", position: "50% 50%" },
+      { src: "/theme/aegis-cosmos.svg", position: "50% 50%" },
+    ],
+  },
+  command: {
+    heroSrc: "/theme/vector.svg",
+    heroPosition: "50% 50%",
+    stack: [
+      { src: "/theme/citadel.svg", position: "50% 50%" },
+      { src: "/theme/quant.svg", position: "50% 50%" },
+    ],
+  },
+  intel: {
+    heroSrc: "/theme/spectra.svg",
+    heroPosition: "50% 50%",
+    stack: [
+      { src: "/theme/parallax.svg", position: "50% 50%" },
+      { src: "/theme/aegis-cosmos.svg", position: "50% 50%" },
+    ],
+  },
+  alpha: {
+    heroSrc: "/theme/quant.svg",
+    heroPosition: "50% 50%",
+    stack: [
+      { src: "/theme/vector.svg", position: "50% 50%" },
+      { src: "/theme/spectra.svg", position: "50% 50%" },
+    ],
+  },
+  cyber: {
+    heroSrc: "/theme/bastion.svg",
+    heroPosition: "50% 50%",
+    stack: [
+      { src: "/theme/parallax.svg", position: "50% 50%" },
+      { src: "/theme/archive.svg", position: "50% 50%" },
+    ],
+  },
+  recon: {
+    heroSrc: "/theme/parallax.svg",
+    heroPosition: "50% 50%",
+    stack: [
+      { src: "/theme/bastion.svg", position: "50% 50%" },
+      { src: "/theme/spectra.svg", position: "50% 50%" },
+    ],
+  },
+  vault: {
+    heroSrc: "/theme/archive.svg",
+    heroPosition: "50% 50%",
+    stack: [
+      { src: "/theme/manual.svg", position: "50% 50%" },
+      { src: "/theme/citadel.svg", position: "50% 50%" },
+    ],
+  },
+  vehicle: {
+    heroSrc: "/theme/vehicle.svg",
+    heroPosition: "50% 50%",
+    stack: [
+      { src: "/theme/vector.svg", position: "50% 50%" },
+      { src: "/theme/aegis-cosmos.svg", position: "50% 50%" },
+    ],
+  },
+  resources: {
+    heroSrc: "/theme/manual.svg",
+    heroPosition: "50% 50%",
+    stack: [
+      { src: "/theme/archive.svg", position: "50% 50%" },
+      { src: "/theme/aegis-cosmos.svg", position: "50% 50%" },
+    ],
+  },
+};
 
 function shellWidthClass(width: ShellWidth) {
   if (width === "wide") return "nexus-shell-page--wide";
@@ -38,6 +132,9 @@ export function ShellPage({
   surface?: ShellSurface;
   children: ReactNode;
 }) {
+  const art = SURFACE_ART[surface] ?? SURFACE_ART.default;
+  const branding = getSurfaceBranding(surface);
+
   return (
     <PageTransition>
       <div className={clsx("nexus-shell-stage", `nexus-shell-stage--${surface}`)}>
@@ -50,8 +147,37 @@ export function ShellPage({
               {description ? (
                 <p className="nexus-shell-description">{description}</p>
               ) : null}
+              {actions ? <div className="nexus-shell-actions">{actions}</div> : null}
             </div>
-            {actions ? <div className="nexus-shell-actions">{actions}</div> : null}
+            <div className="nexus-shell-hero__media" aria-hidden="true">
+              <div className="nexus-shell-hero__poster">
+                <Image
+                  src={art.heroSrc}
+                  alt={`${branding.visibleLabel} surface schematic`}
+                  fill
+                  sizes="(max-width: 880px) 100vw, 360px"
+                  className="nexus-shell-hero__poster-image"
+                  style={{ objectPosition: art.heroPosition }}
+                />
+                <div className="nexus-shell-hero__poster-vignette" />
+                <div className="nexus-shell-hero__poster-badge">{branding.heroKicker}</div>
+              </div>
+              <div className="nexus-shell-hero__thumbs">
+                {art.stack.map((image) => (
+                  <div key={`${surface}-${image.src}`} className="nexus-shell-hero__thumb">
+                    <Image
+                      src={image.src}
+                      alt={`${branding.visibleLabel} supporting schematic`}
+                      fill
+                      sizes="96px"
+                      className="nexus-shell-hero__thumb-image"
+                      style={{ objectPosition: image.position }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="nexus-shell-hero__note">{branding.note}</p>
+            </div>
           </header>
           {children}
         </div>

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 168" width="1000" height="168" role="img" aria-labelledby="stitle sdesc">
-  <title id="stitle">Aegis Vector architecture stack</title>
+  <title id="stitle">Aegis architecture stack</title>
   <desc id="sdesc">Flow from Next.js through API layer to data and AI providers</desc>
   <defs>
     <linearGradient id="bgs" x1="0" y1="0" x2="1000" y2="168">

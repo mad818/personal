@@ -1,8 +1,10 @@
 <div align="center">
 
-![Aegis Vector Banner](./public/banner.svg)
+![Aegis Banner](./public/banner.svg)
 
 <br>
+
+# Aegis
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
@@ -17,9 +19,9 @@
 
 ### At a glance
 
-<img src="./public/github-infographic-features.svg" width="100%" alt="Aegis Vector feature infographic: command surfaces, free-first providers, privacy, and self-hosted deployment" />
+<img src="./public/github-infographic-features.svg" width="100%" alt="Aegis feature infographic: command surfaces, free-first providers, privacy, and self-hosted deployment" />
 
-<img src="./public/github-infographic-stack.svg" width="100%" alt="Aegis Vector stack infographic: Next.js, TypeScript, Zustand, API routes, feeds, and LLM proxy" />
+<img src="./public/github-infographic-stack.svg" width="100%" alt="Aegis stack infographic: Next.js, TypeScript, Zustand, API routes, feeds, and LLM proxy" />
 
 <img src="./public/github-readme-overview.svg" width="100%" alt="Overview: self-hosted dashboard, MIT no in-app charges, BYOK, npm run dev, Field manual at /resources, social preview export hint" />
 
@@ -31,7 +33,7 @@
 
 ## What it is
 
-**Aegis Vector** is a local-first command-and-intelligence workspace (Next.js 14, MIT) with a native **desktop app for Windows and macOS** (Tauri). It is self-hosted, free-first, and does not charge end users in-app: optional providers are bring-your-own, and paid-compatible AI lanes stay hidden unless you explicitly opt in. Markets, geopolitics, cyber, recon, maps, and operator AI all run on your machine with no cloud app backend and no database. Run it in your browser at `localhost:3000`, or as a native desktop window via Tauri. Curated links live at **`/resources`**; secrets stay in **`.env.local`** (gitignored).
+**Aegis** is a local-first command-and-intelligence workspace (Next.js 14, MIT) with a native **desktop app for Windows and macOS** (Tauri). It is self-hosted, free-first, and does not charge end users in-app: optional providers are bring-your-own, and paid-compatible AI lanes stay hidden unless you explicitly opt in. Markets, geopolitics, cyber, recon, maps, and operator AI all run on your machine with no cloud app backend and no database. Run it in your browser at `localhost:3000`, or as a native desktop window via Tauri. Curated links live at **`/resources`**; secrets stay in **`.env.local`** (gitignored).
 
 ---
 
@@ -260,7 +262,7 @@ docker run --rm -p 3000:3000 --env-file .env.local aegis-vector
 
 ## Desktop App (Windows & macOS)
 
-Aegis Vector runs as a native desktop app via **Tauri** — no browser tab required, binds to `127.0.0.1` only by default.
+Aegis runs as a native desktop app via **Tauri** — no browser tab required, binds to `127.0.0.1` only by default.
 
 ```bash
 # Build the Next.js standalone runtime first

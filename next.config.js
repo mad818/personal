@@ -1,8 +1,34 @@
 /** @type {import('next').NextConfig} */
+const isDevelopment = process.env.NODE_ENV !== 'production'
+
+function buildCsp() {
+  const scriptSrc = ["script-src 'self'", "'unsafe-inline'"]
+  const connectSrc = ["connect-src 'self'"]
+
+  if (isDevelopment) {
+    scriptSrc.push("'unsafe-eval'")
+    connectSrc.push('ws://localhost:3000', 'ws://127.0.0.1:3000')
+  }
+
+  return [
+    "default-src 'self'",
+    scriptSrc.join(' '),
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    connectSrc.join(' '),
+    "frame-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ')
+}
+
 module.exports = {
   // Enables `.next/standalone` for Docker / Coolify reproducible deploys (see Dockerfile)
   output: 'standalone',
   poweredByHeader: false,
+  allowedDevOrigins: ['http://127.0.0.1:3000', 'http://localhost:3000'],
 
   // Air-gapped profile: do not allow optimized remote images.
   images: {},
@@ -58,18 +84,7 @@ module.exports = {
           // Content Security Policy (air-gapped)
           {
             key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob:",
-              "font-src 'self' data:",
-              "connect-src 'self'",
-              "frame-src 'self'",
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-            ].join('; '),
+            value: buildCsp(),
           },
         ],
       },

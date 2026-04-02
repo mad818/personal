@@ -13,6 +13,8 @@
  *   const r = await apiFetch('/api/tools', { method: 'POST', body: ... })
  */
 
+import { normalizeTokenCandidate } from "@/lib/authToken";
+
 const TOKEN_KEY = "nexus_session_token";
 
 // ── In-flight deduplication map ───────────────────────────────────────────────
@@ -93,6 +95,85 @@ interface ValidateTokenOptions {
   timeoutMs?: number;
 }
 
+async function xhrPostJson(
+  url: string,
+  payload: Record<string, unknown>,
+  timeoutMs: number,
+): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    if (typeof XMLHttpRequest === "undefined") {
+      reject(new Error("XHR unavailable"));
+      return;
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+    xhr.timeout = timeoutMs;
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("Accept", "application/json");
+
+    xhr.onload = () => {
+      if (xhr.status === 0) {
+        reject(new Error("XHR returned status 0"));
+        return;
+      }
+
+      const headers = new Headers();
+      const rawHeaders = xhr.getAllResponseHeaders();
+      rawHeaders
+        .trim()
+        .split(/[\r\n]+/)
+        .filter(Boolean)
+        .forEach((line) => {
+          const index = line.indexOf(":");
+          if (index === -1) return;
+          const key = line.slice(0, index).trim();
+          const value = line.slice(index + 1).trim();
+          headers.append(key, value);
+        });
+
+      resolve(
+        new Response(xhr.responseText ?? "", {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          headers,
+        }),
+      );
+    };
+
+    xhr.onerror = () => reject(new Error("XHR network error"));
+    xhr.ontimeout = () => reject(new Error("XHR timed out"));
+    xhr.send(JSON.stringify(payload));
+  });
+}
+
+async function postJsonWithBrowserFallback(
+  url: string,
+  payload: Record<string, unknown>,
+  timeoutMs: number,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+  } catch {
+    return xhrPostJson(url, payload, timeoutMs);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /**
  * Validate a token against the server.
  * Returns "ok" on success, "invalid" for rejected tokens, and "unreachable"
@@ -106,19 +187,15 @@ export async function validateToken(
     persistOnSuccess = false,
     timeoutMs = TOKEN_VALIDATION_TIMEOUT_MS,
   } = options;
-  const normalizedToken = token.trim();
+  const normalizedToken = normalizeTokenCandidate(token);
   if (!normalizedToken) return "invalid";
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
-    const r = await fetch("/api/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: normalizedToken }),
-      signal: controller.signal,
-    });
+    const r = await postJsonWithBrowserFallback(
+      "/api/token",
+      { token: normalizedToken },
+      timeoutMs,
+    );
     if (!r.ok) {
       try {
         const d = await r.json();
@@ -143,8 +220,6 @@ export async function validateToken(
     return "invalid";
   } catch {
     return "unreachable";
-  } finally {
-    clearTimeout(timeout);
   }
 }
 

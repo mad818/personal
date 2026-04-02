@@ -54,7 +54,10 @@ export function LoadingSkeleton({
 
   return (
     <>
-      <style>{SHIMMER_KEYFRAMES}</style>
+      <style
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: SHIMMER_KEYFRAMES }}
+      />
       <div
         style={{
           width,

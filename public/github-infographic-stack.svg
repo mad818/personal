@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 168" width="1000" height="168" role="img" aria-labelledby="stitle sdesc">
-  <title id="stitle">Nexus Prime architecture stack</title>
+  <title id="stitle">Aegis architecture stack</title>
   <desc id="sdesc">Flow from Next.js through API layer to data and AI providers</desc>
   <defs>
     <linearGradient id="bgs" x1="0" y1="0" x2="1000" y2="168">
-      <stop offset="0%" style="stop-color:#0a0708"/>
-      <stop offset="100%" style="stop-color:#151012"/>
+      <stop offset="0%" style="stop-color:#081018"/>
+      <stop offset="100%" style="stop-color:#101826"/>
     </linearGradient>
   </defs>
-  <rect width="1000" height="168" rx="12" fill="url(#bgs)" stroke="#c4485a" stroke-opacity="0.2" stroke-width="1"/>
-  <text x="500" y="28" text-anchor="middle" fill="#c4a89a" font-family="system-ui,sans-serif" font-size="10" font-weight="700" letter-spacing="0.28em">STACK | DATA | AI</text>
+  <rect width="1000" height="168" rx="12" fill="url(#bgs)" stroke="#22d3ee" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="500" y="28" text-anchor="middle" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10" font-weight="700" letter-spacing="0.28em">STACK | DATA | AI</text>
 
   <g font-family="system-ui,Segoe UI,sans-serif" font-size="11" fill="#e5d9dc">
     <rect x="32" y="48" width="118" height="52" rx="8" fill="#1a1416" stroke="#c4485a" stroke-opacity="0.35"/>
@@ -37,7 +37,7 @@
 
     <rect x="708" y="48" width="260" height="52" rx="8" fill="#1a1416" stroke="#7c3aed" stroke-opacity="0.35"/>
     <text x="838" y="70" text-anchor="middle" font-weight="800" fill="#ddd6fe">Feeds + LLM proxy</text>
-    <text x="838" y="88" text-anchor="middle" font-size="8.5" fill="#887b7f">USGS OpenSky CoinGecko Anthropic MiniMax</text>
+    <text x="838" y="88" text-anchor="middle" font-size="8.5" fill="#887b7f">USGS CoinGecko GDELT Ollama Groq Anthropic</text>
   </g>
 
   <text x="500" y="138" text-anchor="middle" fill="#5c5356" font-family="system-ui,sans-serif" font-size="9">CSP-hardened | Docker standalone optional | Field manual + maps</text>

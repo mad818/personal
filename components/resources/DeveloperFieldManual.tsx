@@ -33,122 +33,58 @@ export default function DeveloperFieldManual() {
   );
 
   return (
-    <div>
-      <p
-        style={{
-          fontSize: "12px",
-          lineHeight: 1.55,
-          color: "var(--text2)",
-          maxWidth: "720px",
-          margin: "0 0 20px",
-        }}
-      >
+    <div className="nexus-shell-resource-manual">
+      <p className="nexus-shell-resource-intro">
         External references only — not part of Nexus. Use them to go deeper on
         agents, RAG, interviews, and IDE workflows. Prefer official vendor docs
         for billing and security policy; never paste production secrets into
         third-party tools without reviewing their data-flow statements.
       </p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
+      <div className="nexus-shell-resource-sections">
         {categories.map((cat) => (
-          <section key={cat} aria-labelledby={`field-manual-${cat}`}>
-            <h2
-              id={`field-manual-${cat}`}
-              style={{
-                fontSize: "11px",
-                fontWeight: 800,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: "var(--text3)",
-                margin: "0 0 10px",
-                paddingBottom: "6px",
-                borderBottom: "1px solid var(--border2)",
-              }}
-            >
-              {DEVELOPER_RESOURCE_CATEGORIES[cat]}
-            </h2>
-            <ul
-              style={{
-                listStyle: "none",
-                margin: 0,
-                padding: 0,
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "12px",
-              }}
-            >
+          <section
+            key={cat}
+            aria-labelledby={`field-manual-${cat}`}
+            className="nexus-shell-resource-section"
+          >
+            <div className="nexus-shell-resource-section__header">
+              <h2
+                id={`field-manual-${cat}`}
+                className="nexus-shell-resource-section__title"
+              >
+                {DEVELOPER_RESOURCE_CATEGORIES[cat]}
+              </h2>
+              <span className="nexus-shell-resource-section__count">
+                {grouped[cat].length} reference
+                {grouped[cat].length === 1 ? "" : "s"}
+              </span>
+            </div>
+            <ul className="nexus-shell-resource-grid">
               {grouped[cat].map((r) => (
                 <li key={r.href}>
                   <a
                     href={r.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{
-                      display: "block",
-                      height: "100%",
-                      padding: "14px 14px 12px",
-                      borderRadius: "10px",
-                      border: "1px solid var(--border)",
-                      background: "var(--surface2)",
-                      textDecoration: "none",
-                      color: "inherit",
-                      transition: "border-color 0.15s, box-shadow 0.15s",
-                      boxShadow: "0 0 0 0 transparent",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor =
-                        "rgba(196,72,90,0.35)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 20px rgba(0,0,0,0.25)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "var(--border)";
-                      e.currentTarget.style.boxShadow = "0 0 0 0 transparent";
-                    }}
+                    className="nexus-shell-resource-card"
                   >
-                    <div
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: 800,
-                        color: "var(--text)",
-                        marginBottom: "6px",
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {r.title}
-                      <span
-                        style={{
-                          fontSize: "11px",
-                          opacity: 0.65,
-                          fontWeight: 600,
-                        }}
-                      >
-                        {" "}
-                        ↗
+                    <div className="nexus-shell-resource-card__meta">
+                      <span className="nexus-shell-resource-card__chip">
+                        {DEVELOPER_RESOURCE_CATEGORIES[cat]}
+                      </span>
+                      <span className="nexus-shell-resource-card__external">
+                        External ↗
                       </span>
                     </div>
-                    <p
-                      style={{
-                        fontSize: "11px",
-                        lineHeight: 1.5,
-                        color: "var(--text2)",
-                        margin: 0,
-                      }}
-                    >
+                    <div className="nexus-shell-resource-card__title">
+                      {r.title}
+                    </div>
+                    <p className="nexus-shell-resource-card__description">
                       {r.description}
                     </p>
                     {r.note && (
-                      <p
-                        style={{
-                          fontSize: "10px",
-                          lineHeight: 1.45,
-                          color: "var(--text3)",
-                          margin: "8px 0 0",
-                          fontStyle: "italic",
-                        }}
-                      >
-                        {r.note}
-                      </p>
+                      <p className="nexus-shell-resource-card__note">{r.note}</p>
                     )}
                   </a>
                 </li>

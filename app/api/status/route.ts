@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
 import { DEFAULT_LOCAL_MODEL, TASK_MODELS } from "@/lib/aiModelRouting";
+import {
+  BRAND_DESCRIPTOR,
+  BRAND_NAME,
+  BRAND_TAGLINE,
+  getBrandServiceName,
+  summarizeProviderReadiness,
+} from "@/lib/brand";
 import { readTimesfmSpikeStatus } from "@/lib/experiments";
 import { gradeFromEvalScore } from "@/lib/helpers";
 import { summarizeSkillGovernance } from "@/lib/skillMetadata";
@@ -16,8 +23,11 @@ import {
   summarizeConnectorReadiness,
   summarizeSurfaceTiers,
 } from "@/lib/releaseMatrix";
+import { applyNoStoreHeaders, readRuntimeIdentity } from "@/lib/runtimeIdentity";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
+
+export const dynamic = "force-dynamic";
 
 function present(v: string | undefined) {
   return Boolean(v && v.trim().length > 0);
@@ -95,6 +105,7 @@ function readRunnerState() {
 }
 
 export async function GET() {
+  const runtimeIdentity = readRuntimeIdentity();
   const latestEval = readLatestEval();
   const runner = readRunnerState();
   const runnerNormalized = runner ?? {
@@ -132,8 +143,6 @@ export async function GET() {
     .map(([name]) => name);
   const evalGrade = gradeFromEvalScore(latestEval?.score, { stale: evalStale });
 
-  const startedAtIso = process.env.NEXUS_STARTED_AT ?? new Date().toISOString();
-
   const providers = {
     anthropic: present(process.env.ANTHROPIC_API_KEY),
     openai: present(process.env.OPENAI_API_KEY),
@@ -144,6 +153,7 @@ export async function GET() {
     ollamaEndpoint:
       process.env.OLLAMA_ENDPOINT ??
       "http://localhost:11434/v1/chat/completions",
+    posture: summarizeProviderReadiness(),
   };
 
   const dataSources = {
@@ -183,7 +193,12 @@ export async function GET() {
   );
   const surfaceSummary = summarizeSurfaceTiers();
   const release = {
-    service: "nexus-prime",
+    service: getBrandServiceName(),
+    brand: {
+      name: BRAND_NAME,
+      tagline: BRAND_TAGLINE,
+      descriptor: BRAND_DESCRIPTOR,
+    },
     channel: readBuildChannel(),
     version: readBuildVersion(),
     deploymentProfile: readDeploymentProfile(),
@@ -294,11 +309,25 @@ export async function GET() {
     timesfmSpike: readTimesfmSpikeStatus(),
   };
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     status: "ok",
-    service: "nexus-prime",
+    service: getBrandServiceName(),
+    brand: {
+      name: BRAND_NAME,
+      tagline: BRAND_TAGLINE,
+      descriptor: BRAND_DESCRIPTOR,
+    },
     generatedAt: new Date().toISOString(),
-    startedAt: startedAtIso,
+    startedAt: runtimeIdentity.startedAt,
+    runtime: {
+      bootId: runtimeIdentity.bootId,
+      startedAt: runtimeIdentity.startedAt,
+      ageSeconds: runtimeIdentity.ageSeconds,
+      pid: runtimeIdentity.pid,
+      node: runtimeIdentity.node,
+      platform: runtimeIdentity.platform,
+      arch: runtimeIdentity.arch,
+    },
     readiness: {
       aiProviders: providers,
       dataSources,
@@ -312,4 +341,6 @@ export async function GET() {
       experiments,
     },
   });
+  applyNoStoreHeaders(response.headers);
+  return response;
 }

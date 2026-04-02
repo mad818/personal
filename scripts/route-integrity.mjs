@@ -70,6 +70,7 @@ async function main() {
 
   await expectOk("/hq");
   await expectOk("/command");
+  await expectOk("/resources");
   await expectOk("/labs/signals");
   await expectOk("/labs/ops");
   await expectOk("/labs/security");

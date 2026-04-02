@@ -99,6 +99,7 @@ function scoreImpact(title: string): ConflictItem["impact"] {
 }
 
 export default function ConflictFeed() {
+  const gdeltEvents = useStore((s) => s.gdeltEvents);
   const [items, setItems] = useState<ConflictItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<string>("all");
@@ -131,18 +132,66 @@ export default function ConflictFeed() {
         category: "Geopolitical",
         date: a.seendate ?? "",
       }));
-      setItems(parsed);
+      const fallback = (gdeltEvents as Record<string, unknown>[])
+        .map((event) => {
+          const title = typeof event.title === "string" ? event.title : "";
+          const url =
+            typeof event.url === "string"
+              ? event.url
+              : typeof event.link === "string"
+                ? event.link
+                : "";
+          return {
+            title,
+            url,
+            impact: scoreImpact(title),
+            category: "Geopolitical",
+            date:
+              typeof event.seendate === "string"
+                ? event.seendate
+                : typeof event.date === "string"
+                  ? event.date
+                  : "",
+          } satisfies ConflictItem;
+        })
+        .filter((event) => event.title && event.url);
+      const resolved = parsed.length > 0 ? parsed : fallback;
+      setItems(resolved);
       // Publish risk count to store so COMMAND tab KPI card can read it
-      const riskCount = parsed.filter(
+      const riskCount = resolved.filter(
         (i) => i.impact === "critical" || i.impact === "high",
       ).length;
       setWorldRisk(riskCount);
     } catch {
-      setError("Could not load conflict data.");
+      const fallback = (gdeltEvents as Record<string, unknown>[])
+        .map((event) => {
+          const title = typeof event.title === "string" ? event.title : "";
+          const url =
+            typeof event.url === "string"
+              ? event.url
+              : typeof event.link === "string"
+                ? event.link
+                : "";
+          return {
+            title,
+            url,
+            impact: scoreImpact(title),
+            category: "Geopolitical",
+            date:
+              typeof event.seendate === "string"
+                ? event.seendate
+                : typeof event.date === "string"
+                  ? event.date
+                  : "",
+          } satisfies ConflictItem;
+        })
+        .filter((event) => event.title && event.url);
+      setItems(fallback);
+      setError(fallback.length > 0 ? "" : "Could not load conflict data.");
     } finally {
       setLoading(false);
     }
-  }, [setWorldRisk]);
+  }, [gdeltEvents, setWorldRisk]);
 
   // Auto-load on first mount
   useEffect(() => {
@@ -238,7 +287,7 @@ export default function ConflictFeed() {
             fontSize: "13px",
           }}
         >
-          No conflict events found.
+          No conflict events are spiking in the current free world feeds.
         </div>
       )}
       {!items.length && loading && (

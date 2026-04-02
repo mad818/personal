@@ -96,12 +96,13 @@ export default function AlphaPage() {
 
   return (
     <ShellPage
-      eyebrow="Markets and decision support"
-      title="ALPHA"
-      description="A cleaner trading workspace for watchlists, momentum scans, price context, and risk sizing."
+      surface="alpha"
+      eyebrow="Execution lattice"
+      title="QUANT"
+      description="A fast trading lattice for watchlists, momentum scans, price context, and risk sizing without paid data dependence."
       actions={
         <>
-          <ShellBadge tone="accent">Decision support</ShellBadge>
+          <ShellBadge tone="accent">Execution support</ShellBadge>
           <ShellBadge tone="success">Free public data</ShellBadge>
         </>
       }

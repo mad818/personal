@@ -61,6 +61,27 @@ const P: Record<string, string> = {
 
 // ── SVG pixel sprite renderer ─────────────────────────────────────────────────
 const PX = 4;
+const AGENT_OFFICE_ANIMATIONS_CSS = `
+  @keyframes crabBob    { from{transform:translateY(0)} to{transform:translateY(-4px)} }
+  @keyframes agentWork  { from{transform:translateY(0)} to{transform:translateY(-3px)} }
+  @keyframes agentLean  { from{transform:rotate(0deg)} to{transform:rotate(-3deg)} }
+  @keyframes agentWalk  { from{transform:translateX(-2px)} to{transform:translateX(2px)} }
+  @keyframes dotPulse   { 0%,80%,100%{transform:scale(.8);opacity:.5} 40%{transform:scale(1.1);opacity:1} }
+  @keyframes bubbleUp   { from{opacity:0;transform:translateX(-50%) translateY(4px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+  @keyframes dispatchRing {
+    0%   { transform:scale(1);   opacity:.9 }
+    100% { transform:scale(1.18);opacity:0  }
+  }
+  @keyframes dispatchFill {
+    from { transform:scaleX(0) }
+    to   { transform:scaleX(1) }
+  }
+  @keyframes dispatchDot {
+    from { left:var(--dot-start, 0%) }
+    to   { left:var(--dot-end, 100%) }
+  }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+`;
 function Sprite({ rows, scale = 1 }: { rows: string[]; scale?: number }) {
   const ps = PX * scale;
   const W = (rows[0]?.length ?? 0) * ps;
@@ -1873,27 +1894,10 @@ export default function AgentOffice() {
       </div>
 
       {/* ── CSS animations ──────────────────────────────────────────────────── */}
-      <style>{`
-        @keyframes crabBob    { from{transform:translateY(0)} to{transform:translateY(-4px)} }
-        @keyframes agentWork  { from{transform:translateY(0)} to{transform:translateY(-3px)} }
-        @keyframes agentLean  { from{transform:rotate(0deg)} to{transform:rotate(-3deg)} }
-        @keyframes agentWalk  { from{transform:translateX(-2px)} to{transform:translateX(2px)} }
-        @keyframes dotPulse   { 0%,80%,100%{transform:scale(.8);opacity:.5} 40%{transform:scale(1.1);opacity:1} }
-        @keyframes bubbleUp   { from{opacity:0;transform:translateX(-50%) translateY(4px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-        @keyframes dispatchRing {
-          0%   { transform:scale(1);   opacity:.9 }
-          100% { transform:scale(1.18);opacity:0  }
-        }
-        @keyframes dispatchFill {
-          from { transform:scaleX(0) }
-          to   { transform:scaleX(1) }
-        }
-        @keyframes dispatchDot {
-          from { left:var(--dot-start, 0%) }
-          to   { left:var(--dot-end, 100%) }
-        }
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-      `}</style>
+      <style
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: AGENT_OFFICE_ANIMATIONS_CSS }}
+      />
     </div>
   );
 }

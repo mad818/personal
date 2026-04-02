@@ -20,6 +20,8 @@ import PhaseStrip from "@/components/ui/PhaseStrip";
 import TaskPlanPanel from "@/components/ui/TaskPlanPanel";
 import MemoryPanel from "@/components/ui/MemoryPanel";
 import CronSchedulerPanel from "@/components/ui/CronSchedulerPanel";
+import ClientStyleMount from "@/components/ui/ClientStyleMount";
+import { ShellBadge, ShellButton } from "@/components/ui/shell";
 import { runAgent, type AgentStep } from "@/lib/agent";
 import { buildSystemPrompt } from "@/lib/ai";
 import { apiFetch } from "@/lib/apiFetch";
@@ -62,6 +64,7 @@ import {
   OFFICE_OPERATIONAL_PROFILES,
 } from "./constants";
 import type { AgentId, ChatMessage, Emotion } from "./types";
+import HomeAmbient from "@/components/home/HomeAmbient";
 
 type DispatchBar = { from: AgentId; to: AgentId };
 type OfficeCameraPreset = "cinematic" | "closeOps" | "wallReadability";
@@ -89,6 +92,88 @@ const CAMERA_PRESET_OPTIONS: Array<{
     title: "Optimize readability for wall boards",
   },
 ];
+
+const OFFICE_ANIMATIONS_CSS = `
+  /* Office animations (inline so we don't depend on Next CSS-import rules). */
+
+  /* ── CRAB MASCOT ──────────────────────────────────────────────────────────── */
+  /* Up/down float — used while the crab is happy, working, or excited */
+  @keyframes crabBob    { from{transform:translateY(0)} to{transform:translateY(-4px)} }
+
+  /* ── AGENT IDLE PERSONALITIES ─────────────────────────────────────────────── */
+  /* Each agent has a distinct idle so the office looks alive when nothing runs. */
+
+  /* JANSKY — slow authoritative nod */
+  @keyframes idleNod      { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-3px)} 45%{transform:translateY(-1px)} }
+  /* ORBIT — rapid keyboard micro-movement */
+  @keyframes idleTyping   { 0%,100%{transform:translate(0,0)} 15%{transform:translate(-1px,1px)} 30%{transform:translate(1px,0px)} 50%{transform:translate(-1px,1px)} 70%{transform:translate(1px,-1px)} 85%{transform:translate(0,1px)} }
+  /* NOVA — side-to-side intelligence scan */
+  @keyframes idleScan     { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-3px)} 50%{transform:translateX(0)} 80%{transform:translateX(3px)} }
+  /* CIPHER — vigilant micro-rotation, always watching */
+  @keyframes idleVigilant { 0%,100%{transform:translateX(0) rotate(0deg)} 25%{transform:translateX(-2px) rotate(-1deg)} 75%{transform:translateX(2px) rotate(1deg)} }
+  /* FLUX — chart-watching rhythmic bob */
+  @keyframes idleCharts   { 0%,100%{transform:translateY(0) rotate(0deg)} 33%{transform:translateY(-2px) rotate(0deg)} 66%{transform:translateY(-1px) rotate(1deg)} }
+  /* Generic float — used for ambient props (sofa emoji on afternoon shift) */
+  @keyframes idleFloat    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)} }
+
+  /* ── ACTIVE / WORK STATES ─────────────────────────────────────────────────── */
+  /* workFury — outer wrapper shake while actively responding */
+  @keyframes workFury   { 0%,100%{transform:translate(0,0)} 20%{transform:translate(-2px,1px)} 40%{transform:translate(2px,-1px)} 60%{transform:translate(-1px,2px)} 80%{transform:translate(1px,-2px)} }
+  /* workFocus — slower, more controlled focus pulse */
+  @keyframes workFocus  { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-3px) rotate(-2deg)} }
+  /* routePulse — JANSKY deciding where to dispatch */
+  @keyframes routePulse { 0%,100%{transform:translateX(0) rotate(0deg)} 25%{transform:translateX(-3px) rotate(-2deg)} 75%{transform:translateX(3px) rotate(2deg)} }
+  /* taskGet — agent receives a task (jumps up then lands) */
+  @keyframes taskGet    { 0%{transform:scale(1) translateY(0)} 25%{transform:scale(1.12) translateY(-6px)} 55%{transform:scale(1.05) translateY(-3px)} 100%{transform:scale(1) translateY(0)} }
+  /* taskDone — celebrate completion (double-bounce) */
+  @keyframes taskDone   { 0%,100%{transform:translateY(0)} 18%{transform:translateY(-9px)} 36%{transform:translateY(-4px)} 54%{transform:translateY(-11px)} 72%{transform:translateY(-2px)} 90%{transform:translateY(-5px)} }
+
+  /* ── SPRITE INNER MOTION ──────────────────────────────────────────────────── */
+  /* agentWalk — side-to-side sway for the walking animation */
+  @keyframes agentWalk  { from{transform:translateX(-2px)} to{transform:translateX(2px)} }
+  /* spriteBob — gentle up/down breathing */
+  @keyframes spriteBob  { from{transform:translateY(0)} to{transform:translateY(-2px)} }
+  /* spriteType — keyboard typing micro-movement */
+  @keyframes spriteType { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-1px,1px)} 75%{transform:translate(1px,-1px)} }
+
+  /* ── UI / DISPATCH ELEMENTS ───────────────────────────────────────────────── */
+  /* dotPulse — the three waiting dots while an agent is thinking */
+  @keyframes dotPulse     { 0%,80%,100%{transform:scale(.8);opacity:.5} 40%{transform:scale(1.1);opacity:1} }
+  /* pulse-dot — the green "online" dot in the header bar */
+  @keyframes pulse-dot    { 0%,100%{opacity:.5;transform:scale(.85)} 50%{opacity:1;transform:scale(1.15)} }
+  /* bubbleUp — speech bubble fade-in from slightly below */
+  @keyframes bubbleUp     { from{opacity:0;transform:translateX(-50%) translateY(4px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+  /* dispatchRing — expanding ring around an agent that just received a task */
+  @keyframes dispatchRing { 0%{transform:scale(1);opacity:.9} 100%{transform:scale(1.18);opacity:0} }
+  /* dispatchFill — the colour line filling between agents on the dispatch bar */
+  @keyframes dispatchFill { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+  /* dispatchDot — the travelling dot moving between agents on the dispatch bar */
+  @keyframes dispatchDot  { from{left:var(--dot-start,0%)} to{left:var(--dot-end,100%)} }
+  /* fadeIn — simple opacity fade used for new activity log entries and bubbles */
+  @keyframes fadeIn       { from{opacity:0} to{opacity:1} }
+
+  /* ── ENVIRONMENT EFFECTS ──────────────────────────────────────────────────── */
+  /* monitorPulse — the screen flicker on idle monitors */
+  @keyframes monitorPulse { 0%,100%{opacity:.75} 50%{opacity:1} }
+  /* screenScroll — scrolling text on active screens */
+  @keyframes screenScroll { from{transform:translateY(0)} to{transform:translateY(-50%)} }
+  /* lightFlicker — fluorescent ceiling light occasional flutter */
+  @keyframes lightFlicker { 0%,100%{opacity:1} 94%{opacity:.82} 97%{opacity:1} 99%{opacity:.9} }
+  /* ambientGlow — radial glow behind active agents breathes slowly */
+  @keyframes ambientGlow  { 0%,100%{opacity:.3} 50%{opacity:.55} }
+  /* progressBar — used in any progress fill element */
+  @keyframes progressBar  { from{width:0%} to{width:100%} }
+  /* deskGlow — desk border accent pulse on active agent's desk */
+  @keyframes deskGlow     { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 12px var(--agent-color,#4f6ef7)} }
+  /* statusPip — the coloured dot that pulses next to an agent's name / in the log */
+  @keyframes statusPip    { 0%,100%{opacity:.5;transform:scale(.9)} 50%{opacity:1;transform:scale(1.2)} }
+
+  /* ── PROPS ────────────────────────────────────────────────────────────────── */
+  /* stompCan — trash can squish when chat is cleared */
+  @keyframes stompCan    { 0%{transform:scaleY(1)} 20%{transform:scaleY(0.6) scaleX(1.3)} 50%{transform:scaleY(1.1) scaleX(0.95)} 100%{transform:scaleY(1)} }
+  /* coffeeFloat — coffee cup drifting upward on the morning shift */
+  @keyframes coffeeFloat { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-6px) rotate(5deg)} }
+`;
 
 const OfficeRoom3D = dynamic(
   () => import("./OfficeRoom3D").then((m) => m.OfficeRoom3D),
@@ -194,6 +279,8 @@ export default function OfficeCommandCenter() {
   const [splitDragLocked, setSplitDragLocked] = useState(false);
   const [compactSplitControls, setCompactSplitControls] = useState(false);
   const [showSplitMore, setShowSplitMore] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [clockLabel, setClockLabel] = useState("--:--:--");
   const [evalGrade, setEvalGrade] = useState<"A" | "B" | "C" | "unknown">(
     "unknown",
   );
@@ -360,11 +447,26 @@ export default function OfficeCommandCenter() {
     const onResize = () => {
       const compact = window.innerWidth < 980;
       setCompactSplitControls(compact);
+      setViewportHeight(window.innerHeight);
       if (!compact) setShowSplitMore(false);
     };
     onResize();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    const renderClock = () =>
+      setClockLabel(
+        new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+      );
+    renderClock();
+    const id = window.setInterval(renderClock, 1000);
+    return () => window.clearInterval(id);
   }, []);
 
   const agentPos = useMemo(() => {
@@ -626,6 +728,7 @@ export default function OfficeCommandCenter() {
   const activeColor = activeAgent
     ? AGENTS[activeAgent].color
     : AGENTS[dutyAgent].color;
+  const activeProfile = OFFICE_OPERATIONAL_PROFILES[officeOperationalMode];
   const openBriefingTab = useCallback(
     (tab: string) => {
       setTab(tab);
@@ -728,20 +831,70 @@ export default function OfficeCommandCenter() {
 
   return (
     <PageTransition>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          height: "calc(100vh - 48px)",
-          overflow: "hidden",
-        }}
-      >
+      <div className="nexus-hq-shell">
+        <section className="nexus-hq-prelude">
+          <div className="nexus-hq-prelude__copy">
+            <div className="nexus-shell-eyebrow">Operator headquarters</div>
+            <h1 className="nexus-hq-prelude__title">HQ / After-dark control room</h1>
+            <p className="nexus-hq-prelude__description">
+              The 3D office is now framed as the main scene instead of a loose
+              dashboard. This surface carries runtime awareness today and the
+              future vehicle lane tomorrow.
+            </p>
+            <div className="nexus-shell-actions">
+              <ShellBadge tone="accent">3D office live</ShellBadge>
+              <ShellBadge tone="success">{activeProfile.label}</ShellBadge>
+              <ShellBadge tone="muted">
+                {activeAgent ? `${AGENTS[activeAgent].name} active` : "Standby"}
+              </ShellBadge>
+            </div>
+            <HomeAmbient />
+            <div className="nexus-shell-actions">
+              <ShellButton onClick={() => router.push("/internal/vehicle")}>
+                Open Vehicle Lab
+              </ShellButton>
+              <ShellButton onClick={() => router.push("/resources")}>
+                Field Manual
+              </ShellButton>
+            </div>
+          </div>
+
+          <div className="nexus-hq-prelude__grid" aria-label="HQ posture">
+            <div className="nexus-hq-prelude__card">
+              <span className="nexus-hq-prelude__label">Operational profile</span>
+              <span className="nexus-hq-prelude__value">{activeProfile.label}</span>
+              <p className="nexus-hq-prelude__note">
+                Focus tabs: {activeProfile.focusTabs.join(" • ").toUpperCase()}
+              </p>
+            </div>
+            <div className="nexus-hq-prelude__card">
+              <span className="nexus-hq-prelude__label">Scene posture</span>
+              <span className="nexus-hq-prelude__value">
+                {officeSceneMode.toUpperCase()}
+              </span>
+              <p className="nexus-hq-prelude__note">
+                Camera: {officeCameraPreset} • Motion {officeMotion.toFixed(1)}x
+              </p>
+            </div>
+            <div className="nexus-hq-prelude__card">
+              <span className="nexus-hq-prelude__label">Future airframe lane</span>
+              <span className="nexus-hq-prelude__value">F450 staged</span>
+              <p className="nexus-hq-prelude__note">
+                Sim first, telemetry bridge later, and no flight-critical logic
+                in Nexus.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <div className="nexus-hq-console">
         {/* ── Header ── */}
         <div
           style={{
             padding: "6px 16px",
-            background: "#0D1220",
-            borderBottom: "1px solid #1A2040",
+            background:
+              "linear-gradient(180deg, rgba(24,15,18,0.94), rgba(14,9,11,0.98))",
+            borderBottom: "1px solid rgba(212,149,106,0.14)",
             display: "flex",
             alignItems: "center",
             gap: "8px",
@@ -753,8 +906,10 @@ export default function OfficeCommandCenter() {
               width: "6px",
               height: "6px",
               borderRadius: "50%",
-              background: activeAgent ? "#00DDFF" : "#00FF66",
-              boxShadow: activeAgent ? "0 0 8px #00DDFF" : "0 0 8px #00FF66",
+              background: activeAgent ? "var(--accent2)" : "#84d98d",
+              boxShadow: activeAgent
+                ? "0 0 8px rgba(212,149,106,.72)"
+                : "0 0 8px rgba(132,217,141,.68)",
               display: "inline-block",
               animation: activeAgent
                 ? "pulse-dot 2s ease-in-out infinite"
@@ -765,7 +920,7 @@ export default function OfficeCommandCenter() {
             style={{
               fontSize: "12px",
               fontFamily: "'VT323', monospace",
-              color: activeAgent ? "#00DDFF" : "#00FF66",
+              color: activeAgent ? "var(--accent2)" : "#b7ffce",
               letterSpacing: "2px",
             }}
           >
@@ -775,7 +930,7 @@ export default function OfficeCommandCenter() {
             style={{
               fontSize: "11px",
               fontFamily: "'VT323', monospace",
-              color: "#1A2040",
+              color: "rgba(255,255,255,.12)",
               marginLeft: "4px",
             }}
           >
@@ -786,11 +941,12 @@ export default function OfficeCommandCenter() {
               fontSize: "11px",
               fontFamily: "'VT323', monospace",
               color: evalGradeColor(evalGrade),
-              border: "1px solid #1A2040",
+              border: "1px solid rgba(212,149,106,0.14)",
               borderRadius: 999,
               padding: "2px 8px",
               marginLeft: "auto",
-              opacity: 0.9,
+              opacity: 0.92,
+              background: "rgba(255,255,255,.02)",
             }}
             title={[
               evalTrail
@@ -813,15 +969,11 @@ export default function OfficeCommandCenter() {
             style={{
               fontSize: "11px",
               fontFamily: "'VT323', monospace",
-              color: "#00DDFF",
+              color: "rgba(255,236,238,.76)",
               opacity: 0.9,
             }}
           >
-            {new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-            })}
+            {clockLabel}
           </span>
         </div>
 
@@ -834,95 +986,18 @@ export default function OfficeCommandCenter() {
           style={{
             position: "relative",
             flex: `0 0 ${officeHeightPx ?? OFFICE_HEIGHT_MIN_PX}px`,
-            background: "#0D1220",
-            border: "1px solid #1A2040",
+            background:
+              "linear-gradient(180deg, rgba(15,10,12,0.92), rgba(10,7,8,0.98))",
+            border: "1px solid rgba(212,149,106,0.14)",
             borderTop: "none",
             overflow: "hidden",
             minHeight: OFFICE_HEIGHT_MIN_PX,
           }}
         >
-          {/* Ensure required keyframes exist for all office subcomponents. */}
-          <style>{`
-            /* Office animations (inline so we don't depend on Next CSS-import rules). */
-
-            /* ── CRAB MASCOT ──────────────────────────────────────────────────────────── */
-            /* Up/down float — used while the crab is happy, working, or excited */
-            @keyframes crabBob    { from{transform:translateY(0)} to{transform:translateY(-4px)} }
-
-            /* ── AGENT IDLE PERSONALITIES ─────────────────────────────────────────────── */
-            /* Each agent has a distinct idle so the office looks alive when nothing runs. */
-
-            /* JANSKY — slow authoritative nod */
-            @keyframes idleNod      { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-3px)} 45%{transform:translateY(-1px)} }
-            /* ORBIT — rapid keyboard micro-movement */
-            @keyframes idleTyping   { 0%,100%{transform:translate(0,0)} 15%{transform:translate(-1px,1px)} 30%{transform:translate(1px,0px)} 50%{transform:translate(-1px,1px)} 70%{transform:translate(1px,-1px)} 85%{transform:translate(0,1px)} }
-            /* NOVA — side-to-side intelligence scan */
-            @keyframes idleScan     { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-3px)} 50%{transform:translateX(0)} 80%{transform:translateX(3px)} }
-            /* CIPHER — vigilant micro-rotation, always watching */
-            @keyframes idleVigilant { 0%,100%{transform:translateX(0) rotate(0deg)} 25%{transform:translateX(-2px) rotate(-1deg)} 75%{transform:translateX(2px) rotate(1deg)} }
-            /* FLUX — chart-watching rhythmic bob */
-            @keyframes idleCharts   { 0%,100%{transform:translateY(0) rotate(0deg)} 33%{transform:translateY(-2px) rotate(0deg)} 66%{transform:translateY(-1px) rotate(1deg)} }
-            /* Generic float — used for ambient props (sofa emoji on afternoon shift) */
-            @keyframes idleFloat    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)} }
-
-            /* ── ACTIVE / WORK STATES ─────────────────────────────────────────────────── */
-            /* workFury — outer wrapper shake while actively responding */
-            @keyframes workFury   { 0%,100%{transform:translate(0,0)} 20%{transform:translate(-2px,1px)} 40%{transform:translate(2px,-1px)} 60%{transform:translate(-1px,2px)} 80%{transform:translate(1px,-2px)} }
-            /* workFocus — slower, more controlled focus pulse */
-            @keyframes workFocus  { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-3px) rotate(-2deg)} }
-            /* routePulse — JANSKY deciding where to dispatch */
-            @keyframes routePulse { 0%,100%{transform:translateX(0) rotate(0deg)} 25%{transform:translateX(-3px) rotate(-2deg)} 75%{transform:translateX(3px) rotate(2deg)} }
-            /* taskGet — agent receives a task (jumps up then lands) */
-            @keyframes taskGet    { 0%{transform:scale(1) translateY(0)} 25%{transform:scale(1.12) translateY(-6px)} 55%{transform:scale(1.05) translateY(-3px)} 100%{transform:scale(1) translateY(0)} }
-            /* taskDone — celebrate completion (double-bounce) */
-            @keyframes taskDone   { 0%,100%{transform:translateY(0)} 18%{transform:translateY(-9px)} 36%{transform:translateY(-4px)} 54%{transform:translateY(-11px)} 72%{transform:translateY(-2px)} 90%{transform:translateY(-5px)} }
-
-            /* ── SPRITE INNER MOTION ──────────────────────────────────────────────────── */
-            /* agentWalk — side-to-side sway for the walking animation */
-            @keyframes agentWalk  { from{transform:translateX(-2px)} to{transform:translateX(2px)} }
-            /* spriteBob — gentle up/down breathing */
-            @keyframes spriteBob  { from{transform:translateY(0)} to{transform:translateY(-2px)} }
-            /* spriteType — keyboard typing micro-movement */
-            @keyframes spriteType { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-1px,1px)} 75%{transform:translate(1px,-1px)} }
-
-            /* ── UI / DISPATCH ELEMENTS ───────────────────────────────────────────────── */
-            /* dotPulse — the three waiting dots while an agent is thinking */
-            @keyframes dotPulse     { 0%,80%,100%{transform:scale(.8);opacity:.5} 40%{transform:scale(1.1);opacity:1} }
-            /* pulse-dot — the green "online" dot in the header bar */
-            @keyframes pulse-dot    { 0%,100%{opacity:.5;transform:scale(.85)} 50%{opacity:1;transform:scale(1.15)} }
-            /* bubbleUp — speech bubble fade-in from slightly below */
-            @keyframes bubbleUp     { from{opacity:0;transform:translateX(-50%) translateY(4px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-            /* dispatchRing — expanding ring around an agent that just received a task */
-            @keyframes dispatchRing { 0%{transform:scale(1);opacity:.9} 100%{transform:scale(1.18);opacity:0} }
-            /* dispatchFill — the colour line filling between agents on the dispatch bar */
-            @keyframes dispatchFill { from{transform:scaleX(0)} to{transform:scaleX(1)} }
-            /* dispatchDot — the travelling dot moving between agents on the dispatch bar */
-            @keyframes dispatchDot  { from{left:var(--dot-start,0%)} to{left:var(--dot-end,100%)} }
-            /* fadeIn — simple opacity fade used for new activity log entries and bubbles */
-            @keyframes fadeIn       { from{opacity:0} to{opacity:1} }
-
-            /* ── ENVIRONMENT EFFECTS ──────────────────────────────────────────────────── */
-            /* monitorPulse — the screen flicker on idle monitors */
-            @keyframes monitorPulse { 0%,100%{opacity:.75} 50%{opacity:1} }
-            /* screenScroll — scrolling text on active screens */
-            @keyframes screenScroll { from{transform:translateY(0)} to{transform:translateY(-50%)} }
-            /* lightFlicker — fluorescent ceiling light occasional flutter */
-            @keyframes lightFlicker { 0%,100%{opacity:1} 94%{opacity:.82} 97%{opacity:1} 99%{opacity:.9} }
-            /* ambientGlow — radial glow behind active agents breathes slowly */
-            @keyframes ambientGlow  { 0%,100%{opacity:.3} 50%{opacity:.55} }
-            /* progressBar — used in any progress fill element */
-            @keyframes progressBar  { from{width:0%} to{width:100%} }
-            /* deskGlow — desk border accent pulse on active agent's desk */
-            @keyframes deskGlow     { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 12px var(--agent-color,#4f6ef7)} }
-            /* statusPip — the coloured dot that pulses next to an agent's name / in the log */
-            @keyframes statusPip    { 0%,100%{opacity:.5;transform:scale(.9)} 50%{opacity:1;transform:scale(1.2)} }
-
-            /* ── PROPS ────────────────────────────────────────────────────────────────── */
-            /* stompCan — trash can squish when chat is cleared */
-            @keyframes stompCan    { 0%{transform:scaleY(1)} 20%{transform:scaleY(0.6) scaleX(1.3)} 50%{transform:scaleY(1.1) scaleX(0.95)} 100%{transform:scaleY(1)} }
-            /* coffeeFloat — coffee cup drifting upward on the morning shift */
-            @keyframes coffeeFloat { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-6px) rotate(5deg)} }
-          `}</style>
+          <ClientStyleMount
+            id="office-command-center-animations"
+            cssText={OFFICE_ANIMATIONS_CSS}
+          />
 
           <div style={{ position: "absolute", inset: 0 }}>
             <OfficeRoom3D
@@ -980,10 +1055,10 @@ export default function OfficeCommandCenter() {
           style={{
             flexShrink: 0,
             height: compactSplitControls ? 34 : 30,
-            borderLeft: "1px solid #1A2040",
-            borderRight: "1px solid #1A2040",
-            borderBottom: "1px solid #1A2040",
-            background: "#0B1020",
+            borderLeft: "1px solid rgba(212,149,106,0.14)",
+            borderRight: "1px solid rgba(212,149,106,0.14)",
+            borderBottom: "1px solid rgba(212,149,106,0.14)",
+            background: "rgba(12,8,9,0.94)",
             cursor: splitDragLocked ? "not-allowed" : "row-resize",
             display: "flex",
             alignItems: "center",
@@ -999,25 +1074,25 @@ export default function OfficeCommandCenter() {
               width: 74,
               height: 6,
               borderRadius: 999,
-              border: "1px solid #233057",
-              background: "rgba(26,32,64,0.95)",
+              border: "1px solid rgba(212,149,106,0.18)",
+              background: "rgba(255,255,255,0.04)",
               boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
               flexShrink: 0,
             }}
           />
-          {!!officeHeightPx && !compactSplitControls && (
+          {!!officeHeightPx && !compactSplitControls && viewportHeight > 0 && (
             <span
               style={{
                 fontSize: 9,
                 fontWeight: 800,
                 letterSpacing: ".05em",
-                color: "#6f86b4",
+                color: "var(--text3)",
                 userSelect: "none",
                 whiteSpace: "nowrap",
                 flexShrink: 0,
               }}
             >
-              {Math.round((officeHeightPx / (window.innerHeight || 1)) * 100)}%
+              {Math.round((officeHeightPx / viewportHeight) * 100)}%
             </span>
           )}
           <button
@@ -1029,9 +1104,9 @@ export default function OfficeCommandCenter() {
             title="Reset office/chat split"
             style={{
               borderRadius: 999,
-              border: "1px solid #2a3a6b",
-              background: "rgba(13,18,32,0.96)",
-              color: "#7ba7d4",
+              border: "1px solid rgba(212,149,106,0.18)",
+              background: "rgba(255,255,255,0.03)",
+              color: "var(--text2)",
               padding: "2px 8px",
               fontSize: 9,
               fontWeight: 800,
@@ -1054,11 +1129,11 @@ export default function OfficeCommandCenter() {
               title="Prevent accidental drag resizing"
               style={{
                 borderRadius: 999,
-                border: `1px solid ${splitDragLocked ? "#10b98166" : "#2a3a6b"}`,
+                border: `1px solid ${splitDragLocked ? "rgba(132,217,141,.46)" : "rgba(212,149,106,0.18)"}`,
                 background: splitDragLocked
                   ? "rgba(16,185,129,0.14)"
-                  : "rgba(13,18,32,0.96)",
-                color: splitDragLocked ? "#10b981" : "#7ba7d4",
+                  : "rgba(255,255,255,0.03)",
+                color: splitDragLocked ? "#10b981" : "var(--text2)",
                 padding: "2px 8px",
                 fontSize: 9,
                 fontWeight: 800,
@@ -1514,6 +1589,7 @@ export default function OfficeCommandCenter() {
               Clear
             </button>
           </div>
+        </div>
         </div>
       </div>
     </PageTransition>

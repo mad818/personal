@@ -1,23 +1,61 @@
 /** @type {import('next').NextConfig} */
 const isDevelopment = process.env.NODE_ENV !== 'production'
+const devPort = process.env.PORT || '3000'
+const devOrigins = [`http://127.0.0.1:${devPort}`, `http://localhost:${devPort}`]
+const devSockets = [`ws://127.0.0.1:${devPort}`, `ws://localhost:${devPort}`]
+const distDir = process.env.NEXUS_NEXT_DIST_DIR || '.next'
 
 function buildCsp() {
   const scriptSrc = ["script-src 'self'", "'unsafe-inline'"]
-  const connectSrc = ["connect-src 'self'"]
+  const styleSrc = ["style-src 'self'", "'unsafe-inline'"]
+  const connectSrc = [
+    "connect-src 'self'",
+    "https://api.coingecko.com",
+    "https://services.nvd.nist.gov",
+    "https://api.alternative.me",
+    "https://mempool.space",
+    "https://dns.google",
+    "https://rdap.org",
+    "https://crt.sh",
+    "https://ipapi.co",
+    "https://api.hackertarget.com",
+    "https://www.circl.lu",
+    "https://emailrep.io",
+    "https://api.github.com",
+    "https://www.gravatar.com",
+    "https://check.torproject.org",
+    "https://haveibeenpwned.com",
+    "https://www.virustotal.com",
+    "https://api.shodan.io",
+    "https://api.stlouisfed.org",
+  ]
+  const imgSrc = [
+    "img-src 'self' data: blob:",
+    "https://*.basemaps.cartocdn.com",
+    "https://www.tradingview.com",
+    "https://s3.tradingview.com",
+  ]
+  const frameSrc = [
+    "frame-src 'self'",
+    "https://www.tradingview.com",
+    "https://s.tradingview.com",
+  ]
 
   if (isDevelopment) {
     scriptSrc.push("'unsafe-eval'")
-    connectSrc.push('ws://localhost:3000', 'ws://127.0.0.1:3000')
+    connectSrc.push(...devSockets)
   }
+
+  scriptSrc.push("https://s3.tradingview.com")
 
   return [
     "default-src 'self'",
     scriptSrc.join(' '),
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    styleSrc.join(' '),
+    imgSrc.join(' '),
     "font-src 'self' data:",
     connectSrc.join(' '),
-    "frame-src 'self'",
+    frameSrc.join(' '),
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -27,8 +65,9 @@ function buildCsp() {
 module.exports = {
   // Enables `.next/standalone` for Docker / Coolify reproducible deploys (see Dockerfile)
   output: 'standalone',
+  distDir,
   poweredByHeader: false,
-  allowedDevOrigins: ['http://127.0.0.1:3000', 'http://localhost:3000'],
+  allowedDevOrigins: devOrigins,
 
   // Air-gapped profile: do not allow optimized remote images.
   images: {},

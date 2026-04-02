@@ -332,10 +332,12 @@ interface NexusState {
   prices:        Record<string, PriceData>
   sparklines:    Record<string, number[]>
   articles:      Article[]
+  articlesLoaded: boolean
   savedArticles: Article[]
   signals:       { fg: { value: number; label: string } | null }
   cves:          unknown[]
   cvesLoaded:    boolean
+  pricesLoaded:  boolean
   otxPulses:     OTXPulse[]
   worldRisk:     number
   chatHistory:   { role: string; content: string }[]
@@ -344,6 +346,7 @@ interface NexusState {
   earthquakes:    GeoRecord[]
   gdeltEvents:    GeoRecord[]
   threatIntel:    ThreatIntel
+  threatIntelLoaded: boolean
   weather:        WeatherData | null
   fearGreed:      FearGreedData | null
   defiData:       DefiData
@@ -422,9 +425,11 @@ interface NexusState {
   setPrices:         (prices: Record<string, PriceData>) => void
   setSparklines:     (sparklines: Record<string, number[]>) => void
   setArticles:       (articles: Article[]) => void
+  setArticlesLoaded: (loaded: boolean) => void
   setSignals:        (signals: NexusState['signals']) => void
   setCves:           (cves: unknown[]) => void
   setCvesLoaded:     (loaded: boolean) => void
+  setPricesLoaded:   (loaded: boolean) => void
   setOtxPulses:      (pulses: OTXPulse[]) => void
   addChatMessage:    (msg: { role: string; content: string }) => void
   clearChat:         () => void
@@ -435,6 +440,7 @@ interface NexusState {
   setEarthquakes:    (data: GeoRecord[]) => void
   setGdeltEvents:    (data: GeoRecord[]) => void
   setThreatIntel:    (data: ThreatIntel) => void
+  setThreatIntelLoaded: (loaded: boolean) => void
   setWeather:        (data: WeatherData | null) => void
   setFearGreed:      (data: FearGreedData) => void
   setDefiData:       (data: DefiData) => void
@@ -518,10 +524,12 @@ export const useStore = create<NexusState>()(
       prices:        {},
       sparklines:    {},
       articles:      [],
+      articlesLoaded: false,
       savedArticles: [],
       signals:       { fg: null },
       cves:          [],
       cvesLoaded:    false,
+      pricesLoaded:  false,
       otxPulses:     [],
       worldRisk:     0,
       chatHistory:   [],
@@ -530,6 +538,7 @@ export const useStore = create<NexusState>()(
       earthquakes:    [],
       gdeltEvents:    [],
       threatIntel:    { threatfox: [], shodan: null },
+      threatIntelLoaded: false,
       weather:        null,
       fearGreed:      null,
       defiData:       { protocols: [], stablecoins: [], yields: [] },
@@ -720,8 +729,10 @@ export const useStore = create<NexusState>()(
       setCyberView:   (cyberView) => set({ cyberView }),
       setWorldRisk:  (worldRisk)  => set({ worldRisk }),
       setPrices:     (prices)     => set({ prices }),
+      setPricesLoaded: (pricesLoaded) => set({ pricesLoaded }),
       setSparklines: (sparklines) => set({ sparklines }),
       setArticles:   (articles)   => set({ articles }),
+      setArticlesLoaded: (articlesLoaded) => set({ articlesLoaded }),
       setSignals:    (signals)    => set({ signals }),
       setCves:       (cves)       => set({ cves }),
       setCvesLoaded: (cvesLoaded) => set({ cvesLoaded }),
@@ -749,6 +760,7 @@ export const useStore = create<NexusState>()(
       setEarthquakes:    (earthquakes)    => set({ earthquakes }),
       setGdeltEvents:    (gdeltEvents)    => set({ gdeltEvents }),
       setThreatIntel:    (threatIntel)    => set({ threatIntel }),
+      setThreatIntelLoaded: (threatIntelLoaded) => set({ threatIntelLoaded }),
       setWeather:        (weather)        => set({ weather }),
       setFearGreed:      (fearGreed)      => set({ fearGreed }),
       setDefiData:       (defiData)       => set({ defiData }),

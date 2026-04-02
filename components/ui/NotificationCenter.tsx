@@ -264,79 +264,40 @@ export default function NotificationCenter({ open, onClose }: Props) {
 
   return (
     <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={onClose}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(0,0,0,0.4)",
-              zIndex: 1100,
-            }}
-          />
-
-          {/* Panel */}
-          <motion.div
-            initial={{ x: 320, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 320, opacity: 0 }}
-            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Notifications"
-            style={{
-              position: "fixed",
-              top: 0,
-              right: 0,
-              bottom: 0,
-              width: "320px",
-              background: "rgba(11, 8, 9, 0.96)",
-              backdropFilter: "blur(20px)",
-              borderLeft: "1px solid rgba(196,72,90,0.12)",
-              boxShadow: "-4px 0 40px rgba(0,0,0,0.7)",
-              zIndex: 1101,
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-            }}
-          >
-            {/* Header */}
-            <div
+      {open
+        ? [
+            <motion.div
+              key="notifications-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={onClose}
+              className="nexus-overlay-backdrop"
+            />,
+            <motion.div
+              key="notifications-panel"
+              initial={{ x: 320, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 320, opacity: 0 }}
+              transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Notifications"
+              id="nexus-notifications-dialog"
+              data-testid="notifications-dialog"
+              className="nexus-sidepanel nexus-sidepanel--notifications"
               style={{
-                padding: "16px 16px 12px",
-                borderBottom: "1px solid rgba(196,72,90,0.08)",
-                flexShrink: 0,
+                width: "320px",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "12px",
-                }}
-              >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
+            {/* Header */}
+            <div className="nexus-sidepanel__header">
+              <div className="nexus-sidepanel__header-copy">
+                <span className="nexus-sidepanel__eyebrow">Live inbox</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <span style={{ fontSize: "18px" }}>🔔</span>
-                  <span
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: 900,
-                      letterSpacing: "1.5px",
-                      textTransform: "uppercase" as const,
-                      color: "rgba(236,229,223,0.9)",
-                    }}
-                  >
-                    Notifications
-                  </span>
+                  <span className="nexus-sidepanel__title">Notifications</span>
                   {unreadCount > 0 && (
                     <span
                       style={{
@@ -352,94 +313,48 @@ export default function NotificationCenter({ open, onClose }: Props) {
                     </span>
                   )}
                 </div>
-                <div
-                  style={{ display: "flex", gap: "6px", alignItems: "center" }}
-                >
-                  {unreadCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={markAllRead}
-                      style={{
-                        background: "transparent",
-                        border: "1px solid rgba(196,72,90,0.2)",
-                        borderRadius: "5px",
-                        color: "rgba(196,72,90,0.8)",
-                        fontSize: "9px",
-                        fontWeight: 700,
-                        padding: "3px 7px",
-                        cursor: "pointer",
-                        letterSpacing: "0.4px",
-                        textTransform: "uppercase" as const,
-                      }}
-                    >
-                      Mark all read
-                    </button>
-                  )}
+                <span className="nexus-sidepanel__subtitle">
+                  Threat, market, and system events grouped by urgency.
+                </span>
+              </div>
+              <div className="nexus-sidepanel__header-actions">
+                {unreadCount > 0 && (
                   <button
                     type="button"
-                    onClick={onClose}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      color: "rgba(122,107,98,0.7)",
-                      fontSize: "20px",
-                      cursor: "pointer",
-                      lineHeight: 1,
-                      padding: "0 2px",
-                    }}
-                    aria-label="Close notifications"
+                    onClick={markAllRead}
+                    className="nexus-chip"
+                    data-testid="notifications-mark-all"
                   >
-                    ×
+                    Mark all read
                   </button>
-                </div>
+                )}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="nexus-sidepanel__close"
+                  data-testid="notifications-close"
+                  aria-label="Close notifications"
+                >
+                  ×
+                </button>
               </div>
+            </div>
 
-              {/* Filter chips */}
-              <div
-                style={{
-                  display: "flex",
-                  gap: "4px",
-                  flexWrap: "wrap" as const,
-                }}
-              >
+            {/* Notifications list */}
+            <div className="nexus-sidepanel__body">
+              <div className="nexus-chip-group" style={{ marginBottom: "12px" }}>
                 {FILTERS.map((f) => (
                   <button
                     type="button"
                     key={f.key}
                     onClick={() => setFilter(f.key)}
-                    style={{
-                      padding: "3px 9px",
-                      borderRadius: "12px",
-                      fontSize: "9px",
-                      fontWeight: 700,
-                      letterSpacing: "0.5px",
-                      textTransform: "uppercase" as const,
-                      border: `1px solid ${filter === f.key ? "rgba(196,72,90,0.5)" : "rgba(58,46,43,0.6)"}`,
-                      background:
-                        filter === f.key
-                          ? "rgba(196,72,90,0.18)"
-                          : "transparent",
-                      color:
-                        filter === f.key ? "#f5d0d6" : "rgba(122,107,98,0.8)",
-                      cursor: "pointer",
-                      transition: "all 0.15s",
-                    }}
+                    className={filter === f.key ? "nexus-chip is-active" : "nexus-chip"}
+                    data-testid={`notifications-filter-${f.key}`}
                   >
                     {f.label}
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* Notifications list */}
-            <div
-              style={{
-                flex: 1,
-                overflowY: "auto" as const,
-                padding: "10px 10px",
-                scrollbarWidth: "thin" as const,
-              }}
-            >
               {filtered.length === 0 ? (
                 <div
                   style={{
@@ -494,9 +409,9 @@ export default function NotificationCenter({ open, onClose }: Props) {
                 </>
               )}
             </div>
-          </motion.div>
-        </>
-      )}
+            </motion.div>,
+          ]
+        : null}
     </AnimatePresence>
   );
 }

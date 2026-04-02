@@ -7,6 +7,11 @@ import {
   MINIMAX_DEFAULT_CHAT_MODEL,
   TASK_MODELS,
 } from "@/lib/aiModelRouting";
+import { BRAND_NAME } from "@/lib/brand";
+import {
+  applyRateLimitHeaders,
+  checkRateLimit,
+} from "@/lib/security/rateLimit";
 
 /**
  * Multi-provider AI proxy with task-based model routing.
@@ -84,8 +89,8 @@ const PROVIDERS: Record<string, Provider> = {
     headers: (key) => ({
       "Content-Type": "application/json",
       Authorization: `Bearer ${key}`,
-      "HTTP-Referer": "https://nexus-prime.local",
-      "X-Title": "Nexus Prime",
+      "HTTP-Referer": "https://aegis-vector.local",
+      "X-Title": BRAND_NAME,
     }),
   },
   google: {
@@ -228,6 +233,26 @@ async function callProvider(
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  const rateLimitConfig = {
+    bucket: "api-ai",
+    windowMs: 60_000,
+    maxAttempts: 30,
+    includeBearerToken: true,
+  } as const;
+  const rateLimit = checkRateLimit(req, rateLimitConfig);
+  if (!rateLimit.ok) {
+    const response = NextResponse.json(
+      {
+        error: {
+          message: "AI route rate limit exceeded. Slow down and try again shortly.",
+        },
+      },
+      { status: 429 },
+    );
+    applyRateLimitHeaders(response, rateLimitConfig, rateLimit.retryAfterSec);
+    return response;
+  }
+
   let body: {
     provider?: string;
     task?: string;
@@ -343,7 +368,7 @@ export async function POST(req: NextRequest) {
 
       if (r) {
         const usedModel = effectiveModel ?? PROVIDERS[providerName].model;
-        return new NextResponse(r.body, {
+        const response = new NextResponse(r.body, {
           status: r.status,
           headers: {
             "Content-Type": r.headers.get("Content-Type") ?? "application/json",
@@ -351,11 +376,13 @@ export async function POST(req: NextRequest) {
             "X-Model": usedModel,
           },
         });
+        applyRateLimitHeaders(response, rateLimitConfig);
+        return response;
       }
     }
 
     // All providers failed
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         error: {
           message:
@@ -364,8 +391,15 @@ export async function POST(req: NextRequest) {
       },
       { status: 503 },
     );
+    applyRateLimitHeaders(response, rateLimitConfig);
+    return response;
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "AI proxy request failed.";
-    return NextResponse.json({ error: { message: msg } }, { status: 500 });
+    const response = NextResponse.json(
+      { error: { message: msg } },
+      { status: 500 },
+    );
+    applyRateLimitHeaders(response, rateLimitConfig);
+    return response;
   }
 }

@@ -6,7 +6,7 @@
 import { useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { CVEsLoader, OTXLoader } from "@/components/ui/DataLoader";
+import { ArticlesLoader, CVEsLoader, OTXLoader } from "@/components/ui/DataLoader";
 import {
   SectionLabel,
   ShellBadge,
@@ -79,18 +79,20 @@ export default function CyberPage() {
   return (
     <ShellPage
       width="wide"
-      eyebrow="Threat monitoring"
-      title="CYBER"
-      description="Triage vulnerabilities, correlate threat feeds, and monitor exposed posture with cleaner operational hierarchy."
+      surface="cyber"
+      eyebrow="Containment mesh"
+      title="BASTION"
+      description="Triage vulnerabilities, correlate threat feeds, and monitor exposed posture inside the Aegis Vector containment lane."
       actions={
         <>
           <ShellBadge tone="accent">Read-only intelligence</ShellBadge>
-          <ShellBadge tone="muted">OTX optional</ShellBadge>
+          <ShellBadge tone="muted">Free-first posture</ShellBadge>
         </>
       }
     >
       <CVEsLoader />
       <OTXLoader />
+      <ArticlesLoader />
 
       <ShellStack>
         <ShellSegmentedTabs items={VIEWS} active={view} onChange={setView} minButtonWidth={120} />

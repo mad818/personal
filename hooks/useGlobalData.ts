@@ -14,6 +14,7 @@ export function useGlobalData() {
   const setEarthquakes = useStore((s) => s.setEarthquakes)
   const setGdeltEvents = useStore((s) => s.setGdeltEvents)
   const setThreatIntel = useStore((s) => s.setThreatIntel)
+  const setThreatIntelLoaded = useStore((s) => s.setThreatIntelLoaded)
   const setWeather     = useStore((s) => s.setWeather)
   const setFearGreed   = useStore((s) => s.setFearGreed)
   const setDefiData    = useStore((s) => s.setDefiData)
@@ -47,13 +48,15 @@ export function useGlobalData() {
       const r = await apiFetch('/api/threat-intel', { signal: AbortSignal.timeout(10000) })
       const d = await r.json()
       setThreatIntel({
-        threatfox: d.threatfox ?? [],
+        threatfox: d.threatfox ?? d.iocs ?? [],
         shodan:    d.shodan ?? null,
       })
     } catch {
       // silent
+    } finally {
+      setThreatIntelLoaded(true)
     }
-  }, [setThreatIntel])
+  }, [setThreatIntel, setThreatIntelLoaded])
 
   const fetchWeather = useCallback(async () => {
     try {

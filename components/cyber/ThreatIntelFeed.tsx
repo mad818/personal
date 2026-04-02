@@ -246,6 +246,7 @@ function IOCCard({ ioc }: IOCCardProps) {
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function ThreatIntelFeed() {
   const threatIntel = useStore((s) => s.threatIntel);
+  const threatIntelLoaded = useStore((s) => s.threatIntelLoaded);
   const iocs = threatIntel?.threatfox ?? [];
 
   if (!iocs.length) {
@@ -271,7 +272,9 @@ export default function ThreatIntelFeed() {
           ThreatFox IOC Intelligence
         </div>
         <div style={{ fontSize: "12px", color: CHART.text3, lineHeight: 1.5 }}>
-          Loading threat indicators…
+          {threatIntelLoaded
+            ? "No indicators were returned by the current free threat feeds."
+            : "Loading threat indicators…"}
         </div>
       </div>
     );

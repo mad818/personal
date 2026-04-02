@@ -76,7 +76,10 @@ export default function ThreatHeatmap() {
   }, [fearGreed]);
 
   const weatherScore = useMemo(() => {
-    const code = weather?.current?.weathercode ?? 0;
+    const code =
+      weather?.current?.weather_code ??
+      weather?.current?.weathercode ??
+      0;
     // WMO codes: 0=clear, 45+=fog, 80+=heavy rain, 95+=thunderstorm
     if (code >= 95) return 85;
     if (code >= 80) return 65;

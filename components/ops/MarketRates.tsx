@@ -260,7 +260,9 @@ export default function MarketRates() {
                 padding: "20px 0",
               }}
             >
-              {loading ? "Fetching rates…" : "No data"}
+              {loading
+                ? "Fetching rates…"
+                : "Free FX rates are temporarily unavailable."}
             </div>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -331,7 +333,9 @@ export default function MarketRates() {
                 padding: "16px 0",
               }}
             >
-              {loading ? "Fetching prices…" : "No data"}
+              {loading
+                ? "Fetching prices…"
+                : "Free spot feeds are temporarily unavailable."}
             </div>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>

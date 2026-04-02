@@ -201,26 +201,28 @@ export default function BuyBot() {
   const [aiLoading, setAiLoading] = useState<string | null>(null); // id of signal being analysed
   const [analysed, setAnalysed] = useState<Record<string, string>>({});
 
-  // Derive live signals from current price data
-  const liveSignals: BotSignal[] = useMemo(() => {
+  const rankedAssets: BotSignal[] = useMemo(() => {
     return Object.entries(prices)
       .map(([id, p]) => {
         const spark = sparklines[id] ?? [];
         const score = computeScore(spark, p.chg ?? 0, p.vol ?? 0, p.mcap ?? 1);
-        const action = toAction(score);
-        if (!action) return null;
         return {
           id,
           sym: p.sym || id.slice(0, 6).toUpperCase(),
           price: p.price,
           chg24h: p.chg,
           score,
-          action,
+          action: toAction(score) ?? (score >= 50 ? "BUY" : "SELL"),
           timestamp: new Date().toISOString(),
         } satisfies BotSignal;
       })
-      .filter(Boolean) as BotSignal[];
+      .sort((a, b) => b.score - a.score);
   }, [prices, sparklines]);
+
+  // Derive live signals from current price data
+  const liveSignals: BotSignal[] = useMemo(() => {
+    return rankedAssets.filter((signal) => toAction(signal.score));
+  }, [rankedAssets]);
 
   // Save a signal to botHistory
   const saveSignal = useCallback(
@@ -239,13 +241,6 @@ export default function BuyBot() {
   // AI analysis for a signal
   const analyseSignal = useCallback(
     async (sig: BotSignal) => {
-      if (!settings.apiKey) {
-        setAnalysed((p) => ({
-          ...p,
-          [sig.id]: "Add your API key in Settings for AI analysis.",
-        }));
-        return;
-      }
       setAiLoading(sig.id);
       const prompt = `Crypto signal: ${sig.sym} — ${sig.action}. Price: ${fmtPrice(sig.price)}, 24h: ${fmtPct(sig.chg24h)}, momentum score: ${sig.score}/100. Give a 2-sentence trade rationale and one key risk. Be direct.`;
       try {
@@ -257,18 +252,23 @@ export default function BuyBot() {
       } catch {
         setAnalysed((p) => ({
           ...p,
-          [sig.id]: "AI call failed. Check your API key.",
+          [sig.id]:
+            "AI analysis is unavailable right now. Check your local model or optional cloud provider settings.",
         }));
       } finally {
         setAiLoading(null);
       }
     },
-    [settings.apiKey, saveSignal],
+    [saveSignal],
   );
 
   const clearHistory = () => updateSettings({ botHistory: [] as unknown[] });
 
   const displaySignals = liveSignals.map((s) => ({
+    ...s,
+    aiNote: analysed[s.id],
+  }));
+  const watchCandidates = rankedAssets.slice(0, 5).map((s) => ({
     ...s,
     aiNote: analysed[s.id],
   }));
@@ -315,16 +315,45 @@ export default function BuyBot() {
       {displaySignals.length === 0 ? (
         <div
           style={{
-            padding: "24px",
-            textAlign: "center",
-            color: "var(--text3)",
-            fontSize: "12px",
             background: "var(--surf2)",
             borderRadius: "9px",
             border: "1px solid var(--border)",
+            padding: "16px",
           }}
         >
-          No strong signals right now — all assets are in neutral territory.
+          <div
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              color: "var(--text3)",
+              textTransform: "uppercase",
+              letterSpacing: ".06em",
+              marginBottom: "10px",
+            }}
+          >
+            No hard triggers right now
+          </div>
+          <div
+            style={{
+              fontSize: "12px",
+              color: "var(--text2)",
+              lineHeight: 1.5,
+              marginBottom: "12px",
+            }}
+          >
+            The market is neutral, so the bot is showing the strongest watchlist
+            candidates instead of an empty board.
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
+            {watchCandidates.map((sig) => (
+              <HistoryRow
+                key={sig.id}
+                sig={sig}
+                onAnalyse={analyseSignal}
+                loading={aiLoading === sig.id}
+              />
+            ))}
+          </div>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>

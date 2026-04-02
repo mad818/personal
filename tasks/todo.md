@@ -2,6 +2,35 @@
 
 ## Status: Active Development
 
+## Completion Program (2026-04-02)
+
+See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion-program-2026.md) and [docs/regression-memory-checklist.md](../docs/regression-memory-checklist.md).
+
+### P0 — Must close before GA
+- [x] CP0.1 — Browser-level auth E2E suite: valid login, invalid login, stale session recovery, hard refresh, logout/reset
+- [x] CP0.2 — Regression-memory sweep for stale runtime, stale bundle, hydration mismatch, overlay click traps, and route alias drift
+- [x] CP0.3 — Fresh-runtime release smoke discipline: validate on clean runtime, not only hot dev sessions (`npm run runtime:fresh-proof`)
+- [x] CP0.4 — Canonical route contract proof: `/`, `/home`, beta aliases, internal aliases, and GA nav all resolve correctly
+
+### P1 — Whole-app cinematic IA completion
+- [ ] CP1.1 — Apply cinematic shell/background/panel hierarchy consistently across HQ and all GA tabs
+- [ ] CP1.2 — Standardize nav, overlays, buttons, segmented controls, empty states, and loading states across GA surfaces
+- [ ] CP1.3 — HQ visual integrity pass: no overlap, clipping, hydration mismatch, or shell drift versus login
+- [ ] CP1.4 — Surface-by-surface hardening for COMMAND, INTEL, ALPHA, CYBER, RECON, VAULT with free-first graceful degradation
+
+### Future vehicle / drone lane
+- [ ] V0.1 — Simulated telemetry generator and replay mode for `/internal/vehicle`
+- [ ] V0.2 — Standardize future flight telemetry schema (heartbeat, mode, GPS, battery, link quality, failsafes, mission status)
+- [ ] V0.3 — Archive flight-log / incident artifacts into VAULT conventions
+- [ ] V1.1 — Bench bring-up checklist for the F450 (props-off validation, RC, GPS, orientation, failsafes)
+- [ ] V1.2 — Passive telemetry bridge from flight stack into Nexus without making Nexus flight-critical
+
+### P2 — Release engineering closure
+- [ ] CP2.1 — Web release rehearsal: Docker + target deployment + diagnostics snapshot + rollback proof
+- [ ] CP2.2 — Desktop isolation validation: secure runtime, no-outbound proof in isolated mode, capability lockdown evidence
+- [ ] CP2.3 — Desktop trust chain: checksum verification, signing status record, SBOM status record
+- [ ] CP2.4 — Final launch gate: `type-check`, `lint`, `verify`, `route:integrity`, `eval:agent-runtime:ci`, `release:smoke`, auth E2E
+
 ## Completed
 - [x] Phase 1–4: Full React/Next.js migration, all 8 tabs
 - [x] Settings panel (slide-over, all API keys + personal profile)

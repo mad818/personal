@@ -395,6 +395,7 @@ function HeatCell({
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function CyberHeatmap() {
   const cves = useStore((s) => s.cves) as CVE[];
+  const cvesLoaded = useStore((s) => s.cvesLoaded);
   const otxPulses = useStore((s) => s.otxPulses) as OTXPulse[];
 
   const [panel, setPanel] = useState<{
@@ -454,7 +455,9 @@ export default function CyberHeatmap() {
         }}
       >
         <div style={{ fontSize: "24px", marginBottom: "8px" }}>🔒</div>
-        Loading threat data…
+        {cvesLoaded
+          ? "No cyber severity signals were returned from the current feeds."
+          : "Loading threat data…"}
       </div>
     );
 

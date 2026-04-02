@@ -4,6 +4,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as fs from "fs/promises";
 import * as path from "path";
+import { getBrandServiceName } from "@/lib/brand";
+import {
+  assertSafeExternalUrl,
+  readResponseTextWithLimit,
+} from "@/lib/security/networkGuards";
+import {
+  applyRateLimitHeaders,
+  checkRateLimit,
+} from "@/lib/security/rateLimit";
+
+const TOOL_USER_AGENT = `${getBrandServiceName()}/1.0`;
 
 // ── Workspace root (files the agent can read/write) ───────────────────────────
 const WORKSPACE =
@@ -79,11 +90,13 @@ async function webSearch(query: string): Promise<string> {
 
 async function fetchUrl(url: string): Promise<string> {
   try {
-    const r = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; NexusAI/1.0)" },
+    const safeUrl = assertSafeExternalUrl(url);
+    const r = await fetch(safeUrl, {
+      headers: { "User-Agent": `Mozilla/5.0 (compatible; ${TOOL_USER_AGENT})` },
       signal: AbortSignal.timeout(10000),
     });
-    const html = await r.text();
+    if (!r.ok) return `Could not fetch that URL (HTTP ${r.status}).`;
+    const html = await readResponseTextWithLimit(r, 24_000);
     // Strip tags, collapse whitespace
     const text = html
       .replace(/<script[\s\S]*?<\/script>/gi, "")
@@ -93,8 +106,8 @@ async function fetchUrl(url: string): Promise<string> {
       .trim()
       .slice(0, 4000);
     return text || "Page returned no readable text.";
-  } catch {
-    return "Could not fetch that URL.";
+  } catch (error) {
+    return error instanceof Error ? error.message : "Could not fetch that URL.";
   }
 }
 
@@ -489,9 +502,15 @@ async function githubTrending(
 }
 
 async function rssFetch(feedUrl: string, limit: string): Promise<string> {
-  const params: Record<string, string> = { url: feedUrl };
-  if (limit) params.limit = limit;
-  return agentReachProxy("/rss", params);
+  if (!feedUrl.trim()) return "rss_fetch: url is required.";
+  try {
+    const safeUrl = assertSafeExternalUrl(feedUrl).toString();
+    const params: Record<string, string> = { url: safeUrl };
+    if (limit) params.limit = limit;
+    return agentReachProxy("/rss", params);
+  } catch (error) {
+    return error instanceof Error ? error.message : "rss_fetch failed.";
+  }
 }
 
 // ── Session-scoped read cache (60 s TTL) ─────────────────────────────────────
@@ -532,7 +551,7 @@ async function hfPapersSearch(query: string, limit: string): Promise<string> {
   try {
     const url = `https://huggingface.co/api/daily_papers`;
     const r = await fetch(url, {
-      headers: { "User-Agent": "NexusPrime/1.0" },
+      headers: { "User-Agent": TOOL_USER_AGENT },
       signal: AbortSignal.timeout(10_000),
     });
     if (!r.ok) return `HuggingFace papers API returned HTTP ${r.status}`;
@@ -653,7 +672,7 @@ async function secEdgarSearch(
     const fFilter = forms ? `&forms=${encodeURIComponent(forms)}` : "";
     const url = `https://efts.sec.gov/LATEST/search-index?q=%22${q}%22&dateRange=custom&startdt=2024-01-01&enddt=2026-12-31${fFilter}&hits.hits.total.value=1&hits.hits._source=file_date,display_names,form_type,period_of_report,entity_name,biz_location`;
     const r = await fetch(url, {
-      headers: { "User-Agent": "NexusPrime research@nexusprime.local" },
+      headers: { "User-Agent": `${TOOL_USER_AGENT} research@aegis-vector.local` },
       signal: AbortSignal.timeout(10_000),
     });
     if (!r.ok) return `SEC EDGAR returned HTTP ${r.status}`;
@@ -744,6 +763,25 @@ async function n8nRunWorkflow(
 
 // ── Route handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  const rateLimitConfig = {
+    bucket: "api-tools",
+    windowMs: 60_000,
+    maxAttempts: 45,
+    includeBearerToken: true,
+  } as const;
+  const rateLimit = checkRateLimit(req, rateLimitConfig);
+  if (!rateLimit.ok) {
+    const response = NextResponse.json(
+      {
+        result: "Tool execution rate limited.",
+        error: "Too many tool requests. Slow down and try again shortly.",
+      },
+      { status: 429 },
+    );
+    applyRateLimitHeaders(response, rateLimitConfig, rateLimit.retryAfterSec);
+    return response;
+  }
+
   try {
     const { tool, input } = (await req.json()) as {
       tool: string;
@@ -848,14 +886,18 @@ export async function POST(req: NextRequest) {
         result = `Unknown tool: ${tool}`;
     }
 
-    return NextResponse.json({ result });
+    const response = NextResponse.json({ result });
+    applyRateLimitHeaders(response, rateLimitConfig);
+    return response;
   } catch (err) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         result: "Tool execution error.",
         error: err instanceof Error ? err.message : "Unknown error",
       },
       { status: 500 },
     );
+    applyRateLimitHeaders(response, rateLimitConfig);
+    return response;
   }
 }

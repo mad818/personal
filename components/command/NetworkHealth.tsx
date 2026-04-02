@@ -5,6 +5,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 
 interface HealthTarget {
   id: string;
@@ -25,32 +26,38 @@ const DEFAULT_TARGETS: HealthTarget[] = [
   {
     id: "nexus",
     label: "Nexus HQ",
-    url: "http://localhost:3000/api/health",
+    url: "/api/health",
     method: "health",
   },
   {
-    id: "cg",
-    label: "CoinGecko API",
-    url: "https://api.coingecko.com/api/v3/ping",
-    method: "https",
+    id: "prices",
+    label: "Market data route",
+    url: "/api/prices?mode=markets&coins=bitcoin,ethereum,solana",
+    method: "health",
   },
   {
-    id: "nvd",
-    label: "NVD / NIST",
-    url: "https://services.nvd.nist.gov",
-    method: "https",
+    id: "risk",
+    label: "Conflict monitor",
+    url: "/api/conflict",
+    method: "health",
   },
   {
-    id: "altme",
-    label: "Fear & Greed",
-    url: "https://api.alternative.me/fng/?limit=1",
-    method: "https",
+    id: "cves",
+    label: "Cyber feed",
+    url: "/api/cves",
+    method: "health",
   },
   {
-    id: "mempool",
-    label: "Mempool.space",
-    url: "https://mempool.space/api/v1/fees/recommended",
-    method: "https",
+    id: "sentiment",
+    label: "Fear & Greed route",
+    url: "/api/fear-greed",
+    method: "health",
+  },
+  {
+    id: "seismic",
+    label: "Earthquake route",
+    url: "/api/earthquakes",
+    method: "health",
   },
 ];
 
@@ -106,11 +113,14 @@ export default function NetworkHealth() {
     setResult(t.id, { status: "checking" });
     const start = Date.now();
     try {
-      const r = await fetch(t.url, {
-        method: "HEAD",
+      const requestInit = {
+        method: "GET",
         signal: AbortSignal.timeout(6000),
-        cache: "no-store",
-      });
+        cache: "no-store" as RequestCache,
+      };
+      const r = t.url.startsWith("/api/")
+        ? await apiFetch(t.url, requestInit)
+        : await fetch(t.url, requestInit);
       const ms = Date.now() - start;
       setResult(t.id, {
         status: r.ok ? "ok" : "warn",
@@ -218,7 +228,7 @@ export default function NetworkHealth() {
               marginTop: "2px",
             }}
           >
-            Monitor Nexus data sources and internal services
+            Monitor the actual Nexus routes that power the live tabs
           </div>
         </div>
         <button

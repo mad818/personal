@@ -34,9 +34,10 @@ export default function VaultPage() {
   return (
     <ShellPage
       width="wide"
-      eyebrow="Durable archive"
-      title="VAULT"
-      description="Search, organize, and export saved intelligence artifacts with clearer archive hierarchy."
+      surface="vault"
+      eyebrow="Cold-storage vault"
+      title="ARCHIVE"
+      description="Search, organize, and export saved intelligence artifacts with clearer archive hierarchy and faster retrieval."
       actions={
         <>
           <ShellBadge tone="accent">Local archive</ShellBadge>

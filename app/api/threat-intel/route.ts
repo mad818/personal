@@ -161,6 +161,8 @@ export async function GET(req: NextRequest) {
     const response: Record<string, unknown> = {
       ioc_count: iocs.length,
       iocs,
+      // Backward-compatible alias used by existing UI store readers.
+      threatfox: iocs,
       otx_pulses: pulses,
       otx_available: Boolean(process.env.OTX_KEY ?? process.env.OTX_API_KEY),
       sources: {

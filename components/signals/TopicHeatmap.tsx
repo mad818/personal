@@ -519,6 +519,7 @@ function HeatCell({ topic, articles, maxCount, onClick }: CellProps) {
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function TopicHeatmap() {
   const articles = useStore((s) => s.articles);
+  const gdeltEvents = useStore((s) => s.gdeltEvents);
   const savedArticles = useStore((s) => s.savedArticles);
   const toggleSaveArticle = useStore((s) => s.toggleSaveArticle);
 
@@ -528,10 +529,44 @@ export default function TopicHeatmap() {
 
   const savedIds = new Set(savedArticles.map((a) => a.id));
 
+  const fallbackArticles: Article[] = (gdeltEvents as Record<string, unknown>[])
+    .reduce<Article[]>((acc, event, index) => {
+      const title = typeof event.title === "string" ? event.title : "";
+      const link =
+        typeof event.url === "string"
+          ? event.url
+          : typeof event.link === "string"
+            ? event.link
+            : "";
+      if (!title || !link) return acc;
+      const lower = title.toLowerCase();
+      let cat: Article["cat"] = "other";
+      if (/bitcoin|crypto|ethereum|blockchain|token|solana/.test(lower)) cat = "crypto";
+      else if (/hack|cyber|breach|malware|ransom|cve|vulnerability/.test(lower)) cat = "cyber";
+      else if (/market|fed|earnings|inflation|economy|stock|trade/.test(lower)) cat = "markets";
+      else if (/software|ai|chip|apple|microsoft|google|openai|tech/.test(lower)) cat = "tech";
+      else if (/war|diplomacy|sanctions|world|crisis|conflict/.test(lower)) cat = "world";
+      acc.push({
+        id: `gdelt-topic-${index}`,
+        title,
+        desc: "",
+        link,
+        date:
+          typeof event.seendate === "string"
+            ? event.seendate
+            : typeof event.date === "string"
+              ? event.date
+              : "",
+        src: "GDELT",
+        cat,
+      } satisfies Article);
+      return acc;
+    }, []);
+
   // Bucket articles by topic
   const byTopic: Record<string, Article[]> = {};
   for (const t of TOPICS) byTopic[t.key] = [];
-  for (const a of articles) {
+  for (const a of articles.length > 0 ? articles : fallbackArticles) {
     const cat = a.cat ?? "other";
     if (byTopic[cat]) byTopic[cat].push(a);
     else byTopic["other"].push(a);
@@ -540,8 +575,9 @@ export default function TopicHeatmap() {
   const maxCount = Math.max(1, ...TOPICS.map((t) => byTopic[t.key].length));
 
   const panelArticles = activeTopic ? (byTopic[activeTopic.key] ?? []) : [];
+  const displayCount = articles.length > 0 ? articles.length : fallbackArticles.length;
 
-  if (!articles.length)
+  if (!articles.length && !fallbackArticles.length)
     return (
       <div
         style={{
@@ -570,7 +606,7 @@ export default function TopicHeatmap() {
           }}
         >
           <span style={{ fontSize: "11px", color: "var(--text3)" }}>
-            {articles.length} articles across{" "}
+            {displayCount} articles across{" "}
             {TOPICS.filter((t) => byTopic[t.key].length > 0).length} topics
           </span>
           <span

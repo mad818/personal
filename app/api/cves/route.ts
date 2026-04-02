@@ -11,6 +11,60 @@ export const dynamic = "force-dynamic";
 
 // Use a longer default TTL since NVD free tier is extremely slow
 const cache = createCache<unknown[]>({ defaultTTL: 600_000 }); // 10 min
+const CISA_KEV_FEED =
+  "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json";
+
+interface KevEntry {
+  cveID: string;
+  dateAdded?: string;
+  vulnerabilityName?: string;
+  shortDescription?: string;
+  knownRansomwareCampaignUse?: string;
+}
+
+function mapKevToNvdLikeVulnerability(entry: KevEntry) {
+  const isRansomware =
+    String(entry.knownRansomwareCampaignUse ?? "")
+      .toLowerCase()
+      .includes("known");
+  return {
+    cve: {
+      id: entry.cveID,
+      descriptions: [
+        {
+          lang: "en",
+          value:
+            entry.shortDescription ||
+            entry.vulnerabilityName ||
+            "Known exploited vulnerability from the CISA KEV catalog.",
+        },
+      ],
+      metrics: {
+        cvssMetricV31: [
+          {
+            cvssData: {
+              baseScore: isRansomware ? 9.3 : 8.1,
+              baseSeverity: isRansomware ? "CRITICAL" : "HIGH",
+            },
+          },
+        ],
+      },
+      published: entry.dateAdded ?? "",
+    },
+  };
+}
+
+async function fetchCisaKevFallback() {
+  const r = await fetch(CISA_KEV_FEED, {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(12000),
+  });
+  if (!r.ok) return [];
+  const d = await r.json();
+  return ((d.vulnerabilities ?? []) as KevEntry[])
+    .slice(0, 40)
+    .map(mapKevToNvdLikeVulnerability);
+}
 
 export async function GET() {
   const CACHE_KEY = "cves";
@@ -40,24 +94,47 @@ export async function GET() {
     });
 
     if (!r.ok) {
+      const fallback = await fetchCisaKevFallback();
+      cache.set(CACHE_KEY, fallback);
       return NextResponse.json(
-        { vulnerabilities: [], error: `NVD ${r.status}` },
+        {
+          vulnerabilities: fallback,
+          error: `NVD ${r.status}`,
+          source: "cisa-kev-fallback",
+        },
         { status: 200 },
       );
     }
 
     const d = await r.json();
     const vulns = d.vulnerabilities ?? [];
+    if (!vulns.length) {
+      const fallback = await fetchCisaKevFallback();
+      cache.set(CACHE_KEY, fallback);
+      return NextResponse.json(
+        {
+          vulnerabilities: fallback,
+          source: "cisa-kev-fallback",
+        },
+        { headers: { "Cache-Control": "public, max-age=600, s-maxage=600" } },
+      );
+    }
     cache.set(CACHE_KEY, vulns);
 
     return NextResponse.json(
-      { vulnerabilities: vulns },
+      { vulnerabilities: vulns, source: "nvd" },
       { headers: { "Cache-Control": "public, max-age=600, s-maxage=600" } },
     );
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
+    const fallback = await fetchCisaKevFallback().catch(() => []);
+    cache.set(CACHE_KEY, fallback);
     return NextResponse.json(
-      { vulnerabilities: [], error: msg },
+      {
+        vulnerabilities: fallback,
+        error: msg,
+        source: fallback.length ? "cisa-kev-fallback" : "unavailable",
+      },
       { status: 200 },
     );
   }

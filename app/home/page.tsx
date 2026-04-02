@@ -2,6 +2,7 @@
 // Home page: landing view with ambient charts and navigation.
 
 import OfficeCommandCenter from "@/components/home/office/OfficeCommandCenter";
+import { ShellStage } from "@/components/ui/shell";
 import {
   PricesLoader,
   FearGreedLoader,
@@ -12,13 +13,13 @@ import {
 
 export default function HomePage() {
   return (
-    <>
+    <ShellStage surface="hq">
       <PricesLoader />
       <FearGreedLoader />
       <ArticlesLoader />
       <CVEsLoader />
       <WorldRiskLoader />
       <OfficeCommandCenter />
-    </>
+    </ShellStage>
   );
 }

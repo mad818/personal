@@ -1,31 +1,26 @@
 // ── components/auth/AuthGate ───────────────────────────────
-// Authentication wrapper: redirects to /login if not authenticated.
+// Authentication wrapper: secure local token gate.
 
 "use client";
 
-/**
- * AuthGate — Sadie Sink themed token gate.
- */
-
 import Image from "next/image";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   clearSessionToken,
   getSessionToken,
   probeRuntimeHealth,
   TOKEN_VALIDATION_TIMEOUT_MS,
-  validateAndStoreToken,
   validateToken,
 } from "@/lib/apiFetch";
-import { normalizeTokenCandidate } from "@/lib/authToken";
 import { getDefaultEntrypoint } from "@/lib/releaseMatrix";
 
 interface Props {
   children: React.ReactNode;
+  initiallyAuthed?: boolean;
 }
 
-async function warmTokenRouteRequest(timeoutMs = 4000) {
+async function probeTokenRoute(timeoutMs = 4000) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -35,55 +30,55 @@ async function warmTokenRouteRequest(timeoutMs = 4000) {
       cache: "no-store",
       signal: controller.signal,
     });
-    return response.ok ? "ready" : "failed";
+
+    if (!response.ok) {
+      return { routeState: "failed" as const, authenticated: false };
+    }
+
+    const payload = (await response.json().catch(() => null)) as
+      | { authenticated?: boolean }
+      | null;
+
+    return {
+      routeState: "ready" as const,
+      authenticated: Boolean(payload?.authenticated),
+    };
   } catch {
-    return "failed";
+    return { routeState: "failed" as const, authenticated: false };
   } finally {
     clearTimeout(timeout);
   }
 }
 
-export default function AuthGate({ children }: Props) {
-  const router = useRouter();
+export default function AuthGate({
+  children,
+  initiallyAuthed = false,
+}: Props) {
   const pathname = usePathname();
-  const [authed, setAuthed] = useState(false);
-  const [token, setToken] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
+  const searchParams = useSearchParams();
+  const mountedRef = useRef(true);
+
+  const [authed, setAuthed] = useState(initiallyAuthed);
   const [runtimeOnline, setRuntimeOnline] = useState<boolean | null>(null);
   const [checkingRuntime, setCheckingRuntime] = useState(false);
-  const [slowLoading, setSlowLoading] = useState(false);
   const [tokenRouteWarm, setTokenRouteWarm] = useState<
     "warming" | "ready" | "failed"
   >("warming");
-  const submitAttemptRef = useRef(0);
-  const mountedRef = useRef(true);
-  const slowLoadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const submitWatchdogTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-
-  const clearSubmitTimers = useCallback(() => {
-    if (slowLoadingTimerRef.current) {
-      clearTimeout(slowLoadingTimerRef.current);
-      slowLoadingTimerRef.current = null;
-    }
-    if (submitWatchdogTimerRef.current) {
-      clearTimeout(submitWatchdogTimerRef.current);
-      submitWatchdogTimerRef.current = null;
-    }
-    if (mountedRef.current) {
-      setSlowLoading(false);
-    }
-  }, []);
+  const [transientStatus, setTransientStatus] = useState("");
+  const [tokenInput, setTokenInput] = useState("");
 
   useEffect(() => {
     return () => {
       mountedRef.current = false;
-      clearSubmitTimers();
     };
-  }, [clearSubmitTimers]);
+  }, []);
+
+  useEffect(() => {
+    if (initiallyAuthed) {
+      setAuthed(true);
+      setRuntimeOnline(true);
+    }
+  }, [initiallyAuthed]);
 
   useEffect(() => {
     probeRuntimeHealth().then((ok) => {
@@ -93,14 +88,15 @@ export default function AuthGate({ children }: Props) {
 
   useEffect(() => {
     let active = true;
-    warmTokenRouteRequest()
-      .then((state) => {
-        if (!active || !mountedRef.current) return;
-        setTokenRouteWarm(state);
-      })
-      .catch(() => {
-        if (active && mountedRef.current) setTokenRouteWarm("failed");
-      });
+
+    probeTokenRoute().then(({ routeState, authenticated }) => {
+      if (!active || !mountedRef.current) return;
+      setTokenRouteWarm(routeState);
+      if (authenticated) {
+        setAuthed(true);
+        setRuntimeOnline(true);
+      }
+    });
 
     return () => {
       active = false;
@@ -108,6 +104,8 @@ export default function AuthGate({ children }: Props) {
   }, []);
 
   useEffect(() => {
+    if (initiallyAuthed) return;
+
     const existing = getSessionToken();
     let active = true;
 
@@ -133,96 +131,7 @@ export default function AuthGate({ children }: Props) {
     return () => {
       active = false;
     };
-  }, []);
-
-  const submit = useCallback(async () => {
-    const normalizedToken = normalizeTokenCandidate(token);
-    if (!normalizedToken) {
-      setError("Enter your access token.");
-      setStatusMessage("");
-      return;
-    }
-    if (loading) return;
-
-    submitAttemptRef.current += 1;
-    const attemptId = submitAttemptRef.current;
-    clearSubmitTimers();
-    setLoading(true);
-    setSlowLoading(false);
-    setError("");
-    setStatusMessage("Checking token...");
-    slowLoadingTimerRef.current = setTimeout(() => {
-      if (attemptId !== submitAttemptRef.current || !mountedRef.current) return;
-      setSlowLoading(true);
-      setStatusMessage("Still checking your local token...");
-    }, 3000);
-    submitWatchdogTimerRef.current = setTimeout(() => {
-      if (attemptId !== submitAttemptRef.current || !mountedRef.current) return;
-      submitAttemptRef.current += 1;
-      clearSubmitTimers();
-      setLoading(false);
-      setError(
-        "Token check took too long. Retry now that the local verifier is awake.",
-      );
-      setStatusMessage("");
-    }, 12000);
-    try {
-      if (tokenRouteWarm === "warming") {
-        void warmTokenRouteRequest().then((warmState) => {
-          if (!mountedRef.current) return;
-          setTokenRouteWarm(warmState);
-        });
-      }
-
-      const status = await Promise.race([
-        validateAndStoreToken(normalizedToken),
-        new Promise<Awaited<ReturnType<typeof validateAndStoreToken>>>(
-          (resolve) => {
-            window.setTimeout(() => resolve("unreachable"), 10000);
-          },
-        ),
-      ]);
-
-      // Ignore stale responses if a newer submit has already started.
-      if (attemptId !== submitAttemptRef.current || !mountedRef.current) return;
-
-      if (status === "ok") {
-        const destination = pathname === "/" ? getDefaultEntrypoint() : pathname;
-        setAuthed(true);
-        setRuntimeOnline(true);
-        setTokenRouteWarm("ready");
-        setStatusMessage("Validated. Entering Nexus...");
-        setLoading(false);
-        clearSubmitTimers();
-        if (destination !== pathname) {
-          router.replace(destination);
-        }
-      } else if (status === "invalid") {
-        setError("Invalid token. Check your .env.local NEXUS_TOKEN.");
-        setRuntimeOnline(true);
-        setStatusMessage("");
-      } else if (status === "rate_limited") {
-        setError("Too many token attempts. Wait a few minutes and try again.");
-        setRuntimeOnline(true);
-        setStatusMessage("");
-      } else if (status === "server_error") {
-        setError("Token validation is not configured on the server.");
-        setRuntimeOnline(false);
-        setStatusMessage("");
-      } else {
-        setError(
-          "Token check could not reach the server. Is desktop runtime running?",
-        );
-        setRuntimeOnline(false);
-        setStatusMessage("");
-      }
-    } finally {
-      clearSubmitTimers();
-      if (attemptId === submitAttemptRef.current && mountedRef.current) {
-        setLoading(false);
-      }
-    }
-  }, [clearSubmitTimers, loading, pathname, router, token, tokenRouteWarm]);
+  }, [initiallyAuthed]);
 
   const checkRuntime = useCallback(async () => {
     if (checkingRuntime) return;
@@ -231,8 +140,7 @@ export default function AuthGate({ children }: Props) {
       const ok = await probeRuntimeHealth();
       if (mountedRef.current) {
         setRuntimeOnline(ok);
-        if (ok) setError("");
-        if (ok) setStatusMessage("Runtime reachable. Try Connect again.");
+        setTransientStatus(ok ? "Runtime reachable. Try Connect again." : "");
       }
     } finally {
       if (mountedRef.current) {
@@ -241,20 +149,28 @@ export default function AuthGate({ children }: Props) {
     }
   }, [checkingRuntime]);
 
-  const handleKey = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        void submit();
-      }
-    },
-    [submit],
-  );
+  const handleNativeSubmit = useCallback(() => {
+    if (mountedRef.current) {
+      setTransientStatus("Handing off to secure local login...");
+    }
+  }, []);
 
-  // Authenticated — show the app
   if (authed) return <>{children}</>;
 
-  // Lock screen — Sadie Sink themed
+  const destination = pathname === "/" ? getDefaultEntrypoint() : pathname;
+  const authErrorCode = searchParams.get("authError");
+  const authErrorMessage =
+    authErrorCode === "invalid"
+      ? "Invalid token. Check your .env.local NEXUS_TOKEN."
+      : authErrorCode === "server"
+        ? "Token validation is not configured on the server."
+        : "";
+
+  const statusLine =
+    authErrorMessage ||
+    transientStatus ||
+    "Token validation happens locally against your server.";
+
   return (
     <div
       style={{
@@ -269,7 +185,6 @@ export default function AuthGate({ children }: Props) {
         isolation: "isolate",
       }}
     >
-      {/* Background wash */}
       <div
         style={{
           position: "absolute",
@@ -326,10 +241,11 @@ export default function AuthGate({ children }: Props) {
             style={{
               position: "absolute",
               inset: 0,
-              backgroundImage: "url(/theme/sadie-wide.jpg)",
+              backgroundImage: "url(/theme/sadie-portrait.jpg)",
               backgroundSize: "cover",
-              backgroundPosition: "center top",
-              transform: "scale(1.03)",
+              backgroundPosition: "50% 12%",
+              transform: "scale(1.02)",
+              filter: "saturate(1.04) contrast(1.06) brightness(0.94)",
             }}
           />
           <div
@@ -337,7 +253,16 @@ export default function AuthGate({ children }: Props) {
               position: "absolute",
               inset: 0,
               background:
-                "linear-gradient(140deg, rgba(6,4,5,0.2) 0%, rgba(6,4,5,0.7) 55%, rgba(6,4,5,0.88) 100%)",
+                "linear-gradient(140deg, rgba(8,4,6,0.04) 0%, rgba(8,4,6,0.46) 42%, rgba(8,4,6,0.90) 100%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(circle at 50% 20%, rgba(255,214,217,0.18), transparent 16%), radial-gradient(circle at 56% 38%, rgba(232,160,170,0.10), transparent 20%), radial-gradient(circle at 64% 72%, rgba(212,149,106,0.13), transparent 28%)",
+              mixBlendMode: "screen",
             }}
           />
           <div
@@ -402,9 +327,9 @@ export default function AuthGate({ children }: Props) {
                   alignItems: "stretch",
                 }}
               >
-                {[
-                  "/theme/sadie-armani.jpg",
+                {[ 
                   "/theme/sadie-cover.jpg",
+                  "/theme/sadie-armani.jpg",
                   "/theme/sadie-portrait.jpg",
                 ].map((src, index) => (
                   <div
@@ -429,6 +354,12 @@ export default function AuthGate({ children }: Props) {
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
+                        objectPosition:
+                          src === "/theme/sadie-armani.jpg"
+                            ? "50% 18%"
+                            : src === "/theme/sadie-portrait.jpg"
+                              ? "50% 16%"
+                              : "50% 24%",
                         display: "block",
                       }}
                     />
@@ -472,11 +403,12 @@ export default function AuthGate({ children }: Props) {
                   letterSpacing: "-0.05em",
                   color: "#fff2f1",
                   textWrap: "balance",
+                  textShadow: "0 10px 36px rgba(0,0,0,.28)",
                 }}
               >
                 Nexus Prime
                 <br />
-                after dark.
+                in a lower light.
               </div>
               <div
                 style={{
@@ -486,9 +418,9 @@ export default function AuthGate({ children }: Props) {
                   maxWidth: "420px",
                 }}
               >
-                Local-first access, moody editorial energy, and a cleaner command
-                chamber entrance built around the Sadie image set already in the
-                repo.
+                Closer framing, warmer contrast, and a more glamorous, intimate
+                editorial entrance built around the Sadie image set already in
+                the repo.
               </div>
             </div>
           </div>
@@ -548,79 +480,78 @@ export default function AuthGate({ children }: Props) {
                 maxWidth: "32ch",
               }}
             >
-              Token validation stays local to this server. This screen only locks
-              during a real token check and falls back if the browser request path
-              misbehaves.
+              Token validation stays local to this server. This flow uses a
+              direct secure form submit so the real auth path reaches the
+              server without extra client-side ceremony.
             </div>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <label
-              style={{
-                fontSize: "10.5px",
-                fontWeight: 700,
-                color: "var(--text2)",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-              }}
-            >
-              Access Token
-            </label>
-            <input
-              type="password"
-              value={token}
-              disabled={loading}
-              onChange={(e) => setToken(e.target.value)}
-              onKeyDown={handleKey}
-              placeholder="Paste your NEXUS_TOKEN…"
-              autoFocus
-              style={{
-                background: loading
-                  ? "rgba(22, 16, 17, 0.72)"
-                  : "rgba(26, 18, 20, 0.84)",
-                border: `1px solid ${error ? "var(--flo)" : loading ? "rgba(212,148,106,0.42)" : "rgba(196,72,90,0.22)"}`,
-                borderRadius: "12px",
-                color: "var(--text)",
-                fontSize: "13px",
-                padding: "14px 15px",
-                outline: "none",
-                width: "100%",
-                boxSizing: "border-box",
-                fontFamily: "monospace",
-                transition: "border-color var(--t), box-shadow var(--t), opacity var(--t)",
-                opacity: loading ? 0.72 : 1,
-                cursor: loading ? "wait" : "text",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = loading
-                  ? "rgba(212,148,106,0.42)"
-                  : "rgba(196,72,90,0.55)";
-                e.currentTarget.style.boxShadow = loading
-                  ? "0 0 0 transparent"
-                  : "0 0 18px rgba(196,72,90,.14)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = error
-                  ? "var(--flo)"
-                  : loading
-                    ? "rgba(212,148,106,0.42)"
+          <form
+            action="/auth/connect"
+            method="POST"
+            onSubmit={handleNativeSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: "18px" }}
+          >
+            <input type="hidden" name="next" value={destination} />
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <label
+                style={{
+                  fontSize: "10.5px",
+                  fontWeight: 700,
+                  color: "var(--text2)",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                }}
+              >
+                Access Token
+              </label>
+              <input
+                type="password"
+                name="token"
+                required
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder="Paste your NEXUS_TOKEN…"
+                autoFocus
+                style={{
+                  background: "rgba(26, 18, 20, 0.84)",
+                  border: `1px solid ${authErrorMessage ? "var(--flo)" : "rgba(196,72,90,0.22)"}`,
+                  borderRadius: "12px",
+                  color: "var(--text)",
+                  fontSize: "13px",
+                  padding: "14px 15px",
+                  outline: "none",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  fontFamily: "monospace",
+                  transition:
+                    "border-color var(--t), box-shadow var(--t), opacity var(--t)",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(196,72,90,0.55)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 18px rgba(196,72,90,.14)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = authErrorMessage
+                    ? "var(--flo)"
                     : "rgba(196,72,90,0.22)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            />
-            <div
-              aria-live="polite"
-              style={{
-                minHeight: "18px",
-                fontSize: "11px",
-                color: error ? "var(--flo)" : "var(--text2)",
-              }}
-            >
-              {error ||
-                statusMessage ||
-                "Token validation happens locally against your server."}
-            </div>
-            {!error && (
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              />
+
+              <div
+                aria-live="polite"
+                style={{
+                  minHeight: "18px",
+                  fontSize: "11px",
+                  color: authErrorMessage ? "var(--flo)" : "var(--text2)",
+                }}
+              >
+                {statusLine}
+              </div>
+
               <div
                 style={{
                   display: "flex",
@@ -663,11 +594,7 @@ export default function AuthGate({ children }: Props) {
                       letterSpacing: "0.12em",
                     }}
                   >
-                    {loading
-                      ? slowLoading
-                        ? "slow"
-                        : "checking"
-                      : tokenRouteWarm}
+                    {tokenRouteWarm}
                   </span>
                 </div>
                 <div
@@ -691,94 +618,85 @@ export default function AuthGate({ children }: Props) {
                   line.
                 </div>
               </div>
-            )}
-            {(error || slowLoading || runtimeOnline === false) && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "12px",
-                  padding: "12px 14px",
-                  borderRadius: "14px",
-                  background: "rgba(255,107,129,0.05)",
-                  border: "1px solid rgba(255,107,129,0.14)",
-                }}
-              >
+
+              {(authErrorMessage || runtimeOnline === false) && (
                 <div
                   style={{
-                    fontSize: "11px",
-                    color: error ? "var(--flo)" : "var(--text2)",
-                    lineHeight: 1.5,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "12px",
+                    padding: "12px 14px",
+                    borderRadius: "14px",
+                    background: "rgba(255,107,129,0.05)",
+                    border: "1px solid rgba(255,107,129,0.14)",
                   }}
                 >
-                  {error ||
-                    "The checker is taking longer than expected. Retry or verify the local runtime."}
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: authErrorMessage ? "var(--flo)" : "var(--text2)",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {authErrorMessage ||
+                      "The runtime looks offline. Verify the local server before trying again."}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={checkRuntime}
+                    disabled={checkingRuntime}
+                    style={{
+                      border: "1px solid rgba(196,72,90,0.34)",
+                      background: "rgba(255,255,255,0.02)",
+                      color: "var(--text2)",
+                      borderRadius: "10px",
+                      fontSize: "10px",
+                      padding: "7px 10px",
+                      cursor: checkingRuntime ? "not-allowed" : "pointer",
+                      whiteSpace: "nowrap",
+                      opacity: checkingRuntime ? 0.55 : 1,
+                    }}
+                  >
+                    {checkingRuntime ? "Checking..." : "Check runtime"}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={checkRuntime}
-                  disabled={checkingRuntime || loading}
-                  style={{
-                    border: "1px solid rgba(196,72,90,0.34)",
-                    background: "rgba(255,255,255,0.02)",
-                    color: "var(--text2)",
-                    borderRadius: "10px",
-                    fontSize: "10px",
-                    padding: "7px 10px",
-                    cursor:
-                      checkingRuntime || loading ? "not-allowed" : "pointer",
-                    whiteSpace: "nowrap",
-                    opacity: checkingRuntime || loading ? 0.55 : 1,
-                  }}
-                >
-                  {checkingRuntime ? "Checking..." : "Check runtime"}
-                </button>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <button
-            type="button"
-            onClick={() => void submit()}
-            disabled={loading}
-            style={{
-              height: "50px",
-              borderRadius: "14px",
-              background: loading
-                ? "linear-gradient(135deg, rgba(110,93,96,0.8) 0%, rgba(92,78,82,0.9) 100%)"
-                : "linear-gradient(135deg, #c4485a 0%, #d4956a 100%)",
-              border: "none",
-              color: "#fff",
-              fontSize: "13px",
-              fontWeight: 800,
-              cursor: loading ? "wait" : "pointer",
-              transition: "all var(--t)",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              boxShadow: loading
-                ? "0 0 0 transparent"
-                : "0 12px 30px rgba(196,72,90,.28)",
-              opacity: loading ? 0.88 : 1,
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            <span
+            <button
+              type="submit"
               style={{
+                height: "50px",
+                borderRadius: "14px",
+                background: "linear-gradient(135deg, #c4485a 0%, #d4956a 100%)",
+                border: "none",
+                color: "#fff",
+                fontSize: "13px",
+                fontWeight: 800,
+                cursor: "pointer",
+                transition: "all var(--t)",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                boxShadow: "0 12px 30px rgba(196,72,90,.28)",
                 position: "relative",
-                zIndex: 1,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
+                overflow: "hidden",
               }}
             >
-              {loading ? "Checking…" : "Connect"}
-              <span style={{ opacity: loading ? 1 : 0.84 }}>
-                {loading ? "●●●" : "→"}
+              <span
+                style={{
+                  position: "relative",
+                  zIndex: 1,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                Connect
+                <span style={{ opacity: 0.84 }}>→</span>
               </span>
-            </span>
-          </button>
+            </button>
+          </form>
 
           <div
             style={{
@@ -787,10 +705,17 @@ export default function AuthGate({ children }: Props) {
               gap: "10px",
             }}
           >
-            {[
-              { label: "runtime", value: runtimeOnline ? "online" : runtimeOnline === false ? "offline" : "checking" },
+            {[ 
+              {
+                label: "runtime",
+                value: runtimeOnline
+                  ? "online"
+                  : runtimeOnline === false
+                    ? "offline"
+                    : "checking",
+              },
               { label: "route", value: tokenRouteWarm },
-              { label: "state", value: loading ? "locked" : "ready" },
+              { label: "state", value: "native submit" },
             ].map((item) => (
               <div
                 key={item.label}

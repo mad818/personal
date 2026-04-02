@@ -48,6 +48,20 @@ const P: Record<string, string> = {
 };
 
 const PX = 3;
+const AGENT_STATUS_BAR_ANIMATIONS_CSS = `
+  @keyframes miniCrabBob {
+    from { transform: translateY(0) }
+    to   { transform: translateY(-3px) }
+  }
+  @keyframes miniAgentBob {
+    from { transform: translateY(0) }
+    to   { transform: translateY(-2px) }
+  }
+  @keyframes bubbleIn {
+    from { opacity: 0; transform: translateY(6px) scale(.96) }
+    to   { opacity: 1; transform: translateY(0) scale(1) }
+  }
+`;
 
 function Sprite({ rows, scale = 1 }: { rows: string[]; scale?: number }) {
   const ps = PX * scale;
@@ -601,20 +615,10 @@ export default function AgentStatusBar() {
         />
       </div>
 
-      <style>{`
-        @keyframes miniCrabBob {
-          from { transform: translateY(0) }
-          to   { transform: translateY(-3px) }
-        }
-        @keyframes miniAgentBob {
-          from { transform: translateY(0) }
-          to   { transform: translateY(-2px) }
-        }
-        @keyframes bubbleIn {
-          from { opacity: 0; transform: translateY(6px) scale(.96) }
-          to   { opacity: 1; transform: translateY(0) scale(1) }
-        }
-      `}</style>
+      <style
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: AGENT_STATUS_BAR_ANIMATIONS_CSS }}
+      />
     </div>
   );
 }

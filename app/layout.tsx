@@ -2,11 +2,16 @@
 // Root layout: global styles, auth gate, navigation, health monitor.
 
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import "./globals.css";
 import {
   assertNexusDoesNotChargeUsers,
   NEXUS_FREE_USE_DESCRIPTION,
 } from "@/lib/productGuarantees";
+import {
+  matchesConfiguredNexusToken,
+  NEXUS_SESSION_COOKIE,
+} from "@/lib/authSession";
 import Nav from "@/components/nav/Nav";
 import AuthGate from "@/components/auth/AuthGate";
 import CommandBar from "@/components/ui/CommandBar";
@@ -19,6 +24,7 @@ import ErrorBoundary from "@/components/system/ErrorBoundary";
 import ClickDebug from "@/components/ui/ClickDebug";
 import ToastContainer from "@/components/ui/Toast";
 import NotificationToastBridge from "@/components/ui/NotificationToastBridge";
+import ParticleBackground from "@/components/ui/ParticleBackground";
 
 assertNexusDoesNotChargeUsers();
 
@@ -49,10 +55,15 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = cookies();
+  const sessionCookie = cookieStore.get(NEXUS_SESSION_COOKIE)?.value ?? "";
+  const initiallyAuthed = matchesConfiguredNexusToken(sessionCookie);
+
   return (
     <html lang="en">
       <body>
-        <AuthGate>
+        <ParticleBackground />
+        <AuthGate initiallyAuthed={initiallyAuthed}>
           <ToastContainer>
             <ErrorBoundary label="RootLayout">
               <Nav />

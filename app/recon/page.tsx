@@ -50,6 +50,7 @@ export default function ReconPage() {
   return (
     <ShellPage
       width="wide"
+      surface="recon"
       eyebrow="Privacy-first reconnaissance"
       title="RECON"
       description="Free-first OSINT workflows for domains, usernames, headers, metadata, and OPSEC checks without forcing paid connectors."

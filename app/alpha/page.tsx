@@ -96,6 +96,7 @@ export default function AlphaPage() {
 
   return (
     <ShellPage
+      surface="alpha"
       eyebrow="Markets and decision support"
       title="ALPHA"
       description="A cleaner trading workspace for watchlists, momentum scans, price context, and risk sizing."

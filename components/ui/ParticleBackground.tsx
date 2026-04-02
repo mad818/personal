@@ -45,24 +45,31 @@ export default function ParticleBackground() {
       driftY: (rand() - 0.5) * 4, // ±2vh drift
     }));
   }, []);
+  const particleAnimationsCss = useMemo(
+    () => `
+      ${particles
+        .map(
+          (p) => `
+        @keyframes particle-drift-${p.id} {
+          0%   { transform: translate(0px, 0px) scale(1);   opacity: ${(p.size / 3) * 0.12}; }
+          25%  { transform: translate(${p.driftX * 0.5}vw, ${p.driftY * 0.3}vh) scale(1.1); }
+          50%  { transform: translate(${p.driftX}vw, ${p.driftY}vh) scale(0.9); opacity: ${(p.size / 3) * 0.08}; }
+          75%  { transform: translate(${p.driftX * 0.3}vw, ${p.driftY * 0.7}vh) scale(1.05); }
+          100% { transform: translate(0px, 0px) scale(1);   opacity: ${(p.size / 3) * 0.12}; }
+        }
+      `,
+        )
+        .join("")}
+    `,
+    [particles],
+  );
 
   return (
     <>
-      <style>{`
-        ${particles
-          .map(
-            (p) => `
-          @keyframes particle-drift-${p.id} {
-            0%   { transform: translate(0px, 0px) scale(1);   opacity: ${(p.size / 3) * 0.12}; }
-            25%  { transform: translate(${p.driftX * 0.5}vw, ${p.driftY * 0.3}vh) scale(1.1); }
-            50%  { transform: translate(${p.driftX}vw, ${p.driftY}vh) scale(0.9); opacity: ${(p.size / 3) * 0.08}; }
-            75%  { transform: translate(${p.driftX * 0.3}vw, ${p.driftY * 0.7}vh) scale(1.05); }
-            100% { transform: translate(0px, 0px) scale(1);   opacity: ${(p.size / 3) * 0.12}; }
-          }
-        `,
-          )
-          .join("")}
-      `}</style>
+      <style
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: particleAnimationsCss }}
+      />
 
       <div
         aria-hidden="true"

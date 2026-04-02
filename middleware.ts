@@ -2,7 +2,10 @@
 // Next.js middleware: authentication, redirects, request logging.
 
 import { NextRequest, NextResponse } from 'next/server'
-import { normalizeTokenCandidate } from '@/lib/authToken'
+import {
+  matchesConfiguredNexusToken,
+  NEXUS_SESSION_COOKIE,
+} from '@/lib/authSession'
 import {
   getRoutePolicy,
   isRouteAllowedInMode,
@@ -65,13 +68,14 @@ export function middleware(req: NextRequest) {
   }
   if (policy.public) return NextResponse.next()
 
-  const token = normalizeTokenCandidate(process.env.NEXUS_TOKEN ?? '')
   const authHeader = req.headers.get('Authorization') ?? ''
-  const bearer = authHeader.startsWith('Bearer ')
-    ? normalizeTokenCandidate(authHeader.slice(7))
-    : ''
+  const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+  const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? ''
+  const authorized =
+    matchesConfiguredNexusToken(bearer) ||
+    matchesConfiguredNexusToken(sessionCookie)
 
-  if (!token || bearer !== token) {
+  if (!authorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

@@ -34,6 +34,7 @@ export default function VaultPage() {
   return (
     <ShellPage
       width="wide"
+      surface="vault"
       eyebrow="Durable archive"
       title="VAULT"
       description="Search, organize, and export saved intelligence artifacts with clearer archive hierarchy."

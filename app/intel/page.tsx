@@ -81,6 +81,7 @@ export default function IntelPage() {
 
   return (
     <ShellPage
+      surface="intel"
       eyebrow="Signals and strategy"
       title="INTEL"
       description="Narrative monitoring, geopolitical posture, and prediction markets with one consistent command-center lens."

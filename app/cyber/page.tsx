@@ -79,6 +79,7 @@ export default function CyberPage() {
   return (
     <ShellPage
       width="wide"
+      surface="cyber"
       eyebrow="Threat monitoring"
       title="CYBER"
       description="Triage vulnerabilities, correlate threat feeds, and monitor exposed posture with cleaner operational hierarchy."

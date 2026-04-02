@@ -67,6 +67,12 @@ const P: Record<string, string> = {
 };
 
 const PX = 3;
+const COMMAND_BAR_ANIMATIONS_CSS = `
+  @keyframes cbAgentBob { from{transform:translateY(0)} to{transform:translateY(-2px)} }
+  @keyframes cbCrabBob  { from{transform:translateY(0)} to{transform:translateY(-3px)} }
+  @keyframes cbDotPulse { 0%,80%,100%{transform:scale(.8);opacity:.5} 40%{transform:scale(1.1);opacity:1} }
+  @keyframes cbPanelIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+`;
 
 function Sprite({ rows, scale = 1 }: { rows: string[]; scale?: number }) {
   const ps = PX * scale;
@@ -1229,12 +1235,10 @@ export default function CommandBar() {
         )}
       </button>
 
-      <style>{`
-        @keyframes cbAgentBob { from{transform:translateY(0)} to{transform:translateY(-2px)} }
-        @keyframes cbCrabBob  { from{transform:translateY(0)} to{transform:translateY(-3px)} }
-        @keyframes cbDotPulse { 0%,80%,100%{transform:scale(.8);opacity:.5} 40%{transform:scale(1.1);opacity:1} }
-        @keyframes cbPanelIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-      `}</style>
+      <style
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: COMMAND_BAR_ANIMATIONS_CSS }}
+      />
     </div>
   );
 }

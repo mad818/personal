@@ -43,6 +43,12 @@ const TYPE_COLOR: Record<MemoryType, string> = {
   episode: "#f59e0b",
   skill_note: "#7c3aed",
 };
+const MEMORY_PANEL_ANIMATIONS_CSS = `
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0 }
+    to   { transform: translateX(0);    opacity: 1 }
+  }
+`;
 
 // ── MemoryCard ────────────────────────────────────────────────────────────────
 
@@ -587,12 +593,10 @@ export default function MemoryPanel({ open, onClose }: MemoryPanelProps) {
         </div>
       </div>
 
-      <style>{`
-        @keyframes slideInRight {
-          from { transform: translateX(100%); opacity: 0 }
-          to   { transform: translateX(0);    opacity: 1 }
-        }
-      `}</style>
+      <style
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: MEMORY_PANEL_ANIMATIONS_CSS }}
+      />
     </>
   );
 }

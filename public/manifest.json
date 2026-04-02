@@ -2,7 +2,7 @@
   "name": "Nexus Prime",
   "short_name": "Nexus",
   "description": "Nexus Prime — self-hosted intel dashboard: markets, cyber, maps, AI agent. Free app; optional BYOK keys for providers.",
-  "start_url": "/",
+  "start_url": "/hq",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0a0708",

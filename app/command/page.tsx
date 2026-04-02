@@ -70,6 +70,7 @@ export default function CommandPage() {
 
       <ShellPage
         width="wide"
+        surface="command"
         eyebrow="Operational Surface"
         title="COMMAND"
         description="Mission control for live telemetry, AI briefings, world risk, and operator decision support."

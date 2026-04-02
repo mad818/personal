@@ -59,7 +59,7 @@
   --elev-1: 0 1px 2px rgba(0, 0, 0, 0.18);
   --elev-2: 0 4px 14px rgba(0, 0, 0, 0.28);
   --ring-subtle: 0 0 0 1px rgba(212,149,106,.18);
-  --top-rail-height: 64px;
+  --top-rail-height: 96px;
   --shell-max-standard: 1180px;
   --shell-max-wide: 1380px;
   --shell-max-full: min(1500px, calc(100vw - 32px));
@@ -99,6 +99,32 @@ body {
     radial-gradient(ellipse 60% 40% at 80% 100%, rgba(212,149,106,.04) 0%, transparent 50%);
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(8, 6, 7, .42), rgba(8, 6, 7, .82)),
+    url("/theme/sadie-wide.jpg") center 12% / cover no-repeat;
+  opacity: .08;
+  transform: scale(1.03);
+  filter: saturate(.92) contrast(1.02);
+  z-index: -2;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 212, 214, .07), transparent 18%),
+    radial-gradient(circle at 78% 14%, rgba(212,149,106,.08), transparent 22%),
+    linear-gradient(135deg, rgba(0,0,0,.08), transparent 30%, rgba(0,0,0,.16) 100%);
+  z-index: -1;
+}
+
 #__next,
 html,
 body {
@@ -109,6 +135,141 @@ body {
   width: 100%;
   margin: 0 auto;
   padding: 18px var(--shell-gutter) 96px;
+  position: relative;
+  z-index: 1;
+}
+
+.nexus-shell-stage {
+  position: relative;
+  isolation: isolate;
+  padding: 22px var(--shell-gutter) 108px;
+}
+
+.nexus-shell-stage__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 28px;
+  border-radius: 36px;
+  background:
+    linear-gradient(180deg, rgba(9,7,8,.16), rgba(9,7,8,.56)),
+    radial-gradient(circle at 14% 16%, rgba(212,149,106,.16), transparent 24%),
+    radial-gradient(circle at 84% 12%, rgba(196,72,90,.18), transparent 26%),
+    linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,0));
+  opacity: .94;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    0 24px 80px rgba(0,0,0,.18);
+}
+
+.nexus-shell-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 36px;
+  background:
+    linear-gradient(90deg, rgba(10,7,8,.95) 0%, rgba(10,7,8,.74) 42%, rgba(10,7,8,.46) 62%, rgba(10,7,8,.90) 100%),
+    url("/theme/sadie-cover.jpg") right 10% top 12% / 520px auto no-repeat;
+  opacity: .28;
+}
+
+.nexus-shell-stage > :not(.nexus-shell-stage__veil) {
+  position: relative;
+  z-index: 1;
+}
+
+.nexus-shell-stage--command .nexus-shell-stage__veil {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(212,149,106,.13), transparent 26%),
+    radial-gradient(circle at 82% 14%, rgba(104, 82, 204, .10), transparent 22%),
+    linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,0));
+}
+
+.nexus-shell-stage--hq::before {
+  background:
+    linear-gradient(90deg, rgba(10,7,8,.94) 0%, rgba(10,7,8,.68) 40%, rgba(10,7,8,.38) 62%, rgba(10,7,8,.92) 100%),
+    url("/theme/sadie-portrait.jpg") right 6% top 10% / 560px auto no-repeat;
+  opacity: .36;
+}
+
+.nexus-shell-stage--command::before {
+  background:
+    linear-gradient(90deg, rgba(10,7,8,.95) 0%, rgba(10,7,8,.74) 42%, rgba(10,7,8,.40) 64%, rgba(10,7,8,.92) 100%),
+    url("/theme/sadie-cover.jpg") right 4% top 8% / 540px auto no-repeat;
+  opacity: .22;
+}
+
+.nexus-shell-stage--intel .nexus-shell-stage__veil {
+  background:
+    radial-gradient(circle at 18% 16%, rgba(79, 110, 247, .11), transparent 24%),
+    radial-gradient(circle at 78% 18%, rgba(212,149,106,.12), transparent 24%),
+    linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,0));
+}
+
+.nexus-shell-stage--intel::before {
+  background:
+    linear-gradient(90deg, rgba(10,7,8,.95) 0%, rgba(10,7,8,.72) 44%, rgba(10,7,8,.38) 66%, rgba(10,7,8,.92) 100%),
+    url("/theme/sadie-armani.jpg") right 7% top 0% / 500px auto no-repeat;
+  opacity: .18;
+}
+
+.nexus-shell-stage--alpha .nexus-shell-stage__veil {
+  background:
+    radial-gradient(circle at 16% 20%, rgba(16,185,129,.10), transparent 24%),
+    radial-gradient(circle at 82% 16%, rgba(212,149,106,.12), transparent 24%),
+    linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,0));
+}
+
+.nexus-shell-stage--alpha::before {
+  background:
+    linear-gradient(90deg, rgba(10,7,8,.95) 0%, rgba(10,7,8,.72) 44%, rgba(10,7,8,.34) 66%, rgba(10,7,8,.92) 100%),
+    url("/theme/sadie-portrait.jpg") right 4% top 4% / 520px auto no-repeat;
+  opacity: .16;
+}
+
+.nexus-shell-stage--cyber .nexus-shell-stage__veil {
+  background:
+    radial-gradient(circle at 16% 20%, rgba(20,184,166,.12), transparent 24%),
+    radial-gradient(circle at 82% 14%, rgba(196,72,90,.10), transparent 22%),
+    linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,0));
+}
+
+.nexus-shell-stage--cyber::before {
+  background:
+    linear-gradient(90deg, rgba(10,7,8,.95) 0%, rgba(10,7,8,.78) 46%, rgba(10,7,8,.36) 66%, rgba(10,7,8,.92) 100%),
+    url("/theme/sadie-cover.jpg") right 8% top 12% / 500px auto no-repeat;
+  opacity: .14;
+}
+
+.nexus-shell-stage--recon .nexus-shell-stage__veil {
+  background:
+    radial-gradient(circle at 14% 22%, rgba(139, 92, 246, .10), transparent 22%),
+    radial-gradient(circle at 82% 16%, rgba(212,149,106,.10), transparent 24%),
+    linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,0));
+}
+
+.nexus-shell-stage--recon::before {
+  background:
+    linear-gradient(90deg, rgba(10,7,8,.95) 0%, rgba(10,7,8,.76) 44%, rgba(10,7,8,.34) 66%, rgba(10,7,8,.92) 100%),
+    url("/theme/sadie-armani.jpg") right 8% top 0% / 500px auto no-repeat;
+  opacity: .15;
+}
+
+.nexus-shell-stage--vault .nexus-shell-stage__veil {
+  background:
+    radial-gradient(circle at 16% 18%, rgba(196,72,90,.12), transparent 24%),
+    radial-gradient(circle at 82% 14%, rgba(127, 90, 240, .09), transparent 22%),
+    linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,0));
+}
+
+.nexus-shell-stage--vault::before {
+  background:
+    linear-gradient(90deg, rgba(10,7,8,.95) 0%, rgba(10,7,8,.76) 44%, rgba(10,7,8,.34) 66%, rgba(10,7,8,.92) 100%),
+    url("/theme/sadie-wide.jpg") right 10% top 18% / 560px auto no-repeat;
+  opacity: .15;
 }
 
 .nexus-shell-page--standard {
@@ -129,11 +290,82 @@ body {
   align-items: flex-end;
   gap: 18px;
   margin-bottom: 20px;
-  padding: 18px 20px;
-  border: 1px solid var(--hairline);
-  border-radius: 20px;
-  background: var(--panel-hero);
-  box-shadow: var(--accent-glow);
+  min-height: clamp(184px, 28vh, 260px);
+  padding: 22px 24px;
+  padding-right: clamp(196px, 26vw, 320px);
+  border: 1px solid rgba(212,149,106,.14);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(33,22,25,.88), rgba(15,10,12,.96)),
+    radial-gradient(circle at 100% 0%, rgba(212,149,106,.10), transparent 28%);
+  box-shadow:
+    0 0 0 1px rgba(196,72,90,.06),
+    0 24px 60px rgba(0,0,0,.45);
+  position: relative;
+  overflow: hidden;
+}
+
+.nexus-shell-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: clamp(188px, 28vw, 360px);
+  background:
+    linear-gradient(90deg, rgba(18,12,14,0) 0%, rgba(18,12,14,.16) 18%, rgba(18,12,14,.02) 100%),
+    url("/theme/sadie-cover.jpg") center 16% / cover no-repeat;
+  opacity: .42;
+  filter: saturate(1.02) contrast(1.02);
+}
+
+.nexus-shell-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(18,12,14,.98) 0%, rgba(18,12,14,.88) 44%, rgba(18,12,14,.48) 72%, rgba(18,12,14,.12) 100%);
+  pointer-events: none;
+}
+
+.nexus-shell-stage--command .nexus-shell-hero::before {
+  background:
+    linear-gradient(90deg, rgba(18,12,14,0) 0%, rgba(18,12,14,.14) 18%, rgba(18,12,14,.02) 100%),
+    url("/theme/sadie-cover.jpg") center 14% / cover no-repeat;
+  opacity: .44;
+}
+
+.nexus-shell-stage--intel .nexus-shell-hero::before {
+  background:
+    linear-gradient(90deg, rgba(18,12,14,0) 0%, rgba(18,12,14,.12) 18%, rgba(18,12,14,.02) 100%),
+    url("/theme/sadie-armani.jpg") center 12% / cover no-repeat;
+  opacity: .38;
+}
+
+.nexus-shell-stage--alpha .nexus-shell-hero::before {
+  background:
+    linear-gradient(90deg, rgba(18,12,14,0) 0%, rgba(18,12,14,.14) 18%, rgba(18,12,14,.02) 100%),
+    url("/theme/sadie-portrait.jpg") center 10% / cover no-repeat;
+  opacity: .48;
+}
+
+.nexus-shell-stage--cyber .nexus-shell-hero::before {
+  background:
+    linear-gradient(90deg, rgba(18,12,14,0) 0%, rgba(18,12,14,.14) 18%, rgba(18,12,14,.02) 100%),
+    url("/theme/sadie-cover.jpg") center 12% / cover no-repeat;
+  opacity: .30;
+}
+
+.nexus-shell-stage--recon .nexus-shell-hero::before {
+  background:
+    linear-gradient(90deg, rgba(18,12,14,0) 0%, rgba(18,12,14,.14) 18%, rgba(18,12,14,.02) 100%),
+    url("/theme/sadie-armani.jpg") center 8% / cover no-repeat;
+  opacity: .34;
+}
+
+.nexus-shell-stage--vault .nexus-shell-hero::before {
+  background:
+    linear-gradient(90deg, rgba(18,12,14,0) 0%, rgba(18,12,14,.14) 18%, rgba(18,12,14,.02) 100%),
+    url("/theme/sadie-wide.jpg") center 18% / cover no-repeat;
+  opacity: .28;
 }
 
 .nexus-shell-hero__copy {
@@ -141,6 +373,8 @@ body {
   flex-direction: column;
   gap: 8px;
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .nexus-shell-actions {
@@ -149,6 +383,8 @@ body {
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  position: relative;
+  z-index: 1;
 }
 
 .nexus-shell-eyebrow {
@@ -172,14 +408,17 @@ body {
   font-size: 14px;
   line-height: 1.6;
   color: var(--text-muted);
+  max-width: 50ch;
 }
 
 .nexus-shell-panel {
   background: var(--panel);
   border: 1px solid var(--hairline);
-  border-radius: 18px;
+  border-radius: 22px;
   padding: 18px;
-  box-shadow: var(--elev-2);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.02),
+    var(--elev-2);
 }
 
 .nexus-shell-panel--muted {
@@ -292,9 +531,10 @@ body {
   flex-wrap: wrap;
   gap: 6px;
   padding: 6px;
-  border-radius: 16px;
+  border-radius: 18px;
   border: 1px solid var(--hairline);
-  background: rgba(255,255,255,0.02);
+  background: rgba(255,255,255,0.024);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
 }
 
 .nexus-shell-segmented__button {
@@ -323,10 +563,172 @@ body {
   box-shadow: inset 0 0 0 1px rgba(212,149,106,.14);
 }
 
+.nexus-toprail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 10px 16px 0;
+}
+
+.nexus-toprail__inner {
+  min-height: var(--top-rail-height);
+  max-width: 1460px;
+  margin: 0 auto;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid rgba(212,149,106,.1);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(18,12,14,.88), rgba(10,7,8,.94)),
+    radial-gradient(circle at 100% 0%, rgba(212,149,106,.08), transparent 24%);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  box-shadow:
+    0 0 0 1px rgba(196,72,90,.04),
+    0 22px 50px rgba(0,0,0,.34);
+}
+
+.nexus-toprail__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: fit-content;
+  text-decoration: none;
+}
+
+.nexus-toprail__eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--accent2);
+}
+
+.nexus-toprail__subtitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: .02em;
+}
+
+.nexus-toprail__tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.nexus-toprail__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.nexus-toprail__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.03);
+  background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+  color: var(--text2);
+  text-decoration: none;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  transition:
+    background var(--t),
+    color var(--t),
+    border-color var(--t),
+    transform var(--t),
+    box-shadow var(--t);
+}
+
+.nexus-toprail__link:hover {
+  color: var(--text);
+  background: linear-gradient(135deg, rgba(196,72,90,.1), rgba(212,149,106,.08));
+  border-color: rgba(212,149,106,.18);
+  transform: translateY(-1px);
+}
+
+.nexus-toprail__link.is-active {
+  color: var(--text-strong);
+  background:
+    linear-gradient(135deg, rgba(196,72,90,.28), rgba(212,149,106,.16));
+  border-color: rgba(212,149,106,.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 8px 24px rgba(196,72,90,.12);
+}
+
+.nexus-toprail__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.nexus-toprail__icon-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+  color: var(--text2);
+  cursor: pointer;
+  transition:
+    background var(--t),
+    color var(--t),
+    border-color var(--t),
+    transform var(--t);
+}
+
+.nexus-toprail__icon-button:hover {
+  background: linear-gradient(135deg, rgba(196,72,90,.12), rgba(212,149,106,.08));
+  border-color: rgba(212,149,106,.2);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.nexus-toprail__badge {
+  position: absolute;
+  top: 6px;
+  right: 5px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #c4485a, #d4956a);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 4px 12px rgba(196,72,90,.28);
+}
+
 @media (max-width: 880px) {
   .nexus-shell-hero {
     flex-direction: column;
     align-items: flex-start;
+    min-height: unset;
+    padding-right: 24px;
   }
 
   .nexus-shell-actions {
@@ -335,6 +737,36 @@ body {
 
   .nexus-shell-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .nexus-shell-hero::before {
+    display: none;
+  }
+
+  .nexus-shell-hero::after {
+    background: linear-gradient(180deg, rgba(18,12,14,.98) 0%, rgba(18,12,14,.94) 100%);
+  }
+
+  .nexus-toprail {
+    padding: 10px 12px 0;
+  }
+
+  .nexus-toprail__inner {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .nexus-toprail__tabs {
+    order: 3;
+    width: 100%;
+  }
+
+  .nexus-toprail__meta {
+    margin-left: auto;
+  }
+
+  .nexus-toprail__subtitle {
+    display: none;
   }
 }
 

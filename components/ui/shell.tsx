@@ -5,6 +5,15 @@ import { clsx } from "clsx";
 import PageTransition from "@/components/ui/PageTransition";
 
 type ShellWidth = "standard" | "wide" | "full";
+type ShellSurface =
+  | "default"
+  | "hq"
+  | "command"
+  | "intel"
+  | "alpha"
+  | "cyber"
+  | "recon"
+  | "vault";
 
 function shellWidthClass(width: ShellWidth) {
   if (width === "wide") return "nexus-shell-page--wide";
@@ -18,6 +27,7 @@ export function ShellPage({
   description,
   actions,
   width = "standard",
+  surface = "default",
   children,
 }: {
   eyebrow?: string;
@@ -25,24 +35,43 @@ export function ShellPage({
   description?: string;
   actions?: ReactNode;
   width?: ShellWidth;
+  surface?: ShellSurface;
   children: ReactNode;
 }) {
   return (
     <PageTransition>
-      <div className={clsx("nexus-shell-page", shellWidthClass(width))}>
-        <header className="nexus-shell-hero">
-          <div className="nexus-shell-hero__copy">
-            {eyebrow ? <div className="nexus-shell-eyebrow">{eyebrow}</div> : null}
-            <h1 className="nexus-shell-title">{title}</h1>
-            {description ? (
-              <p className="nexus-shell-description">{description}</p>
-            ) : null}
-          </div>
-          {actions ? <div className="nexus-shell-actions">{actions}</div> : null}
-        </header>
-        {children}
+      <div className={clsx("nexus-shell-stage", `nexus-shell-stage--${surface}`)}>
+        <div className="nexus-shell-stage__veil" aria-hidden="true" />
+        <div className={clsx("nexus-shell-page", shellWidthClass(width))}>
+          <header className="nexus-shell-hero">
+            <div className="nexus-shell-hero__copy">
+              {eyebrow ? <div className="nexus-shell-eyebrow">{eyebrow}</div> : null}
+              <h1 className="nexus-shell-title">{title}</h1>
+              {description ? (
+                <p className="nexus-shell-description">{description}</p>
+              ) : null}
+            </div>
+            {actions ? <div className="nexus-shell-actions">{actions}</div> : null}
+          </header>
+          {children}
+        </div>
       </div>
     </PageTransition>
+  );
+}
+
+export function ShellStage({
+  surface = "default",
+  children,
+}: {
+  surface?: ShellSurface;
+  children: ReactNode;
+}) {
+  return (
+    <div className={clsx("nexus-shell-stage", `nexus-shell-stage--${surface}`)}>
+      <div className="nexus-shell-stage__veil" aria-hidden="true" />
+      {children}
+    </div>
   );
 }
 

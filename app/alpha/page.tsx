@@ -1,5 +1,5 @@
 // ── alpha/page.tsx ──────────────────────────────────────────
-// MARKETS tab: crypto prices, momentum scanner, buy signals, position sizing.
+// MARKETS tab: crypto prices, scanner flows, sizing, and charts.
 
 "use client";
 
@@ -8,6 +8,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import WatchlistManager from "@/components/alpha/WatchlistManager";
 import { PricesLoader } from "@/components/ui/DataLoader";
+import {
+  SectionLabel,
+  ShellBadge,
+  ShellGrid,
+  ShellPage,
+  ShellPanel,
+  ShellSegmentedTabs,
+  ShellStack,
+} from "@/components/ui/shell";
 import { useStore } from "@/store/useStore";
 
 type MarketsView =
@@ -17,6 +26,7 @@ type MarketsView =
   | "sizer"
   | "prices"
   | "charts";
+
 const VIEWS: Array<{ id: MarketsView; label: string }> = [
   { id: "watchlist", label: "⭐ WATCHLIST" },
   { id: "signals", label: "🤖 SIGNALS" },
@@ -85,190 +95,70 @@ export default function AlphaPage() {
   }, [view]);
 
   return (
-    <div
-      style={{
-        maxWidth: "1100px",
-        margin: "0 auto",
-        padding: "18px 16px 40px",
-        position: "relative",
-        zIndex: 5,
-      }}
+    <ShellPage
+      eyebrow="Markets and decision support"
+      title="ALPHA"
+      description="A cleaner trading workspace for watchlists, momentum scans, price context, and risk sizing."
+      actions={
+        <>
+          <ShellBadge tone="accent">Decision support</ShellBadge>
+          <ShellBadge tone="success">Free public data</ShellBadge>
+        </>
+      }
     >
       <PricesLoader />
 
-      <div style={{ marginBottom: "20px" }}>
-        <div style={{ fontSize: "18px", fontWeight: 900 }}>📈 MARKETS</div>
-        <div
-          style={{ fontSize: "12px", color: "var(--text2)", marginTop: "2px" }}
-        >
-          Crypto · Momentum scanner · Buy signals · Position sizing · Price
-          tracking · TradingView charts
-        </div>
-      </div>
+      <ShellStack>
+        <ShellSegmentedTabs items={VIEWS} active={view} onChange={setView} minButtonWidth={120} />
 
-      {/* ── Sub-tabs ── */}
-      <div
-        style={{
-          display: "flex",
-          gap: "4px",
-          marginBottom: "16px",
-          background: "var(--surf2)",
-          border: "1px solid var(--border)",
-          borderRadius: "8px",
-          padding: "3px",
-          flexWrap: "wrap",
-          position: "relative",
-          zIndex: 2001,
-          pointerEvents: "auto",
-        }}
-      >
-        {VIEWS.map((v) => (
-          <button
-            key={v.id}
-            type="button"
-            onPointerDown={() => setView(v.id)}
-            style={{
-              flex: "1 1 140px",
-              padding: "6px 8px",
-              borderRadius: "6px",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "11px",
-              fontWeight: 800,
-              letterSpacing: "0.3px",
-              transition: "all .15s",
-              background: view === v.id ? "var(--accent)" : "transparent",
-              color: view === v.id ? "#fff" : "var(--text2)",
-              minWidth: 120,
-            }}
-            aria-pressed={view === v.id}
-          >
-            {v.label}
-          </button>
-        ))}
-      </div>
-      {view === "watchlist" && (
-        <div style={{ marginBottom: "16px" }}>
-          <div
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: "var(--text3)",
-              textTransform: "uppercase",
-              letterSpacing: "0.8px",
-              marginBottom: "10px",
-            }}
-          >
-            Watchlist
-          </div>
-          <WatchlistManager />
-          <div style={{ marginTop: "20px" }}>
-            <div
-              style={{
-                fontSize: "11px",
-                fontWeight: 700,
-                color: "var(--text3)",
-                textTransform: "uppercase",
-                letterSpacing: "0.8px",
-                marginBottom: "10px",
-              }}
-            >
-              7-Day Sparklines — Tracked Coins
-            </div>
-            <LazyPriceSparklines />
-          </div>
-        </div>
-      )}
+        {view === "watchlist" && (
+          <ShellGrid columns="minmax(0, 1fr) minmax(320px, 0.95fr)" align="start">
+            <ShellPanel>
+              <SectionLabel>Watchlist manager</SectionLabel>
+              <WatchlistManager />
+            </ShellPanel>
+            <ShellPanel tone="muted">
+              <SectionLabel detail="Tracked 7-day motion">Sparklines</SectionLabel>
+              <LazyPriceSparklines />
+            </ShellPanel>
+          </ShellGrid>
+        )}
 
-      {view === "signals" && (
-        <div style={{ marginBottom: "28px" }}>
-          <div
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: "var(--text3)",
-              textTransform: "uppercase",
-              letterSpacing: "0.8px",
-              marginBottom: "10px",
-            }}
-          >
-            Buy / Sell Signals
-          </div>
-          <LazyBuyBot />
-        </div>
-      )}
+        {view === "signals" && (
+          <ShellPanel>
+            <SectionLabel detail="Buy / sell signal board">Signal engine</SectionLabel>
+            <LazyBuyBot />
+          </ShellPanel>
+        )}
 
-      {view === "scanner" && (
-        <div style={{ marginBottom: "28px" }}>
-          <div
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: "var(--text3)",
-              textTransform: "uppercase",
-              letterSpacing: "0.8px",
-              marginBottom: "10px",
-            }}
-          >
-            Momentum Signals
-          </div>
-          <LazyMomentumScanner />
-        </div>
-      )}
+        {view === "scanner" && (
+          <ShellPanel>
+            <SectionLabel detail="Momentum and setup detection">Momentum scanner</SectionLabel>
+            <LazyMomentumScanner />
+          </ShellPanel>
+        )}
 
-      {view === "sizer" && (
-        <div style={{ marginBottom: "28px" }}>
-          <div
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: "var(--text3)",
-              textTransform: "uppercase",
-              letterSpacing: "0.8px",
-              marginBottom: "10px",
-            }}
-          >
-            Position Sizer — Fixed Risk &amp; Kelly Criterion
-          </div>
-          <LazyPositionSizer />
-        </div>
-      )}
+        {view === "sizer" && (
+          <ShellPanel>
+            <SectionLabel detail="Fixed risk and Kelly sizing">Position sizer</SectionLabel>
+            <LazyPositionSizer />
+          </ShellPanel>
+        )}
 
-      {view === "prices" && (
-        <div>
-          <div
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: "var(--text3)",
-              textTransform: "uppercase",
-              letterSpacing: "0.8px",
-              marginBottom: "10px",
-            }}
-          >
-            Price Overview
-          </div>
-          <LazyPriceGrid />
-        </div>
-      )}
+        {view === "prices" && (
+          <ShellPanel>
+            <SectionLabel detail="Top-level market overview">Price grid</SectionLabel>
+            <LazyPriceGrid />
+          </ShellPanel>
+        )}
 
-      {view === "charts" && (
-        <div style={{ marginBottom: "28px" }}>
-          <div
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: "var(--text3)",
-              textTransform: "uppercase",
-              letterSpacing: "0.8px",
-              marginBottom: "10px",
-            }}
-          >
-            TradingView — legacy StockBot embeds
-          </div>
-          <LazyTradingViewMarkets />
-        </div>
-      )}
-    </div>
+        {view === "charts" && (
+          <ShellPanel>
+            <SectionLabel detail="Legacy TradingView embeds">Charts</SectionLabel>
+            <LazyTradingViewMarkets />
+          </ShellPanel>
+        )}
+      </ShellStack>
+    </ShellPage>
   );
 }

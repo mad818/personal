@@ -2,16 +2,16 @@
 // This is shared by Home chat and HQ chat so capability routing stays consistent.
 
 export type NexusRoute =
-  | "/home"
-  | "/signals"
+  | "/hq"
+  | "/labs/signals"
   | "/alpha"
-  | "/ops"
+  | "/labs/ops"
   | "/intel"
   | "/cyber"
-  | "/security"
-  | "/skills"
-  | "/vehicle"
-  | "/iot"
+  | "/labs/security"
+  | "/internal/skills"
+  | "/internal/vehicle"
+  | "/internal/iot"
   | "/vault";
 
 const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
@@ -28,7 +28,7 @@ const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
     ],
   },
   {
-    route: "/security",
+    route: "/labs/security",
     keywords: [
       "camera",
       "drone",
@@ -53,7 +53,7 @@ const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
     ],
   },
   {
-    route: "/signals",
+    route: "/labs/signals",
     keywords: [
       "news",
       "headlines",
@@ -65,7 +65,7 @@ const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
     ],
   },
   {
-    route: "/ops",
+    route: "/labs/ops",
     keywords: [
       "earthquake",
       "conflict",
@@ -91,7 +91,7 @@ const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
     ],
   },
   {
-    route: "/skills",
+    route: "/internal/skills",
     keywords: [
       "skill",
       "learning",
@@ -101,7 +101,7 @@ const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
     ],
   },
   {
-    route: "/vehicle",
+    route: "/internal/vehicle",
     keywords: [
       "vehicle",
       "telemetry",
@@ -111,7 +111,7 @@ const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
     ],
   },
   {
-    route: "/iot",
+    route: "/internal/iot",
     keywords: [
       "iot",
       "mqtt",
@@ -128,24 +128,24 @@ const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
 ];
 
 const TOOL_TO_ROUTE: Record<string, NexusRoute | null> = {
-  web_search: "/signals",
-  fetch_url: "/signals",
+  web_search: "/labs/signals",
+  fetch_url: "/labs/signals",
   calculate: "/alpha",
-  remember: "/skills",
-  recall: "/skills",
+  remember: "/internal/skills",
+  recall: "/internal/skills",
   write_file: "/vault",
   read_file: "/vault",
   list_files: "/vault",
-  read_project_file: "/skills",
-  list_project_files: "/skills",
-  patch_project_file: "/skills",
-  create_project_file: "/skills",
-  propose_project_edit: "/skills",
-  ask_max: "/home",
-  navigate_to: "/home",
-  read_current_tab: "/home",
-  click_element: "/home",
-  type_text: "/home",
+  read_project_file: "/internal/skills",
+  list_project_files: "/internal/skills",
+  patch_project_file: "/internal/skills",
+  create_project_file: "/internal/skills",
+  propose_project_edit: "/internal/skills",
+  ask_max: "/hq",
+  navigate_to: "/hq",
+  read_current_tab: "/hq",
+  click_element: "/hq",
+  type_text: "/hq",
 };
 
 export function detectRouteFromPrompt(prompt: string): NexusRoute | null {

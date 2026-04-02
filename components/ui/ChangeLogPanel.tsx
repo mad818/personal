@@ -194,6 +194,7 @@ export default function ChangeLogPanel() {
               {changeLog.length} entries
             </span>
             <button
+              type="button"
               onClick={() => setOpen(false)}
               style={{
                 fontSize: "12px",
@@ -220,6 +221,7 @@ export default function ChangeLogPanel() {
 
       {/* ── Trigger pill ─────────────────────────────────────────────────── */}
       <button
+        type="button"
         onClick={() => setOpen((v) => !v)}
         style={{
           pointerEvents: "auto",

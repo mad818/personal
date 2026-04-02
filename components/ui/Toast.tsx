@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type ReactNode,
   useState,
   useEffect,
   useCallback,
@@ -156,6 +157,7 @@ function ToastCard({
             {item.severity}
           </span>
           <button
+            type="button"
             onClick={() => onDismiss(item.id)}
             style={{
               background: "transparent",
@@ -211,7 +213,11 @@ function ToastCard({
 }
 
 // ── Toast container — add to layout ───────────────────────────────────────────
-export default function ToastContainer() {
+export default function ToastContainer({
+  children,
+}: {
+  children?: ReactNode;
+}) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const dismiss = useCallback((id: string) => {
@@ -238,6 +244,7 @@ export default function ToastContainer() {
 
   return (
     <ToastContext.Provider value={{ toast: addToast }}>
+      {children}
       <div
         aria-live="polite"
         style={{

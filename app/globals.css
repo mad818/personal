@@ -59,6 +59,20 @@
   --elev-1: 0 1px 2px rgba(0, 0, 0, 0.18);
   --elev-2: 0 4px 14px rgba(0, 0, 0, 0.28);
   --ring-subtle: 0 0 0 1px rgba(212,149,106,.18);
+  --top-rail-height: 64px;
+  --shell-max-standard: 1180px;
+  --shell-max-wide: 1380px;
+  --shell-max-full: min(1500px, calc(100vw - 32px));
+  --shell-gutter: clamp(16px, 2vw, 24px);
+  --panel: rgba(17, 13, 14, 0.92);
+  --panel-muted: rgba(17, 13, 14, 0.74);
+  --panel-hero: linear-gradient(180deg, rgba(34,26,28,.88), rgba(17,13,14,.94));
+  --hairline: rgba(196,72,90,0.16);
+  --hairline-strong: rgba(212,149,106,0.22);
+  --text-strong: #fff5f6;
+  --text-muted: #b9959e;
+  --text-subtle: #7a5d63;
+  --accent-glow: 0 0 0 1px rgba(196,72,90,.12), 0 16px 48px rgba(0,0,0,.45);
 }
 
 /* ── Openclaw animations ─────────────────────────────────────────────────────── */
@@ -83,6 +97,245 @@ body {
   background-image:
     radial-gradient(ellipse 80% 50% at 50% -20%, rgba(196,72,90,.08) 0%, transparent 60%),
     radial-gradient(ellipse 60% 40% at 80% 100%, rgba(212,149,106,.04) 0%, transparent 50%);
+}
+
+#__next,
+html,
+body {
+  min-height: 100%;
+}
+
+.nexus-shell-page {
+  width: 100%;
+  margin: 0 auto;
+  padding: 18px var(--shell-gutter) 96px;
+}
+
+.nexus-shell-page--standard {
+  max-width: var(--shell-max-standard);
+}
+
+.nexus-shell-page--wide {
+  max-width: var(--shell-max-wide);
+}
+
+.nexus-shell-page--full {
+  max-width: var(--shell-max-full);
+}
+
+.nexus-shell-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--hairline);
+  border-radius: 20px;
+  background: var(--panel-hero);
+  box-shadow: var(--accent-glow);
+}
+
+.nexus-shell-hero__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nexus-shell-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.nexus-shell-eyebrow {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 800;
+  color: var(--accent2);
+}
+
+.nexus-shell-title {
+  font-size: clamp(26px, 5vw, 38px);
+  line-height: 1.02;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--text-strong);
+}
+
+.nexus-shell-description {
+  max-width: 740px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.nexus-shell-panel {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: var(--elev-2);
+}
+
+.nexus-shell-panel--muted {
+  background: var(--panel-muted);
+}
+
+.nexus-shell-panel--hero {
+  background: var(--panel-hero);
+  border-color: var(--hairline-strong);
+}
+
+.nexus-shell-panel--dense {
+  padding: 14px;
+}
+
+.nexus-shell-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nexus-stack-gap, 16px);
+}
+
+.nexus-shell-grid {
+  display: grid;
+  grid-template-columns: var(--nexus-grid-columns);
+  gap: var(--nexus-grid-gap, 16px);
+}
+
+.nexus-shell-section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.nexus-shell-section-label__detail {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+}
+
+.nexus-shell-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: rgba(255,255,255,0.02);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text2);
+}
+
+.nexus-shell-badge--accent {
+  color: var(--accent2);
+  border-color: rgba(212,149,106,.26);
+  background: rgba(212,149,106,.08);
+}
+
+.nexus-shell-badge--success {
+  color: #b7ffce;
+  border-color: rgba(16,185,129,.28);
+  background: rgba(16,185,129,.1);
+}
+
+.nexus-shell-badge--muted {
+  color: var(--text3);
+  background: rgba(255,255,255,0.01);
+}
+
+.nexus-shell-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: rgba(255,255,255,0.02);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t), border-color var(--t), color var(--t), transform var(--t);
+}
+
+.nexus-shell-button:hover {
+  background: rgba(196,72,90,.08);
+  border-color: rgba(196,72,90,.24);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.nexus-shell-button.is-active {
+  color: var(--text-strong);
+  background: linear-gradient(135deg, rgba(196,72,90,.2), rgba(212,149,106,.18));
+  border-color: rgba(212,149,106,.26);
+}
+
+.nexus-shell-segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid var(--hairline);
+  background: rgba(255,255,255,0.02);
+}
+
+.nexus-shell-segmented__button {
+  flex: 1 1 132px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-subtle);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background var(--t), color var(--t), box-shadow var(--t), transform var(--t);
+}
+
+.nexus-shell-segmented__button:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+}
+
+.nexus-shell-segmented__button.is-active {
+  color: var(--text-strong);
+  background: linear-gradient(135deg, rgba(196,72,90,.26), rgba(212,149,106,.16));
+  box-shadow: inset 0 0 0 1px rgba(212,149,106,.14);
+}
+
+@media (max-width: 880px) {
+  .nexus-shell-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nexus-shell-actions {
+    justify-content: flex-start;
+  }
+
+  .nexus-shell-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* compact card utility for dense dashboard modules */

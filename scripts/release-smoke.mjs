@@ -53,6 +53,28 @@ async function main() {
   if (!tokenMetrics.ok) fail(`/api/token GET returned ${tokenMetrics.status}`);
   console.log(`✅ /api/token ${tokenMetrics.status}`);
 
+  const invalidTokenRes = await check("/api/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: "__invalid_nexus_token__" }),
+  });
+  if (invalidTokenRes.status !== 401) {
+    fail(`/api/token invalid auth expected 401, got ${invalidTokenRes.status}`);
+  }
+  console.log(`✅ /api/token invalid auth ${invalidTokenRes.status}`);
+
+  if (token) {
+    const validTokenRes = await check("/api/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+    if (!validTokenRes.ok || validTokenRes.json?.code !== "ok") {
+      fail(`/api/token valid auth expected ok, got ${validTokenRes.status}`);
+    }
+    console.log(`✅ /api/token valid auth ${validTokenRes.status}`);
+  }
+
   for (const surface of gaSurfaces) {
     const res = await check(surface.href);
     if (!res.ok) fail(`${surface.href} returned ${res.status}`);

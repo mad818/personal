@@ -1,12 +1,21 @@
 // ── intel/page ──────────────────────────────────────────────
-// INTEL tab: Polymarket prediction odds, Porter 5 Forces, VRIO, BCG Matrix.
+// INTEL tab: narrative monitoring, geopolitical posture, prediction markets.
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { ArticlesLoader } from "@/components/ui/DataLoader";
+import {
+  SectionLabel,
+  ShellBadge,
+  ShellGrid,
+  ShellPage,
+  ShellPanel,
+  ShellSegmentedTabs,
+  ShellStack,
+} from "@/components/ui/shell";
 import { useStore } from "@/store/useStore";
 import { AlphaEarthCard } from "@/components/ops/AlphaEarthCard";
 
@@ -36,81 +45,12 @@ const LazyOpsMap = dynamic(() => import("@/components/ops/OpsMap"), {
   ssr: false,
 });
 
-// ── Segmented control ─────────────────────────────────────────────────────────
 type Segment = "news" | "world" | "markets";
 const SEGMENTS: { id: Segment; label: string }[] = [
   { id: "news", label: "📰 NEWS" },
   { id: "world", label: "🌍 GEOPOLITICAL" },
   { id: "markets", label: "📊 PREDICTION" },
 ];
-
-function CollapsibleSection({
-  title,
-  children,
-  defaultOpen = false,
-}: {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div style={{ marginBottom: "8px" }}>
-      <button
-        onClick={() => setOpen((v: boolean) => !v)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          width: "100%",
-          background: "var(--surf2)",
-          border: "1px solid var(--border)",
-          borderRadius: open ? "8px 8px 0 0" : "8px",
-          padding: "9px 14px",
-          cursor: "pointer",
-          textAlign: "left",
-          transition: "border-radius .15s",
-        }}
-      >
-        <span
-          style={{
-            fontSize: "9px",
-            color: "var(--text3)",
-            transition: "transform .15s",
-            display: "inline-block",
-            transform: open ? "rotate(90deg)" : "none",
-          }}
-        >
-          ▶
-        </span>
-        <span
-          style={{
-            fontSize: "11px",
-            fontWeight: 700,
-            color: "var(--text3)",
-            letterSpacing: ".08em",
-            textTransform: "uppercase",
-          }}
-        >
-          {title}
-        </span>
-      </button>
-      {open && (
-        <div
-          style={{
-            padding: "16px",
-            background: "var(--surf2)",
-            border: "1px solid var(--border)",
-            borderTop: "none",
-            borderRadius: "0 0 8px 8px",
-          }}
-        >
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function IntelPage() {
   const searchParams = useSearchParams();
@@ -126,13 +66,11 @@ export default function IntelPage() {
       : null;
   }, [searchParams]);
 
-  // URL → store (so deep links win on first load / navigation)
   useEffect(() => {
     if (!urlSeg) return;
     setSeg(urlSeg);
   }, [urlSeg, setSeg]);
 
-  // Keep URL in sync when segment changes (shareable deep links).
   useEffect(() => {
     const params = new URLSearchParams(searchParams?.toString() ?? "");
     if ((params.get("view") ?? "").toLowerCase() === seg) return;
@@ -142,149 +80,86 @@ export default function IntelPage() {
   }, [seg]);
 
   return (
-    <div
-      style={{
-        maxWidth: "1100px",
-        margin: "0 auto",
-        padding: "18px 16px 80px",
-        position: "relative",
-        zIndex: 5,
-      }}
+    <ShellPage
+      eyebrow="Signals and strategy"
+      title="INTEL"
+      description="Narrative monitoring, geopolitical posture, and prediction markets with one consistent command-center lens."
+      actions={
+        <>
+          <ShellBadge tone="accent">Narrative aware</ShellBadge>
+          <ShellBadge tone="muted">Shareable view state</ShellBadge>
+        </>
+      }
     >
       <ArticlesLoader />
 
-      <div style={{ marginBottom: "18px" }}>
-        <div style={{ fontSize: "18px", fontWeight: 900 }}>📡 INTEL</div>
-        <div
-          style={{ fontSize: "12px", color: "var(--text2)", marginTop: "2px" }}
-        >
-          News signals · Geopolitical risk · Prediction markets · Strategy tools
-        </div>
-      </div>
+      <ShellStack>
+        <ShellSegmentedTabs items={SEGMENTS} active={seg} onChange={setSeg} />
 
-      {/* ── Segmented control ── */}
-      <div
-        style={{
-          display: "flex",
-          gap: "4px",
-          marginBottom: "20px",
-          background: "var(--surf2)",
-          border: "1px solid var(--border)",
-          borderRadius: "8px",
-          padding: "3px",
-          position: "relative",
-          zIndex: 2001,
-          pointerEvents: "auto",
-        }}
-      >
-        {SEGMENTS.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            onPointerDown={() => setSeg(s.id)}
-            style={{
-              flex: 1,
-              padding: "6px 8px",
-              borderRadius: "6px",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "11px",
-              fontWeight: 700,
-              letterSpacing: "0.3px",
-              transition: "all .15s",
-              background: seg === s.id ? "var(--accent)" : "transparent",
-              color: seg === s.id ? "#fff" : "var(--text2)",
-            }}
-            aria-pressed={seg === s.id}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
-      {/* ── NEWS ── */}
-      {seg === "news" && (
-        <div>
-          <div
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: "var(--text3)",
-              letterSpacing: ".08em",
-              textTransform: "uppercase",
-              marginBottom: "12px",
-            }}
-          >
-            Live News · Topic Heatmap
-          </div>
-          <LazyTopicHeatmap />
-        </div>
-      )}
+        {seg === "news" && (
+          <ShellGrid columns="minmax(0, 1.05fr) minmax(320px, 0.95fr)" align="start">
+            <ShellPanel>
+              <SectionLabel detail="Topic clustering and narrative density">
+                Topic heatmap
+              </SectionLabel>
+              <LazyTopicHeatmap />
+            </ShellPanel>
+            <ShellPanel>
+              <SectionLabel detail="Live source stream">Conflict feed</SectionLabel>
+              <LazyConflictFeed />
+            </ShellPanel>
+          </ShellGrid>
+        )}
 
-      {/* ── GEOPOLITICAL ── */}
-      {seg === "world" && (
-        <div>
-          <div
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: "var(--text3)",
-              letterSpacing: ".08em",
-              textTransform: "uppercase",
-              marginBottom: "12px",
-            }}
-          >
-            Intelligence Signals
-          </div>
-          <LazyWorldTopicHeatmap />
+        {seg === "world" && (
+          <ShellStack>
+            <ShellPanel>
+              <SectionLabel detail="Global posture and concentration">
+                World risk map
+              </SectionLabel>
+              <LazyWorldTopicHeatmap />
+            </ShellPanel>
 
-          <div
-            style={{
-              margin: "20px 0",
-              height: "1px",
-              background: "var(--border)",
-            }}
-          />
+            <ShellGrid columns="minmax(0, 1fr) minmax(320px, 0.95fr)" align="start">
+              <ShellPanel>
+                <SectionLabel>Conflict impact assessment</SectionLabel>
+                <LazyGeoHeatmap />
+              </ShellPanel>
+              <ShellPanel tone="muted">
+                <SectionLabel>Market rates</SectionLabel>
+                <LazyMarketRates />
+              </ShellPanel>
+            </ShellGrid>
 
-          <div
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: "var(--text3)",
-              letterSpacing: ".08em",
-              textTransform: "uppercase",
-              marginBottom: "12px",
-            }}
-          >
-            Conflict Impact Assessment
-          </div>
-          <LazyGeoHeatmap />
+            <ShellPanel>
+              <SectionLabel detail="Flights, fires, quakes, and theater context">
+                Live operations map
+              </SectionLabel>
+              <LazyOpsMap />
+            </ShellPanel>
 
-          <div
-            style={{
-              margin: "20px 0",
-              height: "1px",
-              background: "var(--border)",
-            }}
-          />
+            <ShellPanel tone="muted">
+              <SectionLabel>Alpha Earth</SectionLabel>
+              <AlphaEarthCard />
+            </ShellPanel>
+          </ShellStack>
+        )}
 
-          <CollapsibleSection title="Raw Conflict Feed (GDELT)">
-            <LazyConflictFeed />
-          </CollapsibleSection>
-          <CollapsibleSection title="FX Rates &amp; Commodities">
-            <LazyMarketRates />
-          </CollapsibleSection>
-          <CollapsibleSection
-            title="Live Map — quakes, flights, fires (free public data)"
-            defaultOpen
-          >
-            <LazyOpsMap />
-            <AlphaEarthCard />
-          </CollapsibleSection>
-        </div>
-      )}
-
-      {/* ── PREDICTION MARKETS ── */}
-      {seg === "markets" && <LazyPolymarketFeed />}
-    </div>
+        {seg === "markets" && (
+          <ShellGrid columns="minmax(0, 1.1fr) minmax(320px, 0.9fr)">
+            <ShellPanel>
+              <SectionLabel detail="Market consensus and changing odds">
+                Prediction markets
+              </SectionLabel>
+              <LazyPolymarketFeed />
+            </ShellPanel>
+            <ShellPanel tone="muted">
+              <SectionLabel>Macro rate context</SectionLabel>
+              <LazyMarketRates />
+            </ShellPanel>
+          </ShellGrid>
+        )}
+      </ShellStack>
+    </ShellPage>
   );
 }

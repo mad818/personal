@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
+import { normalizeTokenCandidate } from "@/lib/authToken";
 
 type AttemptInfo = { count: number; resetAt: number };
 type TokenCode =
@@ -100,8 +101,10 @@ export async function POST(req: NextRequest) {
 
     const rawBody = (await req.json()) as { token?: unknown };
     const token =
-      typeof rawBody.token === "string" ? rawBody.token.trim() : undefined;
-    const serverToken = (process.env.NEXUS_TOKEN ?? "").trim();
+      typeof rawBody.token === "string"
+        ? normalizeTokenCandidate(rawBody.token)
+        : undefined;
+    const serverToken = normalizeTokenCandidate(process.env.NEXUS_TOKEN ?? "");
 
     if (!serverToken) {
       return tokenJson(

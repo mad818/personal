@@ -70,8 +70,12 @@ function main() {
     ),
     check(
       'verification adapters',
-      /runVerificationAdapters/.test(agent) && /\/api\/verify/.test(agent) && /typecheck/.test(verifyRoute),
-      'Verification flow wired to typecheck/lint/route smoke',
+      /runVerificationAdapters/.test(agent) &&
+        /\/api\/verify/.test(agent) &&
+        /typecheck/.test(verifyRoute) &&
+        /route_integrity/.test(agent) &&
+        /route_integrity/.test(verifyRoute),
+      'Verification flow wired to typecheck/lint/route smoke/route integrity',
       'reliability',
       3,
     ),

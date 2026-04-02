@@ -14,11 +14,7 @@
 $ErrorActionPreference = "Stop"
 
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
-<<<<<<< ours
-$URL        = "http://localhost:3000"
-=======
-$URL        = "http://localhost:3000/home"
->>>>>>> theirs
+$URL        = "http://localhost:3000/hq"
 
 function OK   { param([string]$msg) Write-Host "  [OK] $msg" -ForegroundColor Green }
 function WARN { param([string]$msg) Write-Host "  [ ! ] $msg" -ForegroundColor Yellow }

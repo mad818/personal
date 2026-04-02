@@ -17,6 +17,8 @@ import ChangeLogPanel from "@/components/ui/ChangeLogPanel";
 import CronSchedulerRunner from "@/components/ui/CronSchedulerRunner";
 import ErrorBoundary from "@/components/system/ErrorBoundary";
 import ClickDebug from "@/components/ui/ClickDebug";
+import ToastContainer from "@/components/ui/Toast";
+import NotificationToastBridge from "@/components/ui/NotificationToastBridge";
 
 assertNexusDoesNotChargeUsers();
 
@@ -51,23 +53,26 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AuthGate>
-          <ErrorBoundary label="RootLayout">
-            <Nav />
-            <main style={{ paddingTop: "48px", minHeight: "100vh" }}>
-              {children}
-            </main>
-            {/* Global data — loads articles + keyword alerts on every page */}
-            <GlobalDataLoader />
-            <ArticlesLoader />
-            <CronSchedulerRunner />
-            {/* Global command dock — persists across all tabs */}
-            <CommandBar />
-            <ClickDebug />
-            {/* Proposed edit overlay — agent proposes, user approves/rejects */}
-            <ProposedEditPanel />
-            {/* Audit trail — all applied/rejected changes */}
-            <ChangeLogPanel />
-          </ErrorBoundary>
+          <ToastContainer>
+            <ErrorBoundary label="RootLayout">
+              <Nav />
+              <main style={{ paddingTop: "var(--top-rail-height)", minHeight: "100vh" }}>
+                {children}
+              </main>
+              {/* Global data — loads articles + keyword alerts on every page */}
+              <GlobalDataLoader />
+              <ArticlesLoader />
+              <CronSchedulerRunner />
+              <NotificationToastBridge />
+              {/* Global command dock — persists across all tabs */}
+              <CommandBar />
+              <ClickDebug />
+              {/* Proposed edit overlay — agent proposes, user approves/rejects */}
+              <ProposedEditPanel />
+              {/* Audit trail — all applied/rejected changes */}
+              <ChangeLogPanel />
+            </ErrorBoundary>
+          </ToastContainer>
         </AuthGate>
       </body>
     </html>

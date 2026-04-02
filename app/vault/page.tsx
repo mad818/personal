@@ -1,9 +1,17 @@
 // ── vault/page ──────────────────────────────────────────────
-// VAULT tab: bookmarked articles, search, folders, export.
+// VAULT tab: archive, search, folders, and export surfaces.
 
 "use client";
 
 import dynamic from "next/dynamic";
+import {
+  SectionLabel,
+  ShellBadge,
+  ShellGrid,
+  ShellPage,
+  ShellPanel,
+  ShellStack,
+} from "@/components/ui/shell";
 
 const LazyVaultSearch = dynamic(
   () => import("@/components/vault/VaultSearch"),
@@ -22,70 +30,45 @@ const LazySavedArticles = dynamic(
   { ssr: false },
 );
 
-function Card({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        background: "var(--surf)",
-        border: "1px solid var(--border)",
-        borderRadius: "12px",
-        padding: "14px",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
 export default function VaultPage() {
   return (
-    <div style={{ padding: "18px 16px", maxWidth: "1200px", margin: "0 auto" }}>
-      <div style={{ marginBottom: "16px" }}>
-        <h1
-          style={{
-            fontSize: "18px",
-            fontWeight: 900,
-            color: "var(--text)",
-            margin: 0,
-          }}
-        >
-          🗂 VAULT
-        </h1>
-        <p
-          style={{ fontSize: "12px", color: "var(--text3)", margin: "4px 0 0" }}
-        >
-          Saved articles, research, and intelligence
-        </p>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "200px 1fr",
-          gap: "14px",
-          alignItems: "start",
-        }}
-      >
-        {/* Left sidebar — folders + export */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          <Card>
+    <ShellPage
+      width="wide"
+      eyebrow="Durable archive"
+      title="VAULT"
+      description="Search, organize, and export saved intelligence artifacts with clearer archive hierarchy."
+      actions={
+        <>
+          <ShellBadge tone="accent">Local archive</ShellBadge>
+          <ShellBadge tone="muted">Export ready</ShellBadge>
+        </>
+      }
+    >
+      <ShellGrid columns="minmax(240px, 0.28fr) minmax(0, 0.72fr)" align="start">
+        <ShellStack>
+          <ShellPanel>
+            <SectionLabel>Folders</SectionLabel>
             <LazyVaultFolders active="All" onSelect={() => {}} />
-          </Card>
-          <Card>
+          </ShellPanel>
+          <ShellPanel tone="muted">
+            <SectionLabel>Export</SectionLabel>
             <LazyVaultExport />
-          </Card>
-        </div>
+          </ShellPanel>
+        </ShellStack>
 
-        {/* Main — search + articles (components manage own state) */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          <Card>
+        <ShellStack>
+          <ShellPanel>
+            <SectionLabel detail="Title, summary, and tag filtering">Search</SectionLabel>
             <LazyVaultSearch onChange={() => {}} />
-          </Card>
-          <Card>
+          </ShellPanel>
+          <ShellPanel>
+            <SectionLabel detail="Saved reports and intelligence clips">
+              Saved articles
+            </SectionLabel>
             <LazySavedArticles />
-          </Card>
-        </div>
-      </div>
-    </div>
+          </ShellPanel>
+        </ShellStack>
+      </ShellGrid>
+    </ShellPage>
   );
 }

@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useStore } from "@/store/useStore";
+import { normalizeSurfaceHref } from "@/lib/releaseMatrix";
 
 // ── Pixel palette ─────────────────────────────────────────────────────────────
 const P: Record<string, string> = {
@@ -338,12 +339,17 @@ const ROUTE_AGENT: Record<
   string,
   { name: string; color: string; frames: string[][] }
 > = {
-  "/home": { name: "JANSKY", color: "#4f6ef7", frames: JANSKY_F },
-  "/signals": { name: "NOVA", color: "#10b981", frames: NOVA_F },
+  "/hq": { name: "JANSKY", color: "#4f6ef7", frames: JANSKY_F },
+  "/command": { name: "JANSKY", color: "#4f6ef7", frames: JANSKY_F },
+  "/labs/signals": { name: "NOVA", color: "#10b981", frames: NOVA_F },
   "/alpha": { name: "FLUX", color: "#f59e0b", frames: FLUX_F },
-  "/ops": { name: "NOVA", color: "#10b981", frames: NOVA_F },
+  "/labs/ops": { name: "NOVA", color: "#10b981", frames: NOVA_F },
   "/intel": { name: "FLUX", color: "#f59e0b", frames: FLUX_F },
   "/cyber": { name: "CIPHER", color: "#14b8a6", frames: CIPHER_F },
+  "/labs/security": { name: "CIPHER", color: "#14b8a6", frames: CIPHER_F },
+  "/internal/skills": { name: "ORBIT", color: "#7c3aed", frames: ORBIT_F },
+  "/internal/vehicle": { name: "CIPHER", color: "#14b8a6", frames: CIPHER_F },
+  "/internal/iot": { name: "NOVA", color: "#10b981", frames: NOVA_F },
   "/vault": { name: "JANSKY", color: "#4f6ef7", frames: JANSKY_F },
 };
 
@@ -360,12 +366,17 @@ function buildComment(
   if (threatLevel === "working") return "Scanning feeds…";
 
   const snippets: Record<string, string[]> = {
-    "/home": [
+    "/hq": [
       `${articleCount} articles ingested. Ready.`,
       `Monitoring ${priceCount} assets.`,
       `All systems nominal.`,
     ],
-    "/signals": [
+    "/command": [
+      `${worldRisk} global risk markers live.`,
+      `Monitoring ${priceCount} market signals.`,
+      `Operator surface stable.`,
+    ],
+    "/labs/signals": [
       `${articleCount} signals active. Scanning for anomalies.`,
       `Feed volume: ${articleCount} items. Topic map live.`,
       `Watch for bias clusters.`,
@@ -375,7 +386,7 @@ function buildComment(
       `Momentum signals loaded.`,
       `Buy-bot armed. Awaiting trigger.`,
     ],
-    "/ops": [
+    "/labs/ops": [
       `${worldRisk} high-risk conflict events.`,
       worldRisk > 5
         ? "Elevated geopolitical tension detected."
@@ -394,6 +405,16 @@ function buildComment(
         : "CVE queue nominal.",
       `OTX threat pulses active. No anomalies.`,
     ],
+    "/labs/security": [
+      `Perimeter telemetry aligned.`,
+      `Security beta surface active.`,
+      `Camera and drone posture nominal.`,
+    ],
+    "/internal/skills": [
+      `Learning graph ready.`,
+      `Skill workbench internal only.`,
+      `Memory surfaces stable.`,
+    ],
     "/vault": [
       `Saved articles loaded.`,
       `OSINT archive ready.`,
@@ -401,8 +422,8 @@ function buildComment(
     ],
   };
 
-  const base = route.startsWith("/") ? route : "/home";
-  const pool = snippets[base] ?? snippets["/home"];
+  const base = route.startsWith("/") ? route : "/hq";
+  const pool = snippets[base] ?? snippets["/hq"];
   // rotate comment every 30 s using epoch
   const idx = Math.floor(Date.now() / 30000) % pool.length;
   return pool[idx];
@@ -459,7 +480,7 @@ export default function AgentStatusBar() {
     const refresh = () =>
       setComment(
         buildComment(
-          pathname ?? "/home",
+          normalizeSurfaceHref(pathname),
           articles.length,
           Object.keys(prices).length,
           Array.isArray(cves) ? cves.length : 0,
@@ -472,8 +493,8 @@ export default function AgentStatusBar() {
     return () => clearInterval(id);
   }, [pathname, articles.length, prices, cves, emotion, worldRisk]);
 
-  const route = pathname ?? "/home";
-  const agentCfg = ROUTE_AGENT[route] ?? ROUTE_AGENT["/home"];
+  const route = normalizeSurfaceHref(pathname);
+  const agentCfg = ROUTE_AGENT[route] ?? ROUTE_AGENT["/hq"];
 
   if (!visible) return null;
 

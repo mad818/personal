@@ -3,12 +3,15 @@
     "supportedSurfacePolicy": "ga-only",
     "canonicalDeploymentLane": "dual-track",
     "defaultDeploymentProfile": "local-dev",
-    "defaultBuildChannel": "dev"
+    "defaultBuildChannel": "dev",
+    "defaultEntrypoint": "/hq",
+    "uiShellVersion": "cinematic-ia-v1"
   },
   "surfaces": [
     {
-      "id": "home",
-      "href": "/home",
+      "id": "hq",
+      "href": "/hq",
+      "aliases": ["/home"],
       "label": "🤖 HQ",
       "tier": "ga",
       "kind": "tab",
@@ -79,6 +82,7 @@
     {
       "id": "resources",
       "href": "/resources",
+      "aliases": [],
       "label": "Resources",
       "tier": "ga",
       "kind": "support",
@@ -88,7 +92,8 @@
     },
     {
       "id": "signals",
-      "href": "/signals",
+      "href": "/labs/signals",
+      "aliases": ["/signals"],
       "label": "Signals",
       "tier": "beta",
       "kind": "tab",
@@ -98,7 +103,8 @@
     },
     {
       "id": "ops",
-      "href": "/ops",
+      "href": "/labs/ops",
+      "aliases": ["/ops"],
       "label": "Ops",
       "tier": "beta",
       "kind": "tab",
@@ -108,7 +114,8 @@
     },
     {
       "id": "security",
-      "href": "/security",
+      "href": "/labs/security",
+      "aliases": ["/security"],
       "label": "Security",
       "tier": "beta",
       "kind": "tab",
@@ -118,7 +125,8 @@
     },
     {
       "id": "iot",
-      "href": "/iot",
+      "href": "/internal/iot",
+      "aliases": ["/iot"],
       "label": "IoT",
       "tier": "internal",
       "kind": "tab",
@@ -128,7 +136,8 @@
     },
     {
       "id": "vehicle",
-      "href": "/vehicle",
+      "href": "/internal/vehicle",
+      "aliases": ["/vehicle"],
       "label": "Vehicle",
       "tier": "internal",
       "kind": "tab",
@@ -138,7 +147,8 @@
     },
     {
       "id": "skills",
-      "href": "/skills",
+      "href": "/internal/skills",
+      "aliases": ["/skills"],
       "label": "Skills",
       "tier": "internal",
       "kind": "tab",
@@ -148,7 +158,8 @@
     },
     {
       "id": "reset",
-      "href": "/reset",
+      "href": "/internal/reset",
+      "aliases": ["/reset"],
       "label": "Reset",
       "tier": "internal",
       "kind": "support",

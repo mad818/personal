@@ -511,7 +511,7 @@ export const useStore = create<NexusState>()(
         })),
 
       // Core live data defaults
-      tab:           'home',
+      tab:           'hq',
       intelView:     'news',
       marketsView:   'watchlist',
       cyberView:     'triage',

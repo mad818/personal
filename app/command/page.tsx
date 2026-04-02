@@ -6,6 +6,14 @@
 
 import dynamic from "next/dynamic";
 import {
+  SectionLabel,
+  ShellBadge,
+  ShellGrid,
+  ShellPage,
+  ShellPanel,
+  ShellStack,
+} from "@/components/ui/shell";
+import {
   PricesLoader,
   FearGreedLoader,
   CVEsLoader,
@@ -52,22 +60,6 @@ const LazyNetworkHealth = dynamic(
   { ssr: false },
 );
 
-function Section({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        background: "var(--surf)",
-        border: "1px solid var(--border)",
-        borderRadius: "12px",
-        padding: "16px",
-        marginBottom: "14px",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
 export default function CommandPage() {
   return (
     <>
@@ -76,88 +68,71 @@ export default function CommandPage() {
       <CVEsLoader />
       <WorldRiskLoader />
 
-      <div
-        style={{ padding: "18px 16px", maxWidth: "1400px", margin: "0 auto" }}
+      <ShellPage
+        width="wide"
+        eyebrow="Operational Surface"
+        title="COMMAND"
+        description="Mission control for live telemetry, AI briefings, world risk, and operator decision support."
+        actions={
+          <>
+            <ShellBadge tone="accent">Live ops</ShellBadge>
+            <ShellBadge tone="success">Free-first feeds</ShellBadge>
+          </>
+        }
       >
-        {/* Row 1 — KPIs + status ring */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr auto",
-            gap: "14px",
-            marginBottom: "14px",
-            alignItems: "start",
-          }}
-        >
-          <Section>
-            <LazyKPICards />
-          </Section>
-          <Section>
-            <LazySystemStatusRing />
-          </Section>
-        </div>
+        <ShellStack>
+          <ShellPanel tone="hero">
+            <SectionLabel detail="KPI stack + readiness ring">Command snapshot</SectionLabel>
+            <ShellGrid columns="minmax(0, 1.4fr) minmax(280px, 0.6fr)" align="start">
+              <LazyKPICards />
+              <LazySystemStatusRing />
+            </ShellGrid>
+          </ShellPanel>
 
-        {/* Row 2 — AI briefing + event radar */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "14px",
-            marginBottom: "14px",
-          }}
-        >
-          <Section>
-            <LazyAIBriefing />
-          </Section>
-          <Section>
-            <LazyEventRadar />
-          </Section>
-        </div>
+          <ShellGrid columns="minmax(0, 1.05fr) minmax(320px, 0.95fr)">
+            <ShellPanel>
+              <SectionLabel>AI briefing</SectionLabel>
+              <LazyAIBriefing />
+            </ShellPanel>
+            <ShellPanel>
+              <SectionLabel>Event radar</SectionLabel>
+              <LazyEventRadar />
+            </ShellPanel>
+          </ShellGrid>
 
-        {/* Row 3 — Threat heatmap */}
-        <Section>
-          <LazyThreatHeatmap />
-        </Section>
+          <ShellPanel>
+            <SectionLabel detail="Conflict, cyber, and narrative clustering">Threat heatmap</SectionLabel>
+            <LazyThreatHeatmap />
+          </ShellPanel>
 
-        {/* Row 4 — World event map */}
-        <Section>
-          <LazyWorldEventMap />
-        </Section>
+          <ShellPanel>
+            <SectionLabel detail="Global live theater">World event map</SectionLabel>
+            <LazyWorldEventMap />
+          </ShellPanel>
 
-        {/* Row 5 — Business builder + job risk */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "14px",
-            marginBottom: "14px",
-          }}
-        >
-          <Section>
-            <LazyBusinessBuilder />
-          </Section>
-          <Section>
-            <LazyJobRiskAnalyzer />
-          </Section>
-        </div>
+          <ShellGrid columns="repeat(2, minmax(0, 1fr))">
+            <ShellPanel>
+              <SectionLabel>Business builder</SectionLabel>
+              <LazyBusinessBuilder />
+            </ShellPanel>
+            <ShellPanel>
+              <SectionLabel>Job risk analyzer</SectionLabel>
+              <LazyJobRiskAnalyzer />
+            </ShellPanel>
+          </ShellGrid>
 
-        {/* Row 6 — Network health + deep focus */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "14px",
-            marginBottom: "14px",
-          }}
-        >
-          <Section>
-            <LazyNetworkHealth />
-          </Section>
-          <Section>
-            <LazyFocusPanel />
-          </Section>
-        </div>
-      </div>
+          <ShellGrid columns="repeat(2, minmax(0, 1fr))">
+            <ShellPanel>
+              <SectionLabel>Network health</SectionLabel>
+              <LazyNetworkHealth />
+            </ShellPanel>
+            <ShellPanel>
+              <SectionLabel>Focus panel</SectionLabel>
+              <LazyFocusPanel />
+            </ShellPanel>
+          </ShellGrid>
+        </ShellStack>
+      </ShellPage>
     </>
   );
 }

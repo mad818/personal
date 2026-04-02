@@ -28,6 +28,7 @@ import { usePathname } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { buildSystemPrompt } from "@/lib/ai";
 import { runAgent, type AgentStep } from "@/lib/agent";
+import { normalizeSurfaceHref } from "@/lib/releaseMatrix";
 import type { OperationalPhase } from "@/store/useStore";
 
 // ── Palette (mirrors AgentOffice) ─────────────────────────────────────────────
@@ -306,13 +307,17 @@ const AGENT_ORDER: AgentId[] = ["cipher", "orbit", "jansky", "nova", "flux"];
 
 // Route → on-duty agent for that page
 const ROUTE_AGENT: Record<string, AgentId> = {
-  "/": "jansky",
-  "/home": "jansky",
-  "/signals": "nova",
+  "/hq": "jansky",
+  "/command": "jansky",
+  "/labs/signals": "nova",
   "/alpha": "flux",
-  "/ops": "jansky",
+  "/labs/ops": "jansky",
   "/intel": "flux",
   "/cyber": "cipher",
+  "/labs/security": "cipher",
+  "/internal/skills": "orbit",
+  "/internal/vehicle": "cipher",
+  "/internal/iot": "nova",
   "/vault": "jansky",
 };
 
@@ -573,6 +578,7 @@ function ChatMsg({ msg }: { msg: ChatMessage }) {
       {isLong && !open && "…"}
       {isLong && (
         <button
+          type="button"
           onClick={() => setOpen((v) => !v)}
           style={{
             display: "block",
@@ -655,7 +661,8 @@ export default function CommandBar() {
     if (expanded) setTimeout(() => inputRef.current?.focus(), 60);
   }, [expanded]);
 
-  const dutyAgent = ROUTE_AGENT[pathname ?? "/"] ?? "jansky";
+  const canonicalPath = normalizeSurfaceHref(pathname);
+  const dutyAgent = ROUTE_AGENT[canonicalPath] ?? "jansky";
   const accentColor = AGENTS[dutyAgent].color;
   const unread = messages.filter((m) => m.role === "agent").length;
 
@@ -858,6 +865,7 @@ export default function CommandBar() {
 
             {/* Clear chat */}
             <button
+              type="button"
               onClick={() => setMessages([])}
               style={{
                 marginLeft: "auto",
@@ -876,6 +884,7 @@ export default function CommandBar() {
 
             {/* Close */}
             <button
+              type="button"
               onClick={() => setExpanded(false)}
               style={{
                 fontSize: "12px",
@@ -1099,6 +1108,7 @@ export default function CommandBar() {
                 }}
               />
               <button
+                type="button"
                 onClick={() => void send()}
                 disabled={!input.trim() || !!activeAgent}
                 style={{
@@ -1126,11 +1136,12 @@ export default function CommandBar() {
       )}
 
       {/* ── Collapsed dock bar ───────────────────────────────────────────────── */}
-      <div
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
         aria-label="Toggle command bar"
+        aria-expanded={expanded}
         style={{
+          appearance: "none",
           display: "flex",
           alignItems: "center",
           gap: "1px",
@@ -1145,15 +1156,12 @@ export default function CommandBar() {
           transition: "box-shadow .2s, border-radius .15s",
         }}
         onClick={() => setExpanded((v) => !v)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") setExpanded((v) => !v);
-        }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLDivElement).style.boxShadow =
+          e.currentTarget.style.boxShadow =
             `0 4px 28px rgba(0,0,0,.55), 0 0 18px ${accentColor}33`;
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLDivElement).style.boxShadow =
+          e.currentTarget.style.boxShadow =
             `0 4px 24px rgba(0,0,0,.45), 0 0 12px ${accentColor}18`;
         }}
       >
@@ -1219,7 +1227,7 @@ export default function CommandBar() {
             }}
           />
         )}
-      </div>
+      </button>
 
       <style>{`
         @keyframes cbAgentBob { from{transform:translateY(0)} to{transform:translateY(-2px)} }

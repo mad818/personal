@@ -811,6 +811,43 @@ export default function CommandBar() {
   const operationsSnapshot = useMemo(() => {
     return `${articleCount} feeds · ${cveCount} CVEs · ${enabledOrders} auto orders · risk ${worldRisk}`;
   }, [articleCount, cveCount, enabledOrders, worldRisk]);
+  const contextActions = useMemo(() => {
+    switch (canonicalPath) {
+      case "/intel":
+        return [
+          { label: "WORLD", href: "/intel?view=world", color: "#00DDFF" },
+          { label: "SWEEPS", href: "/intel?view=sweeps", color: "#38bdf8" },
+          { label: "MARKETS", href: "/intel?view=markets", color: "#7dd3fc" },
+        ];
+      case "/cyber":
+        return [
+          { label: "TRIAGE", href: "/cyber?view=triage", color: "#ef4444" },
+          { label: "CVES", href: "/cyber?view=cves", color: "#f87171" },
+          { label: "DOCTRINE", href: "/security?view=doctrine", color: "#f59e0b" },
+        ];
+      case "/alpha":
+        return [
+          { label: "WATCH", href: "/alpha?view=watchlist", color: "#10b981" },
+          { label: "SIGNALS", href: "/alpha?view=signals", color: "#34d399" },
+          { label: "SCANNER", href: "/alpha?view=scanner", color: "#6ee7b7" },
+        ];
+      case "/internal/skills":
+        return [
+          { label: "FORGE", href: "/skills?view=forge", color: "#7c3aed" },
+          { label: "BLACKSITE", href: "/skills?view=blacksite", color: "#a855f7" },
+          { label: "BRAIN", href: "/skills?view=brain", color: "#c084fc" },
+        ];
+      case "/hq":
+      case "/command":
+        return [
+          { label: "CITADEL", href: "/hq", color: "#4f6ef7" },
+          { label: "SPECTRA", href: "/intel?view=world", color: "#00DDFF" },
+          { label: "BASTION", href: "/cyber?view=triage", color: "#ef4444" },
+        ];
+      default:
+        return [];
+    }
+  }, [canonicalPath]);
 
   // Which agent would handle the current input (live routing preview)
   const routingTarget = input.trim() ? detectAgent(input) : dutyAgent;
@@ -1133,6 +1170,43 @@ export default function CommandBar() {
                 </button>
               ))}
             </div>
+
+            {contextActions.length > 0 ? (
+              <div style={{ display: "grid", gap: "4px" }}>
+                <div
+                  style={{
+                    fontSize: "7px",
+                    fontWeight: 900,
+                    letterSpacing: ".16em",
+                    color: "var(--text3)",
+                  }}
+                >
+                  THEATER LINKS
+                </div>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  {contextActions.map((action) => (
+                    <button
+                      key={action.href}
+                      type="button"
+                      onClick={() => router.push(action.href)}
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: "999px",
+                        border: `1px solid ${action.color}33`,
+                        background: "rgba(255,255,255,0.02)",
+                        color: action.color,
+                        fontSize: "8px",
+                        fontWeight: 800,
+                        letterSpacing: ".08em",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div
               style={{

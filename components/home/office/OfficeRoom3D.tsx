@@ -20,6 +20,7 @@ type DispatchState = { from: AgentId; to: AgentId } | null;
 type OfficeCameraPreset = "cinematic" | "closeOps" | "wallReadability";
 type OfficeVfxQuality = "off" | "low" | "high";
 type WallFrontTone = "steady" | "warning" | "critical";
+type OfficeMissionState = "standby" | "routing" | "handoff" | "executing";
 
 const CAMERA_PRESETS: Record<
   OfficeCameraPreset,
@@ -613,6 +614,13 @@ function commandTempoColor(commandTempo: string) {
 function frontToneColor(tone: WallFrontTone) {
   if (tone === "critical") return "#ef4444";
   if (tone === "warning") return "#f59e0b";
+  return "#10b981";
+}
+
+function missionStateColor(state: OfficeMissionState) {
+  if (state === "executing") return "#00DDFF";
+  if (state === "handoff") return "#f59e0b";
+  if (state === "routing") return "#a78bfa";
   return "#10b981";
 }
 
@@ -1883,6 +1891,114 @@ function StrategiumPulse({
   );
 }
 
+function MissionStateBeacon({
+  missionState,
+  missionLabel,
+  missionNote,
+}: {
+  missionState: OfficeMissionState;
+  missionLabel: string;
+  missionNote: string;
+}) {
+  const housingRef = useRef<THREE.Mesh | null>(null);
+  const beamRef = useRef<THREE.Mesh | null>(null);
+  const color = missionStateColor(missionState);
+  const pulseRate =
+    missionState === "executing"
+      ? 2.1
+      : missionState === "handoff"
+        ? 1.6
+        : missionState === "routing"
+          ? 1.2
+          : 0.7;
+
+  useFrame((state) => {
+    const t = state.clock.getElapsedTime();
+    const pulse = 0.52 + (Math.sin(t * pulseRate) + 1) * 0.18;
+    if (housingRef.current) {
+      const mat = housingRef.current.material as THREE.MeshStandardMaterial;
+      mat.emissive.set(color);
+      mat.emissiveIntensity = 0.12 + pulse * 0.24;
+    }
+    if (beamRef.current) {
+      const mat = beamRef.current.material as THREE.MeshStandardMaterial;
+      mat.emissive.set(color);
+      mat.emissiveIntensity = 0.28 + pulse * 0.44;
+      beamRef.current.scale.x = 0.96 + pulse * 0.06;
+    }
+  });
+
+  return (
+    <group position={[0, 2.03, -1.05]}>
+      <mesh ref={housingRef}>
+        <boxGeometry args={[2.35, 0.18, 0.08]} />
+        <meshStandardMaterial
+          color="#0b1320"
+          emissive={color}
+          emissiveIntensity={0.22}
+          roughness={0.42}
+          metalness={0.18}
+        />
+      </mesh>
+      <mesh ref={beamRef} position={[0, -0.11, 0]}>
+        <boxGeometry args={[1.86, 0.03, 0.02]} />
+        <meshStandardMaterial
+          color="#07111b"
+          emissive={color}
+          emissiveIntensity={0.4}
+        />
+      </mesh>
+      <Html transform position={[0, 0.01, 0.06]} distanceFactor={6.1}>
+        <div
+          style={{
+            width: 310,
+            padding: "8px 12px",
+            borderRadius: 14,
+            border: `1px solid ${color}44`,
+            background: "rgba(5,9,16,0.88)",
+            color: "#d7e6ff",
+            textAlign: "center",
+            fontFamily: "Inter, system-ui, sans-serif",
+            boxShadow: `0 0 32px ${color}16`,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 8,
+              fontWeight: 900,
+              letterSpacing: ".18em",
+              color: "#8fa7cb",
+            }}
+          >
+            LIVE MISSION STATE
+          </div>
+          <div
+            style={{
+              marginTop: 4,
+              fontSize: 13,
+              fontWeight: 900,
+              letterSpacing: ".1em",
+              color,
+            }}
+          >
+            {missionLabel}
+          </div>
+          <div
+            style={{
+              marginTop: 4,
+              fontSize: 10,
+              lineHeight: 1.45,
+              color: "#a8bcda",
+            }}
+          >
+            {missionNote}
+          </div>
+        </div>
+      </Html>
+    </group>
+  );
+}
+
 function CityWindow({ nightFactor }: { nightFactor: number }) {
   // Must render *in front* of the back-wall panel band (z ~ -2.89).
   const Z_VIEW = -2.872;
@@ -3025,6 +3141,9 @@ function OfficeRoom3DInner({
   officeLayout,
   agentPos,
   activeAgent,
+  missionState = "standby",
+  missionLabel = "Strategium standing by",
+  missionNote = "No live routing or execution. The room is holding command posture.",
   commandTempo = "Calm",
   primaryFront = {
     label: "Vector",
@@ -3052,6 +3171,9 @@ function OfficeRoom3DInner({
   officeLayout: Record<OfficeObjectId, OfficeObjectPos>;
   agentPos?: Record<AgentId, { x: number; y: number }>;
   activeAgent?: AgentId | null;
+  missionState?: OfficeMissionState;
+  missionLabel?: string;
+  missionNote?: string;
   commandTempo?: string;
   primaryFront?: {
     label: string;
@@ -3282,6 +3404,11 @@ function OfficeRoom3DInner({
         })}
 
         <RoomShell tod={tod} />
+        <MissionStateBeacon
+          missionState={missionState}
+          missionLabel={missionLabel}
+          missionNote={missionNote}
+        />
         <StrategiumPulse
           commandTempo={commandTempo}
           primaryFront={primaryFront}

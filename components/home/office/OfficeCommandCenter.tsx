@@ -240,7 +240,6 @@ function isEditableTarget(target: EventTarget | null) {
     Boolean(element?.isContentEditable)
   );
 }
-
 const OfficeRoom3D = dynamic(
   () => import("./OfficeRoom3D").then((m) => m.OfficeRoom3D),
   {
@@ -1057,6 +1056,45 @@ export default function OfficeCommandCenter() {
     worldRisk,
   ]);
 
+  const roomMissionState = useMemo<
+    "standby" | "routing" | "handoff" | "executing"
+  >(() => {
+    if (activeAgent) return "executing";
+    if (dispatchBar || dispatchedTo) return "handoff";
+    if (routingAgent) return "routing";
+    return "standby";
+  }, [activeAgent, dispatchBar, dispatchedTo, routingAgent]);
+
+  const roomMissionLabel = useMemo(() => {
+    if (activeAgent) return `${AGENTS[activeAgent].name} executing`;
+    if (dispatchedTo) return `Handoff to ${AGENTS[dispatchedTo].name}`;
+    if (routingAgent) return `${AGENTS[routingAgent].name} routing`;
+    return `${primaryFront.label} on watch`;
+  }, [activeAgent, dispatchedTo, primaryFront.label, routingAgent]);
+
+  const roomMissionNote = useMemo(() => {
+    if (activeAgent) {
+      return `${AGENTS[activeAgent].name} is carrying the live task while the room holds ${primaryFront.label} at ${commandTempo.toLowerCase()} tempo.`;
+    }
+    if (dispatchBar || dispatchedTo) {
+      const target = dispatchedTo ?? dispatchBar?.to ?? null;
+      return target
+        ? `Mission transfer is underway toward ${AGENTS[target].name}. Keep evidence in view before sanctioning the next action.`
+        : "Mission transfer is underway between agent stations.";
+    }
+    if (routingAgent) {
+      return `${AGENTS[routingAgent].name} is evaluating the next specialist handoff based on the current theater and command directive.`;
+    }
+    return `The room is steady and centered on ${primaryFront.label}. Use the codex, verbs, or dock directive to start the next operation.`;
+  }, [
+    activeAgent,
+    commandTempo,
+    dispatchBar,
+    dispatchedTo,
+    primaryFront.label,
+    routingAgent,
+  ]);
+
   const missionCodex = useMemo<StrategiumMissionCodex>(() => {
     const urgency =
       primaryFront.tab === "cyber" || primaryFront.tab === "intel"
@@ -1548,7 +1586,6 @@ export default function OfficeCommandCenter() {
           onOpenMemory={() => setMemoryOpen(true)}
           onOpenScheduler={() => setSchedulerOpen(true)}
         />
-
         <div className="nexus-hq-console">
         {/* ── Header ── */}
         <div
@@ -1682,6 +1719,9 @@ export default function OfficeCommandCenter() {
               officeLayout={officeLayout}
               agentPos={agentPos}
               activeAgent={activeAgent}
+              missionState={roomMissionState}
+              missionLabel={roomMissionLabel}
+              missionNote={roomMissionNote}
               commandTempo={commandTempo}
               primaryFront={primaryFront}
               sceneMode={officeSceneMode}

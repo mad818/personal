@@ -17,6 +17,13 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/settings", routeClass: "local_only", public: false },
   { prefix: "/api/verify", routeClass: "local_only", public: false },
   { prefix: "/api/diagnostics", routeClass: "local_only", public: false },
+  { prefix: "/api/workflows", routeClass: "local_only", public: false },
+  { prefix: "/api/workflow-runs", routeClass: "local_only", public: false },
+  { prefix: "/api/registry", routeClass: "local_only", public: false },
+  { prefix: "/api/security/scenarios", routeClass: "local_only", public: false },
+  { prefix: "/api/security/runs", routeClass: "local_only", public: false },
+  { prefix: "/api/model-lab", routeClass: "local_only", public: false },
+  { prefix: "/api/geo-delta", routeClass: "local_only", public: false },
 
   // connectors: read-only / data ingest
   { prefix: "/api/news", routeClass: "connector_opt_in", public: false },
@@ -41,6 +48,8 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/geo-scan", routeClass: "connector_opt_in", public: false },
   { prefix: "/api/hacker-news", routeClass: "connector_opt_in", public: false },
   { prefix: "/api/headers", routeClass: "connector_opt_in", public: false },
+  { prefix: "/api/sweeps", routeClass: "connector_opt_in", public: false },
+  { prefix: "/api/events/sweeps", routeClass: "connector_opt_in", public: false },
 
   // high-risk / action routes
   { prefix: "/api/ai", routeClass: "high_risk", public: false },

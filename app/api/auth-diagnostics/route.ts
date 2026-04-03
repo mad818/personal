@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   getConfiguredNexusToken,
+  isNexusAuthEnabled,
   matchesConfiguredNexusToken,
   NEXUS_SESSION_COOKIE,
 } from "@/lib/authSession";
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const runtime = readRuntimeIdentity();
   const configuredToken = getConfiguredNexusToken();
+  const authEnabled = isNexusAuthEnabled();
   const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? "";
   const authenticated = matchesConfiguredNexusToken(sessionCookie);
 
@@ -25,8 +27,12 @@ export async function GET(req: NextRequest) {
     },
     auth: {
       tokenConfigured: Boolean(configuredToken),
-      authenticated,
-      mode: authenticated ? "cookie-session" : "locked",
+      authenticated: authEnabled ? authenticated : true,
+      mode: !authEnabled
+        ? "open-no-token"
+        : authenticated
+          ? "cookie-session"
+          : "locked",
       cookiePresent: Boolean(sessionCookie),
     },
     release: {

@@ -1048,6 +1048,337 @@ body {
     0 28px 80px rgba(0,0,0,.45);
 }
 
+.nexus-hq-strategium {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 16px;
+  padding: 20px;
+  border-radius: 28px;
+  border: 1px solid rgba(212,149,106,.14);
+  background:
+    linear-gradient(180deg, rgba(22,15,15,.96), rgba(10,8,8,.98)),
+    radial-gradient(circle at 100% 0%, rgba(212,149,106,.11), transparent 24%);
+  box-shadow:
+    0 0 0 1px rgba(196,72,90,.05),
+    0 24px 60px rgba(0,0,0,.42);
+}
+
+.nexus-hq-strategium__hero,
+.nexus-hq-strategium__mode,
+.nexus-hq-strategium__panel {
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.06);
+  background:
+    linear-gradient(180deg, rgba(26,18,18,.96), rgba(10,8,8,.96)),
+    radial-gradient(circle at 100% 0%, rgba(212,149,106,.1), transparent 24%);
+  padding: 16px;
+  min-width: 0;
+}
+
+.nexus-hq-strategium__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nexus-hq-strategium__mode,
+.nexus-hq-strategium__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nexus-hq-strategium__eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #cfaa77;
+}
+
+.nexus-hq-strategium__title {
+  font-size: clamp(22px, 2.8vw, 34px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-weight: 900;
+  color: #f6eee3;
+}
+
+.nexus-hq-strategium__description,
+.nexus-hq-strategium__modeCopy,
+.nexus-hq-strategium__chronicleText,
+.nexus-hq-strategium__lessonText,
+.nexus-hq-strategium__agentTask,
+.nexus-hq-strategium__recapSummary,
+.nexus-hq-strategium__recapNote,
+.nexus-hq-strategium__codexValue,
+.nexus-hq-strategium__shortcutNote {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.nexus-hq-strategium__badges,
+.nexus-hq-strategium__promptRow,
+.nexus-hq-strategium__modeActions,
+.nexus-hq-chronicle__prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nexus-hq-chronicle__prompts {
+  margin-top: 10px;
+}
+
+.nexus-hq-strategium__prompt {
+  border-radius: 999px;
+  border: 1px solid rgba(207,170,119,.18);
+  background: linear-gradient(180deg, rgba(28,21,18,.96), rgba(14,11,10,.98));
+  color: #e7d5bb;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: transform var(--t), border-color var(--t), background var(--t), color var(--t);
+}
+
+.nexus-hq-strategium__prompt:hover {
+  transform: translateY(-1px);
+  border-color: rgba(207,170,119,.34);
+  background: linear-gradient(180deg, rgba(54,34,22,.96), rgba(19,13,11,.98));
+  color: #fff1dc;
+}
+
+.nexus-hq-strategium__recap,
+.nexus-hq-strategium__codexCell,
+.nexus-hq-strategium__shortcut {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.025);
+}
+
+.nexus-hq-strategium__recapTitle,
+.nexus-hq-strategium__codexTitle,
+.nexus-hq-strategium__shortcutLabel {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  color: #f6eee3;
+}
+
+.nexus-hq-strategium__recapNote,
+.nexus-hq-strategium__shortcutNote {
+  font-size: 11px;
+}
+
+.nexus-hq-strategium__grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.nexus-hq-strategium__statGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nexus-hq-strategium__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 96px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.025);
+}
+
+.nexus-hq-strategium__statLabel,
+.nexus-hq-strategium__frontLabel,
+.nexus-hq-strategium__chronicleLabel,
+.nexus-hq-strategium__lessonLabel,
+.nexus-hq-strategium__agentRole {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.nexus-hq-strategium__statValue,
+.nexus-hq-strategium__frontValue,
+.nexus-hq-strategium__agentName,
+.nexus-hq-strategium__shortcutKey {
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #f6eee3;
+}
+
+.nexus-hq-strategium__statNote,
+.nexus-hq-strategium__frontNote,
+.nexus-hq-strategium__agentFoot {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.nexus-hq-strategium__fronts,
+.nexus-hq-strategium__agents,
+.nexus-hq-strategium__shortcuts {
+  display: grid;
+  gap: 10px;
+}
+
+.nexus-hq-strategium__codex {
+  display: grid;
+  gap: 10px;
+}
+
+.nexus-hq-strategium__codexGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nexus-hq-strategium__codexLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.nexus-hq-strategium__front {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.025);
+  cursor: pointer;
+  transition: transform var(--t), border-color var(--t), background var(--t);
+}
+
+.nexus-hq-strategium__front:hover {
+  transform: translateY(-1px);
+  border-color: rgba(212,149,106,.28);
+  background: rgba(212,149,106,.06);
+}
+
+.nexus-hq-strategium__frontMeta,
+.nexus-hq-strategium__agentTop,
+.nexus-hq-strategium__agentFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nexus-hq-strategium__front.is-critical {
+  border-color: rgba(239,68,68,.24);
+}
+
+.nexus-hq-strategium__front.is-warning {
+  border-color: rgba(245,158,11,.22);
+}
+
+.nexus-hq-strategium__front.is-steady {
+  border-color: rgba(16,185,129,.18);
+}
+
+.nexus-hq-strategium__agent {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.025);
+}
+
+.nexus-hq-strategium__agentStatus {
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.nexus-hq-strategium__agentStatus.is-active {
+  color: #ffd7b4;
+  border-color: rgba(212,149,106,.36);
+  background: rgba(212,149,106,.12);
+}
+
+.nexus-hq-strategium__agentStatus.is-hot {
+  color: #f4d8af;
+  border-color: rgba(245,158,11,.3);
+  background: rgba(245,158,11,.12);
+}
+
+.nexus-hq-strategium__agentStatus.is-ready {
+  color: #b7ffce;
+  border-color: rgba(16,185,129,.3);
+  background: rgba(16,185,129,.12);
+}
+
+.nexus-hq-strategium__agentStatus.is-standby {
+  color: var(--text-muted);
+  background: rgba(255,255,255,.03);
+}
+
+.nexus-hq-strategium__agentBar {
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+}
+
+.nexus-hq-strategium__agentBarFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  box-shadow: 0 0 14px currentColor;
+}
+
+.nexus-hq-strategium__chronicle,
+.nexus-hq-strategium__lesson {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.025);
+  margin-top: 10px;
+}
+
+.nexus-hq-strategium__shortcut {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+}
+
+.nexus-hq-strategium__shortcutKey {
+  min-width: 48px;
+  padding-right: 6px;
+}
+
+.nexus-hq-strategium__shortcutCopy {
+  display: grid;
+  gap: 4px;
+}
+
 .nexus-shell-button {
   display: inline-flex;
   align-items: center;
@@ -1469,6 +1800,19 @@ body {
     padding: 18px;
   }
 
+  .nexus-hq-strategium {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .nexus-hq-strategium__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-hq-strategium__codexGrid {
+    grid-template-columns: 1fr;
+  }
+
   .nexus-hq-console {
     height: auto;
     min-height: 760px;
@@ -1535,6 +1879,14 @@ body {
 
   .nexus-hq-prelude__title {
     font-size: 34px;
+  }
+
+  .nexus-hq-strategium__title {
+    font-size: 28px;
+  }
+
+  .nexus-hq-strategium__statGrid {
+    grid-template-columns: 1fr;
   }
 
   .nexus-shell-page {

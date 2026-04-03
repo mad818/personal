@@ -7,6 +7,11 @@ import {
 import { normalizeTokenCandidate } from "@/lib/authToken";
 
 function buildRedirect(req: NextRequest, path: string) {
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  const proto = req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "");
+  if (host) {
+    return new URL(path, `${proto}://${host}`);
+  }
   return new URL(path, req.nextUrl.origin);
 }
 

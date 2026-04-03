@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import {
+  getConfiguredNexusToken,
   matchesConfiguredNexusToken,
   NEXUS_SESSION_COOKIE,
 } from '@/lib/authSession'
@@ -67,6 +68,10 @@ export function middleware(req: NextRequest) {
     }
   }
   if (policy.public) return NextResponse.next()
+
+  if (!getConfiguredNexusToken()) {
+    return NextResponse.next()
+  }
 
   const authHeader = req.headers.get('Authorization') ?? ''
   const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''

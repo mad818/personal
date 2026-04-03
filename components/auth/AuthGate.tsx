@@ -68,7 +68,6 @@ export default function AuthGate({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const mountedRef = useRef(true);
-  const formRef = useRef<HTMLFormElement | null>(null);
 
   const [authed, setAuthed] = useState(initiallyAuthed);
   const [runtimeOnline, setRuntimeOnline] = useState<boolean | null>(null);
@@ -194,11 +193,6 @@ export default function AuthGate({
       setTransientStatus("Submitting secure local login...");
     }
   }, []);
-
-  const handleSubmitIntent = useCallback(() => {
-    if (submitting) return;
-    formRef.current?.requestSubmit();
-  }, [submitting]);
 
   if (authed) return <>{children}</>;
 
@@ -528,7 +522,6 @@ export default function AuthGate({
           </div>
 
           <form
-            ref={formRef}
             action="/auth/connect"
             method="POST"
             onSubmit={handleNativeSubmit}
@@ -561,11 +554,6 @@ export default function AuthGate({
                 placeholder="Paste your NEXUS_TOKEN…"
                 autoFocus
                 disabled={submitting}
-                onKeyDown={(event) => {
-                  if (event.key !== "Enter") return;
-                  event.preventDefault();
-                  handleSubmitIntent();
-                }}
                 style={{
                   background: "rgba(26, 18, 20, 0.84)",
                   border: `1px solid ${authErrorMessage ? "var(--flo)" : "rgba(196,72,90,0.22)"}`,
@@ -719,8 +707,7 @@ export default function AuthGate({
             </div>
 
             <button
-              type="button"
-              onClick={handleSubmitIntent}
+              type="submit"
               data-testid="auth-submit"
               disabled={submitting}
               style={{

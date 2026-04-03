@@ -52,6 +52,17 @@ import { CrabMascot } from "./CrabMascot";
 import { ToolCallBadge } from "./ToolCallBadge";
 import { ModeBriefingPanel } from "./ModeBriefingPanel";
 import { detectAgent, buildAgentPrompt } from "./prompts";
+import {
+  type StrategiumCommandVerb,
+  HQStrategiumDeck,
+  type StrategiumAgentRow,
+  type StrategiumFront,
+  type StrategiumMissionCodex,
+  type StrategiumPrompt,
+  type StrategiumSessionRecap,
+  type StrategiumShortcut,
+  type StrategiumSystemAction,
+} from "./HQStrategiumDeck";
 
 import {
   AGENTS,
@@ -62,6 +73,7 @@ import {
   DISPATCH_LINES,
   OFFICE_LAYOUT_PRESETS,
   OFFICE_OPERATIONAL_PROFILES,
+  type OfficeOperationalMode,
 } from "./constants";
 import type { AgentId, ChatMessage, Emotion } from "./types";
 import HomeAmbient from "@/components/home/HomeAmbient";
@@ -175,6 +187,59 @@ const OFFICE_ANIMATIONS_CSS = `
   @keyframes coffeeFloat { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-6px) rotate(5deg)} }
 `;
 
+const STRATEGIUM_PROMPTS: StrategiumPrompt[] = [
+  {
+    label: "Global brief",
+    prompt:
+      "Brief me on the global posture across markets, cyber, and geopolitics. Focus on what changed and what needs action.",
+  },
+  {
+    label: "Threat watch",
+    prompt:
+      "What cyber threats or CVEs need attention right now, and what is the most credible evidence behind them?",
+  },
+  {
+    label: "Market pressure",
+    prompt:
+      "Summarize BTC, ETH, macro risk, and sentiment pressure with a practical operator takeaway.",
+  },
+  {
+    label: "Recon dispatch",
+    prompt:
+      "Dispatch recon on a target and tell me what evidence matters before I act.",
+  },
+];
+
+function formatRelativeTime(ts: number): string {
+  if (!ts) return "No recent action";
+  const delta = Date.now() - ts;
+  const min = Math.floor(delta / 60_000);
+  if (min < 1) return "Just now";
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.floor(hr / 24);
+  return `${day}d ago`;
+}
+
+function humanizePhase(value: string) {
+  return value.replace(/([A-Z])/g, " $1").replace(/_/g, " ").trim();
+}
+
+function frontToneScore(tone: StrategiumFront["tone"]) {
+  return tone === "critical" ? 3 : tone === "warning" ? 2 : 1;
+}
+
+function isEditableTarget(target: EventTarget | null) {
+  const element = target as HTMLElement | null;
+  const tag = element?.tagName?.toLowerCase();
+  return (
+    tag === "input" ||
+    tag === "textarea" ||
+    tag === "select" ||
+    Boolean(element?.isContentEditable)
+  );
+}
 const OfficeRoom3D = dynamic(
   () => import("./OfficeRoom3D").then((m) => m.OfficeRoom3D),
   {
@@ -233,6 +298,14 @@ export default function OfficeCommandCenter() {
   const router = useRouter();
   const pathname = usePathname();
   const settings = useStore((s) => s.settings);
+  const prices = useStore((s) => s.prices);
+  const fearGreed = useStore((s) => s.signals?.fg);
+  const worldRisk = useStore((s) => s.worldRisk);
+  const articles = useStore((s) => s.articles);
+  const cves = useStore((s) => s.cves);
+  const agentStats = useStore((s) => s.agentStats);
+  const agentRuntime = useStore((s) => s.agentRuntime);
+  const modeBriefings = useStore((s) => s.modeBriefings);
   const addOfficeMessage = useStore((s) => s.addOfficeMessage);
   const clearOfficeMessages = useStore((s) => s.clearOfficeMessages);
   const officeMessages = useStore((s) => s.officeMessages);
@@ -300,6 +373,7 @@ export default function OfficeCommandCenter() {
 
   // Local scroll management for the terminal chat area.
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastRoutedRef = useRef<string>("");
   const prevEvalGradeRef = useRef<"A" | "B" | "C" | "unknown">("unknown");
 
@@ -675,11 +749,13 @@ export default function OfficeCommandCenter() {
       // Trigger when the agent used >= 2 tool calls and result is meaningful.
       // Extracts a short lesson heuristic from the result summary.
       const toolCallCount = steps.filter((s) => s.type === "tool_call").length;
+      const firstLine =
+        result.split("\n").find((l) => l.trim().length > 40) ??
+        result.slice(0, 100);
+      const sessionSummary = `${target.toUpperCase()} handled "${value.slice(0, 60).trim()}…" with ${toolCallCount} tool call${toolCallCount === 1 ? "" : "s"}. ${firstLine.trim().slice(0, 150)}`;
+      updateSettings({ lastSessionSummary: sessionSummary });
       if (toolCallCount >= 2 && result.length >= 150) {
         // Extract a brief lesson from the first substantive sentence of the result
-        const firstLine =
-          result.split("\n").find((l) => l.trim().length > 40) ??
-          result.slice(0, 100);
         const proposedLesson = `When handling "${value.slice(0, 60).trim()}…" style queries, ${target.toUpperCase()} used ${toolCallCount} tool calls. Key pattern: ${firstLine.trim().slice(0, 120)}`;
         setPendingLesson({ text: proposedLesson, agent: target });
       }
@@ -713,6 +789,7 @@ export default function OfficeCommandCenter() {
     pathname,
     router,
     setTab,
+    updateSettings,
   ]);
 
   const handleKeyDown = useCallback(
@@ -729,6 +806,537 @@ export default function OfficeCommandCenter() {
     ? AGENTS[activeAgent].color
     : AGENTS[dutyAgent].color;
   const activeProfile = OFFICE_OPERATIONAL_PROFILES[officeOperationalMode];
+  const btc = prices["bitcoin"];
+  const fgValue = fearGreed?.value ?? null;
+  const runtimePhaseLabel = humanizePhase(agentRuntime.currentPhase || "idle");
+  const runtimeStatusLabel = humanizePhase(agentRuntime.status || "idle");
+  const enabledScheduledJobs =
+    settings.scheduledJobs?.filter((job) => job.enabled) ?? [];
+
+  const primaryFront = useMemo<StrategiumFront>(() => {
+    if (cves.length >= 12) {
+      return {
+        id: "bastion-priority",
+        tab: "cyber",
+        label: "Bastion",
+        value: `${cves.length} CVEs`,
+        note: `${cves.length} live CVEs demand triage and containment.`,
+        tone: "critical",
+        href: "/cyber?view=triage",
+      };
+    }
+    if (worldRisk >= 5) {
+      return {
+        id: "spectra-priority",
+        tab: "intel",
+        label: "Spectra",
+        value: `${worldRisk} world risk`,
+        note: `World-risk posture elevated with ${worldRisk} conflict-linked triggers in scope.`,
+        tone: "critical",
+        href: "/intel?view=world",
+      };
+    }
+    if (btc && Math.abs(btc.chg) >= 3.5) {
+      return {
+        id: "quant-priority",
+        tab: "alpha",
+        label: "Quant",
+        value: `${btc.chg >= 0 ? "+" : ""}${btc.chg.toFixed(1)}%`,
+        note: `BTC is moving ${btc.chg >= 0 ? "+" : ""}${btc.chg.toFixed(1)}% and deserves a market drill-down.`,
+        tone: "warning",
+        href: "/alpha?view=signals",
+      };
+    }
+    return {
+      id: "vector-priority",
+      tab: "command",
+      label: "Vector",
+      value: fgValue == null ? "Steady" : `FG ${fgValue}`,
+      note: "Balanced posture. Stay centered on command synthesis and routing.",
+      tone: "steady",
+      href: "/command",
+    };
+  }, [btc, cves.length, fgValue, worldRisk]);
+
+  const postureSummary = useMemo(() => {
+    const fgCopy =
+      fgValue == null ? "sentiment unconfirmed" : `fear & greed ${fgValue}`;
+    const btcCopy =
+      btc == null
+        ? "BTC awaiting price data"
+        : `BTC ${btc.chg >= 0 ? "up" : "down"} ${Math.abs(btc.chg).toFixed(1)}%`;
+    return `${activeProfile.label} doctrine keeps the room oriented around ${activeProfile.focusTabs.join(" + ")} while ${btcCopy.toLowerCase()} and ${fgCopy}.`;
+  }, [activeProfile, btc, fgValue]);
+
+  const threatLabel = useMemo(() => {
+    if (cves.length >= 12 || worldRisk >= 6) return "Threat theater elevated";
+    if (fgValue != null && (fgValue <= 25 || fgValue >= 75)) {
+      return "Sentiment extreme";
+    }
+    return "Posture steady";
+  }, [cves.length, fgValue, worldRisk]);
+
+  const strategiumFronts = useMemo<StrategiumFront[]>(() => {
+    const fronts: StrategiumFront[] = [
+      {
+        id: "vector",
+        label: "Vector",
+        value:
+          fgValue == null
+            ? "No sentiment"
+            : `${fgValue} ${fearGreed?.label || ""}`.trim(),
+        note:
+          fgValue == null
+            ? "Fear and greed feed has not reported yet."
+            : `Command posture anchored by sentiment classification: ${fearGreed?.label || "mixed"}.`,
+        tone:
+          fgValue != null && (fgValue <= 25 || fgValue >= 75)
+            ? "warning"
+            : "steady",
+        tab: "command",
+        href: "/command",
+      },
+      {
+        id: "spectra",
+        label: "Spectra",
+        value: `${articles.length} live signals`,
+        note:
+          articles.length > 0
+            ? `${articles.length} articles in queue for geopolitical and macro synthesis.`
+            : "Intel feed is quiet right now.",
+        tone:
+          worldRisk >= 5 ? "critical" : articles.length > 0 ? "steady" : "warning",
+        tab: "intel",
+        href:
+          worldRisk >= 5
+            ? "/intel?view=world"
+            : articles.length > 0
+              ? "/intel?view=news"
+              : "/intel?view=sweeps",
+      },
+      {
+        id: "quant",
+        label: "Quant",
+        value:
+          btc == null
+            ? "BTC pending"
+            : `$${Math.round(btc.price).toLocaleString()} · ${btc.chg >= 0 ? "+" : ""}${btc.chg.toFixed(1)}%`,
+        note:
+          btc == null
+            ? "Market loaders have not confirmed BTC yet."
+            : "Use Quant when price pressure becomes a mission, not just a headline.",
+        tone: btc != null && Math.abs(btc.chg) >= 3.5 ? "warning" : "steady",
+        tab: "alpha",
+        href:
+          btc != null && Math.abs(btc.chg) >= 3.5
+            ? "/alpha?view=signals"
+            : "/alpha?view=watchlist",
+      },
+      {
+        id: "bastion",
+        label: "Bastion",
+        value: `${cves.length} CVEs`,
+        note:
+          cves.length > 0
+            ? "Cyber posture is active. Open Bastion for triage, OTX, and KEV context."
+            : "No CVE loadout confirmed yet.",
+        tone:
+          cves.length >= 12 ? "critical" : cves.length >= 1 ? "warning" : "steady",
+        tab: "cyber",
+        href: cves.length > 0 ? "/cyber?view=triage" : "/cyber?view=matrix",
+      },
+    ];
+
+    return fronts.sort((a, b) => frontToneScore(b.tone) - frontToneScore(a.tone));
+  }, [articles.length, btc, cves.length, fearGreed?.label, fgValue, worldRisk]);
+
+  const strategiumAgents = useMemo<StrategiumAgentRow[]>(() => {
+    const ids = Object.keys(AGENTS) as AgentId[];
+    return ids.map((id) => {
+      const stats = agentStats[id];
+      const delta = stats?.lastActiveAt
+        ? Date.now() - stats.lastActiveAt
+        : Number.POSITIVE_INFINITY;
+      const status =
+        activeAgent === id
+          ? "active"
+          : delta < 15 * 60_000
+            ? "hot"
+            : stats?.totalTasks
+              ? "ready"
+              : "standby";
+      return {
+        id,
+        status,
+        confidence: stats?.lastConfidence ?? 0,
+        lastTask: stats?.lastTask
+          ? stats.lastTask.replace(/_/g, " ")
+          : "Awaiting a routed objective.",
+        lastSeen: formatRelativeTime(stats?.lastActiveAt ?? 0),
+      };
+    });
+  }, [activeAgent, agentStats]);
+
+  const strategiumSystems = useMemo<StrategiumSystemAction[]>(
+    () => [
+      {
+        id: "workflow-forge",
+        label: "Dispatch Workflow",
+        note: "Native graph builder with runs, replay, approval gates, and scheduler-linked templates.",
+        href: "/skills?view=forge",
+        status: enabledScheduledJobs.length > 0 ? "Armed" : "Ready",
+        tone: enabledScheduledJobs.length > 0 ? "warning" : "steady",
+      },
+      {
+        id: "blacksite-lab",
+        label: "Open Blacksite",
+        note: "Operator-only mutation arena for prompt defense, refusal mapping, and multi-model comparison.",
+        href: "/skills?view=blacksite",
+        status: pendingLesson ? "Hot" : "Ready",
+        tone: pendingLesson ? "warning" : "steady",
+      },
+      {
+        id: "sweep-engine",
+        label: "Run Sweep",
+        note: "One-command multi-source bundles with live stream progress, theaters, and geo-delta evidence.",
+        href: "/intel?view=sweeps",
+        status: worldRisk >= 5 || cves.length >= 12 ? "Live" : "Ready",
+        tone: worldRisk >= 5 || cves.length >= 12 ? "critical" : "steady",
+      },
+      {
+        id: "registry",
+        label: "Inspect Registry",
+        note: "Kits, evidence packs, models, workflows, and saved operators assets under one custody layer.",
+        href: "/resources?view=registry",
+        status: settings.lastSessionSummary?.trim() ? "Tracking" : "Ready",
+        tone: settings.lastSessionSummary?.trim() ? "warning" : "steady",
+      },
+      {
+        id: "doctrine",
+        label: "Review Doctrine",
+        note: "WSTG-v42 scenarios plus AI surface risk coverage for auth, SSRF, inputs, and prompt boundaries.",
+        href: "/security?view=doctrine",
+        status: cves.length > 0 || worldRisk >= 5 ? "Review" : "Covered",
+        tone: cves.length > 0 || worldRisk >= 5 ? "warning" : "steady",
+      },
+    ],
+    [
+      cves.length,
+      enabledScheduledJobs.length,
+      pendingLesson,
+      settings.lastSessionSummary,
+      worldRisk,
+    ],
+  );
+
+  const primaryFrontHref = useMemo(() => {
+    return primaryFront.href;
+  }, [primaryFront.href]);
+
+  const commandTempo = useMemo(() => {
+    const hotFronts = strategiumFronts.filter((front) => frontToneScore(front.tone) >= 2).length;
+    const hotAgents = strategiumAgents.filter(
+      (agent) => agent.status === "active" || agent.status === "hot",
+    ).length;
+    if (activeAgent && (hotFronts >= 2 || worldRisk >= 5 || cves.length >= 12)) {
+      return "Critical";
+    }
+    if (activeAgent || hotFronts >= 2 || hotAgents >= 2) return "Compressed";
+    if (articles.length >= 8 || enabledScheduledJobs.length >= 2 || worldRisk >= 3) {
+      return "Active";
+    }
+    return "Calm";
+  }, [
+    activeAgent,
+    articles.length,
+    cves.length,
+    enabledScheduledJobs.length,
+    strategiumAgents,
+    strategiumFronts,
+    worldRisk,
+  ]);
+
+  const roomMissionState = useMemo<
+    "standby" | "routing" | "handoff" | "executing"
+  >(() => {
+    if (activeAgent) return "executing";
+    if (dispatchBar || dispatchedTo) return "handoff";
+    if (routingAgent) return "routing";
+    return "standby";
+  }, [activeAgent, dispatchBar, dispatchedTo, routingAgent]);
+
+  const roomMissionLabel = useMemo(() => {
+    if (activeAgent) return `${AGENTS[activeAgent].name} executing`;
+    if (dispatchedTo) return `Handoff to ${AGENTS[dispatchedTo].name}`;
+    if (routingAgent) return `${AGENTS[routingAgent].name} routing`;
+    return `${primaryFront.label} on watch`;
+  }, [activeAgent, dispatchedTo, primaryFront.label, routingAgent]);
+
+  const roomMissionNote = useMemo(() => {
+    if (activeAgent) {
+      return `${AGENTS[activeAgent].name} is carrying the live task while the room holds ${primaryFront.label} at ${commandTempo.toLowerCase()} tempo.`;
+    }
+    if (dispatchBar || dispatchedTo) {
+      const target = dispatchedTo ?? dispatchBar?.to ?? null;
+      return target
+        ? `Mission transfer is underway toward ${AGENTS[target].name}. Keep evidence in view before sanctioning the next action.`
+        : "Mission transfer is underway between agent stations.";
+    }
+    if (routingAgent) {
+      return `${AGENTS[routingAgent].name} is evaluating the next specialist handoff based on the current theater and command directive.`;
+    }
+    return `The room is steady and centered on ${primaryFront.label}. Use the codex, verbs, or dock directive to start the next operation.`;
+  }, [
+    activeAgent,
+    commandTempo,
+    dispatchBar,
+    dispatchedTo,
+    primaryFront.label,
+    routingAgent,
+  ]);
+
+  const missionCodex = useMemo<StrategiumMissionCodex>(() => {
+    const urgency =
+      primaryFront.tab === "cyber" || primaryFront.tab === "intel"
+        ? "Elevated theater"
+        : primaryFront.tab === "alpha"
+          ? "Market pressure"
+          : "Steady command watch";
+    const evidence =
+      primaryFront.tab === "cyber"
+        ? `${cves.length} CVEs are shaping the current risk queue.`
+        : primaryFront.tab === "intel"
+          ? `${articles.length} live signals and world-risk ${worldRisk} define the brief.`
+          : primaryFront.tab === "alpha"
+            ? btc == null
+              ? "Price feed is still forming."
+              : `BTC ${btc.chg >= 0 ? "up" : "down"} ${Math.abs(btc.chg).toFixed(1)}% with sentiment ${fgValue ?? "pending"}.`
+            : `Command posture is anchored by runtime ${runtimeStatusLabel.toLowerCase()} and sentiment ${fgValue ?? "pending"}.`;
+    const nextAction =
+      primaryFront.tab === "cyber"
+        ? "Open triage, rank exposure, and hold sanction until evidence converges."
+        : primaryFront.tab === "intel"
+          ? "Brief the current theater, then pivot into sweeps if the feed is thin."
+          : primaryFront.tab === "alpha"
+            ? "Drill into signals and sizing before promoting movement into action."
+            : "Stay centered on routing, system state, and the next mission dispatch.";
+    return {
+      title: `${primaryFront.label} mission codex`,
+      objective: primaryFront.note,
+      urgency,
+      evidence,
+      nextAction,
+      handoff:
+        pendingLesson?.text ??
+        settings.lastSessionSummary?.trim() ??
+        "No explicit handoff is waiting. Use the codex and choir to stage the next action.",
+      primaryActionLabel: `Open ${primaryFront.label}`,
+      primaryActionHref: primaryFrontHref,
+      secondaryActionLabel:
+        primaryFront.tab === "cyber" || primaryFront.tab === "intel"
+          ? "Review Doctrine"
+          : "Dispatch Workflow",
+      secondaryActionHref:
+        primaryFront.tab === "cyber" || primaryFront.tab === "intel"
+          ? "/security?view=doctrine"
+          : "/skills?view=forge",
+    };
+  }, [
+    articles.length,
+    btc,
+    cves.length,
+    fgValue,
+    pendingLesson?.text,
+    primaryFront.label,
+    primaryFront.note,
+    primaryFront.tab,
+    primaryFrontHref,
+    runtimeStatusLabel,
+    settings.lastSessionSummary,
+    worldRisk,
+  ]);
+
+  const sessionRecap = useMemo<StrategiumSessionRecap>(() => {
+    const summary =
+      settings.lastSessionSummary?.trim() ||
+      modeBriefings[0]?.summary ||
+      "No prior handoff has been preserved yet. The next substantive run will stamp a reusable session memory.";
+    return {
+      title: "Since last session",
+      summary,
+      note:
+        enabledScheduledJobs.length > 0
+          ? `${enabledScheduledJobs.length} auto orders are armed for the next cycle.`
+          : "No auto orders are armed right now.",
+    };
+  }, [enabledScheduledJobs.length, modeBriefings, settings.lastSessionSummary]);
+
+  const strategiumShortcuts = useMemo<StrategiumShortcut[]>(
+    () => [
+      {
+        key: "/",
+        label: "Focus vox command",
+        note: "Jump straight into the HQ command input.",
+      },
+      {
+        key: "R",
+        label: "Resume primary theater",
+        note: `Open ${primaryFront.label} with its most relevant view already selected.`,
+      },
+      {
+        key: "1-5",
+        label: "Open command systems",
+        note: "Launch Forge, Blacksite, Sweep Engine, Registry, or Doctrine instantly.",
+      },
+      {
+        key: "M",
+        label: "Open archive memory",
+        note: "Review saved lessons, context, and prior command memory.",
+      },
+      {
+        key: "O",
+        label: "Open auto orders",
+        note: "Inspect scheduler jobs, mission templates, and cooldown state.",
+      },
+    ],
+    [primaryFront.label],
+  );
+
+  const strategiumVerbs = useMemo<StrategiumCommandVerb[]>(
+    () => [
+      {
+        id: "brief",
+        label: "Brief",
+        note: `Resume ${primaryFront.label} with the most relevant filtered surface already staged.`,
+        href: primaryFrontHref,
+        tone: primaryFront.tone,
+      },
+      {
+        id: "dispatch",
+        label: "Dispatch",
+        note:
+          enabledScheduledJobs.length > 0
+            ? "Open Workflow Forge with mission systems already armed from scheduler state."
+            : "Open Workflow Forge and stage the next mission graph or template.",
+        href: "/skills?view=forge",
+        tone: enabledScheduledJobs.length > 0 ? "warning" : "steady",
+      },
+      {
+        id: "investigate",
+        label: "Investigate",
+        note:
+          primaryFront.tab === "cyber" || primaryFront.tab === "intel"
+            ? "Pivot into sweep evidence or doctrine review to test the current theater."
+            : "Open Sweep Engine to widen evidence before sanctioning action.",
+        href:
+          primaryFront.tab === "cyber" || primaryFront.tab === "intel"
+            ? "/intel?view=sweeps"
+            : "/intel?view=sweeps",
+        tone:
+          primaryFront.tab === "cyber" || primaryFront.tab === "intel"
+            ? "warning"
+            : "steady",
+      },
+      {
+        id: "approve",
+        label: "Approve",
+        note:
+          pendingLesson != null
+            ? "Review the current lesson proposal and promote only what deserves memory."
+            : "Open archive memory and sanction the next doctrine or handoff deliberately.",
+        href: pendingLesson != null ? "/resources?view=registry" : "/security?view=doctrine",
+        tone: pendingLesson != null ? "warning" : "steady",
+      },
+    ],
+    [
+      enabledScheduledJobs.length,
+      pendingLesson,
+      primaryFront.label,
+      primaryFront.tab,
+      primaryFront.tone,
+      primaryFrontHref,
+    ],
+  );
+
+  const latestChronicle = useMemo(() => {
+    const latestAgentMessage = [...messages]
+      .reverse()
+      .find((message) => message.role === "agent");
+    if (latestAgentMessage?.text) return latestAgentMessage.text;
+    const persistedAgentMessage = [...officeMessages]
+      .reverse()
+      .find((message) => message.role === "agent");
+    if (persistedAgentMessage?.text) return persistedAgentMessage.text;
+    if (modeBriefings[0]?.summary) return modeBriefings[0].summary;
+    return "No operation has been logged yet. Prime a briefing, dispatch a mission, or open a front to begin the next cycle.";
+  }, [messages, officeMessages, modeBriefings]);
+
+  const applyOperationalPreset = useCallback(
+    (mode: OfficeOperationalMode) => {
+      const presetKey =
+        mode === "war" ? "war" : mode === "nightOps" ? "nightOps" : "focus";
+      const preset = OFFICE_LAYOUT_PRESETS[presetKey];
+      const nextLayout = Object.fromEntries(
+        Object.entries(preset.layout).map(([key, value]) => [key, { ...value }]),
+      ) as typeof preset.layout;
+
+      updateSettings({
+        officeOperationalMode: mode,
+        officeSceneMode: preset.officeSceneMode ?? officeSceneMode,
+        officeMotion: preset.officeMotion ?? officeMotion,
+      });
+      setOfficeLayout(nextLayout);
+
+      if (mode !== officeOperationalMode) {
+        const label = OFFICE_OPERATIONAL_PROFILES[mode].label;
+        addNotification({
+          type: "system",
+          severity: "low",
+          title: "Strategium doctrine updated",
+          message: `HQ posture shifted to ${label}.`,
+          source: "hq-strategium",
+        });
+        addLog({
+          type: "system",
+          text: `Strategium doctrine -> ${label}`,
+          color: "#d6a56d",
+        });
+      }
+    },
+    [
+      addLog,
+      addNotification,
+      officeMotion,
+      officeOperationalMode,
+      officeSceneMode,
+      setOfficeLayout,
+      updateSettings,
+    ],
+  );
+
+  const primePrompt = useCallback(
+    (prompt: string) => {
+      if (activeAgent) return;
+      setInput(prompt);
+      window.setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.setSelectionRange(prompt.length, prompt.length);
+      }, 0);
+    },
+    [activeAgent],
+  );
+
+  const openSurface = useCallback(
+    (tab: string) => {
+      const href = tab.startsWith("/") ? tab : tab === "hq" ? "/hq" : `/${tab}`;
+      const pathOnly = href.split("?")[0] || "/hq";
+      const routeId = pathOnly.replace(/^\//, "").split("/")[0] || "hq";
+      const normalizedTab = routeId === "hq" ? "home" : routeId;
+      setTab(normalizedTab);
+      router.push(href);
+    },
+    [router, setTab],
+  );
   const openBriefingTab = useCallback(
     (tab: string) => {
       setTab(tab);
@@ -736,6 +1344,45 @@ export default function OfficeCommandCenter() {
     },
     [setTab, router],
   );
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (isEditableTarget(event.target) && event.key !== "Escape") return;
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      if (event.key === "/") {
+        event.preventDefault();
+        inputRef.current?.focus();
+        return;
+      }
+      const lower = event.key.toLowerCase();
+      if (lower === "r") {
+        event.preventDefault();
+        openSurface(primaryFrontHref);
+        return;
+      }
+      if (lower === "m") {
+        event.preventDefault();
+        setMemoryOpen(true);
+        return;
+      }
+      if (lower === "o") {
+        event.preventDefault();
+        setSchedulerOpen(true);
+        return;
+      }
+      if (/^[1-5]$/.test(event.key)) {
+        const system = strategiumSystems[Number(event.key) - 1];
+        if (!system) return;
+        event.preventDefault();
+        openSurface(system.href);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [openSurface, primaryFrontHref, strategiumSystems]);
 
   const applySplitHeight = useCallback(
     (next: number, announce?: string) => {
@@ -834,26 +1481,36 @@ export default function OfficeCommandCenter() {
       <div className="nexus-hq-shell">
         <section className="nexus-hq-prelude">
           <div className="nexus-hq-prelude__copy">
-            <div className="nexus-shell-eyebrow">Operator headquarters</div>
-            <h1 className="nexus-hq-prelude__title">HQ / After-dark control room</h1>
+            <div className="nexus-shell-eyebrow">Nexus Prime strategium</div>
+            <h1 className="nexus-hq-prelude__title">
+              War-forged command sanctum for live operator control.
+            </h1>
             <p className="nexus-hq-prelude__description">
-              The 3D office is now framed as the main scene instead of a loose
-              dashboard. This surface carries runtime awareness today and the
-              future vehicle lane tomorrow.
+              HQ now behaves like a single command chamber: brief the operator,
+              prioritize the hottest theater, dispatch the right agent, and keep
+              sanction evidence within one continuous room.
             </p>
             <div className="nexus-shell-actions">
-              <ShellBadge tone="accent">3D office live</ShellBadge>
+              <ShellBadge tone="accent">Strategium live</ShellBadge>
               <ShellBadge tone="success">{activeProfile.label}</ShellBadge>
               <ShellBadge tone="muted">
                 {activeAgent ? `${AGENTS[activeAgent].name} active` : "Standby"}
               </ShellBadge>
+              <ShellBadge
+                tone={evalGrade === "A" || evalGrade === "B" ? "success" : "muted"}
+              >
+                Eval {evalGrade.toUpperCase()}
+              </ShellBadge>
             </div>
             <HomeAmbient />
             <div className="nexus-shell-actions">
-              <ShellButton onClick={() => router.push("/internal/vehicle")}>
-                Open Vehicle Lab
+              <ShellButton onClick={() => openSurface(primaryFrontHref)}>
+                Open {primaryFront.label}
               </ShellButton>
-              <ShellButton onClick={() => router.push("/resources")}>
+              <ShellButton onClick={() => setSchedulerOpen(true)}>
+                Auto Orders
+              </ShellButton>
+              <ShellButton onClick={() => openSurface("resources")}>
                 Field Manual
               </ShellButton>
             </div>
@@ -861,32 +1518,74 @@ export default function OfficeCommandCenter() {
 
           <div className="nexus-hq-prelude__grid" aria-label="HQ posture">
             <div className="nexus-hq-prelude__card">
-              <span className="nexus-hq-prelude__label">Operational profile</span>
+              <span className="nexus-hq-prelude__label">Operational doctrine</span>
               <span className="nexus-hq-prelude__value">{activeProfile.label}</span>
               <p className="nexus-hq-prelude__note">
                 Focus tabs: {activeProfile.focusTabs.join(" • ").toUpperCase()}
               </p>
             </div>
             <div className="nexus-hq-prelude__card">
-              <span className="nexus-hq-prelude__label">Scene posture</span>
+              <span className="nexus-hq-prelude__label">Runtime sanction</span>
               <span className="nexus-hq-prelude__value">
-                {officeSceneMode.toUpperCase()}
+                EVAL {evalGrade.toUpperCase()}
               </span>
               <p className="nexus-hq-prelude__note">
-                Camera: {officeCameraPreset} • Motion {officeMotion.toFixed(1)}x
+                {runtimeStatusLabel} • {runtimePhaseLabel}
+                {evalStale ? " • stale posture" : " • live posture"}
               </p>
             </div>
             <div className="nexus-hq-prelude__card">
-              <span className="nexus-hq-prelude__label">Future airframe lane</span>
-              <span className="nexus-hq-prelude__value">F450 staged</span>
+              <span className="nexus-hq-prelude__label">Priority theater</span>
+              <span className="nexus-hq-prelude__value">{primaryFront.label}</span>
               <p className="nexus-hq-prelude__note">
-                Sim first, telemetry bridge later, and no flight-critical logic
-                in Nexus.
+                {primaryFront.note}
+              </p>
+            </div>
+            <div className="nexus-hq-prelude__card">
+              <span className="nexus-hq-prelude__label">Command tempo</span>
+              <span className="nexus-hq-prelude__value">{commandTempo}</span>
+              <p className="nexus-hq-prelude__note">
+                {enabledScheduledJobs.length} auto orders armed · {strategiumAgents.filter((agent) => agent.status !== "standby").length} agent stations warmed
+              </p>
+            </div>
+            <div className="nexus-hq-prelude__card">
+              <span className="nexus-hq-prelude__label">Last handoff</span>
+              <span className="nexus-hq-prelude__value">Recall</span>
+              <p className="nexus-hq-prelude__note">
+                {sessionRecap.summary}
               </p>
             </div>
           </div>
         </section>
 
+        <HQStrategiumDeck
+          operationalMode={officeOperationalMode}
+          activeAgent={activeAgent}
+          evalGrade={evalGrade}
+          evalStale={evalStale}
+          runtimeStatus={runtimeStatusLabel}
+          runtimePhase={runtimePhaseLabel}
+          latestChronicle={latestChronicle}
+          pendingLessonAgent={pendingLesson?.agent ?? null}
+          pendingLessonSummary={pendingLesson?.text ?? null}
+          modeBriefingCount={modeBriefings.length}
+          postureSummary={postureSummary}
+          threatLabel={threatLabel}
+          tempoLabel={commandTempo}
+          fronts={strategiumFronts}
+          agents={strategiumAgents}
+          systems={strategiumSystems}
+          missionCodex={missionCodex}
+          sessionRecap={sessionRecap}
+          shortcuts={strategiumShortcuts}
+          verbs={strategiumVerbs}
+          prompts={STRATEGIUM_PROMPTS}
+          onSetOperationalMode={applyOperationalPreset}
+          onPrimePrompt={primePrompt}
+          onOpenTab={openSurface}
+          onOpenMemory={() => setMemoryOpen(true)}
+          onOpenScheduler={() => setSchedulerOpen(true)}
+        />
         <div className="nexus-hq-console">
         {/* ── Header ── */}
         <div
@@ -924,7 +1623,7 @@ export default function OfficeCommandCenter() {
               letterSpacing: "2px",
             }}
           >
-            NEXUS PRIME HQ
+            NEXUS PRIME // STRATEGIUM
           </span>
           <span
             style={{
@@ -969,6 +1668,21 @@ export default function OfficeCommandCenter() {
             style={{
               fontSize: "11px",
               fontFamily: "'VT323', monospace",
+              color: "#f4d8af",
+              border: "1px solid rgba(244,216,175,0.12)",
+              borderRadius: 999,
+              padding: "2px 8px",
+              opacity: 0.88,
+              background: "rgba(255,255,255,.02)",
+            }}
+            title="Current runtime state"
+          >
+            {runtimeStatusLabel.toUpperCase()} · {runtimePhaseLabel.toUpperCase()}
+          </span>
+          <span
+            style={{
+              fontSize: "11px",
+              fontFamily: "'VT323', monospace",
               color: "rgba(255,236,238,.76)",
               opacity: 0.9,
             }}
@@ -1005,12 +1719,21 @@ export default function OfficeCommandCenter() {
               officeLayout={officeLayout}
               agentPos={agentPos}
               activeAgent={activeAgent}
+              missionState={roomMissionState}
+              missionLabel={roomMissionLabel}
+              missionNote={roomMissionNote}
+              commandTempo={commandTempo}
+              primaryFront={primaryFront}
               sceneMode={officeSceneMode}
               motionIntensity={officeMotion}
               cameraPreset={officeCameraPreset}
               vfxQuality={officeVfxQuality}
               onOpenMemory={() => setMemoryOpen(true)}
               onOpenScheduler={() => setSchedulerOpen(true)}
+              onOpenPrimaryFront={() => openSurface(primaryFrontHref)}
+              onOpenSweep={() => openSurface("/intel?view=sweeps")}
+              onOpenForge={() => openSurface("/skills?view=forge")}
+              onOpenDoctrine={() => openSurface("/security?view=doctrine")}
               onToggleEditMode={() => setOfficeEditMode(!officeEditMode)}
               onResetLayout={() => resetOfficeLayout()}
               onSetCameraPreset={(p) =>
@@ -1277,11 +2000,24 @@ export default function OfficeCommandCenter() {
                   marginBottom: 6,
                 }}
               >
-                HQ TERMINAL
+                COMMAND CHRONICLE
               </div>
               <div>
-                Type a message to start. Live KPIs are now mounted on the office
-                walls to keep chat unobstructed.
+                Prime the chamber with a command. Live signals stay mounted on
+                the walls so the chronicle can stay focused on dispatch,
+                evidence, and final recommendations.
+              </div>
+              <div className="nexus-hq-chronicle__prompts">
+                {STRATEGIUM_PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt.label}
+                    type="button"
+                    className="nexus-hq-strategium__prompt"
+                    onClick={() => primePrompt(prompt.prompt)}
+                  >
+                    {prompt.label}
+                  </button>
+                ))}
               </div>
             </div>
           ) : (
@@ -1513,81 +2249,104 @@ export default function OfficeCommandCenter() {
               borderTop: "1px solid var(--border)",
               background: "var(--surf)",
               display: "flex",
+              flexDirection: "column",
               gap: "8px",
-              alignItems: "flex-end",
               flexShrink: 0,
             }}
           >
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                activeAgent
-                  ? "Agent is busy…"
-                  : "Talk to MAX — he routes to the right specialist…"
-              }
-              disabled={!!activeAgent}
-              rows={1}
+            {!activeAgent && (
+              <div className="nexus-hq-chronicle__prompts">
+                {STRATEGIUM_PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt.label}
+                    type="button"
+                    className="nexus-hq-strategium__prompt"
+                    onClick={() => primePrompt(prompt.prompt)}
+                  >
+                    {prompt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div
               style={{
-                flex: 1,
-                resize: "none",
-                background: "var(--surf2)",
-                border: `1px solid ${activeAgent ? "var(--border2)" : "var(--border2)"}`,
-                borderRadius: "10px",
-                padding: "9px 13px",
-                fontSize: "12.5px",
-                color: "var(--text)",
-                outline: "none",
-                fontFamily: "inherit",
-                lineHeight: 1.5,
-                maxHeight: 120,
-                opacity: activeAgent ? 0.5 : 1,
+                display: "flex",
+                gap: "8px",
+                alignItems: "flex-end",
               }}
-            />
-            <button
-              onClick={() => void send()}
-              disabled={!input.trim() || !!activeAgent}
-              style={{
-                flexShrink: 0,
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background:
-                  input.trim() && !activeAgent
-                    ? "var(--accent)"
-                    : "var(--surf3)",
-                border: "none",
-                cursor: input.trim() && !activeAgent ? "pointer" : "default",
-                color: "#fff",
-                fontSize: 14,
-              }}
-              title="Send"
             >
-              {activeAgent ? "…" : "▶"}
-            </button>
-            <button
-              onClick={handleClear}
-              disabled={messages.length === 0 && officeMessages.length === 0}
-              style={{
-                flexShrink: 0,
-                height: 36,
-                padding: "0 12px",
-                borderRadius: 10,
-                background: "transparent",
-                border: "1px solid var(--border2)",
-                cursor:
-                  messages.length === 0 && officeMessages.length === 0
-                    ? "default"
-                    : "pointer",
-                color: "var(--text2)",
-                fontSize: 12,
-                fontWeight: 700,
-              }}
-              title="Clear chat"
-            >
-              Clear
-            </button>
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  activeAgent
+                    ? "Agent is executing..."
+                    : "Issue a briefing, dispatch, investigation, or sanction request..."
+                }
+                disabled={!!activeAgent}
+                rows={1}
+                style={{
+                  flex: 1,
+                  resize: "none",
+                  background: "var(--surf2)",
+                  border: `1px solid ${activeAgent ? "var(--border2)" : "var(--border2)"}`,
+                  borderRadius: "10px",
+                  padding: "9px 13px",
+                  fontSize: "12.5px",
+                  color: "var(--text)",
+                  outline: "none",
+                  fontFamily: "inherit",
+                  lineHeight: 1.5,
+                  maxHeight: 120,
+                  opacity: activeAgent ? 0.5 : 1,
+                }}
+              />
+              <button
+                onClick={() => void send()}
+                disabled={!input.trim() || !!activeAgent}
+                style={{
+                  flexShrink: 0,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background:
+                    input.trim() && !activeAgent
+                      ? "var(--accent)"
+                      : "var(--surf3)",
+                  border: "none",
+                  cursor: input.trim() && !activeAgent ? "pointer" : "default",
+                  color: "#fff",
+                  fontSize: 14,
+                }}
+                title="Send"
+              >
+                {activeAgent ? "…" : "▶"}
+              </button>
+              <button
+                onClick={handleClear}
+                disabled={messages.length === 0 && officeMessages.length === 0}
+                style={{
+                  flexShrink: 0,
+                  height: 36,
+                  padding: "0 12px",
+                  borderRadius: 10,
+                  background: "transparent",
+                  border: "1px solid var(--border2)",
+                  cursor:
+                    messages.length === 0 && officeMessages.length === 0
+                      ? "default"
+                      : "pointer",
+                  color: "var(--text2)",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+                title="Clear chat"
+              >
+                Clear
+              </button>
+            </div>
           </div>
         </div>
         </div>

@@ -18,6 +18,33 @@ const PRESET_CRONS = [
   { label: "Mon-Fri 08:30", value: "30 8 * * 1-5" },
 ];
 
+const MISSION_TEMPLATES = [
+  {
+    id: "brief",
+    label: "Morning brief",
+    outputTarget: "vault" as const,
+    approvalPolicy: "human_gate" as const,
+    prompt:
+      "Assemble a morning brief across markets, cyber, and geopolitics. Return five actionable bullets plus a one-sentence command takeaway.",
+  },
+  {
+    id: "dossier",
+    label: "Recon dossier",
+    outputTarget: "review" as const,
+    approvalPolicy: "human_gate" as const,
+    prompt:
+      "Build a recon dossier with passive DNS, headers, metadata, and OPSEC notes. Structure the output as a dossier-ready pack.",
+  },
+  {
+    id: "incident",
+    label: "Incident memo",
+    outputTarget: "notify" as const,
+    approvalPolicy: "approve_on_write" as const,
+    prompt:
+      "Summarize the latest cyber risk posture, likely exposure, and recommended triage actions as an operator incident memo.",
+  },
+];
+
 function isValidCron(expr: string): boolean {
   const parts = expr.trim().split(/\s+/);
   if (parts.length !== 5) return false;
@@ -35,6 +62,12 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");
   const [cron, setCron] = useState(PRESET_CRONS[0].value);
+  const [jobType, setJobType] = useState<ScheduledJob["type"]>("mission");
+  const [outputTarget, setOutputTarget] =
+    useState<NonNullable<ScheduledJob["outputTarget"]>>("vault");
+  const [approvalPolicy, setApprovalPolicy] =
+    useState<NonNullable<ScheduledJob["approvalPolicy"]>>("human_gate");
+  const [missionAgent, setMissionAgent] = useState("orbit");
   const [error, setError] = useState("");
 
   const sortedJobs = useMemo(
@@ -96,11 +129,19 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
       prompt: trimmedPrompt,
       cron: trimmedCron,
       enabled: true,
+      type: jobType,
+      outputTarget,
+      approvalPolicy,
+      missionAgent,
     };
     saveJobs([next, ...jobs]);
     setName("");
     setPrompt("");
     setCron(PRESET_CRONS[0].value);
+    setJobType("mission");
+    setOutputTarget("vault");
+    setApprovalPolicy("human_gate");
+    setMissionAgent("orbit");
   };
 
   const toggleJob = (id: string) => {
@@ -245,6 +286,111 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
             >
               ADD
             </button>
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+              gap: 8,
+            }}
+          >
+            <select
+              value={jobType}
+              onChange={(e) => setJobType(e.target.value as ScheduledJob["type"])}
+              style={{
+                background: "#080d18",
+                border: "1px solid #1A2040",
+                borderRadius: 6,
+                color: "#ccd6f6",
+                padding: "7px 10px",
+              }}
+            >
+              <option value="mission">Mission</option>
+              <option value="prompt">Prompt</option>
+            </select>
+            <select
+              value={outputTarget}
+              onChange={(e) =>
+                setOutputTarget(
+                  e.target.value as NonNullable<ScheduledJob["outputTarget"]>,
+                )
+              }
+              style={{
+                background: "#080d18",
+                border: "1px solid #1A2040",
+                borderRadius: 6,
+                color: "#ccd6f6",
+                padding: "7px 10px",
+              }}
+            >
+              <option value="vault">Vault</option>
+              <option value="notify">Notification</option>
+              <option value="telegram">Telegram</option>
+              <option value="download">Download pack</option>
+              <option value="review">Pending review</option>
+              <option value="none">No artifact</option>
+            </select>
+            <select
+              value={approvalPolicy}
+              onChange={(e) =>
+                setApprovalPolicy(
+                  e.target.value as NonNullable<ScheduledJob["approvalPolicy"]>,
+                )
+              }
+              style={{
+                background: "#080d18",
+                border: "1px solid #1A2040",
+                borderRadius: 6,
+                color: "#ccd6f6",
+                padding: "7px 10px",
+              }}
+            >
+              <option value="human_gate">Human gate</option>
+              <option value="approve_on_write">Approve on write</option>
+              <option value="observe">Observe only</option>
+            </select>
+            <select
+              value={missionAgent}
+              onChange={(e) => setMissionAgent(e.target.value)}
+              style={{
+                background: "#080d18",
+                border: "1px solid #1A2040",
+                borderRadius: 6,
+                color: "#ccd6f6",
+                padding: "7px 10px",
+              }}
+            >
+              <option value="orbit">ORBIT</option>
+              <option value="nova">NOVA</option>
+              <option value="cipher">CIPHER</option>
+              <option value="jansky">JANSKY</option>
+              <option value="flux">FLUX</option>
+            </select>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {MISSION_TEMPLATES.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                onClick={() => {
+                  setName(template.label);
+                  setPrompt(template.prompt);
+                  setOutputTarget(template.outputTarget);
+                  setApprovalPolicy(template.approvalPolicy);
+                }}
+                style={{
+                  background: "rgba(79,110,247,0.12)",
+                  border: "1px solid rgba(79,110,247,0.26)",
+                  color: "#9fb7ff",
+                  borderRadius: 999,
+                  padding: "4px 10px",
+                  fontSize: 10,
+                  cursor: "pointer",
+                }}
+              >
+                {template.label}
+              </button>
+            ))}
           </div>
           <input
             value={cron}
@@ -469,6 +615,7 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
                     display: "flex",
                     alignItems: "center",
                     gap: 8,
+                    flexWrap: "wrap",
                   }}
                 >
                   <span
@@ -489,6 +636,9 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
                       Never run
                     </span>
                   )}
+                  <span style={{ color: "#6875a0", fontSize: 10 }}>
+                    {job.outputTarget ?? "none"} · {job.approvalPolicy ?? "human_gate"} · {job.missionAgent ?? "orbit"}
+                  </span>
                 </div>
                 <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
                   <button

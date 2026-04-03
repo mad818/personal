@@ -12,6 +12,7 @@ import {
 } from "@/lib/productGuarantees";
 import { BRAND_DESCRIPTOR, BRAND_NAME } from "@/lib/brand";
 import {
+  isNexusAuthEnabled,
   matchesConfiguredNexusToken,
   NEXUS_SESSION_COOKIE,
 } from "@/lib/authSession";
@@ -71,7 +72,8 @@ export default function RootLayout({
 }) {
   const cookieStore = cookies();
   const sessionCookie = cookieStore.get(NEXUS_SESSION_COOKIE)?.value ?? "";
-  const initiallyAuthed = matchesConfiguredNexusToken(sessionCookie);
+  const initiallyAuthed =
+    !isNexusAuthEnabled() || matchesConfiguredNexusToken(sessionCookie);
 
   return (
     <html lang="en">

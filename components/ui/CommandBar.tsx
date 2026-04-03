@@ -24,7 +24,7 @@
 //  - maxIterations bumped to 10 for code editing tasks
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import ClientStyleMount from "@/components/ui/ClientStyleMount";
 import { buildSystemPrompt } from "@/lib/ai";
@@ -328,6 +328,29 @@ const ROUTE_AGENT: Record<string, AgentId> = {
   "/vault": "jansky",
 };
 
+const ROUTE_LABEL: Record<string, string> = {
+  "/hq": "CITADEL",
+  "/command": "VECTOR",
+  "/labs/signals": "SIGNALS",
+  "/alpha": "QUANT",
+  "/labs/ops": "OPS",
+  "/intel": "SPECTRA",
+  "/cyber": "BASTION",
+  "/labs/security": "LAB",
+  "/internal/skills": "FORGE",
+  "/internal/vehicle": "VEHICLE",
+  "/internal/iot": "IOT",
+  "/resources": "FIELD MANUAL",
+  "/vault": "ARCHIVE",
+};
+
+type CommandDirective = {
+  label: string;
+  note: string;
+  href: string;
+  color: string;
+};
+
 function detectAgent(msg: string): AgentId {
   if (!msg.trim()) return "jansky";
   const lower = msg.toLowerCase();
@@ -615,12 +638,20 @@ interface ChatMessage {
 
 // ── CommandBar ─────────────────────────────────────────────────────────────────
 export default function CommandBar() {
+  const router = useRouter();
   const pathname = usePathname();
   const settings = useStore((s) => s.settings);
   const activityLog = useStore((s) => s.activityLog);
   const addLog = useStore((s) => s.addLog);
   const currentPhase = useStore((s) => s.currentPhase);
   const pendingEdits = useStore((s) => s.pendingEdits);
+  const articleCount = useStore((s) => s.articles.length);
+  const worldRisk = useStore((s) => s.worldRisk);
+  const cveCount = useStore((s) => s.cves.length);
+  const enabledOrders = useStore(
+    (s) => s.settings.scheduledJobs?.filter((job) => job.enabled).length ?? 0,
+  );
+  const lastSessionSummary = useStore((s) => s.settings.lastSessionSummary);
 
   const systemPrompt = useMemo(() => buildSystemPrompt(settings), [settings]);
 
@@ -670,8 +701,153 @@ export default function CommandBar() {
 
   const canonicalPath = normalizeSurfaceHref(pathname);
   const dutyAgent = ROUTE_AGENT[canonicalPath] ?? "jansky";
+  const routeLabel =
+    ROUTE_LABEL[canonicalPath] ??
+    (canonicalPath.replace("/", "").toUpperCase() || "HQ");
   const accentColor = AGENTS[dutyAgent].color;
   const unread = messages.filter((m) => m.role === "agent").length;
+  const dockTempo = activeAgent
+    ? "LIVE"
+    : cveCount >= 12 || worldRisk >= 5
+      ? "HIGH"
+      : articleCount >= 8 || enabledOrders >= 1
+        ? "ACTIVE"
+        : "CALM";
+  const quickActions = useMemo(
+    () => [
+      { label: "HQ", href: "/hq", color: "#4f6ef7" },
+      { label: "FORGE", href: "/skills?view=forge", color: "#7c3aed" },
+      { label: "SWEEP", href: "/intel?view=sweeps", color: "#00DDFF" },
+      { label: "DOCTRINE", href: "/security?view=doctrine", color: "#f59e0b" },
+      ],
+    [],
+  );
+  const dockTempoColor =
+    dockTempo === "HIGH"
+      ? "#ef4444"
+      : dockTempo === "ACTIVE"
+        ? "#f59e0b"
+        : dockTempo === "LIVE"
+          ? "#00DDFF"
+          : "#10b981";
+  const commandDirective = useMemo<CommandDirective>(() => {
+    if (activeAgent) {
+      return {
+        label: `TRACK ${AGENTS[activeAgent].name}`,
+        note: `${AGENTS[activeAgent].name} is actively executing. Keep the dock open to follow live steps and tool usage.`,
+        href: "/hq",
+        color: AGENTS[activeAgent].color,
+      };
+    }
+
+    if (cveCount >= 12) {
+      return {
+        label: "TRIAGE BASTION",
+        note: `Critical vulnerability pressure is elevated with ${cveCount} active CVEs in memory. Jump into cyber triage and doctrine review.`,
+        href: "/cyber?view=triage",
+        color: "#ef4444",
+      };
+    }
+
+    if (worldRisk >= 5 || articleCount >= 10) {
+      return {
+        label: "RUN SPECTRA SWEEP",
+        note: `Signal pressure is elevated across ${articleCount} articles and world risk ${worldRisk}. Open Intel sweeps with the bundle view pre-staged.`,
+        href: "/intel?view=sweeps",
+        color: "#00DDFF",
+      };
+    }
+
+    if (enabledOrders >= 1) {
+      return {
+        label: "CHECK AUTO ORDERS",
+        note: `${enabledOrders} scheduled ${enabledOrders === 1 ? "mission is" : "missions are"} armed. Review the strategium before the next dispatch window.`,
+        href: "/hq",
+        color: "#10b981",
+      };
+    }
+
+    if (canonicalPath === "/internal/skills") {
+      return {
+        label: "OPEN BLACKSITE",
+        note: "Shift from workflow authoring into isolated prompt mutation and model compare without leaving the skills surface.",
+        href: "/skills?view=blacksite",
+        color: "#7c3aed",
+      };
+    }
+
+    if (canonicalPath === "/resources") {
+      return {
+        label: "INSPECT REGISTRY",
+        note: "Open the field manual and registry workbench to turn references into reusable kits and operator packs.",
+        href: "/resources",
+        color: "#c9a56a",
+      };
+    }
+
+    if (canonicalPath === "/vault") {
+      return {
+        label: "REVIEW ARCHIVE",
+        note: "Audit saved evidence packs, bookmarks, and dossier material before the next brief or export.",
+        href: "/vault",
+        color: "#8b9cff",
+      };
+    }
+
+    return {
+      label: "RETURN CITADEL",
+      note: "Resume the strategium with the current theater, doctrine, and command systems already aligned.",
+      href: "/hq",
+      color: "#4f6ef7",
+    };
+  }, [
+    activeAgent,
+    articleCount,
+    canonicalPath,
+    cveCount,
+    enabledOrders,
+    worldRisk,
+  ]);
+  const operationsSnapshot = useMemo(() => {
+    return `${articleCount} feeds · ${cveCount} CVEs · ${enabledOrders} auto orders · risk ${worldRisk}`;
+  }, [articleCount, cveCount, enabledOrders, worldRisk]);
+  const contextActions = useMemo(() => {
+    switch (canonicalPath) {
+      case "/intel":
+        return [
+          { label: "WORLD", href: "/intel?view=world", color: "#00DDFF" },
+          { label: "SWEEPS", href: "/intel?view=sweeps", color: "#38bdf8" },
+          { label: "MARKETS", href: "/intel?view=markets", color: "#7dd3fc" },
+        ];
+      case "/cyber":
+        return [
+          { label: "TRIAGE", href: "/cyber?view=triage", color: "#ef4444" },
+          { label: "CVES", href: "/cyber?view=cves", color: "#f87171" },
+          { label: "DOCTRINE", href: "/security?view=doctrine", color: "#f59e0b" },
+        ];
+      case "/alpha":
+        return [
+          { label: "WATCH", href: "/alpha?view=watchlist", color: "#10b981" },
+          { label: "SIGNALS", href: "/alpha?view=signals", color: "#34d399" },
+          { label: "SCANNER", href: "/alpha?view=scanner", color: "#6ee7b7" },
+        ];
+      case "/internal/skills":
+        return [
+          { label: "FORGE", href: "/skills?view=forge", color: "#7c3aed" },
+          { label: "BLACKSITE", href: "/skills?view=blacksite", color: "#a855f7" },
+          { label: "BRAIN", href: "/skills?view=brain", color: "#c084fc" },
+        ];
+      case "/hq":
+      case "/command":
+        return [
+          { label: "CITADEL", href: "/hq", color: "#4f6ef7" },
+          { label: "SPECTRA", href: "/intel?view=world", color: "#00DDFF" },
+          { label: "BASTION", href: "/cyber?view=triage", color: "#ef4444" },
+        ];
+      default:
+        return [];
+    }
+  }, [canonicalPath]);
 
   // Which agent would handle the current input (live routing preview)
   const routingTarget = input.trim() ? detectAgent(input) : dutyAgent;
@@ -906,6 +1082,213 @@ export default function CommandBar() {
             >
               ✕
             </button>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gap: "6px",
+              padding: "8px 10px",
+              borderBottom: "1px solid var(--border)",
+              background: "rgba(255,255,255,0.015)",
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "6px",
+                fontSize: "8px",
+                letterSpacing: ".08em",
+                fontWeight: 800,
+              }}
+            >
+              <span
+                style={{
+                  padding: "2px 6px",
+                  borderRadius: "999px",
+                  border: "1px solid var(--border)",
+                  color: accentColor,
+                }}
+              >
+                {routeLabel}
+              </span>
+              <span
+                style={{
+                  padding: "2px 6px",
+                  borderRadius: "999px",
+                  border: "1px solid var(--border)",
+                  color: dockTempoColor,
+                }}
+              >
+                TEMPO {dockTempo}
+              </span>
+              <span
+                style={{
+                  padding: "2px 6px",
+                  borderRadius: "999px",
+                  border: "1px solid var(--border)",
+                  color: enabledOrders > 0 ? "#10b981" : "var(--text3)",
+                }}
+              >
+                ORDERS {enabledOrders}
+              </span>
+              {lastSessionSummary?.trim() ? (
+                <span
+                  style={{
+                    padding: "2px 6px",
+                    borderRadius: "999px",
+                    border: "1px solid var(--border)",
+                    color: "#c9a56a",
+                  }}
+                >
+                  RECALL
+                </span>
+              ) : null}
+            </div>
+
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              {quickActions.map((action) => (
+                <button
+                  key={action.href}
+                  type="button"
+                  onClick={() => router.push(action.href)}
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: "999px",
+                    border: `1px solid ${action.color}33`,
+                    background: "rgba(255,255,255,0.02)",
+                    color: action.color,
+                    fontSize: "8px",
+                    fontWeight: 800,
+                    letterSpacing: ".08em",
+                    cursor: "pointer",
+                  }}
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
+
+            {contextActions.length > 0 ? (
+              <div style={{ display: "grid", gap: "4px" }}>
+                <div
+                  style={{
+                    fontSize: "7px",
+                    fontWeight: 900,
+                    letterSpacing: ".16em",
+                    color: "var(--text3)",
+                  }}
+                >
+                  THEATER LINKS
+                </div>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  {contextActions.map((action) => (
+                    <button
+                      key={action.href}
+                      type="button"
+                      onClick={() => router.push(action.href)}
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: "999px",
+                        border: `1px solid ${action.color}33`,
+                        background: "rgba(255,255,255,0.02)",
+                        color: action.color,
+                        fontSize: "8px",
+                        fontWeight: 800,
+                        letterSpacing: ".08em",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div
+              style={{
+                display: "grid",
+                gap: "6px",
+                padding: "8px",
+                borderRadius: "12px",
+                border: `1px solid ${commandDirective.color}22`,
+                background: `linear-gradient(135deg, ${commandDirective.color}14, rgba(255,255,255,0.015))`,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: "7px",
+                      fontWeight: 900,
+                      letterSpacing: ".16em",
+                      color: "var(--text3)",
+                    }}
+                  >
+                    COMMAND DIRECTIVE
+                  </div>
+                  <div
+                    style={{
+                      marginTop: "3px",
+                      fontSize: "11px",
+                      fontWeight: 900,
+                      letterSpacing: ".08em",
+                      color: commandDirective.color,
+                    }}
+                  >
+                    {commandDirective.label}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => router.push(commandDirective.href)}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: "999px",
+                    border: `1px solid ${commandDirective.color}44`,
+                    background: "rgba(8,12,22,0.72)",
+                    color: commandDirective.color,
+                    fontSize: "8px",
+                    fontWeight: 900,
+                    letterSpacing: ".12em",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  EXECUTE
+                </button>
+              </div>
+
+              <div
+                style={{
+                  fontSize: "9px",
+                  lineHeight: 1.5,
+                  color: "var(--text2)",
+                }}
+              >
+                {commandDirective.note}
+              </div>
+
+              <div
+                style={{
+                  fontSize: "8px",
+                  letterSpacing: ".08em",
+                  color: "var(--text3)",
+                }}
+              >
+                {operationsSnapshot}
+              </div>
+            </div>
           </div>
 
           {/* Live activity feed — 72px max, scrollable */}
@@ -1209,7 +1592,7 @@ export default function CommandBar() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "4px",
+            gap: "6px",
             fontSize: "8px",
             fontWeight: 900,
             color: accentColor,
@@ -1218,6 +1601,24 @@ export default function CommandBar() {
         >
           <span style={{ fontSize: "9px" }}>{expanded ? "▼" : "▲"}</span>
           <span>CMD</span>
+          <span
+            style={{
+              fontSize: "7px",
+              color: "var(--text3)",
+              letterSpacing: ".06em",
+            }}
+          >
+            {routeLabel}
+          </span>
+          <span
+            style={{
+              fontSize: "7px",
+              color: dockTempoColor,
+              letterSpacing: ".06em",
+            }}
+          >
+            {dockTempo}
+          </span>
         </div>
 
         {/* Unread dot */}

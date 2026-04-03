@@ -1,98 +1,134 @@
-// ── security/page ───────────────────────────────────────────
-// Security tab: camera grid, drone panel, perimeter sweep, alerts, threat level.
-
 "use client";
-// Physical security monitoring, surveillance, and threat detection
 
+import { useEffect, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import CameraGrid from "@/components/security/CameraGrid";
 import SecurityAlerts from "@/components/security/SecurityAlerts";
 import DronePanel from "@/components/security/DronePanel";
 import ThreatLevelIndicator from "@/components/security/ThreatLevelIndicator";
 import PerimeterSweep from "@/components/security/PerimeterSweep";
 import AlertTimeline from "@/components/security/AlertTimeline";
-import PageTransition from "@/components/ui/PageTransition";
+import SecurityDoctrineMatrix from "@/components/security/SecurityDoctrineMatrix";
+import {
+  SectionLabel,
+  ShellBadge,
+  ShellGrid,
+  ShellPage,
+  ShellPanel,
+  ShellSegmentedTabs,
+  ShellStack,
+} from "@/components/ui/shell";
+import { useStore } from "@/store/useStore";
+
+type View = "doctrine" | "ai" | "physical";
+
+const VIEWS: Array<{ id: View; label: string }> = [
+  { id: "doctrine", label: "Doctrine" },
+  { id: "ai", label: "AI Surface" },
+  { id: "physical", label: "Physical Ops" },
+];
 
 export default function SecurityPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const view = useStore((s) => s.securityWorkbenchView);
+  const setView = useStore((s) => s.setSecurityWorkbenchView);
+
+  const urlView = useMemo(() => {
+    const value = (searchParams?.get("view") ?? "").toLowerCase();
+    return value === "doctrine" || value === "ai" || value === "physical"
+      ? (value as View)
+      : null;
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (urlView) setView(urlView);
+  }, [setView, urlView]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    if ((params.get("view") ?? "").toLowerCase() === view) return;
+    params.set("view", view);
+    router.replace(`/security?${params.toString()}`);
+  }, [router, searchParams, view]);
+
   return (
-    <PageTransition>
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "18px 16px 40px",
-        }}
-      >
-        <div style={{ fontSize: "18px", fontWeight: 900 }}>
-          🛡️ SECURITY OPERATIONS
-        </div>
-        <div
-          style={{
-            fontSize: "12px",
-            color: "var(--text2)",
-            marginTop: "2px",
-            marginBottom: "20px",
-          }}
-        >
-          Physical security monitoring, surveillance, and threat detection
-        </div>
+    <ShellPage
+      width="wide"
+      surface="cyber"
+      eyebrow="Scenario-indexed hardening deck"
+      title="BASTION"
+      description="Security doctrine now sits beside physical monitoring so route, auth, SSRF, prompt, and tool risks stay visible as first-class operator work."
+      actions={
+        <>
+          <ShellBadge tone="accent">WSTG v4.2 pinned</ShellBadge>
+          <ShellBadge tone="muted">AI risks tracked separately</ShellBadge>
+          <ShellBadge tone="success">Physical ops preserved</ShellBadge>
+        </>
+      }
+    >
+      <ShellStack>
+        <ShellSegmentedTabs items={VIEWS} active={view} onChange={setView} />
 
-        {/* Threat Level Indicator — full width at top */}
-        <ThreatLevelIndicator />
+        {view === "doctrine" && (
+          <ShellPanel>
+            <SectionLabel detail="Route, auth, input, config, and AI-surface coverage">
+              Security doctrine
+            </SectionLabel>
+            <SecurityDoctrineMatrix />
+          </ShellPanel>
+        )}
 
-        {/* 2-column layout */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "16px",
-            alignItems: "start",
-          }}
-        >
-          {/* Left — Camera Grid + Perimeter Sweep */}
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-          >
-            <div
-              style={{
-                background: "var(--surf)",
-                border: "1px solid var(--border)",
-                borderRadius: "var(--r)",
-                padding: "16px",
-              }}
-            >
-              <CameraGrid />
-            </div>
-            <PerimeterSweep />
-          </div>
+        {view === "ai" && (
+          <ShellGrid columns="minmax(280px, 0.32fr) minmax(0, 0.68fr)" align="start">
+            <ShellPanel tone="muted">
+              <SectionLabel>AI boundary note</SectionLabel>
+              <div className="nexus-shell-copy nexus-shell-copy--compact">
+                The AI surface matrix is tracked beside WSTG instead of being hidden in notes.
+                Prompt injection, tool misuse, unsafe retrieval, approval bypass, and persistence
+                poisoning are all explicit doctrine items now, while Blacksite remains the isolated
+                operator-only arena for adversarial tournaments.
+              </div>
+            </ShellPanel>
+            <ShellPanel>
+              <SectionLabel detail="AI-specific security scenarios">AI surface matrix</SectionLabel>
+              <SecurityDoctrineMatrix initialSource="ai-surface" />
+            </ShellPanel>
+          </ShellGrid>
+        )}
 
-          {/* Right — Alerts + AlertTimeline + Drone */}
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-          >
-            <div
-              style={{
-                background: "var(--surf)",
-                border: "1px solid var(--border)",
-                borderRadius: "var(--r)",
-                padding: "16px",
-              }}
-            >
-              <SecurityAlerts />
-            </div>
-            <AlertTimeline />
-            <div
-              style={{
-                background: "var(--surf)",
-                border: "1px solid var(--border)",
-                borderRadius: "var(--r)",
-                padding: "16px",
-              }}
-            >
-              <DronePanel />
-            </div>
-          </div>
-        </div>
-      </div>
-    </PageTransition>
+        {view === "physical" && (
+          <ShellStack>
+            <ThreatLevelIndicator />
+            <ShellGrid columns="minmax(0, 1fr) minmax(0, 1fr)" align="start">
+              <ShellStack>
+                <ShellPanel>
+                  <SectionLabel>Camera grid</SectionLabel>
+                  <CameraGrid />
+                </ShellPanel>
+                <ShellPanel tone="muted">
+                  <SectionLabel>Perimeter sweep</SectionLabel>
+                  <PerimeterSweep />
+                </ShellPanel>
+              </ShellStack>
+              <ShellStack>
+                <ShellPanel>
+                  <SectionLabel>Security alerts</SectionLabel>
+                  <SecurityAlerts />
+                </ShellPanel>
+                <ShellPanel tone="muted">
+                  <SectionLabel>Alert timeline</SectionLabel>
+                  <AlertTimeline />
+                </ShellPanel>
+                <ShellPanel>
+                  <SectionLabel>Drone panel</SectionLabel>
+                  <DronePanel />
+                </ShellPanel>
+              </ShellStack>
+            </ShellGrid>
+          </ShellStack>
+        )}
+      </ShellStack>
+    </ShellPage>
   );
 }

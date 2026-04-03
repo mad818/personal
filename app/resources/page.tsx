@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import DeveloperFieldManual from "@/components/resources/DeveloperFieldManual";
 import {
   DEVELOPER_RESOURCE_CATEGORIES,
   DEVELOPER_RESOURCES,
   type ResourceCategory,
 } from "@/lib/developerResources";
+import ResourcesWorkbench from "@/components/resources/ResourcesWorkbench";
 import {
   SectionLabel,
   ShellBadge,
@@ -101,10 +101,10 @@ export default function ResourcesPage() {
         </ShellStack>
 
         <ShellPanel>
-          <SectionLabel detail="Grouped by study, tooling, and ecosystem">
-            Developer field manual
+          <SectionLabel detail="Manual, registry, and kit views">
+            Resources workbench
           </SectionLabel>
-          <DeveloperFieldManual />
+          <ResourcesWorkbench />
         </ShellPanel>
       </ShellGrid>
     </ShellPage>

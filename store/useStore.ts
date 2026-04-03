@@ -38,8 +38,10 @@ export interface ScheduledJob {
   lastSummary?:  string
   // Mission-type jobs: agent runs a structured objective + saves output to Vault
   type?:         'prompt' | 'mission'
-  outputTarget?: 'vault' | 'notify' | 'none'  // where the result is saved
+  outputTarget?: 'vault' | 'notify' | 'none' | 'telegram' | 'download' | 'review'
   missionAgent?: string                         // override agent selection
+  approvalPolicy?: 'human_gate' | 'approve_on_write' | 'observe'
+  templateId?:   string
 }
 
 export interface PendingEdit {
@@ -326,9 +328,12 @@ interface NexusState {
   // Core live data
   tab:           string
   // Per-tab sub-tab selections (persisted)
-  intelView:     'news' | 'world' | 'markets'
+  intelView:     'news' | 'world' | 'markets' | 'sweeps'
   marketsView:   'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices' | 'charts'
   cyberView:     'triage' | 'matrix' | 'cves' | 'otx' | 'cisa'
+  skillsWorkbenchView: 'forge' | 'blacksite' | 'brain' | 'library'
+  resourcesWorkbenchView: 'manual' | 'registry' | 'kits'
+  securityWorkbenchView: 'doctrine' | 'physical' | 'ai'
   prices:        Record<string, PriceData>
   sparklines:    Record<string, number[]>
   articles:      Article[]
@@ -421,6 +426,9 @@ interface NexusState {
   setIntelView:      (view: NexusState['intelView']) => void
   setMarketsView:    (view: NexusState['marketsView']) => void
   setCyberView:      (view: NexusState['cyberView']) => void
+  setSkillsWorkbenchView: (view: NexusState['skillsWorkbenchView']) => void
+  setResourcesWorkbenchView: (view: NexusState['resourcesWorkbenchView']) => void
+  setSecurityWorkbenchView: (view: NexusState['securityWorkbenchView']) => void
   setWorldRisk:      (n: number) => void
   setPrices:         (prices: Record<string, PriceData>) => void
   setSparklines:     (sparklines: Record<string, number[]>) => void
@@ -521,6 +529,9 @@ export const useStore = create<NexusState>()(
       intelView:     'news',
       marketsView:   'watchlist',
       cyberView:     'triage',
+      skillsWorkbenchView: 'forge',
+      resourcesWorkbenchView: 'manual',
+      securityWorkbenchView: 'doctrine',
       prices:        {},
       sparklines:    {},
       articles:      [],
@@ -727,6 +738,9 @@ export const useStore = create<NexusState>()(
       setIntelView:   (intelView) => set({ intelView }),
       setMarketsView: (marketsView) => set({ marketsView }),
       setCyberView:   (cyberView) => set({ cyberView }),
+      setSkillsWorkbenchView: (skillsWorkbenchView) => set({ skillsWorkbenchView }),
+      setResourcesWorkbenchView: (resourcesWorkbenchView) => set({ resourcesWorkbenchView }),
+      setSecurityWorkbenchView: (securityWorkbenchView) => set({ securityWorkbenchView }),
       setWorldRisk:  (worldRisk)  => set({ worldRisk }),
       setPrices:     (prices)     => set({ prices }),
       setPricesLoaded: (pricesLoaded) => set({ pricesLoaded }),
@@ -824,6 +838,9 @@ export const useStore = create<NexusState>()(
         intelView:     s.intelView,
         marketsView:   s.marketsView,
         cyberView:     s.cyberView,
+        skillsWorkbenchView: s.skillsWorkbenchView,
+        resourcesWorkbenchView: s.resourcesWorkbenchView,
+        securityWorkbenchView: s.securityWorkbenchView,
       }),
       migrate: (persisted: any) => {
         // Ensure new persisted keys have safe defaults.
@@ -831,6 +848,9 @@ export const useStore = create<NexusState>()(
         if (!next.intelView) next.intelView = 'news'
         if (!next.marketsView) next.marketsView = 'watchlist'
         if (!next.cyberView) next.cyberView = 'triage'
+        if (!next.skillsWorkbenchView) next.skillsWorkbenchView = 'forge'
+        if (!next.resourcesWorkbenchView) next.resourcesWorkbenchView = 'manual'
+        if (!next.securityWorkbenchView) next.securityWorkbenchView = 'doctrine'
         return next
       },
     }

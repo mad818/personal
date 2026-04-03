@@ -6,6 +6,10 @@ export function getConfiguredNexusToken() {
   return normalizeTokenCandidate(process.env.NEXUS_TOKEN ?? "");
 }
 
+export function isNexusAuthEnabled() {
+  return Boolean(getConfiguredNexusToken());
+}
+
 export function matchesConfiguredNexusToken(rawCandidate?: string | null) {
   const configured = getConfiguredNexusToken();
   const candidate = normalizeTokenCandidate(rawCandidate ?? "");

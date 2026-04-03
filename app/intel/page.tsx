@@ -44,12 +44,17 @@ const LazyPolymarketFeed = dynamic(
 const LazyOpsMap = dynamic(() => import("@/components/ops/OpsMap"), {
   ssr: false,
 });
+const LazySweepEnginePanel = dynamic(
+  () => import("@/components/intel/SweepEnginePanel"),
+  { ssr: false },
+);
 
-type Segment = "news" | "world" | "markets";
+type Segment = "news" | "world" | "markets" | "sweeps";
 const SEGMENTS: { id: Segment; label: string }[] = [
   { id: "news", label: "📰 NEWS" },
   { id: "world", label: "🌍 GEOPOLITICAL" },
   { id: "markets", label: "📊 PREDICTION" },
+  { id: "sweeps", label: "🛰 SWEEPS" },
 ];
 
 export default function IntelPage() {
@@ -61,7 +66,7 @@ export default function IntelPage() {
 
   const urlSeg = useMemo(() => {
     const v = (searchParams?.get("view") ?? "").toLowerCase();
-    return (["news", "world", "markets"] as Segment[]).includes(v as Segment)
+    return (["news", "world", "markets", "sweeps"] as Segment[]).includes(v as Segment)
       ? (v as Segment)
       : null;
   }, [searchParams]);
@@ -159,6 +164,15 @@ export default function IntelPage() {
               <LazyMarketRates />
             </ShellPanel>
           </ShellGrid>
+        )}
+
+        {seg === "sweeps" && (
+          <ShellPanel>
+            <SectionLabel detail="Crucix-style bundle runs plus Dark-Light-inspired before/after evidence">
+              Sweep engine
+            </SectionLabel>
+            <LazySweepEnginePanel />
+          </ShellPanel>
         )}
       </ShellStack>
     </ShellPage>

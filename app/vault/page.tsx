@@ -29,6 +29,10 @@ const LazySavedArticles = dynamic(
   () => import("@/components/vault/SavedArticles"),
   { ssr: false },
 );
+const LazyRegistryConsole = dynamic(
+  () => import("@/components/resources/RegistryConsole"),
+  { ssr: false },
+);
 
 export default function VaultPage() {
   return (
@@ -54,6 +58,10 @@ export default function VaultPage() {
           <ShellPanel tone="muted">
             <SectionLabel>Export</SectionLabel>
             <LazyVaultExport />
+          </ShellPanel>
+          <ShellPanel tone="muted">
+            <SectionLabel detail="Shelf-style kits and custody">Registry kits</SectionLabel>
+            <LazyRegistryConsole compact view="kits" />
           </ShellPanel>
         </ShellStack>
 

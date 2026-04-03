@@ -19,6 +19,7 @@ type Vec3 = [number, number, number];
 type DispatchState = { from: AgentId; to: AgentId } | null;
 type OfficeCameraPreset = "cinematic" | "closeOps" | "wallReadability";
 type OfficeVfxQuality = "off" | "low" | "high";
+type WallFrontTone = "steady" | "warning" | "critical";
 
 const CAMERA_PRESETS: Record<
   OfficeCameraPreset,
@@ -570,23 +571,23 @@ function scenePalette(tod: "morning" | "afternoon" | "night") {
     };
   }
   return {
-    floor: "#1f2328",
-    floorGrid: "#313840",
-    wall: "#2d343d",
-    wallPanel: "#252d36",
-    trim: "#3e4c5a",
-    sideWall: "#2a3038",
-    baseboard: "#32404e",
-    ambient: "#8ab4ff",
-    dir: "#b8d2ff",
-    bg: "#0f141c",
-    rugOuter: "#313947",
-    rugInner: "#445063",
-    deskWood: "#5f4a38",
-    deskWoodDark: "#4a382b",
-    glass: "#bcd4fb",
-    upholstery: "#4c5664",
-    metalDark: "#4c5b6b",
+    floor: "#1a1514",
+    floorGrid: "#382b29",
+    wall: "#272120",
+    wallPanel: "#1d1818",
+    trim: "#7a5d41",
+    sideWall: "#221c1d",
+    baseboard: "#46352b",
+    ambient: "#cfaa77",
+    dir: "#f1d2a4",
+    bg: "#090709",
+    rugOuter: "#2b1f21",
+    rugInner: "#4a3638",
+    deskWood: "#5a4031",
+    deskWoodDark: "#422d24",
+    glass: "#98b7d9",
+    upholstery: "#47393b",
+    metalDark: "#5b4a47",
     skin: "#e7b772",
     suit: "#3d4652",
     shirt: "#dfe7f1",
@@ -600,6 +601,19 @@ function SceneAtmosphere({ bg }: { bg: string }) {
     scene.fog = new THREE.Fog(bg, 9, 18);
   }, [scene, bg]);
   return null;
+}
+
+function commandTempoColor(commandTempo: string) {
+  if (commandTempo === "Critical") return "#ef4444";
+  if (commandTempo === "Compressed") return "#f59e0b";
+  if (commandTempo === "Active") return "#00DDFF";
+  return "#10b981";
+}
+
+function frontToneColor(tone: WallFrontTone) {
+  if (tone === "critical") return "#ef4444";
+  if (tone === "warning") return "#f59e0b";
+  return "#10b981";
 }
 
 function agentToShadowWorld(xPct: number, yPct: number): Vec3 {
@@ -901,6 +915,8 @@ function WallMountedPanels({
   worldRisk,
   modelLabel,
   agentStats,
+  commandTempo,
+  primaryFront,
   controls,
 }: {
   activeAgent?: AgentId | null;
@@ -909,12 +925,23 @@ function WallMountedPanels({
   worldRisk: number;
   modelLabel: string;
   agentStats: Record<string, { totalTasks: number; lastConfidence: number }>;
+  commandTempo: string;
+  primaryFront: {
+    label: string;
+    value: string;
+    note: string;
+    tone: WallFrontTone;
+  };
   controls?: {
     officeEditMode: boolean;
     onToggleEditMode: () => void;
     onResetLayout: () => void;
     onOpenMemory: () => void;
     onOpenScheduler: () => void;
+    onOpenPrimaryFront: () => void;
+    onOpenSweep: () => void;
+    onOpenForge: () => void;
+    onOpenDoctrine: () => void;
     cameraPreset: OfficeCameraPreset;
     onSetCameraPreset: (p: OfficeCameraPreset) => void;
     vfxQuality: OfficeVfxQuality;
@@ -937,6 +964,20 @@ function WallMountedPanels({
     0,
   );
   const ready = pricesCount > 0 && articlesCount > 0;
+  const tempoColor =
+    commandTempo === "Critical"
+      ? "#ef4444"
+      : commandTempo === "Compressed"
+        ? "#f59e0b"
+        : commandTempo === "Active"
+          ? "#00DDFF"
+          : "#10b981";
+  const frontColor =
+    primaryFront.tone === "critical"
+      ? "#ef4444"
+      : primaryFront.tone === "warning"
+        ? "#f59e0b"
+        : "#10b981";
   return (
     <>
       {/* Left wall roster board (closer to camera/agents) */}
@@ -1143,6 +1184,8 @@ function WallMountedPanels({
                 activeAgent ? AGENTS[activeAgent].name : "—",
                 activeAgent ? AGENTS[activeAgent].color : "#6875a0",
               ],
+              ["Tempo", commandTempo, tempoColor],
+              ["Theater", primaryFront.label, frontColor],
             ].map(([label, value, color]) => (
               <div
                 key={label}
@@ -1160,6 +1203,18 @@ function WallMountedPanels({
                 <span style={{ color, fontWeight: 700 }}>{value}</span>
               </div>
             ))}
+            <div
+              style={{
+                marginTop: 8,
+                paddingTop: 8,
+                borderTop: "1px solid rgba(126,143,171,0.18)",
+                fontSize: 11,
+                lineHeight: 1.55,
+                color: "#90a4c5",
+              }}
+            >
+              {primaryFront.value} · {primaryFront.note}
+            </div>
           </div>
         </Html>
       </group>
@@ -1203,6 +1258,22 @@ function WallMountedPanels({
               }}
             >
               COMMAND CENTER
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 8,
+                marginBottom: 10,
+                fontSize: 11,
+                color: "#8ea4c7",
+              }}
+            >
+              <span>{primaryFront.label}</span>
+              <span style={{ color: tempoColor, fontWeight: 800 }}>
+                {commandTempo.toUpperCase()}
+              </span>
             </div>
 
             <div
@@ -1253,10 +1324,10 @@ function WallMountedPanels({
                 color="#00DDFF"
               />
               <KpiCard
-                label="STATUS"
-                value={ready ? "READY" : "DEGRADED"}
-                sub={ready ? "ONLINE" : "CHECK FEEDS"}
-                color={ready ? "#00FF66" : "#f59e0b"}
+                label="TEMPO"
+                value={commandTempo.toUpperCase()}
+                sub={ready ? primaryFront.label.toUpperCase() : "CHECK FEEDS"}
+                color={tempoColor}
               />
               <KpiCard
                 label="WORLD RISK"
@@ -1342,6 +1413,23 @@ function WallMountedPanels({
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
                     type="button"
+                    onClick={controls.onOpenPrimaryFront}
+                    style={ctlBtn(frontColor)}
+                  >
+                    BRIEF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={controls.onOpenSweep}
+                    style={ctlBtn("#00DDFF")}
+                  >
+                    SWEEP
+                  </button>
+                </div>
+
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
                     onClick={controls.onOpenMemory}
                     style={ctlBtn("#4f6ef7")}
                   >
@@ -1353,6 +1441,23 @@ function WallMountedPanels({
                     style={ctlBtn("#10b981")}
                   >
                     SCHED
+                  </button>
+                </div>
+
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={controls.onOpenForge}
+                    style={ctlBtn("#7c3aed")}
+                  >
+                    FORGE
+                  </button>
+                  <button
+                    type="button"
+                    onClick={controls.onOpenDoctrine}
+                    style={ctlBtn("#f59e0b")}
+                  >
+                    DOCTRINE
                   </button>
                 </div>
 
@@ -1580,12 +1685,28 @@ function ctlMiniBtn(color: string): CSSProperties {
   };
 }
 
-function CeilingLights({ nightFactor }: { nightFactor: number }) {
+function CeilingLights({
+  nightFactor,
+  accentColor,
+  commandTempo,
+}: {
+  nightFactor: number;
+  accentColor: string;
+  commandTempo: string;
+}) {
   const barRefs = useRef<Array<THREE.Mesh | null>>([]);
   const flickerSeed = useMemo(
     () => [Math.random(), Math.random(), Math.random()],
     [],
   );
+  const tempoBoost =
+    commandTempo === "Critical"
+      ? 0.28
+      : commandTempo === "Compressed"
+        ? 0.18
+        : commandTempo === "Active"
+          ? 0.12
+          : 0.05;
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
@@ -1599,13 +1720,14 @@ function CeilingLights({ nightFactor }: { nightFactor: number }) {
       const wobble = Math.sin(t * (6.4 + s * 2.2) + i * 3.1) * 0.06;
       const flicker =
         0.78 + Math.sin(t * (2.2 + i * 0.6) + i * 2.1) * 0.1 + wobble;
-      const intensity = base * flicker;
+      const intensity = base * flicker + tempoBoost;
       const mat = m.material as THREE.MeshStandardMaterial;
-      if (mat && "emissiveIntensity" in mat) mat.emissiveIntensity = intensity;
+      if (mat && "emissiveIntensity" in mat) {
+        mat.emissive.set(accentColor);
+        mat.emissiveIntensity = intensity;
+      }
     }
   });
-
-  const emissive = "#f0f0aa";
   return (
     <>
       {([-2.8, 0, 2.8] as const).map((x, i) => (
@@ -1621,12 +1743,143 @@ function CeilingLights({ nightFactor }: { nightFactor: number }) {
           <boxGeometry args={[1.2, 0.05, 0.1]} />
           <meshStandardMaterial
             color="#15120f"
-            emissive={emissive}
+            emissive={accentColor}
             emissiveIntensity={0.6}
           />
         </mesh>
       ))}
     </>
+  );
+}
+
+function StrategiumPulse({
+  commandTempo,
+  primaryFront,
+  accentColor,
+}: {
+  commandTempo: string;
+  primaryFront: {
+    label: string;
+    value: string;
+    note: string;
+    tone: WallFrontTone;
+  };
+  accentColor: string;
+}) {
+  const outerRef = useRef<THREE.Mesh | null>(null);
+  const innerRef = useRef<THREE.Mesh | null>(null);
+  const coreRef = useRef<THREE.Mesh | null>(null);
+  const tempoColor = commandTempoColor(commandTempo);
+  const frontColor = frontToneColor(primaryFront.tone);
+  const pulseRate =
+    commandTempo === "Critical"
+      ? 2.5
+      : commandTempo === "Compressed"
+        ? 1.9
+        : commandTempo === "Active"
+          ? 1.4
+          : 0.9;
+
+  useFrame((state) => {
+    const t = state.clock.getElapsedTime();
+    const wave = 0.62 + (Math.sin(t * pulseRate) + 1) * 0.19;
+    const sweep = 0.4 + (Math.sin(t * (pulseRate * 0.55) + 1.3) + 1) * 0.16;
+    if (outerRef.current) {
+      const mat = outerRef.current.material as THREE.MeshStandardMaterial;
+      outerRef.current.scale.setScalar(0.98 + wave * 0.035);
+      mat.emissiveIntensity = 0.24 + wave * 0.42;
+    }
+    if (innerRef.current) {
+      const mat = innerRef.current.material as THREE.MeshStandardMaterial;
+      innerRef.current.scale.setScalar(0.99 + sweep * 0.03);
+      mat.emissiveIntensity = 0.26 + sweep * 0.5;
+    }
+    if (coreRef.current) {
+      const mat = coreRef.current.material as THREE.MeshStandardMaterial;
+      mat.emissiveIntensity = 0.55 + wave * 0.35;
+    }
+  });
+
+  return (
+    <group position={[0, 0.024, 0]}>
+      <mesh ref={outerRef} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.08, 1.42, 64]} />
+        <meshStandardMaterial
+          color="#08111a"
+          emissive={tempoColor}
+          emissiveIntensity={0.35}
+          transparent
+          opacity={0.86}
+        />
+      </mesh>
+      <mesh ref={innerRef} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.48, 0.76, 64]} />
+        <meshStandardMaterial
+          color="#071019"
+          emissive={frontColor}
+          emissiveIntensity={0.32}
+          transparent
+          opacity={0.92}
+        />
+      </mesh>
+      <mesh ref={coreRef} position={[0, 0.02, 0]}>
+        <cylinderGeometry args={[0.19, 0.26, 0.05, 24]} />
+        <meshStandardMaterial
+          color="#08111a"
+          emissive={accentColor}
+          emissiveIntensity={0.62}
+          metalness={0.18}
+          roughness={0.42}
+        />
+      </mesh>
+      <Html transform position={[0, 0.18, 0]} distanceFactor={6.5}>
+        <div
+          style={{
+            minWidth: 180,
+            padding: "8px 10px",
+            borderRadius: 14,
+            border: `1px solid ${tempoColor}33`,
+            background: "rgba(7,11,19,0.86)",
+            boxShadow: `0 0 28px ${tempoColor}14`,
+            color: "#d9e7ff",
+            textAlign: "center",
+            fontFamily: "Inter, system-ui, sans-serif",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 800,
+              letterSpacing: ".18em",
+              color: "#88a1c6",
+            }}
+          >
+            STRATEGIUM FLOOR
+          </div>
+          <div
+            style={{
+              marginTop: 4,
+              fontSize: 14,
+              fontWeight: 900,
+              letterSpacing: ".08em",
+              color: tempoColor,
+            }}
+          >
+            {primaryFront.label.toUpperCase()} · {commandTempo.toUpperCase()}
+          </div>
+          <div
+            style={{
+              marginTop: 4,
+              fontSize: 10,
+              lineHeight: 1.5,
+              color: "#a7bad7",
+            }}
+          >
+            {primaryFront.value}
+          </div>
+        </div>
+      </Html>
+    </group>
   );
 }
 
@@ -2772,12 +3025,23 @@ function OfficeRoom3DInner({
   officeLayout,
   agentPos,
   activeAgent,
+  commandTempo = "Calm",
+  primaryFront = {
+    label: "Vector",
+    value: "Steady",
+    note: "Balanced command posture.",
+    tone: "steady" as WallFrontTone,
+  },
   sceneMode = "auto",
   motionIntensity = 1,
   cameraPreset = "cinematic",
   vfxQuality = "low",
   onOpenMemory,
   onOpenScheduler,
+  onOpenPrimaryFront,
+  onOpenSweep,
+  onOpenForge,
+  onOpenDoctrine,
   onToggleEditMode,
   onResetLayout,
   onSetCameraPreset,
@@ -2788,12 +3052,23 @@ function OfficeRoom3DInner({
   officeLayout: Record<OfficeObjectId, OfficeObjectPos>;
   agentPos?: Record<AgentId, { x: number; y: number }>;
   activeAgent?: AgentId | null;
+  commandTempo?: string;
+  primaryFront?: {
+    label: string;
+    value: string;
+    note: string;
+    tone: WallFrontTone;
+  };
   sceneMode?: "auto" | "morning" | "afternoon" | "night";
   motionIntensity?: number;
   cameraPreset?: OfficeCameraPreset;
   vfxQuality?: OfficeVfxQuality;
   onOpenMemory?: () => void;
   onOpenScheduler?: () => void;
+  onOpenPrimaryFront?: () => void;
+  onOpenSweep?: () => void;
+  onOpenForge?: () => void;
+  onOpenDoctrine?: () => void;
   onToggleEditMode?: () => void;
   onResetLayout?: () => void;
   onSetCameraPreset?: (p: OfficeCameraPreset) => void;
@@ -2824,6 +3099,9 @@ function OfficeRoom3DInner({
   const shadowSize = motion >= 1.15 ? 1024 : motion >= 0.85 ? 768 : 512;
   const dprMax = motion >= 1.2 ? 1.75 : motion >= 0.9 ? 1.5 : 1.25;
   const msgCount = officeMessages.length;
+  const tempoColor = commandTempoColor(commandTempo);
+  const frontColor = frontToneColor(primaryFront.tone);
+  const commandAccent = activeAgent ? AGENTS[activeAgent].color : frontColor;
   const tokenEstimate = useMemo(() => {
     return officeMessages.reduce(
       (acc, m) => acc + Math.ceil(m.text.length / 4),
@@ -2968,6 +3246,17 @@ function OfficeRoom3DInner({
           color="#ffd9b0"
           distance={5.2}
         />
+        <pointLight
+          position={[0, 1.1, 0.2]}
+          intensity={tod === "night" ? 0.18 : 0.12}
+          color={tempoColor}
+          distance={4.2}
+        />
+        <CeilingLights
+          nightFactor={nightFactor * motion}
+          accentColor={tempoColor}
+          commandTempo={commandTempo}
+        />
 
         {/* ── Per-desk agent colored accent lights ──────────────────────────────
             One small pointLight per agent, positioned 0.9 units above their desk.
@@ -2993,6 +3282,11 @@ function OfficeRoom3DInner({
         })}
 
         <RoomShell tod={tod} />
+        <StrategiumPulse
+          commandTempo={commandTempo}
+          primaryFront={primaryFront}
+          accentColor={commandAccent}
+        />
         <WallMountedPanels
           activeAgent={activeAgent}
           articlesCount={articlesCount}
@@ -3000,9 +3294,15 @@ function OfficeRoom3DInner({
           worldRisk={worldRisk}
           modelLabel={modelLabel}
           agentStats={agentStats}
+          commandTempo={commandTempo}
+          primaryFront={primaryFront}
           controls={
             onOpenMemory &&
             onOpenScheduler &&
+            onOpenPrimaryFront &&
+            onOpenSweep &&
+            onOpenForge &&
+            onOpenDoctrine &&
             onToggleEditMode &&
             onResetLayout &&
             onSetCameraPreset &&
@@ -3013,6 +3313,10 @@ function OfficeRoom3DInner({
                   onResetLayout,
                   onOpenMemory,
                   onOpenScheduler,
+                  onOpenPrimaryFront,
+                  onOpenSweep,
+                  onOpenForge,
+                  onOpenDoctrine,
                   cameraPreset,
                   onSetCameraPreset,
                   vfxQuality,

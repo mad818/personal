@@ -8,6 +8,8 @@ We **do not** vendor these codebases. This document **formats ideas** from each 
 
 `XR1 Comprehensive Assimilation` is the current native-assimilation meta-program. It keeps Nexus inside the existing shell while absorbing ideas from the current source set as bounded patterns, not bundled products.
 
+All follow-on implementation stays project-local to this repo. These upstream links are idea sources only; any shipped work must land inside Nexus routes, contracts, state, and docs under `C:\Users\mario\Desktop\personal`.
+
 | Source | XR1 lane | Native fit | Assimilate as |
 |--------|----------|------------|---------------|
 | [DefiLeo post](https://x.com/defileo/status/2042241063612502162) | MR1 | `/hq`, `/alpha`, `/vault` | **Product cue** — trader journaling, thesis review, loss review, and emotion-aware post-trade reflection as decision support only; never broker automation |

@@ -259,6 +259,15 @@ function selectPlaybookId(
   input: string,
   routeHint: string | null | undefined,
 ) {
+  if (MARKET_TERMS_RE.test(input) && MARKET_REVIEW_RE.test(input)) {
+    return "market-review-loop";
+  }
+  if (/\b(?:osint|casefile|passive dns|metadata|identity|social pivot)\b/i.test(input)) {
+    return "osint-casefile-loop";
+  }
+  if (/\b(?:radar|sensor fusion|sensor-fusion|vehicle session bundle)\b/i.test(input)) {
+    return "radar-readiness-session";
+  }
   if (REVERSE_ENGINEERING_RE.test(input)) return "reverse-engineering-follow-through";
   if (SECOND_BRAIN_RE.test(input)) return "second-brain-heartbeat";
   if (intent === "repo_work" && API_OR_BOUNDARY_RE.test(input)) {

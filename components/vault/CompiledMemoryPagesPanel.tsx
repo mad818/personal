@@ -140,7 +140,18 @@ function buildCompiledPageMeta(page: CompiledMemoryPage) {
   return parts.join(" · ");
 }
 
+function formatEvidenceStrength(value: string | null | undefined) {
+  if (!value) return "Contextual";
+  return value
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("-");
+}
+
 function getCompiledPageEvidenceStrength(page: CompiledMemoryPage) {
+  if (page.continuity.evidenceStrength) {
+    return formatEvidenceStrength(page.continuity.evidenceStrength);
+  }
   if (
     page.researchSignals.citationCount > 0 ||
     page.researchSignals.sourceCount > 1
@@ -234,6 +245,20 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       .filter((tag) => tag.startsWith("pivot:"))
       .slice(0, 2)
       .map((tag) => tag.slice("pivot:".length).replace(/-/g, " "));
+    const routeOriginLabel =
+      page.route === "/cyber"
+        ? "CYBER-originated"
+        : page.route === "/recon"
+          ? "RECON-originated"
+          : "Route not set";
+    const sourceCountLabel =
+      page.researchSignals.sourceCount > 0
+        ? `${page.researchSignals.sourceCount} source${page.researchSignals.sourceCount === 1 ? "" : "s"}`
+        : null;
+    const citationCountLabel =
+      page.researchSignals.citationCount > 0
+        ? `${page.researchSignals.citationCount} citation cues`
+        : null;
     return {
       artifactKind,
       articleStyle: {
@@ -244,8 +269,11 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       eyebrow: "OSINT casefile",
       accentBadges: [
         { label: "Passive-first", tone: "accent" as const },
+        { label: routeOriginLabel, tone: "muted" as const },
         ...pivotTags.map((tag) => ({ label: tag, tone: "muted" as const })),
         { label: getCompiledPageEvidenceStrength(page), tone: "muted" as const },
+        ...(sourceCountLabel ? [{ label: sourceCountLabel, tone: "muted" as const }] : []),
+        ...(citationCountLabel ? [{ label: citationCountLabel, tone: "muted" as const }] : []),
       ],
       cue:
         "This casefile captures subject, passive findings, pivot opportunities, and the next reviewed move so RECON or CYBER follow-through stays evidence-led and compact.",
@@ -566,6 +594,7 @@ export default function CompiledMemoryPagesPanel() {
         pages.filter((page) => page.workflowId === "osint-casefile"),
         activePage?.title ?? null,
         activePage?.continuity?.continuityId,
+        activePage?.route ?? pages.find((page) => page.workflowId === "osint-casefile")?.route,
       ).slice(0, 3);
     }
 
@@ -584,6 +613,24 @@ export default function CompiledMemoryPagesPanel() {
       })
       .slice(0, 3);
   }, [activePage, compiledFilter, pages, workflowId]);
+  const strongestMarketReview = useMemo(() => {
+    if (workflowId !== "market-review") return null;
+    return (
+      rankMarketReviewPages(
+        pages.filter((page) => page.workflowId === "market-review"),
+        extractTagValue(activePage ?? pages[0] ?? null, "asset:"),
+        activePage?.continuity?.continuityId,
+      )[0] ?? null
+    );
+  }, [activePage, pages, workflowId]);
+  const newestMarketReview = useMemo(() => {
+    if (workflowId !== "market-review") return null;
+    return (
+      [...pages]
+        .filter((page) => page.workflowId === "market-review")
+        .sort((left, right) => right.updatedAt - left.updatedAt)[0] ?? null
+    );
+  }, [pages, workflowId]);
 
   const loadPageDetail = useCallback(async (page: CompiledMemoryPage) => {
     if (page.content || page.contentWithheld) return page;
@@ -821,6 +868,38 @@ export default function CompiledMemoryPagesPanel() {
             ) : null}
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {workflowId === "market-review" && strongestMarketReview ? (
+              <button
+                type="button"
+                onClick={() => void togglePageDetail(strongestMarketReview)}
+                className="nexus-shell-button"
+                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                title={strongestMarketReview.summary}
+              >
+                Strongest prior
+              </button>
+            ) : null}
+            {workflowId === "market-review" && newestMarketReview ? (
+              <button
+                type="button"
+                onClick={() => void togglePageDetail(newestMarketReview)}
+                className="nexus-shell-button"
+                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                title={newestMarketReview.title}
+              >
+                Newest review
+              </button>
+            ) : null}
+            {workflowId === "market-review" ? (
+              <button
+                type="button"
+                onClick={() => router.push("/alpha?view=watchlist&focus=alpha-market-review")}
+                className="nexus-shell-button"
+                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+              >
+                Reopen in ALPHA
+              </button>
+            ) : null}
             {recentDurableThreads.map((page) => (
               <button
                 key={page.id}
@@ -1078,6 +1157,15 @@ export default function CompiledMemoryPagesPanel() {
                     <div>
                       <strong style={{ color: "var(--text)" }}>Referenced domains:</strong>{" "}
                       {page.researchSignals.referencedDomains.join(", ")}
+                    </div>
+                  ) : null}
+                  {page.continuity.sourceRefs.length > 0 ? (
+                    <div>
+                      <strong style={{ color: "var(--text)" }}>Source trail:</strong>{" "}
+                      {page.continuity.sourceRefs
+                        .slice(0, 4)
+                        .map((sourceRef) => sourceRef.title)
+                        .join(" · ")}
                     </div>
                   ) : null}
                 </div>

@@ -16,5 +16,11 @@ describe("HQ assistant context", () => {
     );
     expect(resolution.preparedWorkspace?.label).toBe("Open ALPHA market review");
     expect(resolution.preparedWorkspace?.detail).toContain("thesis-review lane");
+    expect(
+      resolution.contextAttachments.some(
+        (attachment) =>
+          attachment.kind === "playbook" && attachment.href.includes("market-review-loop"),
+      ),
+    ).toBe(true);
   });
 });

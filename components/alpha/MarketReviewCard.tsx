@@ -5,25 +5,32 @@ import { useRouter } from "next/navigation";
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions";
 import { ShellBadge } from "@/components/ui/shell";
 import { apiFetch } from "@/lib/apiFetch";
+import type { EvidenceStrength, ResearchSourceRef } from "@/lib/researchSources";
 import {
   buildMarketReviewMarkdown,
   buildMarketReviewSummary,
   buildMarketReviewTags,
   buildMarketReviewTitle,
+  buildWorkflowSourceRefs,
+  parseMarketReviewMarkdown,
   rankMarketReviewPages,
   type MarketReviewDraft,
+  type XR1SourcePageLike,
 } from "@/lib/xr1Workflows";
 
 type VaultStatus = "idle" | "saving" | "saved" | "error";
 
-interface MarketReviewPage {
+interface MarketReviewPage extends XR1SourcePageLike {
   id: string;
   title: string;
   summary: string;
   tags: string[];
   updatedAt: number;
+  content?: string;
   continuity: {
     continuityId?: string | null;
+    sourceRefs?: ResearchSourceRef[];
+    evidenceStrength?: EvidenceStrength | null;
   };
 }
 
@@ -56,6 +63,7 @@ export default function MarketReviewCard() {
   const [draft, setDraft] = useState<MarketReviewDraft>(EMPTY_DRAFT);
   const [status, setStatus] = useState<VaultStatus>("idle");
   const [pages, setPages] = useState<MarketReviewPage[]>([]);
+  const [reusedPage, setReusedPage] = useState<MarketReviewPage | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,10 +97,21 @@ export default function MarketReviewCard() {
     [draft.asset, pages],
   );
   const strongestPrior = rankedPages[0] ?? null;
+  const newestReview = useMemo(
+    () => [...pages].sort((left, right) => right.updatedAt - left.updatedAt)[0] ?? null,
+    [pages],
+  );
   const savedMemoryQuery = useMemo(
     () => [draft.asset, draft.thesis, draft.result].filter(Boolean).join(" · "),
     [draft.asset, draft.result, draft.thesis],
   );
+
+  const reuseStrongestPrior = () => {
+    if (!strongestPrior) return;
+    setDraft(parseMarketReviewMarkdown(strongestPrior.content ?? ""));
+    setReusedPage(strongestPrior);
+    setStatus("idle");
+  };
 
   const saveReview = async () => {
     const hasRequiredInput =
@@ -115,6 +134,9 @@ export default function MarketReviewCard() {
           content: buildMarketReviewMarkdown(draft),
           source: "manual",
           sourceLabel: "Market review",
+          sourceType: "vault-artifact",
+          evidenceStrength: "contextual",
+          sourceRefs: reusedPage ? buildWorkflowSourceRefs(reusedPage) : [],
           workflowId: "market-review",
           workflowLabel: "Market review",
           route: "/alpha",
@@ -157,6 +179,68 @@ export default function MarketReviewCard() {
         reflection and continuity without drifting into autonomous execution.
       </div>
 
+      {strongestPrior || newestReview ? (
+        <div
+          style={{
+            borderRadius: "12px",
+            border: "1px solid rgba(250, 204, 21, 0.18)",
+            background: "rgba(36, 26, 8, 0.46)",
+            padding: "10px 12px",
+            display: "grid",
+            gap: "8px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 700,
+              color: "#fde68a",
+              textTransform: "uppercase",
+              letterSpacing: "0.6px",
+            }}
+          >
+            Archive continuity
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {strongestPrior ? (
+              <button
+                type="button"
+                onClick={reuseStrongestPrior}
+                className="nexus-shell-button"
+                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                title={strongestPrior.summary}
+              >
+                Reuse strongest prior
+              </button>
+            ) : null}
+            {newestReview ? (
+              <button
+                type="button"
+                onClick={() => router.push("/vault?focus=vault-compiled-pages&workflowId=market-review")}
+                className="nexus-shell-button"
+                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                title={newestReview.title}
+              >
+                Newest review
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => router.push("/alpha?view=watchlist&focus=alpha-market-review")}
+              className="nexus-shell-button"
+              style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+            >
+              Reopen in ALPHA
+            </button>
+          </div>
+          {reusedPage ? (
+            <div style={{ fontSize: "10px", color: "#fde68a", lineHeight: 1.45 }}>
+              Draft seeded from {reusedPage.title}. Saving this review will keep a Vault artifact reference to that prior note.
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {strongestPrior ? (
         <div
           style={{
@@ -185,6 +269,14 @@ export default function MarketReviewCard() {
             ))}
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={reuseStrongestPrior}
+              className="nexus-shell-button"
+              style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+            >
+              Reuse strongest prior
+            </button>
             <button
               type="button"
               onClick={() => router.push("/vault?focus=vault-compiled-pages&workflowId=market-review")}
@@ -284,6 +376,7 @@ export default function MarketReviewCard() {
           type="button"
           onClick={() => {
             setDraft(EMPTY_DRAFT);
+            setReusedPage(null);
             setStatus("idle");
           }}
           className="nexus-shell-button"

@@ -269,19 +269,20 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
     id: "market-review-loop",
     title: "Market Review Loop",
     objective:
-      "Keep market journaling thesis-led and durable so operator review, loss review, and setup continuity stay inside ALPHA, HQ, and VAULT without drifting into automation.",
+      "Keep market journaling thesis-led, durable, and project-local so operator review, loss review, and setup continuity stay inside ALPHA, HQ, and VAULT without drifting into automation or an external tooling lane.",
     whenToUse:
       "Post-trade review, thesis review, invalidation review, or when a prior market note should be reopened before forming a new setup",
     startSurface: "ALPHA → Market review",
     steps: [
       "Open the market-review lane from ALPHA and record asset, thesis, setup, invalidation, result, and operator notes in one pass.",
       "File the review into VAULT as a durable compiled page instead of leaving it in transient chat context.",
-      "Reopen the strongest prior market review before starting a new note when the asset or topic already matches.",
+      "Reuse the strongest prior market review before starting a new note when the asset or topic already matches, so continuity and source refs stay compact.",
       "Keep Forecast Lab as a support rail for prep only; do not turn review work into forecast execution.",
     ],
     verification: [
       "The review lands in VAULT under workflowId market-review and route /alpha.",
       "The saved body uses the fixed review headings so export and reopen stay deterministic.",
+      "Explicit reuse of a prior review keeps a vault-artifact source trail on the next saved note.",
       "ALPHA still behaves like a support lattice, not an autonomous trading surface.",
       "HQ can stage the exact market-review lane when the operator asks for thesis or postmortem review.",
     ],
@@ -307,7 +308,7 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
     id: "osint-casefile-loop",
     title: "OSINT Casefile Loop",
     objective:
-      "Keep passive-first investigation compact by turning RECON and CYBER findings into durable casefiles with subject, pivots, and next reviewed move.",
+      "Keep passive-first investigation compact and project-local by turning RECON and CYBER findings into durable casefiles with subject, pivots, evidence posture, and next reviewed move.",
     whenToUse:
       "Passive target investigation, cross-route evidence packaging, or when RECON and CYBER work should land in the same durable archive lane",
     startSurface: "RECON or CYBER support rail",
@@ -315,12 +316,13 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       "Work the case in the fixed phase order: Intake, Collect, Pivot, Package.",
       "Keep pivots passive-first across identity, social, image or metadata, and infrastructure or headers or passive DNS.",
       "File the case into VAULT through the shared OSINT casefile contract instead of inventing a route-specific note format.",
-      "Reopen the strongest prior casefile when the subject or continuity already matches before widening collection.",
+      "Reuse the strongest prior casefile when the subject or continuity already matches before widening collection.",
     ],
     verification: [
       "The casefile lands in VAULT under workflowId osint-casefile.",
       "RECON-originated notes keep research-workflow governance while CYBER-originated notes keep cyber-triage governance.",
       "The saved body uses the fixed casefile headings so packaging and reopen stay deterministic.",
+      "Evidence strength, citation/source counts, and pivot cues stay visible from the compiled-pages lane.",
       "The surface still reads passive-first and does not widen into a tool catalog or offensive automation.",
     ],
     followOnActions: [
@@ -345,7 +347,7 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
     id: "radar-readiness-session",
     title: "Radar Readiness Session",
     objective:
-      "Stage later passive radar work as readiness vocabulary, artifact notes, and session-bundle continuity without adding RF control or flight authority.",
+      "Stage later passive radar work as project-local readiness vocabulary, artifact notes, and session-bundle continuity without adding RF control or flight authority.",
     whenToUse:
       "Vehicle artifact planning, passive radar notes, or when a future sensor-fusion session should be filed alongside the existing bundle",
     startSurface: "VEHICLE → Session bundles",
@@ -358,6 +360,7 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
     verification: [
       "Old nexus-vehicle-session-v1 bundles still import cleanly with no radar block.",
       "New bundles with radar data still export, import, and file to VAULT through the existing path.",
+      "VAULT continuity can reopen the latest session summary, render brief, and radar-attached bundle summary from VEHICLE.",
       "Radar language stays advisory-only and never implies RF control or flight-critical authority.",
       "VEHICLE still renders one readiness lane plus one artifact lane instead of a new chamber.",
     ],

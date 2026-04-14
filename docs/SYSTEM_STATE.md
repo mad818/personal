@@ -70,11 +70,16 @@ Do not use it for:
 
 ## Next Up
 
-- Active program: FD2 Remote Artifact Proof — XR1 is now shipped locally, so the top follow-through returns to the staged deployment proof lane once repo-root `.env.local` carries the real Coolify hostname.
+- Active program: XR2 Project-Local Assimilation Polish — FD2 through FD5 remain blocked on the missing staged `NEXUS_RELEASE_BASE_URL`, so the next tranche stays inside this repo and deepens the already-shipped native market-review, OSINT casefile, and vehicle/radar continuity patterns.
+- Project-local rule: upstream repos remain idea sources only; any new implementation must land inside Nexus routes, contracts, state, and docs under `C:\Users\mario\Desktop\personal`.
 - [x] XR1 — Comprehensive assimilation program: keep Nexus native to its existing shell, routes, governance posture, and trust boundaries while mapping the current external source set into three sequenced subprograms instead of vendoring third-party products
 - [x] MR1 — Market Research Workbench: adapt the DefiLeo trader-journaling cue plus reference inputs such as `public-apis`, `ai-engineering-from-scratch`, and the existing `timesfm_companion` contract into governed thesis review, loss review, and emotion-aware market continuity across `/hq`, `/alpha`, and `/vault` without adding autonomous trading or a new top-level route
 - [x] MO1 — Memory + OSINT Casefile Loop: adapt `claude-obsidian`, `D4rk_Intel-OSINT-Investigative-Toolkit`, and `public-apis` as native patterns for VAULT memory stewardship plus passive-first RECON/CYBER case progression without bundling third-party binaries, widening the shell into a tool catalog, or relaxing the current advisory boundary
 - [x] VR1 — Vehicle + Radar Readiness: adapt `PLFM_RADAR` and reference-only learning patterns from `ai-engineering-from-scratch` into `/vehicle` readiness, onboarding, artifact packaging, and future radar session continuity without adding RF control, flight-critical behavior, or new public routes
+- [ ] XR2 — Keep the next tranche project-local while polishing reuse, metadata stewardship, and continuity handoffs for the shipped XR1 surfaces without adding new tabs, routes, or external repo dependencies
+- [ ] MR2 — Market review continuity polish: populate source metadata, reuse strongest prior reviews directly in ALPHA, and keep market-review continuity visible in ALPHA, HQ, and VAULT without widening into forecast execution
+- [ ] MO2 — Memory + OSINT stewardship polish: reuse strongest prior casefiles, file explicit source/evidence metadata, and deepen VAULT cues while keeping RECON and CYBER passive-first
+- [ ] VR2 — Vehicle + radar continuity polish: keep `nexus-vehicle-session-v1` backward compatible while improving radar-readiness guidance, imported bundle review, and VAULT handoffs from the existing vehicle artifact lane
 - [ ] FD2 — Blocked on the real staged Coolify hostname in repo-root `.env.local`; once present, stand up the first Coolify/VPS staging deployment from the repo-root `Dockerfile` with conservative web-self-hosted defaults and the preserved candidate branch `codex/preserve-main-2026-04-11`
 - [ ] FD3 — Blocked on FD2 host config; run `npm run launch:gate:target` against that exact host after repo-root `.env.local` carries the real staged `NEXUS_RELEASE_BASE_URL` and local `NEXUS_TOKEN`
 - [ ] FD4 — Blocked on staged-host proof; capture remote `/api/diagnostics`, GA route/manual smoke, and the focused A6 CYBER/SKILLS/HQ/COMMAND staging pass on the staged host

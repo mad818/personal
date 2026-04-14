@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildVehicleFlightSessionBundle,
+  buildVehicleRenderBriefVaultDraft,
   buildVehicleSessionVaultDraft,
   DEFAULT_VEHICLE_CONNECTOR_PROFILE,
   parseVehicleFlightSessionBundle,
@@ -204,8 +205,20 @@ describe("vehicle hardware readiness", () => {
     const draft = buildVehicleSessionVaultDraft(parsed.bundle, "Vehicle Lab");
 
     expect(draft.tags).toContain("radar-readiness");
+    expect(draft.tags).toContain("radar-artifact:sector-a");
     expect(draft.content).toContain("## Radar readiness");
     expect(draft.content).toContain("Processing stage: Detect");
     expect(draft.content).toContain("Artifact labels: sector-a, fusion-pass-01");
+    expect(draft.topic).toContain("radar readiness");
+
+    const renderBriefDraft = buildVehicleRenderBriefVaultDraft({
+      bundle: parsed.bundle,
+      target: "camera_mount",
+      operatorGoal: "Keep the mast clear of the future passive radar lane.",
+      sourceLabel: "Vehicle render brief",
+    });
+
+    expect(renderBriefDraft.tags).toContain("radar-aware-render-brief");
+    expect(renderBriefDraft.topic).toContain("radar-ready");
   });
 });

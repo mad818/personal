@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions"
 import { apiFetch } from "@/lib/apiFetch"
 import { buildMissionHref } from "@/lib/missionHandoff"
@@ -23,6 +24,16 @@ import { useStore } from "@/store/useStore"
 
 type VaultStatus = "idle" | "saving" | "saved" | "error"
 
+interface VehicleVaultPage {
+  id: string
+  title: string
+  summary: string
+  topic?: string
+  route?: string
+  tags: string[]
+  updatedAt: number
+}
+
 const CONTINUATION_CARD_STYLE = {
   background: "rgba(16,185,129,0.08)",
   border: "1px solid rgba(16,185,129,0.22)",
@@ -31,6 +42,18 @@ const CONTINUATION_CARD_STYLE = {
   display: "flex",
   flexDirection: "column" as const,
   gap: "6px",
+}
+
+const RADAR_STAGE_GUIDANCE: Record<VehicleRadarProcessingStage, string> = {
+  capture: "Capture keeps the note on raw passive ingest assumptions, bench source labels, and what was actually observed.",
+  preprocess:
+    "Preprocess documents cleanup, alignment, and filtering before any return is treated as a real candidate.",
+  detect:
+    "Detect records which contacts or returns look meaningful enough to mark without calling them stable tracks yet.",
+  track:
+    "Track ties repeated returns together across sweeps so continuity improves before operator conclusions are filed.",
+  review:
+    "Review is the operator checkpoint where passive radar notes are consolidated into a durable advisory summary.",
 }
 
 function downloadTextFile(filename: string, content: string, mimeType = "application/json;charset=utf-8") {
@@ -52,6 +75,7 @@ function stringifyVehicleFlightSessionBundle(bundle: VehicleFlightSessionBundle)
 }
 
 export default function VehicleArtifactManifestCard() {
+  const router = useRouter()
   const { activeFrame, bridgeStatus, history } = useVehicleTelemetry()
   const benchChecklistState = useStore((state) => state.settings.vehicleBenchChecklist ?? {})
   const firstHardwareDayChecklist = useStore(
@@ -70,6 +94,7 @@ export default function VehicleArtifactManifestCard() {
   const [renderTarget, setRenderTarget] = useState<VehicleRenderBriefTarget>("camera_mount")
   const [renderGoal, setRenderGoal] = useState("")
   const [renderVaultStatus, setRenderVaultStatus] = useState<VaultStatus>("idle")
+  const [recentVaultPages, setRecentVaultPages] = useState<VehicleVaultPage[]>([])
   const [radarModeLabel, setRadarModeLabel] = useState("Passive radar prep")
   const [radarProcessingStage, setRadarProcessingStage] =
     useState<VehicleRadarProcessingStage>("capture")
@@ -109,6 +134,34 @@ export default function VehicleArtifactManifestCard() {
     radarProcessingStage,
     radarSummary,
   ])
+  useEffect(() => {
+    let cancelled = false
+
+    const loadRecentVaultPages = async () => {
+      try {
+        const response = await apiFetch("/api/memory/pages?limit=24")
+        if (!response.ok) return
+        const payload = (await response.json()) as { pages?: VehicleVaultPage[] }
+        if (!cancelled && Array.isArray(payload.pages)) {
+          setRecentVaultPages(
+            payload.pages.filter((page) => page.route === "/vehicle"),
+          )
+        }
+      } catch {
+        // silent
+      }
+    }
+
+    void loadRecentVaultPages()
+    const handleRefresh = () => {
+      void loadRecentVaultPages()
+    }
+    window.addEventListener("nexus-memory-pages-updated", handleRefresh)
+    return () => {
+      cancelled = true
+      window.removeEventListener("nexus-memory-pages-updated", handleRefresh)
+    }
+  }, [])
 
   const bundle = useMemo(
     () =>
@@ -186,6 +239,31 @@ export default function VehicleArtifactManifestCard() {
         ? `Imported vehicle session ${importedBundle.manifest.sessionLabel} ${importedBundle.manifest.summary}`.trim()
         : "",
     [importedBundle],
+  )
+  const latestVehicleSessionSummary = useMemo(
+    () =>
+      [...recentVaultPages]
+        .filter((page) => page.tags.includes("vehicle-session"))
+        .sort((left, right) => right.updatedAt - left.updatedAt)[0] ?? null,
+    [recentVaultPages],
+  )
+  const latestRenderBrief = useMemo(
+    () =>
+      [...recentVaultPages]
+        .filter((page) => page.tags.includes("vehicle-render-brief"))
+        .sort((left, right) => right.updatedAt - left.updatedAt)[0] ?? null,
+    [recentVaultPages],
+  )
+  const latestRadarSessionSummary = useMemo(
+    () =>
+      [...recentVaultPages]
+        .filter(
+          (page) =>
+            page.tags.includes("vehicle-session") &&
+            page.tags.includes("radar-readiness"),
+        )
+        .sort((left, right) => right.updatedAt - left.updatedAt)[0] ?? null,
+    [recentVaultPages],
   )
 
   const saveDraftToVault = async (
@@ -628,6 +706,29 @@ export default function VehicleArtifactManifestCard() {
           Use this optional block to carry passive radar and future sensor-fusion notes inside the same
           session bundle. It describes readiness only and never represents RF control or flight authority.
         </div>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {Object.entries(VEHICLE_RADAR_PROCESSING_STAGE_LABELS).map(([value, label]) => (
+            <span
+              key={value}
+              style={{
+                fontSize: "9px",
+                fontWeight: 700,
+                padding: "2px 8px",
+                borderRadius: "999px",
+                background:
+                  value === radarProcessingStage
+                    ? "rgba(103,232,249,0.18)"
+                    : "rgba(103,232,249,0.08)",
+                color: value === radarProcessingStage ? "#cffafe" : "#a5f3fc",
+              }}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+        <div style={{ fontSize: "10px", color: "#a5f3fc", lineHeight: 1.55 }}>
+          {RADAR_STAGE_GUIDANCE[radarProcessingStage]}
+        </div>
         <div
           style={{
             display: "grid",
@@ -805,8 +906,18 @@ export default function VehicleArtifactManifestCard() {
               {importedBundle.manifest.summary}
             </div>
             {importedBundle.radar ? (
-              <div style={{ fontSize: "10px", color: "#bfdbfe", lineHeight: 1.55 }}>
+            <div style={{ fontSize: "10px", color: "#bfdbfe", lineHeight: 1.55 }}>
                 Radar readiness: {importedBundle.radar.modeLabel} · {VEHICLE_RADAR_PROCESSING_STAGE_LABELS[importedBundle.radar.processingStage]}.
+                {` ${importedBundle.radar.summary}`}
+              </div>
+            ) : null}
+            {importedBundle.radar?.artifactLabels.length ? (
+              <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}>
+                Artifact labels: {importedBundle.radar.artifactLabels.join(", ")} · Fusion note: {importedBundle.radar.fusionNote}
+              </div>
+            ) : importedBundle.radar ? (
+              <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}>
+                Fusion note: {importedBundle.radar.fusionNote}
               </div>
             ) : null}
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -861,6 +972,69 @@ export default function VehicleArtifactManifestCard() {
           </div>
         )}
       </div>
+
+      {(latestVehicleSessionSummary || latestRenderBrief || latestRadarSessionSummary) ? (
+        <div
+          style={{
+            background: "rgba(16, 185, 129, 0.08)",
+            border: "1px solid rgba(16, 185, 129, 0.2)",
+            borderRadius: "var(--rs)",
+            padding: "10px 12px",
+            display: "grid",
+            gap: "8px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 700,
+              color: "#a7f3d0",
+              textTransform: "uppercase",
+              letterSpacing: "0.6px",
+            }}
+          >
+            Vault continuity handoff
+          </div>
+          <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}>
+            The latest vehicle session, render brief, and radar-attached summary stay one click away in VAULT so later bench work reopens the same continuity instead of starting fresh.
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {latestVehicleSessionSummary ? (
+              <button
+                type="button"
+                onClick={() => router.push("/vault?focus=vault-compiled-pages")}
+                className="nexus-shell-button"
+                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                title={latestVehicleSessionSummary.title}
+              >
+                Latest session summary
+              </button>
+            ) : null}
+            {latestRenderBrief ? (
+              <button
+                type="button"
+                onClick={() => router.push("/vault?focus=vault-compiled-pages")}
+                className="nexus-shell-button"
+                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                title={latestRenderBrief.title}
+              >
+                Latest render brief
+              </button>
+            ) : null}
+            {latestRadarSessionSummary ? (
+              <button
+                type="button"
+                onClick={() => router.push("/vault?focus=vault-compiled-pages")}
+                className="nexus-shell-button"
+                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                title={latestRadarSessionSummary.title}
+              >
+                Latest radar summary
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

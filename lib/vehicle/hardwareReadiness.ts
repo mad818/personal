@@ -229,6 +229,14 @@ function trim(value: string, max: number) {
   return normalized.length <= max ? normalized : normalized.slice(0, max).trim()
 }
 
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 48)
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
 }
@@ -495,10 +503,16 @@ export function buildVehicleSessionVaultDraft(
   const transportLabel = VEHICLE_CONNECTOR_TRANSPORT_LABELS[connector.transport]
   const title = `Vehicle session · ${bundle.manifest.sessionLabel}`
   const summary = trim(
-    `${bundle.manifest.summary} ${bundle.history.length} frames · ${transportLabel} · ${connector.bridgeLabel}.`,
+    `${bundle.manifest.summary} ${bundle.history.length} frames · ${transportLabel} · ${connector.bridgeLabel}.${bundle.radar ? ` Radar ${VEHICLE_RADAR_PROCESSING_STAGE_LABELS[bundle.radar.processingStage].toLowerCase()} ready.` : ""}`,
     220,
   )
   const radarTags = bundle.radar ? ["radar-readiness"] : []
+  const radarArtifactTags = bundle.radar
+    ? bundle.radar.artifactLabels
+        .map((label) => slugify(label))
+        .filter(Boolean)
+        .map((label) => `radar-artifact:${label}`)
+    : []
   const content = [
     `# ${title}`,
     "",
@@ -535,8 +549,17 @@ export function buildVehicleSessionVaultDraft(
     title,
     summary,
     content,
-    tags: Array.from(new Set([...bundle.manifest.tags, ...radarTags, "vehicle-session", "flight-session", "f450"])),
-    topic: "Vehicle session summary",
+    tags: Array.from(
+      new Set([
+        ...bundle.manifest.tags,
+        ...radarTags,
+        ...radarArtifactTags,
+        "vehicle-session",
+        "flight-session",
+        "f450",
+      ]),
+    ),
+    topic: bundle.radar ? "Vehicle session summary · radar readiness" : "Vehicle session summary",
   }
 }
 
@@ -659,12 +682,13 @@ export function buildVehicleRenderBriefVaultDraft({
     tags: Array.from(
       new Set([
         ...bundle.manifest.tags,
+        ...(bundle.radar ? ["radar-aware-render-brief"] : []),
         "vehicle-render-brief",
         "future-hardware",
         "cad-prep",
         targetTag,
       ]),
     ),
-    topic: "Vehicle render brief",
+    topic: bundle.radar ? "Vehicle render brief · radar-ready" : "Vehicle render brief",
   }
 }

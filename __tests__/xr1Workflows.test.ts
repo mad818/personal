@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildCitationSourceRefs,
+  buildOsintCasefileEvidenceStrength,
+  buildWorkflowSourceRefs,
+  extractOsintPivotsFromTags,
   buildMarketReviewMarkdown,
   buildOsintCasefileMarkdown,
+  mergeSourceRefs,
+  parseMarketReviewMarkdown,
+  parseOsintCasefileMarkdown,
   rankMarketReviewPages,
   rankOsintCasefilePages,
   type XR1WorkflowPageLike,
@@ -79,6 +86,80 @@ describe("XR1 workflows", () => {
     );
   });
 
+  it("rehydrates market-review drafts from deterministic markdown", () => {
+    const parsed = parseMarketReviewMarkdown(
+      [
+        "## Asset / market",
+        "BTC/USD",
+        "",
+        "## Thesis",
+        "Weekly reclaim still holds.",
+        "",
+        "## Setup",
+        "Wait for the prior range high to flip.",
+        "",
+        "## Invalidation",
+        "Pending input.",
+        "",
+        "## Result",
+        "Trimmed into resistance.",
+        "",
+        "## Emotional posture",
+        "Calm",
+        "",
+        "## Operator notes",
+        "Stayed patient.",
+      ].join("\n"),
+    );
+
+    expect(parsed).toEqual({
+      asset: "BTC/USD",
+      thesis: "Weekly reclaim still holds.",
+      setup: "Wait for the prior range high to flip.",
+      invalidation: "",
+      result: "Trimmed into resistance.",
+      emotionalPosture: "Calm",
+      operatorNotes: "Stayed patient.",
+    });
+  });
+
+  it("rehydrates OSINT casefiles and pivot tags for draft reuse", () => {
+    const parsed = parseOsintCasefileMarkdown(
+      [
+        "## Subject",
+        "Acme Holdings",
+        "",
+        "## Goal",
+        "Confirm the public-facing company footprint.",
+        "",
+        "## Passive findings",
+        "Site, LinkedIn page, and conference bio all align.",
+        "",
+        "## Pivot opportunities",
+        "Check archived mentions and passive DNS.",
+        "",
+        "## Evidence gaps",
+        "Still missing older press citations.",
+        "",
+        "## Next reviewed move",
+        "Recheck archive snapshots.",
+      ].join("\n"),
+    );
+
+    expect(parsed).toEqual({
+      subject: "Acme Holdings",
+      goal: "Confirm the public-facing company footprint.",
+      passiveFindings: "Site, LinkedIn page, and conference bio all align.",
+      pivotOpportunities: "Check archived mentions and passive DNS.",
+      evidenceGaps: "Still missing older press citations.",
+      nextReviewedMove: "Recheck archive snapshots.",
+      pivots: [],
+    });
+    expect(
+      extractOsintPivotsFromTags(["osint-casefile", "pivot:social", "pivot:image-metadata"]),
+    ).toEqual(["social", "image / metadata"]);
+  });
+
   it("ranks market reviews by asset match, then topic strength, then recency", () => {
     const pages: XR1WorkflowPageLike[] = [
       {
@@ -120,6 +201,7 @@ describe("XR1 workflows", () => {
         summary: "Passive DNS and headers still pending review.",
         workflowId: "osint-casefile",
         tags: ["osint-casefile"],
+        route: "/cyber",
         updatedAt: 400,
       },
       {
@@ -127,6 +209,7 @@ describe("XR1 workflows", () => {
         summary: "Social footprint aligns with the public biography.",
         workflowId: "osint-casefile",
         tags: ["osint-casefile", "pivot:social"],
+        route: "/recon",
         updatedAt: 200,
       },
       {
@@ -134,6 +217,7 @@ describe("XR1 workflows", () => {
         summary: "Carry forward the same casefile continuity before widening.",
         workflowId: "osint-casefile",
         tags: ["osint-casefile"],
+        route: "/recon",
         updatedAt: 100,
         continuity: {
           continuityId: "case-42",
@@ -141,12 +225,38 @@ describe("XR1 workflows", () => {
       },
     ];
 
-    const ranked = rankOsintCasefilePages(pages, "Acme employee", "case-42");
+    const ranked = rankOsintCasefilePages(pages, "Acme employee", "case-42", "/recon");
 
     expect(ranked.map((page) => page.title)).toEqual([
       "Archived intake lane",
       "Acme employee profile",
       "Generic domain note",
     ]);
+  });
+
+  it("builds reusable Vault source refs and evidence posture for XR2 filings", () => {
+    const sourceRefs = mergeSourceRefs(
+      buildWorkflowSourceRefs({
+        id: "page-1",
+        title: "Market review · BTC",
+        summary: "Prior thesis note.",
+        workflowId: "market-review",
+        tags: ["market-review", "asset:btc"],
+        updatedAt: 10,
+        continuity: {
+          evidenceStrength: "contextual",
+        },
+      }),
+      buildCitationSourceRefs([
+        "Check https://example.com/report and https://data.example.org/feed before filing.",
+      ]),
+    );
+
+    expect(sourceRefs.map((sourceRef) => sourceRef.sourceType)).toEqual([
+      "vault-artifact",
+      "citation",
+      "citation",
+    ]);
+    expect(buildOsintCasefileEvidenceStrength(sourceRefs)).toBe("synthesis-ready");
   });
 });

@@ -5,28 +5,39 @@ import { useRouter } from "next/navigation";
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions";
 import { ShellBadge } from "@/components/ui/shell";
 import { apiFetch } from "@/lib/apiFetch";
+import type { EvidenceStrength, ResearchSourceRef } from "@/lib/researchSources";
 import {
   OSINT_CASEFLOW_PHASES,
   OSINT_PIVOT_OPTIONS,
+  buildCitationSourceRefs,
+  buildOsintCasefileEvidenceStrength,
   buildOsintCasefileMarkdown,
   buildOsintCasefileSummary,
   buildOsintCasefileTags,
   buildOsintCasefileTitle,
+  buildWorkflowSourceRefs,
+  extractOsintPivotsFromTags,
+  mergeSourceRefs,
+  parseOsintCasefileMarkdown,
   rankOsintCasefilePages,
   type OsintCasefileDraft,
+  type XR1SourcePageLike,
 } from "@/lib/xr1Workflows";
 
 type VaultStatus = "idle" | "saving" | "saved" | "error";
 
-interface OsintCasefilePage {
+interface OsintCasefilePage extends XR1SourcePageLike {
   id: string;
   title: string;
   summary: string;
   route?: string;
   tags: string[];
   updatedAt: number;
+  content?: string;
   continuity: {
     continuityId?: string | null;
+    sourceRefs?: ResearchSourceRef[];
+    evidenceStrength?: EvidenceStrength | null;
   };
 }
 
@@ -63,6 +74,7 @@ export default function OsintCasefileCard({
   const [draft, setDraft] = useState<OsintCasefileDraft>(EMPTY_DRAFT);
   const [status, setStatus] = useState<VaultStatus>("idle");
   const [pages, setPages] = useState<OsintCasefilePage[]>([]);
+  const [reusedPage, setReusedPage] = useState<OsintCasefilePage | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -96,14 +108,30 @@ export default function OsintCasefileCard({
     return byRoute.length > 0 ? byRoute : pages;
   }, [pages, route]);
   const rankedPages = useMemo(
-    () => rankOsintCasefilePages(scopedPages, draft.subject),
-    [draft.subject, scopedPages],
+    () =>
+      rankOsintCasefilePages(
+        scopedPages,
+        draft.subject,
+        reusedPage?.continuity?.continuityId,
+        route,
+      ),
+    [draft.subject, reusedPage?.continuity?.continuityId, route, scopedPages],
   );
   const strongestPrior = rankedPages[0] ?? null;
   const savedMemoryQuery = useMemo(
     () => [draft.subject, draft.goal, draft.nextReviewedMove].filter(Boolean).join(" · "),
     [draft.goal, draft.nextReviewedMove, draft.subject],
   );
+
+  const reuseStrongestPrior = () => {
+    if (!strongestPrior) return;
+    setDraft({
+      ...parseOsintCasefileMarkdown(strongestPrior.content ?? ""),
+      pivots: extractOsintPivotsFromTags(strongestPrior.tags),
+    });
+    setReusedPage(strongestPrior);
+    setStatus("idle");
+  };
 
   const saveCasefile = async () => {
     const hasRequiredInput =
@@ -117,6 +145,16 @@ export default function OsintCasefileCard({
 
     setStatus("saving");
     try {
+      const sourceRefs = mergeSourceRefs(
+        buildCitationSourceRefs([
+          draft.goal,
+          draft.passiveFindings,
+          draft.pivotOpportunities,
+          draft.evidenceGaps,
+          draft.nextReviewedMove,
+        ]),
+        reusedPage ? buildWorkflowSourceRefs(reusedPage) : [],
+      );
       const response = await apiFetch("/api/memory/pages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -126,6 +164,9 @@ export default function OsintCasefileCard({
           content: buildOsintCasefileMarkdown(draft),
           source: "manual",
           sourceLabel: "OSINT casefile",
+          sourceType: "vault-artifact",
+          evidenceStrength: buildOsintCasefileEvidenceStrength(sourceRefs),
+          sourceRefs,
           workflowId: "osint-casefile",
           workflowLabel: "OSINT casefile",
           route,
@@ -202,6 +243,54 @@ export default function OsintCasefileCard({
         <div
           style={{
             borderRadius: "12px",
+            border: "1px solid rgba(96, 165, 250, 0.16)",
+            background: "rgba(8, 18, 31, 0.46)",
+            padding: "10px 12px",
+            display: "grid",
+            gap: "8px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 700,
+              color: "#93c5fd",
+              textTransform: "uppercase",
+              letterSpacing: "0.6px",
+            }}
+          >
+            Casefile continuity
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={reuseStrongestPrior}
+              className="nexus-shell-button"
+              style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+            >
+              Reuse strongest prior
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/vault?focus=vault-compiled-pages&workflowId=osint-casefile")}
+              className="nexus-shell-button"
+              style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+            >
+              Open OSINT archive
+            </button>
+          </div>
+          {reusedPage ? (
+            <div style={{ fontSize: "10px", color: "#93c5fd", lineHeight: 1.45 }}>
+              Draft seeded from {reusedPage.title}. Saving now will keep that prior casefile in the durable source trail.
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {strongestPrior ? (
+        <div
+          style={{
+            borderRadius: "12px",
             border: "1px solid rgba(96, 165, 250, 0.18)",
             background: "rgba(8, 18, 31, 0.52)",
             padding: "10px 12px",
@@ -219,6 +308,14 @@ export default function OsintCasefileCard({
             {strongestPrior.summary}
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={reuseStrongestPrior}
+              className="nexus-shell-button"
+              style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+            >
+              Reuse strongest prior
+            </button>
             <button
               type="button"
               onClick={() => router.push("/vault?focus=vault-compiled-pages&workflowId=osint-casefile")}
@@ -306,6 +403,7 @@ export default function OsintCasefileCard({
           type="button"
           onClick={() => {
             setDraft(EMPTY_DRAFT);
+            setReusedPage(null);
             setStatus("idle");
           }}
           className="nexus-shell-button"

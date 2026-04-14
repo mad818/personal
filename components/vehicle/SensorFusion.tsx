@@ -1,95 +1,19 @@
 // ── components/vehicle/SensorFusion ────────────────────────
-// Multi-sensor data fusion: LiDAR, radar, camera, GPS integration status.
+// Shared fusion summary driven by the vehicle telemetry contract.
 
-"use client";
-// object detection summary, confidence score, and processing pipeline latencies.
+"use client"
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-
-interface SensorStatus {
-  name: string;
-  active: boolean;
-  latency: number;
-  icon: string;
-}
-
-interface PipelineStage {
-  name: string;
-  latency: number;
-  ok: boolean;
-}
-
-const INITIAL_SENSORS: SensorStatus[] = [
-  { name: "RGB", active: true, latency: 8, icon: "📷" },
-  { name: "NV", active: true, latency: 9, icon: "🌙" },
-  { name: "Thermal", active: true, latency: 12, icon: "🔥" },
-  { name: "LiDAR", active: true, latency: 14, icon: "📡" },
-  { name: "Ultrasonic", active: true, latency: 5, icon: "🔊" },
-  { name: "IMU", active: true, latency: 2, icon: "⚖️" },
-  { name: "GPS", active: true, latency: 50, icon: "🛰️" },
-];
-
-const INITIAL_PIPELINE: PipelineStage[] = [
-  { name: "Input", latency: 3, ok: true },
-  { name: "Detection", latency: 18, ok: true },
-  { name: "Classification", latency: 12, ok: true },
-  { name: "Tracking", latency: 7, ok: true },
-  { name: "Decision", latency: 4, ok: true },
-];
+import { motion } from "framer-motion"
+import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry"
 
 export default function SensorFusion() {
-  const [sensors, setSensors] = useState<SensorStatus[]>(INITIAL_SENSORS);
-  const [pipeline, setPipeline] = useState<PipelineStage[]>(INITIAL_PIPELINE);
-  const [confidence, setConf] = useState(91.4);
-  const [objects, setObjects] = useState({
-    people: 3,
-    vehicles: 2,
-    obstacles: 1,
-  });
+  const { activeFrame } = useVehicleTelemetry()
 
-  // Simulate latency drift
-  useEffect(() => {
-    const id = setInterval(() => {
-      setSensors((prev) =>
-        prev.map((s) => ({
-          ...s,
-          latency: Math.max(
-            1,
-            s.latency + Math.round((Math.random() - 0.5) * 2),
-          ),
-        })),
-      );
-      setPipeline((prev) =>
-        prev.map((p) => ({
-          ...p,
-          latency: Math.max(
-            1,
-            p.latency + Math.round((Math.random() - 0.5) * 2),
-          ),
-        })),
-      );
-      setConf((prev) =>
-        Math.max(70, Math.min(99, prev + (Math.random() - 0.5) * 0.8)),
-      );
-      if (Math.random() < 0.05) {
-        setObjects((prev) => ({
-          people: Math.max(0, prev.people + (Math.random() < 0.5 ? 1 : -1)),
-          vehicles: Math.max(0, prev.vehicles + (Math.random() < 0.5 ? 1 : -1)),
-          obstacles: Math.max(
-            0,
-            prev.obstacles + (Math.random() < 0.5 ? 1 : -1),
-          ),
-        }));
-      }
-    }, 900);
-    return () => clearInterval(id);
-  }, []);
-
-  const activeSensors = sensors.filter((s) => s.active).length;
-  const totalLatency = pipeline.reduce((a, p) => a + p.latency, 0);
-  const confColor =
-    confidence > 85 ? "#10b981" : confidence > 70 ? "#f59e0b" : "#ef4444";
+  const activeSensors = activeFrame.sensors.filter((sensor) => sensor.active).length
+  const totalLatency = activeFrame.pipeline.reduce((total, stage) => total + stage.latencyMs, 0)
+  const confidence = activeFrame.fusionConfidencePercent
+  const confidenceColor =
+    confidence > 85 ? "#10b981" : confidence > 70 ? "#f59e0b" : "#ef4444"
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -105,7 +29,6 @@ export default function SensorFusion() {
         Sensor Fusion
       </div>
 
-      {/* Sensor list */}
       <div
         style={{
           background: "var(--surf2)",
@@ -123,52 +46,47 @@ export default function SensorFusion() {
             marginBottom: "8px",
           }}
         >
-          Active Sensors — {activeSensors}/{sensors.length}
+          Active Sensors — {activeSensors}/{activeFrame.sensors.length}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          {sensors.map((s) => (
+          {activeFrame.sensors.map((sensor) => (
             <div
-              key={s.name}
+              key={sensor.id}
               style={{ display: "flex", alignItems: "center", gap: "6px" }}
             >
-              <span style={{ fontSize: "10px", width: "16px" }}>{s.icon}</span>
               <span
                 style={{
                   fontSize: "10px",
                   fontWeight: 600,
                   color: "var(--text)",
-                  width: "80px",
+                  width: "92px",
                 }}
               >
-                {s.name}
+                {sensor.label}
               </span>
               <span
                 style={{
                   fontSize: "11px",
-                  color: s.active ? "#10b981" : "#6b7280",
+                  color: sensor.active ? "#10b981" : "#6b7280",
                   fontWeight: 700,
                 }}
               >
-                {s.active ? "✅" : "❌"}
+                {sensor.active ? "OK" : "OFF"}
               </span>
-              {s.active && (
-                <span
-                  style={{
-                    fontSize: "9px",
-                    fontFamily: "monospace",
-                    color: "var(--text3)",
-                    marginLeft: "auto",
-                  }}
-                >
-                  {s.latency}ms
-                </span>
-              )}
+              <span
+                style={{
+                  fontSize: "9px",
+                  color: "var(--text3)",
+                  marginLeft: "auto",
+                }}
+              >
+                {sensor.active ? `${sensor.latencyMs}ms` : "disabled"}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Object detection summary */}
       <div
         style={{
           background: "var(--surf2)",
@@ -186,7 +104,7 @@ export default function SensorFusion() {
             marginBottom: "8px",
           }}
         >
-          Object Detection
+          Detection Summary
         </div>
         <div
           style={{
@@ -197,19 +115,18 @@ export default function SensorFusion() {
           }}
         >
           <span style={{ fontWeight: 800, color: "var(--accent)" }}>
-            {objects.people}
+            {activeFrame.detections.people}
           </span>{" "}
-          people detected ·{" "}
+          people ·{" "}
           <span style={{ fontWeight: 800, color: "var(--accent2)" }}>
-            {objects.vehicles}
+            {activeFrame.detections.vehicles}
           </span>{" "}
           vehicles ·{" "}
           <span style={{ fontWeight: 800, color: "#f59e0b" }}>
-            {objects.obstacles}
+            {activeFrame.detections.obstacles}
           </span>{" "}
-          obstacle{objects.obstacles !== 1 ? "s" : ""}
+          obstacle{activeFrame.detections.obstacles !== 1 ? "s" : ""}
         </div>
-        {/* Fusion confidence */}
         <div style={{ marginBottom: "4px" }}>
           <div
             style={{
@@ -232,11 +149,11 @@ export default function SensorFusion() {
               style={{
                 fontSize: "13px",
                 fontWeight: 900,
-                color: confColor,
+                color: confidenceColor,
                 fontFamily: "monospace",
               }}
             >
-              {confidence.toFixed(1)}%
+              {confidence.toFixed(0)}%
             </span>
           </div>
           <div
@@ -252,7 +169,7 @@ export default function SensorFusion() {
               transition={{ duration: 0.4 }}
               style={{
                 height: "100%",
-                background: confColor,
+                background: confidenceColor,
                 borderRadius: "2px",
               }}
             />
@@ -260,7 +177,6 @@ export default function SensorFusion() {
         </div>
       </div>
 
-      {/* Processing pipeline */}
       <div
         style={{
           background: "var(--surf2)",
@@ -307,7 +223,7 @@ export default function SensorFusion() {
             overflowX: "auto",
           }}
         >
-          {pipeline.map((stage, i) => (
+          {activeFrame.pipeline.map((stage, index) => (
             <div
               key={stage.name}
               style={{
@@ -346,13 +262,13 @@ export default function SensorFusion() {
                     fontFamily: "monospace",
                   }}
                 >
-                  {stage.latency}ms
+                  {stage.latencyMs}ms
                 </div>
               </div>
-              {i < pipeline.length - 1 && (
+              {index < activeFrame.pipeline.length - 1 ? (
                 <motion.span
                   animate={{ opacity: [0.3, 1, 0.3] }}
-                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                  transition={{ duration: 1, repeat: Infinity, delay: index * 0.2 }}
                   style={{
                     fontSize: "12px",
                     color: "var(--accent)",
@@ -361,11 +277,11 @@ export default function SensorFusion() {
                 >
                   →
                 </motion.span>
-              )}
+              ) : null}
             </div>
           ))}
         </div>
       </div>
     </div>
-  );
+  )
 }

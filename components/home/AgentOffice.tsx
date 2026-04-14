@@ -12,6 +12,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useStore } from "@/store/useStore";
 import { buildSystemPrompt } from "@/lib/ai";
+import { AI_AGENT_TRUTHFULNESS_POSTURE } from "@/lib/aiTruthBoundary";
 import { runAgent, type AgentStep } from "@/lib/agent";
 import { getMemoryStats } from "@/lib/memoryStore";
 import PhaseStrip from "@/components/ui/PhaseStrip";
@@ -414,7 +415,11 @@ function buildAgentPrompt(id: AgentId, base: string): string {
     cipher: `\n\n[AGENT: CIPHER — Security Intelligence]\nYou are CIPHER. Sharp. Methodical. You specialise in cybersecurity: CVE analysis, threat modelling, OSINT, network security, and secure coding practices. You think like an attacker to defend like a guardian.\n\nWhen asked to fix security issues in the codebase: use read_project_file, then patch_project_file to apply the fix directly. Never just describe what to change.`,
     flux: `\n\n[AGENT: FLUX — Market Intelligence]\nYou are FLUX. Fast. Quantitative. You specialise in financial markets: crypto, equities, macro economics, on-chain data, and trading signals. You read momentum and think in probabilities.`,
   };
-  return base + personas[id];
+  return `${base}
+
+[QUALITY BOUNDARY]
+${AI_AGENT_TRUTHFULNESS_POSTURE}
+[END QUALITY BOUNDARY]${personas[id]}`;
 }
 
 // ── Agent routing ─────────────────────────────────────────────────────────────

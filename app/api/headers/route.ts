@@ -2,7 +2,15 @@
 // Server-side proxy: fetch HTTP response headers for a URL.
 // Client cannot do this directly due to CORS — server fetches and returns.
 
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { assertSafePublicUrl } from "@/lib/security/networkGuards";
+import {
+  applyRateLimitHeaders,
+  checkRateLimit,
+} from "@/lib/security/rateLimit";
+import { protectedJson } from "@/lib/protectedApi";
+
+export const dynamic = "force-dynamic";
 
 const SECURITY_HEADERS = [
   "content-security-policy",
@@ -17,17 +25,36 @@ const SECURITY_HEADERS = [
   "x-xss-protection",
 ];
 
-export async function GET(req: Request) {
+const RATE_LIMIT = {
+  bucket: "api-headers",
+  windowMs: 60_000,
+  maxAttempts: 20,
+  includeBearerToken: false,
+} as const;
+
+export async function GET(req: NextRequest) {
+  const rateLimit = checkRateLimit(req, RATE_LIMIT);
+  if (!rateLimit.ok) {
+    const response = protectedJson(
+      { error: "Rate limit exceeded. Try again shortly." },
+      { status: 429 },
+    );
+    applyRateLimitHeaders(response, RATE_LIMIT, rateLimit.retryAfterSec);
+    return response;
+  }
+
   const { searchParams } = new URL(req.url);
-  const url = searchParams.get("url");
-  if (!url)
-    return NextResponse.json({ error: "Missing url param" }, { status: 400 });
+  const url = searchParams.get("url") ?? "";
 
   let parsed: URL;
   try {
-    parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
-  } catch {
-    return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
+    parsed = assertSafePublicUrl(url, { allowHttp: true });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Invalid URL parameter.";
+    const response = protectedJson({ error: message }, { status: 400 });
+    applyRateLimitHeaders(response, RATE_LIMIT);
+    return response;
   }
 
   try {
@@ -47,14 +74,21 @@ export async function GET(req: Request) {
       security[h] = all[h] ?? null;
     });
 
-    return NextResponse.json({
+    const response = protectedJson({
       url: parsed.href,
       status: r.status,
       ok: r.ok,
       all,
       security,
     });
+    applyRateLimitHeaders(response, RATE_LIMIT);
+    return response;
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 502 });
+    const response = protectedJson(
+      { error: e instanceof Error ? e.message : String(e) },
+      { status: 502 },
+    );
+    applyRateLimitHeaders(response, RATE_LIMIT);
+    return response;
   }
 }

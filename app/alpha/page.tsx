@@ -4,19 +4,27 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import WatchlistManager from "@/components/alpha/WatchlistManager";
 import { PricesLoader } from "@/components/ui/DataLoader";
+import SurfaceModuleCard from "@/components/ui/SurfaceModuleCard";
+import SurfaceModuleSection from "@/components/ui/SurfaceModuleSection";
+import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
 import {
-  SectionLabel,
   ShellBadge,
-  ShellGrid,
   ShellPage,
-  ShellPanel,
   ShellSegmentedTabs,
   ShellStack,
 } from "@/components/ui/shell";
+import {
+  resolveAlphaChamber,
+  resolveAlphaTapeView,
+  type AlphaChamberId,
+} from "@/lib/surfaceCondensationRegistry";
+import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
+import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
+import { getSurfaceModuleSpec } from "@/lib/surfaceRedesignRegistry";
 import { useStore } from "@/store/useStore";
 
 type MarketsView =
@@ -27,13 +35,17 @@ type MarketsView =
   | "prices"
   | "charts";
 
-const VIEWS: Array<{ id: MarketsView; label: string }> = [
+const CHAMBER_VIEWS: Array<{ id: AlphaChamberId; label: string }> = [
   { id: "watchlist", label: "⭐ WATCHLIST" },
   { id: "signals", label: "🤖 SIGNALS" },
   { id: "scanner", label: "📈 SCANNER" },
   { id: "sizer", label: "🎯 SIZER" },
-  { id: "prices", label: "💱 PRICES" },
-  { id: "charts", label: "📺 CHARTS" },
+  { id: "tape", label: "💱 MARKET TAPE" },
+];
+
+const TAPE_VIEWS: Array<{ id: "prices" | "charts"; label: string }> = [
+  { id: "prices", label: "Grid" },
+  { id: "charts", label: "Charts" },
 ];
 
 const LazyPriceGrid = dynamic(() => import("@/components/alpha/PriceGrid"), {
@@ -58,15 +70,25 @@ const LazyTradingViewMarkets = dynamic(
   () => import("@/components/alpha/TradingViewMarkets"),
   { ssr: false },
 );
+const LazyForecastLabCard = dynamic(
+  () => import("@/components/alpha/ForecastLabCard"),
+  { ssr: false },
+);
+const LazyMarketReviewCard = dynamic(
+  () => import("@/components/alpha/MarketReviewCard"),
+  { ssr: false },
+);
 
 export default function AlphaPage() {
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const { normalizedParams } = useSessionHrefAutoHeal();
+  const focus = normalizedParams.get("focus");
   const view = useStore((s) => s.marketsView) ?? "watchlist";
   const setView = useStore((s) => s.setMarketsView);
+  const watchlist = useStore((s) => s.settings.watchlist);
 
   const urlView = useMemo(() => {
-    const v = (searchParams?.get("view") ?? "").toLowerCase();
+    const v = (normalizedParams.get("view") ?? "").toLowerCase();
     return (
       [
         "watchlist",
@@ -79,20 +101,102 @@ export default function AlphaPage() {
     ).includes(v as MarketsView)
       ? (v as MarketsView)
       : null;
-  }, [searchParams]);
+  }, [normalizedParams]);
+
+  const focusView = useMemo(() => {
+    if (focus === "alpha-watchlist") return "watchlist";
+    if (focus === "alpha-market-review") return "watchlist";
+    if (focus === "alpha-signals") return "signals";
+    if (focus === "alpha-scanner") return "scanner";
+    if (focus === "alpha-sizer") return "sizer";
+    if (focus === "alpha-prices") return "prices";
+    if (focus === "alpha-charts") return "charts";
+    return null;
+  }, [focus]);
+
+  const chamber = useMemo(() => resolveAlphaChamber(view), [view]);
+  const tapeView = useMemo(() => resolveAlphaTapeView(view), [view]);
 
   useEffect(() => {
-    if (!urlView) return;
-    setView(urlView);
-  }, [urlView, setView]);
+    const nextView = focusView ?? urlView;
+    if (!nextView) return;
+    setView(nextView);
+  }, [focusView, setView, urlView]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams?.toString() ?? "");
-    if ((params.get("view") ?? "").toLowerCase() === view) return;
-    params.set("view", view);
+  const handleChamberChange = (nextView: AlphaChamberId) => {
+    const targetView = nextView === "tape" ? "prices" : nextView;
+    setView(targetView);
+    const params = new URLSearchParams(normalizedParams.toString());
+    params.set("view", targetView);
     router.replace(`/alpha?${params.toString()}`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view]);
+  };
+
+  const handleTapeViewChange = (nextView: "prices" | "charts") => {
+    setView(nextView);
+    const params = new URLSearchParams(normalizedParams.toString());
+    params.set("view", nextView);
+    router.replace(`/alpha?${params.toString()}`);
+  };
+
+  const focusTargetId =
+    focus === "alpha-watchlist"
+      ? "alpha-watchlist"
+      : focus === "alpha-market-review"
+        ? "alpha-market-review"
+      : focus === "alpha-signals"
+        ? "alpha-signals"
+        : focus === "alpha-scanner"
+          ? "alpha-scanner"
+          : focus === "alpha-sizer"
+            ? "alpha-sizer"
+            : focus === "alpha-prices"
+              ? "alpha-prices"
+              : focus === "alpha-charts"
+                ? "alpha-charts"
+                : null;
+
+  useSurfaceFocusScroll(focusTargetId);
+
+  const marketBriefSpec = getSurfaceModuleSpec("alpha", "market-brief");
+  const setupsSpec = getSurfaceModuleSpec("alpha", "setups");
+  const momentumSpec = getSurfaceModuleSpec("alpha", "momentum");
+  const riskPlanSpec = getSurfaceModuleSpec("alpha", "risk-plan");
+  const marketTapeSpec = getSurfaceModuleSpec("alpha", "market-tape", view);
+  const forecastLabSpec = getSurfaceModuleSpec("alpha", "forecast-lab");
+
+  if (
+    !marketBriefSpec ||
+    !setupsSpec ||
+    !momentumSpec ||
+    !riskPlanSpec ||
+    !marketTapeSpec ||
+    !forecastLabSpec
+  ) {
+    return null;
+  }
+
+  const renderSupportRail = () => (
+    <>
+      <div id="alpha-market-review" style={{ scrollMarginTop: "120px" }}>
+        <SurfaceModuleSection
+          title="Market review"
+          detail="Thesis continuity and post-trade reflection"
+          tone="muted"
+          compact
+        >
+          <LazyMarketReviewCard />
+        </SurfaceModuleSection>
+      </div>
+      <SurfaceModuleSection
+        title={forecastLabSpec.title}
+        detail={forecastLabSpec.detail}
+        tone="muted"
+        compact
+      >
+        <LazyForecastLabCard />
+      </SurfaceModuleSection>
+    </>
+  );
 
   return (
     <ShellPage
@@ -110,54 +214,209 @@ export default function AlphaPage() {
       <PricesLoader />
 
       <ShellStack>
-        <ShellSegmentedTabs items={VIEWS} active={view} onChange={setView} minButtonWidth={120} />
+        <SurfaceModuleCard
+          spec={marketBriefSpec}
+          tone="muted"
+          compact
+          className="nexus-surface-route-strip"
+        >
+          <div className="nexus-surface-route-strip__grid">
+            <div className="nexus-surface-route-strip__cell">
+              <span className="nexus-surface-route-strip__cellLabel">Watchlist</span>
+              <strong className="nexus-surface-route-strip__cellValue">
+                {watchlist.length}
+              </strong>
+              <span className="nexus-surface-route-strip__cellNote">
+                Tracked names stay persistent while the active chamber changes.
+              </span>
+            </div>
+            <div className="nexus-surface-route-strip__cell">
+              <span className="nexus-surface-route-strip__cellLabel">Active chamber</span>
+              <strong className="nexus-surface-route-strip__cellValue">
+                {chamber === "tape" ? "Tape" : chamber}
+              </strong>
+              <span className="nexus-surface-route-strip__cellNote">
+                Use one market posture strip instead of repeating brief copy in every view.
+              </span>
+            </div>
+            <div className="nexus-surface-route-strip__cell">
+              <span className="nexus-surface-route-strip__cellLabel">Tape mode</span>
+              <strong className="nexus-surface-route-strip__cellValue">
+                {tapeView === "charts" ? "Charts" : "Grid"}
+              </strong>
+              <span className="nexus-surface-route-strip__cellNote">
+                Prices and charts now share one verification chamber while old deep links still resolve.
+              </span>
+            </div>
+          </div>
+        </SurfaceModuleCard>
 
-        {view === "watchlist" && (
-          <ShellGrid columns="minmax(0, 1fr) minmax(320px, 0.95fr)" align="start">
-            <ShellPanel>
-              <SectionLabel>Watchlist manager</SectionLabel>
-              <WatchlistManager />
-            </ShellPanel>
-            <ShellPanel tone="muted">
-              <SectionLabel detail="Tracked 7-day motion">Sparklines</SectionLabel>
-              <LazyPriceSparklines />
-            </ShellPanel>
-          </ShellGrid>
+        {focus === "alpha-watchlist" ? (
+          <SurfaceFocusStrip
+            title="Focused session: watchlist"
+            description="You landed on ALPHA with the watchlist lane in focus so tracked assets and short-motion context show up first."
+          />
+        ) : null}
+
+        {focus === "alpha-market-review" ? (
+          <SurfaceFocusStrip
+            title="Focused session: market review"
+            description="You landed on ALPHA with the market-review lane in focus so thesis continuity, prior setups, and a fresh governed review entry are ready before broader tape browsing."
+          />
+        ) : null}
+
+        {focus === "alpha-signals" ? (
+          <SurfaceFocusStrip
+            title="Focused session: signal engine"
+            description="You landed on ALPHA with the signal engine in focus so directional posture is visible before broader market browsing."
+          />
+        ) : null}
+
+        {focus === "alpha-scanner" ? (
+          <SurfaceFocusStrip
+            title="Focused session: momentum scanner"
+            description="You landed on ALPHA with the scanner in focus so setup triage starts at the right panel."
+          />
+        ) : null}
+
+        {focus === "alpha-sizer" ? (
+          <SurfaceFocusStrip
+            title="Focused session: position sizer"
+            description="You landed on ALPHA with the sizing lane in focus so risk sizing can happen without extra clicks."
+          />
+        ) : null}
+
+        {focus === "alpha-prices" ? (
+          <SurfaceFocusStrip
+            title="Focused session: price grid"
+            description="You landed on ALPHA with the broad market-overview grid in focus."
+          />
+        ) : null}
+
+        {focus === "alpha-charts" ? (
+          <SurfaceFocusStrip
+            title="Focused session: charts"
+            description="You landed on ALPHA with the chart lane in focus so visual follow-through starts on the correct panel."
+          />
+        ) : null}
+
+        <ShellSegmentedTabs
+          items={CHAMBER_VIEWS}
+          active={chamber}
+          onChange={handleChamberChange}
+          minButtonWidth={120}
+        />
+
+        {chamber === "watchlist" && (
+          <div id="alpha-watchlist" style={{ scrollMarginTop: "120px" }}>
+            <SurfaceModuleCard spec={marketBriefSpec} tone="hero">
+              <div className="nexus-surface-chamber-shell__body">
+                <div className="nexus-surface-chamber-shell__lead">
+                  <SurfaceModuleSection title="Watchlist manager" detail="Where the tape stands now">
+                    <WatchlistManager />
+                  </SurfaceModuleSection>
+                </div>
+                <div className="nexus-surface-chamber-shell__support">
+                  {renderSupportRail()}
+                  <SurfaceModuleSection title="Sparklines" detail="Tracked seven-day motion" tone="muted">
+                    <LazyPriceSparklines />
+                  </SurfaceModuleSection>
+                </div>
+              </div>
+            </SurfaceModuleCard>
+          </div>
         )}
 
-        {view === "signals" && (
-          <ShellPanel>
-            <SectionLabel detail="Buy / sell signal board">Signal engine</SectionLabel>
-            <LazyBuyBot />
-          </ShellPanel>
+        {chamber === "signals" && (
+          <div id="alpha-signals" style={{ scrollMarginTop: "120px" }}>
+            <SurfaceModuleCard spec={setupsSpec} tone="hero">
+              <div className="nexus-surface-chamber-shell__body">
+                <div className="nexus-surface-chamber-shell__lead">
+                  <SurfaceModuleSection title="Signal engine" detail="Inspect the strongest setup first">
+                    <LazyBuyBot />
+                  </SurfaceModuleSection>
+                </div>
+                <div className="nexus-surface-chamber-shell__support">
+                  {renderSupportRail()}
+                  <SurfaceModuleSection
+                    title="Market brief"
+                    detail="Carry the watchlist posture into the setup lane"
+                    tone="muted"
+                    compact
+                  >
+                    <div className="nexus-shell-copy nexus-shell-copy--compact">
+                      The signal engine stays primary here; use the watchlist and tape chamber only when the setup needs broader verification.
+                    </div>
+                  </SurfaceModuleSection>
+                </div>
+              </div>
+            </SurfaceModuleCard>
+          </div>
         )}
 
-        {view === "scanner" && (
-          <ShellPanel>
-            <SectionLabel detail="Momentum and setup detection">Momentum scanner</SectionLabel>
-            <LazyMomentumScanner />
-          </ShellPanel>
+        {chamber === "scanner" && (
+          <div id="alpha-scanner" style={{ scrollMarginTop: "120px" }}>
+            <SurfaceModuleCard spec={momentumSpec}>
+              <div className="nexus-surface-chamber-shell__body">
+                <div className="nexus-surface-chamber-shell__lead">
+                  <SurfaceModuleSection title="Momentum scanner" detail="Which names deserve attention">
+                    <LazyMomentumScanner />
+                  </SurfaceModuleSection>
+                </div>
+                <div className="nexus-surface-chamber-shell__support">
+                  {renderSupportRail()}
+                </div>
+              </div>
+            </SurfaceModuleCard>
+          </div>
         )}
 
-        {view === "sizer" && (
-          <ShellPanel>
-            <SectionLabel detail="Fixed risk and Kelly sizing">Position sizer</SectionLabel>
-            <LazyPositionSizer />
-          </ShellPanel>
+        {chamber === "sizer" && (
+          <div id="alpha-sizer" style={{ scrollMarginTop: "120px" }}>
+            <SurfaceModuleCard spec={riskPlanSpec}>
+              <div className="nexus-surface-chamber-shell__body">
+                <div className="nexus-surface-chamber-shell__lead">
+                  <SurfaceModuleSection title="Position sizer" detail="Size the trade before you act">
+                    <LazyPositionSizer />
+                  </SurfaceModuleSection>
+                </div>
+                <div className="nexus-surface-chamber-shell__support">
+                  {renderSupportRail()}
+                </div>
+              </div>
+            </SurfaceModuleCard>
+          </div>
         )}
 
-        {view === "prices" && (
-          <ShellPanel>
-            <SectionLabel detail="Top-level market overview">Price grid</SectionLabel>
-            <LazyPriceGrid />
-          </ShellPanel>
-        )}
-
-        {view === "charts" && (
-          <ShellPanel>
-            <SectionLabel detail="Legacy TradingView embeds">Charts</SectionLabel>
-            <LazyTradingViewMarkets />
-          </ShellPanel>
+        {chamber === "tape" && (
+          <div id={tapeView === "charts" ? "alpha-charts" : "alpha-prices"} style={{ scrollMarginTop: "120px" }}>
+            <SurfaceModuleCard spec={marketTapeSpec}>
+              <div className="nexus-surface-chamber-shell__body">
+                <div className="nexus-surface-chamber-shell__lead">
+                  <div className="nexus-surface-subtabs">
+                    <ShellSegmentedTabs
+                      items={TAPE_VIEWS}
+                      active={tapeView}
+                      onChange={handleTapeViewChange}
+                      minButtonWidth={110}
+                    />
+                    {tapeView === "prices" ? (
+                      <SurfaceModuleSection title="Price grid" detail="Verify the broad tape first">
+                        <LazyPriceGrid />
+                      </SurfaceModuleSection>
+                    ) : (
+                      <SurfaceModuleSection title="Charts" detail="Visual follow-through before execution">
+                        <LazyTradingViewMarkets />
+                      </SurfaceModuleSection>
+                    )}
+                  </div>
+                </div>
+                <div className="nexus-surface-chamber-shell__support">
+                  {renderSupportRail()}
+                </div>
+              </div>
+            </SurfaceModuleCard>
+          </div>
         )}
       </ShellStack>
     </ShellPage>

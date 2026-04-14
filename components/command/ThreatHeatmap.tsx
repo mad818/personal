@@ -46,7 +46,7 @@ export default function ThreatHeatmap() {
   const earthquakes = useStore((s) => s.earthquakes);
   const threatIntel = useStore((s) => s.threatIntel);
   const fearGreed = useStore((s) => s.fearGreed);
-  const weather = useStore((s) => s.weather as any);
+  const weather = useStore((s) => s.weather);
 
   // Derive current threat scores (0–100)
   const cyberScore = useMemo(() => {
@@ -76,9 +76,10 @@ export default function ThreatHeatmap() {
   }, [fearGreed]);
 
   const weatherScore = useMemo(() => {
+    const current = weather?.current as Record<string, number> | undefined;
     const code =
-      weather?.current?.weather_code ??
-      weather?.current?.weathercode ??
+      current?.weather_code ??
+      current?.weathercode ??
       0;
     // WMO codes: 0=clear, 45+=fog, 80+=heavy rain, 95+=thunderstorm
     if (code >= 95) return 85;

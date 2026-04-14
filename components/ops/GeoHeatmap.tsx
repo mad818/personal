@@ -7,6 +7,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiFetch } from "@/lib/apiFetch";
 import { useStore } from "@/store/useStore";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 interface ConflictItem {
   title: string;
@@ -75,6 +78,30 @@ function timeAgoShort(dateStr: string): string {
   if (h < 1) return "just now";
   if (h < 24) return `${h}h ago`;
   return `${d}d ago`;
+}
+
+function buildConflictFallback(
+  gdeltEvents: Record<string, unknown>[],
+): ConflictItem[] {
+  return gdeltEvents
+    .map((event) => ({
+      title: typeof event.title === "string" ? event.title : "",
+      url:
+        typeof event.url === "string"
+          ? event.url
+          : typeof event.link === "string"
+            ? event.link
+            : "",
+      impact:
+        typeof event.title === "string" ? scoreImpact(event.title) : "low",
+      date:
+        typeof event.seendate === "string"
+          ? event.seendate
+          : typeof event.date === "string"
+            ? event.date
+            : "",
+    }))
+    .filter((event): event is ConflictItem => Boolean(event.title && event.url));
 }
 
 // ── Slide panel ───────────────────────────────────────────────────────────────
@@ -377,12 +404,23 @@ function HeatCell({
 // ── Main component ────────────────────────────────────────────────────────────
 export default function GeoHeatmap() {
   const gdeltEvents = useStore((s) => s.gdeltEvents);
+  const conflictStatus = useStore((s) => s.feedStatus.conflict);
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus);
   const [items, setItems] = useState<ConflictItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [panel, setPanel] = useState<Impact | null>(null);
+  const { internetReachable } = useInternetAvailability();
+  const lastFailureIsNewest =
+    Boolean(conflictStatus.lastFailureAt) &&
+    (conflictStatus.lastSuccessAt === null ||
+      (conflictStatus.lastFailureAt ?? 0) > (conflictStatus.lastSuccessAt ?? 0));
 
   const load = useCallback(async () => {
     setLoading(true);
+    updateFeedStatus("conflict", {
+      lastAttemptAt: Date.now(),
+      lastError: null,
+    });
     try {
       const r = await apiFetch("/api/conflict", {
         signal: AbortSignal.timeout(15000),
@@ -399,58 +437,31 @@ export default function GeoHeatmap() {
         impact: scoreImpact(a.title),
         date: a.seendate ?? "",
       }));
-      const fallback = (gdeltEvents as Record<string, unknown>[])
-        .map((event) => ({
-          title: typeof event.title === "string" ? event.title : "",
-          url:
-            typeof event.url === "string"
-              ? event.url
-              : typeof event.link === "string"
-                ? event.link
-                : "",
-          impact:
-            typeof event.title === "string"
-              ? scoreImpact(event.title)
-              : "low",
-          date:
-            typeof event.seendate === "string"
-              ? event.seendate
-              : typeof event.date === "string"
-                ? event.date
-                : "",
-        }))
-        .filter(
-          (event): event is ConflictItem => Boolean(event.title && event.url),
-        );
-      setItems(parsed.length > 0 ? parsed : fallback);
+      const fallback = buildConflictFallback(gdeltEvents as Record<string, unknown>[]);
+      const resolved = parsed.length > 0 ? parsed : fallback;
+      setItems(resolved);
+      if (resolved.length > 0) {
+        updateFeedStatus("conflict", {
+          lastSuccessAt: Date.now(),
+          lastError: d.error && parsed.length === 0 ? String(d.error) : null,
+        });
+      } else {
+        updateFeedStatus("conflict", {
+          lastFailureAt: Date.now(),
+          lastError: "Could not load conflict heatmap data.",
+        });
+      }
     } catch {
-      const fallback = (gdeltEvents as Record<string, unknown>[])
-        .map((event) => {
-          const title = typeof event.title === "string" ? event.title : "";
-          const url =
-            typeof event.url === "string"
-              ? event.url
-              : typeof event.link === "string"
-                ? event.link
-                : "";
-          return {
-            title,
-            url,
-            impact: scoreImpact(title),
-            date:
-              typeof event.seendate === "string"
-                ? event.seendate
-                : typeof event.date === "string"
-                  ? event.date
-                  : "",
-          } satisfies ConflictItem;
-        })
-        .filter((event) => event.title && event.url);
+      const fallback = buildConflictFallback(gdeltEvents as Record<string, unknown>[]);
       setItems(fallback);
+      updateFeedStatus("conflict", {
+        lastFailureAt: Date.now(),
+        lastError: "Could not load conflict heatmap data.",
+      });
     } finally {
       setLoading(false);
     }
-  }, [gdeltEvents]);
+  }, [gdeltEvents, updateFeedStatus]);
 
   useEffect(() => {
     load();
@@ -491,6 +502,39 @@ export default function GeoHeatmap() {
 
   return (
     <>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          flexWrap: "wrap",
+          marginBottom: "8px",
+        }}
+      >
+        <FeedStatusPill
+          label="Conflict"
+          status={conflictStatus}
+          internetReachable={internetReachable}
+        />
+      </div>
+      {!internetReachable && conflictStatus.lastSuccessAt !== null ? (
+        <SurfaceCallout
+          tone="info"
+          icon="↺"
+          title="Internet offline · showing last-known conflict topology"
+          description="The heatmap is using the last good local conflict set until remote refresh resumes."
+          style={{ marginBottom: "8px" }}
+        />
+      ) : null}
+      {internetReachable && lastFailureIsNewest && items.length > 0 ? (
+        <SurfaceCallout
+          tone="info"
+          icon="!"
+          title="Showing last good conflict heatmap"
+          description="The latest refresh failed, so the heatmap is preserving the most recent successful or fallback conflict set."
+          style={{ marginBottom: "8px" }}
+        />
+      ) : null}
       <div
         style={{
           fontSize: "9px",

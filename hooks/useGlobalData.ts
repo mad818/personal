@@ -5,6 +5,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useStore } from '@/store/useStore'
 import { apiFetch } from '@/lib/apiFetch'
+import { readBrowserInternetAvailability } from '@/lib/offlineReadiness'
 
 export function useGlobalData() {
   const [loading, setLoading] = useState(false)
@@ -16,6 +17,7 @@ export function useGlobalData() {
   const setThreatIntel = useStore((s) => s.setThreatIntel)
   const setThreatIntelLoaded = useStore((s) => s.setThreatIntelLoaded)
   const setWeather     = useStore((s) => s.setWeather)
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus)
   const setFearGreed   = useStore((s) => s.setFearGreed)
   const setDefiData    = useStore((s) => s.setDefiData)
   const setHackerNews  = useStore((s) => s.setHackerNews)
@@ -32,16 +34,27 @@ export function useGlobalData() {
   }, [setEarthquakes])
 
   const fetchGdelt = useCallback(async () => {
+    updateFeedStatus('conflict', {
+      lastAttemptAt: Date.now(),
+      lastError: null,
+    })
     try {
       const r = await apiFetch('/api/gdelt?query=conflict+OR+crisis&timespan=24H', {
         signal: AbortSignal.timeout(15000),
       })
       const d = await r.json()
       setGdeltEvents(d.articles ?? [])
+      updateFeedStatus('conflict', {
+        lastSuccessAt: Date.now(),
+        lastError: null,
+      })
     } catch {
-      // silent
+      updateFeedStatus('conflict', {
+        lastFailureAt: Date.now(),
+        lastError: 'Could not refresh conflict feed.',
+      })
     }
-  }, [setGdeltEvents])
+  }, [setGdeltEvents, updateFeedStatus])
 
   const fetchThreatIntel = useCallback(async () => {
     try {
@@ -59,14 +72,26 @@ export function useGlobalData() {
   }, [setThreatIntel, setThreatIntelLoaded])
 
   const fetchWeather = useCallback(async () => {
+    const attemptAt = Date.now()
+    updateFeedStatus('weather', {
+      lastAttemptAt: attemptAt,
+      lastError: null,
+    })
     try {
       const r = await apiFetch('/api/weather', { signal: AbortSignal.timeout(10000) })
       const d = await r.json()
       setWeather(d)
+      updateFeedStatus('weather', {
+        lastSuccessAt: Date.now(),
+        lastError: null,
+      })
     } catch {
-      // silent
+      updateFeedStatus('weather', {
+        lastFailureAt: Date.now(),
+        lastError: 'Could not fetch weather.',
+      })
     }
-  }, [setWeather])
+  }, [setWeather, updateFeedStatus])
 
   const fetchFearGreed = useCallback(async () => {
     try {
@@ -115,6 +140,7 @@ export function useGlobalData() {
   const fetchAll = useCallback(async () => {
     // Skip if the browser tab is hidden — saves API quota for backgrounded sessions
     if (typeof document !== 'undefined' && document.hidden) return
+    if (!readBrowserInternetAvailability()) return
 
     // Abort any previous in-flight batch to avoid race conditions on rapid refresh
     controllerRef.current?.abort()

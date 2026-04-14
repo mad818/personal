@@ -1,7 +1,8 @@
 // ── api/threat-intel ────────────────────────────────────────
 // Threat intelligence API: OTX, CVE, and CISA KEV feeds aggregated.
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { connectorJson } from "@/lib/connectorResponse";
 //
 // Sources:
 //   1. abuse.ch ThreatFox (no key required) — recent IOCs
@@ -187,14 +188,41 @@ export async function GET(req: NextRequest) {
       response.shodan = shodanData;
     }
 
-    return NextResponse.json(response, {
-      headers: { "Cache-Control": "public, max-age=900, s-maxage=900" },
+    const warnings = [
+      threatfoxError ? `ThreatFox degraded: ${threatfoxError}` : null,
+      !response.otx_available ? "OTX key is not configured on the server." : null,
+      otxResult.status === "rejected" ? "OTX pulse fetch failed." : null,
+      shodanError ? `Shodan degraded: ${shodanError}` : null,
+    ].filter((value): value is string => Boolean(value));
+
+    return connectorJson(response, {
+      source: "threat-intel",
+      maxAgeSeconds: 900,
+      degraded: warnings.length > 0,
+      warnings,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
-    return NextResponse.json(
-      { error: `Threat intel fetch failed: ${msg}`, iocs: [], otx_pulses: [] },
-      { status: 500 },
+    return connectorJson(
+      {
+        error: `Threat intel fetch failed: ${msg}`,
+        iocs: [],
+        threatfox: [],
+        otx_pulses: [],
+        otx_available: Boolean(process.env.OTX_KEY ?? process.env.OTX_API_KEY),
+        sources: {
+          threatfox: "error",
+          otx: "error",
+          shodan: "not_requested",
+        },
+      },
+      {
+        source: "threat-intel",
+        maxAgeSeconds: 60,
+        degraded: true,
+        warnings: [msg],
+        status: 500,
+      },
     );
   }
 }

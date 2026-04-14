@@ -11,10 +11,10 @@ A **single surface** in Nexus that answers: *Is my engineering loop green, and w
 1. **Data sources (existing)**  
    - `GET /api/verify` or status rollup (if exposed) for last verify/eval posture  
    - `GET /api/status` (or equivalent) for degraded flags  
-   - Client: read `tasks/todo.md` is not viable from browser — use a tiny `GET /api/project?section=summary` or extend `/api/status` with `{ nextUpCount, handoffStale?: boolean }` only if already cheap.
+   - Client: read `docs/SYSTEM_STATE.md` directly is not viable from browser — use `GET /api/project?section=state` or extend `/api/status` with `{ nextUpCount, handoffStale?: boolean }` only if already cheap.
 
 2. **UI**  
-   - Settings page or HQ footer: compact row — **Verify**, **Eval grade**, **Next Up** (manual link to `tasks/todo.md` in repo until API exists).  
+   - Settings page or HQ footer: compact row — **Verify**, **Eval grade**, **Next Up** (manual link to `docs/SYSTEM_STATE.md` in repo until API exists).  
    - No writes; links to run `npm run verify` / docs.
 
 3. **Done when**  
@@ -42,4 +42,4 @@ A **single surface** in Nexus that answers: *Is my engineering loop green, and w
 
 ---
 
-*Last updated: handoff supplement links here; adjust phases in `tasks/todo.md` when starting work.*
+*Last updated: adjust phases in `docs/SYSTEM_STATE.md` when starting work.*

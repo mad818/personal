@@ -1,11 +1,19 @@
-import { NextResponse } from "next/server";
 import { DEFAULT_LOCAL_MODEL, TASK_MODELS } from "@/lib/aiModelRouting";
+import {
+  BRAND_DESCRIPTOR,
+  BRAND_NAME,
+  BRAND_TAGLINE,
+  getBrandServiceName,
+  summarizeProviderReadiness,
+} from "@/lib/brand";
 import { readTimesfmSpikeStatus } from "@/lib/experiments";
 import { gradeFromEvalScore } from "@/lib/helpers";
 import { summarizeSkillGovernance } from "@/lib/skillMetadata";
 import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
 import {
+  getDefaultEntrypoint,
+  listSurfaceAliases,
   PRODUCT_SURFACES,
   readBuildChannel,
   readBuildVersion,
@@ -14,8 +22,12 @@ import {
   summarizeConnectorReadiness,
   summarizeSurfaceTiers,
 } from "@/lib/releaseMatrix";
+import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
+import { protectedJson } from "@/lib/protectedApi";
+
+export const dynamic = "force-dynamic";
 
 export const dynamic = "force-dynamic";
 
@@ -183,18 +195,35 @@ export async function GET() {
   );
   const surfaceSummary = summarizeSurfaceTiers();
   const release = {
-    service: "nexus-prime",
+    service: getBrandServiceName(),
+    brand: {
+      name: BRAND_NAME,
+      tagline: BRAND_TAGLINE,
+      descriptor: BRAND_DESCRIPTOR,
+    },
     channel: readBuildChannel(),
     version: readBuildVersion(),
     deploymentProfile: readDeploymentProfile(),
     canonicalDeploymentLane: RELEASE_DEFAULTS.canonicalDeploymentLane,
     supportedSurfacePolicy: RELEASE_DEFAULTS.supportedSurfacePolicy,
+    defaultEntrypoint: getDefaultEntrypoint(),
+    uiShellVersion: RELEASE_DEFAULTS.uiShellVersion,
     surfaces: {
       counts: surfaceSummary.counts,
-      ga: surfaceSummary.tiers.ga.map((surface) => surface.href),
-      beta: surfaceSummary.tiers.beta.map((surface) => surface.href),
-      internal: surfaceSummary.tiers.internal.map((surface) => surface.href),
+      ga: surfaceSummary.tiers.ga.map((surface) => ({
+        href: surface.href,
+        aliases: surface.aliases ?? [],
+      })),
+      beta: surfaceSummary.tiers.beta.map((surface) => ({
+        href: surface.href,
+        aliases: surface.aliases ?? [],
+      })),
+      internal: surfaceSummary.tiers.internal.map((surface) => ({
+        href: surface.href,
+        aliases: surface.aliases ?? [],
+      })),
       nav: PRODUCT_SURFACES.filter((surface) => surface.inNav).map((surface) => surface.href),
+      aliases: listSurfaceAliases(),
     },
     connectorReadiness,
   };
@@ -207,7 +236,13 @@ export async function GET() {
   const queue = {
     runQueueMode: "single-flight",
     verifyEndpoint: "/api/verify",
-    adapters: ["typecheck", "lint", "route_smoke", "release_smoke"],
+    adapters: [
+      "typecheck",
+      "lint",
+      "route_smoke",
+      "route_integrity",
+      "release_smoke",
+    ],
   };
 
   const evalPolicy = {
@@ -276,7 +311,7 @@ export async function GET() {
     timesfmSpike: readTimesfmSpikeStatus(),
   };
 
-  const response = NextResponse.json({
+  return protectedJson({
     status: "ok",
     service: getBrandServiceName(),
     brand: {

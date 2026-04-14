@@ -1,8 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listModelLabRuns, saveModelLabRun } from "@/lib/assimilation/storage";
 import type { ModelLabRun, ModelLabVariantResult } from "@/lib/assimilation/types";
+import { modelLabCreateRequestSchema } from "@/lib/assimilation/contracts";
+import {
+  applyWorkbenchRateLimit,
+  createWorkbenchMeta,
+  parseWorkbenchPayload,
+  workbenchJson,
+} from "@/lib/assimilation/http";
 
 export const dynamic = "force-dynamic";
+
+const RATE_LIMIT = {
+  bucket: "workbench-model-lab",
+  windowMs: 60_000,
+  maxAttempts: 30,
+  includeBearerToken: false,
+} as const;
 
 function scoreVariant(model: string, prompt: string, family: string, index: number): ModelLabVariantResult {
   const seed = `${model}|${prompt}|${family}|${index}`;
@@ -30,19 +44,40 @@ function scoreVariant(model: string, prompt: string, family: string, index: numb
   };
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const meta = createWorkbenchMeta({
+    surface: "blacksite-lab",
+    simulation: "derived",
+    warnings: [
+      "Blacksite variant scores are heuristic pressure-test outputs and are not provider-backed benchmark runs.",
+    ],
+  });
+  const rateLimited = applyWorkbenchRateLimit(req, RATE_LIMIT, meta);
+  if (rateLimited) return rateLimited;
+
   const runs = await listModelLabRuns();
-  return NextResponse.json({ runs });
+  return workbenchJson(meta, { runs });
 }
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as {
-    title: string;
-    mutationFamilies: string[];
-    models: string[];
-    promptLabel: string;
-    operatorNotes?: string;
-  };
+  const meta = createWorkbenchMeta({
+    surface: "blacksite-lab",
+    simulation: "derived",
+    warnings: [
+      "Blacksite variant scores are heuristic pressure-test outputs and are not provider-backed benchmark runs.",
+    ],
+  });
+  const rateLimited = applyWorkbenchRateLimit(req, RATE_LIMIT, meta);
+  if (rateLimited) return rateLimited;
+
+  const parsed = parseWorkbenchPayload(
+    modelLabCreateRequestSchema,
+    await req.json(),
+    meta,
+  );
+  if (!parsed.ok) return parsed.response;
+
+  const body = parsed.data;
 
   const variants = body.models.flatMap((model, modelIndex) =>
     body.mutationFamilies.map((family, familyIndex) =>
@@ -60,5 +95,5 @@ export async function POST(req: NextRequest) {
     variants,
   };
   await saveModelLabRun(run);
-  return NextResponse.json({ run });
+  return workbenchJson(meta, { run });
 }

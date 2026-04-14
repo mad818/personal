@@ -8,6 +8,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { buildSystemPrompt } from "@/lib/ai";
 import { runAgent, type AgentStep } from "@/lib/agent";
+import { apiFetch } from "@/lib/apiFetch";
+import { AI_PROVIDER_BRANDING } from "@/lib/brand";
 import {
   detectRouteFromPrompt,
   detectRouteFromTool,
@@ -76,16 +78,20 @@ function ModeBadge({
   mode,
   hasDrafts,
   onResetMode,
+  cloudLabel,
 }: {
   mode: string;
   hasDrafts: boolean;
   onResetMode: () => void;
+  cloudLabel: string;
 }) {
   if (mode === "auto") return null;
 
   const isLocal = mode === "local";
   const color = isLocal ? "#f59e0b" : "#10b981";
-  const label = isLocal ? "⚠️ DRAFT MODE — Ollama active" : "✅ Claude active";
+  const label = isLocal
+    ? "⚠️ DRAFT MODE — Ollama active"
+    : `✅ ${cloudLabel} active`;
 
   return (
     <div
@@ -108,7 +114,7 @@ function ModeBadge({
       {isLocal && (
         <button
           onClick={onResetMode}
-          title="Try Claude again"
+          title={`Try ${cloudLabel} again`}
           style={{
             marginLeft: "auto",
             background: "transparent",
@@ -119,7 +125,7 @@ function ModeBadge({
             fontWeight: 700,
           }}
         >
-          ↺ Try Claude
+          ↺ Try {cloudLabel}
         </button>
       )}
     </div>
@@ -131,7 +137,6 @@ function DraftsPanel() {
   const pendingDrafts = useStore((s) => s.pendingDrafts);
   const updateDraftStatus = useStore((s) => s.updateDraftStatus);
   const clearFinalized = useStore((s) => s.clearFinalizedDrafts);
-  const settings = useStore((s) => s.settings);
   const [expanded, setExpanded] = useState(false);
 
   const pending = pendingDrafts.filter((d) => d.status === "pending");
@@ -140,14 +145,9 @@ function DraftsPanel() {
   if (!pendingDrafts.length) return null;
 
   async function finalizeDraft(id: string, filename: string, content: string) {
-    if (!settings.apiKey) {
-      alert("Add your Claude API key in Settings first.");
-      return;
-    }
     try {
-      await fetch("/api/tools", {
+      await apiFetch("/api/tools", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tool: "write_file",
           input: { filename, content },
@@ -155,7 +155,7 @@ function DraftsPanel() {
       });
       updateDraftStatus(id, "finalized");
     } catch {
-      alert("Failed to write file. Check your workspace.");
+      alert("Failed to write file. Check your local runtime and workspace permissions.");
     }
   }
 
@@ -449,6 +449,9 @@ export default function HomeChat() {
     settings.userGoals || settings.userSkills || settings.userLearning;
 
   const hasPendingDrafts = pendingDrafts.some((d) => d.status === "pending");
+  const preferredProviderLabel =
+    AI_PROVIDER_BRANDING.find((provider) => provider.id === settings.aiProvider)
+      ?.label ?? "Cloud AI";
 
   useEffect(() => {
     msgsRef.current?.scrollTo({
@@ -541,7 +544,7 @@ export default function HomeChat() {
           if (last?.type === "ai") {
             updated[updated.length - 1] = {
               type: "ai",
-              text: "Something went wrong. Check your API key in Settings or make sure Ollama is running (ollama serve).",
+              text: "Something went wrong. Check the local runtime or your configured AI lane in Settings.",
               steps,
             };
           }
@@ -592,6 +595,7 @@ export default function HomeChat() {
           mode={aiMode}
           hasDrafts={hasPendingDrafts}
           onResetMode={() => setAIMode("auto")}
+          cloudLabel={preferredProviderLabel}
         />
       </div>
 
@@ -842,7 +846,7 @@ export default function HomeChat() {
         >
           {aiMode === "local"
             ? "⚠️ Draft mode — Ollama active · file writes queued · Claude will finalize"
-            : "Agent · web search · file ops · Ollama fallback · Claude API"}
+            : `Agent · web search · file ops · Ollama fallback · ${preferredProviderLabel} via server proxy`}
         </div>
       </div>
     </div>

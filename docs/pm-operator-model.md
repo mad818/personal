@@ -14,7 +14,7 @@ This is how to **run** Nexus (and any parallel AI tooling) as a small org: **you
 
 It is **not** “every model is always streaming.” It **is**:
 
-1. **Clear backlog** — `tasks/todo.md` has a real `## Next Up`; you re-order and cut scope.
+1. **Clear backlog** — `docs/SYSTEM_STATE.md` has a real `## Next Up`; you re-order and cut scope.
 2. **Unblocked execution** — agents get specs, file paths, and constraints; you resolve ambiguities in one message.
 3. **Green pipeline** — before you call a slice “done”: `npm run verify`, handoff doc in sync, CI green on `main`.
 4. **Parallel lanes when safe** — e.g. one agent on UI, another on docs, another on research; you own integration.
@@ -24,12 +24,12 @@ It is **not** “every model is always streaming.” It **is**:
 
 | PM habit | In this repo |
 |----------|----------------|
-| Roadmap | `tasks/todo.md`, `tasks/vision-roadmap.md`, `specs/features/` |
+| Roadmap | `docs/SYSTEM_STATE.md`, `tasks/vision-roadmap.md`, `specs/features/` |
 | Spec before build | `specs/features/*.md` before large features |
 | Code + review | HQ **EL (orbit)** for edits; MAX for synthesis |
 | Health check | **Settings** diagnostics, `/api/status`, **Quality Gates** workflow |
-| Lessons | `tasks/lessons.md` after any correction |
-| Handoff between sessions | `docs/AGENT_HANDOFF.md` + `npm run handoff:write` |
+| Standards | `docs/STANDARDS.md` after any generalized correction |
+| Handoff between sessions | `AGENTS.md` + `docs/SYSTEM_STATE.md` (with `docs/AGENT_HANDOFF.md` as compatibility mirror) |
 
 ## In-app fiction vs real life
 
@@ -67,7 +67,7 @@ pending → assigned → in_progress → review → done
 | `done` | Accepted, merged, handoff updated | Mario after review |
 | `blocked` | Waiting on spec, key, or external | Agent — escalate in one sentence |
 
-Tasks stay in `tasks/todo.md`. State transitions are written as comments:
+The active queue lives in `docs/SYSTEM_STATE.md`. During the compatibility tranche, `tasks/todo.md` mirrors that queue for older tooling. State transitions are written as comments:
 `- [ ] [assigned:EL] Fix price sparkline null guard`
 
 ## Optional extensions (later)

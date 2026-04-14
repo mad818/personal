@@ -1,29 +1,27 @@
 // ── components/vehicle/SensorHealthRadial ──────────────────
-// Radial health indicator for vehicle sensors: signal quality, latency, accuracy.
+// Radial health indicator for the shared vehicle sensor contract.
 
-"use client";
+"use client"
 
 import {
-  RadarChart,
-  Radar,
-  PolarGrid,
   PolarAngleAxis,
+  PolarGrid,
   PolarRadiusAxis,
+  Radar,
+  RadarChart,
   ResponsiveContainer,
   Tooltip,
-} from "recharts";
-import { CHART, TOOLTIP_STYLE } from "@/lib/chartTheme";
-
-const SENSORS = [
-  { subject: "LiDAR", health: 95 },
-  { subject: "RGB Cam", health: 100 },
-  { subject: "Night Vision", health: 88 },
-  { subject: "Thermal", health: 92 },
-  { subject: "GPS", health: 99 },
-  { subject: "Ultrasonic", health: 85 },
-];
+} from "recharts"
+import { CHART, TOOLTIP_STYLE } from "@/lib/chartTheme"
+import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry"
 
 export default function SensorHealthRadial() {
+  const { activeFrame } = useVehicleTelemetry()
+  const sensors = activeFrame.sensors.map((sensor) => ({
+    subject: sensor.label,
+    health: sensor.healthPercent,
+  }))
+
   return (
     <div
       style={{
@@ -47,10 +45,7 @@ export default function SensorHealthRadial() {
       </div>
 
       <ResponsiveContainer width="100%" height={230}>
-        <RadarChart
-          data={SENSORS}
-          margin={{ top: 10, right: 20, bottom: 10, left: 20 }}
-        >
+        <RadarChart data={sensors} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
           <PolarGrid stroke={CHART.border} />
           <PolarAngleAxis
             dataKey="subject"
@@ -71,30 +66,26 @@ export default function SensorHealthRadial() {
             fillOpacity={0.2}
             dot={{ fill: CHART.rose, r: 3, strokeWidth: 0 }}
           />
-          <Tooltip
-            {...TOOLTIP_STYLE}
-            formatter={(v: unknown) => [`${v}%`, "Health"]}
-          />
+          <Tooltip {...TOOLTIP_STYLE} formatter={(value: unknown) => [`${value}%`, "Health"]} />
         </RadarChart>
       </ResponsiveContainer>
 
-      {/* Health labels */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "5px 10px" }}>
-        {SENSORS.map((s) => {
+        {activeFrame.sensors.map((sensor) => {
           const color =
-            s.health >= 95
+            sensor.healthPercent >= 95
               ? CHART.emerald
-              : s.health >= 88
+              : sensor.healthPercent >= 88
                 ? CHART.gold
-                : CHART.red;
+                : CHART.red
           return (
             <div
-              key={s.subject}
+              key={sensor.id}
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "5px",
-                minWidth: "110px",
+                minWidth: "120px",
               }}
             >
               <div
@@ -102,7 +93,7 @@ export default function SensorHealthRadial() {
                   width: "6px",
                   height: "6px",
                   borderRadius: "50%",
-                  background: color,
+                  background: sensor.active ? color : CHART.text3,
                 }}
               />
               <span
@@ -112,22 +103,22 @@ export default function SensorHealthRadial() {
                   fontFamily: "monospace",
                 }}
               >
-                {s.subject}
+                {sensor.label}
               </span>
               <span
                 style={{
                   fontSize: "9px",
-                  color,
+                  color: sensor.active ? color : CHART.text3,
                   fontFamily: "monospace",
                   marginLeft: "auto",
                 }}
               >
-                {s.health}%
+                {sensor.active ? `${sensor.healthPercent}%` : "OFF"}
               </span>
             </div>
-          );
+          )
         })}
       </div>
     </div>
-  );
+  )
 }

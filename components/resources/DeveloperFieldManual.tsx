@@ -2,6 +2,7 @@
 
 import { useDeferredValue, useMemo, useState } from "react";
 import {
+  DEVELOPER_RESOURCE_FIT_LABELS,
   DEVELOPER_RESOURCES,
   DEVELOPER_RESOURCE_CATEGORIES,
   type ResourceCategory,
@@ -155,6 +156,11 @@ export default function DeveloperFieldManual() {
                       {r.costTier ? (
                         <span className="nexus-shell-resource-card__chip">
                           {r.costTier.replace(/_/g, " ")}
+                        </span>
+                      ) : null}
+                      {r.integrationFit ? (
+                        <span className="nexus-shell-resource-card__chip">
+                          {DEVELOPER_RESOURCE_FIT_LABELS[r.integrationFit]}
                         </span>
                       ) : null}
                       <span className="nexus-shell-resource-card__external">

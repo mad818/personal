@@ -1,8 +1,11 @@
 ﻿"use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useStore } from "@/store/useStore";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
+import { useStore, type FeedStatus } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
+import { readConnectorWarnings } from "@/lib/connectorMeta";
 import {
   OPSMAP_DATA_ATTRIBUTION,
   OPSMAP_FIRE_AUTO_REFRESH_MS,
@@ -46,50 +49,88 @@ interface Flight {
   squawk: string;
 }
 
-async function fetchQuakes(): Promise<Quake[]> {
+async function fetchQuakes(): Promise<LayerFetchResult<Quake>> {
   try {
     const r = await apiFetch("/api/earthquakes", {
       signal: AbortSignal.timeout(10000),
     });
-    if (!r.ok) return [];
+    if (!r.ok) {
+      return {
+        items: [],
+        ok: false,
+        warning: null,
+        error: `Earthquake feed returned HTTP ${r.status}.`,
+      };
+    }
     const d = await r.json();
-    return (d.earthquakes ?? [])
-      .map((eq: any) => ({
-        id: eq.id,
-        lat: eq.latitude ?? 0,
-        lng: eq.longitude ?? 0,
-        mag: eq.magnitude ?? 0,
-        place: eq.place ?? "",
-        time: eq.time ?? 0,
-      }))
-      .filter((eq: Quake) => Number.isFinite(eq.lat) && Number.isFinite(eq.lng));
+    return {
+      items: (d.earthquakes ?? [])
+        .map((eq: any) => ({
+          id: eq.id,
+          lat: eq.latitude ?? 0,
+          lng: eq.longitude ?? 0,
+          mag: eq.magnitude ?? 0,
+          place: eq.place ?? "",
+          time: eq.time ?? 0,
+        }))
+        .filter((eq: Quake) => Number.isFinite(eq.lat) && Number.isFinite(eq.lng)),
+      ok: true,
+      warning: null,
+      error: null,
+    };
   } catch {
-    return [];
+    return {
+      items: [],
+      ok: false,
+      warning: null,
+      error: "Unable to refresh earthquakes right now.",
+    };
   }
 }
 
-async function fetchFlights(): Promise<Flight[]> {
+interface FlightFetchResult extends LayerFetchResult<Flight> {
+  warning: string | null;
+}
+
+async function fetchFlights(): Promise<FlightFetchResult> {
   try {
     const r = await apiFetch("/api/flights", {
       signal: AbortSignal.timeout(10000),
     });
-    if (!r.ok) return [];
+    if (!r.ok) {
+      return {
+        items: [],
+        ok: false,
+        warning: null,
+        error: `Flight feed returned HTTP ${r.status}.`,
+      };
+    }
     const d = await r.json();
-    return ((d.flights ?? []) as any[])
-      .filter((s) => s.longitude != null && s.latitude != null && !s.on_ground)
-      .slice(0, 800) // cap to avoid overloading the map
-      .map((s) => ({
-        icao: s.icao24 ?? "",
-        callsign: (s.callsign ?? "").trim(),
-        lat: s.latitude,
-        lng: s.longitude,
-        alt: s.geo_altitude_m ?? s.baro_altitude_m ?? 0,
-        vel: s.velocity_ms ?? 0,
-        hdg: typeof s.true_track === "number" ? s.true_track : 0,
-        squawk: s.squawk != null ? String(s.squawk) : "",
-      }));
+    return {
+      warning: readConnectorWarnings(d)[0] ?? null,
+      items: ((d.flights ?? []) as any[])
+        .filter((s) => s.longitude != null && s.latitude != null && !s.on_ground)
+        .slice(0, 800) // cap to avoid overloading the map
+        .map((s) => ({
+          icao: s.icao24 ?? "",
+          callsign: (s.callsign ?? "").trim(),
+          lat: s.latitude,
+          lng: s.longitude,
+          alt: s.geo_altitude_m ?? s.baro_altitude_m ?? 0,
+          vel: s.velocity_ms ?? 0,
+          hdg: typeof s.true_track === "number" ? s.true_track : 0,
+          squawk: s.squawk != null ? String(s.squawk) : "",
+        })),
+      ok: true,
+      error: null,
+    };
   } catch {
-    return [];
+    return {
+      items: [],
+      ok: false,
+      warning: null,
+      error: "Unable to refresh flights right now.",
+    };
   }
 }
 
@@ -114,24 +155,56 @@ function flightDivIcon(
   });
 }
 
-async function fetchFires(): Promise<Fire[]> {
+interface FireFetchResult extends LayerFetchResult<Fire> {
+  configured: boolean;
+  sampleMode: boolean;
+}
+
+async function fetchFires(): Promise<FireFetchResult> {
   try {
     const r = await apiFetch("/api/fires", {
       signal: AbortSignal.timeout(12000),
     });
-    if (!r.ok) return [];
+    if (!r.ok) {
+      return {
+        items: [],
+        ok: false,
+        configured: false,
+        sampleMode: false,
+        warning: null,
+        error: `Fire feed returned HTTP ${r.status}.`,
+      };
+    }
     const d = await r.json();
-    return (d.fires ?? [])
-      .slice(0, 500)
-      .map((f: any) => ({
-        lat: f.latitude ?? 0,
-        lng: f.longitude ?? 0,
-        brightness: f.brightness ?? 0,
-        acq_date: f.acq_date ?? "",
-      }))
-      .filter((f: Fire) => !Number.isNaN(f.lat) && !Number.isNaN(f.lng));
+    const configured = d.key_required !== true;
+    const sampleMode = d.source === "sample";
+    return {
+      items: (d.fires ?? [])
+        .slice(0, 500)
+        .map((f: any) => ({
+          lat: f.latitude ?? 0,
+          lng: f.longitude ?? 0,
+          brightness: f.brightness ?? 0,
+          acq_date: f.acq_date ?? "",
+        }))
+        .filter((f: Fire) => !Number.isNaN(f.lat) && !Number.isNaN(f.lng)),
+      ok: true,
+      configured,
+      sampleMode,
+      warning: sampleMode
+        ? "Live NASA FIRMS key not configured. Showing sample hotspot coverage locally."
+        : null,
+      error: null,
+    };
   } catch {
-    return [];
+    return {
+      items: [],
+      ok: false,
+      configured: false,
+      sampleMode: false,
+      warning: null,
+      error: "Unable to refresh fire hotspots right now.",
+    };
   }
 }
 
@@ -142,16 +215,44 @@ interface GeoDepDetection {
   confidence: number;
 }
 
-async function fetchGeoDepData(): Promise<GeoDepDetection[]> {
+interface GeoDepFetchResult extends LayerFetchResult<GeoDepDetection> {
+  warning: string | null;
+}
+
+interface LayerFetchResult<T> {
+  items: T[];
+  ok: boolean;
+  warning: string | null;
+  error: string | null;
+}
+
+async function fetchGeoDepData(): Promise<GeoDepFetchResult> {
   try {
     const r = await apiFetch("/api/geo-scan", {
       signal: AbortSignal.timeout(15000),
     });
-    if (!r.ok) return [];
+    if (!r.ok) {
+      return {
+        items: [],
+        ok: false,
+        warning: null,
+        error: `GeoDeep returned HTTP ${r.status}.`,
+      };
+    }
     const d = await r.json();
-    return (d.detections ?? []) as GeoDepDetection[];
+    return {
+      items: (d.detections ?? []) as GeoDepDetection[],
+      ok: true,
+      warning: readConnectorWarnings(d)[0] ?? null,
+      error: null,
+    };
   } catch {
-    return [];
+    return {
+      items: [],
+      ok: false,
+      warning: null,
+      error: "Unable to reach the local GeoDeep service right now.",
+    };
   }
 }
 
@@ -208,9 +309,25 @@ function buildDensityLayer(
 
 type LayerKey = "quakes" | "flights" | "fires" | "geodep";
 
+function createFeedStatus(): FeedStatus {
+  return {
+    lastAttemptAt: null,
+    lastSuccessAt: null,
+    lastFailureAt: null,
+    lastError: null,
+  };
+}
+
+const INITIAL_LAYER_STATUS: Record<LayerKey, FeedStatus> = {
+  quakes: createFeedStatus(),
+  flights: createFeedStatus(),
+  fires: createFeedStatus(),
+  geodep: createFeedStatus(),
+};
+
 const LAYER_META: Record<
   LayerKey,
-  { label: string; icon: string; needsKey?: string; serviceRequired?: boolean }
+  { label: string; icon: string; serviceRequired?: boolean }
 > = {
   quakes: { label: "Quakes", icon: "Q" },
   flights: { label: "Flights", icon: "F" },
@@ -222,19 +339,63 @@ export default function OpsMap() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const layerRefs = useRef<Record<string, any>>({});
-
-  const firmsKey = useStore((s) => s.settings.firmsKey);
+  const { internetReachable } = useInternetAvailability();
 
   const [activeLayers, setActiveLayers] = useState<Set<LayerKey>>(
     new Set<LayerKey>(["quakes"]),
   );
   const [layerLoading, setLayerLoading] = useState<Record<string, boolean>>({});
+  const [layerWarnings, setLayerWarnings] = useState<
+    Partial<Record<LayerKey, string>>
+  >({});
+  const [fireKeyConfigured, setFireKeyConfigured] = useState<boolean | null>(
+    null,
+  );
+  const [fireLayerSampleMode, setFireLayerSampleMode] = useState(false);
+  const [layerStatus, setLayerStatus] =
+    useState<Record<LayerKey, FeedStatus>>(INITIAL_LAYER_STATUS);
   const [mapReady, setMapReady] = useState(false);
   /** Auto-refresh only free APIs (USGS / OpenSky / FIRMS) at conservative intervals. */
   const [freeDataAutoRefresh, setFreeDataAutoRefresh] = useState(
     OPSMAP_FREE_AUTO_REFRESH_DEFAULT,
   );
   const [showDensity, setShowDensity] = useState(false);
+
+  const markLayerAttempt = useCallback((key: LayerKey) => {
+    setLayerStatus((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        lastAttemptAt: Date.now(),
+        lastError: null,
+      },
+    }));
+  }, []);
+
+  const markLayerSuccess = useCallback(
+    (key: LayerKey, warning: string | null = null) => {
+      setLayerStatus((prev) => ({
+        ...prev,
+        [key]: {
+          ...prev[key],
+          lastSuccessAt: Date.now(),
+          lastError: warning,
+        },
+      }));
+    },
+    [],
+  );
+
+  const markLayerFailure = useCallback((key: LayerKey, error: string) => {
+    setLayerStatus((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        lastFailureAt: Date.now(),
+        lastError: error,
+      },
+    }));
+  }, []);
 
   const toggleLayer = useCallback(async (key: LayerKey) => {
     const map = mapRef.current;
@@ -260,12 +421,25 @@ export default function OpsMap() {
     const map = mapRef.current;
     if (!map) return;
     setLayerLoading((p) => ({ ...p, flights: true }));
+    markLayerAttempt("flights");
     try {
       const L = await import("leaflet");
-      const flights = await fetchFlights();
+      const { items, warning, ok, error } = await fetchFlights();
+      setLayerWarnings((prev) => ({
+        ...prev,
+        flights: warning ?? error ?? undefined,
+      }));
+      if (!ok) {
+        markLayerFailure(
+          "flights",
+          error ?? "Unable to refresh flights right now.",
+        );
+        return;
+      }
+      markLayerSuccess("flights", warning);
       if (!mapRef.current) return;
       const group = L.layerGroup();
-      flights.forEach((f) => {
+      items.forEach((f) => {
         const sq = f.squawk?.trim();
         const tip = `<b>${(f.callsign || f.icao || "?").trim()}</b>${sq ? `<br>Squawk ${sq}` : ""}<br>Alt ${Math.round(f.alt)} m · ${Math.round(f.vel * 3.6)} km/h · Hdg ${Math.round(f.hdg)} deg`;
         L.marker([f.lat, f.lng], {
@@ -282,18 +456,31 @@ export default function OpsMap() {
     } finally {
       setLayerLoading((p) => ({ ...p, flights: false }));
     }
-  }, []);
+  }, [markLayerAttempt, markLayerFailure, markLayerSuccess]);
 
   const refreshQuakes = useCallback(async () => {
     const map = mapRef.current;
     if (!map || !activeLayers.has("quakes")) return;
     setLayerLoading((p) => ({ ...p, quakes: true }));
+    markLayerAttempt("quakes");
     try {
       const L = await import("leaflet");
-      const quakes = await fetchQuakes();
+      const { items, ok, error } = await fetchQuakes();
+      setLayerWarnings((prev) => ({
+        ...prev,
+        quakes: error ?? undefined,
+      }));
+      if (!ok) {
+        markLayerFailure(
+          "quakes",
+          error ?? "Unable to refresh earthquakes right now.",
+        );
+        return;
+      }
+      markLayerSuccess("quakes");
       if (!mapRef.current) return;
       const group = L.layerGroup();
-      quakes
+      items
         .filter((q) => q.mag >= 2.5)
         .forEach((q) => {
           L.circleMarker([q.lat, q.lng], {
@@ -316,18 +503,34 @@ export default function OpsMap() {
     } finally {
       setLayerLoading((p) => ({ ...p, quakes: false }));
     }
-  }, [activeLayers]);
+  }, [activeLayers, markLayerAttempt, markLayerFailure, markLayerSuccess]);
 
   const refreshFires = useCallback(async () => {
     const map = mapRef.current;
     if (!map || !activeLayers.has("fires")) return;
     setLayerLoading((p) => ({ ...p, fires: true }));
+    markLayerAttempt("fires");
     try {
       const L = await import("leaflet");
-      const fires = await fetchFires();
+      const { items, ok, error, warning, configured, sampleMode } =
+        await fetchFires();
+      setFireKeyConfigured(configured);
+      setFireLayerSampleMode(sampleMode);
+      setLayerWarnings((prev) => ({
+        ...prev,
+        fires: warning ?? error ?? undefined,
+      }));
+      if (!ok) {
+        markLayerFailure(
+          "fires",
+          error ?? "Unable to refresh fire hotspots right now.",
+        );
+        return;
+      }
+      markLayerSuccess("fires");
       if (!mapRef.current) return;
       const group = L.layerGroup();
-      fires.forEach((f) => {
+      items.forEach((f) => {
         L.circleMarker([f.lat, f.lng], {
           radius: 3,
           color: "#f97316",
@@ -348,18 +551,31 @@ export default function OpsMap() {
     } finally {
       setLayerLoading((p) => ({ ...p, fires: false }));
     }
-  }, [activeLayers]);
+  }, [activeLayers, markLayerAttempt, markLayerFailure, markLayerSuccess]);
 
   const refreshGeodep = useCallback(async () => {
     const map = mapRef.current;
     if (!map || !activeLayers.has("geodep")) return;
     setLayerLoading((p) => ({ ...p, geodep: true }));
+    markLayerAttempt("geodep");
     try {
       const L = await import("leaflet");
-      const detections = await fetchGeoDepData();
+      const { items, warning, ok, error } = await fetchGeoDepData();
+      setLayerWarnings((prev) => ({
+        ...prev,
+        geodep: warning ?? error ?? undefined,
+      }));
+      if (!ok) {
+        markLayerFailure(
+          "geodep",
+          error ?? "Unable to reach the local GeoDeep service right now.",
+        );
+        return;
+      }
+      markLayerSuccess("geodep", warning);
       if (!mapRef.current) return;
       const group = L.layerGroup();
-      detections.forEach((d) => {
+      items.forEach((d) => {
         L.circleMarker([d.lat, d.lng], {
           radius: 6,
           color: "#a78bfa",
@@ -380,7 +596,7 @@ export default function OpsMap() {
     } finally {
       setLayerLoading((p) => ({ ...p, geodep: false }));
     }
-  }, [activeLayers]);
+  }, [activeLayers, markLayerAttempt, markLayerFailure, markLayerSuccess]);
 
   /** Collect lat/lng from all visible Leaflet layer groups and repaint density hexes. */
   const computeAndPaintDensity = useCallback(async () => {
@@ -408,61 +624,24 @@ export default function OpsMap() {
     layerRefs.current.density = densityGroup;
   }, []);
 
-  // Load quakes + fires when activeLayers changes (flights handled separately)
+  const activeLayerWarnings = (Object.keys(LAYER_META) as LayerKey[])
+    .filter((key) => activeLayers.has(key) && layerWarnings[key])
+    .map((key) => ({
+      key,
+      label: LAYER_META[key].label,
+      message: layerWarnings[key] as string,
+    }));
+
+  // Load quakes + fires when layer is enabled, without repainting from failed fetches.
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapReady) return;
-    import("leaflet").then((L) => {
-      activeLayers.forEach(async (key) => {
-        if (key === "flights" || key === "geodep") return;
-        if (layerRefs.current[key]) return; // already loaded
-        setLayerLoading((p) => ({ ...p, [key]: true }));
-
-        if (key === "quakes") {
-          const quakes = await fetchQuakes();
-          const group = L.layerGroup();
-          quakes
-            .filter((q) => q.mag >= 2.5)
-            .forEach((q) => {
-              L.circleMarker([q.lat, q.lng], {
-                radius: Math.max(4, q.mag * 3),
-                color: quakeColor(q.mag),
-                fillColor: quakeColor(q.mag),
-                fillOpacity: 0.5,
-                weight: 1,
-              })
-                .addTo(group)
-                .bindPopup(
-                  `<b>M${q.mag.toFixed(1)}</b><br>${q.place}<br><small>${new Date(q.time).toUTCString()}</small>`,
-                );
-            });
-          group.addTo(map);
-          layerRefs.current[key] = group;
-        } else if (key === "fires") {
-          const fires = await fetchFires();
-          const group = L.layerGroup();
-          fires.forEach((f) => {
-            L.circleMarker([f.lat, f.lng], {
-              radius: 3,
-              color: "#f97316",
-              fillColor: "#f97316",
-              fillOpacity: 0.6,
-              weight: 0,
-            })
-              .addTo(group)
-              .bindPopup(
-                `<b>Fire hotspot</b><br>Brightness: ${f.brightness}K<br>${f.acq_date}`,
-              );
-          });
-          group.addTo(map);
-          layerRefs.current[key] = group;
-        }
-
-        setLayerLoading((p) => ({ ...p, [key]: false }));
-      });
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeLayers, mapReady]);
+    if (!mapReady) return;
+    if (activeLayers.has("quakes") && !layerRefs.current.quakes) {
+      void refreshQuakes();
+    }
+    if (activeLayers.has("fires") && !layerRefs.current.fires) {
+      void refreshFires();
+    }
+  }, [activeLayers, mapReady, refreshQuakes, refreshFires]);
 
   useEffect(() => {
     const sid = "ops-flight-marker-css";
@@ -517,7 +696,7 @@ export default function OpsMap() {
 
   // Auto-refresh active free layers only (polite cadence; toggle off anytime)
   useEffect(() => {
-    if (!mapReady || !freeDataAutoRefresh) return;
+    if (!mapReady || !freeDataAutoRefresh || !internetReachable) return;
     const ids: ReturnType<typeof setInterval>[] = [];
     if (activeLayers.has("quakes")) {
       ids.push(
@@ -532,7 +711,7 @@ export default function OpsMap() {
         ),
       );
     }
-    if (activeLayers.has("fires") && firmsKey) {
+    if (activeLayers.has("fires") && fireKeyConfigured) {
       ids.push(
         setInterval(() => void refreshFires(), OPSMAP_FIRE_AUTO_REFRESH_MS),
       );
@@ -541,8 +720,9 @@ export default function OpsMap() {
   }, [
     mapReady,
     freeDataAutoRefresh,
+    internetReachable,
     activeLayers,
-    firmsKey,
+    fireKeyConfigured,
     refreshQuakes,
     paintFlightsLayer,
     refreshFires,
@@ -621,34 +801,29 @@ export default function OpsMap() {
           const meta = LAYER_META[key];
           const active = activeLayers.has(key);
           const loading = layerLoading[key];
-          const locked = meta.needsKey === "firmsKey" && !firmsKey;
+          const fireHint =
+            key === "fires" && fireLayerSampleMode
+              ? "Live NASA FIRMS key not configured. Showing sample hotspot coverage locally."
+              : undefined;
           const svcHint = meta.serviceRequired
             ? "Requires local GeoDeep AI service - see docs/deployment/geodep.md"
             : undefined;
           return (
             <button
               key={key}
-              onClick={() => !locked && toggleLayer(key)}
-              title={
-                locked
-                  ? "Add NASA FIRMS key in Settings to enable fire layer"
-                  : svcHint
-              }
+              onClick={() => toggleLayer(key)}
+              title={fireHint ?? svcHint}
               style={{
                 height: "26px",
                 padding: "0 10px",
                 borderRadius: "6px",
                 fontSize: "10.5px",
                 fontWeight: 700,
-                cursor: locked ? "default" : "pointer",
+                cursor: "pointer",
                 border: "1px solid var(--border2)",
                 background: active ? "var(--accent)" : "transparent",
-                color: active
-                  ? "#fff"
-                  : locked
-                    ? "var(--text3)"
-                    : "var(--text2)",
-                opacity: locked ? 0.45 : 1,
+                color: active ? "#fff" : "var(--text2)",
+                opacity: 1,
                 display: "flex",
                 alignItems: "center",
                 gap: "4px",
@@ -686,6 +861,16 @@ export default function OpsMap() {
           >
             Map data
           </span>
+          {(Object.keys(LAYER_META) as LayerKey[])
+            .filter((key) => activeLayers.has(key))
+            .map((key) => (
+              <FeedStatusPill
+                key={key}
+                label={LAYER_META[key].label}
+                status={layerStatus[key]}
+                internetReachable={key === "geodep" ? true : internetReachable}
+              />
+            ))}
           <label
             style={{
               display: "inline-flex",
@@ -711,7 +896,7 @@ export default function OpsMap() {
               type="button"
               aria-label="Refresh earthquake layer from USGS"
               onClick={() => void refreshQuakes()}
-              disabled={!!layerLoading.quakes}
+              disabled={!!layerLoading.quakes || !internetReachable}
               style={{
                 height: "24px",
                 padding: "0 10px",
@@ -721,10 +906,18 @@ export default function OpsMap() {
                 color: "var(--text2)",
                 fontSize: "10px",
                 fontWeight: 600,
-                cursor: layerLoading.quakes ? "wait" : "pointer",
+                cursor:
+                  layerLoading.quakes || !internetReachable
+                    ? "not-allowed"
+                    : "pointer",
+                opacity: internetReachable ? 1 : 0.65,
               }}
             >
-              {layerLoading.quakes ? "..." : "Refresh quakes"}
+              {layerLoading.quakes
+                ? "..."
+                : internetReachable
+                  ? "Refresh quakes"
+                  : "Offline"}
             </button>
           )}
           {activeLayers.has("flights") && (
@@ -732,7 +925,7 @@ export default function OpsMap() {
               type="button"
               aria-label="Refresh flight positions from OpenSky"
               onClick={() => void paintFlightsLayer()}
-              disabled={!!layerLoading.flights}
+              disabled={!!layerLoading.flights || !internetReachable}
               style={{
                 height: "24px",
                 padding: "0 10px",
@@ -742,10 +935,18 @@ export default function OpsMap() {
                 color: "var(--text2)",
                 fontSize: "10px",
                 fontWeight: 600,
-                cursor: layerLoading.flights ? "wait" : "pointer",
+                cursor:
+                  layerLoading.flights || !internetReachable
+                    ? "not-allowed"
+                    : "pointer",
+                opacity: internetReachable ? 1 : 0.65,
               }}
             >
-              {layerLoading.flights ? "..." : "Refresh flights"}
+              {layerLoading.flights
+                ? "..."
+                : internetReachable
+                  ? "Refresh flights"
+                  : "Offline"}
             </button>
           )}
           {activeLayers.has("fires") && (
@@ -753,7 +954,7 @@ export default function OpsMap() {
               type="button"
               aria-label="Refresh fire hotspots from NASA FIRMS"
               onClick={() => void refreshFires()}
-              disabled={!!layerLoading.fires}
+              disabled={!!layerLoading.fires || !internetReachable}
               style={{
                 height: "24px",
                 padding: "0 10px",
@@ -763,10 +964,18 @@ export default function OpsMap() {
                 color: "var(--text2)",
                 fontSize: "10px",
                 fontWeight: 600,
-                cursor: layerLoading.fires ? "wait" : "pointer",
+                cursor:
+                  layerLoading.fires || !internetReachable
+                    ? "not-allowed"
+                    : "pointer",
+                opacity: internetReachable ? 1 : 0.65,
               }}
             >
-              {layerLoading.fires ? "..." : "Refresh fires"}
+              {layerLoading.fires
+                ? "..."
+                : internetReachable
+                  ? "Refresh fires"
+                  : "Offline"}
             </button>
           )}
           {activeLayers.has("geodep") && (
@@ -792,6 +1001,27 @@ export default function OpsMap() {
           )}
         </div>
       )}
+
+      {!internetReachable &&
+        (activeLayers.has("quakes") ||
+          activeLayers.has("flights") ||
+          activeLayers.has("fires")) && (
+          <div
+            style={{
+              marginBottom: "8px",
+              padding: "8px 10px",
+              borderRadius: "8px",
+              border: "1px solid rgba(104, 117, 160, 0.25)",
+              background: "rgba(104, 117, 160, 0.08)",
+              color: "var(--text3)",
+              fontSize: "10px",
+              lineHeight: 1.45,
+            }}
+          >
+            Browser offline — internet-backed layers are holding the last good
+            local map state until connectivity returns.
+          </div>
+        )}
 
       {/* Legend - any active layer */}
       {(activeLayers.has("quakes") ||
@@ -877,9 +1107,11 @@ export default function OpsMap() {
                 }}
               />
               Fire hotspots
-              {freeDataAutoRefresh && firmsKey
-                ? ` - auto ~${Math.round(OPSMAP_FIRE_AUTO_REFRESH_MS / 60_000)} min`
-                : ""}
+              {fireLayerSampleMode
+                ? " - sample local coverage"
+                : freeDataAutoRefresh && fireKeyConfigured
+                  ? ` - auto ~${Math.round(OPSMAP_FIRE_AUTO_REFRESH_MS / 60_000)} min`
+                  : ""}
             </span>
           )}
           {activeLayers.has("quakes") && freeDataAutoRefresh && (
@@ -947,6 +1179,34 @@ export default function OpsMap() {
         {OPSMAP_DATA_ATTRIBUTION}
       </p>
 
+      {activeLayerWarnings.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "6px",
+            marginBottom: "8px",
+          }}
+        >
+          {activeLayerWarnings.map((warning) => (
+            <div
+              key={warning.key}
+              style={{
+                padding: "8px 10px",
+                borderRadius: "8px",
+                border: "1px solid rgba(245, 158, 11, 0.22)",
+                background: "rgba(245, 158, 11, 0.08)",
+                color: "#fbbf24",
+                fontSize: "10px",
+                lineHeight: 1.45,
+              }}
+            >
+              <strong>{warning.label}:</strong> {warning.message}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div
         ref={containerRef}
         style={{
@@ -958,11 +1218,11 @@ export default function OpsMap() {
         }}
       />
 
-      {!firmsKey && (
+      {fireLayerSampleMode && (
         <div
           style={{ marginTop: "6px", fontSize: "10px", color: "var(--text3)" }}
         >
-          Add a NASA FIRMS key in Settings for live fire data. Without one, the layer falls back to sample hotspots.
+          Add a NASA FIRMS key in Settings for live fire data. Without one, the layer stays available but falls back to sample hotspots.
         </div>
       )}
       {activeLayers.has("geodep") && (

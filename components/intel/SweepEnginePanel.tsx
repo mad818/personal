@@ -2,8 +2,12 @@
 
 import { useMemo, useRef, useState } from "react";
 import { SectionLabel, ShellBadge, ShellButton } from "@/components/ui/shell";
+import { InternalWorkbenchNotice } from "@/components/ui/InternalWorkbenchNotice";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { apiFetch } from "@/lib/apiFetch";
 import GeoDeltaPanel from "@/components/intel/GeoDeltaPanel";
 import type { SweepBundle, SweepTheater } from "@/lib/assimilation/types";
+import type { InternalWorkbenchMeta } from "@/lib/assimilation/contracts";
 
 const THEATERS: Array<{ id: SweepTheater; label: string }> = [
   { id: "markets", label: "Markets" },
@@ -27,7 +31,9 @@ export default function SweepEnginePanel() {
   const [theater, setTheater] = useState<SweepTheater>("markets");
   const [events, setEvents] = useState<SweepStreamEvent[]>([]);
   const [latestSweep, setLatestSweep] = useState<SweepBundle | null>(null);
+  const [meta, setMeta] = useState<InternalWorkbenchMeta | null>(null);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
   const sourceRef = useRef<EventSource | null>(null);
 
   const successCount = useMemo(
@@ -53,15 +59,31 @@ export default function SweepEnginePanel() {
     source.addEventListener("complete", () => {
       stopStream();
     });
+    source.onerror = () => {
+      setError(
+        "Sweep progress streaming is temporarily unavailable. Retained events and the latest verdict stay visible locally.",
+      );
+      stopStream();
+    };
 
     try {
-      const response = await fetch("/api/sweeps", {
+      const response = await apiFetch("/api/sweeps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ theater, persistSnapshot: true }),
       });
-      const payload = (await response.json()) as { sweep: SweepBundle };
+      if (!response.ok) throw new Error("Failed to run sweep.");
+      const payload = (await response.json()) as {
+        sweep: SweepBundle;
+        meta?: InternalWorkbenchMeta;
+      };
       setLatestSweep(payload.sweep);
+      setMeta(payload.meta ?? null);
+      setError("");
+    } catch {
+      setError(
+        "The sweep did not complete. Existing streamed events and the last stored verdict were kept locally.",
+      );
     } finally {
       setBusy(false);
     }
@@ -83,6 +105,17 @@ export default function SweepEnginePanel() {
           {busy ? "Sweeping..." : "Run sweep"}
         </ShellButton>
       </div>
+
+      <InternalWorkbenchNotice meta={meta} compact />
+      {error ? (
+        <SurfaceCallout
+          tone="warning"
+          compact
+          icon="↺"
+          title="Sweep engine degraded"
+          description={error}
+        />
+      ) : null}
 
       <div
         style={{

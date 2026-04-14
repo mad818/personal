@@ -286,7 +286,7 @@ export default function KnowledgeGraphViz() {
                 style={{
                   cursor: "pointer",
                   opacity: dimmed ? 0.25 : 1,
-                  transition: "opacity 0.2s",
+                  transition: "opacity var(--t)",
                   animation: `nex-float ${3 + (i % 3)}s ease-in-out ${floatDelay}s infinite`,
                 }}
                 onMouseEnter={() => setHoveredId(node.id)}

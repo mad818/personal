@@ -5,6 +5,9 @@
 "use client";
 
 import { useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 interface HeaderCheck {
   key: string;
@@ -146,26 +149,31 @@ function ScoreRing({ score }: { score: number }) {
 }
 
 export default function HeadersAudit() {
+  const { internetReachable } = useInternetAvailability();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [checks, setChecks] = useState<HeaderCheck[] | null>(null);
   const [score, setScore] = useState<number | null>(null);
   const [status, setStatus] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const [auditedUrl, setAuditedUrl] = useState("");
+
+  const hasRetainedAudit = checks !== null && score !== null && Boolean(auditedUrl);
 
   async function run() {
     const raw = url.trim();
-    if (!raw) return;
+    if (!raw || !internetReachable) return;
     setLoading(true);
     setError("");
-    setChecks(null);
-    setScore(null);
-    setStatus(null);
     try {
-      const r = await fetch(`/api/headers?url=${encodeURIComponent(raw)}`);
+      const r = await apiFetch(`/api/headers?url=${encodeURIComponent(raw)}`);
       const data = await r.json();
-      if (data.error) {
-        setError(data.error);
+      if (!r.ok || data.error) {
+        setError(
+          hasRetainedAudit
+            ? `${data.error ?? "Header audit failed."} Keeping the last successful audit visible.`
+            : (data.error ?? "Header audit failed."),
+        );
         setLoading(false);
         return;
       }
@@ -185,8 +193,13 @@ export default function HeadersAudit() {
       });
       setChecks(built);
       setScore(calcScore(built));
+      setAuditedUrl(raw);
     } catch (e) {
-      setError(String(e));
+      setError(
+        hasRetainedAudit
+          ? `${String(e)} Keeping the last successful audit visible.`
+          : String(e),
+      );
     }
     setLoading(false);
   }
@@ -225,7 +238,7 @@ export default function HeadersAudit() {
         />
         <button
           onClick={() => void run()}
-          disabled={loading}
+          disabled={loading || !internetReachable}
           style={{
             padding: "8px 18px",
             borderRadius: "8px",
@@ -234,25 +247,49 @@ export default function HeadersAudit() {
             color: "#fff",
             fontWeight: 700,
             fontSize: "12px",
-            cursor: loading ? "not-allowed" : "pointer",
+            cursor:
+              loading || !internetReachable ? "not-allowed" : "pointer",
             whiteSpace: "nowrap",
+            opacity: internetReachable ? 1 : 0.7,
           }}
         >
-          {loading ? "Checking…" : "🔍 Audit Headers"}
+          {loading ? "Checking…" : internetReachable ? "🔍 Audit Headers" : "Offline"}
         </button>
       </div>
 
-      {error && (
-        <div
-          style={{
-            color: "var(--flo)",
-            fontSize: "12px",
-            marginBottom: "10px",
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {!internetReachable ? (
+        <SurfaceCallout
+          tone={hasRetainedAudit ? "info" : "warning"}
+          compact
+          icon="↺"
+          title={
+            hasRetainedAudit
+              ? "Internet offline · showing retained header audit"
+              : "Internet offline · header audit paused"
+          }
+          description={
+            hasRetainedAudit
+              ? `The last successful audit for ${auditedUrl} remains visible locally until reconnect.`
+              : "Header audits depend on a remote fetch target, so live checks pause until reconnect."
+          }
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
+
+      {error ? (
+        <SurfaceCallout
+          tone={hasRetainedAudit ? "warning" : "critical"}
+          compact
+          icon={hasRetainedAudit ? "↺" : "!"}
+          title={
+            hasRetainedAudit
+              ? "Latest header audit failed · showing last good result"
+              : "Header audit failed"
+          }
+          description={error}
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
 
       {checks && score !== null && (
         <div>
@@ -278,7 +315,7 @@ export default function HeadersAudit() {
                   color: "var(--text)",
                 }}
               >
-                {url}
+                {auditedUrl}
               </div>
               {status !== null && (
                 <div

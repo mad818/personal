@@ -6,6 +6,8 @@
 import { useMemo } from "react";
 import { useStore } from "@/store/useStore";
 import { fmtPrice } from "@/lib/helpers";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 interface KPICard {
   icon: string;
@@ -53,6 +55,10 @@ export default function KPICards() {
   const cvesLoaded = useStore((s) => s.cvesLoaded);
   const worldRisk = useStore((s) => s.worldRisk);
   const unreadNotifications = useStore((s) => s.unreadCount);
+  const pricesStatus = useStore((s) => s.feedStatus.prices);
+  const articlesStatus = useStore((s) => s.feedStatus.articles);
+  const cvesStatus = useStore((s) => s.feedStatus.cves);
+  const { internetReachable } = useInternetAvailability();
 
   const btc = prices["bitcoin"];
   const fg = signals?.fg;
@@ -209,58 +215,76 @@ export default function KPICards() {
   }
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-        gap: "10px",
-        marginBottom: "14px",
-      }}
-    >
-      {cards.map((c) => (
-        <div
-          key={c.label}
-          style={{
-            background: "var(--surf2)",
-            border: "1px solid var(--border)",
-            borderRadius: "10px",
-            padding: "12px 14px",
-          }}
-        >
-          <div style={{ fontSize: "18px", marginBottom: "4px" }}>{c.icon}</div>
+    <div style={{ display: "grid", gap: "10px", marginBottom: "14px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        <FeedStatusPill
+          label="Prices"
+          status={pricesStatus}
+          internetReachable={internetReachable}
+        />
+        <FeedStatusPill
+          label="News"
+          status={articlesStatus}
+          internetReachable={internetReachable}
+        />
+        <FeedStatusPill
+          label="CVEs"
+          status={cvesStatus}
+          internetReachable={internetReachable}
+        />
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+          gap: "10px",
+        }}
+      >
+        {cards.map((c) => (
           <div
+            key={c.label}
             style={{
-              fontSize: "10px",
-              color: "var(--text3)",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: ".4px",
+              background: "var(--surf2)",
+              border: "1px solid var(--border)",
+              borderRadius: "10px",
+              padding: "12px 14px",
             }}
           >
-            {c.label}
+            <div style={{ fontSize: "18px", marginBottom: "4px" }}>{c.icon}</div>
+            <div
+              style={{
+                fontSize: "10px",
+                color: "var(--text3)",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: ".4px",
+              }}
+            >
+              {c.label}
+            </div>
+            <div
+              style={{
+                fontSize: "20px",
+                fontWeight: 900,
+                color: color(c.cls),
+                fontFamily: "monospace",
+                margin: "2px 0",
+              }}
+            >
+              {c.val}
+            </div>
+            <div style={{ fontSize: "10.5px", color: "var(--text3)" }}>
+              {c.sub}
+            </div>
+            {c.label === "Fear & Greed" && fg?.value != null && (
+              <FGMeter value={fg.value} />
+            )}
+            {c.label === "World Risk" && worldRisk > 0 && (
+              <RiskMeter value={worldRisk} />
+            )}
           </div>
-          <div
-            style={{
-              fontSize: "20px",
-              fontWeight: 900,
-              color: color(c.cls),
-              fontFamily: "monospace",
-              margin: "2px 0",
-            }}
-          >
-            {c.val}
-          </div>
-          <div style={{ fontSize: "10.5px", color: "var(--text3)" }}>
-            {c.sub}
-          </div>
-          {c.label === "Fear & Greed" && fg?.value != null && (
-            <FGMeter value={fg.value} />
-          )}
-          {c.label === "World Risk" && worldRisk > 0 && (
-            <RiskMeter value={worldRisk} />
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

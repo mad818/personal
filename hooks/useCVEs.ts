@@ -40,6 +40,7 @@ export function useCVEs() {
   const setCves         = useStore((s) => s.setCves)
   const setCvesLoaded   = useStore((s) => s.setCvesLoaded)
   const addNotification = useStore((s) => s.addNotification)
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus)
 
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
@@ -49,6 +50,7 @@ export function useCVEs() {
   const fetchCVEs = useCallback(async () => {
     setLoading(true)
     setError('')
+    updateFeedStatus('cves', { lastAttemptAt: Date.now() })
     try {
       // Proxied through Next.js server route — NVD blocks direct browser fetches (CORS)
       const r = await apiFetch('/api/cves', { signal: AbortSignal.timeout(55000) })
@@ -90,13 +92,21 @@ export function useCVEs() {
 
       setLocalCves(raw)
       setCves(raw)
+      updateFeedStatus('cves', {
+        lastSuccessAt: Date.now(),
+        lastError: null,
+      })
     } catch {
+      updateFeedStatus('cves', {
+        lastFailureAt: Date.now(),
+        lastError: 'Could not fetch CVE data.',
+      })
       setError('Could not fetch CVE data.')
     } finally {
       setLoading(false)
       setCvesLoaded(true) // mark done regardless of outcome
     }
-  }, [setCves, setCvesLoaded, addNotification])
+  }, [setCves, setCvesLoaded, addNotification, updateFeedStatus])
 
   return { fetchCVEs, cves, loading, error }
 }

@@ -6,6 +6,9 @@
 import { useState, useCallback, useEffect } from "react";
 import { useStore } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 interface ConflictItem {
   title: string;
@@ -98,28 +101,63 @@ function scoreImpact(title: string): ConflictItem["impact"] {
   return "low";
 }
 
+function buildConflictFallback(
+  gdeltEvents: Record<string, unknown>[],
+): ConflictItem[] {
+  return gdeltEvents
+    .map((event) => {
+      const title = typeof event.title === "string" ? event.title : "";
+      const url =
+        typeof event.url === "string"
+          ? event.url
+          : typeof event.link === "string"
+            ? event.link
+            : "";
+      return {
+        title,
+        url,
+        impact: scoreImpact(title),
+        category: "Geopolitical",
+        date:
+          typeof event.seendate === "string"
+            ? event.seendate
+            : typeof event.date === "string"
+              ? event.date
+              : "",
+      } satisfies ConflictItem;
+    })
+    .filter((event) => event.title && event.url);
+}
+
 export default function ConflictFeed() {
   const gdeltEvents = useStore((s) => s.gdeltEvents);
+  const conflictStatus = useStore((s) => s.feedStatus.conflict);
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus);
   const [items, setItems] = useState<ConflictItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<string>("all");
   const [error, setError] = useState("");
   const setWorldRisk = useStore((s) => s.setWorldRisk);
+  const { internetReachable } = useInternetAvailability();
+  const lastFailureIsNewest =
+    Boolean(conflictStatus.lastFailureAt) &&
+    (conflictStatus.lastSuccessAt === null ||
+      (conflictStatus.lastFailureAt ?? 0) > (conflictStatus.lastSuccessAt ?? 0));
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
+    updateFeedStatus("conflict", {
+      lastAttemptAt: Date.now(),
+      lastError: null,
+    });
     try {
       // Proxied through Next.js server route — GDELT blocks direct browser fetches (CORS)
       const r = await apiFetch("/api/conflict", {
         signal: AbortSignal.timeout(15000),
       });
       const d = await r.json();
-      if (d.error && !d.articles?.length) {
-        setError("Could not load conflict data.");
-        setLoading(false);
-        return;
-      }
+      const fallback = buildConflictFallback(gdeltEvents as Record<string, unknown>[]);
       const raw = (d.articles ?? []) as {
         title: string;
         url: string;
@@ -128,70 +166,41 @@ export default function ConflictFeed() {
       const parsed = raw.map((a) => ({
         title: a.title,
         url: a.url,
-        impact: scoreImpact(a.title),
-        category: "Geopolitical",
-        date: a.seendate ?? "",
+          impact: scoreImpact(a.title),
+          category: "Geopolitical",
+          date: a.seendate ?? "",
       }));
-      const fallback = (gdeltEvents as Record<string, unknown>[])
-        .map((event) => {
-          const title = typeof event.title === "string" ? event.title : "";
-          const url =
-            typeof event.url === "string"
-              ? event.url
-              : typeof event.link === "string"
-                ? event.link
-                : "";
-          return {
-            title,
-            url,
-            impact: scoreImpact(title),
-            category: "Geopolitical",
-            date:
-              typeof event.seendate === "string"
-                ? event.seendate
-                : typeof event.date === "string"
-                  ? event.date
-                  : "",
-          } satisfies ConflictItem;
-        })
-        .filter((event) => event.title && event.url);
       const resolved = parsed.length > 0 ? parsed : fallback;
+      if (resolved.length === 0) {
+        setError("Could not load conflict data.");
+        updateFeedStatus("conflict", {
+          lastFailureAt: Date.now(),
+          lastError: "Could not load conflict data.",
+        });
+        return;
+      }
       setItems(resolved);
+      updateFeedStatus("conflict", {
+        lastSuccessAt: Date.now(),
+        lastError: d.error && parsed.length === 0 ? String(d.error) : null,
+      });
       // Publish risk count to store so COMMAND tab KPI card can read it
       const riskCount = resolved.filter(
         (i) => i.impact === "critical" || i.impact === "high",
       ).length;
       setWorldRisk(riskCount);
     } catch {
-      const fallback = (gdeltEvents as Record<string, unknown>[])
-        .map((event) => {
-          const title = typeof event.title === "string" ? event.title : "";
-          const url =
-            typeof event.url === "string"
-              ? event.url
-              : typeof event.link === "string"
-                ? event.link
-                : "";
-          return {
-            title,
-            url,
-            impact: scoreImpact(title),
-            category: "Geopolitical",
-            date:
-              typeof event.seendate === "string"
-                ? event.seendate
-                : typeof event.date === "string"
-                  ? event.date
-                  : "",
-          } satisfies ConflictItem;
-        })
-        .filter((event) => event.title && event.url);
+      const fallback = buildConflictFallback(gdeltEvents as Record<string, unknown>[]);
       setItems(fallback);
+      updateFeedStatus("conflict", {
+        lastFailureAt: Date.now(),
+        lastError: "Could not load conflict data.",
+      });
       setError(fallback.length > 0 ? "" : "Could not load conflict data.");
     } finally {
       setLoading(false);
     }
-  }, [gdeltEvents, setWorldRisk]);
+  }, [gdeltEvents, setWorldRisk, updateFeedStatus]);
 
   // Auto-load on first mount
   useEffect(() => {
@@ -229,8 +238,14 @@ export default function ConflictFeed() {
             gap: "5px",
             flexWrap: "wrap",
             marginLeft: "auto",
+            alignItems: "center",
           }}
         >
+          <FeedStatusPill
+            label="Conflict"
+            status={conflictStatus}
+            internetReachable={internetReachable}
+          />
           {FILTERS.map((f) => (
             <button
               key={f}
@@ -252,7 +267,7 @@ export default function ConflictFeed() {
           ))}
           <button
             onClick={load}
-            disabled={loading}
+            disabled={loading || !internetReachable}
             style={{
               height: "24px",
               padding: "0 10px",
@@ -262,13 +277,35 @@ export default function ConflictFeed() {
               border: "1px solid var(--border2)",
               background: "transparent",
               color: "var(--text2)",
-              cursor: "pointer",
+              cursor:
+                loading || !internetReachable ? "not-allowed" : "pointer",
+              opacity: internetReachable ? 1 : 0.65,
             }}
           >
-            {loading ? "…" : "↻ Load"}
+            {loading ? "…" : internetReachable ? "↻ Load" : "Offline"}
           </button>
         </div>
       </div>
+
+      {!internetReachable && conflictStatus.lastSuccessAt !== null ? (
+        <SurfaceCallout
+          tone="info"
+          icon="↺"
+          title="Internet offline · showing last-known conflict view"
+          description="Remote conflict refresh is paused until reconnect. The current geopolitical view is being held from the last good local state."
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
+
+      {internetReachable && lastFailureIsNewest && items.length > 0 ? (
+        <SurfaceCallout
+          tone="info"
+          icon="!"
+          title="Showing last good conflict snapshot"
+          description="The latest refresh failed, so this panel is preserving the most recent successful conflict set or local GDELT fallback."
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
 
       {error && (
         <div

@@ -5,6 +5,9 @@
 
 import { memo } from "react";
 import { useStore } from "@/store/useStore";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 import type { CVE } from "@/hooks/useCVEs";
 
@@ -157,6 +160,12 @@ function CVSSBar({ score, severity }: { score: number; severity: string }) {
 export default function CVEFeed() {
   const cves = useStore((s) => s.cves) as CVE[];
   const cvesLoaded = useStore((s) => s.cvesLoaded);
+  const cvesStatus = useStore((s) => s.feedStatus.cves);
+  const { internetReachable } = useInternetAvailability();
+  const lastFailureIsNewest =
+    Boolean(cvesStatus.lastFailureAt) &&
+    (cvesStatus.lastSuccessAt === null ||
+      (cvesStatus.lastFailureAt ?? 0) > (cvesStatus.lastSuccessAt ?? 0));
 
   if (!cves.length && !cvesLoaded)
     return (
@@ -179,27 +188,63 @@ export default function CVEFeed() {
       </div>
     );
 
+  const intro = (
+    <>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "10px" }}>
+        <FeedStatusPill
+          label="CVEs"
+          status={cvesStatus}
+          internetReachable={internetReachable}
+        />
+      </div>
+      {!internetReachable && cvesStatus.lastSuccessAt !== null ? (
+        <SurfaceCallout
+          tone="info"
+          icon="↺"
+          title="Internet offline · showing last-known CVE set"
+          description="NVD refresh is paused until reconnect. The current vulnerability set remains available locally."
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
+      {internetReachable && lastFailureIsNewest && cves.length > 0 ? (
+        <SurfaceCallout
+          tone="info"
+          icon="!"
+          title="Showing last good CVE snapshot"
+          description="The latest CVE refresh failed, so this panel is preserving the most recent successful vulnerability set."
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
+    </>
+  );
+
   if (!cves.length && cvesLoaded)
     return (
-      <div
-        style={{
-          padding: "60px",
-          textAlign: "center",
-          color: "var(--text3)",
-          fontSize: "13px",
-        }}
-      >
-        <div style={{ fontSize: "32px", marginBottom: "10px" }}>🔒</div>
-        NVD returned no results — try refreshing. Add an NVD API key in Settings
-        for better rate limits.
+      <div>
+        {intro}
+        <div
+          style={{
+            padding: "60px",
+            textAlign: "center",
+            color: "var(--text3)",
+            fontSize: "13px",
+          }}
+        >
+          <div style={{ fontSize: "32px", marginBottom: "10px" }}>🔒</div>
+          NVD returned no results — try refreshing. Add an NVD API key in Settings
+          for better rate limits.
+        </div>
       </div>
     );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      {cves.map((c) => (
-        <CVECard key={c.id} cve={c} />
-      ))}
+    <div>
+      {intro}
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {cves.map((c) => (
+          <CVECard key={c.id} cve={c} />
+        ))}
+      </div>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import type {
   SweepSourceResult,
   SweepTheater,
 } from "@/lib/assimilation/types";
-import { getConfiguredNexusToken } from "@/lib/authSession";
+import { buildInternalApiHeaders } from "@/lib/authSession";
 
 interface SweepSourceDef {
   id: string;
@@ -52,14 +52,6 @@ const SWEEP_SOURCES: Record<SweepTheater, SweepSourceDef[]> = {
 function buildBaseUrl(reqUrl: string): string {
   const url = new URL(reqUrl);
   return `${url.protocol}//${url.host}`;
-}
-
-export function getInternalSweepHeaders(): HeadersInit | undefined {
-  const token = getConfiguredNexusToken();
-  if (!token) return undefined;
-  return {
-    Authorization: `Bearer ${token}`,
-  };
 }
 
 function measureCount(payload: unknown): number {
@@ -150,7 +142,7 @@ export async function performSweepBundle(
   theater: SweepTheater,
 ): Promise<SweepBundle> {
   const baseUrl = buildBaseUrl(reqUrl);
-  const headers = getInternalSweepHeaders();
+  const headers = buildInternalApiHeaders();
   const startedAt = new Date().toISOString();
   const sources = await Promise.all(
     getSweepSources(theater).map((source) =>

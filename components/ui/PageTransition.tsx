@@ -3,8 +3,19 @@
 
 "use client";
 
-import { motion } from "framer-motion";
+import { usePathname } from "next/navigation";
+import {
+  motion,
+  useReducedMotion,
+} from "framer-motion";
 import type { CSSProperties, ReactNode } from "react";
+import { useStore } from "@/store/useStore";
+import {
+  resolveEffectiveSurfaceMotionProfile,
+  resolveSurfaceMotionSurface,
+  resolveSurfaceSequencePreset,
+  resolveSurfaceTransitionPreset,
+} from "@/lib/surfaceMotion";
 
 interface PageTransitionProps {
   children: ReactNode;
@@ -17,19 +28,38 @@ export default function PageTransition({
   className,
   style,
 }: PageTransitionProps) {
+  const pathname = usePathname();
+  const prefersReducedMotion = useReducedMotion();
+  const surfaceMotionProfile = useStore(
+    (state) => state.settings.surfaceMotionProfile ?? "flagship",
+  );
+  const surface = resolveSurfaceMotionSurface(pathname);
+  const effectiveProfile = resolveEffectiveSurfaceMotionProfile(
+    surfaceMotionProfile,
+    Boolean(prefersReducedMotion),
+  );
+  const preset = resolveSurfaceTransitionPreset(surface, effectiveProfile);
+  const sequence = resolveSurfaceSequencePreset(surface);
+  const motionProps = {
+    initial: preset.initial,
+    animate: preset.animate,
+    exit: preset.exit,
+    transition: preset.transition,
+  } as const;
+  const mergedStyle = {
+    ...style,
+    "--nexus-sequence-hero-delay": `${sequence.heroDelayMs}ms`,
+    "--nexus-sequence-primary-delay": `${sequence.primaryDelayMs}ms`,
+    "--nexus-sequence-support-delay": `${sequence.supportDelayMs}ms`,
+    "--nexus-sequence-continuity-delay": `${sequence.continuityDelayMs}ms`,
+  } as CSSProperties;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      transition={{
-        enter: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
-        exit: { duration: 0.15, ease: [0.4, 0, 1, 1] },
-        duration: 0.3,
-        ease: [0.4, 0, 0.2, 1],
-      }}
+      {...(motionProps as any)}
       className={className}
-      style={style}
+      style={mergedStyle}
+      data-nexus-ingress={sequence.ingress.kind}
     >
       {children}
     </motion.div>

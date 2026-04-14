@@ -2,6 +2,10 @@
 // Maritime tracking API: AIS stream for vessel positions and movements.
 
 import { NextRequest, NextResponse } from "next/server";
+import {
+  parseBoundedFloatParam,
+  RequestValidationError,
+} from "@/lib/security/inputGuards";
 
 export const dynamic = "force-dynamic";
 
@@ -132,20 +136,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
 
-    const lat = parseFloat(searchParams.get("lat") ?? "0");
-    const lon = parseFloat(searchParams.get("lon") ?? "0");
-    const radius = parseFloat(searchParams.get("radius") ?? "5");
-
-    if (isNaN(lat) || isNaN(lon) || isNaN(radius)) {
-      return NextResponse.json(
-        { vessels: [], error: "Invalid lat/lon/radius parameters" },
-        { status: 400 },
-      );
-    }
+    const lat = parseBoundedFloatParam(searchParams, "lat", {
+      min: -85,
+      max: 85,
+      defaultValue: 0,
+    });
+    const lon = parseBoundedFloatParam(searchParams, "lon", {
+      min: -180,
+      max: 180,
+      defaultValue: 0,
+    });
+    const radius = parseBoundedFloatParam(searchParams, "radius", {
+      min: 0.1,
+      max: 20,
+      defaultValue: 5,
+    });
 
     const hasAISKey = Boolean(process.env.AISSTREAM_KEY);
 
-    const vessels = generateVessels(lat, lon, Math.min(radius, 20));
+    const vessels = generateVessels(lat, lon, radius);
 
     return NextResponse.json({
       vessels,
@@ -162,6 +171,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (err: unknown) {
+    if (err instanceof RequestValidationError) {
+      return NextResponse.json({ vessels: [], error: err.message }, { status: 400 });
+    }
     const msg = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ vessels: [], error: msg }, { status: 500 });
   }

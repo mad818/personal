@@ -10,6 +10,9 @@ import { timeAgo } from "@/lib/helpers";
 import type { CVE } from "@/hooks/useCVEs";
 import type { OTXPulse } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 // ── KEV entry (CISA) ──────────────────────────────────────────────────────────
 interface KEVEntry {
@@ -313,6 +316,9 @@ export default function TriageView() {
   const cves = useStore((s) => s.cves) as CVE[];
   const cvesLoaded = useStore((s) => s.cvesLoaded);
   const otxPulses = useStore((s) => s.otxPulses);
+  const cvesStatus = useStore((s) => s.feedStatus.cves);
+  const threatIntelStatus = useStore((s) => s.feedStatus.threatIntel);
+  const { internetReachable } = useInternetAvailability();
   const [kevEntries, setKevEntries] = useState<KEVEntry[]>([]);
   const [kevLoading, setKevLoading] = useState(false);
   const [kevLoaded, setKevLoaded] = useState(false);
@@ -396,6 +402,43 @@ export default function TriageView() {
     <div>
       {/* Summary */}
       <TriageSummary items={allItems} />
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
+        <FeedStatusPill
+          label="CVEs"
+          status={cvesStatus}
+          internetReachable={internetReachable}
+        />
+        <FeedStatusPill
+          label="OTX"
+          status={threatIntelStatus}
+          internetReachable={internetReachable}
+        />
+      </div>
+
+      {!internetReachable ? (
+        <SurfaceCallout
+          tone="info"
+          compact
+          icon="Offline"
+          title="Internet offline · triage is using last-known local threat state"
+          description="CVE and OTX refresh paths are paused until reconnect. Existing local triage state remains available for review."
+          style={{ marginBottom: "12px" }}
+        />
+      ) : null}
+
+      {internetReachable &&
+      ((cvesStatus.lastFailureAt ?? 0) > (cvesStatus.lastSuccessAt ?? 0) ||
+        (threatIntelStatus.lastFailureAt ?? 0) > (threatIntelStatus.lastSuccessAt ?? 0)) ? (
+        <SurfaceCallout
+          tone="warning"
+          compact
+          icon="Alert"
+          title="One or more threat feeds are stale"
+          description="Triage is preserving the last good local threat view while remote refresh attempts recover."
+          style={{ marginBottom: "12px" }}
+        />
+      ) : null}
 
       {/* Filter bar */}
       <div

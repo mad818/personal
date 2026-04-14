@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 // scripts/orbit.js — npm run orbit:next
-// Reads tasks/todo.md and prints the next unfinished task for ORBIT (EL) to pick up.
+// Reads docs/SYSTEM_STATE.md and prints the next unfinished task for ORBIT (EL) to pick up.
 // Usage: npm run orbit:next
 
 const fs   = require('fs')
 const path = require('path')
 
-const TODO_FILE = path.join(process.cwd(), 'tasks', 'todo.md')
+const STATE_FILE = path.join(process.cwd(), 'docs', 'SYSTEM_STATE.md')
 
 function main() {
   let content
   try {
-    content = fs.readFileSync(TODO_FILE, 'utf-8')
+    content = fs.readFileSync(STATE_FILE, 'utf-8')
   } catch {
-    console.error('ERROR: tasks/todo.md not found. Run from the project root.')
+    console.error('ERROR: docs/SYSTEM_STATE.md not found. Run from the project root.')
     process.exit(1)
   }
 
@@ -35,7 +35,7 @@ function main() {
   }
 
   if (!pending.length) {
-    console.log('✅ No pending tasks found in tasks/todo.md — backlog is clear.')
+    console.log('✅ No pending tasks found in docs/SYSTEM_STATE.md — queue is clear.')
     process.exit(0)
   }
 

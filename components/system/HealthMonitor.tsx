@@ -26,6 +26,7 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 import { useEventBus } from "@/lib/eventBus";
 import { checkOllamaAvailability } from "@/lib/ollama";
 
@@ -160,7 +161,7 @@ export default function HealthMonitor(): React.ReactElement {
   const checkAPI = useCallback(async () => {
     try {
       // Use a lightweight ping endpoint
-      const res = await fetch("/api/mqtt?topics=test&_ping=1", {
+      const res = await apiFetch("/api/mqtt?topics=test&_ping=1", {
         signal: AbortSignal.timeout(4000),
         headers: { Accept: "text/event-stream" },
       });

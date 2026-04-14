@@ -36,10 +36,15 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next-fresh-runtime/types/**/*.ts"
+    ".next-fresh-runtime/types/**/*.ts",
+    ".next-build/types/**/*.ts",
+    ".next-e2e/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "archive"
+    "archive",
+    "__tests__",
+    "vitest.config.ts",
+    "scripts"
   ]
 }

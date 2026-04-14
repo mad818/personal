@@ -1,16 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listWorkflows, saveWorkflow } from "@/lib/assimilation/storage";
-import type { WorkflowDefinition } from "@/lib/assimilation/types";
+import { workflowDefinitionSchema } from "@/lib/assimilation/contracts";
+import {
+  applyWorkbenchRateLimit,
+  createWorkbenchMeta,
+  parseWorkbenchPayload,
+  workbenchJson,
+} from "@/lib/assimilation/http";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+const RATE_LIMIT = {
+  bucket: "workbench-workflows",
+  windowMs: 60_000,
+  maxAttempts: 60,
+  includeBearerToken: false,
+} as const;
+
+export async function GET(req: NextRequest) {
+  const meta = createWorkbenchMeta({
+    surface: "workflow-forge",
+    simulation: "seeded",
+    warnings: [
+      "Workflow templates are persisted locally and initially bootstrapped from repo seed data.",
+    ],
+  });
+  const rateLimited = applyWorkbenchRateLimit(req, RATE_LIMIT, meta);
+  if (rateLimited) return rateLimited;
+
   const workflows = await listWorkflows();
-  return NextResponse.json({ workflows });
+  return workbenchJson(meta, { workflows });
 }
 
 export async function POST(req: NextRequest) {
-  const workflow = (await req.json()) as WorkflowDefinition;
-  const saved = await saveWorkflow(workflow);
-  return NextResponse.json({ workflow: saved });
+  const meta = createWorkbenchMeta({
+    surface: "workflow-forge",
+    simulation: "seeded",
+    warnings: [
+      "Workflow templates are persisted locally and initially bootstrapped from repo seed data.",
+    ],
+  });
+  const rateLimited = applyWorkbenchRateLimit(req, RATE_LIMIT, meta);
+  if (rateLimited) return rateLimited;
+
+  const parsed = parseWorkbenchPayload(
+    workflowDefinitionSchema,
+    await req.json(),
+    meta,
+  );
+  if (!parsed.ok) return parsed.response;
+
+  const saved = await saveWorkflow(parsed.data);
+  return workbenchJson(meta, { workflow: saved });
 }

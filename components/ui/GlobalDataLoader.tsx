@@ -5,6 +5,8 @@
 import { useEffect } from "react";
 import { useGlobalData } from "@/hooks/useGlobalData";
 import { useKeywordAlerts } from "@/hooks/useKeywordAlerts";
+import { useLessons } from "@/hooks/useLessons";
+import { NEXUS_RUNTIME_POLICY_REFRESHED_EVENT } from "@/lib/runtimePolicyEvents";
 
 export default function GlobalDataLoader() {
   const { fetchAll } = useGlobalData();
@@ -12,9 +14,14 @@ export default function GlobalDataLoader() {
   // Keyword alert engine — fires notifications when articles match user keywords
   useKeywordAlerts();
 
+  // Standards engine — loads the shared rules set once per session into the store
+  useLessons();
+
   useEffect(() => {
     const run = () => {
+      // Skip if tab is hidden or browser reports no network connection.
       if (typeof document !== "undefined" && document.hidden) return;
+      if (typeof navigator !== "undefined" && !navigator.onLine) return;
       void fetchAll();
     };
 
@@ -24,15 +31,31 @@ export default function GlobalDataLoader() {
       if (typeof document === "undefined" || document.hidden) return;
       void fetchAll();
     };
+    const onRuntimePolicyRefreshed = () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      void fetchAll();
+    };
 
     if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", onVisible);
+    }
+    if (typeof window !== "undefined") {
+      window.addEventListener(
+        NEXUS_RUNTIME_POLICY_REFRESHED_EVENT,
+        onRuntimePolicyRefreshed,
+      );
     }
 
     return () => {
       clearInterval(id);
       if (typeof document !== "undefined") {
         document.removeEventListener("visibilitychange", onVisible);
+      }
+      if (typeof window !== "undefined") {
+        window.removeEventListener(
+          NEXUS_RUNTIME_POLICY_REFRESHED_EVENT,
+          onRuntimePolicyRefreshed,
+        );
       }
     };
   }, [fetchAll]);

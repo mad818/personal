@@ -16,6 +16,60 @@ import { useCVEs } from "@/hooks/useCVEs";
 import { useOTX } from "@/hooks/useOTX";
 import { useStore } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
+import { readBrowserInternetAvailability, shouldPauseInternetPolling } from "@/lib/offlineReadiness";
+import { NEXUS_RUNTIME_POLICY_REFRESHED_EVENT } from "@/lib/runtimePolicyEvents";
+
+function startVisiblePolling(fn: () => void | Promise<void>, intervalMs: number) {
+  const run = () => {
+    if (typeof document !== "undefined" && document.hidden) return;
+    if (shouldPauseInternetPolling()) return;
+    void fn();
+  };
+
+  if (readBrowserInternetAvailability()) {
+    run();
+  }
+  const id = setInterval(run, intervalMs);
+  const onVisible = () => {
+    if (typeof document === "undefined" || document.hidden) return;
+    if (shouldPauseInternetPolling()) return;
+    void fn();
+  };
+  const onOnline = () => {
+    if (typeof document !== "undefined" && document.hidden) return;
+    void fn();
+  };
+  const onRuntimePolicyRefreshed = () => {
+    if (typeof document !== "undefined" && document.hidden) return;
+    if (shouldPauseInternetPolling()) return;
+    void fn();
+  };
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", onVisible);
+  }
+  if (typeof window !== "undefined") {
+    window.addEventListener("online", onOnline);
+    window.addEventListener(
+      NEXUS_RUNTIME_POLICY_REFRESHED_EVENT,
+      onRuntimePolicyRefreshed,
+    );
+  }
+
+  return () => {
+    clearInterval(id);
+    if (typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", onVisible);
+    }
+    if (typeof window !== "undefined") {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener(
+        NEXUS_RUNTIME_POLICY_REFRESHED_EVENT,
+        onRuntimePolicyRefreshed,
+      );
+    }
+  };
+}
 
 function startVisiblePolling(fn: () => void | Promise<void>, intervalMs: number) {
   const run = () => {

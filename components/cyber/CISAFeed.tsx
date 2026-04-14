@@ -3,8 +3,12 @@
 
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
+import { useStore } from "@/store/useStore";
 
 interface KEVEntry {
   cveID: string;
@@ -126,27 +130,63 @@ function DueBar({ dueDate }: { dueDate: string }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function CISAFeed() {
+  const cisaKevStatus = useStore((s) => s.feedStatus.cisaKev);
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus);
+  const { internetReachable } = useInternetAvailability();
   const [entries, setEntries] = useState<KEVEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [meta, setMeta] = useState({ version: "", released: "", total: 0 });
+  const [error, setError] = useState<string | null>(null);
+  const hasLocalEntriesRef = useRef(false);
+  const lastFailureIsNewest =
+    Boolean(cisaKevStatus.lastFailureAt) &&
+    (cisaKevStatus.lastSuccessAt === null ||
+      (cisaKevStatus.lastFailureAt ?? 0) > (cisaKevStatus.lastSuccessAt ?? 0));
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
+    updateFeedStatus("cisaKev", {
+      lastAttemptAt: Date.now(),
+      lastError: null,
+    });
     try {
       const r = await apiFetch("/api/cisa-kev");
+      if (!r.ok) {
+        throw new Error("CISA KEV feed unavailable.");
+      }
       const d = await r.json();
-      setEntries(d.vulnerabilities ?? []);
+      const nextEntries = d.vulnerabilities ?? [];
+      setEntries(nextEntries);
       setMeta({
         version: d.catalogVersion ?? "",
         released: d.dateReleased ?? "",
         total: d.total ?? 0,
       });
+      if (nextEntries.length > 0) {
+        updateFeedStatus("cisaKev", {
+          lastSuccessAt: Date.now(),
+          lastError: null,
+        });
+      } else {
+        throw new Error("CISA KEV returned no entries.");
+      }
     } catch {
-      // silent fail
+      setError(
+        hasLocalEntriesRef.current ? null : "Could not load the CISA KEV feed.",
+      );
+      updateFeedStatus("cisaKev", {
+        lastFailureAt: Date.now(),
+        lastError: "Could not load the CISA KEV feed.",
+      });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hasLocalEntriesRef, updateFeedStatus]);
+
+  useEffect(() => {
+    hasLocalEntriesRef.current = entries.length > 0;
+  }, [entries.length, hasLocalEntriesRef]);
 
   useEffect(() => {
     load();
@@ -175,6 +215,11 @@ export default function CISAFeed() {
         >
           🛡️ CISA KEV
         </span>
+        <FeedStatusPill
+          label="CISA KEV"
+          status={cisaKevStatus}
+          internetReachable={internetReachable}
+        />
         {meta.total > 0 && (
           <span style={{ fontSize: "10px", color: "var(--text3)" }}>
             {meta.total.toLocaleString()} total · v{meta.version} ·{" "}
@@ -183,7 +228,7 @@ export default function CISAFeed() {
         )}
         <button
           onClick={load}
-          disabled={loading}
+          disabled={loading || !internetReachable}
           style={{
             marginLeft: "auto",
             height: "24px",
@@ -194,12 +239,44 @@ export default function CISAFeed() {
             color: "var(--text3)",
             fontSize: "10px",
             fontWeight: 700,
-            cursor: "pointer",
+            cursor:
+              loading || !internetReachable ? "not-allowed" : "pointer",
+            opacity: internetReachable ? 1 : 0.65,
           }}
         >
-          {loading ? "…" : "↻"}
+          {loading ? "…" : internetReachable ? "↻" : "Offline"}
         </button>
       </div>
+
+      {!internetReachable && cisaKevStatus.lastSuccessAt !== null ? (
+        <SurfaceCallout
+          tone="info"
+          icon="↺"
+          title="Internet offline · showing last-known CISA KEV state"
+          description="KEV refresh is paused until reconnect. The current catalog view remains available locally."
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
+
+      {internetReachable && lastFailureIsNewest && entries.length > 0 ? (
+        <SurfaceCallout
+          tone="info"
+          icon="!"
+          title="Showing last good CISA KEV snapshot"
+          description="The latest KEV refresh failed, so this panel is preserving the most recent successful catalog state."
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
+
+      {error && entries.length === 0 ? (
+        <SurfaceCallout
+          tone="warning"
+          icon="!"
+          title="CISA KEV feed unavailable"
+          description={error}
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
 
       {!entries.length && loading && (
         <div

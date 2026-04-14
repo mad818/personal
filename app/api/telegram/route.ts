@@ -14,6 +14,7 @@
 // See docs/deployment/telegram.md for full setup guide.
 
 import { NextRequest, NextResponse } from "next/server";
+import { callInternalAi } from "@/lib/internalAi";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? "";
 const SECRET = process.env.TELEGRAM_SECRET ?? "";
@@ -46,33 +47,21 @@ async function sendMessage(chatId: number, text: string): Promise<void> {
   });
 }
 
-async function dispatchToAgent(prompt: string): Promise<string> {
+async function dispatchToAgent(prompt: string, origin: string): Promise<string> {
   // Call the internal tools route to run a web_search as a lightweight proxy.
   // For full agent dispatch, call /api/ai directly with the agent system prompt.
   // We use a simple web_search + callAI pattern here to keep the webhook lean.
   try {
-    const aiRes = await fetch(
-      `${process.env.NEXTAUTH_URL ?? "http://localhost:3000"}/api/ai`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: prompt }],
-          maxTokens: 800,
-        }),
-        signal: AbortSignal.timeout(28_000),
-      },
-    );
-    if (!aiRes.ok)
-      return `Agent returned HTTP ${aiRes.status}. Check that Nexus Prime is running.`;
-    const data = (await aiRes.json()) as {
-      content?: string;
-      text?: string;
-      result?: string;
-    };
-    return (
-      data.content ?? data.text ?? data.result ?? "No response from agent."
-    );
+    const aiResult = await callInternalAi({
+      origin,
+      messages: [{ role: "user", content: prompt }],
+      maxTokens: 800,
+      timeoutMs: 28_000,
+    });
+    if (!aiResult.ok) {
+      return `Agent returned HTTP ${aiResult.status}. Check that Nexus Prime is running.`;
+    }
+    return aiResult.text || "No response from agent.";
   } catch {
     return "Could not reach the Nexus Prime agent. Make sure the server is running.";
   }
@@ -125,7 +114,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   (async () => {
     try {
       const prompt = `[Telegram from ${username}]: ${text}`;
-      const response = await dispatchToAgent(prompt);
+      const response = await dispatchToAgent(prompt, req.nextUrl.origin);
       await sendMessage(chatId, response);
     } catch {
       await sendMessage(chatId, "An error occurred. Please try again.");

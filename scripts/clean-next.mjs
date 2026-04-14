@@ -19,9 +19,22 @@ if (
 }
 
 if (!fs.existsSync(target)) {
-  console.log("clean-next: .next already absent");
+  console.log(`clean-next: ${distDir} already absent`);
   process.exit(0);
 }
 
-fs.rmSync(target, { recursive: true, force: true });
-console.log("clean-next: removed .next");
+try {
+  fs.rmSync(target, {
+    recursive: true,
+    force: true,
+    maxRetries: 8,
+    retryDelay: 250,
+  });
+  console.log(`clean-next: removed ${distDir}`);
+} catch (error) {
+  console.error(
+    `❌ clean-next: failed to remove ${distDir} after retries`,
+    error,
+  );
+  process.exit(1);
+}

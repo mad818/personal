@@ -4,6 +4,9 @@ import { memo, useState } from "react";
 import { useStore } from "@/store/useStore";
 import type { Article } from "@/store/useStore";
 import { timeAgo } from "@/lib/helpers";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 // ── Bias scoring ──────────────────────────────────────────────────────────────
 const BULLISH_KW = [
@@ -150,9 +153,15 @@ const CAT_LABELS: Record<string, string> = {
 
 export default function NewsFeed() {
   const articles = useStore((s) => s.articles);
+  const articlesStatus = useStore((s) => s.feedStatus.articles);
   const savedArticles = useStore((s) => s.savedArticles);
   const toggleSaveArticle = useStore((s) => s.toggleSaveArticle);
   const [filter, setFilter] = useState("all");
+  const { internetReachable } = useInternetAvailability();
+  const lastFailureIsNewest =
+    Boolean(articlesStatus.lastFailureAt) &&
+    (articlesStatus.lastSuccessAt === null ||
+      (articlesStatus.lastFailureAt ?? 0) > (articlesStatus.lastSuccessAt ?? 0));
 
   if (!articles.length)
     return (
@@ -168,7 +177,7 @@ export default function NewsFeed() {
       >
         <div style={{ fontSize: "28px", marginBottom: "10px" }}>📡</div>
         <div style={{ fontWeight: 600, marginBottom: "6px" }}>
-          Loading news…
+          {articlesStatus.lastSuccessAt === null ? "Loading news…" : "Waiting for the next sync…"}
         </div>
         <div style={{ fontSize: "11px", lineHeight: 1.5, opacity: 0.9 }}>
           Pulls RSS + CryptoCompare + GDELT on the server; if that fails, the
@@ -229,7 +238,32 @@ export default function NewsFeed() {
         >
           {visible.length} articles
         </span>
+        <FeedStatusPill
+          label="News"
+          status={articlesStatus}
+          internetReachable={internetReachable}
+        />
       </div>
+
+      {!internetReachable && articlesStatus.lastSuccessAt !== null ? (
+        <SurfaceCallout
+          tone="info"
+          icon="↺"
+          title="Internet offline · showing last-known news set"
+          description="Remote news refresh is paused until reconnect. The current article set remains available locally."
+          style={{ marginBottom: "12px" }}
+        />
+      ) : null}
+
+      {internetReachable && lastFailureIsNewest && articles.length > 0 ? (
+        <SurfaceCallout
+          tone="info"
+          icon="!"
+          title="Showing last good news snapshot"
+          description="The latest refresh failed, so this panel is keeping the most recent successful article set."
+          style={{ marginBottom: "12px" }}
+        />
+      ) : null}
 
       {/* Article list */}
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>

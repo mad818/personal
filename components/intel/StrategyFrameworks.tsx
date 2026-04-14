@@ -3,6 +3,12 @@
 import { useState, useCallback } from "react";
 import { useStore } from "@/store/useStore";
 import { callAI } from "@/lib/ai";
+import {
+  buildStructuredEvidenceInstruction,
+  parseStructuredEvidenceAnswer,
+  type StructuredEvidenceAnswer,
+} from "@/lib/aiStructuredEvidence";
+import EvidencePosturePanel from "@/components/ui/EvidencePosturePanel";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type Framework = "porter" | "vrio" | "bcg" | "jtbd";
@@ -70,6 +76,7 @@ export default function StrategyFrameworks() {
   const [active, setActive] = useState<Framework>("porter");
   const [company, setCompany] = useState("");
   const [aiOut, setAiOut] = useState("");
+  const [structuredOutput, setStructuredOutput] = useState<StructuredEvidenceAnswer | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Porter state
@@ -91,6 +98,7 @@ export default function StrategyFrameworks() {
   const analyse = useCallback(async () => {
     setLoading(true);
     setAiOut("");
+    setStructuredOutput(null);
 
     let prompt = "";
     const co = company || "the company";
@@ -113,13 +121,26 @@ export default function StrategyFrameworks() {
     } else if (active === "jtbd") {
       prompt = `Jobs-to-be-Done analysis. Job: "${jtbdJob}". Pain: "${jtbdPain}". Desired gain: "${jtbdGain}". In 3 sentences: define the core functional job and suggest one product or positioning improvement.`;
     }
+    prompt += `
+
+${buildStructuredEvidenceInstruction({
+  summaryKey: "analysis",
+  summaryLabel: "compact strategic analysis",
+  summaryLimitHint: "under 140 words and recommendation-first",
+})}`;
 
     try {
       const result = await callAI(prompt, 350);
-      setAiOut(result);
+      const structured = parseStructuredEvidenceAnswer(result, ["analysis"]);
+      if (structured) {
+        setStructuredOutput(structured);
+        setAiOut("");
+      } else {
+        setAiOut(result);
+      }
     } catch {
       setAiOut(
-        "Could not get AI analysis. Check your AI provider settings in Settings (Anthropic or local model).",
+        "Could not get AI analysis. Check the local runtime or your configured AI lane in Settings.",
       );
     } finally {
       setLoading(false);
@@ -470,7 +491,19 @@ export default function StrategyFrameworks() {
         {loading ? "Analysing…" : "🧠 AI Analysis"}
       </button>
 
-      {aiOut && (
+      {structuredOutput ? (
+        <div style={{ marginTop: "12px" }}>
+          <EvidencePosturePanel
+            title="Framework analysis"
+            summary={structuredOutput.summary}
+            observed={structuredOutput.observed}
+            inferred={structuredOutput.inferred}
+            verifyNext={structuredOutput.verifyNext}
+          />
+        </div>
+      ) : null}
+
+      {aiOut && !structuredOutput ? (
         <div
           style={{
             marginTop: "12px",
@@ -485,7 +518,7 @@ export default function StrategyFrameworks() {
         >
           {aiOut}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

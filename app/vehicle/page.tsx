@@ -1,12 +1,20 @@
 "use client";
 
 import CameraArray from "@/components/vehicle/CameraArray";
+import BenchBringUpChecklist from "@/components/vehicle/BenchBringUpChecklist";
 import ControlPanel from "@/components/vehicle/ControlPanel";
 import RadarSweep from "@/components/vehicle/RadarSweep";
 import SensorFusion from "@/components/vehicle/SensorFusion";
 import SensorHealthRadial from "@/components/vehicle/SensorHealthRadial";
 import TelemetryChart from "@/components/vehicle/TelemetryChart";
 import TelemetryPanel from "@/components/vehicle/TelemetryPanel";
+import DroneOpsLaunchpad from "@/components/vehicle/DroneOpsLaunchpad";
+import FirstHardwareDayCard from "@/components/vehicle/FirstHardwareDayCard";
+import VehicleArtifactManifestCard from "@/components/vehicle/VehicleArtifactManifestCard";
+import VehicleBridgeStatusCard from "@/components/vehicle/VehicleBridgeStatusCard";
+import VehicleConnectorOnboardingCard from "@/components/vehicle/VehicleConnectorOnboardingCard";
+import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry";
+import { VEHICLE_CONTRACT_FIELDS } from "@/lib/vehicle/types";
 import {
   SectionLabel,
   ShellBadge,
@@ -15,6 +23,10 @@ import {
   ShellPanel,
   ShellStack,
 } from "@/components/ui/shell";
+import MissionHandoffStrip from "@/components/ui/MissionHandoffStrip";
+import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
+import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
+import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
 
 const READINESS_PHASES = [
   {
@@ -46,11 +58,34 @@ const STACK_LAYERS = [
 const GUARDRAILS = [
   "No flight-critical loops in Next.js or the desktop shell.",
   "Manual and assisted flight get proven before autonomy or lidar work.",
+  "Radar readiness stays passive and advisory-only until a later hardware lane exists.",
   "Every control must be labeled read-only, advisory, or command-capable.",
   "Flight logs and incidents should land in Vault for replay later.",
 ];
 
+const RADAR_READINESS_SEQUENCE = [
+  "Capture",
+  "Preprocess",
+  "Detect",
+  "Track",
+  "Review",
+];
+
 export default function VehiclePage() {
+  const { normalizedParams } = useSessionHrefAutoHeal();
+  const { controlPosture, history, sourceMode } = useVehicleTelemetry();
+  const focus = normalizedParams.get("focus");
+
+  const focusTargetId =
+    focus === "vehicle-bridge-status" ||
+    focus === "vehicle-connector-onboarding" ||
+    focus === "vehicle-bench-checklist" ||
+    focus === "vehicle-artifact-convention"
+      ? focus
+      : null;
+
+  useSurfaceFocusScroll(focusTargetId);
+
   return (
     <ShellPage
       width="wide"
@@ -61,12 +96,53 @@ export default function VehiclePage() {
       actions={
         <>
           <ShellBadge tone="accent">Internal lab</ShellBadge>
-          <ShellBadge tone="muted">F450 queued</ShellBadge>
-          <ShellBadge tone="success">Simulation-first</ShellBadge>
+          <ShellBadge tone="muted">
+            {sourceMode === "replay"
+              ? "Replay active"
+              : sourceMode === "live_bridge"
+                ? "Live bridge feed"
+                : "Live sim feed"}
+          </ShellBadge>
+          <ShellBadge tone="success">{controlPosture.label}</ShellBadge>
         </>
       }
     >
       <ShellStack>
+        <MissionHandoffStrip
+          surface="vehicle"
+          mission={normalizedParams.get("mission")}
+          from={normalizedParams.get("from")}
+          source={normalizedParams.get("source")}
+        />
+
+        {focus === "vehicle-bridge-status" ? (
+          <SurfaceFocusStrip
+            title="Focused session: bridge status"
+            description="You landed on VEHICLE with bridge posture in focus so passive telemetry readiness is visible before broader lab review."
+          />
+        ) : null}
+
+        {focus === "vehicle-connector-onboarding" ? (
+          <SurfaceFocusStrip
+            title="Focused session: connector onboarding"
+            description="You landed on VEHICLE with the future Pixhawk / ArduPilot onboarding lane in focus so hardware-arrival prep starts at the right panel."
+          />
+        ) : null}
+
+        {focus === "vehicle-bench-checklist" ? (
+          <SurfaceFocusStrip
+            title="Focused session: bench checklist"
+            description="You landed on VEHICLE with the props-off checklist in focus so first-day validation starts where it should."
+          />
+        ) : null}
+
+        {focus === "vehicle-artifact-convention" ? (
+          <SurfaceFocusStrip
+            title="Focused session: session bundles and artifacts"
+            description="You landed on VEHICLE with artifact packaging in focus so future session bundles and render briefs start at the archive-ready lane."
+          />
+        ) : null}
+
         <ShellGrid columns="minmax(0, 1.06fr) minmax(320px, 0.94fr)" align="start">
           <ShellPanel tone="hero">
             <SectionLabel detail="What this lane becomes once the drone arrives">
@@ -77,7 +153,7 @@ export default function VehiclePage() {
                 The F450 gives us room for a real flight stack, telemetry, GPS,
                 and later companion compute. Nexus should meet it as an
                 operator console first, then grow into replay, mission review,
-                and sensor fusion once the aircraft is stable.
+                sensor fusion, and later passive radar review once the aircraft is stable.
               </p>
             </div>
 
@@ -117,19 +193,37 @@ export default function VehiclePage() {
               </ul>
             </ShellPanel>
 
+            <div id="vehicle-bridge-status">
+              <ShellPanel tone="muted">
+                <SectionLabel detail="Fresh bridge frames override simulation without making Nexus flight-critical">
+                  Bridge status
+                </SectionLabel>
+                <VehicleBridgeStatusCard />
+              </ShellPanel>
+            </div>
+
+            <div id="vehicle-connector-onboarding">
+              <ShellPanel tone="muted">
+                <SectionLabel detail="Save the future Pixhawk / ArduPilot profile before the hardware arrives">
+                  Connector onboarding
+                </SectionLabel>
+                <VehicleConnectorOnboardingCard />
+              </ShellPanel>
+            </div>
+
             <ShellPanel tone="muted">
-              <SectionLabel>Future telemetry contract</SectionLabel>
+              <SectionLabel detail={`${history.length} shared frames retained for replay`}>
+                Future telemetry contract
+              </SectionLabel>
+              <div className="nexus-shell-copy" style={{ marginBottom: "10px" }}>
+                <p>
+                  Vehicle Lab is now backed by one shared telemetry contract,
+                  so simulation, replay, and fresh bridge frames all resolve
+                  through the same operator-facing shape.
+                </p>
+              </div>
               <div className="nexus-shell-inline-list" aria-label="Telemetry contract">
-                {[
-                  "heartbeat",
-                  "flight mode",
-                  "arming state",
-                  "GPS lock",
-                  "battery",
-                  "link quality",
-                  "mission status",
-                  "failsafes",
-                ].map((item) => (
+                {VEHICLE_CONTRACT_FIELDS.map((item) => (
                   <span key={item} className="nexus-shell-inline-chip">
                     {item}
                   </span>
@@ -147,6 +241,10 @@ export default function VehiclePage() {
           <div className="nexus-shell-embed">
             <SectionLabel detail="Spatial contact awareness">Radar sweep</SectionLabel>
             <RadarSweep />
+            <div className="nexus-shell-copy nexus-shell-copy--compact" style={{ marginTop: "10px" }}>
+              Radar remains a future passive sensor lane here: {RADAR_READINESS_SEQUENCE.join(" → ")}.
+              Use the vocabulary to stage readiness and archive notes, not to imply RF control or flight-critical authority.
+            </div>
           </div>
         </ShellGrid>
 
@@ -183,44 +281,34 @@ export default function VehiclePage() {
         </ShellGrid>
 
         <ShellPanel tone="muted">
-          <SectionLabel detail="What we should complete before real airframe integration">
-            Operator runway
+          <SectionLabel detail="Bench -> bridge -> compliance -> archive">
+            Drone ops launchpad
           </SectionLabel>
-          <div className="nexus-shell-utility-rail" aria-label="Operator runway">
-            <div className="nexus-shell-utility-stat">
-              <span className="nexus-shell-utility-stat__label">Before hardware</span>
-              <span className="nexus-shell-utility-stat__value">Sim + replay</span>
-              <p className="nexus-shell-utility-stat__note">
-                Vehicle Lab should be useful with simulated flight data before
-                the F450 arrives.
-              </p>
-            </div>
-            <div className="nexus-shell-utility-stat">
-              <span className="nexus-shell-utility-stat__label">First benching</span>
-              <span className="nexus-shell-utility-stat__value">Props off</span>
-              <p className="nexus-shell-utility-stat__note">
-                Power, RC, orientation, GPS, and failsafes get proven on the
-                bench before any open-throttle testing.
-              </p>
-            </div>
-            <div className="nexus-shell-utility-stat">
-              <span className="nexus-shell-utility-stat__label">First flights</span>
-              <span className="nexus-shell-utility-stat__value">Assist mode</span>
-              <p className="nexus-shell-utility-stat__note">
-                Early sorties should produce logs and confidence, not autonomy
-                theater.
-              </p>
-            </div>
-            <div className="nexus-shell-utility-stat">
-              <span className="nexus-shell-utility-stat__label">Later expansion</span>
-              <span className="nexus-shell-utility-stat__value">Lidar later</span>
-              <p className="nexus-shell-utility-stat__note">
-                Mapping and obstacle experiments come only after the base
-                airframe and telemetry path are boringly stable.
-              </p>
-            </div>
-          </div>
+          <DroneOpsLaunchpad />
         </ShellPanel>
+
+        <ShellGrid columns="minmax(320px, 0.98fr) minmax(320px, 1.02fr)" align="start">
+          <div id="vehicle-bench-checklist" className="nexus-shell-embed">
+            <SectionLabel detail="Persistent props-off validation before any real sortie">
+              Bench checklist
+            </SectionLabel>
+            <BenchBringUpChecklist />
+          </div>
+          <div id="vehicle-first-hardware-day" className="nexus-shell-embed">
+            <SectionLabel detail="Arrival-day checklist plus recovery flows when the first bridge session misbehaves">
+              First hardware day
+            </SectionLabel>
+            <FirstHardwareDayCard />
+          </div>
+        </ShellGrid>
+
+        <div id="vehicle-artifact-convention" className="nexus-shell-embed">
+          <div id="vehicle-flight-session-bundles" />
+          <SectionLabel detail="What future flight sessions should package into Vault and how to import them later">
+            Session bundles
+          </SectionLabel>
+          <VehicleArtifactManifestCard />
+        </div>
       </ShellStack>
     </ShellPage>
   );

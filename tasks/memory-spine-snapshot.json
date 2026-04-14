@@ -1,0 +1,21 @@
+{
+  "items": [
+    {
+      "id": "run:run_mnt742mk_oemvzq",
+      "layer": "output",
+      "kind": "run",
+      "title": "Hello",
+      "summary": "Hello from the agent runtime.",
+      "sourceLabel": "Agent run · nexus",
+      "domain": "engineering",
+      "tags": [
+        "answer",
+        "base+memory+research+workspace_…",
+        "not-required"
+      ],
+      "timestamp": 1775843070372,
+      "visibility": "internal"
+    }
+  ],
+  "syncedAt": "2026-04-10T17:44:31.345Z"
+}

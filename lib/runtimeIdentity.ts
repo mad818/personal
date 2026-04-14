@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
+import { applyNoStoreHeaders } from "@/lib/cacheHeaders";
 
 type SharedRuntimeIdentity = {
   bootId: string;
@@ -83,8 +84,4 @@ export function readRuntimeIdentity() {
   };
 }
 
-export function applyNoStoreHeaders(headers: Headers) {
-  headers.set("Cache-Control", "no-store, max-age=0");
-  headers.set("Pragma", "no-cache");
-  headers.set("Expires", "0");
-}
+export { applyNoStoreHeaders };

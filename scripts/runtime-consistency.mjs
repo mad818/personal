@@ -2,10 +2,11 @@
 /* eslint-disable no-console */
 
 import { config as loadEnv } from "dotenv";
+import { resolveRuntimeTarget } from "./runtime-target.mjs";
 
 loadEnv({ path: ".env.local" });
 
-const baseUrl = process.env.NEXUS_RELEASE_BASE_URL ?? "http://127.0.0.1:3000";
+const baseUrl = resolveRuntimeTarget({ scriptName: "runtime-consistency" });
 const token = process.env.NEXUS_TOKEN ?? "";
 const TRANSIENT_STATUSES = new Set([404, 500, 502, 503]);
 

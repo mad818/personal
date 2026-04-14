@@ -1,4 +1,10 @@
-import { NextResponse } from "next/server";
+import { connectorJson } from "@/lib/connectorResponse";
+
+const SAMPLE_DETECTIONS = [
+  { lat: 37.7749, lng: -122.4194, label: "Port logistics cluster", confidence: 0.74 },
+  { lat: 25.7617, lng: -80.1918, label: "Maritime staging node", confidence: 0.68 },
+  { lat: 35.6895, lng: 139.6917, label: "Dense urban traffic pattern", confidence: 0.63 },
+];
 
 const SAMPLE_DETECTIONS = [
   { lat: 37.7749, lng: -122.4194, label: "Port logistics cluster", confidence: 0.74 },
@@ -27,13 +33,19 @@ export async function GET() {
     });
 
     if (!r.ok) {
-      return NextResponse.json(
+      const message = `GeoDeep service returned ${r.status}; showing sample detections instead.`;
+      return connectorJson(
         {
           detections: SAMPLE_DETECTIONS,
           status: "sample",
-          message: `GeoDeep service returned ${r.status}; showing sample detections instead.`,
+          message,
         },
-        { status: 200 },
+        {
+          source: "geo-scan",
+          maxAgeSeconds: 30,
+          degraded: true,
+          warnings: [message],
+        },
       );
     }
 
@@ -59,19 +71,31 @@ export async function GET() {
             : 0,
       }));
 
-    return NextResponse.json({ detections, status: "ok" });
+    return connectorJson(
+      { detections, status: "ok" },
+      {
+        source: "geo-scan",
+        maxAgeSeconds: 15,
+      },
+    );
   } catch (err) {
     // Service not running — return empty, not an error (graceful degradation)
     const isTimeout = err instanceof Error && err.name === "TimeoutError";
-    return NextResponse.json(
+    const message = isTimeout
+      ? "GeoDeep service timed out; showing sample detections."
+      : "GeoDeep service not reachable; showing sample detections until the local scan service is started.";
+    return connectorJson(
       {
         detections: SAMPLE_DETECTIONS,
         status: "sample",
-        message: isTimeout
-          ? "GeoDeep service timed out; showing sample detections."
-          : "GeoDeep service not reachable; showing sample detections until the local scan service is started.",
+        message,
       },
-      { status: 200 },
+      {
+        source: "geo-scan",
+        maxAgeSeconds: 30,
+        degraded: true,
+        warnings: [message],
+      },
     );
   }
 }

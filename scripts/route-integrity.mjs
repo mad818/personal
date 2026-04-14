@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
-const baseUrl = process.env.NEXUS_RELEASE_BASE_URL ?? "http://127.0.0.1:3000";
+import { resolveRuntimeTarget } from "./runtime-target.mjs";
+
+const baseUrl = resolveRuntimeTarget({ scriptName: "route-integrity" });
 
 function fail(message) {
   console.error(`❌ route-integrity: ${message}`);

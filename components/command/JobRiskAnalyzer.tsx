@@ -3,6 +3,11 @@
 import { useState, useCallback } from "react";
 import { useStore } from "@/store/useStore";
 import { callAI } from "@/lib/ai";
+import {
+  buildStructuredEvidenceInstruction,
+  parseStructuredEvidenceAnswer,
+} from "@/lib/aiStructuredEvidence";
+import EvidencePosturePanel from "@/components/ui/EvidencePosturePanel";
 
 // ── Benchmark jobs (Karpathy rubric, 0–10) ────────────────────────────────────
 const BENCHMARKS: { job: string; score: number; category: string }[] = [
@@ -65,6 +70,9 @@ export default function JobRiskAnalyzer() {
     score: number;
     rationale: string;
     actions: string[];
+    observed: string[];
+    inferred: string[];
+    verifyNext: string[];
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -74,14 +82,6 @@ export default function JobRiskAnalyzer() {
   const analyse = useCallback(async () => {
     const job = jobInput.trim();
     if (!job) return;
-    if (!settings.apiKey) {
-      setResult({
-        score: -1,
-        rationale: "Add your API key in Settings to run the analysis.",
-        actions: [],
-      });
-      return;
-    }
 
     setLoading(true);
     setResult(null);
@@ -103,29 +103,55 @@ ${RUBRIC}
 Job to score: "${job}"
 ${userCtx ? `\nAbout the person:\n${userCtx}` : ""}
 
-Respond with valid JSON only, no markdown fences:
-{
-  "score": <number 0-10, one decimal>,
-  "rationale": "<2-3 sentence explanation of the score>",
-  "actions": ["<specific action 1>", "<specific action 2>", "<specific action 3>"]
-}
-
 The actions should be concrete steps this specific person can take right now to reduce their AI displacement risk or pivot toward higher-value work. Be direct and personal.
+${buildStructuredEvidenceInstruction({
+  summaryKey: "rationale",
+  summaryLabel: "direct risk rationale",
+  summaryLimitHint: "under 90 words and direct",
+  extraFields: [
+    {
+      key: "score",
+      example: "<number 0-10, one decimal>",
+      rule: '"score" must stay between 0 and 10 and reflect the rubric-based displacement risk.',
+    },
+    {
+      key: "actions",
+      example: '["specific mitigation step"]',
+      rule: '"actions" should contain 2-4 concrete next steps tailored to the person and role.',
+    },
+  ],
+})}
 `.trim();
 
       const raw = await callAI(prompt, 500);
+      const structured = parseStructuredEvidenceAnswer(raw, ["rationale"]);
       const match = raw.match(/\{[\s\S]*\}/);
       const json = JSON.parse(match?.[0] ?? raw);
+      const score = structured?.score ?? Number(json.score);
+      if (!Number.isFinite(score)) {
+        throw new Error("Invalid score");
+      }
       setResult({
-        score: Number(json.score),
-        rationale: json.rationale,
-        actions: json.actions ?? [],
+        score,
+        rationale: structured?.summary ?? json.rationale,
+        actions: structured?.actions?.length
+          ? structured.actions
+          : Array.isArray(json.actions)
+            ? json.actions
+            : [],
+        observed: structured?.observed ?? [],
+        inferred: structured?.inferred ?? [],
+        verifyNext: structured?.verifyNext ?? [],
       });
     } catch {
       setResult({
         score: -1,
-        rationale: "Analysis failed. Check your API key in Settings.",
+        rationale:
+          "Analysis failed. Check the local runtime or your free-first AI lane in Settings.",
         actions: [],
+        observed: [],
+        inferred: [],
+        verifyNext: [],
       });
     } finally {
       setLoading(false);
@@ -287,21 +313,17 @@ The actions should be concrete steps this specific person can take right now to 
             </div>
           </div>
 
-          {/* Rationale */}
-          <p
-            style={{
-              fontSize: "12px",
-              color: "var(--text)",
-              lineHeight: 1.6,
-              margin: "0 0 10px",
-            }}
-          >
-            {result.rationale}
-          </p>
+          <EvidencePosturePanel
+            title="Career risk posture"
+            summary={result.rationale}
+            observed={result.observed}
+            inferred={result.inferred}
+            verifyNext={result.verifyNext}
+          />
 
           {/* Actions */}
           {result.actions.length > 0 && (
-            <div>
+            <div style={{ marginTop: "10px" }}>
               <div
                 style={{
                   fontSize: "10.5px",

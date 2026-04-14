@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { apiFetch } from "@/lib/apiFetch";
 import { useStore } from "@/store/useStore";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 // ── FX pairs to display ───────────────────────────────────────────────────────
 const FX_PAIRS = [
@@ -22,13 +25,6 @@ const METAL_KEYS = [
   { key: "XAU", label: "Gold", icon: "🥇", unit: "/oz" },
   { key: "XAG", label: "Silver", icon: "⚪", unit: "/oz" },
   { key: "XPT", label: "Platinum", icon: "🔵", unit: "/oz" },
-];
-
-// ── FRED energy series (optional — needs user's FRED key) ─────────────────────
-const ENERGY_SERIES = [
-  { id: "DCOILWTICO", label: "WTI Crude", icon: "🛢️", unit: "/bbl" },
-  { id: "DCOILBRENTEU", label: "Brent", icon: "⛽", unit: "/bbl" },
-  { id: "DHHNGSP", label: "Nat Gas", icon: "🔥", unit: "/MMBtu" },
 ];
 
 // ── Change bar ────────────────────────────────────────────────────────────────
@@ -86,99 +82,99 @@ interface Quote {
   unit: string;
 }
 
-// ── FRED helper (client-side, CORS open) ──────────────────────────────────────
-async function fetchFredSeries(
-  id: string,
-  key: string,
-): Promise<{ latest: number; prev: number }> {
-  const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${id}&limit=3&sort_order=desc&api_key=${key}&file_type=json`;
-  const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
-  if (!r.ok) throw new Error(`FRED ${id} ${r.status}`);
-  const d = await r.json();
-  const obs = (d.observations ?? []).filter(
-    (o: { value: string }) => o.value !== ".",
-  );
-  const latest = parseFloat(obs[0]?.value ?? "0");
-  const prev = parseFloat(obs[1]?.value ?? obs[0]?.value ?? "0");
-  return { latest, prev };
-}
-
 // ── Main component ────────────────────────────────────────────────────────────
 export default function MarketRates() {
-  const fredKey = useStore((s) => s.settings.fredKey);
+  const marketRatesStatus = useStore((s) => s.feedStatus.marketRates);
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus);
+  const { internetReachable } = useInternetAvailability();
 
   const [fxRates, setFxRates] = useState<FXRates>({});
   const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [energyConfigured, setEnergyConfigured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [updatedAt, setUpdatedAt] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   // Remember previous metal prices between refreshes to derive % change
   const prevMetals = useRef<Record<string, number>>({});
+  const hasLocalDataRef = useRef(false);
+  const hasFX = Object.keys(fxRates).length > 0;
+  const hasQuotes = quotes.length > 0;
+  const lastFailureIsNewest =
+    Boolean(marketRatesStatus.lastFailureAt) &&
+    (marketRatesStatus.lastSuccessAt === null ||
+      (marketRatesStatus.lastFailureAt ?? 0) >
+        (marketRatesStatus.lastSuccessAt ?? 0));
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
+    updateFeedStatus("marketRates", {
+      lastAttemptAt: Date.now(),
+      lastError: null,
+    });
     try {
       // ── FX and metals in parallel ──────────────────────────────────────────
-      const [fxRes, metalsRes] = await Promise.all([
+      const [fxRes, commoditiesRes] = await Promise.all([
         apiFetch("/api/fx"),
-        apiFetch("/api/metals"),
+        apiFetch("/api/commodities"),
       ]);
+      if (!fxRes.ok || !commoditiesRes.ok) {
+        throw new Error("Remote market feeds are unavailable.");
+      }
       const fxData = await fxRes.json();
-      const metalsData = await metalsRes.json();
+      const commoditiesData = await commoditiesRes.json();
       const rates: FXRates = fxData.rates ?? {};
+      setEnergyConfigured(commoditiesData.energyConfigured === true);
       setFxRates(rates);
       if (fxData.time_last_update_utc)
         setUpdatedAt(fxData.time_last_update_utc.slice(0, 16));
 
-      // Metals: CoinGecko PAXG (gold) + goldprice.org (silver/platinum)
-      const metalQuotes: Quote[] = (metalsData.metals ?? []).map((m: Quote) => {
-        const prev = prevMetals.current[m.id] ?? m.price;
-        const chg =
-          m.chg !== 0
-            ? m.chg
-            : prev !== 0
-              ? ((m.price - prev) / prev) * 100
-              : 0;
-        prevMetals.current[m.id] = m.price;
-        return { ...m, chg };
-      });
+      const resolvedQuotes: Quote[] = (commoditiesData.quotes ?? []).map(
+        (quote: Quote) => {
+          const prev = prevMetals.current[quote.id] ?? quote.price;
+          const chg =
+            quote.chg !== 0
+              ? quote.chg
+              : prev !== 0
+                ? ((quote.price - prev) / prev) * 100
+                : 0;
+          prevMetals.current[quote.id] = quote.price;
+          return { ...quote, chg };
+        },
+      );
 
-      // ── Energy from FRED (only if key is configured) ──────────────────────
-      let energyQuotes: Quote[] = [];
-      if (fredKey) {
-        const results = await Promise.allSettled(
-          ENERGY_SERIES.map(async (s) => {
-            const { latest, prev } = await fetchFredSeries(s.id, fredKey);
-            const chg = prev !== 0 ? ((latest - prev) / prev) * 100 : 0;
-            return {
-              id: s.id,
-              label: s.label,
-              icon: s.icon,
-              price: latest,
-              chg,
-              unit: s.unit,
-            } satisfies Quote;
-          }),
-        );
-        energyQuotes = results
-          .filter((r) => r.status === "fulfilled")
-          .map((r) => (r as PromiseFulfilledResult<Quote>).value);
+      setQuotes(resolvedQuotes);
+      if (Object.keys(rates).length > 0 || resolvedQuotes.length > 0) {
+        updateFeedStatus("marketRates", {
+          lastSuccessAt: Date.now(),
+          lastError: null,
+        });
+      } else {
+        throw new Error("Could not load market rates.");
       }
-
-      setQuotes([...metalQuotes, ...energyQuotes]);
     } catch {
-      // silent — FX failing will leave metals empty too, which is correct
+      setError(
+        hasLocalDataRef.current
+          ? null
+          : "Could not load FX and commodities right now.",
+      );
+      updateFeedStatus("marketRates", {
+        lastFailureAt: Date.now(),
+        lastError: "Could not load FX and commodities right now.",
+      });
     } finally {
       setLoading(false);
     }
-  }, [fredKey]);
+  }, [updateFeedStatus]);
+
+  useEffect(() => {
+    hasLocalDataRef.current = hasFX || hasQuotes;
+  }, [hasFX, hasQuotes]);
 
   useEffect(() => {
     load();
   }, [load]);
-
-  const hasFX = Object.keys(fxRates).length > 0;
-  const hasQuotes = quotes.length > 0;
 
   return (
     <div style={{ marginTop: "18px" }}>
@@ -189,6 +185,7 @@ export default function MarketRates() {
           alignItems: "center",
           gap: "8px",
           marginBottom: "14px",
+          flexWrap: "wrap",
         }}
       >
         <span
@@ -202,6 +199,11 @@ export default function MarketRates() {
         >
           💱 FX &amp; Commodities
         </span>
+        <FeedStatusPill
+          label="Rates"
+          status={marketRatesStatus}
+          internetReachable={internetReachable}
+        />
         {updatedAt && (
           <span style={{ fontSize: "10px", color: "var(--text3)" }}>
             · {updatedAt} UTC
@@ -209,7 +211,7 @@ export default function MarketRates() {
         )}
         <button
           onClick={load}
-          disabled={loading}
+          disabled={loading || !internetReachable}
           style={{
             marginLeft: "auto",
             height: "24px",
@@ -220,12 +222,44 @@ export default function MarketRates() {
             color: "var(--text3)",
             fontSize: "10.5px",
             fontWeight: 700,
-            cursor: "pointer",
+            cursor:
+              loading || !internetReachable ? "not-allowed" : "pointer",
+            opacity: internetReachable ? 1 : 0.65,
           }}
         >
-          {loading ? "…" : "↻ Refresh"}
+          {loading ? "…" : internetReachable ? "↻ Refresh" : "Offline"}
         </button>
       </div>
+
+      {!internetReachable && marketRatesStatus.lastSuccessAt !== null ? (
+        <SurfaceCallout
+          tone="info"
+          icon="↺"
+          title="Internet offline · showing last-known market rates"
+          description="FX and commodities refresh is paused until reconnect. The current rates and spot prices remain available locally."
+          style={{ marginBottom: "12px" }}
+        />
+      ) : null}
+
+      {internetReachable && lastFailureIsNewest && (hasFX || hasQuotes) ? (
+        <SurfaceCallout
+          tone="info"
+          icon="!"
+          title="Showing last good market snapshot"
+          description="The latest rates refresh failed, so this panel is preserving the most recent successful FX and spot-price state."
+          style={{ marginBottom: "12px" }}
+        />
+      ) : null}
+
+      {error && !(hasFX || hasQuotes) ? (
+        <SurfaceCallout
+          tone="warning"
+          icon="!"
+          title="FX and commodities feed unavailable"
+          description={error}
+          style={{ marginBottom: "12px" }}
+        />
+      ) : null}
 
       <div
         style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}
@@ -322,7 +356,8 @@ export default function MarketRates() {
               marginBottom: "10px",
             }}
           >
-            Spot Prices{fredKey ? " · Metals + Energy" : " · Precious Metals"}
+            Spot Prices
+            {energyConfigured ? " · Metals + Energy" : " · Precious Metals"}
           </div>
           {!hasQuotes && (
             <div
@@ -403,7 +438,7 @@ export default function MarketRates() {
               );
             })}
           </div>
-          {!fredKey && hasQuotes && (
+          {!energyConfigured && hasQuotes && (
             <div
               style={{
                 fontSize: "10px",
@@ -413,7 +448,8 @@ export default function MarketRates() {
                 paddingTop: "8px",
               }}
             >
-              Add a FRED key in Settings to also see WTI, Brent &amp; Nat Gas.
+              Add a FRED key in Settings to also see WTI, Brent &amp; Nat Gas
+              through the local commodities connector.
             </div>
           )}
         </div>

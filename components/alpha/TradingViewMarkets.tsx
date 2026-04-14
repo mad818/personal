@@ -17,7 +17,8 @@ function appendWidgetScript(
   script.src = src;
   script.type = "text/javascript";
   script.async = true;
-  script.innerHTML = JSON.stringify(config);
+  // ASSERT: TradingView receives the same JSON config without using innerHTML.
+  script.textContent = JSON.stringify(config);
   container.appendChild(script);
   return () => {
     try {

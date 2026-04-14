@@ -1,20 +1,35 @@
 // ── api/settings ────────────────────────────────────────────
 // Settings API: user configuration persistence (keys, watchlist, theme).
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import * as fs from "fs/promises";
-import * as path from "path";
 import {
   DEFAULT_CONNECTOR_POLICY,
   parseConnectorPolicy,
 } from "@/lib/security/connectorPolicy";
 import {
+  BRAND_NAME,
+  BRAND_TAGLINE,
+  summarizeProviderReadiness,
+} from "@/lib/brand";
+import {
+  getDefaultNetworkMode,
+  type NetworkMode,
+  readNetworkMode,
+} from "@/lib/security/routePolicy";
+import { applyRuntimePolicyCookies } from "@/lib/security/runtimePolicyCookies";
+import {
+  getDefaultEntrypoint,
+  listSurfaceAliases,
   readBuildChannel,
   readBuildVersion,
   readDeploymentProfile,
   RELEASE_DEFAULTS,
   summarizeSurfaceTiers,
 } from "@/lib/releaseMatrix";
+import { protectedJson } from "@/lib/protectedApi";
+import { getRuntimeEnvFilePath } from "@/lib/serverEnvRuntime";
+import { isConfiguredSecretValue } from "@/lib/secretReadiness";
 
 /**
  * Server-side settings store — OpenClaw-style.
@@ -46,6 +61,9 @@ const SENSITIVE_KEYS = [
   "AISSTREAM_KEY",
   "FIRMS_MAP_KEY",
   "FIRECRAWL_KEY",
+  "HIBP_API_KEY",
+  "VT_API_KEY",
+  "SHODAN_API_KEY",
   "OPENCLAW_TOKEN",
   "NEXUS_TOKEN",
   "NEXUS_NETWORK_MODE",
@@ -61,7 +79,9 @@ const LEGACY_KEY_ALIASES: Record<string, string> = {
   FIRMS_KEY: "FIRMS_MAP_KEY",
 };
 
-const ENV_FILE = path.join(process.cwd(), ".env.local");
+const READONLY_SENSITIVE_KEYS = new Set(["NEXUS_TOKEN", "OPENCLAW_TOKEN"]);
+
+const ENV_FILE = getRuntimeEnvFilePath();
 
 async function readEnvFile(): Promise<Record<string, string>> {
   try {
@@ -135,6 +155,26 @@ function readPendingDeploymentProfile(env: Record<string, string>) {
   return "local-dev";
 }
 
+function buildSecretPosture(status: Record<string, boolean>) {
+  const configuredCount = Object.values(status).filter(Boolean).length;
+  const readonlyConfiguredCount = Array.from(READONLY_SENSITIVE_KEYS).filter(
+    (key) => status[key] === true,
+  ).length;
+  const editableConfiguredCount = configuredCount - readonlyConfiguredCount;
+
+  return {
+    inventoryCount: SENSITIVE_KEYS.length,
+    configuredCount,
+    readonlyConfiguredCount,
+    editableConfiguredCount,
+    tokenGateConfigured: READONLY_SENSITIVE_KEYS.has("NEXUS_TOKEN")
+      ? status.NEXUS_TOKEN === true
+      : false,
+    localEnvOnly: true as const,
+    rawValuesReturned: false as const,
+  };
+}
+
 // GET — return which keys are set (true/false), not the values
 export async function GET() {
   const env = await readEnvFile();
@@ -144,15 +184,24 @@ export async function GET() {
     const legacyMatch = Object.entries(LEGACY_KEY_ALIASES).find(
       ([, canonical]) => canonical === key,
     )?.[0];
-    status[key] = !!(
+    status[key] = isConfiguredSecretValue(
       env[key] ??
       process.env[key] ??
-      (legacyMatch ? (env[legacyMatch] ?? process.env[legacyMatch]) : "")
+      (legacyMatch ? (env[legacyMatch] ?? process.env[legacyMatch]) : ""),
     );
   }
-  const config = {
+  const config: {
+    NEXUS_NETWORK_MODE: NetworkMode;
+    NEXUS_ENABLE_HIGH_RISK_TOOLS: "true" | "false" | string;
+    NEXUS_ALLOW_PAID_APIS: "true" | "false" | string;
+    NEXUS_CONNECTOR_POLICY_JSON: ReturnType<typeof parseConnectorPolicy>;
+    NEXUS_DEPLOYMENT_PROFILE: ReturnType<typeof readPendingDeploymentProfile>;
+  } = {
     NEXUS_NETWORK_MODE:
-      env.NEXUS_NETWORK_MODE ?? process.env.NEXUS_NETWORK_MODE ?? readNetworkMode(),
+      normalizeConfigValue(
+        "NEXUS_NETWORK_MODE",
+        env.NEXUS_NETWORK_MODE ?? process.env.NEXUS_NETWORK_MODE ?? readNetworkMode(),
+      ) as NetworkMode,
     NEXUS_ENABLE_HIGH_RISK_TOOLS:
       env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
       process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
@@ -164,17 +213,31 @@ export async function GET() {
     ),
     NEXUS_DEPLOYMENT_PROFILE: readPendingDeploymentProfile(env),
   };
-  return NextResponse.json({
+  const response = protectedJson({
     status,
+    secretPosture: buildSecretPosture(status),
     config,
+    brand: {
+      name: BRAND_NAME,
+      tagline: BRAND_TAGLINE,
+    },
+    providers: summarizeProviderReadiness(effectiveEnv),
     release: {
       buildChannel: readBuildChannel(),
       buildVersion: readBuildVersion(),
       supportedSurfacePolicy: RELEASE_DEFAULTS.supportedSurfacePolicy,
       canonicalDeploymentLane: RELEASE_DEFAULTS.canonicalDeploymentLane,
+      defaultEntrypoint: getDefaultEntrypoint(),
+      uiShellVersion: RELEASE_DEFAULTS.uiShellVersion,
+      aliases: listSurfaceAliases(),
       surfaces: summarizeSurfaceTiers().counts,
     },
   });
+  applyRuntimePolicyCookies(response, {
+    networkMode: config.NEXUS_NETWORK_MODE,
+    highRiskEnabled: config.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true",
+  });
+  return response;
 }
 
 // POST — update one or more keys in .env.local
@@ -182,35 +245,46 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Record<string, string>;
 
-    // Internal tokens the user cannot overwrite via the settings UI
-    const READONLY_KEYS = new Set(["NEXUS_TOKEN", "OPENCLAW_TOKEN"]);
-
     // Only allow updating known sensitive keys (minus internal tokens)
     const updates: Record<string, string> = {};
     for (const [k, v] of Object.entries(body)) {
       const canonicalKey = LEGACY_KEY_ALIASES[k] ?? k;
       if (
         SENSITIVE_KEYS.includes(canonicalKey) &&
-        !READONLY_KEYS.has(canonicalKey)
+        !READONLY_SENSITIVE_KEYS.has(canonicalKey)
       ) {
         updates[canonicalKey] = normalizeConfigValue(canonicalKey, String(v));
       }
     }
 
     if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
+      return protectedJson(
         { ok: false, error: "No valid keys provided" },
         { status: 400 },
       );
     }
 
     await writeEnvFile(updates);
-
-    // Note: env vars don't hot-reload in Next.js — a restart is needed
-    // to pick up new values. We return a flag so the UI can warn the user.
-    return NextResponse.json({ ok: true, needsRestart: true });
+    for (const [key, value] of Object.entries(updates)) {
+      process.env[key] = value;
+    }
+    const env = await readEnvFile();
+    const networkMode = normalizeConfigValue(
+      "NEXUS_NETWORK_MODE",
+      env.NEXUS_NETWORK_MODE ?? process.env.NEXUS_NETWORK_MODE ?? getDefaultNetworkMode(),
+    ) as NetworkMode;
+    const highRiskEnabled =
+      normalizeConfigValue(
+        "NEXUS_ENABLE_HIGH_RISK_TOOLS",
+        env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
+          process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
+          "false",
+      ) === "true";
+    const response = protectedJson({ ok: true, needsRestart: false, runtimePatched: true });
+    applyRuntimePolicyCookies(response, { networkMode, highRiskEnabled });
+    return response;
   } catch {
-    return NextResponse.json(
+    return protectedJson(
       { ok: false, error: "Write failed" },
       { status: 500 },
     );

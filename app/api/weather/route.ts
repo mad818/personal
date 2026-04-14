@@ -1,7 +1,12 @@
 // ── api/weather ─────────────────────────────────────────────
 // Weather API: real-time and forecast meteorological data.
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { connectorJson } from "@/lib/connectorResponse";
+import {
+  parseBoundedFloatParam,
+  RequestValidationError,
+} from "@/lib/security/inputGuards";
 // https://api.open-meteo.com/v1/forecast
 
 export const dynamic = "force-dynamic";
@@ -46,31 +51,36 @@ function wmoDescription(code: number | null): string {
   return WMO_DESCRIPTIONS[code] ?? `WMO ${code}`;
 }
 
+function cToF(value: number | null): number | null {
+  if (value === null) return null;
+  return Math.round(((value * 9) / 5 + 32) * 10) / 10;
+}
+
+function kmhToMph(value: number | null): number | null {
+  if (value === null) return null;
+  return Math.round(value * 0.621371 * 10) / 10;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const lat = parseFloat(searchParams.get("lat") ?? String(DEFAULT_LAT));
-    const lon = parseFloat(searchParams.get("lon") ?? String(DEFAULT_LON));
-
-    if (
-      isNaN(lat) ||
-      isNaN(lon) ||
-      lat < -90 ||
-      lat > 90 ||
-      lon < -180 ||
-      lon > 180
-    ) {
-      return NextResponse.json(
-        { error: "Invalid lat/lon parameters." },
-        { status: 400 },
-      );
-    }
+    const lat = parseBoundedFloatParam(searchParams, "lat", {
+      min: -90,
+      max: 90,
+      defaultValue: DEFAULT_LAT,
+    });
+    const lon = parseBoundedFloatParam(searchParams, "lon", {
+      min: -180,
+      max: 180,
+      defaultValue: DEFAULT_LON,
+    });
 
     const params = new URLSearchParams({
       latitude: String(lat),
       longitude: String(lon),
       current: [
         "temperature_2m",
+        "apparent_temperature",
         "relative_humidity_2m",
         "wind_speed_10m",
         "weather_code",
@@ -79,8 +89,6 @@ export async function GET(req: NextRequest) {
       daily: ["weather_code", "temperature_2m_max", "temperature_2m_min"].join(
         ",",
       ),
-      temperature_unit: "fahrenheit",
-      wind_speed_unit: "mph",
       timezone: "auto",
       forecast_days: "7",
     });
@@ -94,9 +102,24 @@ export async function GET(req: NextRequest) {
     );
 
     if (!r.ok) {
-      return NextResponse.json(
-        { error: `Open-Meteo API error: ${r.status}` },
-        { status: r.status },
+      return connectorJson(
+        {
+          latitude: lat,
+          longitude: lon,
+          timezone: "Unknown",
+          timezone_abbreviation: "",
+          current: null,
+          hourly: [],
+          daily: [],
+          error: `Open-Meteo API error: ${r.status}`,
+        },
+        {
+          source: "weather",
+          maxAgeSeconds: 60,
+          degraded: true,
+          warnings: [`Open-Meteo returned HTTP ${r.status}.`],
+          status: 200,
+        },
       );
     }
 
@@ -108,6 +131,7 @@ export async function GET(req: NextRequest) {
       current?: {
         time?: string;
         temperature_2m?: number;
+        apparent_temperature?: number;
         relative_humidity_2m?: number;
         wind_speed_10m?: number;
         weather_code?: number;
@@ -130,9 +154,15 @@ export async function GET(req: NextRequest) {
     const current = data.current
       ? {
           time: data.current.time ?? null,
-          temperature_f: data.current.temperature_2m ?? null,
+          temperature_2m: data.current.temperature_2m ?? null,
+          temperature_c: data.current.temperature_2m ?? null,
+          temperature_f: cToF(data.current.temperature_2m ?? null),
+          apparent_temperature: data.current.apparent_temperature ?? null,
+          relative_humidity_2m: data.current.relative_humidity_2m ?? null,
           humidity_pct: data.current.relative_humidity_2m ?? null,
-          wind_speed_mph: data.current.wind_speed_10m ?? null,
+          wind_speed_10m: data.current.wind_speed_10m ?? null,
+          wind_speed_kmh: data.current.wind_speed_10m ?? null,
+          wind_speed_mph: kmhToMph(data.current.wind_speed_10m ?? null),
           weather_code: data.current.weather_code ?? null,
           condition: wmoDescription(data.current.weather_code ?? null),
         }
@@ -144,7 +174,9 @@ export async function GET(req: NextRequest) {
     const hourlyCodes = data.hourly?.weather_code ?? [];
     const hourly = hourlyTimes.slice(0, 24).map((time, i) => ({
       time,
-      temperature_f: hourlyTemps[i] ?? null,
+      temperature_2m: hourlyTemps[i] ?? null,
+      temperature_c: hourlyTemps[i] ?? null,
+      temperature_f: cToF(hourlyTemps[i] ?? null),
       weather_code: hourlyCodes[i] ?? null,
       condition: wmoDescription(hourlyCodes[i] ?? null),
     }));
@@ -158,24 +190,83 @@ export async function GET(req: NextRequest) {
       date: time,
       weather_code: dailyCodes[i] ?? null,
       condition: wmoDescription(dailyCodes[i] ?? null),
-      temp_max_f: dailyMaxes[i] ?? null,
-      temp_min_f: dailyMins[i] ?? null,
+      temperature_2m_max: dailyMaxes[i] ?? null,
+      temperature_2m_min: dailyMins[i] ?? null,
+      temp_max_c: dailyMaxes[i] ?? null,
+      temp_min_c: dailyMins[i] ?? null,
+      temp_max_f: cToF(dailyMaxes[i] ?? null),
+      temp_min_f: cToF(dailyMins[i] ?? null),
     }));
 
-    return NextResponse.json({
-      latitude: data.latitude ?? lat,
-      longitude: data.longitude ?? lon,
-      timezone: data.timezone ?? "Unknown",
-      timezone_abbreviation: data.timezone_abbreviation ?? "",
-      current,
-      hourly,
-      daily,
-    });
+    const warnings: string[] = [];
+    if (!current) {
+      warnings.push("Open-Meteo returned no current conditions.");
+    }
+    if (hourly.length === 0) {
+      warnings.push("Open-Meteo returned no hourly forecast points.");
+    }
+    if (daily.length === 0) {
+      warnings.push("Open-Meteo returned no daily forecast points.");
+    }
+
+    return connectorJson(
+      {
+        latitude: data.latitude ?? lat,
+        longitude: data.longitude ?? lon,
+        timezone: data.timezone ?? "Unknown",
+        timezone_abbreviation: data.timezone_abbreviation ?? "",
+        current,
+        hourly,
+        daily,
+      },
+      {
+        source: "weather",
+        maxAgeSeconds: 300,
+        degraded: warnings.length > 0,
+        warnings,
+      },
+    );
   } catch (e: unknown) {
+    if (e instanceof RequestValidationError) {
+      return connectorJson(
+        {
+          latitude: DEFAULT_LAT,
+          longitude: DEFAULT_LON,
+          timezone: "Unknown",
+          timezone_abbreviation: "",
+          current: null,
+          hourly: [],
+          daily: [],
+          error: e.message,
+        },
+        {
+          source: "weather",
+          maxAgeSeconds: 60,
+          degraded: true,
+          warnings: [e.message],
+          status: 400,
+        },
+      );
+    }
     const msg = e instanceof Error ? e.message : "Unknown error";
-    return NextResponse.json(
-      { error: `Weather fetch failed: ${msg}` },
-      { status: 500 },
+    return connectorJson(
+      {
+        latitude: DEFAULT_LAT,
+        longitude: DEFAULT_LON,
+        timezone: "Unknown",
+        timezone_abbreviation: "",
+        current: null,
+        hourly: [],
+        daily: [],
+        error: `Weather fetch failed: ${msg}`,
+      },
+      {
+        source: "weather",
+        maxAgeSeconds: 60,
+        degraded: true,
+        warnings: [msg],
+        status: 200,
+      },
     );
   }
 }

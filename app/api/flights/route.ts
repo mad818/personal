@@ -1,7 +1,12 @@
 // ── api/flights ─────────────────────────────────────────────
 // Flight tracking API: OpenSky network live aircraft positions.
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { connectorJson } from "@/lib/connectorResponse";
+import {
+  parseOptionalBoundingBox,
+  RequestValidationError,
+} from "@/lib/security/inputGuards";
 // https://opensky-network.org/api/states/all
 //
 // Optional: Set OPENSKY_USER and OPENSKY_PASS env vars for authenticated
@@ -85,30 +90,14 @@ function buildAuthHeader(): Record<string, string> {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-
-    // Optional bounding box
-    const lamin = searchParams.get("lamin");
-    const lomin = searchParams.get("lomin");
-    const lamax = searchParams.get("lamax");
-    const lomax = searchParams.get("lomax");
+    const boundingBox = parseOptionalBoundingBox(searchParams);
 
     const openSkyParams = new URLSearchParams();
-    if (lamin && lomin && lamax && lomax) {
-      const laMinN = parseFloat(lamin);
-      const loMinN = parseFloat(lomin);
-      const laMaxN = parseFloat(lamax);
-      const loMaxN = parseFloat(lomax);
-      if (
-        !isNaN(laMinN) &&
-        !isNaN(loMinN) &&
-        !isNaN(laMaxN) &&
-        !isNaN(loMaxN)
-      ) {
-        openSkyParams.set("lamin", String(laMinN));
-        openSkyParams.set("lomin", String(loMinN));
-        openSkyParams.set("lamax", String(laMaxN));
-        openSkyParams.set("lomax", String(loMaxN));
-      }
+    if (boundingBox) {
+      openSkyParams.set("lamin", String(boundingBox.lamin));
+      openSkyParams.set("lomin", String(boundingBox.lomin));
+      openSkyParams.set("lamax", String(boundingBox.lamax));
+      openSkyParams.set("lomax", String(boundingBox.lomax));
     }
 
     const queryString = openSkyParams.toString();
@@ -123,20 +112,45 @@ export async function GET(req: NextRequest) {
     });
 
     if (r.status === 429) {
-      return NextResponse.json(
+      return connectorJson(
         {
+          timestamp: Math.floor(Date.now() / 1000),
+          total_tracked: 0,
+          returned: 0,
+          authenticated: Boolean(process.env.OPENSKY_USER),
           error:
             "OpenSky rate limit exceeded. Try again later or set OPENSKY_USER/OPENSKY_PASS for higher limits.",
           flights: [],
         },
-        { status: 429 },
+        {
+          source: "flights",
+          maxAgeSeconds: 30,
+          degraded: true,
+          warnings: [
+            "OpenSky rate limit exceeded. Try again later or configure OpenSky credentials for higher limits.",
+          ],
+          status: 200,
+        },
       );
     }
 
     if (!r.ok) {
-      return NextResponse.json(
-        { error: `OpenSky API error: ${r.status}`, flights: [] },
-        { status: r.status },
+      return connectorJson(
+        {
+          timestamp: Math.floor(Date.now() / 1000),
+          total_tracked: 0,
+          returned: 0,
+          authenticated: Boolean(process.env.OPENSKY_USER),
+          error: `OpenSky API error: ${r.status}`,
+          flights: [],
+        },
+        {
+          source: "flights",
+          maxAgeSeconds: 30,
+          degraded: true,
+          warnings: [`OpenSky returned HTTP ${r.status}.`],
+          status: 200,
+        },
       );
     }
 
@@ -178,18 +192,63 @@ export async function GET(req: NextRequest) {
 
     const top50 = sorted.slice(0, 50);
 
-    return NextResponse.json({
-      timestamp: data.time ?? Math.floor(Date.now() / 1000),
-      total_tracked: flights.length,
-      returned: top50.length,
-      authenticated: Boolean(process.env.OPENSKY_USER),
-      flights: top50,
-    });
+    const warnings: string[] = [];
+    if (flights.length === 0) {
+      warnings.push("OpenSky returned no live flight states for the current query.");
+    }
+
+    return connectorJson(
+      {
+        timestamp: data.time ?? Math.floor(Date.now() / 1000),
+        total_tracked: flights.length,
+        returned: top50.length,
+        authenticated: Boolean(process.env.OPENSKY_USER),
+        flights: top50,
+      },
+      {
+        source: "flights",
+        maxAgeSeconds: 30,
+        degraded: warnings.length > 0,
+        warnings,
+      },
+    );
   } catch (e: unknown) {
+    if (e instanceof RequestValidationError) {
+      return connectorJson(
+        {
+          timestamp: Math.floor(Date.now() / 1000),
+          total_tracked: 0,
+          returned: 0,
+          authenticated: Boolean(process.env.OPENSKY_USER),
+          error: e.message,
+          flights: [],
+        },
+        {
+          source: "flights",
+          maxAgeSeconds: 30,
+          degraded: true,
+          warnings: [e.message],
+          status: 400,
+        },
+      );
+    }
     const msg = e instanceof Error ? e.message : "Unknown error";
-    return NextResponse.json(
-      { error: `Flight data fetch failed: ${msg}`, flights: [] },
-      { status: 500 },
+    return connectorJson(
+      {
+        timestamp: Math.floor(Date.now() / 1000),
+        total_tracked: 0,
+        returned: 0,
+        authenticated: Boolean(process.env.OPENSKY_USER),
+        error: `Flight data fetch failed: ${msg}`,
+        flights: [],
+      },
+      {
+        source: "flights",
+        maxAgeSeconds: 30,
+        degraded: true,
+        warnings: [msg],
+        status: 200,
+      },
     );
   }
 }

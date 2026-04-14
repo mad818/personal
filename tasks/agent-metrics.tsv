@@ -1,0 +1,3 @@
+# Nexus Prime — Agent Regression Metrics
+# Format: date	agent	pass_count	fail_count	avg_duration_ms	notes
+# date is ISO 8601 UTC. Append-only — never delete rows.

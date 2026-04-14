@@ -18,6 +18,10 @@
 //   const enrichedPrompt = systemPrompt + liveBlock
 
 import type { AgentStats } from "@/store/useStore";
+import { buildStackContextBlock } from "@/lib/projectContext";
+import { buildLearningsBlock } from "@/lib/agentLearnings";
+import type { LearningEntry } from "@/lib/agentLearnings";
+import type { VaultSynthesis } from "@/components/home/office/types";
 
 // Minimal shape of the store state that buildLiveContext needs.
 // Avoids depending on a non-exported AppState type alias.
@@ -28,6 +32,8 @@ interface LiveState {
   cves?: unknown[];
   articles?: unknown[];
   agentStats?: Record<string, AgentStats>;
+  agentLearnings?: Record<string, LearningEntry[]>;
+  vaultSynthesis?: VaultSynthesis | null;
 }
 
 // Shape of a price entry from S.prices
@@ -58,6 +64,8 @@ interface ArticleEntry {
 
 interface LiveContextBuildOptions {
   maxChars?: number;
+  includeStackContext?: boolean;
+  includeLearnings?: boolean;
 }
 
 export interface LiveContextReport {
@@ -107,7 +115,7 @@ function compactToBudget(text: string, maxChars: number): LiveContextBundle {
 // JANSKY/ORBIT always receive the full context (orchestrators need everything).
 const AGENT_SECTIONS: Record<string, Set<string>> = {
   flux: new Set(["market", "sentiment", "news"]),
-  cipher: new Set(["cves", "news"]),
+  cipher: new Set(["cves", "news", "vault"]),
   nova: new Set(["news", "worldRisk"]),
   orbit: new Set([
     "market",
@@ -124,6 +132,7 @@ const AGENT_SECTIONS: Record<string, Set<string>> = {
     "cves",
     "news",
     "session",
+    "vault",
   ]),
 };
 
@@ -132,10 +141,15 @@ const AGENT_SECTIONS: Record<string, Set<string>> = {
 export function buildFilteredLiveContext(
   state: LiveState,
   agentId: string,
+  opts: LiveContextBuildOptions = {},
 ): string {
   const allowed = AGENT_SECTIONS[agentId.toLowerCase()] ?? null;
   // If no filter defined, return full context
-  if (!allowed) return buildLiveContext(state);
+  if (!allowed) {
+    return buildLiveContext(state, {
+      includeStackContext: opts.includeStackContext,
+    });
+  }
 
   const prices = state.prices as Record<string, PriceEntry>;
   const fg = state.signals?.fg as
@@ -216,12 +230,32 @@ export function buildFilteredLiveContext(
       );
   }
 
+  if (allowed.has("vault") && state.vaultSynthesis) {
+    const vs = state.vaultSynthesis;
+    const gapSnippet = vs.gaps.length > 0 ? ` | Gaps: ${vs.gaps.slice(0, 2).join(", ")}` : "";
+    lines.push(`VAULT: ${vs.summary.slice(0, 160)}${gapSnippet}`);
+  }
+
   lines.push(`DATA FRESHNESS: ${ts.slice(11, 19)} UTC`);
+
+  // Inject learnings block if available for this agent
+  const learnings = state.agentLearnings?.[agentId.toLowerCase()] ?? [];
+  const learningsBlock = learnings.length > 0
+    && opts.includeLearnings !== false
+    ? buildLearningsBlock(agentId.toLowerCase() as import("@/components/home/office/types").AgentId, learnings.slice(0, 5))
+    : "";
+
   if (!lines.length) return "";
-  return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join("\n")}\n[END LIVE INTEL]\n`;
+  const stackBlock = opts.includeStackContext === false
+    ? ""
+    : buildStackContextBlock();
+  return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join("\n")}\n[END LIVE INTEL]\n${stackBlock ? "\n" + stackBlock + "\n" : ""}${learningsBlock ? "\n" + learningsBlock + "\n" : ""}`;
 }
 
-export function buildLiveContext(state: LiveState): string {
+export function buildLiveContext(
+  state: LiveState,
+  opts: Pick<LiveContextBuildOptions, "includeStackContext"> = {},
+): string {
   const lines: string[] = [];
   const ts = new Date().toISOString();
 
@@ -325,6 +359,13 @@ export function buildLiveContext(state: LiveState): string {
     );
   }
 
+  // VAULT SYNTHESIS
+  if (state.vaultSynthesis) {
+    const vs = state.vaultSynthesis;
+    const gapSnippet = vs.gaps.length > 0 ? ` | Gaps: ${vs.gaps.slice(0, 2).join(", ")}` : "";
+    lines.push(`VAULT: ${vs.summary.slice(0, 160)}${gapSnippet}`);
+  }
+
   // ── CAPABILITIES REMINDER ──────────────────────────────────────────────────
   // Tells the agent what live data it has access to, encouraging grounded answers
   lines.push(
@@ -332,7 +373,25 @@ export function buildLiveContext(state: LiveState): string {
   );
 
   if (lines.length === 0) return "";
-  return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join("\n")}\n[END LIVE INTEL]\n`;
+  const stackBlock = opts.includeStackContext === false
+    ? ""
+    : buildStackContextBlock();
+  return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join("\n")}\n[END LIVE INTEL]\n${stackBlock ? "\n" + stackBlock + "\n" : ""}`;
+}
+
+// Overload buildLiveContext for use with agentId to inject learnings
+export function buildLiveContextWithAgentId(
+  state: LiveState,
+  agentId: string,
+): string {
+  const baseContext = buildLiveContext(state);
+  const learnings = state.agentLearnings?.[agentId.toLowerCase()] ?? [];
+  if (learnings.length === 0) return baseContext;
+  const learningsBlock = buildLearningsBlock(
+    agentId.toLowerCase() as import("@/components/home/office/types").AgentId,
+    learnings.slice(0, 5)
+  );
+  return baseContext + learningsBlock + "\n";
 }
 
 export function buildLiveContextBundle(
@@ -340,7 +399,19 @@ export function buildLiveContextBundle(
   opts: LiveContextBuildOptions = {},
 ): LiveContextBundle {
   const maxChars = Math.max(500, Math.min(12_000, opts.maxChars ?? 3_200));
-  const raw = buildLiveContext(state);
+  const raw = buildLiveContext(state, {
+    includeStackContext: opts.includeStackContext,
+  });
+  return compactToBudget(raw, maxChars);
+}
+
+export function buildFilteredLiveContextBundle(
+  state: LiveState,
+  agentId: string,
+  opts: LiveContextBuildOptions = {},
+): LiveContextBundle {
+  const maxChars = Math.max(500, Math.min(12_000, opts.maxChars ?? 3_200));
+  const raw = buildFilteredLiveContext(state, agentId, opts);
   return compactToBudget(raw, maxChars);
 }
 
@@ -470,7 +541,7 @@ export function buildCapabilitiesBlock(agentId: string): string {
 
     nova: `You are a research engine with web_search and fetch_url. Operate like Perplexity: (1) search for the core question, (2) open the 2-3 most relevant sources, (3) synthesize into a grounded answer with citations. Never answer from memory alone when current data is available. You also see the dashboard's live news feed — cross-reference it.`,
 
-    cipher: `You are a security analyst with CVE data loaded live. Start threat analysis from the current CVE feed — what's critical today, what's trending. Then expand with web_search for exploit details. Ground every recommendation in current exposure, not theoretical risk.`,
+    cipher: `You are a security analyst with CVE data loaded live. Start threat analysis from the current CVE feed — what's critical today, what's trending. Then expand with web_search for exploit details. Ground every recommendation in current exposure, not theoretical risk. You also have access to POST /api/legal-compliance/drone — use it when the user asks about drone operation legality, FAA compliance, airspace authorization, or state/local drone laws. Pass location (city, state), operationType, droneWeight (lbs), altitude (ft AGL), nightOps, and nearAirport. The route runs 5 parallel compliance agents (FAA, state, local, airspace, operational) and returns a weighted compliance score with citations.`,
 
     flux: `You are a market analyst with live prices, Fear & Greed, and news signals available right now. Lead every market answer with the actual current numbers. Then layer in macro context via web_search. Never give generic market commentary — you have real data, use it.`,
   };

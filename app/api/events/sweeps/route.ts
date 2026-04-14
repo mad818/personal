@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { getInternalSweepHeaders, getSweepSources } from "@/lib/assimilation/sweep";
+import { buildInternalApiHeaders } from "@/lib/authSession";
+import { getSweepSources } from "@/lib/assimilation/sweep";
 import type { SweepTheater } from "@/lib/assimilation/types";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const theater = normalizeTheater(req.nextUrl.searchParams.get("theater"));
   const encoder = new TextEncoder();
   const origin = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
-  const headers = getInternalSweepHeaders();
+  const headers = buildInternalApiHeaders();
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {

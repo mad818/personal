@@ -104,7 +104,7 @@ function ToggleSwitch({
         flexShrink: 0,
         background: enabled ? "var(--accent)" : "var(--surf3)",
         position: "relative",
-        transition: "background 0.2s",
+        transition: "background var(--t)",
       }}
     >
       <motion.div
@@ -358,7 +358,7 @@ export default function AutomationRules() {
               borderRadius: "var(--rs)",
               padding: "10px 12px",
               opacity: rule.enabled ? 1 : 0.5,
-              transition: "opacity 0.2s, border-color 0.2s",
+              transition: "opacity var(--t), border-color var(--t)",
             }}
           >
             <div

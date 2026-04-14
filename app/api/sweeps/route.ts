@@ -2,32 +2,63 @@ import { NextRequest, NextResponse } from "next/server";
 import { performSweepBundle } from "@/lib/assimilation/sweep";
 import { saveGeoDeltaSnapshot } from "@/lib/assimilation/storage";
 import type { GeoDeltaSnapshot, SweepTheater } from "@/lib/assimilation/types";
+import { sweepsRequestSchema, sweepTheaterSchema } from "@/lib/assimilation/contracts";
+import {
+  applyWorkbenchRateLimit,
+  createWorkbenchMeta,
+  parseWorkbenchPayload,
+  workbenchJson,
+} from "@/lib/assimilation/http";
 
 export const dynamic = "force-dynamic";
 
+const RATE_LIMIT = {
+  bucket: "workbench-sweeps",
+  windowMs: 60_000,
+  maxAttempts: 30,
+  includeBearerToken: false,
+} as const;
+
 function normalizeTheater(value: string | null): SweepTheater {
-  const fallback: SweepTheater = "markets";
-  if (
-    value === "markets" ||
-    value === "cyber" ||
-    value === "geopolitics" ||
-    value === "air-sea" ||
-    value === "infra" ||
-    value === "watchlist"
-  ) {
-    return value;
-  }
-  return fallback;
+  const parsed = sweepTheaterSchema.safeParse(value);
+  return parsed.success ? parsed.data : "markets";
 }
 
 export async function GET(req: NextRequest) {
+  const meta = createWorkbenchMeta({
+    surface: "sweep-engine",
+    simulation: "live",
+    warnings: [
+      "Live source aggregation is real, but any persisted geo snapshot derived from a sweep still uses synthesized observation coordinates.",
+    ],
+  });
+  const rateLimited = applyWorkbenchRateLimit(req, RATE_LIMIT, meta);
+  if (rateLimited) return rateLimited;
+
   const theater = normalizeTheater(req.nextUrl.searchParams.get("theater"));
   const sweep = await performSweepBundle(req.url, theater);
-  return NextResponse.json({ sweep });
+  return workbenchJson(meta, { sweep });
 }
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as { theater?: string; persistSnapshot?: boolean };
+  const meta = createWorkbenchMeta({
+    surface: "sweep-engine",
+    simulation: "live",
+    warnings: [
+      "Live source aggregation is real, but any persisted geo snapshot derived from a sweep still uses synthesized observation coordinates.",
+    ],
+  });
+  const rateLimited = applyWorkbenchRateLimit(req, RATE_LIMIT, meta);
+  if (rateLimited) return rateLimited;
+
+  const parsed = parseWorkbenchPayload(
+    sweepsRequestSchema,
+    await req.json(),
+    meta,
+  );
+  if (!parsed.ok) return parsed.response;
+
+  const body = parsed.data;
   const theater = normalizeTheater(body.theater ?? null);
   const sweep = await performSweepBundle(req.url, theater);
 
@@ -57,5 +88,5 @@ export async function POST(req: NextRequest) {
     await saveGeoDeltaSnapshot(snapshot);
   }
 
-  return NextResponse.json({ sweep });
+  return workbenchJson(meta, { sweep });
 }

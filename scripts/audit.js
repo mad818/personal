@@ -26,7 +26,7 @@ const CHECKS = [
   },
   {
     name:    'Path collisions',
-    cmd:     'node scripts/path-collisions.js 2>&1',
+    cmd:     'node scripts/check-path-collisions.js 2>&1',
     failOn:  /COLLISION|ERROR/i,
   },
 ]

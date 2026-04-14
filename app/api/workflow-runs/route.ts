@@ -13,8 +13,23 @@ import type {
   WorkflowDefinition,
   WorkflowRun,
 } from "@/lib/assimilation/types";
+import { workflowRunRequestSchema } from "@/lib/assimilation/contracts";
+import {
+  applyWorkbenchRateLimit,
+  createWorkbenchMeta,
+  parseWorkbenchPayload,
+  workbenchError,
+  workbenchJson,
+} from "@/lib/assimilation/http";
 
 export const dynamic = "force-dynamic";
+
+const RATE_LIMIT = {
+  bucket: "workbench-workflow-runs",
+  windowMs: 60_000,
+  maxAttempts: 45,
+  includeBearerToken: false,
+} as const;
 
 function artifactTarget(detail: string): OutputArtifact["target"] {
   const lower = detail.toLowerCase();
@@ -97,23 +112,50 @@ async function createArtifactItems(run: WorkflowRun) {
   );
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const meta = createWorkbenchMeta({
+    surface: "workflow-runs",
+    simulation: "derived",
+    warnings: [
+      "Workflow run steps and artifact summaries are currently synthesized from the saved graph definition.",
+    ],
+  });
+  const rateLimited = applyWorkbenchRateLimit(req, RATE_LIMIT, meta);
+  if (rateLimited) return rateLimited;
+
   const runs = await listWorkflowRuns();
-  return NextResponse.json({ runs });
+  return workbenchJson(meta, { runs });
 }
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as { workflowId: string };
+  const meta = createWorkbenchMeta({
+    surface: "workflow-runs",
+    simulation: "derived",
+    warnings: [
+      "Workflow run steps and artifact summaries are currently synthesized from the saved graph definition.",
+    ],
+  });
+  const rateLimited = applyWorkbenchRateLimit(req, RATE_LIMIT, meta);
+  if (rateLimited) return rateLimited;
+
+  const parsed = parseWorkbenchPayload(
+    workflowRunRequestSchema,
+    await req.json(),
+    meta,
+  );
+  if (!parsed.ok) return parsed.response;
+
   const workflows = await listWorkflows();
-  const workflow = workflows.find((entry) => entry.id === body.workflowId);
+  const workflow = workflows.find((entry) => entry.id === parsed.data.workflowId);
   if (!workflow) {
-    return NextResponse.json(
-      { error: "Workflow not found." },
-      { status: 404 },
-    );
+    return workbenchError(meta, {
+      status: 404,
+      code: "not_found",
+      message: "Workflow not found.",
+    });
   }
   const run = buildRun(workflow);
   await saveWorkflowRun(run);
   await createArtifactItems(run);
-  return NextResponse.json({ run });
+  return workbenchJson(meta, { run });
 }

@@ -1,10 +1,10 @@
 // ── lib/ragRouter.ts ──────────────────────────────────────────────────────────
 // Keyword-first RAG router for Nexus Prime agent queries.
 //
-// Pattern: keyword domain match → assign tool strategy → add source credibility tag
-//
-// Inspired by advaitpaliwal's context-routing approach: route to the best data
-// source first, fall back to web search, always tag credibility.
+// v2 additions:
+//   - confidence score per route result (0–1 based on keyword hit density)
+//   - multi-domain retrieval when top route confidence < 0.4
+//   - two new domain routes: geopolitical + healthcare
 //
 // Usage (in OfficeCommandCenter send flow):
 //   import { routeQuery, buildRagContextBlock } from '@/lib/ragRouter'
@@ -21,23 +21,20 @@ export interface RagStrategy {
   rationale: string;
 }
 
+export interface RagRouteResult {
+  strategy: RagStrategy;
+  /** Hit count ÷ total keywords, clamped 0–1. ≥ 0.4 = confident single-domain pick. */
+  confidence: number;
+  /** How many keywords in the rule matched the query. */
+  hitCount: number;
+}
+
 // ── Routing table ─────────────────────────────────────────────────────────────
 const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
   {
     keywords: [
-      "bitcoin",
-      "btc",
-      "ethereum",
-      "eth",
-      "solana",
-      "sol",
-      "crypto",
-      "price",
-      "market cap",
-      "mempool",
-      "defi",
-      "yield",
-      "fear greed",
+      "bitcoin", "btc", "ethereum", "eth", "solana", "sol", "crypto",
+      "price", "market cap", "mempool", "defi", "yield", "fear greed",
       "fear & greed",
     ],
     strategy: {
@@ -51,19 +48,8 @@ const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
   },
   {
     keywords: [
-      "cve",
-      "exploit",
-      "vulnerability",
-      "zero-day",
-      "zero day",
-      "patch",
-      "ransomware",
-      "malware",
-      "threat actor",
-      "apt",
-      "cvss",
-      "nvd",
-      "otx",
+      "cve", "exploit", "vulnerability", "zero-day", "zero day", "patch",
+      "ransomware", "malware", "threat actor", "apt", "cvss", "nvd", "otx",
     ],
     strategy: {
       domain: "Cybersecurity / CVE",
@@ -76,17 +62,8 @@ const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
   },
   {
     keywords: [
-      "paper",
-      "arxiv",
-      "research",
-      "llm",
-      "transformer",
-      "diffusion",
-      "huggingface",
-      "model",
-      "benchmark",
-      "dataset",
-      "training",
+      "paper", "arxiv", "research", "llm", "transformer", "diffusion",
+      "huggingface", "model", "benchmark", "dataset", "training",
     ],
     strategy: {
       domain: "AI / ML Research",
@@ -99,15 +76,8 @@ const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
   },
   {
     keywords: [
-      "sec",
-      "filing",
-      "edgar",
-      "10-k",
-      "10-q",
-      "8-k",
-      "earnings",
-      "annual report",
-      "quarterly report",
+      "sec", "filing", "edgar", "10-k", "10-q", "8-k", "earnings",
+      "annual report", "quarterly report",
     ],
     strategy: {
       domain: "SEC Filings / EDGAR",
@@ -120,15 +90,8 @@ const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
   },
   {
     keywords: [
-      "weather",
-      "temperature",
-      "forecast",
-      "rain",
-      "wind",
-      "storm",
-      "hurricane",
-      "earthquake",
-      "seismic",
+      "weather", "temperature", "forecast", "rain", "wind", "storm",
+      "hurricane", "earthquake", "seismic",
     ],
     strategy: {
       domain: "Weather / Geophysical",
@@ -141,14 +104,8 @@ const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
   },
   {
     keywords: [
-      "reddit",
-      "community",
-      "sentiment",
-      "forum",
-      "discussion",
-      "opinion",
-      "trending",
-      "subreddit",
+      "reddit", "community", "sentiment", "forum", "discussion", "opinion",
+      "trending", "subreddit",
     ],
     strategy: {
       domain: "Social Sentiment / Reddit",
@@ -161,17 +118,8 @@ const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
   },
   {
     keywords: [
-      "github",
-      "repo",
-      "repository",
-      "open source",
-      "stars",
-      "fork",
-      "trending",
-      "library",
-      "package",
-      "npm",
-      "pypi",
+      "github", "repo", "repository", "open source", "stars", "fork",
+      "trending", "library", "package", "npm", "pypi",
     ],
     strategy: {
       domain: "GitHub / Open Source",
@@ -183,15 +131,7 @@ const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
     },
   },
   {
-    keywords: [
-      "rss",
-      "feed",
-      "blog",
-      "newsletter",
-      "substack",
-      "medium",
-      "article",
-    ],
+    keywords: ["rss", "feed", "blog", "newsletter", "substack", "medium", "article"],
     strategy: {
       domain: "RSS / Blog Feed",
       primaryTools: ["rss_fetch"],
@@ -203,19 +143,8 @@ const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
   },
   {
     keywords: [
-      "code",
-      "codebase",
-      "file",
-      "component",
-      "function",
-      "bug",
-      "error",
-      "typescript",
-      "react",
-      "next.js",
-      "route",
-      "store",
-      "hook",
+      "code", "codebase", "file", "component", "function", "bug", "error",
+      "typescript", "react", "next.js", "route", "store", "hook",
     ],
     strategy: {
       domain: "Project Codebase",
@@ -224,6 +153,37 @@ const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
       credibility: "HIGH",
       rationale:
         "Codebase queries: read the actual file before answering. Never answer from memory alone.",
+    },
+  },
+  // ── New routes (Block 3.6b) ──────────────────────────────────────────────────
+  {
+    keywords: [
+      "war", "conflict", "invasion", "ceasefire", "sanctions", "diplomacy",
+      "nato", "united nations", "un ", "geopolitics", "coup", "protest",
+      "occupation", "treaty", "foreign policy", "regime",
+    ],
+    strategy: {
+      domain: "Geopolitical / Conflict",
+      primaryTools: ["web_search"],
+      fallbackTools: ["fetch_url"],
+      credibility: "MEDIUM",
+      rationale:
+        "Geopolitical queries: web_search for current situation. Cross-reference NEXUS OPS live intel layer for conflict zones. Tag source credibility — news sources vary widely on conflict topics.",
+    },
+  },
+  {
+    keywords: [
+      "fda", "clinical trial", "pharma", "outbreak", "who ", "world health",
+      "vaccine", "pandemic", "epidemic", "disease", "pathogen", "drug approval",
+      "public health", "cdc", "nih",
+    ],
+    strategy: {
+      domain: "Healthcare / Public Health",
+      primaryTools: ["web_search"],
+      fallbackTools: ["fetch_url"],
+      credibility: "HIGH",
+      rationale:
+        "Health queries: web_search for current outbreaks or approvals. Prefer WHO, CDC, NIH as primary sources. Always cite the source URL.",
     },
   },
 ];
@@ -237,27 +197,95 @@ const DEFAULT_STRATEGY: RagStrategy = {
     "No specific domain detected — use web_search. Cite sources. Tag credibility per source.",
 };
 
-export function routeQuery(query: string): RagStrategy {
-  if (!query?.trim()) return DEFAULT_STRATEGY;
-  const q = query.toLowerCase();
-  for (const rule of ROUTING_RULES) {
-    if (rule.keywords.some((kw) => q.includes(kw))) return rule.strategy;
-  }
-  return DEFAULT_STRATEGY;
+// ── Confidence scoring ────────────────────────────────────────────────────────
+// confidence = matched keywords / total rule keywords, clamped to 1.
+// We scale by 3× so that even a single strong hit can hit ~0.4.
+function calcConfidence(hits: number, total: number): number {
+  if (total === 0 || hits === 0) return 0;
+  return Math.min(1, (hits / total) * 3);
 }
 
+// ── routeQuery ────────────────────────────────────────────────────────────────
+/**
+ * Returns the best-matched strategy plus a confidence score.
+ * When confidence < 0.4, the caller should consider multi-domain retrieval.
+ */
+export function routeQuery(query: string): RagRouteResult {
+  if (!query?.trim()) {
+    return { strategy: DEFAULT_STRATEGY, confidence: 0, hitCount: 0 };
+  }
+  const q = query.toLowerCase();
+
+  let bestHits = 0;
+  let bestRule: (typeof ROUTING_RULES)[0] | null = null;
+
+  for (const rule of ROUTING_RULES) {
+    const hits = rule.keywords.filter((kw) => q.includes(kw)).length;
+    if (hits > bestHits) {
+      bestHits = hits;
+      bestRule = rule;
+    }
+  }
+
+  if (!bestRule || bestHits === 0) {
+    return { strategy: DEFAULT_STRATEGY, confidence: 0, hitCount: 0 };
+  }
+
+  const confidence = calcConfidence(bestHits, bestRule.keywords.length);
+  return { strategy: bestRule.strategy, confidence, hitCount: bestHits };
+}
+
+// ── Multi-domain retrieval ────────────────────────────────────────────────────
+/**
+ * Returns up to N strategies ranked by hit count.
+ * Used when the top result confidence < 0.4 — include multiple strategy blocks.
+ */
+export function routeQueryMulti(query: string, topN = 3): RagRouteResult[] {
+  if (!query?.trim()) return [];
+  const q = query.toLowerCase();
+
+  return ROUTING_RULES
+    .map((rule) => {
+      const hits = rule.keywords.filter((kw) => q.includes(kw)).length;
+      return { strategy: rule.strategy, confidence: calcConfidence(hits, rule.keywords.length), hitCount: hits };
+    })
+    .filter((r) => r.hitCount > 0)
+    .sort((a, b) => b.confidence - a.confidence)
+    .slice(0, topN);
+}
+
+// ── buildRagContextBlock ──────────────────────────────────────────────────────
 export function buildRagContextBlock(query: string): string {
-  const s = routeQuery(query);
+  const result = routeQuery(query);
   const wordCount = query.trim().split(/\s+/).length;
 
-  // Short queries (< 8 words) get a compact one-liner hint to save tokens.
-  // Complex queries get the full block with rationale so agents can reason about sources.
+  // Low confidence → include top 2 domains so the agent can triangulate.
+  if (result.confidence < 0.4 && result.confidence > 0) {
+    const multi = routeQueryMulti(query, 2);
+    if (multi.length > 1) {
+      const lines = multi.map(
+        (r, i) =>
+          `${i + 1}. [${r.strategy.domain}] (confidence ${Math.round(r.confidence * 100)}%) — use ${r.strategy.primaryTools[0]}`,
+      );
+      return (
+        `\n\n[RAG ROUTING — MULTI-DOMAIN (low confidence)]\n` +
+        lines.join("\n") +
+        `\nCross-reference both domains. Cite sources.\n[END RAG ROUTING]\n`
+      );
+    }
+  }
+
+  const s = result.strategy;
+  const confPct = Math.round(result.confidence * 100);
+
+  // Short queries get a compact hint.
   if (wordCount < 8) {
-    return `\n[RAG: ${s.domain} — use ${s.primaryTools[0]}. Credibility: ${s.credibility}]\n`;
+    return `\n[RAG: ${s.domain} — use ${s.primaryTools[0]}. Credibility: ${s.credibility} · confidence ${confPct}%]\n`;
   }
 
   return (
     `\n\n[RAG ROUTING — ${s.domain}]\n` +
+    `Confidence: ${confPct}%\n` +
     `Primary tools: ${s.primaryTools.join(", ")}\n` +
     `Fallback tools: ${s.fallbackTools.join(", ")}\n` +
     `Source credibility expectation: [${s.credibility}]\n` +

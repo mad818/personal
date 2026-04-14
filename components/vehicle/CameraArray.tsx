@@ -1,39 +1,24 @@
 // ── components/vehicle/CameraArray ─────────────────────────
-// Multi-camera feed display: front, sides, rear with lens distortion correction.
+// Shared multi-camera feed display for the vehicle simulation source.
 
-"use client";
-// overlay effects for NV/Thermal/LiDAR, expandable to large view.
+"use client"
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useMemo, useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
+import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry"
+import type { VehicleCameraType } from "@/lib/vehicle/types"
 
-interface VehicleCamera {
-  id: string;
-  label: string;
-  type: "RGB" | "NV" | "Thermal" | "LiDAR" | "Wide" | "Rear";
-  status: "active" | "standby";
-}
-
-const CAMERAS: VehicleCamera[] = [
-  { id: "vc1", label: "Forward RGB", type: "RGB", status: "active" },
-  { id: "vc2", label: "Night Vision", type: "NV", status: "active" },
-  { id: "vc3", label: "Thermal", type: "Thermal", status: "active" },
-  { id: "vc4", label: "LiDAR", type: "LiDAR", status: "active" },
-  { id: "vc5", label: "Wide Angle", type: "Wide", status: "standby" },
-  { id: "vc6", label: "Rear", type: "Rear", status: "active" },
-];
-
-const TYPE_COLORS: Record<string, string> = {
+const TYPE_COLORS: Record<VehicleCameraType, string> = {
   RGB: "#10b981",
   NV: "#4ade80",
   Thermal: "#f59e0b",
   LiDAR: "#818cf8",
   Wide: "#60a5fa",
   Rear: "#a78bfa",
-};
+}
 
-function CameraOverlay({ type }: { type: VehicleCamera["type"] }) {
-  if (type === "NV")
+function CameraOverlay({ type }: { type: VehicleCameraType }) {
+  if (type === "NV") {
     return (
       <div
         style={{
@@ -45,8 +30,10 @@ function CameraOverlay({ type }: { type: VehicleCamera["type"] }) {
             "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(74,222,128,0.04) 3px, rgba(74,222,128,0.04) 6px)",
         }}
       />
-    );
-  if (type === "Thermal")
+    )
+  }
+
+  if (type === "Thermal") {
     return (
       <div
         style={{
@@ -57,8 +44,10 @@ function CameraOverlay({ type }: { type: VehicleCamera["type"] }) {
             "linear-gradient(160deg, rgba(59,130,246,0.1) 0%, rgba(245,158,11,0.1) 50%, rgba(239,68,68,0.14) 100%)",
         }}
       />
-    );
-  if (type === "LiDAR")
+    )
+  }
+
+  if (type === "LiDAR") {
     return (
       <div
         style={{
@@ -87,8 +76,10 @@ function CameraOverlay({ type }: { type: VehicleCamera["type"] }) {
           }}
         />
       </div>
-    );
-  if (type === "Wide")
+    )
+  }
+
+  if (type === "Wide") {
     return (
       <div
         style={{
@@ -99,15 +90,32 @@ function CameraOverlay({ type }: { type: VehicleCamera["type"] }) {
             "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.35) 100%)",
         }}
       />
-    );
-  return null;
+    )
+  }
+
+  return null
 }
 
 export default function CameraArray() {
-  const [active, setActive] = useState<string>("vc1");
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const { activeFrame } = useVehicleTelemetry()
+  const cameras = activeFrame.cameras
+  const [activeId, setActiveId] = useState<string>("")
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const expandedCam = expanded ? CAMERAS.find((c) => c.id === expanded) : null;
+  useEffect(() => {
+    if (!cameras.length) return
+    if (!cameras.some((camera) => camera.id === activeId)) {
+      setActiveId(cameras[0].id)
+    }
+  }, [activeId, cameras])
+
+  const activeCamera = useMemo(
+    () => cameras.find((camera) => camera.id === activeId) ?? cameras[0],
+    [activeId, cameras],
+  )
+  const expandedCamera = expandedId
+    ? cameras.find((camera) => camera.id === expandedId) ?? null
+    : null
 
   return (
     <div>
@@ -122,10 +130,9 @@ export default function CameraArray() {
         }}
       >
         Multi-Spectrum Camera Array —{" "}
-        {CAMERAS.filter((c) => c.status === "active").length} Active
+        {cameras.filter((camera) => camera.status === "active").length} Active
       </div>
 
-      {/* Horizontal camera strip */}
       <div
         style={{
           display: "grid",
@@ -133,14 +140,14 @@ export default function CameraArray() {
           gap: "8px",
         }}
       >
-        {CAMERAS.map((cam) => {
-          const isActive = cam.id === active;
+        {cameras.map((camera) => {
+          const isActive = camera.id === activeId
           return (
             <div
-              key={cam.id}
+              key={camera.id}
               onClick={() => {
-                setActive(cam.id);
-                setExpanded(cam.id);
+                setActiveId(camera.id)
+                setExpandedId(camera.id)
               }}
               style={{
                 position: "relative",
@@ -149,15 +156,12 @@ export default function CameraArray() {
                 borderRadius: "var(--rs)",
                 overflow: "hidden",
                 cursor: "pointer",
-                boxShadow: isActive
-                  ? "0 0 10px 2px rgba(196,72,90,0.3)"
-                  : "none",
-                transition: "box-shadow 0.2s, border-color 0.2s",
+                boxShadow: isActive ? "0 0 10px 2px rgba(196,72,90,0.3)" : "none",
+                transition: "box-shadow var(--t), border-color var(--t)",
               }}
             >
-              <CameraOverlay type={cam.type} />
+              <CameraOverlay type={camera.type} />
 
-              {/* Feed area */}
               <div
                 style={{
                   height: "80px",
@@ -167,12 +171,22 @@ export default function CameraArray() {
                   justifyContent: "center",
                   position: "relative",
                   zIndex: 1,
+                  opacity: camera.status === "offline" ? 0.45 : 1,
                 }}
               >
                 <span style={{ fontSize: "18px", opacity: 0.3 }}>📹</span>
+                <span
+                  style={{
+                    fontSize: "8px",
+                    color: "var(--text3)",
+                    marginTop: "4px",
+                    fontFamily: "monospace",
+                  }}
+                >
+                  {camera.status === "offline" ? "offline" : `${camera.fps} fps`}
+                </span>
               </div>
 
-              {/* Status dot */}
               <div
                 style={{
                   position: "absolute",
@@ -186,13 +200,17 @@ export default function CameraArray() {
                     width: "5px",
                     height: "5px",
                     borderRadius: "50%",
-                    background: cam.status === "active" ? "#10b981" : "#6b7280",
+                    background:
+                      camera.status === "active"
+                        ? "#10b981"
+                        : camera.status === "standby"
+                          ? "#f59e0b"
+                          : "#6b7280",
                     display: "inline-block",
                   }}
                 />
               </div>
 
-              {/* Label bar */}
               <div
                 style={{
                   padding: "4px 5px",
@@ -206,13 +224,13 @@ export default function CameraArray() {
                   style={{
                     fontSize: "8px",
                     fontWeight: 700,
-                    color: TYPE_COLORS[cam.type],
+                    color: TYPE_COLORS[camera.type],
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {cam.type}
+                  {camera.type}
                 </div>
                 <div
                   style={{
@@ -223,51 +241,47 @@ export default function CameraArray() {
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {cam.label}
+                  {camera.label}
                 </div>
               </div>
             </div>
-          );
+          )
         })}
       </div>
 
-      {/* Currently active indicator */}
-      <div
-        style={{
-          marginTop: "8px",
-          display: "flex",
-          gap: "6px",
-          alignItems: "center",
-        }}
-      >
-        <span style={{ fontSize: "9px", color: "var(--text3)" }}>Active:</span>
-        <span
-          style={{ fontSize: "10px", fontWeight: 700, color: "var(--text2)" }}
-        >
-          {CAMERAS.find((c) => c.id === active)?.label}
-        </span>
-        <span
+      {activeCamera ? (
+        <div
           style={{
-            fontSize: "9px",
-            padding: "1px 6px",
-            borderRadius: "3px",
-            background: `${TYPE_COLORS[CAMERAS.find((c) => c.id === active)?.type ?? "RGB"]}22`,
-            color:
-              TYPE_COLORS[CAMERAS.find((c) => c.id === active)?.type ?? "RGB"],
+            marginTop: "8px",
+            display: "flex",
+            gap: "6px",
+            alignItems: "center",
+            flexWrap: "wrap",
           }}
         >
-          {CAMERAS.find((c) => c.id === active)?.type}
-        </span>
-        <span
-          style={{ marginLeft: "auto", fontSize: "9px", color: "var(--text3)" }}
-        >
-          Click any feed to expand
-        </span>
-      </div>
+          <span style={{ fontSize: "9px", color: "var(--text3)" }}>Active:</span>
+          <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--text2)" }}>
+            {activeCamera.label}
+          </span>
+          <span
+            style={{
+              fontSize: "9px",
+              padding: "1px 6px",
+              borderRadius: "3px",
+              background: `${TYPE_COLORS[activeCamera.type]}22`,
+              color: TYPE_COLORS[activeCamera.type],
+            }}
+          >
+            {activeCamera.type}
+          </span>
+          <span style={{ fontSize: "9px", color: "var(--text3)", marginLeft: "auto" }}>
+            {activeCamera.resolution} · {activeCamera.status}
+          </span>
+        </div>
+      ) : null}
 
-      {/* Fullscreen modal */}
       <AnimatePresence>
-        {expanded && expandedCam && (
+        {expandedCamera ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -282,21 +296,21 @@ export default function CameraArray() {
               alignItems: "center",
               justifyContent: "center",
             }}
-            onClick={() => setExpanded(null)}
+            onClick={() => setExpandedId(null)}
           >
             <motion.div
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
               style={{
                 background: "#060405",
-                border: `1px solid ${TYPE_COLORS[expandedCam.type]}`,
+                border: `1px solid ${TYPE_COLORS[expandedCamera.type]}`,
                 borderRadius: "var(--r)",
                 width: "80vw",
                 maxWidth: "900px",
                 overflow: "hidden",
-                boxShadow: `0 0 30px 5px ${TYPE_COLORS[expandedCam.type]}33`,
+                boxShadow: `0 0 30px 5px ${TYPE_COLORS[expandedCamera.type]}33`,
               }}
             >
               <div
@@ -305,7 +319,7 @@ export default function CameraArray() {
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
-                  borderBottom: `1px solid ${TYPE_COLORS[expandedCam.type]}44`,
+                  borderBottom: `1px solid ${TYPE_COLORS[expandedCamera.type]}44`,
                 }}
               >
                 <span
@@ -315,7 +329,7 @@ export default function CameraArray() {
                     color: "var(--text)",
                   }}
                 >
-                  {expandedCam.label}
+                  {expandedCamera.label}
                 </span>
                 <span
                   style={{
@@ -323,14 +337,14 @@ export default function CameraArray() {
                     fontWeight: 700,
                     padding: "1px 8px",
                     borderRadius: "4px",
-                    background: `${TYPE_COLORS[expandedCam.type]}22`,
-                    color: TYPE_COLORS[expandedCam.type],
+                    background: `${TYPE_COLORS[expandedCamera.type]}22`,
+                    color: TYPE_COLORS[expandedCamera.type],
                   }}
                 >
-                  {expandedCam.type}
+                  {expandedCamera.type}
                 </span>
                 <button
-                  onClick={() => setExpanded(null)}
+                  onClick={() => setExpandedId(null)}
                   style={{
                     marginLeft: "auto",
                     background: "transparent",
@@ -354,7 +368,7 @@ export default function CameraArray() {
                   gap: "12px",
                 }}
               >
-                <CameraOverlay type={expandedCam.type} />
+                <CameraOverlay type={expandedCamera.type} />
                 <span
                   style={{
                     fontSize: "52px",
@@ -373,7 +387,7 @@ export default function CameraArray() {
                     zIndex: 1,
                   }}
                 >
-                  {expandedCam.label} — Live Feed
+                  {expandedCamera.label} — {expandedCamera.status}
                 </span>
                 <span
                   style={{
@@ -384,13 +398,13 @@ export default function CameraArray() {
                     zIndex: 1,
                   }}
                 >
-                  1920×1080 · 30fps
+                  {expandedCamera.resolution} · {expandedCamera.fps}fps
                 </span>
               </div>
             </motion.div>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </div>
-  );
+  )
 }

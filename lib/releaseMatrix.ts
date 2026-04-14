@@ -5,7 +5,10 @@ import type { NetworkMode, RouteClass } from "@/lib/security/routePolicy";
 export type SurfaceTier = "ga" | "beta" | "internal";
 export type SurfaceKind = "tab" | "support";
 export type DeploymentTrack = "web" | "desktop";
-export type ConnectorAccess = "free_public" | "byok_optional" | "byok_required";
+export type ConnectorAccess =
+  | "free_public"
+  | "free_tier_optional"
+  | "paid_optional_hidden";
 export type DeploymentProfile = "local-dev" | "web-self-hosted" | "desktop-secure";
 export type BuildChannel = "dev" | "preview" | "release";
 
@@ -14,11 +17,14 @@ export interface ReleaseDefaults {
   canonicalDeploymentLane: "dual-track" | "web-first" | "desktop-first";
   defaultDeploymentProfile: DeploymentProfile;
   defaultBuildChannel: BuildChannel;
+  defaultEntrypoint: string;
+  uiShellVersion: string;
 }
 
 export interface ProductSurface {
   id: string;
   href: string;
+  aliases?: string[];
   label: string;
   tier: SurfaceTier;
   kind: SurfaceKind;
@@ -49,8 +55,38 @@ export const RELEASE_DEFAULTS = RELEASE_MATRIX.releaseDefaults;
 export const PRODUCT_SURFACES = RELEASE_MATRIX.surfaces;
 export const CONNECTOR_METADATA = RELEASE_MATRIX.connectors;
 
+const SURFACE_PATH_INDEX = new Map<string, ProductSurface>(
+  PRODUCT_SURFACES.flatMap((surface) => [
+    [surface.href, surface],
+    ...(surface.aliases ?? []).map((alias) => [alias, surface] as const),
+  ]),
+);
+
 export function getNavProductSurfaces(): ProductSurface[] {
   return PRODUCT_SURFACES.filter((surface) => surface.inNav && surface.tier === "ga");
+}
+
+export function getDefaultEntrypoint() {
+  return RELEASE_DEFAULTS.defaultEntrypoint;
+}
+
+export function findSurfaceByPath(pathname?: string | null): ProductSurface | null {
+  if (!pathname) return null;
+  return SURFACE_PATH_INDEX.get(pathname) ?? null;
+}
+
+export function normalizeSurfaceHref(pathname?: string | null) {
+  return findSurfaceByPath(pathname)?.href ?? pathname ?? RELEASE_DEFAULTS.defaultEntrypoint;
+}
+
+export function listSurfaceAliases() {
+  return PRODUCT_SURFACES.flatMap((surface) =>
+    (surface.aliases ?? []).map((alias) => ({
+      alias,
+      canonicalHref: surface.href,
+      id: surface.id,
+    })),
+  );
 }
 
 export function summarizeSurfaceTiers() {
@@ -129,9 +165,7 @@ export function summarizeConnectorReadiness(
       status = "blocked_by_mode";
     } else if (!enabledByPolicy) {
       status = "disabled_by_policy";
-    } else if (connector.access === "byok_required" && !keyConfigured) {
-      status = "needs_key";
-    } else if (connector.access === "byok_optional" && !keyConfigured) {
+    } else if (connector.access !== "free_public" && !keyConfigured) {
       status = "ready_limited";
     }
 
@@ -156,7 +190,12 @@ export function summarizeConnectorReadiness(
       blockedByMode: items.filter((item) => item.status === "blocked_by_mode").length,
       needsKey: items.filter((item) => item.status === "needs_key").length,
       freePublic: items.filter((item) => item.access === "free_public").length,
-      byokOptional: items.filter((item) => item.access === "byok_optional").length,
+      freeTierOptional: items.filter(
+        (item) => item.access === "free_tier_optional",
+      ).length,
+      paidOptionalHidden: items.filter(
+        (item) => item.access === "paid_optional_hidden",
+      ).length,
     },
     items,
   };

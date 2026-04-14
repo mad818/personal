@@ -2,6 +2,7 @@
 // Commodities API: real-time prices for oil, gold, metals via YFinance.
 
 import { NextResponse } from "next/server";
+import { getRuntimeEnvValue } from "@/lib/serverEnvRuntime";
 // Precious metals + copper: metals.live (free, no key, real-time spot prices)
 // Energy (WTI crude, nat gas): FRED API if FRED_KEY is set
 //
@@ -95,7 +96,7 @@ async function fetchEnergyFromFRED(fredKey: string) {
 }
 
 export async function GET() {
-  const fredKey = process.env.FRED_KEY ?? "";
+  const fredKey = await getRuntimeEnvValue("FRED_KEY");
 
   try {
     // Fetch metals (always available)
@@ -136,9 +137,15 @@ export async function GET() {
       }));
     }
 
-    return NextResponse.json({ quotes: [...metalQuotes, ...energyQuotes] });
+    return NextResponse.json({
+      energyConfigured: Boolean(fredKey),
+      quotes: [...metalQuotes, ...energyQuotes],
+    });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown";
-    return NextResponse.json({ error: msg, quotes: [] }, { status: 200 });
+    return NextResponse.json(
+      { error: msg, energyConfigured: Boolean(fredKey), quotes: [] },
+      { status: 200 },
+    );
   }
 }

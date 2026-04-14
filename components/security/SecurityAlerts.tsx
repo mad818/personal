@@ -7,7 +7,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiFetch } from "@/lib/apiFetch";
+import { readConnectorMeta, type ConnectorMeta } from "@/lib/connectorMeta";
 import { useStore } from "@/store/useStore";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 type DetectionType = "Person" | "Vehicle" | "Animal" | "Unknown" | "WEATHER";
 type FilterType = "All" | "Person" | "Vehicle" | "Motion";
@@ -25,6 +28,7 @@ interface Alert {
 }
 
 interface WeatherData {
+  meta?: ConnectorMeta;
   current?: {
     temperature_2m?: number;
     wind_speed_10m?: number;
@@ -189,28 +193,49 @@ export default function SecurityAlerts() {
   const [weatherAlerts, setWeatherAlerts] = useState<Alert[]>([]);
   const [filter, setFilter] = useState<FilterType>("All");
   const [localWeather, setLocalWeather] = useState<WeatherData | null>(null);
+  const { internetReachable } = useInternetAvailability();
 
-  // Read from Zustand store
-  const storeWeather = useStore(
-    (s) => ((s as any).weather as WeatherData | null) ?? null,
-  );
-  const storeSecurityAlerts = useStore(
-    (s) => ((s as any).securityAlerts as any[]) ?? [],
-  );
+  // Cast store's WeatherData to the local type — it's a structurally compatible subset.
+  const storeWeather = useStore((s) => s.weather as WeatherData | null ?? null);
+  const storeSecurityAlerts = useStore((s) => s.securityAlerts);
+  const weatherStatus = useStore((s) => s.feedStatus.weather);
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus);
 
   const weather = storeWeather ?? localWeather;
+  const weatherMeta = weather ? readConnectorMeta(weather) : null;
+  const weatherWarnings = weatherMeta?.warnings ?? [];
+  const lastFailureIsNewest =
+    Boolean(weatherStatus.lastFailureAt) &&
+    (weatherStatus.lastSuccessAt === null ||
+      (weatherStatus.lastFailureAt ?? 0) > (weatherStatus.lastSuccessAt ?? 0));
 
   // Fallback: fetch weather locally if store doesn't have it
   useEffect(() => {
-    if (!storeWeather && !localWeather) {
-      apiFetch("/api/weather?lat=34.05&lon=-118.24")
-        .then((r) => r.json())
-        .then((d: WeatherData) => setLocalWeather(d))
-        .catch(() => {
-          /* graceful fail */
+    if (!internetReachable || storeWeather || localWeather) return;
+    updateFeedStatus("weather", {
+      lastAttemptAt: Date.now(),
+      lastError: null,
+    });
+    apiFetch("/api/weather?lat=34.05&lon=-118.24")
+      .then((r) => r.json())
+      .then((d: WeatherData) => {
+        setLocalWeather(d);
+        const connectorMeta = readConnectorMeta(d);
+        const successAt = connectorMeta?.generatedAt
+          ? new Date(connectorMeta.generatedAt).getTime()
+          : Date.now();
+        updateFeedStatus("weather", {
+          lastSuccessAt: successAt,
+          lastError: connectorMeta?.warnings?.[0] ?? null,
         });
-    }
-  }, [storeWeather, localWeather]); // eslint-disable-line react-hooks/exhaustive-deps
+      })
+      .catch(() => {
+        updateFeedStatus("weather", {
+          lastFailureAt: Date.now(),
+          lastError: "Could not fetch weather.",
+        });
+      });
+  }, [internetReachable, storeWeather, localWeather, updateFeedStatus]);
 
   // Build weather-based alerts whenever weather data changes
   useEffect(() => {
@@ -292,10 +317,32 @@ export default function SecurityAlerts() {
               fontSize: "9px",
               fontWeight: 700,
             }}
-          >
-            {weatherAlerts.filter((a) => !a.acknowledged).length} weather
+        >
+          {weatherAlerts.filter((a) => !a.acknowledged).length} weather
           </span>
         )}
+        {weatherWarnings.length > 0 && (
+          <span
+            style={{
+              marginLeft: "8px",
+              padding: "1px 6px",
+              borderRadius: "4px",
+              background: "#f59e0b22",
+              color: "#f59e0b",
+              fontSize: "9px",
+              fontWeight: 700,
+            }}
+          >
+            weather degraded
+          </span>
+        )}
+        <span style={{ marginLeft: "auto" }}>
+          <FeedStatusPill
+            label="Weather"
+            status={weatherStatus}
+            internetReachable={internetReachable}
+          />
+        </span>
       </div>
 
       {/* Filter bar */}
@@ -336,6 +383,59 @@ export default function SecurityAlerts() {
           {allAlerts.filter((a) => !a.acknowledged).length} unread
         </span>
       </div>
+
+      {weatherWarnings.length > 0 && (
+        <div
+          style={{
+            marginBottom: "10px",
+            padding: "8px 10px",
+            background: "rgba(245, 158, 11, 0.08)",
+            border: "1px solid rgba(245, 158, 11, 0.25)",
+            borderRadius: "8px",
+            fontSize: "10px",
+            color: "#fbbf24",
+            lineHeight: 1.45,
+          }}
+        >
+          {weatherWarnings[0]}
+        </div>
+      )}
+
+      {!internetReachable && weatherStatus.lastSuccessAt !== null && (
+        <div
+          style={{
+            marginBottom: "10px",
+            padding: "8px 10px",
+            background: "rgba(104, 117, 160, 0.1)",
+            border: "1px solid rgba(104, 117, 160, 0.25)",
+            borderRadius: "8px",
+            fontSize: "10px",
+            color: "var(--text3)",
+            lineHeight: 1.45,
+          }}
+        >
+          Browser offline — weather-triggered alerts are based on the last good
+          local weather snapshot.
+        </div>
+      )}
+
+      {internetReachable && lastFailureIsNewest && weatherStatus.lastSuccessAt !== null && (
+        <div
+          style={{
+            marginBottom: "10px",
+            padding: "8px 10px",
+            background: "rgba(104, 117, 160, 0.1)",
+            border: "1px solid rgba(104, 117, 160, 0.25)",
+            borderRadius: "8px",
+            fontSize: "10px",
+            color: "var(--text3)",
+            lineHeight: 1.45,
+          }}
+        >
+          Latest weather refresh failed — keeping the last good local weather
+          state for alert generation.
+        </div>
+      )}
 
       {/* Alert list */}
       <div

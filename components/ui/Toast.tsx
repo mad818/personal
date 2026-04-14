@@ -11,6 +11,7 @@ import {
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SEVERITY_COLORS } from "@/lib/notifications";
+import { resolveSurfaceSignalMotionSpec } from "@/lib/surfaceMotion";
 import type { NotificationSeverity } from "@/store/useStore";
 
 // ── Toast types ────────────────────────────────────────────────────────────────
@@ -55,6 +56,7 @@ function ToastCard({
   const duration = item.duration ?? 5000;
   const startRef = useRef(Date.now());
   const pausedRef = useRef(false);
+  const signalSpec = resolveSurfaceSignalMotionSpec("hq");
 
   // Progress bar countdown
   useEffect(() => {
@@ -90,21 +92,21 @@ function ToastCard({
   return (
     <motion.div
       layout
-      initial={{ x: 100, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 100, opacity: 0, height: 0, marginBottom: 0 }}
-      transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+      initial={{ x: 18, y: 10, opacity: 0, scale: 0.985, filter: "blur(8px)" }}
+      animate={{ x: 0, y: 0, opacity: 1, scale: 1, filter: "blur(0px)" }}
+      exit={{ x: 14, y: -6, opacity: 0, scale: 1.01, height: 0, marginBottom: 0, filter: "blur(5px)" }}
+      transition={{ duration: signalSpec.toastMs / 1000, ease: [0.22, 1, 0.36, 1] }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
         position: "relative",
         width: "300px",
-        background: "rgba(14, 10, 11, 0.96)",
+        background: "linear-gradient(180deg, rgba(14, 10, 11, 0.96), rgba(9,7,8,0.99))",
         border: `1px solid rgba(58,46,43,0.8)`,
         borderLeft: `3px solid ${borderColor}`,
-        borderRadius: "10px",
+        borderRadius: "6px",
         padding: "12px 14px 14px",
-        boxShadow: `0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.3)`,
+        boxShadow: `0 14px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)`,
         backdropFilter: "blur(16px)",
         overflow: "hidden",
         cursor: "default",

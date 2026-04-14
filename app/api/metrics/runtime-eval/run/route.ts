@@ -1,7 +1,9 @@
-import { NextResponse } from "next/server";
 import { spawn } from "child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
+import { runForecastEvalRecord } from "@/lib/forecastingRunner";
+import { protectedJson } from "@/lib/protectedApi";
+import { runSchedulerEfficiencyRecord } from "@/lib/schedulerEfficiencyRunner";
 
 type RunnerState = {
   lastRunAt?: string;
@@ -89,7 +91,7 @@ export async function POST(req: Request) {
     const nextEligibleAt = new Date(
       lastRunMs + effectiveCooldownMin * 60000,
     ).toISOString();
-    return NextResponse.json({
+    return protectedJson({
       ok: true,
       skipped: true,
       reason: `Cooldown active (${effectiveCooldownMin}m)`,
@@ -100,42 +102,53 @@ export async function POST(req: Request) {
     });
   }
 
+  const schedulerRun = await runSchedulerEfficiencyRecord(force);
+  const forecastRun = await runForecastEvalRecord(force);
   const r = await runCommand(
     "npm",
     ["run", "eval:agent-runtime:record"],
     300_000,
   );
-  const nextFailureStreak = r.ok ? 0 : Math.min(priorFailureStreak + 1, 8);
+  const combinedOk = r.ok && schedulerRun.ok && forecastRun.ok;
+  const nextFailureStreak = combinedOk
+    ? 0
+    : Math.min(priorFailureStreak + 1, 8);
   const nextEffectiveCooldownMin = Math.min(
     24 * 60,
     baseCooldownMin * Math.max(1, 2 ** nextFailureStreak),
   );
-  const summary = r.ok
-    ? "Recorded runtime eval successfully"
-    : `Runtime eval failed: ${r.output.slice(0, 120)}`;
+  const summary = combinedOk
+    ? "Recorded runtime, scheduler, and forecast eval successfully"
+    : !r.ok
+      ? `Runtime eval failed: ${r.output.slice(0, 120)}`
+      : !schedulerRun.ok
+        ? `Scheduler efficiency failed: ${schedulerRun.output.slice(0, 120)}`
+      : `Forecast eval failed: ${forecastRun.output.slice(0, 120)}`;
   const nextEligibleAt = new Date(
     Date.now() + nextEffectiveCooldownMin * 60000,
   ).toISOString();
   writeRunnerState({
     lastRunAt: new Date().toISOString(),
-    lastOk: r.ok,
+    lastOk: combinedOk,
     lastSummary: summary,
     cooldownMin: baseCooldownMin,
     effectiveCooldownMin: nextEffectiveCooldownMin,
     nextEligibleAt,
     failureStreak: nextFailureStreak,
   });
-  return NextResponse.json(
+  return protectedJson(
     {
-      ok: r.ok,
+      ok: combinedOk,
       skipped: false,
       command: "npm run eval:agent-runtime:record",
       output: r.output,
+      schedulerEfficiency: schedulerRun,
+      forecast: forecastRun,
       cooldownMin: baseCooldownMin,
       effectiveCooldownMin: nextEffectiveCooldownMin,
       failureStreak: nextFailureStreak,
       nextEligibleAt,
     },
-    { status: r.ok ? 200 : 500 },
+    { status: combinedOk ? 200 : 500 },
   );
 }

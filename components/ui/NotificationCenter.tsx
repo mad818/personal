@@ -7,7 +7,7 @@ import type { Notification } from "@/store/useStore";
 import { SEVERITY_COLORS, TYPE_ICONS } from "@/lib/notifications";
 
 // ── Filter types ───────────────────────────────────────────────────────────────
-type Filter = "all" | "critical" | "threats" | "market" | "system";
+type Filter = "all" | "critical" | "threats" | "market" | "system" | "intel";
 
 interface Props {
   open: boolean;
@@ -51,6 +51,7 @@ function filterNotifications(
   if (f === "threats") return notifs.filter((n) => n.type === "threat");
   if (f === "market") return notifs.filter((n) => n.type === "market");
   if (f === "system") return notifs.filter((n) => n.type === "system");
+  if (f === "intel")  return notifs.filter((n) => n.type === "intel");
   return notifs;
 }
 
@@ -89,7 +90,7 @@ function NotifCard({
             : "rgba(28,20,18,0.75)",
         border: `1px solid ${hovered ? "rgba(196,72,90,0.12)" : "rgba(58,46,43,0.6)"}`,
         cursor: "pointer",
-        transition: "background 0.15s, border 0.15s",
+        transition: "background var(--t), border var(--t)",
         borderLeft: `3px solid ${borderColor}`,
         marginBottom: "4px",
       }}
@@ -199,7 +200,7 @@ function NotifCard({
           lineHeight: 1,
           padding: "0 2px",
           flexShrink: 0,
-          transition: "color 0.15s",
+          transition: "color var(--t)",
           alignSelf: "flex-start",
           marginTop: "1px",
         }}
@@ -246,6 +247,7 @@ export default function NotificationCenter({ open, onClose }: Props) {
     { key: "threats", label: "Threats" },
     { key: "market", label: "Market" },
     { key: "system", label: "System" },
+    { key: "intel",  label: "Intel" },
   ];
 
   useEffect(() => {

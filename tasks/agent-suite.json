@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "description": "Canonical regression suite — 2 scenarios per agent. Must not regress below 80% pass rate.",
+  "passThreshold": 0.8,
+  "scenarios": [
+    {
+      "id": "orbit-001",
+      "agent": "orbit",
+      "query": "What function should I use for all AI calls in this codebase, and where does it live?",
+      "requiredKeywords": ["callAI", "streamAI", "lib/ai.ts"],
+      "requiredStructure": "references callAI or streamAI and lib/ai.ts"
+    },
+    {
+      "id": "orbit-002",
+      "agent": "orbit",
+      "query": "How should I format a price number in Nexus Prime? What function do I use?",
+      "requiredKeywords": ["fmtPrice", "lib/helpers.ts"],
+      "requiredStructure": "references fmtPrice and helpers.ts"
+    },
+    {
+      "id": "flux-001",
+      "agent": "flux",
+      "query": "Fear & Greed is at 12. What does this signal for market positioning?",
+      "requiredKeywords": ["fear", "extreme", "contrarian"],
+      "requiredStructure": "gives directional market analysis"
+    },
+    {
+      "id": "flux-002",
+      "agent": "flux",
+      "query": "Give me a bull, base, and bear scenario for BTC at current levels.",
+      "requiredKeywords": ["bull", "base", "bear"],
+      "requiredStructure": "three distinct scenarios"
+    },
+    {
+      "id": "cipher-001",
+      "agent": "cipher",
+      "query": "A CVE with CVSS 9.8 affects Apache HTTP Server. What is the triage priority?",
+      "requiredKeywords": ["critical", "CVSS", "priority", "patch"],
+      "requiredStructure": "assigns priority and action"
+    },
+    {
+      "id": "cipher-002",
+      "agent": "cipher",
+      "query": "What is the difference between CVSS severity and exploitability score?",
+      "requiredKeywords": ["CVSS", "severity", "exploitability"],
+      "requiredStructure": "distinguishes severity from exploitability"
+    },
+    {
+      "id": "nova-001",
+      "agent": "nova",
+      "query": "Summarize the current state of AI regulation in the EU in 3 bullet points.",
+      "requiredKeywords": ["EU", "regulation", "AI"],
+      "requiredStructure": "structured summary with key points"
+    },
+    {
+      "id": "nova-002",
+      "agent": "nova",
+      "query": "Compare Groq and Cerebras inference speeds for LLM workloads.",
+      "requiredKeywords": ["Groq", "Cerebras", "inference"],
+      "requiredStructure": "comparison with both providers mentioned"
+    },
+    {
+      "id": "jansky-001",
+      "agent": "jansky",
+      "query": "Break down this task into steps: Add a new data card to the COMMAND tab showing world risk score.",
+      "requiredKeywords": ["step", "component", "store"],
+      "requiredStructure": "numbered or phased breakdown"
+    },
+    {
+      "id": "jansky-002",
+      "agent": "jansky",
+      "query": "What are the risks of modifying the Zustand store in Nexus Prime?",
+      "requiredKeywords": ["persist", "store", "state"],
+      "requiredStructure": "identifies at least 2 specific risks"
+    }
+  ]
+}

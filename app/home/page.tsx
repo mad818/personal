@@ -1,6 +1,7 @@
 // ── home/page ───────────────────────────────────────────────
 // Home page: landing view with ambient charts and navigation.
 
+import dynamic from "next/dynamic";
 import OfficeCommandCenter from "@/components/home/office/OfficeCommandCenter";
 import { ShellStage } from "@/components/ui/shell";
 import {
@@ -10,6 +11,11 @@ import {
   CVEsLoader,
   WorldRiskLoader,
 } from "@/components/ui/DataLoader";
+import UIRulesEvaluator from "@/components/home/UIRulesEvaluator";
+
+const DynamicAlerts = dynamic(() => import("@/components/home/DynamicAlerts").then(m => ({ default: m.DynamicAlerts })), {
+  ssr: false,
+});
 
 export default function HomePage() {
   return (
@@ -19,6 +25,8 @@ export default function HomePage() {
       <ArticlesLoader />
       <CVEsLoader />
       <WorldRiskLoader />
+      <UIRulesEvaluator />
+      <DynamicAlerts />
       <OfficeCommandCenter />
     </ShellStage>
   );

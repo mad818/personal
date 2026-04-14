@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { spawn } from "child_process";
+import { protectedJson } from "@/lib/protectedApi";
 
 type VerificationAdapter =
   | "typecheck"
   | "lint"
   | "route_smoke"
+  | "route_integrity"
   | "release_smoke";
 
 type AdapterResult = {
@@ -111,6 +113,7 @@ export async function POST(req: NextRequest) {
         a === "typecheck" ||
         a === "lint" ||
         a === "route_smoke" ||
+        a === "route_integrity" ||
         a === "release_smoke",
     );
 
@@ -147,6 +150,17 @@ export async function POST(req: NextRequest) {
         results.push(await checkRouteSmoke(req));
         continue;
       }
+      if (adapter === "route_integrity") {
+        const r = await runCommand("npm", ["run", "route:integrity"], 120000);
+        results.push({
+          adapter,
+          passed: r.ok,
+          summary: r.ok
+            ? "Route integrity passed"
+            : `Route integrity failed: ${r.output || "unknown error"}`,
+        });
+        continue;
+      }
       if (adapter === "release_smoke") {
         const r = await runCommand("npm", ["run", "release:smoke"], 180000);
         results.push({
@@ -163,9 +177,9 @@ export async function POST(req: NextRequest) {
       ok: results.every((r) => r.passed),
       adapters: results,
     };
-    return NextResponse.json(payload);
+    return protectedJson(payload);
   } catch (err) {
-    return NextResponse.json(
+    return protectedJson(
       {
         ok: false,
         adapters: [

@@ -42,9 +42,11 @@ function guessCatFromTitle(title: string): string {
 }
 
 export function useArticles() {
-  const setArticles  = useStore((s) => s.setArticles)
+  const setArticles       = useStore((s) => s.setArticles)
   const setArticlesLoaded = useStore((s) => s.setArticlesLoaded)
-  const guardianKey  = useStore((s) => s.settings.guardianKey)
+  const updateFeedStatus  = useStore((s) => s.updateFeedStatus)
+  const alertKeywords     = useStore((s) => s.settings.alertKeywords)
+  const addNotification   = useStore((s) => s.addNotification)
 
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
@@ -52,6 +54,7 @@ export function useArticles() {
   const fetchArticles = useCallback(async () => {
     setLoading(true)
     setError('')
+    updateFeedStatus('articles', { lastAttemptAt: Date.now() })
     try {
       const articles: Article[] = []
 
@@ -100,41 +103,54 @@ export function useArticles() {
         } catch { /* silent */ }
       }
 
-      // ── 3. Guardian (key required, highest quality — adds on top) ────────────
-      if (guardianKey) {
-        try {
-          const url = `https://content.guardianapis.com/search?q=crypto+finance+markets&api-key=${guardianKey}&show-fields=trailText&page-size=20&order-by=newest`
-          const r   = await fetch(url, { signal: AbortSignal.timeout(8000) })
-          const d   = await r.json()
-          ;(d?.response?.results ?? []).forEach((a: any) => {
-            const title = a.webTitle ?? ''
-            const desc  = a.fields?.trailText ?? ''
-            if (!articles.find((x) => x.title === title)) {
-              articles.push({
-                id:   stableArticleId('guardian', title, a.webUrl ?? ''),
-                title, desc,
-                link: a.webUrl ?? '',
-                date: a.webPublicationDate ?? '',
-                bias: detectBias(title + ' ' + desc),
-                src:  'The Guardian',
-              })
-            }
-          })
-        } catch { /* silent */ }
-      }
-
       if (articles.length > 0) {
+        // ── Keyword alert engine ─────────────────────────────────────────────
+        // Fire one notification per matching keyword (first article hit only).
+        const keywords = alertKeywords
+          .split(',')
+          .map((k) => k.trim().toLowerCase())
+          .filter(Boolean)
+        if (keywords.length > 0) {
+          const fired = new Set<string>()
+          for (const article of articles) {
+            const titleLow = article.title.toLowerCase()
+            for (const kw of keywords) {
+              if (!fired.has(kw) && titleLow.includes(kw)) {
+                fired.add(kw)
+                addNotification({
+                  type:     'intel',
+                  severity: 'medium',
+                  title:    `Alert: "${kw}"`,
+                  message:  article.title,
+                  source:   article.src ?? 'News',
+                })
+              }
+            }
+          }
+        }
         setArticles(articles)
+        updateFeedStatus('articles', {
+          lastSuccessAt: Date.now(),
+          lastError: null,
+        })
       } else {
+        updateFeedStatus('articles', {
+          lastFailureAt: Date.now(),
+          lastError: 'Could not load news. Check your connection.',
+        })
         setError('Could not load news. Check your connection.')
       }
     } catch {
+      updateFeedStatus('articles', {
+        lastFailureAt: Date.now(),
+        lastError: 'Could not fetch articles.',
+      })
       setError('Could not fetch articles.')
     } finally {
       setArticlesLoaded(true)
       setLoading(false)
     }
-  }, [guardianKey, setArticles, setArticlesLoaded])
+  }, [alertKeywords, addNotification, setArticles, setArticlesLoaded, updateFeedStatus])
 
   return { fetchArticles, loading, error }
 }

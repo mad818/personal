@@ -117,6 +117,10 @@ export default function RuntimeEvalTrend() {
   }, [data?.history]);
 
   const latest = data?.latest;
+  const forecastEval = data?.forecastEval;
+  const forecastLatest = forecastEval?.latest;
+  const schedulerEfficiency = data?.schedulerEfficiency;
+  const schedulerLatest = schedulerEfficiency?.latest;
   const threshold = latest?.minScore ?? 85;
   const latestScore = latest?.score ?? 0;
   const pass = latest ? latestScore >= threshold : false;
@@ -160,12 +164,78 @@ export default function RuntimeEvalTrend() {
     }
   };
 
+  const runForecastNow = async (force = false) => {
+    setRunning(true);
+    setRunMsg("");
+    try {
+      const r = await apiFetch("/api/metrics/runtime-eval/forecast/run", {
+        method: "POST",
+        body: JSON.stringify({ force }),
+      });
+      const d = (await r.json()) as {
+        ok?: boolean;
+        skipped?: boolean;
+        reason?: string;
+        output?: string;
+      };
+      if (!r.ok || !d.ok) {
+        setRunMsg(
+          `Forecast run failed: ${(d.output || "unknown error").slice(0, 180)}`,
+        );
+      } else if (d.skipped) {
+        setRunMsg(`Forecast skipped: ${d.reason ?? "cooldown active"}`);
+        await refresh();
+      } else {
+        setRunMsg("Forecast baseline executed and recorded.");
+        await refresh();
+      }
+    } catch {
+      setRunMsg("Forecast run failed: could not reach forecast route.");
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const runSchedulerNow = async (force = false) => {
+    setRunning(true);
+    setRunMsg("");
+    try {
+      const r = await apiFetch("/api/metrics/runtime-eval/scheduler-efficiency/run", {
+        method: "POST",
+        body: JSON.stringify({ force }),
+      });
+      const d = (await r.json()) as {
+        ok?: boolean;
+        skipped?: boolean;
+        reason?: string;
+        output?: string;
+      };
+      if (!r.ok || !d.ok) {
+        setRunMsg(
+          `Efficiency run failed: ${(d.output || "unknown error").slice(0, 180)}`,
+        );
+      } else if (d.skipped) {
+        setRunMsg(`Efficiency skipped: ${d.reason ?? "cooldown active"}`);
+        await refresh();
+      } else {
+        setRunMsg("Scheduler efficiency executed and recorded.");
+        await refresh();
+      }
+    } catch {
+      setRunMsg("Efficiency run failed: could not reach scheduler route.");
+    } finally {
+      setRunning(false);
+    }
+  };
+
   const copyDiagnostics = async () => {
     const payload = {
       latest: data?.latest ?? null,
       freshness: data?.freshness ?? null,
       failures: data?.failures ?? null,
       runner: data?.runner ?? null,
+      schedulerEfficiency: data?.schedulerEfficiency ?? null,
+      forecastEval: data?.forecastEval ?? null,
     };
     try {
       await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
@@ -182,6 +252,8 @@ export default function RuntimeEvalTrend() {
       freshness: data?.freshness ?? null,
       failures: data?.failures ?? null,
       runner: data?.runner ?? null,
+      schedulerEfficiency: data?.schedulerEfficiency ?? null,
+      forecastEval: data?.forecastEval ?? null,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
@@ -441,6 +513,94 @@ export default function RuntimeEvalTrend() {
               next {new Date(data.runner.nextEligibleAt).toLocaleTimeString()}
             </div>
           )}
+          {forecastLatest ? (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "6px 8px",
+                border: "1px solid #1A2040",
+                borderRadius: 6,
+                background: "rgba(13,18,32,0.65)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexWrap: "wrap",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: forecastEval?.freshness?.stale ? "#f59e0b" : "#7ba7d4",
+                    textTransform: "uppercase",
+                    letterSpacing: ".06em",
+                  }}
+                >
+                  Forecast Lab
+                </span>
+                <span style={{ fontSize: 10, color: "var(--text3)" }}>
+                  {forecastLatest.summary?.label ?? "Baseline posture"} ·{" "}
+                  {forecastLatest.summary?.score ?? 0}/100
+                </span>
+                <span style={{ fontSize: 10, color: "var(--text3)" }}>
+                  {forecastLatest.summary?.assetsCovered ?? 0}/
+                  {forecastLatest.summary?.assetsRequested ?? 0} assets
+                </span>
+                <span style={{ fontSize: 10, color: "var(--text3)" }}>
+                  {forecastLatest.summary?.windows ?? 0} windows
+                </span>
+              </div>
+            </div>
+          ) : null}
+          {schedulerLatest ? (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "6px 8px",
+                border: "1px solid #2a3a6b",
+                borderRadius: 6,
+                background: "rgba(18,18,12,0.55)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexWrap: "wrap",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: schedulerEfficiency?.freshness?.stale ? "#f59e0b" : "#e7c56e",
+                    textTransform: "uppercase",
+                    letterSpacing: ".06em",
+                  }}
+                >
+                  Efficiency Ops
+                </span>
+                <span style={{ fontSize: 10, color: "var(--text3)" }}>
+                  {schedulerLatest.summary?.label ?? "Efficiency posture"} ·{" "}
+                  {schedulerLatest.summary?.score ?? 0}/100
+                </span>
+                <span style={{ fontSize: 10, color: "var(--text3)" }}>
+                  {schedulerLatest.summary?.measuredRuns ?? 0} measured
+                </span>
+                <span style={{ fontSize: 10, color: "var(--text3)" }}>
+                  cache {schedulerLatest.summary?.cacheObservedCoverage ?? 0}%
+                </span>
+                <span style={{ fontSize: 10, color: "var(--text3)" }}>
+                  batch {schedulerLatest.summary?.batchedRuns ?? 0}
+                </span>
+              </div>
+            </div>
+          ) : null}
           <div
             style={{
               display: "flex",
@@ -469,6 +629,48 @@ export default function RuntimeEvalTrend() {
               }}
             >
               {running ? "Running…" : "Run Runtime Eval"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void runSchedulerNow(false);
+              }}
+              disabled={running}
+              style={{
+                borderRadius: 8,
+                border: "1px solid #6f5730",
+                background: running
+                  ? "rgba(26,32,64,0.6)"
+                  : "rgba(31,22,8,0.96)",
+                color: "#f3d38a",
+                padding: "5px 9px",
+                fontSize: 10,
+                fontWeight: 700,
+                cursor: running ? "not-allowed" : "pointer",
+              }}
+            >
+              {running ? "Running…" : "Run Efficiency Eval"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void runForecastNow(false);
+              }}
+              disabled={running}
+              style={{
+                borderRadius: 8,
+                border: "1px solid #23584d",
+                background: running
+                  ? "rgba(26,32,64,0.6)"
+                  : "rgba(8,24,18,0.96)",
+                color: "#6ee7b7",
+                padding: "5px 9px",
+                fontSize: 10,
+                fontWeight: 700,
+                cursor: running ? "not-allowed" : "pointer",
+              }}
+            >
+              {running ? "Running…" : "Run Forecast Eval"}
             </button>
             <button
               type="button"

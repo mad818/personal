@@ -6,6 +6,8 @@
 
 import { useState, useCallback } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 interface HealthTarget {
   id: string;
@@ -20,6 +22,7 @@ interface HealthResult {
   code: number | null;
   ms: number | null;
   lastSeen: string;
+  note: string | null;
 }
 
 const DEFAULT_TARGETS: HealthTarget[] = [
@@ -89,12 +92,52 @@ function StatusDot({ status }: { status: HealthResult["status"] }) {
   );
 }
 
+function isLocalHealthTarget(url: string) {
+  return url.trim().startsWith("/api/");
+}
+
+function normalizeHealthTargetUrl(rawUrl: string) {
+  const trimmed = rawUrl.trim();
+  if (!trimmed) {
+    throw new Error("Target URL is required.");
+  }
+
+  if (trimmed.startsWith("/api/")) {
+    const parsed = new URL(trimmed, "http://localhost");
+    if (parsed.hash) {
+      throw new Error("Hash fragments are not allowed.");
+    }
+    if (!parsed.pathname.startsWith("/api/")) {
+      throw new Error("Local checks must target /api/* routes.");
+    }
+    if (parsed.pathname === "/api/network-health/check") {
+      throw new Error("Recursive health checks are blocked.");
+    }
+    return `${parsed.pathname}${parsed.search}`;
+  }
+
+  const normalized = /^[a-z][a-z\d+\-.]*:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+  const parsed = new URL(normalized);
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+    throw new Error("Only http and https targets are supported.");
+  }
+  if (parsed.username || parsed.password) {
+    throw new Error("Credential-bearing targets are blocked.");
+  }
+  parsed.hash = "";
+  return parsed.toString();
+}
+
 export default function NetworkHealth() {
   const [targets, setTargets] = useState<HealthTarget[]>(DEFAULT_TARGETS);
   const [results, setResults] = useState<Record<string, HealthResult>>({});
   const [running, setRunning] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newUrl, setNewUrl] = useState("");
+  const [inputError, setInputError] = useState("");
+  const { internetReachable } = useInternetAvailability();
 
   const setResult = useCallback((id: string, patch: Partial<HealthResult>) => {
     setResults((r) => {
@@ -104,36 +147,53 @@ export default function NetworkHealth() {
         code: null,
         ms: null,
         lastSeen: "",
+        note: null,
       };
       return { ...r, [id]: { ...prev, ...patch } };
     });
   }, []);
 
   async function checkOne(t: HealthTarget) {
-    setResult(t.id, { status: "checking" });
-    const start = Date.now();
-    try {
-      const requestInit = {
-        method: "GET",
-        signal: AbortSignal.timeout(6000),
-        cache: "no-store" as RequestCache,
-      };
-      const r = t.url.startsWith("/api/")
-        ? await apiFetch(t.url, requestInit)
-        : await fetch(t.url, requestInit);
-      const ms = Date.now() - start;
+    const localTarget = isLocalHealthTarget(t.url);
+    if (!localTarget && !internetReachable) {
       setResult(t.id, {
-        status: r.ok ? "ok" : "warn",
-        code: r.status,
-        ms,
+        note: "Browser offline — keeping the last retained external snapshot until reconnect.",
+      });
+      return;
+    }
+
+    setResult(t.id, { status: "checking" });
+    try {
+      const r = await apiFetch("/api/network-health/check", {
+        method: "POST",
+        body: JSON.stringify({ url: t.url }),
+      });
+      const payload = (await r.json().catch(() => null)) as
+        | {
+            ok?: boolean;
+            kind?: "local" | "external";
+            statusCode?: number | null;
+            ms?: number | null;
+            note?: string | null;
+          }
+        | null;
+      const targetOk = payload?.ok === true;
+      const code = payload?.statusCode ?? null;
+      const note = payload?.note ?? null;
+      setResult(t.id, {
+        status: targetOk ? "ok" : r.status === 400 ? "fail" : "warn",
+        code,
+        ms: payload?.ms ?? null,
         lastSeen: new Date().toLocaleTimeString(),
+        note,
       });
     } catch {
       setResult(t.id, {
         status: "fail",
         code: null,
-        ms: Date.now() - start,
+        ms: null,
         lastSeen: new Date().toLocaleTimeString(),
+        note: "Unable to reach the local network-check route.",
       });
     }
   }
@@ -146,20 +206,40 @@ export default function NetworkHealth() {
 
   function addTarget() {
     const label = newLabel.trim();
-    const url = newUrl.trim();
-    if (!label || !url) return;
+    if (!label) {
+      setInputError("Label is required.");
+      return;
+    }
+
+    let url = "";
+    try {
+      url = normalizeHealthTargetUrl(newUrl);
+    } catch (error) {
+      setInputError(error instanceof Error ? error.message : "Invalid target.");
+      return;
+    }
+
+    const duplicate = targets.some(
+      (target) => target.url.toLowerCase() === url.toLowerCase(),
+    );
+    if (duplicate) {
+      setInputError("That target is already being monitored.");
+      return;
+    }
+
     const id = `custom-${Date.now()}`;
     setTargets((t) => [
       ...t,
       {
         id,
         label,
-        url: url.startsWith("http") ? url : `https://${url}`,
-        method: "https",
+        url,
+        method: isLocalHealthTarget(url) ? "health" : "https",
       },
     ]);
     setNewLabel("");
     setNewUrl("");
+    setInputError("");
   }
 
   function removeTarget(id: string) {
@@ -185,6 +265,7 @@ export default function NetworkHealth() {
   const failCount = targets.filter(
     (t) => results[t.id]?.status === "fail",
   ).length;
+  const hasRetainedResults = targets.some((t) => Boolean(results[t.id]?.lastSeen));
 
   return (
     <div>
@@ -249,6 +330,25 @@ export default function NetworkHealth() {
         </button>
       </div>
 
+      {!internetReachable ? (
+        <SurfaceCallout
+          tone={hasRetainedResults ? "info" : "warning"}
+          compact
+          icon="↺"
+          title={
+            hasRetainedResults
+              ? "Internet offline · showing retained check snapshots"
+              : "Internet offline · no retained check snapshot yet"
+          }
+          description={
+            hasRetainedResults
+              ? "Existing results stay visible locally. Local Nexus routes can still be checked, but internet-backed or external targets may fail until reconnect."
+              : "You can still probe local Nexus routes, but internet-backed or external targets may fail until reconnect."
+          }
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
+
       {/* Target list */}
       <div
         style={{
@@ -294,6 +394,34 @@ export default function NetworkHealth() {
                 >
                   {t.url}
                 </div>
+                <div
+                  style={{
+                    fontSize: "9px",
+                    color: "var(--text3)",
+                    marginTop: "4px",
+                  }}
+                >
+                  {isLocalHealthTarget(t.url) ? "Local route" : "External target"}
+                  {" · "}
+                  {r?.status === "checking"
+                    ? "checking now"
+                    : r?.lastSeen
+                      ? `last checked ${r.lastSeen}`
+                      : "awaiting first check"}
+                </div>
+                {r?.note ? (
+                  <div
+                    style={{
+                      fontSize: "9px",
+                      color:
+                        r.status === "ok" ? "var(--text3)" : "var(--fmd)",
+                      marginTop: "4px",
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    {r.note}
+                  </div>
+                ) : null}
               </div>
               <div style={{ textAlign: "right", minWidth: "40px" }}>
                 {r?.code && (
@@ -326,20 +454,24 @@ export default function NetworkHealth() {
                   </span>
                 )}
               </div>
-              <button
-                onClick={() => removeTarget(t.id)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--text3)",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                  padding: "2px 4px",
-                }}
-                title="Remove"
-              >
-                ×
-              </button>
+              {t.id.startsWith("custom-") ? (
+                <button
+                  onClick={() => removeTarget(t.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--text3)",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    padding: "2px 4px",
+                  }}
+                  title="Remove"
+                >
+                  ×
+                </button>
+              ) : (
+                <span style={{ width: "12px" }} />
+              )}
             </div>
           );
         })}
@@ -351,13 +483,19 @@ export default function NetworkHealth() {
           style={{ ...INPUT, flex: "0 0 130px" }}
           placeholder="Label"
           value={newLabel}
-          onChange={(e) => setNewLabel(e.target.value)}
+          onChange={(e) => {
+            setNewLabel(e.target.value);
+            if (inputError) setInputError("");
+          }}
         />
         <input
           style={{ ...INPUT, flex: 1, minWidth: "160px" }}
           placeholder="https://api.example.com/health"
           value={newUrl}
-          onChange={(e) => setNewUrl(e.target.value)}
+          onChange={(e) => {
+            setNewUrl(e.target.value);
+            if (inputError) setInputError("");
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") addTarget();
           }}
@@ -378,6 +516,30 @@ export default function NetworkHealth() {
           + Add
         </button>
       </div>
+      {inputError ? (
+        <div
+          style={{
+            marginTop: "8px",
+            fontSize: "10px",
+            color: "var(--fmd)",
+            lineHeight: 1.45,
+          }}
+        >
+          {inputError}
+        </div>
+      ) : (
+        <div
+          style={{
+            marginTop: "8px",
+            fontSize: "10px",
+            color: "var(--text3)",
+            lineHeight: 1.45,
+          }}
+        >
+          Add a local <code>/api/...</code> route or a safe public http/https
+          target. Private-network hosts and duplicates are blocked automatically.
+        </div>
+      )}
     </div>
   );
 }

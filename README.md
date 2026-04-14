@@ -39,7 +39,7 @@
 
 ## Tabs
 
-**Supported release surface for this cycle:** the GA product is the 7-tab nav (`HQ`, `COMMAND`, `INTEL`, `ALPHA`, `CYBER`, `RECON`, `VAULT`) plus `/resources`. Additional repo routes exist as beta/internal surfaces and are not part of the current public support contract unless explicitly promoted.
+**Supported release surface for this cycle:** the GA product is the 7-tab nav (`CITADEL`, `VECTOR`, `SPECTRA`, `QUANT`, `BASTION`, `PARALLAX`, `ARCHIVE`) plus `/resources` (`FIELD MANUAL`). Additional repo routes exist as beta/internal surfaces and are not part of the current public support contract unless explicitly promoted.
 
 One unified React app — seven tabs, single nav bar, one URL.
 
@@ -189,8 +189,8 @@ npm install
 2. **Environment** — `cp .env.example .env.local`, then set at least:
 
 ```env
-NEXUS_TOKEN=your-long-random-secret
-ANTHROPIC_API_KEY=sk-ant-...
+NEXUS_TOKEN=<replace-with-long-random-local-token>
+ANTHROPIC_API_KEY=<replace-with-provider-key>
 ```
 
 (Use [Local AI](#local-ai-fully-offline) instead of cloud keys if you want fully offline LLM.)

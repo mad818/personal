@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useStore } from "@/store/useStore";
 import { timeAgo } from "@/lib/helpers";
+import { SpeakButton } from "@/components/ui/SpeakButton";
 
 // ── Bias scoring ──────────────────────────────────────────────────────────────
 const BULLISH_KW = [
@@ -583,7 +584,14 @@ export default function SavedArticles() {
             )}
           </a>
 
-          <BiasBar score={biasScore(a.title + " " + (a.desc ?? ""))} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+            <BiasBar score={biasScore(a.title + " " + (a.desc ?? ""))} />
+            <SpeakButton
+              text={`${a.title}. ${a.desc ?? ""}`}
+              maxChars={400}
+              size="sm"
+            />
+          </div>
 
           {/* Tag editor */}
           <TagEditor articleId={a.id} tags={a.tags ?? []} />

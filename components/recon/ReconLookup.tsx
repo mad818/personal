@@ -6,8 +6,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useStore } from "@/store/useStore";
+import { apiFetch } from "@/lib/apiFetch";
 import { sanitizeHtml } from "@/lib/security/sanitizeHtml";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 // ── types ─────────────────────────────────────────────────────────────────────
 type TargetType =
@@ -76,585 +78,78 @@ function detectType(raw: string): Exclude<TargetType, "auto"> {
   return "domain";
 }
 
-function table(rows: [string, string][]): string {
-  if (!rows.length) return "";
-  return (
-    '<table style="width:100%;border-collapse:collapse;font-size:11px">' +
-    rows
-      .map(
-        ([k, v]) =>
-          `<tr>
-          <td style="color:var(--text3);padding:3px 8px 3px 0;white-space:nowrap;vertical-align:top">${k}</td>
-          <td style="color:var(--text);word-break:break-all">${v}</td>
-        </tr>`,
-      )
-      .join("") +
-    "</table>"
-  );
-}
-
-function badge(text: string, color: string): string {
-  return `<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:${color}22;color:${color}">${esc(text)}</span>`;
-}
-
-// ── free fetch functions ──────────────────────────────────────────────────────
-
-async function fetchRdapDomain(domain: string): Promise<string> {
+async function fetchLookupPanel(
+  panel: PanelKey,
+  target: string,
+  targetType: Exclude<TargetType, "auto">,
+): Promise<string> {
   try {
-    const r = await fetch(
-      `https://rdap.org/domain/${encodeURIComponent(domain)}`,
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
-    const rows: [string, string][] = [];
-    if (d.ldhName) rows.push(["Domain", esc(d.ldhName)]);
-    if (d.status)
-      rows.push(["Status", (d.status as string[]).map(esc).join(", ")]);
-    const ns = ((d.nameservers || []) as { ldhName?: string }[])
-      .map((n) => esc(n.ldhName ?? ""))
-      .filter(Boolean);
-    if (ns.length) rows.push(["NS", ns.join(", ")]);
-    const registrar = (
-      d.entities as { roles?: string[]; vcardArray?: unknown[][] }[]
-    )?.find((e) => e.roles?.includes("registrar"));
-    if (registrar?.vcardArray?.[1]) {
-      const fn = (registrar.vcardArray[1] as unknown[][]).find(
-        (v) => v[0] === "fn",
-      );
-      if (fn) rows.push(["Registrar", esc(String(fn[3] ?? ""))]);
-    }
-    const reg = (
-      d.events as { eventAction: string; eventDate?: string }[]
-    )?.find((e) => e.eventAction === "registration");
-    const exp = (
-      d.events as { eventAction: string; eventDate?: string }[]
-    )?.find((e) => e.eventAction === "expiration");
-    if (reg) rows.push(["Registered", esc(reg.eventDate?.slice(0, 10) ?? "")]);
-    if (exp) rows.push(["Expires", esc(exp.eventDate?.slice(0, 10) ?? "")]);
-    return table(rows) || '<span style="color:var(--text3)">No data</span>';
+    const response = await apiFetch("/api/recon/lookup", {
+      method: "POST",
+      body: JSON.stringify({ panel, target, targetType }),
+      cache: "no-store",
+    });
+    const data = (await response.json()) as { result?: string; error?: string };
+    if (data.result) return data.result;
+    throw new Error(data.error ?? `HTTP ${response.status}`);
   } catch (e) {
     return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
   }
+}
+
+async function fetchRdapDomain(domain: string): Promise<string> {
+  return fetchLookupPanel("rdap", domain, "domain");
 }
 
 async function fetchRdapIp(ip: string): Promise<string> {
-  try {
-    const r = await fetch(`https://rdap.org/ip/${encodeURIComponent(ip)}`);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
-    const rows: [string, string][] = [];
-    if (d.name) rows.push(["Name", esc(d.name)]);
-    if (d.type) rows.push(["Type", esc(d.type)]);
-    if (d.handle) rows.push(["Handle", esc(d.handle)]);
-    const cidr = (
-      (d.cidr0CIDRs || []) as {
-        v4prefix?: string;
-        v6prefix?: string;
-        length?: number;
-      }[]
-    ).map((c) => `${c.v4prefix ?? c.v6prefix}/${c.length}`);
-    if (cidr.length) rows.push(["CIDR", esc(cidr[0])]);
-    if (d.country) rows.push(["Country", esc(d.country)]);
-    const org = (
-      d.entities as { roles?: string[]; vcardArray?: unknown[][] }[]
-    )?.find((e) => e.roles?.includes("registrant"));
-    if (org?.vcardArray?.[1]) {
-      const fn = (org.vcardArray[1] as unknown[][]).find((v) => v[0] === "fn");
-      if (fn) rows.push(["Org", esc(String(fn[3] ?? ""))]);
-    }
-    return table(rows) || '<span style="color:var(--text3)">No data</span>';
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+  return fetchLookupPanel("rdap", ip, "ip");
 }
 
 async function fetchDns(domain: string): Promise<string> {
-  try {
-    const types = ["A", "MX", "NS", "TXT"] as const;
-    const results = await Promise.allSettled(
-      types.map((t) =>
-        fetch(
-          `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=${t}`,
-        ).then((r) => r.json()),
-      ),
-    );
-    let html = "";
-    types.forEach((type, i) => {
-      const res = results[i];
-      if (
-        res.status === "fulfilled" &&
-        (res.value as { Answer?: { data: string }[] }).Answer?.length
-      ) {
-        html += `<div style="font-size:10px;font-weight:700;color:var(--accent);margin:6px 0 2px">${type}</div>`;
-        (res.value as { Answer: { data: string }[] }).Answer.forEach((a) => {
-          html += `<div style="font-size:11px;color:var(--text);word-break:break-all;padding:1px 0">${esc(String(a.data ?? ""))}</div>`;
-        });
-      }
-    });
-    return html || '<span style="color:var(--text3)">No records found</span>';
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+  return fetchLookupPanel("dns", domain, "domain");
 }
 
 async function fetchCerts(domain: string): Promise<string> {
-  try {
-    const r = await fetch(
-      `https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`,
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const data: {
-      common_name?: string;
-      not_before?: string;
-      not_after?: string;
-      issuer_name?: string;
-    }[] = await r.json();
-    const seen = new Set<string>();
-    const uniq = data
-      .filter((c) => {
-        if (seen.has(c.common_name ?? "")) return false;
-        seen.add(c.common_name ?? "");
-        return true;
-      })
-      .slice(0, 12);
-    if (!uniq.length)
-      return '<span style="color:var(--text3)">No certificates found</span>';
-    let html = "";
-    uniq.forEach((c) => {
-      const issued = (c.not_before ?? "").slice(0, 10);
-      const expires = (c.not_after ?? "").slice(0, 10);
-      const issuer = esc(
-        (c.issuer_name ?? "").replace(/.*CN=/, "").split(",")[0] ?? "",
-      );
-      html += `<div style="font-size:11px;padding:4px 0;border-bottom:1px solid var(--border)">
-        <span style="color:var(--text);font-weight:700">${esc(c.common_name ?? "")}</span>
-        <span style="color:var(--text3);margin-left:8px">${esc(issued)} → ${esc(expires)}</span>
-        <span style="color:var(--accent);margin-left:8px;font-size:10px">${issuer}</span>
-      </div>`;
-    });
-    if (data.length > 12)
-      html += `<div style="font-size:10px;color:var(--text3);margin-top:6px">+${data.length - 12} more — see crt.sh</div>`;
-    return html;
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+  return fetchLookupPanel("certs", domain, "domain");
 }
 
 async function fetchIpGeo(ip: string): Promise<string> {
-  try {
-    const r = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
-    if (d.error)
-      return `<span style="color:var(--flo)">${esc(d.reason ?? d.error)}</span>`;
-    const rows: [string, string][] = [
-      ["IP", esc(d.ip ?? ip)],
-      ["City", esc(d.city ?? "—")],
-      ["Region", esc(d.region ?? "—")],
-      [
-        "Country",
-        esc(`${d.country_name ?? ""} ${d.country_code ?? ""}`.trim()),
-      ],
-      ["Org", esc(d.org ?? "—")],
-      ["ASN", esc(d.asn ?? "—")],
-      ["Timezone", esc(d.timezone ?? "—")],
-    ];
-    return table(rows);
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+  return fetchLookupPanel("geo", ip, "ip");
 }
 
 async function fetchDomainGeo(domain: string): Promise<string> {
-  try {
-    const rr = await fetch(
-      `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`,
-    );
-    const dd = await rr.json();
-    const ip: string = dd.Answer?.[0]?.data;
-    if (!ip)
-      return '<span style="color:var(--text3)">Could not resolve domain to IP</span>';
-    return fetchIpGeo(ip);
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+  return fetchLookupPanel("geo", domain, "domain");
 }
 
 async function fetchSubdomains(domain: string): Promise<string> {
-  try {
-    // HackerTarget free tier — no key needed
-    const r = await fetch(
-      `https://api.hackertarget.com/hostsearch/?q=${encodeURIComponent(domain)}`,
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const text = await r.text();
-    if (text.includes("API count exceeded") || text.includes("error")) {
-      return '<span style="color:var(--text3)">HackerTarget free limit reached — try again later</span>';
-    }
-    const lines = text.trim().split("\n").filter(Boolean).slice(0, 40);
-    if (!lines.length)
-      return '<span style="color:var(--text3)">No subdomains found</span>';
-    let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:6px">${lines.length} subdomain${lines.length !== 1 ? "s" : ""} found</div>`;
-    lines.forEach((line) => {
-      const [sub, ip] = line.split(",");
-      html += `<div style="font-size:11px;display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)">
-        <span style="color:var(--text)">${esc(sub ?? "")}</span>
-        <span style="color:var(--text3)">${esc(ip ?? "")}</span>
-      </div>`;
-    });
-    if (lines.length === 40)
-      html += `<div style="font-size:10px;color:var(--text3);margin-top:4px">Showing first 40 — more may exist</div>`;
-    return html;
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+  return fetchLookupPanel("subdomains", domain, "domain");
 }
 
 async function fetchDnsSecurity(domain: string): Promise<string> {
-  try {
-    const [spfRes, dmarcRes, dkimRes] = await Promise.allSettled([
-      fetch(
-        `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=TXT`,
-      ).then((r) => r.json()),
-      fetch(
-        `https://dns.google/resolve?name=_dmarc.${encodeURIComponent(domain)}&type=TXT`,
-      ).then((r) => r.json()),
-      fetch(
-        `https://dns.google/resolve?name=default._domainkey.${encodeURIComponent(domain)}&type=TXT`,
-      ).then((r) => r.json()),
-    ]);
-
-    const spfRecords =
-      spfRes.status === "fulfilled"
-        ? (
-            (spfRes.value as { Answer?: { data: string }[] }).Answer ?? []
-          ).filter((a) => a.data.includes("v=spf1"))
-        : [];
-    const dmarcRecords =
-      dmarcRes.status === "fulfilled"
-        ? (
-            (dmarcRes.value as { Answer?: { data: string }[] }).Answer ?? []
-          ).filter((a) => a.data.includes("v=DMARC1"))
-        : [];
-    const dkimRecords =
-      dkimRes.status === "fulfilled"
-        ? (
-            (dkimRes.value as { Answer?: { data: string }[] }).Answer ?? []
-          ).filter((a) => a.data.includes("v=DKIM1"))
-        : [];
-
-    const hasSPF = spfRecords.length > 0;
-    const hasDMARC = dmarcRecords.length > 0;
-    const hasDKIM = dkimRecords.length > 0;
-
-    const check = (ok: boolean, label: string, val: string) =>
-      `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
-        <span style="color:${ok ? "#10b981" : "#ef4444"};font-size:12px">${ok ? "✅" : "❌"}</span>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text)">${label}</div>
-          <div style="font-size:10px;color:var(--text3);word-break:break-all">${esc(val)}</div>
-        </div>
-      </div>`;
-
-    return (
-      check(
-        hasSPF,
-        "SPF",
-        hasSPF
-          ? spfRecords[0].data
-          : "No SPF record — anyone can spoof this domain",
-      ) +
-      check(
-        hasDMARC,
-        "DMARC",
-        hasDMARC ? dmarcRecords[0].data : "No DMARC policy — phishing risk",
-      ) +
-      check(
-        hasDKIM,
-        "DKIM",
-        hasDKIM
-          ? dkimRecords[0].data
-          : "No DKIM (default selector) — check selector name",
-      )
-    );
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+  return fetchLookupPanel("dnssec", domain, "domain");
 }
 
 async function fetchEmailRep(email: string): Promise<string> {
-  try {
-    // emailrep.io — free, no key for basic lookups
-    const r = await fetch(`https://emailrep.io/${encodeURIComponent(email)}`, {
-      headers: { "User-Agent": "Nexus-Prime" },
-    });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
-    const riskCol = d.suspicious ? "#ef4444" : "#10b981";
-    const rows: [string, string][] = [
-      ["Email", esc(d.email ?? email)],
-      ["Reputation", badge(d.reputation ?? "—", riskCol)],
-      [
-        "Suspicious",
-        badge(
-          d.suspicious ? "YES" : "NO",
-          d.suspicious ? "#ef4444" : "#10b981",
-        ),
-      ],
-      ["References", String(d.references ?? 0)],
-    ];
-    if (d.details?.blacklisted)
-      rows.push(["Blacklisted", badge("YES", "#ef4444")]);
-    if (d.details?.malicious_activity)
-      rows.push(["Malicious activity", badge("YES", "#ef4444")]);
-    if (d.details?.credentials_leaked)
-      rows.push(["Credentials leaked", badge("YES", "#f59e0b")]);
-    if (d.details?.spam) rows.push(["Spam source", badge("YES", "#f59e0b")]);
-    if (d.details?.data_breach)
-      rows.push(["Data breach", badge("YES", "#f59e0b")]);
-    if (d.details?.days_since_domain_creation)
-      rows.push(["Domain age", `${d.details.days_since_domain_creation} days`]);
-    if (d.details?.profiles?.length)
-      rows.push([
-        "Profiles",
-        (d.details.profiles as string[]).map(esc).join(", "),
-      ]);
-    return table(rows);
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+  return fetchLookupPanel("emailrep", email, "email");
 }
 
 async function fetchUsername(username: string): Promise<string> {
-  try {
-    // GitHub public API — no key needed
-    const [ghRes, gravatarRes] = await Promise.allSettled([
-      fetch(
-        `https://api.github.com/users/${encodeURIComponent(username)}`,
-      ).then((r) => r.json()),
-      fetch(
-        `https://www.gravatar.com/${encodeURIComponent(username)}.json`,
-      ).then((r) => r.json()),
-    ]);
-
-    let html = "";
-
-    if (
-      ghRes.status === "fulfilled" &&
-      (ghRes.value as { login?: string }).login
-    ) {
-      const g = ghRes.value as Record<string, unknown>;
-      html += `<div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:6px">GitHub</div>`;
-      const rows: [string, string][] = [
-        ["Login", esc(String(g.login ?? ""))],
-        ["Name", esc(String(g.name ?? "—"))],
-        ["Bio", esc(String(g.bio ?? "—"))],
-        ["Location", esc(String(g.location ?? "—"))],
-        ["Repos", String(g.public_repos ?? 0)],
-        ["Followers", String(g.followers ?? 0)],
-        ["Created", esc(String(g.created_at ?? "").slice(0, 10))],
-      ];
-      if (g.company) rows.push(["Company", esc(String(g.company))]);
-      if (g.blog) rows.push(["Website", esc(String(g.blog))]);
-      html += table(rows);
-    } else {
-      html += `<div style="color:var(--text3);font-size:11px">No GitHub profile found for "${esc(username)}"</div>`;
-    }
-
-    if (
-      gravatarRes.status === "fulfilled" &&
-      (gravatarRes.value as { entry?: unknown[] }).entry?.length
-    ) {
-      const entry = (gravatarRes.value as { entry: Record<string, unknown>[] })
-        .entry[0];
-      html += `<div style="font-size:10px;font-weight:700;color:var(--accent);margin:10px 0 6px">Gravatar</div>`;
-      const gRows: [string, string][] = [];
-      if (entry.displayName)
-        gRows.push(["Name", esc(String(entry.displayName))]);
-      if (entry.currentLocation)
-        gRows.push(["Location", esc(String(entry.currentLocation))]);
-      if ((entry.emails as { value?: string }[] | undefined)?.[0]?.value)
-        gRows.push([
-          "Email",
-          esc((entry.emails as { value: string }[])[0].value),
-        ]);
-      if (gRows.length) html += table(gRows);
-    }
-
-    return (
-      html || '<span style="color:var(--text3)">No public profiles found</span>'
-    );
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+  return fetchLookupPanel("username", username, "username");
 }
 
-// ── BYOK fetch functions ──────────────────────────────────────────────────────
-
-async function fetchHibp(email: string, key: string): Promise<string> {
-  if (!key)
-    return '<span style="color:var(--text3)">Add HIBP key in Settings to check breaches</span>';
-  try {
-    const r = await fetch(
-      `https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(email)}?truncateResponse=false`,
-      { headers: { "hibp-api-key": key, "User-Agent": "Nexus-Prime" } },
-    );
-    if (r.status === 404)
-      return '<span style="color:var(--fhi)">✅ No breaches found</span>';
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const breaches: {
-      Name?: string;
-      Title?: string;
-      BreachDate?: string;
-      DataClasses?: string[];
-      IsSensitive?: boolean;
-      IsVerified?: boolean;
-    }[] = await r.json();
-    let html = `<div style="font-weight:700;color:var(--flo);margin-bottom:6px">${breaches.length} breach${breaches.length !== 1 ? "es" : ""} found</div>`;
-    breaches.forEach((b) => {
-      const col = b.IsSensitive
-        ? "var(--flo)"
-        : b.IsVerified
-          ? "var(--fmd)"
-          : "var(--text2)";
-      html += `<div style="font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)">
-        <span style="color:${col};font-weight:700">${esc(b.Name ?? b.Title ?? "")}</span>
-        <span style="color:var(--text3);margin-left:8px">${esc((b.BreachDate ?? "").slice(0, 10))}</span>
-        <span style="color:var(--text2);margin-left:8px;font-size:10px">${(b.DataClasses ?? []).slice(0, 4).map(esc).join(" · ")}</span>
-      </div>`;
-    });
-    return html;
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+async function fetchHibp(email: string): Promise<string> {
+  return fetchLookupPanel("hibp", email, "email");
 }
 
 async function fetchVirusTotal(
   target: string,
   type: Exclude<TargetType, "auto">,
-  key: string,
 ): Promise<string> {
-  if (!key)
-    return '<span style="color:var(--text3)">Add VirusTotal key in Settings</span>';
-  try {
-    let endpoint = "";
-    if (type === "hash")
-      endpoint = `https://www.virustotal.com/api/v3/files/${encodeURIComponent(target)}`;
-    else if (type === "ip")
-      endpoint = `https://www.virustotal.com/api/v3/ip_addresses/${encodeURIComponent(target)}`;
-    else {
-      const dom = type === "url" ? new URL(target).hostname : target;
-      endpoint = `https://www.virustotal.com/api/v3/domains/${encodeURIComponent(dom)}`;
-    }
-    const r = await fetch(endpoint, { headers: { "x-apikey": key } });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
-    const stats = d.data?.attributes?.last_analysis_stats ?? {};
-    const total = (Object.values(stats) as number[]).reduce(
-      (a, b) => a + (b ?? 0),
-      0,
-    );
-    const mal = (stats.malicious ?? 0) + (stats.suspicious ?? 0);
-    const col =
-      mal === 0 ? "var(--fhi)" : mal < 5 ? "var(--fmd)" : "var(--flo)";
-    let html = `<div style="font-size:16px;font-weight:900;color:${col};margin-bottom:8px">${mal}/${total} engines flagged</div>`;
-    const rows: [string, string][] = [];
-    if (d.data?.attributes?.reputation !== undefined)
-      rows.push(["Reputation", String(d.data.attributes.reputation)]);
-    if (d.data?.attributes?.last_analysis_date)
-      rows.push([
-        "Last scan",
-        new Date(d.data.attributes.last_analysis_date * 1000)
-          .toISOString()
-          .slice(0, 10),
-      ]);
-    if (d.data?.attributes?.registrar)
-      rows.push(["Registrar", esc(d.data.attributes.registrar)]);
-    if (d.data?.attributes?.country)
-      rows.push(["Country", esc(d.data.attributes.country)]);
-    html += table(rows);
-    const engines = Object.entries(
-      d.data?.attributes?.last_analysis_results ?? {},
-    )
-      .filter(
-        ([, v]) =>
-          (v as { category: string }).category === "malicious" ||
-          (v as { category: string }).category === "suspicious",
-      )
-      .slice(0, 6);
-    if (engines.length) {
-      html += '<div style="margin-top:8px">';
-      engines.forEach(([name, v]) => {
-        html += `<div style="font-size:11px;display:flex;justify-content:space-between;padding:2px 0">
-          <span style="color:var(--text)">${esc(name)}</span>
-          <span style="color:var(--flo)">${esc((v as { result?: string; category: string }).result ?? (v as { category: string }).category)}</span>
-        </div>`;
-      });
-      html += "</div>";
-    }
-    return html;
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+  return fetchLookupPanel("vt", target, type);
 }
 
-async function fetchShodan(ip: string, key: string): Promise<string> {
-  if (!key)
-    return '<span style="color:var(--text3)">Add Shodan key in Settings</span>';
-  try {
-    const r = await fetch(
-      `https://api.shodan.io/shodan/host/${encodeURIComponent(ip)}?key=${encodeURIComponent(key)}`,
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
-    const rows: [string, string][] = [];
-    if (d.org) rows.push(["Org", esc(d.org)]);
-    if (d.country_name) rows.push(["Country", esc(d.country_name)]);
-    if (d.city) rows.push(["City", esc(d.city)]);
-    if (d.isp) rows.push(["ISP", esc(d.isp)]);
-    if (d.asn) rows.push(["ASN", esc(d.asn)]);
-    if (d.os) rows.push(["OS", esc(d.os)]);
-    if ((d.vulns as string[])?.length)
-      rows.push([
-        "CVEs",
-        (d.vulns as string[]).slice(0, 5).map(esc).join(", "),
-      ]);
-    let html = table(rows);
-    if (
-      (
-        d.data as {
-          port?: number;
-          transport?: string;
-          product?: string;
-          _shodan?: { module?: string };
-        }[]
-      )?.length
-    ) {
-      html += '<div style="margin-top:8px;font-size:11px">';
-      (
-        d.data as {
-          port?: number;
-          transport?: string;
-          product?: string;
-          _shodan?: { module?: string };
-        }[]
-      )
-        .slice(0, 10)
-        .forEach((svc) => {
-          html += `<div style="display:flex;gap:8px;padding:2px 0;border-bottom:1px solid var(--border)">
-          <span style="color:var(--accent);font-weight:700;min-width:40px">${esc(String(svc.port ?? ""))}</span>
-          <span style="color:var(--text3)">${esc(svc.transport ?? "tcp")}</span>
-          <span style="color:var(--text)">${esc((svc.product ?? svc._shodan?.module ?? "").slice(0, 40))}</span>
-        </div>`;
-        });
-      if ((d.data as unknown[]).length > 10)
-        html += `<div style="color:var(--text3);margin-top:4px;font-size:10px">+${(d.data as unknown[]).length - 10} more ports</div>`;
-      html += "</div>";
-    }
-    return html;
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
+async function fetchShodan(ip: string): Promise<string> {
+  return fetchLookupPanel("shodan", ip, "ip");
 }
 
 // ── Panel component ────────────────────────────────────────────────────────────
@@ -746,17 +241,29 @@ function Category({ label }: { label: string }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function ReconLookup() {
-  const settings = useStore((s) => s.settings);
+  const { internetReachable } = useInternetAvailability();
 
   const [target, setTarget] = useState("");
   const [typeVal, setTypeVal] = useState<TargetType>("auto");
   const [loading, setLoading] = useState(false);
   const [panels, setPanels] = useState<PanelState>(EMPTY_PANELS);
   const [loadingMap, setLoadingMap] = useState<LoadingMap>(EMPTY_LOADING);
+  const [error, setError] = useState("");
+  const [lastLookupTarget, setLastLookupTarget] = useState("");
 
   const set = useCallback((key: PanelKey, val: string) => {
-    setPanels((p) => ({ ...p, [key]: val }));
+    const isErrorResult = val.startsWith('<span style="color:var(--flo)">');
+    setPanels((p) => {
+      if (isErrorResult && p[key]) return p;
+      return { ...p, [key]: val };
+    });
     setLoadingMap((m) => ({ ...m, [key]: false }));
+    if (isErrorResult) {
+      setError((prev) =>
+        prev ||
+        "Some lookups failed. Keeping the last successful panel results where available.",
+      );
+    }
   }, []);
 
   const placeholder = useCallback(
@@ -768,7 +275,7 @@ export default function ReconLookup() {
 
   async function scan() {
     const raw = target.trim();
-    if (!raw) return;
+    if (!raw || !internetReachable) return;
     const resolvedType = typeVal === "auto" ? detectType(raw) : typeVal;
 
     const isDomain = resolvedType === "domain" || resolvedType === "email";
@@ -781,6 +288,7 @@ export default function ReconLookup() {
     const ip = isIp ? raw : null;
 
     setLoading(true);
+    setError("");
     setLoadingMap({
       rdap: true,
       dns: true,
@@ -824,7 +332,7 @@ export default function ReconLookup() {
     // ── Email lookups ───────────────────────────────────────────────────────
     if (isEmail) {
       tasks.push(fetchEmailRep(raw).then((v) => set("emailrep", v)));
-      tasks.push(fetchHibp(raw, settings.hibpKey).then((v) => set("hibp", v)));
+      tasks.push(fetchHibp(raw).then((v) => set("hibp", v)));
     } else {
       placeholder("emailrep", "Email targets only");
       placeholder("hibp", "Email targets only");
@@ -841,9 +349,7 @@ export default function ReconLookup() {
     // ── VirusTotal ──────────────────────────────────────────────────────────
     if (domain || ip || isHash || isUrl) {
       tasks.push(
-        fetchVirusTotal(raw, resolvedType, settings.vtKey).then((v) =>
-          set("vt", v),
-        ),
+        fetchVirusTotal(raw, resolvedType).then((v) => set("vt", v)),
       );
     } else {
       placeholder("vt", "—");
@@ -851,14 +357,13 @@ export default function ReconLookup() {
 
     // ── Shodan ──────────────────────────────────────────────────────────────
     if (ip) {
-      tasks.push(
-        fetchShodan(ip, settings.shodanKey).then((v) => set("shodan", v)),
-      );
+      tasks.push(fetchShodan(ip).then((v) => set("shodan", v)));
     } else {
       placeholder("shodan", "IP targets only");
     }
 
     await Promise.allSettled(tasks);
+    setLastLookupTarget(raw);
     setLoading(false);
   }
 
@@ -866,6 +371,8 @@ export default function ReconLookup() {
     setTarget("");
     setPanels(EMPTY_PANELS);
     setLoadingMap(EMPTY_LOADING);
+    setError("");
+    setLastLookupTarget("");
   }
 
   const INPUT: React.CSSProperties = {
@@ -891,9 +398,24 @@ export default function ReconLookup() {
 
   const resolvedType =
     typeVal === "auto" && target.trim() ? detectType(target.trim()) : typeVal;
+  const hasRetainedLookup = Object.values(panels).some(Boolean) && Boolean(lastLookupTarget);
 
   return (
     <div>
+      {!internetReachable && (
+        <SurfaceCallout tone="warning" style={{ marginBottom: 12 }}>
+          {hasRetainedLookup
+            ? `Internet offline. ReconLookup is paused and still showing the last successful local result set for ${lastLookupTarget}.`
+            : "Internet offline. New ReconLookup scans are paused until connectivity returns."}
+        </SurfaceCallout>
+      )}
+
+      {error && (
+        <SurfaceCallout tone="warning" style={{ marginBottom: 12 }}>
+          {error}
+        </SurfaceCallout>
+      )}
+
       {/* Input row */}
       <div
         style={{
@@ -927,10 +449,10 @@ export default function ReconLookup() {
         </select>
         <button
           onClick={() => void scan()}
-          disabled={loading}
+          disabled={loading || !internetReachable}
           style={{ ...BTN, background: "var(--accent)", color: "#fff" }}
         >
-          {loading ? "Scanning…" : "🔍 Scan"}
+          {loading ? "Scanning…" : !internetReachable ? "Offline" : "🔍 Scan"}
         </button>
         <button
           onClick={clear}
@@ -953,8 +475,9 @@ export default function ReconLookup() {
           <span style={{ color: "var(--accent)", fontWeight: 700 }}>
             {resolvedType.toUpperCase()}
           </span>{" "}
-          — free panels will run automatically. BYOK panels require optional
-          keys in ⚙️ Settings.
+          — free panels will run automatically. HIBP, VirusTotal, and Shodan
+          now route through the local Nexus proxy and use optional server-side
+          keys from ⚙️ Settings.
         </div>
       )}
 

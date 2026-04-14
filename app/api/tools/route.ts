@@ -16,6 +16,23 @@ import {
 
 const TOOL_USER_AGENT = `${getBrandServiceName()}/1.0`;
 
+interface ToolResponseMeta {
+  cacheHit?: boolean;
+  duplicateRead?: boolean;
+}
+
+interface ToolResult {
+  result: string;
+  meta: ToolResponseMeta;
+}
+
+function withToolResult(
+  result: string,
+  meta: ToolResponseMeta = {},
+): ToolResult {
+  return { result, meta };
+}
+
 // ── Workspace root (files the agent can read/write) ───────────────────────────
 const WORKSPACE =
   process.env.AGENT_WORKSPACE ?? path.join(process.cwd(), "agent-workspace");
@@ -28,11 +45,105 @@ async function ensureWorkspace() {
 
 async function webSearch(query: string): Promise<string> {
   const braveKey = process.env.BRAVE_SEARCH_KEY ?? "";
+  const trimmedQuery = query.trim();
+
+  function stripHtml(value: string) {
+    return value
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function decodeDuckDuckGoHref(value: string) {
+    try {
+      const href = value.startsWith("//") ? `https:${value}` : value;
+      const url = new URL(href, "https://duckduckgo.com");
+      const redirected = url.searchParams.get("uddg");
+      return redirected ? decodeURIComponent(redirected) : url.toString();
+    } catch {
+      return value;
+    }
+  }
+
+  function buildOpenWebQueries(value: string) {
+    const queries = [value];
+    const lower = value.toLowerCase();
+    const looksLikeHandleLookup =
+      /\b(twitch|streamer|youtube|creator|channel|handle)\b/i.test(value) ||
+      /^[a-z0-9_]{3,32}$/i.test(value.replace(/\s+/g, ""));
+
+    if (looksLikeHandleLookup) {
+      if (!lower.includes("site:twitch.tv")) {
+        queries.unshift(`site:twitch.tv ${value}`);
+      }
+      if (!lower.includes("site:x.com") && !lower.includes("site:twitter.com")) {
+        queries.push(`site:x.com OR site:twitter.com ${value}`);
+      }
+    }
+
+    return Array.from(new Set(queries));
+  }
+
+  async function searchOpenWeb(value: string) {
+    const collected: { title: string; url: string; source: string }[] = [];
+
+    for (const candidate of buildOpenWebQueries(value)) {
+      try {
+        const response = await fetch(
+          `https://html.duckduckgo.com/html/?q=${encodeURIComponent(candidate)}`,
+          {
+            headers: {
+              "User-Agent": `Mozilla/5.0 (compatible; ${TOOL_USER_AGENT})`,
+            },
+            signal: AbortSignal.timeout(8000),
+          },
+        );
+        if (!response.ok) continue;
+        const html = await response.text();
+        const matches = Array.from(
+          html.matchAll(
+            /<a[^>]+class="(?:result__a|result-link)"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi,
+          ),
+        );
+        for (const match of matches) {
+          const href = decodeDuckDuckGoHref(match[1] ?? "");
+          const title = stripHtml(match[2] ?? "");
+          if (!href || !title) continue;
+          if (collected.some((row) => row.url === href)) continue;
+          let source = "open web";
+          try {
+            source = new URL(href).hostname;
+          } catch {
+            /* ignore */
+          }
+          collected.push({ title, url: href, source });
+          if (collected.length >= 8) break;
+        }
+        if (collected.length >= 8) break;
+      } catch {
+        /* try next query */
+      }
+    }
+
+    if (!collected.length) return "";
+    return collected
+      .slice(0, 8)
+      .map(
+        (a, i) =>
+          `${i + 1}. ${a.title}\n   Source: ${a.source} | ${a.url}`,
+      )
+      .join("\n\n");
+  }
 
   // ── Brave Search (preferred, much better quality) ──────────────────────────
   if (braveKey) {
     try {
-      const q = encodeURIComponent(query);
+      const q = encodeURIComponent(trimmedQuery);
       const url = `https://api.search.brave.com/res/v1/web/search?q=${q}&count=8&text_decorations=0`;
       const r = await fetch(url, {
         headers: {
@@ -59,13 +170,16 @@ async function webSearch(query: string): Promise<string> {
           .join("\n\n");
       }
     } catch {
-      // fall through to GDELT
+      // fall through to open web / GDELT
     }
   }
 
+  const openWeb = await searchOpenWeb(trimmedQuery);
+  if (openWeb) return openWeb;
+
   // ── GDELT fallback (no key required) ───────────────────────────────────────
   try {
-    const q = encodeURIComponent(query);
+    const q = encodeURIComponent(trimmedQuery);
     const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${q}&mode=artlist&maxrecords=10&format=json`;
     const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
     const d = await r.json();
@@ -343,12 +457,32 @@ function resolveProjectPath(relPath: string): {
   return { safe: full, blocked: null };
 }
 
-async function readProjectFile(relPath: string): Promise<string> {
+function normalizeProjectPathKey(relPath: string): string {
+  return relPath.replace(/^[/\\]+/, "").replace(/\\/g, "/");
+}
+
+async function readProjectFile(
+  relPath: string,
+  runId: string,
+): Promise<ToolResult> {
   const { safe, blocked } = resolveProjectPath(relPath);
-  if (blocked) return `Blocked: ${blocked}`;
+  if (blocked) return withToolResult(`Blocked: ${blocked}`);
   const ext = path.extname(relPath).toLowerCase();
   if (!READABLE_EXTS.has(ext))
-    return `Cannot read file type "${ext}". Allowed: ${Array.from(READABLE_EXTS).join(", ")}`;
+    return withToolResult(
+      `Cannot read file type "${ext}". Allowed: ${Array.from(READABLE_EXTS).join(", ")}`,
+    );
+  const normalizedPath = normalizeProjectPathKey(relPath);
+  const duplicateRead = recordDuplicateRead(
+    runId,
+    "read_project_file",
+    normalizedPath,
+  );
+  const cacheKey = `read_project_file:${normalizedPath}`;
+  const cached = cacheGet(cacheKey);
+  if (cached !== null) {
+    return withToolResult(cached, { cacheHit: true, duplicateRead });
+  }
   try {
     const content = await fs.readFile(safe, "utf-8");
     const preview = content.slice(0, 60_000);
@@ -356,13 +490,18 @@ async function readProjectFile(relPath: string): Promise<string> {
       content.length > 60_000
         ? `\n\n[Truncated — showing first 60,000 of ${content.length} chars]`
         : "";
-    return preview + truncated;
+    const result = preview + truncated;
+    cachePut(cacheKey, result);
+    return withToolResult(result, { duplicateRead });
   } catch {
-    return `File not found: ${relPath}`;
+    return withToolResult(`File not found: ${relPath}`, { duplicateRead });
   }
 }
 
-async function listProjectFiles(relDir: string): Promise<string> {
+async function listProjectFiles(
+  relDir: string,
+  runId: string,
+): Promise<ToolResult> {
   const cleanDir = relDir.replace(/^[/\\]+/, "").replace(/\\/g, "/") || ".";
   const { safe, blocked } = resolveProjectPath(
     cleanDir === "." ? "_root_sentinel" : cleanDir,
@@ -370,7 +509,17 @@ async function listProjectFiles(relDir: string): Promise<string> {
   // For root listing, bypass the sentinel trick
   const targetPath = cleanDir === "." ? PROJECT_ROOT : blocked ? null : safe;
 
-  if (!targetPath) return `Blocked: ${blocked}`;
+  if (!targetPath) return withToolResult(`Blocked: ${blocked}`);
+  const duplicateRead = recordDuplicateRead(
+    runId,
+    "list_project_files",
+    cleanDir,
+  );
+  const cacheKey = `list_project_files:${cleanDir}`;
+  const cached = cacheGet(cacheKey);
+  if (cached !== null) {
+    return withToolResult(cached, { cacheHit: true, duplicateRead });
+  }
 
   try {
     const entries = await fs.readdir(targetPath, { withFileTypes: true });
@@ -382,9 +531,13 @@ async function listProjectFiles(relDir: string): Promise<string> {
           ),
       )
       .map((e) => `${e.isDirectory() ? "📁" : "📄"} ${e.name}`);
-    return lines.length ? lines.join("\n") : "Directory is empty.";
+    const result = lines.length ? lines.join("\n") : "Directory is empty.";
+    cachePut(cacheKey, result);
+    return withToolResult(result, { duplicateRead });
   } catch {
-    return `Directory not found: ${relDir}`;
+    return withToolResult(`Directory not found: ${relDir}`, {
+      duplicateRead,
+    });
   }
 }
 
@@ -521,6 +674,11 @@ interface CacheEntry {
   expiresAt: number;
 }
 const readCache = new Map<string, CacheEntry>();
+interface DuplicateReadEntry {
+  count: number;
+  lastAccessAt: number;
+}
+const duplicateReadAudit = new Map<string, DuplicateReadEntry>();
 
 function cacheGet(key: string): string | null {
   const entry = readCache.get(key);
@@ -539,6 +697,29 @@ function cacheEvict(prefix: string): void {
   for (const k of Array.from(readCache.keys())) {
     if (k.startsWith(prefix)) readCache.delete(k);
   }
+}
+
+function pruneDuplicateReadAudit(now = Date.now()): void {
+  if (duplicateReadAudit.size <= 1500) return;
+  for (const [key, entry] of Array.from(duplicateReadAudit.entries())) {
+    if (now - entry.lastAccessAt > 30 * 60_000) {
+      duplicateReadAudit.delete(key);
+    }
+  }
+}
+
+function recordDuplicateRead(
+  runId: string,
+  kind: string,
+  target: string,
+): boolean {
+  const now = Date.now();
+  pruneDuplicateReadAudit(now);
+  const key = `${runId}:${kind}:${target}`;
+  const next = duplicateReadAudit.get(key);
+  const count = (next?.count ?? 0) + 1;
+  duplicateReadAudit.set(key, { count, lastAccessAt: now });
+  return count >= 3;
 }
 
 // ── HuggingFace daily papers search ──────────────────────────────────────────
@@ -709,7 +890,7 @@ async function secEdgarSearch(
 
 // ── Lesson logger (OpenClaw autoresearch pattern) ─────────────────────────────
 // Agents propose lessons after corrections; human reviews on next session open.
-const LESSONS_FILE = path.join(PROJECT_ROOT, "tasks", "lessons.md");
+const LESSONS_FILE = path.join(PROJECT_ROOT, "docs", "STANDARDS.md");
 
 async function logLesson(agent: string, lesson: string): Promise<string> {
   if (!lesson.trim()) return "log_lesson: lesson text is required.";
@@ -719,7 +900,7 @@ async function logLesson(agent: string, lesson: string): Promise<string> {
     await fs.appendFile(LESSONS_FILE, entry, "utf-8");
     return `Lesson logged for review: "${lesson.trim()}"`;
   } catch {
-    return "Could not write to tasks/lessons.md — check file permissions.";
+    return "Could not write to docs/STANDARDS.md — check file permissions.";
   }
 }
 
@@ -783,12 +964,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const runId = req.headers.get("x-nexus-run-id") ?? "anon";
     const { tool, input } = (await req.json()) as {
       tool: string;
       input: Record<string, string>;
     };
 
     let result = "";
+    let meta: ToolResponseMeta = {};
 
     switch (tool) {
       case "web_search":
@@ -822,14 +1005,26 @@ export async function POST(req: NextRequest) {
         result = await askMax(input.message ?? "");
         break;
       case "read_project_file":
-        result = await readProjectFile(input.path ?? "");
+        {
+          const toolResult = await readProjectFile(input.path ?? "", runId);
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
         break;
       case "list_project_files":
-        result = await listProjectFiles(input.directory ?? ".");
+        {
+          const toolResult = await listProjectFiles(
+            input.directory ?? ".",
+            runId,
+          );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
         break;
       case "patch_project_file":
         // Evict any cached reads for this file path before patching
-        cacheEvict(`read_project_file:${input.path ?? ""}`);
+        cacheEvict(`read_project_file:${normalizeProjectPathKey(input.path ?? "")}`);
+        cacheEvict("list_project_files:");
         result = await patchProjectFile(
           input.path ?? "",
           input.old_string ?? "",
@@ -837,6 +1032,8 @@ export async function POST(req: NextRequest) {
         );
         break;
       case "create_project_file":
+        cacheEvict(`read_project_file:${normalizeProjectPathKey(input.path ?? "")}`);
+        cacheEvict("list_project_files:");
         result = await createProjectFile(input.path ?? "", input.content ?? "");
         break;
       case "reddit_search":
@@ -887,6 +1084,10 @@ export async function POST(req: NextRequest) {
     }
 
     const response = NextResponse.json({ result });
+    if (meta.cacheHit) response.headers.set("X-Tool-Cache", "hit");
+    if (meta.duplicateRead) {
+      response.headers.set("X-Tool-Duplicate-Read", "1");
+    }
     applyRateLimitHeaders(response, rateLimitConfig);
     return response;
   } catch (err) {

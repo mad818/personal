@@ -19,7 +19,7 @@ You can deploy in two ways:
 ## One-time app setup in Coolify
 
 1. **New resource → Application** (or Project → Add Application).
-2. **Source**: connect the Git repository and pick branch (e.g. `main`).
+2. **Source**: connect the Git repository and pick branch (e.g. `main`; for the current first remote artifact proof, use `codex/preserve-main-2026-04-11`).
 3. **Build**:
    - **Dockerfile**: set build type to Dockerfile if Coolify exposes it; context = repo root; no extra args needed. The image runs `node server.js` from the standalone bundle.
    - **Nixpacks**: leave default; runs `npm run build` then `npm start` (full `next start`, not standalone — both listen on **3000**).
@@ -29,15 +29,15 @@ You can deploy in two ways:
    - `NEXUS_TOKEN` (random string; protects `/api/*` per `middleware.ts`)
    - `NEXUS_DEPLOYMENT_PROFILE=web-self-hosted`
 6. **Domain**: assign a hostname and TLS in Coolify; enable health checks if offered.
+   - The repo intentionally does not commit a real staging hostname or Coolify app identifier. Keep the exact staged domain operator-local and use that value for `NEXUS_RELEASE_BASE_URL` when running target-runtime proof.
 
 ## After deploy
 
 - Smoke-test: open the tab routes, confirm `/api/*` calls succeed with `Authorization: Bearer <NEXUS_TOKEN>` where the client sends it.
+- Add the real staged hostname to repo-root `.env.local` as `NEXUS_RELEASE_BASE_URL=https://...` before running the shared target-runtime gate from this workstation.
 - Run the shared release smoke script against the deployed host:
 
 ```bash
-NEXUS_RELEASE_BASE_URL=https://your-host.example \
-NEXUS_TOKEN=your-token \
 npm run release:smoke
 ```
 

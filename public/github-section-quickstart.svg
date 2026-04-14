@@ -52,8 +52,8 @@
       <text x="82" y="46" text-anchor="middle" fill="#c4b4b8" font-size="7">cp .env.example</text>
       <text x="82" y="58" text-anchor="middle" fill="#c4b4b8" font-size="7">.env.local</text>
       <rect x="12" y="68" width="140" height="40" rx="4" fill="#0c0a0b" stroke="#57534e" stroke-opacity="0.5"/>
-      <text x="82" y="82" text-anchor="middle" fill="#86efac" font-size="6.5">NEXUS_TOKEN=...</text>
-      <text x="82" y="94" text-anchor="middle" fill="#86efac" font-size="6.5">ANTHROPIC_API_KEY=...</text>
+  <text x="82" y="82" text-anchor="middle" fill="#86efac" font-size="6.5">NEXUS_TOKEN=&lt;set-in-local-env-only&gt;</text>
+  <text x="82" y="94" text-anchor="middle" fill="#86efac" font-size="6.5">ANTHROPIC_API_KEY=&lt;set-in-local-env-only&gt;</text>
       <text x="82" y="108" text-anchor="middle" fill="#6b5f63" font-size="6">or Local AI path</text>
     </g>
     <g transform="translate(566,78)">

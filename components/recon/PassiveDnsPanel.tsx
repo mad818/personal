@@ -5,109 +5,13 @@
 "use client";
 
 import { useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 import { sanitizeHtml } from "@/lib/security/sanitizeHtml";
-
-function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 function detectType(raw: string): "domain" | "ip" {
   return /^(\d{1,3}\.){3}\d{1,3}$/.test(raw) ? "ip" : "domain";
-}
-
-interface PdnsRecord {
-  rrtype: string;
-  rrname: string;
-  rdata: string;
-  time_first: number;
-  time_last: number;
-  count: number;
-}
-
-async function fetchCirclPdns(domain: string): Promise<string> {
-  try {
-    const r = await fetch(
-      `https://www.circl.lu/pdns/query/${encodeURIComponent(domain)}`,
-      {
-        headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(10000),
-      },
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const text = await r.text();
-    const records: PdnsRecord[] = text
-      .trim()
-      .split("\n")
-      .filter(Boolean)
-      .map((line) => {
-        try {
-          return JSON.parse(line) as PdnsRecord;
-        } catch {
-          return null;
-        }
-      })
-      .filter((x): x is PdnsRecord => x !== null);
-
-    if (!records.length)
-      return '<span style="color:var(--text3)">No passive DNS records found</span>';
-
-    // Group by rrtype
-    const byType = new Map<string, PdnsRecord[]>();
-    records.forEach((rec) => {
-      if (!byType.has(rec.rrtype)) byType.set(rec.rrtype, []);
-      byType.get(rec.rrtype)!.push(rec);
-    });
-
-    let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:8px">${records.length} historical record${records.length !== 1 ? "s" : ""} · source: CIRCL pDNS</div>`;
-    byType.forEach((recs, type) => {
-      html += `<div style="font-size:10px;font-weight:700;color:var(--accent);margin:8px 0 3px;text-transform:uppercase;letter-spacing:.5px">${esc(type)}</div>`;
-      recs.slice(0, 10).forEach((rec) => {
-        const first = rec.time_first
-          ? new Date(rec.time_first * 1000).toISOString().slice(0, 10)
-          : "";
-        const last = rec.time_last
-          ? new Date(rec.time_last * 1000).toISOString().slice(0, 10)
-          : "";
-        const dateSpan = first
-          ? ` <span style="color:var(--text3);font-size:9px">${first}${last && last !== first ? ` → ${last}` : ""}</span>`
-          : "";
-        html += `<div style="font-size:11px;color:var(--text);word-break:break-all;padding:2px 0;border-bottom:1px solid var(--border)">${esc(rec.rdata)}${dateSpan}</div>`;
-      });
-      if (recs.length > 10) {
-        html += `<div style="font-size:9px;color:var(--text3);margin-top:2px">+${recs.length - 10} more</div>`;
-      }
-    });
-    return html;
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
-}
-
-async function fetchReverseIp(ip: string): Promise<string> {
-  try {
-    const r = await fetch(
-      `https://api.hackertarget.com/reverseiplookup/?q=${encodeURIComponent(ip)}`,
-      { signal: AbortSignal.timeout(10000) },
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const text = await r.text();
-    if (!text.trim() || text.includes("error") || text.includes("API count")) {
-      return `<span style="color:var(--text3)">${esc(text.trim() || "No results")}</span>`;
-    }
-    const hosts = text.trim().split("\n").filter(Boolean);
-    if (!hosts.length)
-      return '<span style="color:var(--text3)">No co-hosted domains found</span>';
-    let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:8px">${hosts.length} domain${hosts.length !== 1 ? "s" : ""} on this IP · source: HackerTarget</div>`;
-    hosts.slice(0, 30).forEach((h) => {
-      html += `<div style="font-size:11px;color:var(--text);padding:2px 0;border-bottom:1px solid var(--border)">${esc(h.trim())}</div>`;
-    });
-    if (hosts.length > 30) {
-      html += `<div style="font-size:9px;color:var(--text3);margin-top:2px">+${hosts.length - 30} more</div>`;
-    }
-    return html;
-  } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
-  }
 }
 
 const INPUT: React.CSSProperties = {
@@ -132,31 +36,45 @@ const BTN: React.CSSProperties = {
 };
 
 export default function PassiveDnsPanel() {
+  const { internetReachable } = useInternetAvailability();
   const [target, setTarget] = useState("");
   const [loading, setLoading] = useState(false);
   const [pdns, setPdns] = useState("");
   const [revIp, setRevIp] = useState("");
+  const [error, setError] = useState("");
+  const [lastLookupTarget, setLastLookupTarget] = useState("");
+
+  const hasRetainedLookup = Boolean(pdns || revIp) && Boolean(lastLookupTarget);
 
   async function lookup() {
     const raw = target.trim();
-    if (!raw) return;
+    if (!raw || !internetReachable) return;
     const type = detectType(raw);
     setLoading(true);
-    setPdns("");
-    setRevIp("");
+    setError("");
 
     try {
-      if (type === "domain") {
-        const result = await fetchCirclPdns(raw);
-        setPdns(result);
-      } else {
-        const [pdnsResult, revResult] = await Promise.allSettled([
-          fetchCirclPdns(raw),
-          fetchReverseIp(raw),
-        ]);
-        if (pdnsResult.status === "fulfilled") setPdns(pdnsResult.value);
-        if (revResult.status === "fulfilled") setRevIp(revResult.value);
+      const response = await apiFetch(
+        `/api/recon/passive-dns?target=${encodeURIComponent(raw)}`,
+        { cache: "no-store" },
+      );
+      const data = (await response.json()) as {
+        pdns?: string;
+        reverseIp?: string;
+        error?: string;
+      };
+      if (data.error) {
+        throw new Error(data.error);
       }
+      setPdns(data.pdns ?? "");
+      setRevIp(type === "ip" ? (data.reverseIp ?? "") : "");
+      setLastLookupTarget(raw);
+    } catch (e) {
+      setError(
+        hasRetainedLookup
+          ? `${String(e)} Keeping the last successful lookup visible.`
+          : String(e),
+      );
     } finally {
       setLoading(false);
     }
@@ -197,22 +115,58 @@ export default function PassiveDnsPanel() {
         />
         <button
           onClick={() => void lookup()}
-          disabled={loading}
+          disabled={loading || !internetReachable}
           style={{ ...BTN, background: "var(--accent)", color: "#fff" }}
         >
-          {loading ? "Loading…" : "📡 Look up"}
+          {loading ? "Loading…" : internetReachable ? "📡 Look up" : "Offline"}
         </button>
         <button
           onClick={() => {
             setTarget("");
             setPdns("");
             setRevIp("");
+            setError("");
+            setLastLookupTarget("");
           }}
           style={{ ...BTN, background: "var(--surf3)", color: "var(--text2)" }}
         >
           Clear
         </button>
       </div>
+
+      {!internetReachable ? (
+        <SurfaceCallout
+          tone={hasRetainedLookup ? "info" : "warning"}
+          compact
+          icon="↺"
+          title={
+            hasRetainedLookup
+              ? "Internet offline · showing retained lookup results"
+              : "Internet offline · passive DNS lookup paused"
+          }
+          description={
+            hasRetainedLookup
+              ? `The last successful lookup for ${lastLookupTarget} remains visible locally until reconnect.`
+              : "Passive DNS and reverse-IP lookups depend on remote sources, so live queries pause until reconnect."
+          }
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
+
+      {error ? (
+        <SurfaceCallout
+          tone={hasRetainedLookup ? "warning" : "critical"}
+          compact
+          icon={hasRetainedLookup ? "↺" : "!"}
+          title={
+            hasRetainedLookup
+              ? "Latest passive DNS lookup failed · showing last good result"
+              : "Passive DNS lookup failed"
+          }
+          description={error}
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
 
       {detectedType && (
         <div

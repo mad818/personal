@@ -4,9 +4,17 @@
 // NEXUS PRIME — SEC Filings Feed: fetches recent filings from /api/sec-filings
 // and displays them with color-coding by form type.
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiFetch } from "@/lib/apiFetch";
+import { useStore } from "@/store/useStore";
+import {
+  SurfaceCallout,
+  SurfaceEmpty,
+  SurfaceSkeletonRows,
+} from "@/components/ui/surfacePrimitives";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 interface Filing {
   id: string;
@@ -160,16 +168,26 @@ function FilingRow({ filing }: { filing: Filing }) {
 
 // ── Main SECFilingsFeed export ────────────────────────────────────────────────
 export default function SECFilingsFeed() {
-  const [filings, setFilings] = useState<Filing[]>([]);
+  const filings = useStore((s) => (s.secFilings as unknown as Filing[]) ?? []);
+  const setSecFilings = useStore((s) => s.setSecFilings);
+  const secFilingsStatus = useStore((s) => s.feedStatus.secFilings);
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus);
+  const { internetReachable } = useInternetAvailability();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "10-K" | "10-Q" | "8-K">("all");
   const [query, setQuery] = useState("10-K");
+  const latestQueryRef = useRef(query);
+
+  useEffect(() => {
+    latestQueryRef.current = query;
+  }, [query]);
 
   const load = useCallback(
-    async (q: string = query) => {
+    async (q: string) => {
       setLoading(true);
       setError(null);
+      updateFeedStatus("secFilings", { lastAttemptAt: Date.now() });
       try {
         const r = await apiFetch(
           `/api/sec-filings?query=${encodeURIComponent(q)}`,
@@ -190,26 +208,35 @@ export default function SECFilingsFeed() {
               : undefined),
           cik: f.cik ?? "",
         }));
-        setFilings(mapped);
-      } catch (err) {
+        setSecFilings(mapped as unknown as Record<string, unknown>[]);
+        updateFeedStatus("secFilings", {
+          lastSuccessAt: Date.now(),
+          lastError: null,
+        });
+      } catch {
+        updateFeedStatus("secFilings", {
+          lastFailureAt: Date.now(),
+          lastError: "Unable to fetch SEC filings. Check API connectivity.",
+        });
         setError("Unable to fetch SEC filings. Check API connectivity.");
-        setFilings([]);
       } finally {
         setLoading(false);
       }
     },
-    [query],
+    [setSecFilings, updateFeedStatus],
   );
 
   // Auto-load on mount
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!internetReachable) return;
+    void load(latestQueryRef.current);
+  }, [internetReachable, load]);
 
   const visible =
     filter === "all"
       ? filings
       : filings.filter((f) => f.formType.startsWith(filter));
+  const showFilteredEmpty = filings.length > 0 && visible.length === 0 && !loading;
 
   const FORM_FILTERS: Array<{
     key: "all" | "10-K" | "10-Q" | "8-K";
@@ -243,6 +270,11 @@ export default function SECFilingsFeed() {
         >
           📄 SEC EDGAR — Filings
         </span>
+        <FeedStatusPill
+          label="SEC"
+          status={secFilingsStatus}
+          internetReachable={internetReachable}
+        />
         <div
           style={{
             flex: 1,
@@ -255,7 +287,7 @@ export default function SECFilingsFeed() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && load(query)}
+            onKeyDown={(e) => e.key === "Enter" && void load(query)}
             placeholder="Search query (e.g. 10-K, Apple, AI)"
             style={{
               flex: 1,
@@ -271,24 +303,47 @@ export default function SECFilingsFeed() {
             }}
           />
           <button
-            onClick={() => load(query)}
-            disabled={loading}
+            onClick={() => void load(query)}
+            disabled={loading || !internetReachable}
             style={{
               height: "26px",
               padding: "0 12px",
               borderRadius: "6px",
-              background: "var(--accent)",
+              background: loading || !internetReachable ? "var(--border2)" : "var(--accent)",
               border: "none",
               color: "#fff",
               fontSize: "11px",
               fontWeight: 600,
-              cursor: loading ? "not-allowed" : "pointer",
+              cursor: loading || !internetReachable ? "not-allowed" : "pointer",
             }}
           >
-            {loading ? "Loading…" : "↻ Refresh"}
+            {loading ? "Loading…" : !internetReachable ? "Offline" : "↻ Refresh"}
           </button>
         </div>
       </div>
+
+      {!internetReachable ? (
+        <SurfaceCallout
+          tone="info"
+          compact
+          icon="Offline"
+          title="Internet offline · showing last-known SEC stream"
+          description="Manual SEC refresh is paused until reconnect. Existing local filing results remain available for review."
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
+
+      {internetReachable &&
+      (secFilingsStatus.lastFailureAt ?? 0) > (secFilingsStatus.lastSuccessAt ?? 0) ? (
+        <SurfaceCallout
+          tone="warning"
+          compact
+          icon="Alert"
+          title="SEC stream is stale"
+          description="The latest refresh failed, so this panel is preserving the last good filing results instead of clearing them."
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
 
       {/* Form type legend */}
       <div
@@ -365,55 +420,39 @@ export default function SECFilingsFeed() {
 
       {/* Error */}
       {error && (
-        <div
-          style={{
-            padding: "12px",
-            background: "var(--surf2)",
-            border: "1px solid var(--border)",
-            borderRadius: "8px",
-            fontSize: "12px",
-            color: "var(--text3)",
-            marginBottom: "10px",
-          }}
-        >
-          {error}
-        </div>
+        <SurfaceCallout
+          tone="critical"
+          icon="!"
+          title="SEC feed unavailable"
+          description={error}
+          style={{ marginBottom: "10px" }}
+        />
       )}
 
       {/* Empty state */}
       {!filings.length && !loading && !error && (
-        <div
-          style={{
-            padding: "40px",
-            textAlign: "center",
-            color: "var(--text3)",
-            fontSize: "13px",
-          }}
-        >
-          Hit Refresh to fetch live SEC filings.
-        </div>
+        <SurfaceEmpty
+          icon="📄"
+          title="No SEC filings loaded yet"
+          description="Hit Refresh to fetch the live EDGAR filing stream for the current query."
+        />
       )}
 
       {/* Loading skeleton */}
-      {loading && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              style={{
-                height: "52px",
-                background: "var(--surf2)",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                opacity: 0.5,
-              }}
-            />
-          ))}
-        </div>
-      )}
+      {loading ? <SurfaceSkeletonRows rows={5} height={52} /> : null}
+
+      {showFilteredEmpty ? (
+        <SurfaceEmpty
+          icon="🔎"
+          title="No filings match this filter"
+          description="Try another filing type or switch back to All Forms to see the broader stream."
+          compact
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
 
       {/* Filings list */}
-      {!loading && (
+      {!loading && !showFilteredEmpty && (
         <div
           style={{
             display: "flex",

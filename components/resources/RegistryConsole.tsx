@@ -2,7 +2,11 @@
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
+import { InternalWorkbenchNotice } from "@/components/ui/InternalWorkbenchNotice";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { apiFetch } from "@/lib/apiFetch";
 import type { AssetKit, RegistryCostTier, RegistryItem } from "@/lib/assimilation/types";
+import type { InternalWorkbenchMeta } from "@/lib/assimilation/contracts";
 
 interface Props {
   compact?: boolean;
@@ -21,19 +25,35 @@ const COST_LABELS: Record<RegistryCostTier, string> = {
 export default function RegistryConsole({ compact = false, view = "all" }: Props) {
   const [items, setItems] = useState<RegistryItem[]>([]);
   const [kits, setKits] = useState<AssetKit[]>([]);
+  const [meta, setMeta] = useState<InternalWorkbenchMeta | null>(null);
   const [search, setSearch] = useState("");
   const [costFilter, setCostFilter] = useState<RegistryCostTier | "all">("all");
+  const [loadError, setLoadError] = useState("");
   const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
     let active = true;
-    void fetch("/api/registry", { cache: "no-store" })
-      .then((response) => response.json() as Promise<{ items: RegistryItem[]; kits: AssetKit[] }>)
-      .then((payload) => {
+    void (async () => {
+      try {
+        const response = await apiFetch("/api/registry", { cache: "no-store" });
+        if (!response.ok) throw new Error("Failed to load registry.");
+        const payload = (await response.json()) as {
+          items: RegistryItem[];
+          kits: AssetKit[];
+          meta?: InternalWorkbenchMeta;
+        };
         if (!active) return;
         setItems(payload.items);
         setKits(payload.kits);
-      });
+        setMeta(payload.meta ?? null);
+        setLoadError("");
+      } catch {
+        if (!active) return;
+        setLoadError(
+          "Registry data is temporarily unavailable. Retained local items and kits stay visible until the route recovers.",
+        );
+      }
+    })();
     return () => {
       active = false;
     };
@@ -64,16 +84,27 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
 
   return (
     <div style={{ display: "grid", gap: compact ? "12px" : "16px" }}>
+      <InternalWorkbenchNotice meta={meta} compact={compact} />
+      {loadError ? (
+        <SurfaceCallout
+          tone="warning"
+          compact
+          icon="↺"
+          title="Showing retained registry data"
+          description={loadError}
+        />
+      ) : null}
       {!compact && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) auto",
-            gap: "12px",
-            alignItems: "end",
-          }}
-        >
-          <label style={{ display: "grid", gap: "6px" }}>
+        <div style={{ display: "grid", gap: "12px" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr) auto",
+              gap: "12px",
+              alignItems: "end",
+            }}
+          >
+            <label style={{ display: "grid", gap: "6px" }}>
             <span style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Search registry
             </span>
@@ -89,8 +120,8 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
                 color: "var(--text)",
               }}
             />
-          </label>
-          <label style={{ display: "grid", gap: "6px", minWidth: "180px" }}>
+            </label>
+            <label style={{ display: "grid", gap: "6px", minWidth: "180px" }}>
             <span style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Cost posture
             </span>
@@ -114,7 +145,8 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
                 </option>
               ))}
             </select>
-          </label>
+            </label>
+          </div>
         </div>
       )}
 

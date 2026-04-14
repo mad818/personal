@@ -7,11 +7,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DEFAULT_SKILLS, getSystemHealthFromSkills } from "@/lib/skillEngine";
+import { useStore } from "@/store/useStore";
 import {
   buildGraph,
   getHubSkills,
   getSkillClusters,
 } from "@/lib/knowledgeGraph";
+import NativeCapabilityAuditCard from "@/components/ui/NativeCapabilityAuditCard";
+import { HQ_WORKFLOW_CATALOG } from "@/components/home/office/workflowCommands";
 
 // ── Neural network node data ──────────────────────────────────────────────────
 const INPUT_NODES = [
@@ -276,6 +279,7 @@ function MetricTile({
 // ── Main SystemBrain export ────────────────────────────────────────────────────
 export default function SystemBrain() {
   const { uptimeStr, memUsed } = useSystemMetrics();
+  const contextLoadReport = useStore((s) => s.contextLoadReport);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [activeQueue, setActiveQueue] = useState<{
     id: string;
@@ -328,6 +332,13 @@ export default function SystemBrain() {
       (sum, neighbors) => sum + neighbors.size,
       0,
     ) / 2;
+  const selectedAssetSummary = contextLoadReport?.selectedAssets
+    .map((asset) => `${asset.id} (${asset.chars})`)
+    .join(" · ");
+  const skippedAssetSummary = contextLoadReport?.skippedAssets
+    .slice(0, 3)
+    .map((asset) => `${asset.id}: ${asset.reason}`)
+    .join(" · ");
 
   return (
     <div
@@ -608,6 +619,41 @@ export default function SystemBrain() {
             gap: "8px",
           }}
         >
+          Capability Audit
+          <span
+            style={{
+              fontSize: "10px",
+              fontFamily: "monospace",
+              color: "var(--gold)",
+              fontWeight: 700,
+            }}
+          >
+            autoskills posture
+          </span>
+        </div>
+
+        <NativeCapabilityAuditCard
+          surfaceId="global"
+          title="Governance control plane"
+          detail="Use this inventory to track risk tiers, approval-gated continuations, domain-tag coverage, and the cyber-triage baseline without widening SKILLS into a governance dashboard."
+          workflowCatalogCount={HQ_WORKFLOW_CATALOG.length}
+        />
+      </div>
+
+      <div style={{ marginBottom: "16px" }}>
+        <div
+          style={{
+            fontSize: "11px",
+            fontWeight: 700,
+            color: "var(--text3)",
+            textTransform: "uppercase",
+            letterSpacing: "0.7px",
+            marginBottom: "10px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
           Knowledge Hubs
           <span
             style={{
@@ -752,6 +798,106 @@ export default function SystemBrain() {
         </div>
       </div>
 
+      <div style={{ marginBottom: "16px" }}>
+        <div
+          style={{
+            fontSize: "11px",
+            fontWeight: 700,
+            color: "var(--text3)",
+            textTransform: "uppercase",
+            letterSpacing: "0.7px",
+            marginBottom: "10px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          Context Policy
+          <span
+            style={{
+              fontSize: "10px",
+              fontFamily: "monospace",
+              color: "var(--accent)",
+              fontWeight: 700,
+            }}
+          >
+            diagnostics
+          </span>
+        </div>
+
+        <div
+          style={{
+            background: "var(--surf)",
+            border: "1px solid var(--border)",
+            borderRadius: "10px",
+            padding: "12px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gap: "8px",
+            }}
+          >
+            <MetricTile
+              label="Lane"
+              value={contextLoadReport?.lane ?? "idle"}
+              sub={contextLoadReport?.workflowPackId ?? "no active pack"}
+              color="var(--accent)"
+            />
+            <MetricTile
+              label="Chars"
+              value={contextLoadReport ? String(contextLoadReport.totalChars) : "0"}
+              sub={
+                contextLoadReport
+                  ? `base ${contextLoadReport.baselineChars}/${contextLoadReport.baselineBudgetChars} · lane ${contextLoadReport.laneChars}/${contextLoadReport.laneBudgetChars}`
+                  : "no context bundle yet"
+              }
+              color="var(--gold)"
+            />
+            <MetricTile
+              label="Selected"
+              value={contextLoadReport ? String(contextLoadReport.selectedAssets.length) : "0"}
+              sub="active context blocks"
+            />
+            <MetricTile
+              label="Skipped"
+              value={contextLoadReport ? String(contextLoadReport.skippedAssets.length) : "0"}
+              sub="policy or budget"
+              color="var(--blush)"
+            />
+          </div>
+
+          <div
+            style={{
+              fontSize: "10px",
+              color: "var(--text2)",
+              lineHeight: 1.5,
+            }}
+          >
+            {selectedAssetSummary
+              ? `Selected assets: ${selectedAssetSummary}`
+              : "Selected assets: no assistant turn has produced a context manifest yet."}
+          </div>
+
+          <div
+            style={{
+              fontSize: "10px",
+              color: "var(--text3)",
+              lineHeight: 1.5,
+            }}
+          >
+            {skippedAssetSummary
+              ? `Skipped assets: ${skippedAssetSummary}`
+              : "Skipped assets: none on the latest recorded turn."}
+          </div>
+        </div>
+      </div>
+
       {/* Self-Improvement Queue */}
       <div>
         <div
@@ -807,7 +953,7 @@ export default function SystemBrain() {
                   border: `1px solid ${activeQueue?.id === item.id ? "var(--border2)" : "var(--border)"}`,
                   borderRadius: "8px",
                   cursor: "pointer",
-                  transition: "background 0.15s, border-color 0.15s",
+                  transition: "background var(--t), border-color var(--t)",
                 }}
                 onClick={() =>
                   setActiveQueue(activeQueue?.id === item.id ? null : item)

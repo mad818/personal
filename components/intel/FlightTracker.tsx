@@ -7,6 +7,15 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiFetch } from "@/lib/apiFetch";
+import { readConnectorMeta } from "@/lib/connectorMeta";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import {
+  SurfaceCallout,
+  SurfaceEmpty,
+  SurfaceSkeletonRows,
+} from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
+import { useStore } from "@/store/useStore";
 
 interface Flight {
   callsign: string;
@@ -222,15 +231,31 @@ export default function FlightTracker() {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [sortBy, setSortBy] = useState<"altitude" | "speed">("altitude");
+  const { internetReachable } = useInternetAvailability();
+  const flightsStatus = useStore((s) => s.feedStatus.flights);
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus);
+
+  const lastFailureIsNewest =
+    Boolean(flightsStatus.lastFailureAt) &&
+    (flightsStatus.lastSuccessAt === null ||
+      (flightsStatus.lastFailureAt ?? 0) > (flightsStatus.lastSuccessAt ?? 0));
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setWarning(null);
+    updateFeedStatus("flights", {
+      lastAttemptAt: Date.now(),
+      lastError: null,
+    });
     try {
       const r = await apiFetch("/api/flights");
       const d = await r.json();
+      const connectorMeta = readConnectorMeta(d);
+      const warnings = connectorMeta?.warnings ?? [];
       const raw: any[] = d.flights ?? d.states ?? [];
       const mapped: Flight[] = raw
         .filter((f: any) => f != null)
@@ -254,19 +279,47 @@ export default function FlightTracker() {
         }))
         .filter((f) => !f.onGround && f.altitude > 0);
       setFlights(mapped);
-      setLastUpdated(new Date());
+      setWarning(warnings[0] ?? null);
+      const successAt = connectorMeta?.generatedAt
+        ? new Date(connectorMeta.generatedAt)
+        : new Date();
+      setLastUpdated(successAt);
+      updateFeedStatus("flights", {
+        lastSuccessAt: successAt.getTime(),
+        lastError: warnings[0] ?? null,
+      });
     } catch {
       setError("Unable to fetch flight data. Check API connectivity.");
-      setFlights([]);
+      updateFeedStatus("flights", {
+        lastFailureAt: Date.now(),
+        lastError: "Unable to fetch flight data. Check API connectivity.",
+      });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [updateFeedStatus]);
 
   // Auto-load on mount
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!internetReachable) return;
+    if (
+      !flights.length &&
+      flightsStatus.lastSuccessAt === null &&
+      flightsStatus.lastFailureAt !== null
+    ) {
+      void load();
+    }
+  }, [
+    internetReachable,
+    flights.length,
+    flightsStatus.lastSuccessAt,
+    flightsStatus.lastFailureAt,
+    load,
+  ]);
 
   const sorted = [...flights]
     .sort((a, b) =>
@@ -305,6 +358,11 @@ export default function FlightTracker() {
             flexWrap: "wrap",
           }}
         >
+          <FeedStatusPill
+            label="Flights"
+            status={flightsStatus}
+            internetReachable={internetReachable}
+          />
           {lastUpdated && (
             <span style={{ fontSize: "9px", color: "var(--text3)" }}>
               {lastUpdated.toLocaleTimeString()}
@@ -312,7 +370,7 @@ export default function FlightTracker() {
           )}
           <button
             onClick={load}
-            disabled={loading}
+            disabled={loading || !internetReachable}
             style={{
               height: "26px",
               padding: "0 12px",
@@ -322,16 +380,48 @@ export default function FlightTracker() {
               color: "#fff",
               fontSize: "11px",
               fontWeight: 600,
-              cursor: loading ? "not-allowed" : "pointer",
+              cursor:
+                loading || !internetReachable ? "not-allowed" : "pointer",
+              opacity: internetReachable ? 1 : 0.65,
             }}
           >
-            {loading ? "Loading…" : "↻ Refresh"}
+            {loading ? "Loading…" : internetReachable ? "↻ Refresh" : "Offline"}
           </button>
         </div>
       </div>
 
       {/* Altitude legend */}
       <AltitudeLegend />
+
+      {warning && (
+        <SurfaceCallout
+          tone="warning"
+          icon="!"
+          title="Connector warning"
+          description={warning}
+          style={{ marginBottom: "12px" }}
+        />
+      )}
+
+      {!internetReachable && flightsStatus.lastSuccessAt !== null && (
+        <SurfaceCallout
+          tone="info"
+          icon="↺"
+          title="Using last-known local flight state"
+          description="The browser is offline, so refresh is paused and the last good airborne set is being retained locally."
+          style={{ marginBottom: "12px" }}
+        />
+      )}
+
+      {internetReachable && lastFailureIsNewest && flights.length > 0 && (
+        <SurfaceCallout
+          tone="info"
+          icon="!"
+          title="Showing last good flight snapshot"
+          description="The latest refresh failed, so the tracker is keeping the most recent successful flight set instead of dropping to empty."
+          style={{ marginBottom: "12px" }}
+        />
+      )}
 
       {/* Stats bar */}
       {flights.length > 0 && (
@@ -477,56 +567,30 @@ export default function FlightTracker() {
       )}
 
       {/* Error */}
-      {error && (
-        <div
-          style={{
-            padding: "12px",
-            background: "var(--surf2)",
-            border: "1px solid var(--border)",
-            borderRadius: "8px",
-            fontSize: "12px",
-            color: "var(--text3)",
-            marginBottom: "10px",
-          }}
-        >
-          {error}
-        </div>
+      {error && !flights.length && (
+        <SurfaceCallout
+          tone="critical"
+          icon="!"
+          title="Flight feed unavailable"
+          description={error}
+          style={{ marginBottom: "10px" }}
+        />
       )}
 
       {/* Empty state */}
       {!flights.length && !loading && !error && (
-        <div
-          style={{
-            padding: "40px",
-            textAlign: "center",
-            color: "var(--text3)",
-            fontSize: "13px",
-          }}
-        >
-          Hit Refresh to fetch live flight data.
-        </div>
+        <SurfaceEmpty
+          icon="✈"
+          title="No airborne flights loaded yet"
+          description="Hit Refresh to fetch the live flight stream and rank the current airborne traffic."
+        />
       )}
 
       {/* Loading skeleton */}
-      {loading && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              style={{
-                height: "44px",
-                background: "var(--surf2)",
-                border: "1px solid var(--border)",
-                borderRadius: "7px",
-                opacity: 0.5,
-              }}
-            />
-          ))}
-        </div>
-      )}
+      {loading ? <SurfaceSkeletonRows rows={5} height={44} /> : null}
 
       {/* Flights list */}
-      {!loading && (
+      {!loading && flights.length > 0 && (
         <div
           style={{
             display: "flex",

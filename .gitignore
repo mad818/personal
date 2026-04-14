@@ -6,6 +6,8 @@ out/
 dist/
 *.log
 .nexus-runtime-identity.json
+.nexus-release-boundary.json
+.nexus/metrics/
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
@@ -13,7 +15,19 @@ yarn-debug.log*
 *.tsbuildinfo
 tsconfig.tsbuildinfo
 .env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
 desktop/src-tauri/target/
+playwright-report/
+test-results/
+temp-*.html
+docs/.~lock*
+*.pem
+*.key
+*.p12
+*.pfx
 
 # Claude local overrides (personal, not committed)
 CLAUDE.local.md

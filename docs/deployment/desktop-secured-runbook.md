@@ -31,7 +31,7 @@ npm run desktop:tauri:dev
 Run the shared release smoke after the runtime is live:
 
 ```bash
-NEXUS_TOKEN=your-token npm run release:smoke
+NEXUS_TOKEN=<set-in-local-env-only> npm run release:smoke
 ```
 
 ## 4) Validate security posture

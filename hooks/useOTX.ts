@@ -38,6 +38,7 @@ function parseRaw(r: OTXRawPulse): OTXPulse {
 
 export function useOTX() {
   const setOtxPulses = useStore((s) => s.setOtxPulses)
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus)
 
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
@@ -45,25 +46,46 @@ export function useOTX() {
   const fetchOTX = useCallback(async () => {
     setLoading(true)
     setError('')
+    updateFeedStatus('threatIntel', { lastAttemptAt: Date.now() })
     try {
       // Read through server route so OTX key stays server-side.
       const r = await apiFetch('/api/threat-intel', { signal: AbortSignal.timeout(12_000) })
       const d = await r.json()
       const raw: OTXRawPulse[] = d?.otx_pulses ?? []
+      const warnings: string[] = Array.isArray(d?.meta?.warnings) ? d.meta.warnings : []
       const pulses = raw.map(parseRaw)
       // Sort: most recently modified first
       pulses.sort((a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime())
       setOtxPulses(pulses)
 
       if (!d?.otx_available) {
-        setError('OTX key is not configured on the server.')
+        updateFeedStatus('threatIntel', {
+          lastFailureAt: Date.now(),
+          lastError: warnings[0] ?? 'OTX key is not configured on the server.',
+        })
+        setError(warnings[0] ?? 'OTX key is not configured on the server.')
+      } else if (warnings.length > 0 && pulses.length === 0) {
+        updateFeedStatus('threatIntel', {
+          lastFailureAt: Date.now(),
+          lastError: warnings[0],
+        })
+        setError(warnings[0])
+      } else {
+        updateFeedStatus('threatIntel', {
+          lastSuccessAt: Date.now(),
+          lastError: null,
+        })
       }
     } catch {
+      updateFeedStatus('threatIntel', {
+        lastFailureAt: Date.now(),
+        lastError: 'Could not reach AlienVault OTX.',
+      })
       setError('Could not reach AlienVault OTX.')
     } finally {
       setLoading(false)
     }
-  }, [setOtxPulses])
+  }, [setOtxPulses, updateFeedStatus])
 
   return { fetchOTX, loading, error }
 }

@@ -35,6 +35,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 import { eventBus } from "@/lib/eventBus";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -127,6 +128,73 @@ const TASK_MODEL_MAP: Record<OllamaTaskType, string[]> = {
 let cachedAvailability: { available: boolean; ts: number } | null = null;
 let cachedModels: OllamaModel[] = [];
 
+async function readProxiedOllamaCatalog(): Promise<{
+  reachable: boolean;
+  models: OllamaModel[];
+  activeModel: string | null;
+}> {
+  try {
+    const res = await apiFetch("/api/ollama/catalog", {
+      method: "POST",
+      body: JSON.stringify({ endpoint: OLLAMA_OPENAI_URL }),
+    });
+    const data = (await res.json().catch(() => null)) as
+      | { reachable?: unknown; models?: OllamaModel[]; activeModel?: unknown }
+      | null;
+    return {
+      reachable: data?.reachable === true,
+      models: Array.isArray(data?.models) ? data.models : [],
+      activeModel:
+        typeof data?.activeModel === "string" && data.activeModel.trim().length > 0
+          ? data.activeModel.trim()
+          : null,
+    };
+  } catch {
+    return {
+      reachable: false,
+      models: [],
+      activeModel: null,
+    };
+  }
+}
+
+async function readOpenAICompatStream(
+  res: Response,
+  onChunk: (text: string) => void,
+): Promise<string> {
+  const reader = res.body?.getReader();
+  if (!reader) return "";
+  const decoder = new TextDecoder();
+  let full = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    for (const line of chunk.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith("data:")) continue;
+      const data = trimmed.slice(5).trim();
+      if (!data || data === "[DONE]") continue;
+      try {
+        const json = JSON.parse(data) as {
+          choices?: { delta?: { content?: string } }[];
+          delta?: { text?: string };
+        };
+        const text =
+          json.choices?.[0]?.delta?.content ?? json.delta?.text ?? "";
+        if (!text) continue;
+        full += text;
+        onChunk(text);
+      } catch {
+        /* ignore malformed SSE lines */
+      }
+    }
+  }
+
+  return full;
+}
+
 // ── Core functions ─────────────────────────────────────────────────────────────
 
 /** Check if Ollama is running and reachable */
@@ -137,33 +205,22 @@ export async function checkOllamaAvailability(): Promise<boolean> {
   ) {
     return cachedAvailability.available;
   }
-  try {
-    const res = await fetch(OLLAMA_TAGS_URL, {
-      method: "GET",
-      signal: AbortSignal.timeout(3000),
-    });
-    const available = res.ok;
-    cachedAvailability = { available, ts: Date.now() };
-    return available;
-  } catch {
-    cachedAvailability = { available: false, ts: Date.now() };
-    return false;
+  const catalog = await readProxiedOllamaCatalog();
+  cachedAvailability = { available: catalog.reachable, ts: Date.now() };
+  if (catalog.models.length > 0) {
+    cachedModels = catalog.models;
   }
+  return catalog.reachable;
 }
 
 /** List all models installed in Ollama */
 export async function listOllamaModels(): Promise<OllamaModel[]> {
-  try {
-    const res = await fetch(OLLAMA_TAGS_URL, {
-      signal: AbortSignal.timeout(3000),
-    });
-    if (!res.ok) return [];
-    const data = (await res.json()) as { models: OllamaModel[] };
-    cachedModels = data.models ?? [];
-    return cachedModels;
-  } catch {
-    return cachedModels; // return stale cache on error
+  const catalog = await readProxiedOllamaCatalog();
+  if (catalog.reachable) {
+    cachedModels = catalog.models;
+    return catalog.models;
   }
+  return cachedModels; // return stale cache on error
 }
 
 /** Select the best available model for a given task type */
@@ -195,39 +252,18 @@ export async function ollamaGenerate(
     signal,
     onChunk,
   } = opts;
-
-  const body: Record<string, unknown> = {
+  return ollamaChat({
     model,
-    prompt,
-    stream: stream && !!onChunk,
-    options: {
-      temperature,
-      ...(maxTokens ? { num_predict: maxTokens } : {}),
-    },
-  };
-  if (system) body.system = system;
-
-  const res = await fetch(OLLAMA_GENERATE, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    temperature,
+    maxTokens,
+    stream,
     signal,
+    onChunk,
+    messages: [
+      ...(system ? [{ role: "system" as const, content: system }] : []),
+      { role: "user", content: prompt },
+    ],
   });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Ollama generate error ${res.status}: ${errText}`);
-  }
-
-  if (stream && onChunk) {
-    return _readNDJSONStream(res, (chunk) => {
-      const text = (chunk as { response?: string }).response ?? "";
-      if (text) onChunk(text);
-    });
-  }
-
-  const data = (await res.json()) as { response: string };
-  return data.response ?? "";
 }
 
 /** Chat with Ollama using message history */
@@ -242,38 +278,34 @@ export async function ollamaChat(opts: OllamaChatOptions): Promise<string> {
     onChunk,
   } = opts;
 
-  const body: Record<string, unknown> = {
-    model,
-    messages,
-    stream: stream && !!onChunk,
-    options: {
-      temperature,
-      ...(maxTokens ? { num_predict: maxTokens } : {}),
-    },
-  };
-
-  const res = await fetch(OLLAMA_CHAT, {
+  const res = await apiFetch("/api/ai", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      provider: "ollama",
+      model,
+      max_tokens: maxTokens,
+      messages,
+      stream: stream && !!onChunk,
+      localEndpoint: OLLAMA_OPENAI_URL,
+      ...(temperature !== undefined ? { temperature } : {}),
+    }),
     signal,
   });
 
   if (!res.ok) {
-    const errText = await res.text();
+    const errText = await res.text().catch(() => "");
     throw new Error(`Ollama chat error ${res.status}: ${errText}`);
   }
 
   if (stream && onChunk) {
-    return _readNDJSONStream(res, (chunk) => {
-      const text =
-        (chunk as { message?: { content?: string } }).message?.content ?? "";
-      if (text) onChunk(text);
-    });
+    return readOpenAICompatStream(res, onChunk);
   }
 
-  const data = (await res.json()) as { message: { content: string } };
-  return data.message?.content ?? "";
+  const data = (await res.json()) as {
+    choices?: { message?: { content?: string } }[];
+    content?: { text?: string }[];
+  };
+  return data.choices?.[0]?.message?.content ?? data.content?.[0]?.text ?? "";
 }
 
 // ── Streaming NDJSON reader ────────────────────────────────────────────────────
@@ -331,8 +363,12 @@ export async function generateWithFallback(
   const available = await checkOllamaAvailability();
   if (available) {
     try {
-      const models = await listOllamaModels();
-      const model = selectModelForTask(taskType, models);
+      const catalog = await readProxiedOllamaCatalog();
+      const models = catalog.models;
+      const model =
+        taskType === "default" && catalog.activeModel
+          ? catalog.activeModel
+          : selectModelForTask(taskType, models);
       return await ollamaChat({
         messages,
         model,
@@ -436,15 +472,16 @@ export const ollamaOpenAI = {
           stream,
         } = params;
 
-        const res = await fetch(OLLAMA_OPENAI_URL, {
+        const res = await apiFetch("/api/ai", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            provider: "ollama",
             model,
             messages,
             max_tokens,
             temperature,
             stream,
+            localEndpoint: OLLAMA_OPENAI_URL,
           }),
         });
 
@@ -487,12 +524,13 @@ export function useOllama(): OllamaHookReturn {
       setAvailable(avail);
 
       if (avail) {
-        const modelList = await listOllamaModels();
+        const catalog = await readProxiedOllamaCatalog();
+        const modelList = catalog.models;
         if (!mounted) return;
         setModels(modelList);
 
-        // Pick a sensible default if qwen2.5:7b isn't installed
-        const preferred = selectModelForTask("default", modelList);
+        const preferred =
+          catalog.activeModel ?? selectModelForTask("default", modelList);
         setActiveModel(preferred);
 
         eventBus.emit("system:health", {

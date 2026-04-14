@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-04-10T17:44:31.345Z",
+  "files": [
+    {
+      "key": "current",
+      "path": ".nexus/project-memory/current.md",
+      "compartment": "project",
+      "updatedAt": "2026-04-10T17:44:31.345Z"
+    },
+    {
+      "key": "daily",
+      "path": ".nexus/project-memory/daily/2026-04-10.md",
+      "compartment": "project",
+      "updatedAt": "2026-04-10T17:44:31.345Z"
+    },
+    {
+      "key": "source-inventory",
+      "path": ".nexus/project-memory/source-inventory.md",
+      "compartment": "research",
+      "updatedAt": "2026-04-10T17:44:31.345Z"
+    },
+    {
+      "key": "synthesis-map",
+      "path": ".nexus/project-memory/synthesis-map.md",
+      "compartment": "study",
+      "updatedAt": "2026-04-10T17:44:31.345Z"
+    }
+  ],
+  "counts": {
+    "project": 28
+  }
+}

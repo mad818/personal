@@ -1,8 +1,17 @@
 // ── api/token ───────────────────────────────────────────────
-// Token info API: blockchain token metadata and on-chain analytics.
+// Local auth token exchange and minimal session introspection.
 
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
+import {
+  applyAuthNoStoreHeaders,
+  clearNexusSessionCookie,
+  getConfiguredNexusToken,
+  matchesConfiguredNexusToken,
+  NEXUS_SESSION_COOKIE,
+  setNexusSessionCookie,
+} from "@/lib/authSession";
+import { normalizeTokenCandidate } from "@/lib/authToken";
 
 type AttemptInfo = { count: number; resetAt: number };
 type TokenCode =
@@ -50,17 +59,23 @@ function cleanupExpiredAttempts(now: number) {
 
 function tokenJson(body: TokenResponse, status = 200) {
   TOKEN_METRICS[body.code] += 1;
-  return NextResponse.json(body, { status });
+  const response = NextResponse.json(body, { status });
+  applyAuthNoStoreHeaders(response.headers);
+  return response;
 }
 
-export async function GET() {
-  return NextResponse.json({
+export async function GET(req: NextRequest) {
+  const authEnabled = Boolean(getConfiguredNexusToken());
+  const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? "";
+  const response = NextResponse.json({
     ok: true,
-    attemptsTracked: TOKEN_ATTEMPTS.size,
-    metrics: TOKEN_METRICS,
-    windowMs: WINDOW_MS,
-    maxAttempts: MAX_ATTEMPTS,
+    authEnabled,
+    authenticated: authEnabled
+      ? matchesConfiguredNexusToken(sessionCookie)
+      : true,
   });
+  applyAuthNoStoreHeaders(response.headers);
+  return response;
 }
 
 /**
@@ -100,8 +115,10 @@ export async function POST(req: NextRequest) {
 
     const rawBody = (await req.json()) as { token?: unknown };
     const token =
-      typeof rawBody.token === "string" ? rawBody.token.trim() : undefined;
-    const serverToken = (process.env.NEXUS_TOKEN ?? "").trim();
+      typeof rawBody.token === "string"
+        ? normalizeTokenCandidate(rawBody.token)
+        : undefined;
+    const serverToken = getConfiguredNexusToken();
 
     if (!serverToken) {
       return tokenJson(
@@ -121,22 +138,18 @@ export async function POST(req: NextRequest) {
           ? { count: prev.count + 1, resetAt: prev.resetAt }
           : { count: 1, resetAt: now + WINDOW_MS };
       TOKEN_ATTEMPTS.set(clientId, active);
-      return tokenJson(
+      const response = tokenJson(
         { ok: false, code: "invalid_token", retryable: false, error: "Invalid token" },
         401,
       );
-      response.cookies.set(NEXUS_SESSION_COOKIE, "", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 0,
-      });
+      clearNexusSessionCookie(response);
       return response;
     }
 
     TOKEN_ATTEMPTS.delete(clientId);
-    return tokenJson({ ok: true, code: "ok", retryable: false });
+    const response = tokenJson({ ok: true, code: "ok", retryable: false });
+    setNexusSessionCookie(response, serverToken);
+    return response;
   } catch {
     return tokenJson(
       { ok: false, code: "bad_request", retryable: false, error: "Bad request" },

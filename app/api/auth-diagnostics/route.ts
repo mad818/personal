@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  applyAuthNoStoreHeaders,
   getConfiguredNexusToken,
   isNexusAuthEnabled,
   matchesConfiguredNexusToken,
   NEXUS_SESSION_COOKIE,
 } from "@/lib/authSession";
 import { getDefaultEntrypoint, RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
-import { applyNoStoreHeaders, readRuntimeIdentity } from "@/lib/runtimeIdentity";
+import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +29,6 @@ export async function GET(req: NextRequest) {
     auth: {
       tokenConfigured: Boolean(configuredToken),
       authenticated: authEnabled ? authenticated : true,
-      mode: !authEnabled
-        ? "open-no-token"
-        : authenticated
-          ? "cookie-session"
-          : "locked",
-      cookiePresent: Boolean(sessionCookie),
     },
     release: {
       defaultEntrypoint: getDefaultEntrypoint(),
@@ -41,6 +36,6 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  applyNoStoreHeaders(response.headers);
+  applyAuthNoStoreHeaders(response.headers);
   return response;
 }

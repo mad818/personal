@@ -1,10 +1,10 @@
 {
-  "ts": "2026-04-01T15:45:01.853Z",
+  "ts": "2026-04-13T10:15:41.339Z",
   "score": 100,
-  "weightedPassed": 10,
-  "weightedTotal": 10,
-  "passed": 4,
-  "total": 4,
+  "weightedPassed": 29,
+  "weightedTotal": 29,
+  "passed": 13,
+  "total": 13,
   "minScore": 85,
   "ok": true,
   "categoryThresholds": {
@@ -15,23 +15,23 @@
   },
   "categories": {
     "safety": {
-      "passedWeight": 3,
-      "totalWeight": 3,
+      "passedWeight": 8,
+      "totalWeight": 8,
       "score": 100
     },
     "reliability": {
-      "passedWeight": 3,
-      "totalWeight": 3,
+      "passedWeight": 9,
+      "totalWeight": 9,
       "score": 100
     },
     "ux": {
-      "passedWeight": 2,
-      "totalWeight": 2,
+      "passedWeight": 8,
+      "totalWeight": 8,
       "score": 100
     },
     "observability": {
-      "passedWeight": 2,
-      "totalWeight": 2,
+      "passedWeight": 4,
+      "totalWeight": 4,
       "score": 100
     }
   },
@@ -63,6 +63,98 @@
       "detail": "Status endpoint includes queue and verification diagnostics",
       "category": "observability",
       "weight": 2
+    },
+    {
+      "name": "assistant response kinds",
+      "pass": true,
+      "detail": "HQ answer style contract distinguishes assistant, evidence, and workflow replies",
+      "category": "ux",
+      "weight": 2
+    },
+    {
+      "name": "assistant capability registry",
+      "pass": true,
+      "detail": "Assistant capability registry centralizes route aliases, exact-session context, and capability routing",
+      "category": "reliability",
+      "weight": 2
+    },
+    {
+      "name": "shared assistant guidance",
+      "pass": true,
+      "detail": "Assistant replies use one shared guidance contract instead of separate cue fields",
+      "category": "ux",
+      "weight": 2
+    },
+    {
+      "name": "live retrieval adapter",
+      "pass": true,
+      "detail": "Assistant retrieval adapter verifies live queries through internal feeds or protected open-web fallback",
+      "category": "safety",
+      "weight": 3
+    },
+    {
+      "name": "assistant continuity memory",
+      "pass": true,
+      "detail": "Assistant session memory tracks richer unfinished-session continuity and broad-route recovery",
+      "category": "reliability",
+      "weight": 2
+    },
+    {
+      "name": "assistant session recovery",
+      "pass": true,
+      "detail": "Assistant session recovery centralizes prepared, unfinished, and route-default exact-session transport",
+      "category": "reliability",
+      "weight": 2
+    },
+    {
+      "name": "reverse engineering continuity",
+      "pass": true,
+      "detail": "Reverse-engineering and research artifacts share deterministic continuity metadata",
+      "category": "observability",
+      "weight": 2
+    },
+    {
+      "name": "assistant execution and archive cues",
+      "pass": true,
+      "detail": "Assistant turns can attach bounded execution context and compact archive continuity cues",
+      "category": "ux",
+      "weight": 2
+    },
+    {
+      "name": "spec drift cues",
+      "pass": true,
+      "detail": "Spec-driven execution exposes lightweight scope-drift cues for assistant turns",
+      "category": "safety",
+      "weight": 2
     }
-  ]
+  ],
+  "schedulerEfficiency": {
+    "ts": "2026-04-13T10:15:29.632Z",
+    "providerId": "native_scheduler",
+    "quality": "guarded",
+    "score": 68,
+    "activeJobs": 0,
+    "measuredRuns": 0,
+    "cacheObservedCoverage": 0,
+    "cacheHitCoverage": 0,
+    "batchedRuns": 0,
+    "reasons": [
+      "Efficiency bench standing by until the scheduler syncs local posture."
+    ]
+  },
+  "forecastEval": {
+    "ts": "2026-04-13T09:02:58.400Z",
+    "providerId": "native_baseline",
+    "ready": true,
+    "quality": "guarded",
+    "score": 75,
+    "assetsCovered": 8,
+    "assetsRequested": 8,
+    "horizons": [
+      "1h",
+      "6h",
+      "24h"
+    ],
+    "reasons": []
+  }
 }

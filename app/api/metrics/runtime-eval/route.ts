@@ -1,6 +1,8 @@
-import { NextResponse } from "next/server";
 import { existsSync, mkdirSync, readFileSync } from "fs";
 import { join } from "path";
+import { buildForecastEvalPayload } from "@/lib/forecastingArtifacts";
+import { protectedJson } from "@/lib/protectedApi";
+import { buildSchedulerEfficiencyEvalPayload } from "@/lib/schedulerEfficiencyArtifacts";
 
 type EvalReport = {
   ts: string;
@@ -110,11 +112,16 @@ export async function GET(req: Request) {
       score: Number(v?.score ?? 0),
       threshold: latest?.categoryThresholds?.[name] ?? null,
     }));
-  return NextResponse.json({
+  return protectedJson({
     status: "ok",
     latest,
     history,
     points: history.length,
+    schedulerEfficiency: buildSchedulerEfficiencyEvalPayload(
+      limit,
+      freshnessWindowMin,
+    ),
+    forecastEval: buildForecastEvalPayload(limit, freshnessWindowMin),
     freshness: {
       freshnessWindowMin,
       ageMinutes,

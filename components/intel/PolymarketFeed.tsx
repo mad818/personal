@@ -3,8 +3,12 @@
 
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { SurfaceCallout, SurfaceEmpty } from "@/components/ui/surfacePrimitives";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
+import { useStore } from "@/store/useStore";
 
 interface Market {
   id: string;
@@ -100,15 +104,28 @@ export default function PolymarketFeed() {
   const [loading, setLoading] = useState(false);
   const [sort, setSort] = useState<SortKey>("prob_hi");
   const [search, setSearch] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const hasLocalMarketsRef = useRef(false);
+  const { internetReachable } = useInternetAvailability();
+  const polymarketStatus = useStore((s) => s.feedStatus.polymarket);
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus);
+  const lastFailureIsNewest =
+    Boolean(polymarketStatus.lastFailureAt) &&
+    (polymarketStatus.lastSuccessAt === null ||
+      (polymarketStatus.lastFailureAt ?? 0) > (polymarketStatus.lastSuccessAt ?? 0));
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
+    updateFeedStatus("polymarket", {
+      lastAttemptAt: Date.now(),
+      lastError: null,
+    });
     try {
       const r = await apiFetch("/api/polymarket");
       const d = (await r.json()) as Record<string, unknown>;
       const raw = (d.events as Record<string, unknown>[]) ?? [];
-      setMarkets(
-        raw.slice(0, 50).map((e) => {
+      const resolved = raw.slice(0, 50).map((e) => {
           const eRaw = e as Record<string, unknown>;
           const mArr = eRaw.markets as
             | Array<Record<string, unknown>>
@@ -132,18 +149,40 @@ export default function PolymarketFeed() {
             category: String(eRaw.category ?? "General"),
             endDate: String(eRaw.endDate ?? ""),
           };
-        }),
-      );
+        });
+      setMarkets(resolved);
+      if (resolved.length > 0) {
+        updateFeedStatus("polymarket", {
+          lastSuccessAt: Date.now(),
+          lastError: null,
+        });
+      } else {
+        setError("Could not load prediction markets.");
+        updateFeedStatus("polymarket", {
+          lastFailureAt: Date.now(),
+          lastError: "Could not load prediction markets.",
+        });
+      }
     } catch {
-      /* silent */
+      setError(
+        hasLocalMarketsRef.current ? null : "Could not load prediction markets.",
+      );
+      updateFeedStatus("polymarket", {
+        lastFailureAt: Date.now(),
+        lastError: "Could not load prediction markets.",
+      });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [updateFeedStatus]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    hasLocalMarketsRef.current = markets.length > 0;
+  }, [markets.length]);
 
   const query = search.trim().toLowerCase();
   const filtered = markets.filter(
@@ -165,6 +204,7 @@ export default function PolymarketFeed() {
 
   const probColor = (p: number) =>
     p >= 70 ? "var(--fhi)" : p <= 30 ? "var(--flo)" : "var(--fmd)";
+  const showSearchEmpty = markets.length > 0 && sorted.length === 0 && !loading;
 
   const sortBtn = (key: SortKey, label: string) => (
     <button
@@ -208,9 +248,14 @@ export default function PolymarketFeed() {
         >
           🎲 Polymarket — Prediction Markets
         </span>
+        <FeedStatusPill
+          label="Polymarket"
+          status={polymarketStatus}
+          internetReachable={internetReachable}
+        />
         <button
           onClick={load}
-          disabled={loading}
+          disabled={loading || !internetReachable}
           style={{
             marginLeft: "auto",
             height: "26px",
@@ -221,12 +266,44 @@ export default function PolymarketFeed() {
             color: "#fff",
             fontSize: "11px",
             fontWeight: 600,
-            cursor: "pointer",
+            cursor:
+              loading || !internetReachable ? "not-allowed" : "pointer",
+            opacity: internetReachable ? 1 : 0.65,
           }}
         >
-          {loading ? "Loading…" : "↻ Refresh"}
+          {loading ? "Loading…" : internetReachable ? "↻ Refresh" : "Offline"}
         </button>
       </div>
+
+      {!internetReachable && polymarketStatus.lastSuccessAt !== null ? (
+        <SurfaceCallout
+          tone="info"
+          icon="↺"
+          title="Internet offline · showing last-known market snapshot"
+          description="Prediction-market refresh is paused until reconnect. The current contract set remains available locally."
+          style={{ marginBottom: "12px" }}
+        />
+      ) : null}
+
+      {internetReachable && lastFailureIsNewest && markets.length > 0 ? (
+        <SurfaceCallout
+          tone="info"
+          icon="!"
+          title="Showing last good market snapshot"
+          description="The latest refresh failed, so this panel is preserving the most recent successful Polymarket set."
+          style={{ marginBottom: "12px" }}
+        />
+      ) : null}
+
+      {error && !markets.length ? (
+        <SurfaceCallout
+          tone="warning"
+          icon="!"
+          title="Prediction market feed unavailable"
+          description={error}
+          style={{ marginBottom: "12px" }}
+        />
+      ) : null}
 
       {/* Summary bar */}
       <SummaryBar markets={markets} />
@@ -267,27 +344,33 @@ export default function PolymarketFeed() {
         </div>
       )}
 
-      {!markets.length && !loading && (
-        <div
-          style={{
-            padding: "40px",
-            textAlign: "center",
-            color: "var(--text3)",
-            fontSize: "13px",
-          }}
-        >
-          Hit Refresh to fetch live prediction market odds.
-        </div>
+      {!markets.length && !loading && !error && (
+        <SurfaceEmpty
+          icon="🎲"
+          title="No market odds loaded yet"
+          description="Hit Refresh to fetch the live Polymarket snapshot and rank active contracts."
+        />
       )}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-          gap: "9px",
-        }}
-      >
-        {sorted.map((m) => {
+      {showSearchEmpty ? (
+        <SurfaceEmpty
+          icon="🔎"
+          title="No markets match this search"
+          description="Try another keyword or clear the search box to restore the broader market list."
+          compact
+          style={{ marginBottom: "10px" }}
+        />
+      ) : null}
+
+      {sorted.length > 0 && !showSearchEmpty ? (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+            gap: "9px",
+          }}
+        >
+          {sorted.map((m) => {
           const days = daysUntil(m.endDate);
           const bracket = bracketLabel(m.probability);
           const closingColor =
@@ -403,9 +486,10 @@ export default function PolymarketFeed() {
                 )}
               </div>
             </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }

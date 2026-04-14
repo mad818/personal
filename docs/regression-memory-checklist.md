@@ -60,6 +60,7 @@ Use this checklist whenever a major auth, shell, routing, or release update land
 
 ## Release sign-off
 
+- [ ] Runtime-targeted checks use `NEXUS_RELEASE_BASE_URL` (or `NEXUS_ASSUME_LOCAL_RUNTIME=true` for an intentionally started local runtime), not an accidental default localhost process.
 - [ ] `npm run type-check`
 - [ ] `npm run lint`
 - [ ] `npm run verify`

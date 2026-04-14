@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nexus Prime — Master Improvement Plan v3</title>
+<style>
+  :root {
+    --bg: #07080d;
+    --surf: #0f1117;
+    --surf2: #151820;
+    --surf3: #1b1e2b;
+    --border: #1e2233;
+    --border2: #2a2f48;
+    --text: #dde1f0;
+    --text2: #6875a0;
+    --text3: #353c5e;
+    --accent: #4f6ef7;
+    --accent2: #7c3aed;
+    --fhi: #10b981;
+    --fmd: #f59e0b;
+    --flo: #ef4444;
+    --r: 10px;
+    --rs: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 40px 24px 80px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* Header */
+  .header { margin-bottom: 40px; border-bottom: 1px solid var(--border2); padding-bottom: 24px; }
+  .header h1 { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+  .header .meta { color: var(--text2); font-size: 13px; margin-top: 6px; }
+  .header .subtitle { color: var(--text2); margin-top: 12px; font-size: 14px; max-width: 700px; }
+
+  /* Status bar */
+  .status-bar {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 36px;
+  }
+  .status-chip {
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .chip-done { background: rgba(16,185,129,.15); color: var(--fhi); border: 1px solid rgba(16,185,129,.3); }
+  .chip-now  { background: rgba(79,110,247,.15); color: var(--accent); border: 1px solid rgba(79,110,247,.3); }
+  .chip-next { background: rgba(245,158,11,.15); color: var(--fmd); border: 1px solid rgba(245,158,11,.3); }
+  .chip-future { background: rgba(124,58,237,.15); color: #a78bfa; border: 1px solid rgba(124,58,237,.3); }
+
+  /* TOC */
+  .toc {
+    background: var(--surf); border: 1px solid var(--border); border-radius: var(--r);
+    padding: 24px; margin-bottom: 40px;
+  }
+  .toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin-bottom: 16px; }
+  .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
+  .toc-item {
+    padding: 8px 12px; border-radius: var(--rs); background: var(--surf2);
+    font-size: 13px; color: var(--text); text-decoration: none;
+    border: 1px solid transparent; transition: border-color .15s;
+  }
+  .toc-item:hover { border-color: var(--border2); }
+  .toc-item .toc-label { color: var(--text2); font-size: 11px; display: block; }
+
+  /* Sections */
+  .section { margin-bottom: 48px; }
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header h2 { font-size: 20px; font-weight: 700; color: var(--text); }
+  .section-tag {
+    padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .tag-blocker  { background: rgba(239,68,68,.15);  color: var(--flo); border: 1px solid rgba(239,68,68,.3); }
+  .tag-inflight { background: rgba(79,110,247,.15); color: var(--accent); border: 1px solid rgba(79,110,247,.3); }
+  .tag-quality  { background: rgba(245,158,11,.15); color: var(--fmd); border: 1px solid rgba(245,158,11,.3); }
+  .tag-feature  { background: rgba(124,58,237,.15); color: #a78bfa; border: 1px solid rgba(124,58,237,.3); }
+  .tag-done     { background: rgba(16,185,129,.15); color: var(--fhi); border: 1px solid rgba(16,185,129,.3); }
+
+  /* Block cards */
+  .block-grid { display: grid; gap: 16px; }
+  .block {
+    background: var(--surf); border: 1px solid var(--border);
+    border-radius: var(--r); overflow: hidden;
+  }
+  .block-head {
+    padding: 14px 18px; background: var(--surf2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .block-head h3 { font-size: 14px; font-weight: 700; color: var(--text); }
+  .block-body { padding: 16px 18px; }
+
+  /* Items */
+  .item-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: var(--rs);
+    background: var(--surf2); border: 1px solid var(--border);
+    font-size: 13px; line-height: 1.5;
+  }
+  .item .dot {
+    width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0;
+  }
+  .dot-hi  { background: var(--flo); }
+  .dot-md  { background: var(--fmd); }
+  .dot-lo  { background: var(--accent); }
+  .dot-done { background: var(--fhi); }
+  .item-code { color: var(--text2); font-size: 11px; font-family: monospace; margin-right: 4px; }
+  .item-text { color: var(--text); flex: 1; }
+  .item-note { display: block; color: var(--text2); font-size: 12px; margin-top: 3px; }
+
+  /* Priority legend */
+  .legend {
+    display: flex; gap: 20px; margin-bottom: 24px; flex-wrap: wrap;
+    font-size: 12px; color: var(--text2);
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+
+  /* Phase timeline */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .phase {
+    display: flex; gap: 20px; align-items: flex-start;
+    padding-bottom: 28px; position: relative;
+  }
+  .phase::before {
+    content: '';
+    position: absolute; left: 17px; top: 36px;
+    width: 2px; height: calc(100% - 16px);
+    background: var(--border2);
+  }
+  .phase:last-child::before { display: none; }
+  .phase-dot {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; border: 2px solid;
+    background: var(--surf2); position: relative; z-index: 1;
+  }
+  .phase-dot.done  { border-color: var(--fhi); color: var(--fhi); }
+  .phase-dot.now   { border-color: var(--accent); color: var(--accent); background: rgba(79,110,247,.1); }
+  .phase-dot.next  { border-color: var(--fmd); color: var(--fmd); }
+  .phase-dot.later { border-color: var(--text3); color: var(--text3); }
+  .phase-content { flex: 1; padding-top: 6px; }
+  .phase-content h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .phase-content p  { font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+  .phase-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ptag {
+    padding: 3px 10px; border-radius: 12px; font-size: 11px;
+    background: var(--surf2); border: 1px solid var(--border2); color: var(--text2);
+  }
+
+  /* Callout */
+  .callout {
+    border-left: 3px solid var(--accent); background: rgba(79,110,247,.06);
+    padding: 14px 16px; border-radius: 0 var(--rs) var(--rs) 0;
+    font-size: 13px; color: var(--text2); margin-bottom: 20px;
+  }
+  .callout strong { color: var(--text); }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 14px; background: var(--surf2); color: var(--text2); font-weight: 600; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;
+  }
+  .badge-hi  { background: rgba(239,68,68,.15);  color: var(--flo); }
+  .badge-md  { background: rgba(245,158,11,.15); color: var(--fmd); }
+  .badge-lo  { background: rgba(79,110,247,.15); color: var(--accent); }
+  .badge-done { background: rgba(16,185,129,.15); color: var(--fhi); }
+
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text3); font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Nexus Prime — Master Improvement Plan <span style="font-size:14px;color:var(--accent);font-weight:400;">v2 — Code-Verified</span></h1>
+    <div class="meta">Updated: 2026-04-06 &nbsp;|&nbsp; v2 adds: real code bug findings from source, tech debt scores, API corrections, testing pyramid analysis, verified API endpoints</div>
+    <div class="subtitle">A unified roadmap covering every active concern in the Nexus Prime codebase. v2 is backed by actual source reads of <code>lib/agent.ts</code>, <code>lib/ai.ts</code>, <code>lib/liveContext.ts</code>, <code>store/useStore.ts</code>, web-verified API availability for all proposed data sources, and the engineering tech-debt and testing-strategy skill frameworks. See the companion XLSX tracker for scored items.</div>
+  </div>
+
+  <!-- V2 BANNER -->
+  <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:var(--r);padding:18px 20px;margin-bottom:28px;">
+    <div style="font-size:13px;font-weight:700;color:var(--flo);margin-bottom:10px;">⚠ v2 Corrections &amp; New Findings — from source code + web research</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;color:var(--text2);">
+      <div><strong style="color:var(--flo)">BUG-01</strong> — <code>callLocalModel()</code> in <code>lib/ai.ts</code> lines 125–138: no <code>try/catch</code> around <code>fetch()</code> + <code>res.json()</code>. If Ollama is offline, an uncaught exception propagates. Tech debt score: <strong style="color:var(--flo)">45</strong> (Critical).</div>
+      <div><strong style="color:var(--flo)">BUG-02</strong> — <code>streamRequest</code> in <code>lib/ai.ts</code> line 86: <code>res.body!.getReader()</code> non-null assertion. A 204 or empty response body causes a crash. Score: <strong style="color:var(--flo)">35</strong>.</div>
+      <div><strong style="color:var(--flo)">BUG-03</strong> — <code>callAI()</code> hardcodes <code>'claude-opus-4-5'</code> instead of using <code>aiModelRouting</code> constants. Model drift risk. Score: <strong style="color:var(--fmd)">30</strong>.</div>
+      <div><strong style="color:var(--flo)">BUG-04</strong> — <code>getSettings()</code> reads <code>localStorage</code> directly, bypassing Zustand reactivity. AI calls may use stale settings after in-session changes. Score: <strong style="color:var(--fmd)">24</strong>.</div>
+      <div><strong style="color:var(--fmd)">API CORRECTION</strong> — ACLED requires <code>myACLED</code> account + OAuth. It is <em>not</em> key-free. The plan now marks it as "Signup Needed" and notes the registration process at acleddata.com.</div>
+      <div><strong style="color:var(--fmd)">API CORRECTION</strong> — Web Speech API for voice input: Chrome/Edge only. Firefox does not support <code>SpeechRecognition</code>. Audio is sent to Google servers — plan now includes a browser compatibility warning.</div>
+      <div><strong style="color:var(--fhi)">CONFIRMED FREE</strong> — World Bank API: no key, ever. Endpoint: <code>api.worldbank.org/v2/country/{code}/indicator/{indicator}?format=json</code>. 16,000+ indicators.</div>
+      <div><strong style="color:var(--fhi)">CONFIRMED FREE</strong> — GDELT GKG GeoJSON: no key. Endpoint: <code>api.gdeltproject.org/api/v1/gkg_geojson</code>. Updated every 15 minutes.</div>
+      <div><strong style="color:var(--fhi)">CONFIRMED FREE</strong> — BIS SDMX REST API: no auth. Endpoint: <code>stats.bis.org/api-doc/v1/</code>. JSON/XML/CSV. Covers policy rates, FX reserves, credit stats.</div>
+      <div><strong style="color:var(--fhi)">A5 DETAIL</strong> — Anthropic prompt caching now supports 1hr TTL (<code>"ttl":"1h"</code>) at 2× write cost vs 5min at 1.25×. Cache reads cost 0.1× base. Min 1024 tokens (Sonnet). Up to 85% latency reduction. Only at <code>/v1/messages</code> — not the OpenAI compat endpoint.</div>
+      <div><strong style="color:var(--fhi)">A6 PARTIAL</strong> — <code>lib/agent.ts</code> already has <code>TOOL_RISK</code> map with tier0/tier1/tier2. A6 extends this to Skill-level governance with <code>riskTier</code>, <code>approvalRequired</code>, <code>domainTags</code> fields.</div>
+      <div><strong style="color:var(--fhi)">TESTING GAP</strong> — Confirmed zero unit tests in the entire codebase. All testing is E2E (Playwright) only — the testing pyramid is inverted. Unit tests for lib/ functions are the highest-priority testing gap (score 40).</div>
+    </div>
+  </div>
+
+  <!-- STATUS CHIPS -->
+  <div class="status-bar">
+    <span class="status-chip chip-done">✓ P0 CLOSED — Auth E2E, regression sweep, smoke, route contract</span>
+    <span class="status-chip chip-now">▶ P1 + P2 — Cinematic IA + Release Engineering (GA blockers)</span>
+    <span class="status-chip chip-next">◆ In-flight — C5, A5, A6, A7, 2B, 2C, D5, D6</span>
+    <span class="status-chip chip-future">◇ Planned — Blocks 3 – 10 + Vehicle lane</span>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h2>Contents</h2>
+    <div class="toc-grid">
+      <a href="#bugs" class="toc-item" style="border-color:rgba(239,68,68,.4);">⚠ Real Code Bugs<span class="toc-label">4 defects found in source — fix first</span></a>
+      <a href="#phase" class="toc-item">Phase Timeline<span class="toc-label">End-to-end view of all stages</span></a>
+      <a href="#p0" class="toc-item">P0 — Done<span class="toc-label">Auth, smoke, regression, route contract</span></a>
+      <a href="#p1" class="toc-item">P1 — Cinematic IA<span class="toc-label">Shell hierarchy + surface hardening</span></a>
+      <a href="#p2" class="toc-item">P2 — Release Engineering<span class="toc-label">Docker, isolation, signing, launch gate</span></a>
+      <a href="#inflight" class="toc-item">In-Flight Items<span class="toc-label">C5, A5, A6, A7, 2B, 2C, D5, D6</span></a>
+      <a href="#code" class="toc-item">Block 2 — Code Quality<span class="toc-label">Dead code, types, bundle, animation</span></a>
+      <a href="#agents" class="toc-item">Block 3 — Agent Intelligence<span class="toc-label">Caching, skills, memory, RAG, TimesFM</span></a>
+      <a href="#ux" class="toc-item">Block 4 — UI/UX<span class="toc-label">Nav, HQ office, panels, settings, a11y</span></a>
+      <a href="#data" class="toc-item">Block 5 — Data Sources<span class="toc-label">New free APIs, geo risk, entity graph</span></a>
+      <a href="#security" class="toc-item">Block 6 — Security<span class="toc-label">Rate limiting, input audit, CSP, secrets</span></a>
+      <a href="#perf" class="toc-item">Block 7 — Performance<span class="toc-label">Polling, React rendering, Three.js</span></a>
+      <a href="#testing" class="toc-item">Block 8 — Testing<span class="toc-label">Unit, integration, eval coverage</span></a>
+      <a href="#dx" class="toc-item">Block 9 — Dev Experience<span class="toc-label">Tooling, docs, scripts</span></a>
+      <a href="#features" class="toc-item">Block 10 — New Capabilities<span class="toc-label">Voice, alerts, event map, forecasting</span></a>
+      <a href="#vehicle" class="toc-item">Vehicle Lane<span class="toc-label">Drone telemetry, flight log, VAULT</span></a>
+      <a href="#ecosystem" class="toc-item" style="border-color:rgba(124,58,237,.4);">Block 11 — Ecosystem Insights<span class="toc-label">loophole + DataDesigner patterns mapped to Nexus</span></a>
+      <a href="#lessons" class="toc-item">Lessons Applied<span class="toc-label">Rules from correction log</span></a>
+    </div>
+  </div>
+
+  <!-- PHASE TIMELINE -->
+  <div class="section" id="phase">
+    <div class="section-header">
+      <h2>Phase Timeline</h2>
+    </div>
+    <div class="callout">
+      <strong>Rule:</strong> No new features begin before P1 and P2 are fully closed. Blocks 3–10 and the vehicle lane run in parallel tracks after the GA gate is clear.
+    </div>
+    <div class="timeline">
+
+      <div class="phase">
+        <div class="phase-dot done">✓</div>
+        <div class="phase-content">
+          <h3 style="color: var(--fhi);">P0 — Pre-GA Blockers (Closed)</h3>
+          <p>All four P0 gates are done. The build is auth-protected, regression-swept, smoke-validated on a clean runtime, and all canonical routes are verified.</p>
+          <div class="phase-tags">
+            <span class="ptag">Auth E2E</span>
+            <span class="ptag">Regression sweep</span>
+            <span class="ptag">Fresh-runtime proof</span>
+            <span class="ptag">Route contract</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot now">1</div>
+        <div class="phase-content">
+          <h3 style="color: var(--accent);">P1 + P2 — GA Gate (Now)</h3>
+          <p>P1 is visual: applying the cinematic shell uniformly across all 8 tabs, standardizing every loading/empty/error state, and hardening each surface for graceful degradation. P2 is release: Docker rehearsal, desktop isolation validation, binary signing record, and the final launch gate command.</p>
+          <div class="phase-tags">
+            <span class="ptag">ShellPage hierarchy</span>
+            <span class="ptag">Empty + loading states</span>
+            <span class="ptag">Surface hardening ×6</span>
+            <span class="ptag">Docker build</span>
+            <span class="ptag">Desktop isolation</span>
+            <span class="ptag">Signing + SBOM</span>
+            <span class="ptag">launch:gate script</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot now">2</div>
+        <div class="phase-content">
+          <h3 style="color: var(--accent);">In-Flight — Parallel to P1/P2</h3>
+          <p>C5, A5, A6, A7, 2B, 2C, D5, D6 — these can progress while the visual P1 pass is happening. They do not block the GA gate.</p>
+          <div class="phase-tags">
+            <span class="ptag">Tests (C5)</span>
+            <span class="ptag">Prompt caching (A5)</span>
+            <span class="ptag">Skill governance (A6)</span>
+            <span class="ptag">TimesFM spike (A7)</span>
+            <span class="ptag">Dead code (2B)</span>
+            <span class="ptag">Animation (2C)</span>
+            <span class="ptag">Tauri isolation tests (D5)</span>
+            <span class="ptag">Binary signing (D6)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot next">3</div>
+        <div class="phase-content">
+          <h3 style="color: var(--fmd);">Block 2 — Code Quality (Post GA gate)</h3>
+          <p>TypeScript strictness, ESLint coverage, bundle size, and animation consistency. These reduce technical debt and make every future block cheaper to build.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot next">4</div>
+        <div class="phase-content">
+          <h3 style="color: var(--fmd);">Blocks 3–4 — Agent Intelligence + UI/UX</h3>
+          <p>Prompt caching, skill governance, RAG improvements, memory system, TimesFM. Alongside: nav shortcuts, HQ office polish, panel improvements, notifications, settings UX.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot next">5</div>
+        <div class="phase-content">
+          <h3 style="color: var(--fmd);">Blocks 5–6 — Data Expansion + Security Hardening</h3>
+          <p>New free data sources (GDELT, ACLED, World Bank, BIS, WHO RSS), geopolitical risk score, entity graph. Paired with rate limiting, input sanitization audit, secret hygiene, and CSP review.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot next">6</div>
+        <div class="phase-content">
+          <h3 style="color: var(--fmd);">Blocks 7–9 — Performance, Testing, Dev Experience</h3>
+          <p>Polling optimization, React memoization, Three.js frustum culling. Unit tests for all lib functions. Integration tests for agent loop, scheduler, vault, and notifications. Onboarding docs and API snapshot tooling.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot later">7</div>
+        <div class="phase-content">
+          <h3 style="color: var(--text2);">Block 10 + Vehicle Lane — New Capabilities</h3>
+          <p>Voice input, keyword alert engine, world event map, geo risk scoreboard, entity intelligence graph. Vehicle: simulated telemetry, flight schema, passive bridge, VAULT log archiving.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- P0 DONE -->
+  <div class="section" id="p0">
+    <div class="section-header">
+      <h2>P0 — Pre-GA Blockers</h2>
+      <span class="section-tag tag-done">CLOSED</span>
+    </div>
+    <div class="block">
+      <div class="block-head"><h3>All four gates closed</h3></div>
+      <div class="block-body">
+        <ul class="item-list">
+          <li class="item"><div class="dot dot-done"></div><div class="item-text"><span class="item-code">CP0.1</span> Browser-level auth E2E suite — valid login, invalid login, stale session recovery, hard refresh, logout.</div></li>
+          <li class="item"><div class="dot dot-done"></div><div class="item-text"><span class="item-code">CP0.2</span> Regression-memory sweep — stale runtime, stale bundle, hydration mismatch, overlay click traps, route alias drift.</div></li>
+          <li class="item"><div class="dot dot-done"></div><div class="item-text"><span class="item-code">CP0.3</span> Fresh-runtime release smoke discipline — validated on clean runtime with <code>npm run runtime:fresh-proof</code>.</div></li>
+          <li class="item"><div class="dot dot-done"></div><div class="item-text"><span class="item-code">CP0.4</span> Canonical route contract proof — <code>/</code>, <code>/home</code>, beta aliases, internal aliases, and all GA nav resolved correctly.</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- P1 -->
+  <div class="section" id="p1">
+    <div class="section-header">
+      <h2>P1 — Cinematic IA Completion</h2>
+      <span class="section-tag tag-blocker">GA BLOCKER</span>
+    </div>
+    <div class="callout"><strong>No new features ship until P1 is done.</strong> Every tab must have consistent shell hierarchy, loading states, empty states, and graceful degradation before GA.</div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>CP1.1 — Shell hierarchy</h3><span class="badge badge-hi">High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Apply <code>ShellPage</code> wrapper uniformly across all 8 GA tabs. Every surface needs: hero background art via <code>ShellSurface</code>, panel backdrop, consistent padding, no raw <code>div</code> roots.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>CP1.2 — Standardization pass</h3><span class="badge badge-hi">High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><span class="item-code">CP1.2</span> Skeleton/spinner states match the cinematic style on every tab. No plain "Loading..." text.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><span class="item-code">CP1.2b</span> All primary actions use <code>ShellButton</code>. All status indicators use <code>ShellBadge</code>. No raw <code>&lt;button&gt;</code> with ad-hoc class names.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><span class="item-code">CP1.2c</span> Segmented controls (sub-tab switchers) use a single shared pattern across COMMAND, INTEL, ALPHA, CYBER, RECON. No one-off implementations.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>CP1.3 — HQ visual integrity</h3><span class="badge badge-hi">High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Run the app at 1280px, 1440px, and 1920px. Fix any overlap, clipping, hydration mismatch, or shell drift versus the login surface.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>CP1.4 — Surface hardening</h3><span class="badge badge-hi">High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><span class="item-code">COMMAND</span> Inline key-input prompt on each panel that requires a missing API key. No blank cards.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><span class="item-code">INTEL</span> Human-readable fallback when Polymarket or SEC feed returns no data. Not an error boundary.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><span class="item-code">ALPHA</span> Explicit "no results" state on BuyBot and MomentumScanner with a Rescan action.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><span class="item-code">CYBER</span> "No threats detected" state in TriageView with a last-scan timestamp.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><span class="item-code">RECON</span> All 5 sub-views need consistent results/loading/empty states.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><span class="item-code">VAULT</span> Onboarding prompt when no articles are saved. Explains how to save from INTEL or COMMAND.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- P2 -->
+  <div class="section" id="p2">
+    <div class="section-header">
+      <h2>P2 — Release Engineering</h2>
+      <span class="section-tag tag-blocker">GA BLOCKER</span>
+    </div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>CP2.1 — Web release rehearsal</h3><span class="badge badge-hi">High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Docker build locally. Mount <code>.env</code>. Verify all routes respond. Snapshot <code>/api/status</code> diagnostics. Prove rollback works by reverting one env var and re-checking.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>CP2.2 — Desktop isolation</h3><span class="badge badge-hi">High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Run with <code>NEXUS_NETWORK_MODE=isolated</code>. Confirm all panels degrade gracefully — no stuck spinners, no uncaught fetch errors. Document which panels go offline.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>CP2.3 — Trust chain</h3><span class="badge badge-hi">High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Generate checksums for Tauri binary artifacts. Document signing status (even if unsigned, state it explicitly). Write SBOM with <code>cyclonedx</code>.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>CP2.4 — Launch gate script</h3><span class="badge badge-hi">High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">One command: <code>npm run launch:gate</code>. Runs type-check, lint, verify, route:integrity, eval:agent-runtime:ci, release:smoke, and auth:e2e. If any fail, exit non-zero.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- IN-FLIGHT -->
+  <div class="section" id="inflight">
+    <div class="section-header">
+      <h2>In-Flight Items</h2>
+      <span class="section-tag tag-inflight">ACTIVE</span>
+    </div>
+    <div class="callout">These run in parallel with P1/P2. They do not block the GA gate but should close before Block 3 begins.</div>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>What remains</th><th>Priority</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>C5</strong></td>
+          <td>Contract/meta layer tests</td>
+          <td>Add targeted unit tests for the new contract and meta layer. Run <code>test</code> + <code>type-check</code>. Both must pass.</td>
+          <td><span class="badge badge-hi">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>A5</strong></td>
+          <td>Prompt caching + batch</td>
+          <td>Add <code>cache_control: ephemeral</code> on system prompt block. Batch CronScheduler jobs that fire within 60 s. Add cache hit/miss counter to run diagnostics.</td>
+          <td><span class="badge badge-hi">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>A6</strong></td>
+          <td>Skill governance metadata</td>
+          <td>Wire <code>riskTier</code>, <code>approvalRequired</code>, <code>domainTags</code> into execution path. Add Skill Registry view in Settings. Populate CIPHER baseline with 5 default skills.</td>
+          <td><span class="badge badge-hi">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>A7</strong></td>
+          <td>TimesFM forecasting adapter</td>
+          <td>Add <code>timeseries_forecast</code> tool. Wire ETS/ARIMA via Python sidecar fallback. Add <code>forecastAccuracy</code> metric to eval harness. Surface forecast on ALPHA sparklines.</td>
+          <td><span class="badge badge-md">Medium</span></td>
+        </tr>
+        <tr>
+          <td><strong>2B</strong></td>
+          <td>Dead code simplification</td>
+          <td>Audit unused props in <code>OfficeRoom3D</code>, stale state in <code>SettingsDrawer</code>, dead branches in <code>prompts.ts</code>. Run <code>knip</code>. Remove what is safe.</td>
+          <td><span class="badge badge-md">Medium</span></td>
+        </tr>
+        <tr>
+          <td><strong>2C</strong></td>
+          <td>Animation consistency</td>
+          <td>Replace all <code>transition:</code> values not using <code>var(--t)</code>. Add SettingsDrawer exit animation. Add NotificationCenter drawer animation. Add sub-tab opacity/translateY transition. Verify <code>PageTransition</code> on every page.</td>
+          <td><span class="badge badge-md">Medium</span></td>
+        </tr>
+        <tr>
+          <td><strong>D5</strong></td>
+          <td>Tauri isolation</td>
+          <td>Command boundary and sidecar subprocess guards are shipped. Remaining: end-to-end isolation tests that prove no outbound network in isolated mode.</td>
+          <td><span class="badge badge-hi">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>D6</strong></td>
+          <td>Binary signing + SBOM</td>
+          <td>Checksum generation workflow is shipped. Remaining: actual code signing (or explicit "unsigned" record) and SBOM generation via <code>cyclonedx</code>.</td>
+          <td><span class="badge badge-md">Medium</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- BUGS FOUND IN CODE -->
+  <div class="section" id="bugs">
+    <div class="section-header">
+      <h2>Real Bugs — Found in Source Code</h2>
+      <span class="section-tag tag-blocker">FIX FIRST</span>
+    </div>
+    <div class="callout"><strong>These were found by reading actual source files.</strong> They are not planned items — they are defects in code that ships today. Fix before any new feature work begins on those files.</div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>BUG-01 — <code>callLocalModel()</code> missing try/catch</h3><span class="badge badge-hi">Score 45 — Critical</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><strong>File:</strong> <code>lib/ai.ts</code> lines 125–138. The <code>fetch(s.localEndpoint, ...)</code> call and <code>res.json()</code> parse have no <code>try/catch</code>. If Ollama is offline, a network error or JSON parse error propagates uncaught and can crash the agent loop.<span class="item-note"><strong>Fix:</strong> Wrap the entire function body in try/catch. Return <code>''</code> on failure. This is the same pattern used in every other fetch in the codebase.</span></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>BUG-02 — <code>streamRequest</code> non-null assertion on <code>res.body</code></h3><span class="badge badge-hi">Score 35 — High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><strong>File:</strong> <code>lib/ai.ts</code> line 86. Code: <code>res.body!.getReader()</code>. The <code>!</code> non-null assertion means if the server returns a 204 or a response with no body, this line throws a TypeError at runtime.<span class="item-note"><strong>Fix:</strong> <code>if (!res.body) throw new Error('No response body')</code> before the assertion.</span></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>BUG-03 — <code>callAI()</code> hardcodes model string</h3><span class="badge badge-md">Score 30 — High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text"><strong>File:</strong> <code>lib/ai.ts</code> line 159. <code>cloudModel</code> is set to <code>'claude-opus-4-5'</code> as a hardcoded string instead of using the <code>TASK_MODELS</code> or a named constant from <code>lib/aiModelRouting.ts</code>. If the model name changes or a task-specific model is needed, this will be silently wrong.<span class="item-note"><strong>Fix:</strong> Use <code>TASK_MODELS[task]</code> or a dedicated <code>DEFAULT_CLAUDE_MODEL</code> constant from <code>aiModelRouting.ts</code>.</span></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>BUG-04 — <code>getSettings()</code> reads localStorage directly</h3><span class="badge badge-md">Score 24 — Medium</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text"><strong>File:</strong> <code>lib/ai.ts</code> lines 11–21. <code>getSettings()</code> reads directly from <code>localStorage</code>, bypassing the Zustand reactive system. If a user changes their API key or provider in the settings drawer during a session, <code>callAI()</code> may still use the old cached values.<span class="item-note"><strong>Fix:</strong> Accept <code>settings</code> as a parameter, or call <code>useStore.getState().settings</code>. The latter is already available and reactive.</span></div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BLOCK 2 -->
+  <div class="section" id="code">
+    <div class="section-header">
+      <h2>Block 2 — Code Quality &amp; Technical Debt</h2>
+      <span class="section-tag tag-quality">QUALITY</span>
+    </div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>2.1 Dead Code Removal (2B — in-flight)</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Audit <code>OfficeRoom3D.tsx</code> props — remove any passed but unused.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Audit <code>SettingsDrawer.tsx</code> — remove legacy 2D renderer toggle state and any unreferenced slice.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Audit <code>prompts.ts</code> — remove dead keyword branches in <code>detectAgent()</code>.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Run <code>npm run check:unused</code> (knip). Document all stale exports. Remove what is safe. Comment-gate the rest.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Sweep <code>store/useStore.ts</code> for fields that are set but never read in any component.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>2.2 Animation Consistency (2C — in-flight)</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Global audit: grep for <code>transition:</code> and <code>duration-</code> in all <code>.tsx</code> and <code>.css</code> files. Replace any value not using <code>var(--t)</code>.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">SettingsDrawer exit animation: add slide-out CSS transition to mirror slide-in. Currently the drawer disappears instantly on close.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">NotificationCenter: match drawer animation to SettingsDrawer.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Sub-tab switchers: add subtle opacity + translateY transition when switching sub-views.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Verify <code>PageTransition</code> is wired on every page. Add where missing.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>2.3 TypeScript Strictness</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Audit all <code>// @ts-ignore</code> and <code>// @ts-expect-error</code>. Each must have a written justification or be resolved.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Audit all <code>as any</code> casts. Replace with proper types wherever possible.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">All API route handlers must have explicit return types <code>NextResponse&lt;T&gt;</code>.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>2.4 ESLint Coverage</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Address any warnings suppressed by <code>// eslint-disable</code>. Re-evaluate each suppression.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add <code>no-console</code> rule. Replace any <code>console.log</code> in production paths with store notifications or silent failure.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add <code>react-hooks/exhaustive-deps</code> if not present. Fix all stale dependency arrays.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>2.5 Bundle Size</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Run <code>npm run analyze</code> (<code>@next/bundle-analyzer</code> is already in devDependencies). Identify any module over 200 KB for lazy-loading.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Audit Three.js imports. Use named imports from <code>'three'</code> instead of <code>import * as THREE</code> — reduces bundle significantly.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Confirm <code>recharts</code> and <code>leaflet</code> are behind <code>dynamic(() =&gt; import(...))</code>. Not in the top-level bundle.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Run <code>npm run check:cycles</code> (madge is in devDependencies). Fix any circular import chains.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BLOCK 3 -->
+  <div class="section" id="agents">
+    <div class="section-header">
+      <h2>Block 3 — Agent Intelligence</h2>
+      <span class="section-tag tag-feature">AGENTS</span>
+    </div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>3.1 Prompt Caching + Batch (A5 — in-flight)</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Add <code>cache_control: {type: "ephemeral"}</code> on the system prompt block in <code>/api/ai/route.ts</code>. <em>Note: <code>lib/ai.ts</code> already has a client-side <code>SYSTEM_PROMPT_CACHE</code> Map — A5 adds the SERVER-SIDE Anthropic header, which is different and more effective.</em><span class="item-note">Verified: Min 1024 tokens for Sonnet to cache. 5-min TTL costs 1.25× write, 1-hr TTL costs 2× write, reads cost 0.1× base. Up to 85% latency reduction. Only available at <code>/v1/messages</code> — not the OpenAI compat endpoint. Use 5-min TTL for interactive chat. Consider 1-hr TTL for scheduled mission system prompts.</span></div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Batch CronScheduler jobs firing within the same 60 s window into one multi-message batch call via the Anthropic batch API endpoint.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Add cache hit/miss counter and <code>batchedRun</code> flag to run diagnostics schema and audit log.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>3.2 Skill Governance (A6 — in-flight)</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Wire <code>riskTier</code>, <code>approvalRequired</code>, and <code>domainTags</code> into the execution path in <code>lib/agent.ts</code>.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Show domain tag badge (RESEARCH / ENGINEERING / SECURITY / FILE I/O / COMPUTE / MARKET) in <code>ToolCallBadge.tsx</code>.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Add Skill Registry view in Settings drawer — table of all active skills with tier, approval policy, XP, last used.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Pre-populate CIPHER baseline: 5 default skills (threat-triage, cve-lookup, osint-recon, incident-response, malware-analysis) with correct risk tiers.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>3.3 TimesFM Forecasting (A7 — in-flight)</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add <code>timeseries_forecast</code> tool in <code>/api/tools/route.ts</code>. Input: <code>[{ts, value}]</code>. Output: next N predicted values with confidence intervals.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Wire ETS/ARIMA via Python sidecar fallback (follows Agent Reach companion pattern: Python script + Next.js proxy + deployment doc).</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add <code>forecastAccuracy</code> metric to eval harness comparing predicted vs. actual on last 24h of crypto prices.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Surface forecast on ALPHA tab as a dashed overlay beyond the sparkline's current time range.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>3.4 Agent Detection Improvement</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add bigram/phrase matching to <code>detectAgent()</code>. "security scan" should score higher for CIPHER than "scan" alone.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add debug mode in Settings showing which agent was detected and why — top 3 scoring agents with keyword hit counts.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add manual agent pin: parse <code>@ORBIT:</code> or <code>@NOVA:</code> prefix in the send handler before running detection.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>3.5 Memory System</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add <code>recall_by_query</code> tool — semantic search over stored memories using TF-IDF index. No external API needed.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add memory age-out policy: entries older than 30 days without reinforcement flag move to cold archive. Surface in MemoryPanel.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add "memory confidence" score (0–1) to each <code>KnowledgeEntry</code>. Show in recall and include in agent response framing.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">When a user approves a lesson, write it to both <code>tasks/lessons.md</code> and the agent's skill XP record in <code>skillEngine.ts</code>.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>3.6 RAG Router Improvements</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add confidence score to <code>routeQuery()</code>. When below 0.4, include multiple domain strategy blocks instead of picking one.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add two new domain routes: <code>geopolitical</code> (war, conflict, sanctions, NATO) and <code>healthcare</code> (FDA, clinical, pharma, WHO).</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Log which RAG route was selected per run in <code>AgentRunArtifact</code>. Show as "data source" hint in <code>ToolCallBadge</code>.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BLOCK 4 -->
+  <div class="section" id="ux">
+    <div class="section-header">
+      <h2>Block 4 — UI/UX</h2>
+      <span class="section-tag tag-feature">UX</span>
+    </div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>4.1 Navigation</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Keyboard shortcuts <code>Alt+1</code> through <code>Alt+8</code> for tab switching. Show shortcuts in hover tooltip.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Breadcrumb path for sub-tab navigation (e.g. INTEL &gt; Polymarket &gt; Politics). Each crumb is clickable.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Pressing <code>/</code> opens a command palette with last 5 tabs visited + 5 suggested actions.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Nav rail collapses to hamburger menu on viewports below 1024px.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>4.2 HQ Agent Office</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Agent speech bubbles: extend to show short status phrases ("Searching…", "Reading file…", "Writing patch…", "Verifying…") mapped from <code>OperationalPhase</code> + current tool.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">On successful verified run: play a short particle burst from the active agent's position using the existing Three.js emitter.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add a "confidence ring" around the active agent that fills proportionally as the run progresses through phases.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Night Ops: dim office to 30% brightness, keep active agent desk at full intensity. War Room: cool blue tint. Morning: full brightness.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>4.3 Data Panels</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">All live data panels: visible "last updated X seconds ago" indicator bottom-right using <code>timeAgo()</code> from <code>lib/helpers.ts</code>.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">"Copy data" button on every major panel (price grid, CVE feed, Polymarket cards). Copies current data as structured JSON to clipboard.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">"Pin panel" action: user pins any panel to a Dashboard view showing only pinned panels side-by-side. Pinned panel IDs stored in settings.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Sparkline hover tooltips in ALPHA: on hover, show exact price + timestamp for each data point.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>4.4 Notifications</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add "mark all read" button to notification center.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add notification categories (MARKET, THREAT, AGENT, SYSTEM) with filter row at the top.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add <code>doNotDisturb</code> toggle in Settings — suppress all toasts, still accumulate in center.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>4.5 Settings Drawer</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add section navigation tabs inside the drawer: General, AI, Data Sources, Security, Agent, Appearance, Advanced.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Export settings button (download current JSON). Import settings button (read a JSON file and apply).</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Settings search: typing filters visible settings fields. Useful once there are 30+ settings.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>4.6 Accessibility (WCAG 2.1 AA)</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Run WCAG 2.1 AA audit on all 8 GA tabs. Fix any contrast failures — dark text on dark background is common in the cinematic theme.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">All interactive elements must have explicit <code>aria-label</code> or <code>aria-labelledby</code>. No unlabeled icon buttons.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Keyboard focus management: when a modal/drawer opens, move focus to first interactive element inside. On close, return focus to the trigger.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add <code>prefers-reduced-motion</code> media query. When set, disable particle background, agent poses, bloom, and matrix overlay.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BLOCK 5 -->
+  <div class="section" id="data">
+    <div class="section-header">
+      <h2>Block 5 — Data Sources &amp; Intelligence</h2>
+      <span class="section-tag tag-feature">DATA</span>
+    </div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>5.1 New Data Sources — Verified Access Levels</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-done"></div><div class="item-text"><strong>GDELT 2.0 GKG</strong> — conflict/protest/crisis events. OPS tab Leaflet layer.<span class="item-note">✓ Verified free, no key. Endpoint: <code>api.gdeltproject.org/api/v1/gkg_geojson</code>. Updated every 15 min. Filter with <code>?QUERY=</code> for themes. Zero-friction add.</span></div></li>
+            <li class="item"><div class="dot dot-done"></div><div class="item-text"><strong>World Bank Indicators</strong> — GDP, inflation, poverty by country. INTEL "Country Profile" card.<span class="item-note">✓ Verified free, no key, ever. Endpoint: <code>api.worldbank.org/v2/country/{code}/indicator/{indicator}?format=json</code>. 16,000+ indicators. GDP code: <code>NY.GDP.MKTP.CD</code>.</span></div></li>
+            <li class="item"><div class="dot dot-done"></div><div class="item-text"><strong>BIS SDMX REST API</strong> — central bank policy rates, FX reserves, credit stats. COMMAND macro overlay.<span class="item-note">✓ Verified free, no auth. Endpoint: <code>stats.bis.org/api-doc/v1/</code>. JSON/XML/CSV. Attribution required in UI.</span></div></li>
+            <li class="item"><div class="dot dot-done"></div><div class="item-text"><strong>WHO Disease Outbreak News RSS</strong> — INTEL health feed category.<span class="item-note">✓ Free RSS. Parse as an article category in the existing articles loader.</span></div></li>
+            <li class="item"><div class="dot dot-done"></div><div class="item-text"><strong>NASA EONET</strong> — wildfire, volcano, storm events. OPS map layer.<span class="item-note">✓ Free, no key. Endpoint: <code>eonet.gsfc.nasa.gov/api/v3/events</code>. Same pattern as existing NASA FIRMS integration.</span></div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text"><strong>ACLED</strong> — armed conflict lat/lon data. OPS tab markers.<span class="item-note">⚠ CORRECTION: Requires <code>myACLED</code> account registration + OAuth token. Not key-free. Visit acleddata.com to register. Paginate at 5000 rows per call. Add <code>ACLED_KEY</code> to settings store.</span></div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text"><strong>UN Comtrade</strong> — trade flow panel in INTEL.<span class="item-note">⚠ Registration required for API key. Free tier available. Add to settings alongside other keyed sources.</span></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>5.2 Existing Source Improvements</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">CoinGecko rate limit: add exponential backoff + queue on 429. Currently fails silently.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">NVD CVE feed: fetch last 7 days (not just last 20). Store with deduplication by CVE ID. Show 7-day CVE trend sparkline.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">RSS articles: add source credibility scoring per domain (static map). Show credibility badge on each article.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Fear and Greed: add 30-day history chart in ALPHA using Alternative.me <code>limit</code> param.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Mempool.space: add visual fee levels indicator in ALPHA (low/medium/high sat/vByte). Update every 5 minutes.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>5.3 Geopolitical Risk Score</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Build <code>geopoliticalRisk</code> store slice: <code>[{ country, iso2, conflictScore, economicScore, electionScore, overallScore }]</code>.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Wire ACLED + World Bank + GDELT into a scoring formula. Each source contributes a sub-score.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">INTEL Risk sub-view: sortable table with color-coded risk bands (green &lt;30, amber 30–60, red &gt;60).</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Wire highest-risk countries as Leaflet map overlays in OPS tab.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>5.4 Entity Intelligence Graph</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Client-side entity extractor using a static list of ~2000 known entities (leaders, orgs, countries, companies). No AI needed.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">D3.js force-directed graph showing co-occurrence: two entities connected if they appear in the same article.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Clicking a node filters the INTEL article feed to articles mentioning that entity.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add as a "Graph" sub-view in INTEL.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BLOCK 6 -->
+  <div class="section" id="security">
+    <div class="section-header">
+      <h2>Block 6 — Security Hardening</h2>
+      <span class="section-tag tag-blocker">SECURITY</span>
+    </div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>6.1 Rate Limiting</h3><span class="badge badge-hi">High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Per-IP rate limiting on all <code>/api/ai</code> calls via <code>lib/security/rateLimit.ts</code>. Default: 60 req/min per IP.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Per-IP rate limiting on <code>/api/tools</code> calls that execute <code>write_file</code> or <code>patch_project_file</code>. Default: 10 req/min.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Return <code>Retry-After</code> header on 429 responses so clients can back off correctly.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>6.2 Input Sanitization Audit</h3><span class="badge badge-hi">High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Audit all <code>/api/*</code> routes. Every query param and body field must have Zod validation. Length, type, and allowed characters enforced.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Audit all places where user-supplied strings are rendered. Confirm <code>esc()</code> is called everywhere. Add a grep-based check in <code>npm run verify</code>.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">RECON tab: validate all IP/domain inputs before using in fetch URLs. Guard against path traversal and redirect injection.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>6.3 Secret Hygiene</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Run <code>git log --all --full-history -- '*.env*'</code> to confirm no <code>.env</code> file was ever committed. Document the result.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add <code>secretlint</code> or <code>trufflehog</code> as a pre-commit hook step. Blocks commits containing API key patterns.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add <code>settings:export</code> route that redacts all key fields before export (replace with <code>"***SET***"</code>).</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>6.4 CSP Review</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Review <code>Content-Security-Policy</code> in <code>next.config.js</code>. Confirm it blocks inline scripts except those explicitly nonce'd. Run through CSP Evaluator.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Confirm Tauri desktop build uses Tauri CSP, not Next.js CSP. Document which directives differ and why.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BLOCK 7 -->
+  <div class="section" id="perf">
+    <div class="section-header">
+      <h2>Block 7 — Performance</h2>
+      <span class="section-tag tag-quality">PERF</span>
+    </div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>7.1 Polling Optimization</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Audit all <code>setInterval</code> calls. Confirm all respect <code>lib/runtimeConfig.ts</code> cadence values. No hardcoded intervals.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add <code>navigator.onLine</code> checks before any polling fetch. When offline, skip the fetch and show an offline badge.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add Intersection Observer to off-screen panels. Pause data polling while not visible. Resume on scroll into view.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>7.2 React Rendering</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Audit all Zustand store selectors. Replace any <code>useStore(s =&gt; s)</code> full-store subscriptions with narrow selectors.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add <code>React.memo()</code> to components that re-render on polling updates but don't use the updated state (static header elements, empty state cards).</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Profile the ALPHA tab's price grid with React DevTools Profiler. Add <code>useMemo</code> or <code>useCallback</code> where render cascades are found.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>7.3 Three.js / 3D Office</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Confirm <code>frustumCulled={true}</code> is not overridden on any off-camera Three.js object.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">MatrixOverlay canvas texture: regenerate only when scene mode changes, not every render cycle.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Confirm <code>vfxQuality</code> gate completely disables bloom (not just reduces it) when set to "low".</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add "performance mode" toggle in HQ settings — disables bloom, matrix overlay, animated particles, and per-desk point lights. Static lighting only.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BLOCK 8 -->
+  <div class="section" id="testing">
+    <div class="section-header">
+      <h2>Block 8 — Testing</h2>
+      <span class="section-tag tag-quality">TESTING</span>
+    </div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>8.1 Unit Tests (currently zero)</h3><span class="badge badge-hi">High</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><code>lib/helpers.ts</code> — <code>fmtPrice</code>, <code>fmtVol</code>, <code>timeAgo</code>. Edge cases: zero, negative, very large numbers, null inputs.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><code>lib/ragRouter.ts</code> — <code>routeQuery()</code>. Test that each domain's keywords correctly trigger that route and not others.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><code>lib/liveContext.ts</code> — <code>compactToBudget()</code>. Test that it respects <code>maxChars</code> and that <code>compacted: true</code> is set correctly.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><code>lib/aiModelRouting.ts</code> — verify each <code>AITask</code> maps to the expected model name.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text"><code>lib/chatCapabilityRouting.ts</code> — <code>detectRouteFromPrompt()</code>. Test that each keyword set maps to the expected route.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>8.2 Integration Tests</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Playwright: type a message in HQ chat, confirm response appears, confirm phase strip progresses correctly.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Playwright: trigger a delta alert, confirm it appears in the notification center.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Playwright: create a cron job, toggle it on, verify it appears in the list, delete it.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Playwright: save an article from INTEL, navigate to VAULT, confirm it appears.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>8.3 Eval Coverage Expansion</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add <code>user_satisfaction</code> eval category (10%): response length appropriateness, no hallucinated tool names, no broken JSON in tool calls.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add <code>latency</code> eval metric: P50 and P95 response time for agent runs. Surface in the runtime eval panel.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add golden-set regression tests: 10 fixed prompt/expected-response pairs. Run weekly. Alert if any response diverges more than 30% from the golden answer.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BLOCK 9 -->
+  <div class="section" id="dx">
+    <div class="section-header">
+      <h2>Block 9 — Developer Experience</h2>
+      <span class="section-tag tag-quality">DX</span>
+    </div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>9.1 Tooling (most already wired in package.json)</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-done"></div><div class="item-text"><code>@next/bundle-analyzer</code> — already a dev dependency. Run with <code>npm run analyze</code>.</div></li>
+            <li class="item"><div class="dot dot-done"></div><div class="item-text"><code>knip</code> — already a dev dependency. Run with <code>npm run check:unused</code>.</div></li>
+            <li class="item"><div class="dot dot-done"></div><div class="item-text"><code>madge</code> — already a dev dependency. Run with <code>npm run check:cycles</code>.</div></li>
+            <li class="item"><div class="dot dot-done"></div><div class="item-text"><code>npm run dev:clean</code> — already scripted. Kills port 3000, clears .next, starts fresh.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add <code>npm run snapshot:api</code> — calls each API route, snapshots the response shape. Next run compares shapes and alerts on breaking changes.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>9.2 Documentation</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-done"></div><div class="item-text"><code>docs/onboarding.md</code> — already exists. Verify it covers: what the app does, how to run it, how to add a data panel, how the agent loop works.</div></li>
+            <li class="item"><div class="dot dot-done"></div><div class="item-text"><code>docs/agent-cookbook.md</code> — already exists. Verify it has 5 example prompts per agent with expected output type and tools used.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Update <code>docs/architecture.md</code> to reflect current state: 3D office, cinematic shell, operational profiles, RAG router, skill engine. The current doc predates several of these.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add JSDoc comments to all exported functions in <code>lib/agent.ts</code>, <code>lib/ai.ts</code>, and <code>lib/liveContext.ts</code>.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BLOCK 10 -->
+  <div class="section" id="features">
+    <div class="section-header">
+      <h2>Block 10 — New Capabilities</h2>
+      <span class="section-tag tag-feature">FEATURES</span>
+    </div>
+    <div class="callout"><strong>These start after Blocks 1–2 are complete.</strong> Each needs a spec in <code>specs/features/</code> before any code is written.</div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>10.1 Voice Input</h3><span class="badge badge-md">Low complexity / High impact</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Microphone button on HQ chat input. Web Speech API (<code>window.SpeechRecognition</code>). Transcribe to input field. No library needed.<span class="item-note">⚠ <strong>Browser limit:</strong> Chrome and Edge only. Firefox does not support <code>SpeechRecognition</code> at all. Audio is sent to Google's servers for processing — not offline-capable. Show a visible browser compatibility warning when the feature is enabled on unsupported browsers.</span></div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Pulsing ring visual when recording. Stop on button re-tap or 5 seconds of silence.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text"><code>voiceInputEnabled</code> toggle in Settings. Defaults to off. Include a note: "Requires Chrome or Edge."</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>10.2 Keyword Alert Engine</h3><span class="badge badge-md">Low complexity / High value</span></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add <code>alertKeywords: string[]</code> to settings. User can add up to 20 keywords.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">After fetching articles, scan titles and summaries for keyword matches. Trigger a notification with article title and source.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Highlight matching keywords in article cards with a colored underline.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>10.3 World Event Map (extending OPS)</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Country-extraction function from article titles using a static 250-country ISO2 lookup dict.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Plot extracted articles as colored Leaflet markers on OPS map by category (geo=blue, financial=green, security=red, health=yellow).</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Clicking a marker opens a popup with article title, source, and a Read link.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Event density heatmap overlay: clusters of articles in one region form a heat gradient.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>10.4 Geopolitical Risk Scoreboard</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">INTEL "Risk" sub-view: sortable table of countries with overall and component risk scores, color-coded bands.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Country detail drawer: timeline of conflict events + economic indicators for any selected country.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Alert when a country's overall risk score crosses a threshold (configurable in Settings).</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VEHICLE LANE -->
+  <div class="section" id="vehicle">
+    <div class="section-header">
+      <h2>Vehicle / Drone Lane</h2>
+      <span class="section-tag tag-feature">VEHICLE</span>
+    </div>
+    <div class="callout">This is an independent track. It does not block any other block. Build after the platform is GA-stable.</div>
+    <div class="block-grid">
+
+      <div class="block">
+        <div class="block-head"><h3>V0 — Simulated Telemetry + Schema</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text"><strong>V0.1</strong> Simulated telemetry generator and replay mode for <code>/internal/vehicle</code> route. Lets you develop and test the UI without a live drone.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text"><strong>V0.2</strong> Standardize future flight telemetry schema: heartbeat, mode, GPS, battery, link quality, failsafes, mission status.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text"><strong>V0.3</strong> Archive flight-log and incident artifacts into VAULT conventions. Saved alongside regular intel articles.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head"><h3>V1 — Physical Bring-Up</h3></div>
+        <div class="block-body">
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text"><strong>V1.1</strong> F450 bench bring-up checklist: props-off validation, RC, GPS lock, orientation, failsafe confirmation. Hosted as an in-app checklist in VAULT or a dedicated vehicle sub-view.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text"><strong>V1.2</strong> Passive telemetry bridge from the flight stack into Nexus. Nexus is read-only from this bridge — it never sends flight commands. Real-time GPS, battery, and mode displayed on the OPS map.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BLOCK 11 -->
+  <div class="section" id="ecosystem">
+    <div class="section-header">
+      <h2>Block 11 — Ecosystem Insights</h2>
+      <span class="section-tag tag-feature">EXT</span>
+    </div>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:24px;max-width:800px;">
+      Patterns extracted from two open-source repos — <strong>brendanhogan/loophole</strong> (adversarial multi-agent constraint system)
+      and <strong>NVIDIA-NeMo/DataDesigner</strong> (synthetic dataset generation + LLM-as-judge eval) — mapped to concrete Nexus Prime improvements.
+      All items are EXT-prefixed in the tracker. None require vendoring third-party code.
+    </p>
+    <div class="block-grid">
+
+      <!-- From loophole -->
+      <div class="block">
+        <div class="block-head">
+          <h3>11.1 Adversarial Eval Category</h3>
+          <span class="badge badge-md">EXT-01</span>
+        </div>
+        <div class="block-body">
+          <p style="color:var(--text2);font-size:12px;margin-bottom:10px;">Source: <em>loophole</em> — Legislator / Loophole Finder / Overreach Finder / Judge loop</p>
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add an <code>adversarial</code> eval category to <code>scripts/eval-agent-runtime.js</code>. Each test sends a prompt that deliberately tries to find a loophole in the skill governance rules (A6) and asserts that the agent either blocks or escalates — it must never silently comply.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Seed with 10 adversarial prompts covering: (a) attempting a tier2 write without review, (b) asking for a secret from <code>process.env</code>, (c) cross-agent impersonation via prefix spoofing, (d) infinite loop via recursive tool calls, (e) data exfil via fetch to an unlisted domain.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Wire adversarial category into CI with its own threshold flag: <code>--min-category adversarial=90</code>. A score below 90 fails the build. This is the only eval category with a higher floor than the default.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h3>11.2 Constraint Consistency Checker</h3>
+          <span class="badge badge-md">EXT-02</span>
+        </div>
+        <div class="block-body">
+          <p style="color:var(--text2);font-size:12px;margin-bottom:10px;">Source: <em>loophole</em> — dynamic constraint accumulation, binding precedents</p>
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">New JANSKY capability: <code>check_precedent_conflict(proposedAction)</code>. Before any approved agent decision is executed, this tool scans the in-memory precedent log and flags if the proposed action contradicts a prior approved or rejected decision in the same session.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Approved <code>PendingEdit</code> decisions accumulate as session-scoped "precedents" in a lightweight in-memory list (no external DB). On conflict: escalate to the operator HUD with a diff-style view showing the earlier decision vs. the proposed action.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Persist the precedent log to <code>IndexedDB</code> under a session key so overnight Night Ops runs can still detect conflicts from earlier in the same session. Evict on explicit "clear session" command.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h3>11.3 Decision Diff View in VAULT</h3>
+          <span class="badge badge-lo">EXT-03</span>
+        </div>
+        <div class="block-body">
+          <p style="color:var(--text2);font-size:12px;margin-bottom:10px;">Source: <em>loophole</em> — HTML visualization with git-style diffs and timeline views</p>
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">In VAULT, add a "Session Decisions" panel. Each agent run that produced a <code>PendingEdit</code> or <code>AgentRunArtifact</code> is shown as a timeline card: timestamp, agent, action taken, outcome (approved / rejected / auto-applied).</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Each card expands to show a diff-style view — previous state on the left, proposed state on the right, using a simple line-level diff computed in the client. No external diff library needed: split on newline, compare arrays, highlight added/removed lines with <code>fhi</code>/<code>flo</code> token colors.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Export session decisions as a markdown report from the VAULT panel. The report uses the existing handoff template format so it feeds directly into <code>docs/AGENT_HANDOFF.md</code> via <code>npm run handoff:write</code>.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h3>11.4 Dynamic Precedent Binding</h3>
+          <span class="badge badge-lo">EXT-04</span>
+        </div>
+        <div class="block-body">
+          <p style="color:var(--text2);font-size:12px;margin-bottom:10px;">Source: <em>loophole</em> — every resolved case becomes binding, escalation on contradiction</p>
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Add a <code>reinforced: boolean</code> flag to the <code>KnowledgeEntry</code> type in <code>store/useStore.ts</code>. When an operator approves a lesson via the existing lesson approval flow, set <code>reinforced: true</code>.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Reinforced entries cannot be overridden by autonomous agent runs. If an auto-run proposes an action that conflicts with a reinforced entry, the run is downgraded to "human-gate required" mode and the conflict is surfaced in the HUD before any write executes.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Show reinforced entries in the Memory panel with a lock icon. The operator can manually un-reinforce an entry with an explicit confirmation dialog — two-step, no accidental unlock.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- From DataDesigner -->
+      <div class="block">
+        <div class="block-head">
+          <h3>11.5 Synthetic Golden-Set Generator</h3>
+          <span class="badge badge-hi">EXT-05</span>
+        </div>
+        <div class="block-body">
+          <p style="color:var(--text2);font-size:12px;margin-bottom:10px;">Source: <em>DataDesigner</em> — config-driven generation of diverse test inputs with LLM-as-judge validation</p>
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Upgrade TEST-12 (golden-set creation) from manual authoring to a script-driven approach. A <code>scripts/gen-golden-set.mjs</code> script reads a YAML config defining prompt templates, constraint fields, and expected response criteria — then generates 20–50 diverse test cases by sampling across template variables.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Each generated test case runs through a lightweight LLM judge pass (using <code>callAI()</code> via <code>/api/ai</code>) that scores the response against the expected criteria on a 0–100 scale. Cases scoring below 70 are flagged for human review before being committed to the golden set.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Commit the generated golden set to <code>__tests__/golden/</code> as plain JSON. The existing <code>eval:agent-runtime</code> script reads from this directory. Re-generation is opt-in via <code>npm run gen-golden-set</code> and requires a human review step before committing updated cases.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h3>11.6 LLM-as-Judge Eval Scorer</h3>
+          <span class="badge badge-hi">EXT-06</span>
+        </div>
+        <div class="block-body">
+          <p style="color:var(--text2);font-size:12px;margin-bottom:10px;">Source: <em>DataDesigner</em> — built-in LLM-as-judge scoring, multi-axis quality assessment</p>
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Add a <code>judge</code> eval category to the runtime eval harness. For each agent response in the eval set, a second LLM call evaluates the response on four axes: accuracy, relevance, grounding (no hallucination), and safe behavior. Each axis scores 0–25 for a 0–100 total.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">The judge prompt is intentionally adversarial — it looks for overconfident claims, unsupported assertions, and policy violations. Judge scores feed the existing <code>AgentEvalResult</code> type as a new <code>judgeScore</code> field alongside the existing category scores.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Surface the judge score as its own category bar in the Settings eval trend panel and in the HQ Telemetry HUD eval chip. CI gate threshold: <code>--min-category judge=75</code>.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h3>11.7 Dry-Run / Preview Mode for Missions</h3>
+          <span class="badge badge-md">EXT-07</span>
+        </div>
+        <div class="block-body">
+          <p style="color:var(--text2);font-size:12px;margin-bottom:10px;">Source: <em>DataDesigner</em> — preview mode shows what tools would fire before committing</p>
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add a "Preview Run" button to the HQ scheduler UI alongside the existing "Run Now / Force" controls. A preview run executes the agent loop with all write tools shimmed — they log what they <em>would</em> do but make no actual changes. Read tools execute normally so context is real.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">The preview result renders in the HQ chat panel as a structured "Mission Preview" card: list of tools that would have been called, estimated token cost, projected output artifacts, and any detected precedent conflicts. The operator can then choose to execute the real run or cancel.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Preview runs are always free of cooldown restrictions. Real runs are still cooldown-governed. The distinction is shown clearly in the HUD so operators know they can preview freely without burning the cooldown window.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h3>11.8 Dependency-Aware Memory Recall</h3>
+          <span class="badge badge-lo">EXT-08</span>
+        </div>
+        <div class="block-body">
+          <p style="color:var(--text2);font-size:12px;margin-bottom:10px;">Source: <em>DataDesigner</em> — dependency-aware column generation carries related facts together</p>
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">Extend the planned <code>recall_by_query</code> tool (AI-03) to also return "correlated entries" — memory entries that share a tag, entity name, or were recorded within 5 minutes of the matched entry. Return correlated entries in a separate <code>related</code> array in the tool response.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text">The agent prompt template for <code>recall_by_query</code> instructs the model to use both the primary match and the related array before answering, reducing the chance of a correct-but-incomplete response that ignores a directly relevant connected fact.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h3>11.9 Validator Pipeline for Agent Writes</h3>
+          <span class="badge badge-hi">EXT-09</span>
+        </div>
+        <div class="block-body">
+          <p style="color:var(--text2);font-size:12px;margin-bottom:10px;">Source: <em>DataDesigner</em> — validator chain (Python, SQL, custom remote) runs after every generated field</p>
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">Extend the existing <code>/api/verify</code> adapter chain to run automatically after any <code>write_file</code> or <code>patch_project_file</code> tool call resolves. Chain: (1) TypeScript type-check on the touched file, (2) ESLint on the touched file, (3) route smoke against <code>/api/health</code>. All three must pass for the write to be marked verified.</div></li>
+            <li class="item"><div class="dot dot-hi"></div><div class="item-text">If any validator fails, the agent run status is immediately downgraded to <code>degraded</code> and the write artifact is quarantined — stored in <code>AgentRunArtifact.pendingEdits</code> with a <code>verificationFailed</code> flag. The operator HUD shows the failure reason and the raw diff so the operator can decide whether to revert.</div></li>
+            <li class="item"><div class="dot dot-md"></div><div class="item-text">Add a "Revert write" action to the operator HUD for quarantined artifacts. The revert calls the existing <code>write_file</code> tool with the pre-write snapshot stored at write time. No git operations needed — snapshot is held in memory for the session duration.</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h3>11.10 n8n Workflow Templates Integration</h3>
+          <span class="badge badge-lo">EXT-10</span>
+        </div>
+        <div class="block-body">
+          <p style="color:var(--text2);font-size:12px;margin-bottom:10px;">Source: n8n template search — four high-signal templates aligned to Nexus capabilities</p>
+          <ul class="item-list">
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text"><strong>Open Deep Research (template 2883, 21k views):</strong> Iterative multi-query research with SerpAPI + Jina AI. Port the query-expansion logic into the NOVA agent prompt — NOVA already does web search, but adding explicit multi-query generation (3–5 sub-queries per research task) and a source-evaluation step significantly improves output fidelity.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text"><strong>Crypto Alpha Scanner (template 5632):</strong> Whale tracking + DEX monitoring pattern. Map this into the FLUX agent's data-gathering pass. FLUX already reads live prices — extending to on-chain whale wallet alerts via a free public endpoint (e.g., Whale Alert free tier) gives FLUX a signal it currently lacks.</div></li>
+            <li class="item"><div class="dot dot-lo"></div><div class="item-text"><strong>Startup Intelligence Monitoring (template 4792):</strong> Crunchbase + AI summaries + email alerts pattern. Map to a new scheduled NOVA mission: weekly funding-round sweep using Crunchbase's public search (no key required for basic results) → NOVA summary → Telegram alert. Follows the existing Auto Ops cooldown pattern.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LESSONS APPLIED -->
+  <div class="section" id="lessons">
+    <div class="section-header">
+      <h2>Lessons Applied to This Plan</h2>
+      <span class="section-tag tag-quality">RULES</span>
+    </div>
+    <div class="block">
+      <div class="block-body">
+        <p style="color:var(--text2); font-size:13px; margin-bottom:16px;">Rules from <code>tasks/lessons.md</code> that shaped the priorities and sequencing in this plan.</p>
+        <table>
+          <thead><tr><th>Domain</th><th>Rule applied</th></tr></thead>
+          <tbody>
+            <tr><td>Process</td><td>No task is marked done without verification. Every item in this plan has an implicit acceptance criterion.</td></tr>
+            <tr><td>Engineering</td><td><code>NODE_ENV=production</code> must not be set at Windows system level — <code>.npmrc production=false</code> must never be removed.</td></tr>
+            <tr><td>Engineering</td><td>Companion services (TimesFM, GeoDeep) follow the n8n/geodep pattern: standalone Python script + Next.js proxy + deployment doc. They are never bundled into the Next app.</td></tr>
+            <tr><td>UI</td><td>Resizable panes must support keyboard arrows and a lock toggle. This is already done in the HQ splitter.</td></tr>
+            <tr><td>Agents</td><td>All agents stay on Anthropic. Same-provider pairings outperform mixed providers. Do not route agents to OpenAI to save cost during active optimization.</td></tr>
+            <tr><td>Agents</td><td>Default autonomous write tools to approval-gated mode. High-risk writes are blocked unless reviewed through proposed edits.</td></tr>
+            <tr><td>Eval</td><td>CI eval output must explicitly list failing checks and failing category thresholds. Opaque "score below target" messages slow down triage.</td></tr>
+            <tr><td>Ops</td><td>Auto-ops jobs must be opt-in and cooldown-limited by default. Never enable autonomous high-frequency runs silently.</td></tr>
+            <tr><td>Data</td><td>Vault/saved-article UX needs search + tag filter + sort to be useful at scale. Bookmarking without retrieval is a dead end.</td></tr>
+            <tr><td>Deployment</td><td>Handoff docs must not embed HEAD SHA or latest commit subject — these fields change every handoff commit and prevent convergence. Use stable branch links.</td></tr>
+            <tr><td>Deployment</td><td>The Telegram webhook must return HTTP 200 immediately and dispatch agent asynchronously. Telegram retries on slow responses, causing duplicate messages.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK REFERENCE TABLE -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Quick Reference — All Items by Priority</h2>
+    </div>
+    <table>
+      <thead><tr><th>Priority</th><th>Block</th><th>ID</th><th>Name</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge badge-hi">P1 Blocker</span></td><td>P1</td><td>CP1.1–1.4</td><td>Cinematic IA: shell hierarchy, standardization, HQ integrity, surface hardening</td></tr>
+        <tr><td><span class="badge badge-hi">P2 Blocker</span></td><td>P2</td><td>CP2.1–2.4</td><td>Docker rehearsal, desktop isolation, trust chain, launch gate</td></tr>
+        <tr><td><span class="badge badge-hi">High</span></td><td>In-flight</td><td>C5</td><td>Contract/meta layer tests</td></tr>
+        <tr><td><span class="badge badge-hi">High</span></td><td>In-flight</td><td>A5</td><td>Prompt caching + batch pathway</td></tr>
+        <tr><td><span class="badge badge-hi">High</span></td><td>In-flight</td><td>A6</td><td>Skill governance metadata + CIPHER baseline</td></tr>
+        <tr><td><span class="badge badge-hi">High</span></td><td>In-flight</td><td>D5</td><td>Tauri isolation end-to-end tests</td></tr>
+        <tr><td><span class="badge badge-hi">High</span></td><td>B6</td><td>6.1–6.2</td><td>Rate limiting + input sanitization audit</td></tr>
+        <tr><td><span class="badge badge-hi">High</span></td><td>B8</td><td>8.1</td><td>Unit tests for all lib functions (currently zero)</td></tr>
+        <tr><td><span class="badge badge-hi">High</span></td><td>B4</td><td>4.6</td><td>Accessibility WCAG 2.1 AA audit</td></tr>
+        <tr><td><span class="badge badge-md">Medium</span></td><td>In-flight</td><td>A7</td><td>TimesFM forecasting adapter</td></tr>
+        <tr><td><span class="badge badge-md">Medium</span></td><td>In-flight</td><td>2B / 2C</td><td>Dead code + animation consistency</td></tr>
+        <tr><td><span class="badge badge-md">Medium</span></td><td>In-flight</td><td>D6</td><td>Binary signing + SBOM</td></tr>
+        <tr><td><span class="badge badge-md">Medium</span></td><td>B5</td><td>5.2</td><td>CoinGecko backoff, CVE 7-day feed</td></tr>
+        <tr><td><span class="badge badge-md">Medium</span></td><td>B7</td><td>7.1–7.2</td><td>Polling optimization + React memoization</td></tr>
+        <tr><td><span class="badge badge-md">Medium</span></td><td>B8</td><td>8.2</td><td>Integration tests (agent loop, scheduler, VAULT, notifications)</td></tr>
+        <tr><td><span class="badge badge-md">Medium</span></td><td>B4</td><td>4.1, 4.3, 4.5</td><td>Nav shortcuts, panel copy/timestamp, settings section tabs</td></tr>
+        <tr><td><span class="badge badge-lo">Low</span></td><td>B2</td><td>2.3–2.5</td><td>TypeScript strictness, ESLint, bundle size</td></tr>
+        <tr><td><span class="badge badge-lo">Low</span></td><td>B3</td><td>3.4–3.6</td><td>Agent detection, memory system, RAG router</td></tr>
+        <tr><td><span class="badge badge-lo">Low</span></td><td>B5</td><td>5.1, 5.3, 5.4</td><td>New free data sources, geo risk score, entity graph</td></tr>
+        <tr><td><span class="badge badge-lo">Low</span></td><td>B7</td><td>7.3</td><td>Three.js frustum culling, performance mode</td></tr>
+        <tr><td><span class="badge badge-lo">Low</span></td><td>B9</td><td>9.2</td><td>Architecture doc update, JSDoc on lib functions</td></tr>
+        <tr><td><span class="badge badge-lo">Low</span></td><td>B10</td><td>10.1–10.4</td><td>Voice input, keyword alerts, world event map, geo scoreboard</td></tr>
+        <tr><td><span class="badge badge-lo">Low</span></td><td>Vehicle</td><td>V0–V1</td><td>Simulated telemetry, schema, F450 bring-up, passive bridge</td></tr>
+        <tr><td><span class="badge badge-hi">High</span></td><td>B11</td><td>EXT-05</td><td>Synthetic golden-set generator — config-driven test case generation with LLM judge</td></tr>
+        <tr><td><span class="badge badge-hi">High</span></td><td>B11</td><td>EXT-06</td><td>LLM-as-judge eval scorer — four-axis quality scoring wired into CI + HUD</td></tr>
+        <tr><td><span class="badge badge-hi">High</span></td><td>B11</td><td>EXT-09</td><td>Validator pipeline for agent writes — auto type-check + lint + smoke after every write</td></tr>
+        <tr><td><span class="badge badge-md">Medium</span></td><td>B11</td><td>EXT-01</td><td>Adversarial eval category — loophole-style prompts that must be blocked or escalated</td></tr>
+        <tr><td><span class="badge badge-md">Medium</span></td><td>B11</td><td>EXT-02</td><td>Constraint consistency checker — detect contradictions between proposed and prior decisions</td></tr>
+        <tr><td><span class="badge badge-md">Medium</span></td><td>B11</td><td>EXT-07</td><td>Dry-run / preview mode — shimmed write tools show what would happen before committing</td></tr>
+        <tr><td><span class="badge badge-lo">Low</span></td><td>B11</td><td>EXT-03</td><td>Decision diff view in VAULT — timeline + git-style diffs of agent decisions per session</td></tr>
+        <tr><td><span class="badge badge-lo">Low</span></td><td>B11</td><td>EXT-04</td><td>Dynamic precedent binding — reinforced knowledge entries block auto-run contradictions</td></tr>
+        <tr><td><span class="badge badge-lo">Low</span></td><td>B11</td><td>EXT-08</td><td>Dependency-aware memory recall — correlated entries returned alongside primary match</td></tr>
+        <tr><td><span class="badge badge-lo">Low</span></td><td>B11</td><td>EXT-10</td><td>n8n template patterns — Open Deep Research, crypto alpha, startup intelligence</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    Nexus Prime — Master Improvement Plan v3 &nbsp;|&nbsp; Updated 2026-04-06 &nbsp;|&nbsp; Free (MIT) — no in-app charges<br>
+    <span style="font-size:11px;">Block 11 added: loophole + DataDesigner patterns (EXT-01–EXT-10). Companion tracker: <code>docs/nexus_master_tracker.xlsx</code> — 5 sheets: Master Tracker (scored), Testing Plan, API Reference, Tech Debt Scores, Phase Roadmap</span>
+  </footer>
+
+</div>
+</body>
+</html>

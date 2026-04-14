@@ -1,3 +1,10 @@
+import {
+  isCloudInferenceAllowedInMode,
+  isCloudInferenceProvider,
+  normalizeCloudNetworkMode,
+} from "@/lib/aiCloudReadiness";
+import { isConfiguredSecretValue } from "@/lib/secretReadiness";
+
 export const BRAND_NAME = "Aegis Vector";
 export const BRAND_SHORT_NAME = "Aegis";
 export const BRAND_TAGLINE = "Local-first command intelligence";
@@ -54,7 +61,7 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     heroTitle: "Aegis Vector",
     heroKicker: "Command intelligence shell",
     surfaceArtKey: "aegis",
-    accentPalette: ["#7dd3fc", "#f59e0b"],
+    accentPalette: ["#4f67d8", "#c8a158"],
     ariaLabel: "Aegis Vector home surface",
     note: "A hard-sci-fi command shell tuned for fast comprehension, not ornamental clutter.",
   },
@@ -62,71 +69,71 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     visibleLabel: "CITADEL",
     functionalLabel: "HQ",
     heroTitle: "CITADEL",
-    heroKicker: "Orbital command bridge",
+    heroKicker: "Command sanctum",
     surfaceArtKey: "citadel",
-    accentPalette: ["#67e8f9", "#60a5fa"],
+    accentPalette: ["#3159da", "#c59a47"],
     ariaLabel: "Citadel, formerly HQ",
-    note: "Operator presence, AI orchestration, and ambient telemetry anchored in one bridge.",
+    note: "Operator presence, AI orchestration, and sanction telemetry anchored inside one fortified command room.",
   },
   command: {
     visibleLabel: "VECTOR",
     functionalLabel: "COMMAND",
     heroTitle: "VECTOR",
-    heroKicker: "Mission lane",
+    heroKicker: "Campaign chamber",
     surfaceArtKey: "vector",
-    accentPalette: ["#f59e0b", "#fb7185"],
+    accentPalette: ["#b68534", "#87343b"],
     ariaLabel: "Vector, formerly Command",
-    note: "Mission lanes, tactical routes, and readiness signals tuned for decision speed.",
+    note: "Mission lanes, tactical routes, and readiness signals read like a live war map instead of a dashboard.",
   },
   intel: {
     visibleLabel: "SPECTRA",
     functionalLabel: "INTEL",
     heroTitle: "SPECTRA",
-    heroKicker: "Signal interference field",
+    heroKicker: "Librarium sweep",
     surfaceArtKey: "spectra",
-    accentPalette: ["#a78bfa", "#38bdf8"],
+    accentPalette: ["#6a82d0", "#d2c39b"],
     ariaLabel: "Spectra, formerly Intel",
-    note: "Narratives, world posture, and prediction layers presented as one signal theater.",
+    note: "Narratives, world posture, and prediction layers unfold like sealed cartography inside the librarium.",
   },
   alpha: {
     visibleLabel: "QUANT",
     functionalLabel: "ALPHA",
     heroTitle: "QUANT",
-    heroKicker: "Execution lattice",
+    heroKicker: "Quant altar",
     surfaceArtKey: "quant",
-    accentPalette: ["#34d399", "#facc15"],
+    accentPalette: ["#9e7b32", "#d9c08e"],
     ariaLabel: "Quant, formerly Alpha",
-    note: "Scanner flows, watchlists, and position sizing framed like a live trading lattice.",
+    note: "Scanner flows, watchlists, and position sizing read like a logistics altar built for execution speed.",
   },
   cyber: {
     visibleLabel: "BASTION",
     functionalLabel: "CYBER",
     heroTitle: "BASTION",
-    heroKicker: "Containment mesh",
+    heroKicker: "Fortress bastion",
     surfaceArtKey: "bastion",
-    accentPalette: ["#2dd4bf", "#fb7185"],
+    accentPalette: ["#7c2e36", "#c7a46a"],
     ariaLabel: "Bastion, formerly Cyber",
-    note: "Threat monitoring and exploit posture organized around containment, not noise.",
+    note: "Threat monitoring and exploit posture stay organized around containment, sanction, and warding instead of noise.",
   },
   recon: {
     visibleLabel: "PARALLAX",
     functionalLabel: "RECON",
     heroTitle: "PARALLAX",
-    heroKicker: "Triangulation sweep",
+    heroKicker: "Auspex sweep",
     surfaceArtKey: "parallax",
-    accentPalette: ["#c084fc", "#67e8f9"],
+    accentPalette: ["#586db3", "#c7b285"],
     ariaLabel: "Parallax, formerly Recon",
-    note: "Free-first reconnaissance shaped as a quiet sweep deck with sharper drill-down cues.",
+    note: "Free-first reconnaissance stays quiet and disciplined, like a scout chapel built around auspex sweeps.",
   },
   vault: {
     visibleLabel: "ARCHIVE",
     functionalLabel: "VAULT",
     heroTitle: "ARCHIVE",
-    heroKicker: "Cold-storage vault",
+    heroKicker: "Reliquary archive",
     surfaceArtKey: "archive",
-    accentPalette: ["#93c5fd", "#fda4af"],
+    accentPalette: ["#6b78aa", "#c5a56a"],
     ariaLabel: "Archive, formerly Vault",
-    note: "Saved artifacts and dossiers feel sealed, durable, and easy to recover under pressure.",
+    note: "Saved artifacts and dossiers feel sealed, ceremonial, and easy to recover under pressure.",
   },
   vehicle: {
     visibleLabel: "VEHICLE",
@@ -134,7 +141,7 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     heroTitle: "VEHICLE",
     heroKicker: "Flight systems lab",
     surfaceArtKey: "vehicle",
-    accentPalette: ["#38bdf8", "#f59e0b"],
+    accentPalette: ["#5b74c5", "#c79b52"],
     ariaLabel: "Vehicle operations lab",
     note: "Internal mobility systems remain aligned with the same command shell language.",
   },
@@ -142,11 +149,11 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     visibleLabel: "FIELD MANUAL",
     functionalLabel: "RESOURCES",
     heroTitle: "FIELD MANUAL",
-    heroKicker: "Operator schematic deck",
+    heroKicker: "Codex armory",
     surfaceArtKey: "manual",
-    accentPalette: ["#fbbf24", "#7dd3fc"],
+    accentPalette: ["#bb8e3d", "#d7ccb1"],
     ariaLabel: "Field Manual, formerly Resources",
-    note: "External references stay inside the same operational frame instead of dropping into a utility page.",
+    note: "External references stay inside the same codex-armory frame instead of dropping into a generic utility page.",
   },
 };
 
@@ -229,12 +236,20 @@ export function summarizeProviderReadiness(
   env: Record<string, string | undefined> = process.env,
 ) {
   const paidApisEnabled = env.NEXUS_ALLOW_PAID_APIS === "true";
+  const networkMode = normalizeCloudNetworkMode(
+    env.NEXUS_NETWORK_MODE ??
+      (process.env.NODE_ENV === "development" ? "internal" : "isolated"),
+  );
+  const cloudInferenceEnabled = isCloudInferenceAllowedInMode(networkMode);
   const items: ProviderReadinessItem[] = AI_PROVIDER_BRANDING.map((provider) => {
     const configured = provider.envKey
-      ? Boolean(env[provider.envKey]?.trim())
+      ? isConfiguredSecretValue(env[provider.envKey])
       : true;
-    const enabledByPolicy =
-      provider.billingTier !== "paid_optional_hidden" || paidApisEnabled;
+    const enabledByPolicy = isCloudInferenceProvider(provider.id)
+      ? provider.billingTier === "paid_optional_hidden"
+        ? paidApisEnabled && cloudInferenceEnabled
+        : cloudInferenceEnabled
+      : provider.billingTier !== "paid_optional_hidden" || paidApisEnabled;
     const status: ProviderReadinessItem["status"] = !enabledByPolicy
       ? "hidden_by_default"
       : configured

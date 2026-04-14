@@ -13,6 +13,12 @@ import {
   readNetworkMode,
 } from '@/lib/security/routePolicy'
 import {
+  NEXUS_HIGH_RISK_COOKIE,
+  NEXUS_NETWORK_MODE_COOKIE,
+  parseBooleanPolicyCookie,
+  parseNetworkModeCookie,
+} from '@/lib/security/runtimePolicyCookies'
+import {
   findConnectorKeyForPath,
   readConnectorPolicy,
 } from '@/lib/security/connectorPolicy'
@@ -38,8 +44,12 @@ export function middleware(req: NextRequest) {
   if (!policy) {
     return NextResponse.json({ error: 'Unknown API route', route: pathname }, { status: 403 })
   }
-  const mode = readNetworkMode()
-  const highRiskEnabled = process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS === 'true'
+  const mode =
+    parseNetworkModeCookie(req.cookies.get(NEXUS_NETWORK_MODE_COOKIE)?.value) ??
+    readNetworkMode()
+  const highRiskEnabled =
+    parseBooleanPolicyCookie(req.cookies.get(NEXUS_HIGH_RISK_COOKIE)?.value) ??
+    (process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS === 'true')
   if (!isRouteAllowedInMode(policy.routeClass, mode, highRiskEnabled)) {
     return NextResponse.json(
       {

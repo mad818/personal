@@ -10,15 +10,20 @@ import { CHART } from "@/lib/chartTheme";
 import type { Article } from "@/store/useStore";
 import {
   buildSecondBrainExportBundle,
+  type SecondBrainExportCompiledArtifact,
   SECOND_BRAIN_EXPORT_MODE_LABELS,
   type SecondBrainExportMode,
 } from "@/lib/secondBrainExport";
 
 interface VaultExportProps {
   filtered?: Article[];
+  compiledPages?: SecondBrainExportCompiledArtifact[];
 }
 
-export default function VaultExport({ filtered }: VaultExportProps) {
+export default function VaultExport({
+  filtered,
+  compiledPages = [],
+}: VaultExportProps) {
   const savedArticles = useStore((s) => s.savedArticles);
   const [exporting, setExporting] = useState<"all" | "filtered" | "brain" | null>(null);
   const [secondBrainMode, setSecondBrainMode] = useState<SecondBrainExportMode>("full");
@@ -70,6 +75,7 @@ export default function VaultExport({ filtered }: VaultExportProps) {
     try {
       const bundle = buildSecondBrainExportBundle({
         articles: savedArticles,
+        compiledPages,
         mode: secondBrainMode,
       });
       const modeLabel = SECOND_BRAIN_EXPORT_MODE_LABELS[secondBrainMode]

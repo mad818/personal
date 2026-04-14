@@ -8,7 +8,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { apiFetch } from "@/lib/apiFetch";
-import { useStore } from "@/store/useStore";
+import { readConnectorMeta, type ConnectorMeta } from "@/lib/connectorMeta";
+import { useStore, type FeedStatus } from "@/store/useStore";
+import FeedStatusPill from "@/components/ui/FeedStatusPill";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 interface Sensor {
   id: string;
@@ -24,17 +27,32 @@ interface Sensor {
 }
 
 interface WeatherData {
+  meta?: ConnectorMeta;
   current?: {
     temperature_2m?: number;
+    temperature_c?: number;
+    temperature_f?: number;
     relative_humidity_2m?: number;
+    humidity_pct?: number;
     wind_speed_10m?: number;
+    wind_speed_kmh?: number;
+    wind_speed_mph?: number;
     weather_code?: number;
     apparent_temperature?: number;
   };
-  hourly?: {
-    time?: string[];
-    temperature_2m?: number[];
-  };
+  hourly?:
+    | Array<{
+        time?: string;
+        temperature_2m?: number;
+        temperature_c?: number;
+        temperature_f?: number;
+      }>
+    | {
+        time?: string[];
+        temperature_2m?: number[];
+        temperature_c?: number[];
+        temperature_f?: number[];
+      };
 }
 
 const INITIAL_SENSORS: Sensor[] = [
@@ -251,7 +269,26 @@ function HourlyBars({ temps, times }: { temps: number[]; times: string[] }) {
 }
 
 // ── Weather Station Card ───────────────────────────────────────────────────────
-function WeatherStationCard({ weather }: { weather: WeatherData | null }) {
+function WeatherStationCard({
+  weather,
+  internetReachable,
+  weatherStatus,
+}: {
+  weather: WeatherData | null;
+  internetReachable: boolean;
+  weatherStatus: FeedStatus;
+}) {
+  const connectorMeta = weather ? readConnectorMeta(weather) : null;
+  const warnings = connectorMeta?.warnings ?? [];
+  const degraded = connectorMeta?.status === "degraded";
+  const updatedAt = connectorMeta?.generatedAt
+    ? new Date(connectorMeta.generatedAt)
+    : null;
+  const lastFailureIsNewest =
+    Boolean(weatherStatus.lastFailureAt) &&
+    (weatherStatus.lastSuccessAt === null ||
+      (weatherStatus.lastFailureAt ?? 0) > (weatherStatus.lastSuccessAt ?? 0));
+
   if (!weather?.current) {
     return (
       <motion.div
@@ -269,6 +306,7 @@ function WeatherStationCard({ weather }: { weather: WeatherData | null }) {
             alignItems: "center",
             gap: "6px",
             marginBottom: "6px",
+            flexWrap: "wrap",
           }}
         >
           <span style={{ fontSize: "14px" }}>🌤️</span>
@@ -286,21 +324,36 @@ function WeatherStationCard({ weather }: { weather: WeatherData | null }) {
               Outdoor
             </div>
           </div>
+          <div style={{ marginLeft: "auto" }}>
+            <FeedStatusPill
+              label="Weather"
+              status={weatherStatus}
+              internetReachable={internetReachable}
+            />
+          </div>
         </div>
         <div
           style={{
             fontSize: "11px",
             color: "var(--text3)",
-            fontStyle: "italic",
+            fontStyle: warnings.length > 0 ? "normal" : "italic",
           }}
         >
-          Loading weather…
+          {warnings[0] ?? "Loading weather..."}
         </div>
       </motion.div>
     );
   }
 
   const c = weather.current;
+  const hourlyTimes = Array.isArray(weather.hourly)
+    ? weather.hourly.map((point) => point.time ?? "")
+    : (weather.hourly?.time ?? []);
+  const hourlyTemps = Array.isArray(weather.hourly)
+    ? weather.hourly.map(
+        (point) => point.temperature_2m ?? point.temperature_c ?? 0,
+      )
+    : (weather.hourly?.temperature_2m ?? weather.hourly?.temperature_c ?? []);
   const temp = c.temperature_2m ?? 0;
   const humidity = c.relative_humidity_2m ?? 0;
   const windSpeed = c.wind_speed_10m ?? 0;
@@ -347,6 +400,7 @@ function WeatherStationCard({ weather }: { weather: WeatherData | null }) {
           alignItems: "center",
           gap: "6px",
           marginBottom: "6px",
+          flexWrap: "wrap",
         }}
       >
         <span style={{ fontSize: "14px" }}>{weatherCodeIcon(code)}</span>
@@ -360,6 +414,27 @@ function WeatherStationCard({ weather }: { weather: WeatherData | null }) {
             {weatherCodeDesc(code)}
           </div>
         </div>
+        <div style={{ marginLeft: "auto" }}>
+          <FeedStatusPill
+            label="Weather"
+            status={weatherStatus}
+            internetReachable={internetReachable}
+          />
+        </div>
+        {degraded && (
+          <span
+            style={{
+              fontSize: "8px",
+              fontWeight: 700,
+              color: "#f59e0b",
+              background: "#f59e0b22",
+              padding: "1px 5px",
+              borderRadius: "3px",
+            }}
+          >
+            DEGRADED
+          </span>
+        )}
         {alertColor && (
           <span
             style={{
@@ -375,6 +450,32 @@ function WeatherStationCard({ weather }: { weather: WeatherData | null }) {
           </span>
         )}
       </div>
+
+      {!internetReachable && weatherStatus.lastSuccessAt !== null && (
+        <div
+          style={{
+            marginBottom: "6px",
+            fontSize: "8px",
+            color: "var(--text3)",
+            lineHeight: 1.45,
+          }}
+        >
+          Browser offline — showing the last good local weather state.
+        </div>
+      )}
+
+      {internetReachable && lastFailureIsNewest && (
+        <div
+          style={{
+            marginBottom: "6px",
+            fontSize: "8px",
+            color: "var(--text3)",
+            lineHeight: 1.45,
+          }}
+        >
+          Latest refresh failed — keeping the last good weather snapshot.
+        </div>
+      )}
 
       {/* Main temp */}
       <div
@@ -433,16 +534,29 @@ function WeatherStationCard({ weather }: { weather: WeatherData | null }) {
         </div>
       </div>
 
+      {warnings.length > 0 && (
+        <div
+          style={{
+            marginBottom: "6px",
+            fontSize: "8px",
+            color: "#fbbf24",
+            lineHeight: 1.4,
+          }}
+        >
+          {warnings[0]}
+        </div>
+      )}
+
       {/* Hourly forecast bars */}
-      {weather.hourly?.temperature_2m && weather.hourly.time && (
+      {hourlyTemps.length > 0 && hourlyTimes.length > 0 && (
         <HourlyBars
-          temps={weather.hourly.temperature_2m.slice(0, 24)}
-          times={weather.hourly.time.slice(0, 24)}
+          temps={hourlyTemps.slice(0, 24)}
+          times={hourlyTimes.slice(0, 24)}
         />
       )}
 
       <div style={{ marginTop: "4px", fontSize: "8px", color: "var(--text3)" }}>
-        Updated {new Date().toLocaleTimeString()}
+        Updated {(updatedAt ?? new Date()).toLocaleTimeString()}
       </div>
     </motion.div>
   );
@@ -451,25 +565,47 @@ function WeatherStationCard({ weather }: { weather: WeatherData | null }) {
 export default function SensorDashboard() {
   const [sensors, setSensors] = useState<Sensor[]>(INITIAL_SENSORS);
   const [localWeather, setLocalWeather] = useState<WeatherData | null>(null);
+  const { internetReachable } = useInternetAvailability();
 
-  // Read weather from Zustand store (typed as any, field added by GlobalDataLoader)
-  const storeWeather = useStore(
-    (s) => ((s as any).weather as WeatherData | null) ?? null,
-  );
+  // Cast store's WeatherData to the local type — it's a structurally compatible subset.
+  const storeWeather = useStore((s) => s.weather as WeatherData | null ?? null);
+  const weatherStatus = useStore((s) => s.feedStatus.weather);
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus);
 
   const weather = storeWeather ?? localWeather;
 
   // If store doesn't have weather yet, fetch locally
   useEffect(() => {
-    if (!storeWeather && !localWeather) {
-      apiFetch("/api/weather?lat=34.05&lon=-118.24")
-        .then((r) => r.json())
-        .then((d: WeatherData) => setLocalWeather(d))
-        .catch(() => {
-          /* graceful fail */
+    if (!internetReachable || storeWeather || localWeather) return;
+    updateFeedStatus("weather", {
+      lastAttemptAt: Date.now(),
+      lastError: null,
+    });
+    apiFetch("/api/weather?lat=34.05&lon=-118.24")
+      .then((r) => r.json())
+      .then((d: WeatherData) => {
+        setLocalWeather(d);
+        const connectorMeta = readConnectorMeta(d);
+        const successAt = connectorMeta?.generatedAt
+          ? new Date(connectorMeta.generatedAt).getTime()
+          : Date.now();
+        updateFeedStatus("weather", {
+          lastSuccessAt: successAt,
+          lastError: connectorMeta?.warnings?.[0] ?? null,
         });
-    }
-  }, [storeWeather, localWeather]);
+      })
+      .catch(() => {
+        updateFeedStatus("weather", {
+          lastFailureAt: Date.now(),
+          lastError: "Could not fetch weather.",
+        });
+      });
+  }, [
+    internetReachable,
+    storeWeather,
+    localWeather,
+    updateFeedStatus,
+  ]);
 
   // Live MQTT SSE → update sensor values (server is simulated today, but this is real wiring).
   useEffect(() => {
@@ -551,7 +687,11 @@ export default function SensorDashboard() {
         }}
       >
         {/* Weather Station card — first */}
-        <WeatherStationCard weather={weather} />
+        <WeatherStationCard
+          weather={weather}
+          internetReachable={internetReachable}
+          weatherStatus={weatherStatus}
+        />
 
         {/* Regular sensors */}
         {sensors.map((s) => {

@@ -308,7 +308,7 @@ function SkillCard({
             cursor: training ? "not-allowed" : "pointer",
             textTransform: "uppercase",
             letterSpacing: "0.4px",
-            transition: "background 0.15s",
+            transition: "background var(--t)",
           }}
         >
           {training ? "⟳ Training" : "▶ Train"}

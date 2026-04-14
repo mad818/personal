@@ -1,10 +1,12 @@
 // ── components/recon/OpsecPanel ─────────────────────────────
 // Local OPSEC check: HTTPS context, fingerprint entropy, WebRTC leak, Tor.
-// All checks are client-side only — no data leaves the browser.
+// Browser checks stay local; the Tor lane now runs through a local Nexus proxy.
 
 "use client";
 
 import { useState, useCallback } from "react";
+import { apiFetch } from "@/lib/apiFetch";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
 
 interface Check {
   id: string;
@@ -117,6 +119,7 @@ function DotIcon({ result }: { result: Check["result"] }) {
 }
 
 export default function OpsecPanel() {
+  const { internetReachable } = useInternetAvailability();
   const [checks, setChecks] = useState<Check[]>(INIT_CHECKS);
   const [score, setScore] = useState<number | null>(null);
   const [running, setRunning] = useState(false);
@@ -163,21 +166,43 @@ export default function OpsecPanel() {
     if (!leakIp) s += 20;
 
     // 4 — Tor (20 pts — informational)
-    let isTor = false;
-    try {
-      const tr = await fetch("https://check.torproject.org/api/ip", {
-        signal: AbortSignal.timeout(4000),
+    if (!internetReachable) {
+      updateCheck("tor", {
+        result: "warn",
+        note: "Internet offline — Tor exit-node check paused. Local OPSEC checks still ran.",
       });
-      const td = await tr.json();
-      isTor = !!td.IsTor;
-    } catch (_) {}
-    updateCheck("tor", {
-      result: "ok",
-      note: isTor
-        ? "Tor exit node detected — high anonymity"
-        : "Not routed through Tor",
-    });
-    s += 20;
+    } else {
+      try {
+        const response = await apiFetch("/api/recon/tor-check", {
+          cache: "no-store",
+        });
+        const data = (await response.json()) as {
+          isTor?: boolean | null;
+          error?: string;
+        };
+        if (typeof data.isTor === "boolean") {
+          updateCheck("tor", {
+            result: "ok",
+            note: data.isTor
+              ? "Tor exit node detected — high anonymity"
+              : "Not routed through Tor",
+          });
+          s += 20;
+        } else {
+          updateCheck("tor", {
+            result: "warn",
+            note:
+              data.error ??
+              "Tor exit-node check unavailable — score is conservative until retry.",
+          });
+        }
+      } catch (_) {
+        updateCheck("tor", {
+          result: "warn",
+          note: "Tor exit-node check unavailable — score is conservative until retry.",
+        });
+      }
+    }
 
     setScore(s);
     setRunning(false);
@@ -247,7 +272,7 @@ export default function OpsecPanel() {
               marginTop: "2px",
             }}
           >
-            All checks run locally — nothing leaves your browser
+            Local browser checks, with the Tor lane routed through the local Nexus proxy
           </div>
         </div>
         <button

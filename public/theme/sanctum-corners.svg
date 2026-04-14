@@ -1,0 +1,29 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g opacity="0.82" stroke="url(#corners)" stroke-width="2.5">
+    <path d="M28 128V28H128"/>
+    <path d="M1172 128V28H1072"/>
+    <path d="M28 592V692H128"/>
+    <path d="M1172 592V692H1072"/>
+    <path d="M70 112V70H112"/>
+    <path d="M1130 112V70H1088"/>
+    <path d="M70 608V650H112"/>
+    <path d="M1130 608V650H1088"/>
+  </g>
+  <g opacity="0.48" stroke="url(#rails)" stroke-width="1.5">
+    <path d="M180 34H460"/>
+    <path d="M740 34H1020"/>
+    <path d="M180 686H460"/>
+    <path d="M740 686H1020"/>
+  </g>
+  <defs>
+    <linearGradient id="corners" x1="28" y1="28" x2="1172" y2="692" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E7D29A"/>
+      <stop offset="1" stop-color="#7A5320"/>
+    </linearGradient>
+    <linearGradient id="rails" x1="180" y1="34" x2="1020" y2="686" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B98838"/>
+      <stop offset="0.5" stop-color="#F0DCA9"/>
+      <stop offset="1" stop-color="#8B5F24"/>
+    </linearGradient>
+  </defs>
+</svg>

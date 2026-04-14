@@ -4,6 +4,12 @@ import { useState, useMemo, useCallback } from "react";
 import { useStore } from "@/store/useStore";
 import { callAI } from "@/lib/ai";
 import { fmtPrice, fmtPct, timeAgo } from "@/lib/helpers";
+import {
+  buildStructuredEvidenceInstruction,
+  parseStructuredEvidenceAnswer,
+  type StructuredEvidenceAnswer,
+} from "@/lib/aiStructuredEvidence";
+import EvidencePosturePanel from "@/components/ui/EvidencePosturePanel";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface BotSignal {
@@ -15,6 +21,7 @@ interface BotSignal {
   action: "STRONG BUY" | "BUY" | "SELL" | "STRONG SELL";
   timestamp: string; // ISO
   aiNote?: string;
+  aiEvidence?: StructuredEvidenceAnswer;
 }
 
 // ── Score → action ─────────────────────────────────────────────────────────
@@ -175,15 +182,70 @@ function HistoryRow({
         <div
           style={{
             marginTop: "8px",
-            fontSize: "11.5px",
-            color: "var(--text2)",
-            lineHeight: 1.55,
             borderTop: "1px solid var(--border)",
             paddingTop: "8px",
-            whiteSpace: "pre-wrap",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
           }}
         >
-          {sig.aiNote}
+          {sig.aiEvidence ? (
+            <>
+              <EvidencePosturePanel
+                title="Trade rationale posture"
+                summary={sig.aiEvidence.summary}
+                observed={sig.aiEvidence.observed}
+                inferred={sig.aiEvidence.inferred}
+                verifyNext={sig.aiEvidence.verifyNext}
+              />
+              {sig.aiEvidence.actions.length > 0 ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "5px",
+                    padding: "10px 12px",
+                    background: "var(--surf3)",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "10.5px",
+                      fontWeight: 700,
+                      color: "var(--text3)",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Trade actions
+                  </div>
+                  {sig.aiEvidence.actions.map((action, index) => (
+                    <div
+                      key={`${sig.id}-action-${index}`}
+                      style={{
+                        fontSize: "11.5px",
+                        color: "var(--text2)",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {index + 1}. {action}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <div
+              style={{
+                fontSize: "11.5px",
+                color: "var(--text2)",
+                lineHeight: 1.55,
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {sig.aiNote}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -199,7 +261,9 @@ export default function BuyBot() {
   const updateSettings = useStore((s) => s.updateSettings);
 
   const [aiLoading, setAiLoading] = useState<string | null>(null); // id of signal being analysed
-  const [analysed, setAnalysed] = useState<Record<string, string>>({});
+  const [analysed, setAnalysed] = useState<
+    Record<string, { note: string; evidence?: StructuredEvidenceAnswer }>
+  >({});
 
   const rankedAssets: BotSignal[] = useMemo(() => {
     return Object.entries(prices)
@@ -242,18 +306,43 @@ export default function BuyBot() {
   const analyseSignal = useCallback(
     async (sig: BotSignal) => {
       setAiLoading(sig.id);
-      const prompt = `Crypto signal: ${sig.sym} — ${sig.action}. Price: ${fmtPrice(sig.price)}, 24h: ${fmtPct(sig.chg24h)}, momentum score: ${sig.score}/100. Give a 2-sentence trade rationale and one key risk. Be direct.`;
+      const prompt = `Crypto signal: ${sig.sym} — ${sig.action}. Price: ${fmtPrice(sig.price)}, 24h: ${fmtPct(sig.chg24h)}, momentum score: ${sig.score}/100. Give a direct trade rationale and one key risk.
+
+${buildStructuredEvidenceInstruction({
+  summaryKey: "rationale",
+  summaryLabel: "direct trade rationale",
+  summaryLimitHint: "under 90 words and risk-aware",
+  extraFields: [
+    {
+      key: "actions",
+      example: '["specific trade action or risk-control step"]',
+      rule: '"actions" should contain 1-3 concise trade or risk-control steps tailored to the signal.',
+    },
+  ],
+})}`;
       try {
         const note = await callAI(prompt, 200);
-        setAnalysed((p) => ({ ...p, [sig.id]: note }));
+        const evidence = parseStructuredEvidenceAnswer(note, ["rationale"]);
+        setAnalysed((p) => ({
+          ...p,
+          [sig.id]: {
+            note: evidence?.summary ?? note,
+            evidence: evidence ?? undefined,
+          },
+        }));
         // Persist AI note to history
-        const saved = { ...sig, aiNote: note };
+        const saved = {
+          ...sig,
+          aiNote: evidence?.summary ?? note,
+          aiEvidence: evidence ?? undefined,
+        };
         saveSignal(saved);
       } catch {
         setAnalysed((p) => ({
           ...p,
-          [sig.id]:
-            "AI analysis is unavailable right now. Check your local model or optional cloud provider settings.",
+          [sig.id]: {
+            note: "AI analysis is unavailable right now. Check your local model or optional cloud provider settings.",
+          },
         }));
       } finally {
         setAiLoading(null);
@@ -266,7 +355,13 @@ export default function BuyBot() {
 
   const displaySignals = liveSignals.map((s) => ({
     ...s,
-    aiNote: analysed[s.id],
+    aiNote: analysed[s.id]?.note,
+    aiEvidence: analysed[s.id]?.evidence,
+  }));
+  const watchCandidates = rankedAssets.slice(0, 5).map((s) => ({
+    ...s,
+    aiNote: analysed[s.id]?.note,
+    aiEvidence: analysed[s.id]?.evidence,
   }));
   const watchCandidates = rankedAssets.slice(0, 5).map((s) => ({
     ...s,

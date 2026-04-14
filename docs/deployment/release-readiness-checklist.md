@@ -4,13 +4,18 @@ Use this checklist for both deployment lanes before promoting a release.
 
 ## Shared baseline
 
+- [ ] `npm run release:boundary`
+- [ ] `npm run launch:gate`
 - [ ] `npm run type-check`
 - [ ] `npm run lint`
 - [ ] `npm run check:path-collisions`
 - [ ] `npm run security-scan`
 - [ ] `npm run security:tauri`
 - [ ] `npm run eval:agent-runtime:ci`
-- [ ] `npm run release:smoke` against the target runtime
+- [ ] `npm run release:smoke` against the target runtime with `NEXUS_RELEASE_BASE_URL` set (or `NEXUS_ASSUME_LOCAL_RUNTIME=true` for an intentionally started local runtime)
+- [ ] `npm run runtime:consistency` reports one coherent runtime boot identity against that same explicit target runtime
+- [ ] `npm run runtime:fresh-proof` passes on an isolated clean runtime
+- [ ] Build, Playwright, and fresh-runtime lanes are run serially when they share the same local `.next` workspace
 
 ## Scope and support
 
@@ -21,11 +26,27 @@ Use this checklist for both deployment lanes before promoting a release.
 
 ## Runtime and auth
 
+- [ ] local worktree matches a clean tree or the captured `.nexus-release-boundary.json` snapshot
+- [ ] repo-root `.env.local` contains the real staged `NEXUS_RELEASE_BASE_URL` and local `NEXUS_TOKEN`
+- [ ] `NEXUS_RELEASE_BASE_URL` points at a real staged host, not `your-host.example`, `target-host.example`, or `<staging-host>`
+- [ ] `npm run launch:gate:target` passes from repo-local config without requiring inline env export
 - [ ] `/api/health` is green
 - [ ] `/api/token` auth flow behaves correctly
+- [ ] `npm run auth:regression` passes against the target runtime with the same explicit target selection
+- [ ] `npm run auth:e2e` passes against the target runtime
+- [ ] `npm run hq:e2e` and `npm run route:e2e` are available for focused reruns when the full auth/browser lane fails
 - [ ] `/api/status` returns authenticated release/readiness payload
 - [ ] scheduler and non-interactive mission path run without duplicate dispatch
 - [ ] runtime eval is fresh and above thresholds
+
+## Regression memory
+
+- [ ] auth regression suite is green (valid token, invalid token, stale session recovery, logout/reset)
+- [ ] no stale-runtime or stale-bundle symptoms were observed during target-runtime testing
+- [ ] no hydration mismatch warnings on HQ or always-mounted UI surfaces
+- [ ] no hidden overlay, backdrop, or decorative layer steals pointer/focus access
+- [ ] root and alias routes resolve to canonical surfaces correctly
+- [ ] cinematic shell is visually consistent across all GA tabs for the target release
 
 ## Domain validation
 
@@ -38,6 +59,8 @@ Use this checklist for both deployment lanes before promoting a release.
 ## Web lane
 
 - [ ] Docker build succeeds
+- [ ] If local Docker is unavailable, the first staging host is used as the artifact-proof vehicle and `npm run launch:gate:target` passes against that exact host
+- [ ] The first artifact-proof deploy uses the intended candidate branch (`codex/preserve-main-2026-04-11` for the current FD2 tranche)
 - [ ] Coolify/VPS deploy succeeds
 - [ ] TLS is enabled
 - [ ] protected routes require bearer auth

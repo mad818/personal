@@ -1,0 +1,22 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="64" cy="64" r="55" stroke="url(#ring)" stroke-width="4"/>
+  <circle cx="64" cy="64" r="42" stroke="url(#ring)" stroke-width="2" opacity="0.72"/>
+  <path d="M64 24V104" stroke="url(#ring)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M24 64H104" stroke="url(#ring)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M64 34L78 48L64 62L50 48L64 34Z" fill="url(#seal)"/>
+  <path d="M64 66L78 80L64 94L50 80L64 66Z" fill="url(#seal)"/>
+  <path d="M34 64L48 50L62 64L48 78L34 64Z" fill="url(#seal)"/>
+  <path d="M94 64L80 50L66 64L80 78L94 64Z" fill="url(#seal)"/>
+  <circle cx="64" cy="64" r="11" fill="#1D1713" stroke="url(#ring)" stroke-width="3"/>
+  <defs>
+    <linearGradient id="ring" x1="16" y1="18" x2="110" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F0DCA9"/>
+      <stop offset="0.52" stop-color="#B88435"/>
+      <stop offset="1" stop-color="#F0DCA9"/>
+    </linearGradient>
+    <linearGradient id="seal" x1="34" y1="34" x2="94" y2="94" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EFDDAE"/>
+      <stop offset="1" stop-color="#996421"/>
+    </linearGradient>
+  </defs>
+</svg>

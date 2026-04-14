@@ -17,7 +17,7 @@ This file contains all identified issues, fixes needed, and improvement recommen
 **Create `.env.local` with:**
 ```env
 # Optional: Groq API key for faster inference
-GROQ_API_KEY=your-key-here
+GROQ_API_KEY=<replace-with-provider-key>
 
 # Agent workspace for file operations
 AGENT_WORKSPACE=/Users/marioduenas/Desktop/experimentalbot-main/agent-workspace

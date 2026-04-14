@@ -2,14 +2,16 @@
 /* eslint-disable no-console */
 import fs from "fs";
 import path from "path";
+import { resolveRuntimeTarget } from "./runtime-target.mjs";
 
 const root = process.cwd();
 const matrixPath = path.join(root, "lib", "release-matrix.json");
 const matrix = JSON.parse(fs.readFileSync(matrixPath, "utf8"));
-const baseUrl = process.env.NEXUS_RELEASE_BASE_URL ?? "http://127.0.0.1:3000";
+const baseUrl = resolveRuntimeTarget({ scriptName: "release-smoke" });
 const token = process.env.NEXUS_TOKEN ?? "";
 
-const gaSurfaces = matrix.surfaces.filter(
+const gaSurfaces = matrix.surfaces.filter((surface) => surface.tier === "ga");
+const gaNavTabs = matrix.surfaces.filter(
   (surface) => surface.tier === "ga" && surface.kind === "tab",
 );
 
@@ -53,6 +55,28 @@ async function main() {
   if (!tokenMetrics.ok) fail(`/api/token GET returned ${tokenMetrics.status}`);
   console.log(`✅ /api/token ${tokenMetrics.status}`);
 
+  const invalidTokenRes = await check("/api/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: "__invalid_nexus_token__" }),
+  });
+  if (invalidTokenRes.status !== 401) {
+    fail(`/api/token invalid auth expected 401, got ${invalidTokenRes.status}`);
+  }
+  console.log(`✅ /api/token invalid auth ${invalidTokenRes.status}`);
+
+  if (token) {
+    const validTokenRes = await check("/api/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+    if (!validTokenRes.ok || validTokenRes.json?.code !== "ok") {
+      fail(`/api/token valid auth expected ok, got ${validTokenRes.status}`);
+    }
+    console.log(`✅ /api/token valid auth ${validTokenRes.status}`);
+  }
+
   for (const surface of gaSurfaces) {
     const res = await check(surface.href);
     if (!res.ok) fail(`${surface.href} returned ${res.status}`);
@@ -74,8 +98,8 @@ async function main() {
   } else {
     if (!statusRes.ok) fail(`/api/status returned ${statusRes.status}`);
     const counts = statusRes.json?.readiness?.release?.surfaces?.counts;
-    if (!counts || counts.gaNav !== gaSurfaces.length) {
-      fail(`/api/status release surface counts mismatch (expected gaNav=${gaSurfaces.length})`);
+    if (!counts || counts.gaNav !== gaNavTabs.length) {
+      fail(`/api/status release surface counts mismatch (expected gaNav=${gaNavTabs.length})`);
     }
     console.log(`✅ /api/status ${statusRes.status}`);
   }

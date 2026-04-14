@@ -430,7 +430,7 @@ export default function DeviceRegistry() {
                     fontSize: "10px",
                     color: "var(--text3)",
                     transform: isExp ? "rotate(90deg)" : "none",
-                    transition: "transform 0.2s",
+                    transition: "transform var(--t)",
                     flexShrink: 0,
                   }}
                 >

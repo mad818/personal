@@ -1,99 +1,114 @@
 // ── components/vehicle/ControlPanel ────────────────────────
-// Vehicle control interface: drive mode, acceleration, steering, emergency stop.
+// Simulation-first control interface for future vehicle bring-up.
 
-"use client";
-// route controls, speed limiter, sensor toggles, and AI override.
+"use client"
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
+import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry"
+import type { VehicleFlightMode } from "@/lib/vehicle/types"
 
-type DriveMode = "Manual" | "Autonomous" | "Patrol" | "Emergency Stop";
-
-const MODE_COLORS: Record<DriveMode, string> = {
-  Manual: "var(--gold)",
-  Autonomous: "#818cf8",
-  Patrol: "#10b981",
-  "Emergency Stop": "#ef4444",
-};
-
-const SENSOR_TYPES = [
-  "RGB",
-  "Night Vision",
-  "Thermal",
-  "LiDAR",
-  "Ultrasonic",
-  "IMU",
-];
+const MODE_COLORS: Record<VehicleFlightMode, string> = {
+  STABILIZE: "var(--gold)",
+  LOITER: "#60a5fa",
+  AUTO: "#10b981",
+  RTL: "#818cf8",
+  LAND: "#ef4444",
+}
 
 export default function ControlPanel() {
-  const [mode, setMode] = useState<DriveMode>("Autonomous");
-  const [speedLimit, setSpeedLimit] = useState(18);
-  const [aiOverride, setAiOverride] = useState<"local" | "remote">("local");
-  const [sensors, setSensors] = useState<Record<string, boolean>>(
-    Object.fromEntries(SENSOR_TYPES.map((s) => [s, true])),
-  );
-  const [piConnected, setPiConnected] = useState(true);
-  const [eStopActive, setEStopActive] = useState(false);
-  const [waypoints, setWaypoints] = useState(2);
+  const {
+    activeFrame,
+    bridgeStatus,
+    controlPosture,
+    simulation,
+    sourceMode,
+    actions,
+  } = useVehicleTelemetry()
+  const [eStopPulse, setEStopPulse] = useState(false)
+  const liveBridgeMode = sourceMode === "live_bridge"
+  const bridgeConnected = liveBridgeMode ? bridgeStatus.fresh : simulation.companionConnected
+  const controlDisabled = liveBridgeMode
 
-  const handleEStop = () => {
-    setEStopActive(true);
-    setMode("Emergency Stop");
-    setTimeout(() => setEStopActive(false), 3000);
-  };
+  useEffect(() => {
+    if (activeFrame.heartbeat.mode !== "LAND") return
+    setEStopPulse(true)
+    const timeout = window.setTimeout(() => setEStopPulse(false), 1800)
+    return () => window.clearTimeout(timeout)
+  }, [activeFrame.heartbeat.mode])
 
-  const handleMode = (m: DriveMode) => {
-    if (m === "Emergency Stop") {
-      handleEStop();
-      return;
-    }
-    setMode(m);
-  };
-
-  const toggleSensor = (s: string) => {
-    setSensors((prev) => ({ ...prev, [s]: !prev[s] }));
-  };
+  const handleEmergencyLand = () => {
+    actions.triggerEmergencyStop()
+    setEStopPulse(true)
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <div
         style={{
-          fontSize: "10px",
-          fontWeight: 700,
-          color: "var(--accent)",
-          textTransform: "uppercase",
-          letterSpacing: "1px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          flexWrap: "wrap",
         }}
       >
-        Vehicle Control
+        <div
+          style={{
+            fontSize: "10px",
+            fontWeight: 700,
+            color: "var(--accent)",
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+          }}
+        >
+          Vehicle Control
+        </div>
+        <span
+          style={{
+            fontSize: "9px",
+            fontWeight: 700,
+            color:
+              sourceMode === "replay"
+                ? "#f59e0b"
+                : liveBridgeMode
+                  ? "#60a5fa"
+                  : "#10b981",
+          }}
+        >
+          {sourceMode === "replay"
+            ? "Replay control view"
+            : liveBridgeMode
+              ? "Passive bridge view"
+              : "Simulation authority only"}
+        </span>
       </div>
 
-      {/* Pi connection status */}
       <div
         style={{
           background: "var(--surf2)",
           border: "1px solid var(--border)",
           borderRadius: "var(--rs)",
-          padding: "8px 12px",
+          padding: "10px 12px",
           display: "flex",
           alignItems: "center",
-          gap: "6px",
+          gap: "8px",
+          flexWrap: "wrap",
         }}
       >
-        <span style={{ fontSize: "10px" }}>🥧</span>
+        <span style={{ fontSize: "11px" }}>🛰️</span>
         <span
           style={{ fontSize: "10px", fontWeight: 700, color: "var(--text)" }}
         >
-          Raspberry Pi 5
+          {liveBridgeMode ? "Live telemetry bridge" : "Companion bridge"}
         </span>
         <motion.span
-          animate={{ opacity: piConnected ? [1, 0.3, 1] : 1 }}
+          animate={{ opacity: bridgeConnected ? [1, 0.3, 1] : 1 }}
           transition={{ duration: 1.5, repeat: Infinity }}
           style={{
             width: "6px",
             height: "6px",
             borderRadius: "50%",
-            background: piConnected ? "#10b981" : "#ef4444",
+            background: bridgeConnected ? "#10b981" : "#ef4444",
             display: "inline-block",
             marginLeft: "4px",
           }}
@@ -101,11 +116,17 @@ export default function ControlPanel() {
         <span
           style={{
             fontSize: "9px",
-            color: piConnected ? "#10b981" : "#ef4444",
+            color: bridgeConnected ? "#10b981" : "#ef4444",
             fontWeight: 700,
           }}
         >
-          {piConnected ? "CONNECTED" : "LOST"}
+          {bridgeConnected
+            ? liveBridgeMode
+              ? "BRIDGE FRESH"
+              : "SIM ONLINE"
+            : liveBridgeMode
+              ? "BRIDGE STALE"
+              : "SIM OFFLINE"}
         </span>
         <span
           style={{
@@ -115,27 +136,38 @@ export default function ControlPanel() {
             color: "var(--text3)",
           }}
         >
-          192.168.1.200
+          {controlPosture.note}
         </span>
-        <button
-          onClick={() => setPiConnected((v) => !v)}
-          style={{
-            fontSize: "9px",
-            padding: "2px 8px",
-            borderRadius: "4px",
-            border: "none",
-            cursor: "pointer",
-            background: piConnected
-              ? "rgba(239,68,68,0.15)"
-              : "rgba(16,185,129,0.15)",
-            color: piConnected ? "#ef4444" : "#10b981",
-          }}
-        >
-          {piConnected ? "Disconnect" : "Reconnect"}
-        </button>
+        {liveBridgeMode ? (
+          <span
+            style={{
+              fontSize: "9px",
+              fontWeight: 700,
+              color: "#60a5fa",
+            }}
+          >
+            Simulation knobs parked while bridge frames are fresh
+          </span>
+        ) : (
+          <button
+            onClick={() => actions.setCompanionConnected(!simulation.companionConnected)}
+            style={{
+              fontSize: "9px",
+              padding: "2px 8px",
+              borderRadius: "4px",
+              border: "none",
+              cursor: "pointer",
+              background: simulation.companionConnected
+                ? "rgba(239,68,68,0.15)"
+                : "rgba(16,185,129,0.15)",
+              color: simulation.companionConnected ? "#ef4444" : "#10b981",
+            }}
+          >
+            {simulation.companionConnected ? "Disconnect sim" : "Reconnect sim"}
+          </button>
+        )}
       </div>
 
-      {/* Drive mode selector */}
       <div>
         <div
           style={{
@@ -146,45 +178,49 @@ export default function ControlPanel() {
             marginBottom: "6px",
           }}
         >
-          Drive Mode
+          Autopilot Mode
         </div>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: "repeat(4, 1fr)",
             gap: "6px",
           }}
         >
-          {(["Manual", "Autonomous", "Patrol"] as DriveMode[]).map((m) => (
+          {(["STABILIZE", "LOITER", "AUTO", "RTL"] as VehicleFlightMode[]).map((mode) => (
             <button
-              key={m}
-              onClick={() => handleMode(m)}
+              key={mode}
+              disabled={controlDisabled}
+              onClick={() => actions.setFlightMode(mode)}
               style={{
                 padding: "8px",
                 borderRadius: "var(--rs)",
-                cursor: "pointer",
+                cursor: controlDisabled ? "not-allowed" : "pointer",
                 fontWeight: 800,
                 fontSize: "10px",
-                background: mode === m ? `${MODE_COLORS[m]}22` : "var(--surf2)",
-                color: mode === m ? MODE_COLORS[m] : "var(--text2)",
+                background:
+                  activeFrame.heartbeat.mode === mode ? `${MODE_COLORS[mode]}22` : "var(--surf2)",
+                color:
+                  activeFrame.heartbeat.mode === mode ? MODE_COLORS[mode] : "var(--text2)",
                 border:
-                  mode === m
-                    ? `1px solid ${MODE_COLORS[m]}55`
+                  activeFrame.heartbeat.mode === mode
+                    ? `1px solid ${MODE_COLORS[mode]}55`
                     : "1px solid var(--border)",
+                opacity: controlDisabled ? 0.55 : 1,
               }}
             >
-              {m}
+              {mode}
             </button>
           ))}
         </div>
       </div>
 
-      {/* EMERGENCY STOP — dramatic and prominent */}
       <motion.button
         whileTap={{ scale: 0.97 }}
-        onClick={handleEStop}
+        disabled={controlDisabled}
+        onClick={handleEmergencyLand}
         animate={
-          eStopActive
+          eStopPulse
             ? {
                 boxShadow: [
                   "0 0 0 0 rgba(239,68,68,0)",
@@ -194,26 +230,29 @@ export default function ControlPanel() {
               }
             : {}
         }
-        transition={eStopActive ? { duration: 0.6, repeat: 3 } : {}}
+        transition={eStopPulse ? { duration: 0.6, repeat: 2 } : {}}
         style={{
           width: "100%",
           padding: "14px",
           borderRadius: "var(--r)",
-          cursor: "pointer",
-          background: eStopActive ? "#ef4444" : "rgba(239,68,68,0.15)",
+          cursor: controlDisabled ? "not-allowed" : "pointer",
+          background: eStopPulse ? "#ef4444" : "rgba(239,68,68,0.15)",
           color: "#ef4444",
-          fontSize: "16px",
+          fontSize: "15px",
           fontWeight: 900,
-          letterSpacing: "2px",
+          letterSpacing: "1px",
           border: "2px solid #ef4444",
-          textShadow: eStopActive ? "0 0 20px rgba(255,255,255,0.8)" : "none",
-          transition: "background 0.2s, text-shadow 0.2s",
+          transition: "background var(--t), text-shadow var(--t)",
+          opacity: controlDisabled ? 0.55 : 1,
         }}
       >
-        {eStopActive ? "🛑 STOPPED" : "⛔ EMERGENCY STOP"}
+        {liveBridgeMode
+          ? "LIVE BRIDGE OBSERVER ONLY"
+          : activeFrame.heartbeat.mode === "LAND"
+            ? "SIM LANDING ACTIVE"
+            : "SIM EMERGENCY LAND"}
       </motion.button>
 
-      {/* Route controls */}
       <div>
         <div
           style={{
@@ -224,11 +263,13 @@ export default function ControlPanel() {
             marginBottom: "6px",
           }}
         >
-          Route — {waypoints} Waypoints Active
+          Mission Route — {simulation.waypointCount} simulated waypoint
+          {simulation.waypointCount === 1 ? "" : "s"}
         </div>
         <div style={{ display: "flex", gap: "6px" }}>
           <button
-            onClick={() => setWaypoints((v) => v + 1)}
+            disabled={controlDisabled}
+            onClick={() => actions.setWaypointCount(simulation.waypointCount + 1)}
             style={{
               flex: 1,
               padding: "7px",
@@ -236,15 +277,17 @@ export default function ControlPanel() {
               border: "1px solid var(--border)",
               background: "var(--surf2)",
               color: "var(--text2)",
-              cursor: "pointer",
+              cursor: controlDisabled ? "not-allowed" : "pointer",
               fontSize: "10px",
               fontWeight: 700,
+              opacity: controlDisabled ? 0.55 : 1,
             }}
           >
-            + Waypoint
+            + Sim waypoint
           </button>
           <button
-            onClick={() => setWaypoints(0)}
+            disabled={controlDisabled}
+            onClick={() => actions.setWaypointCount(0)}
             style={{
               flex: 1,
               padding: "7px",
@@ -252,14 +295,17 @@ export default function ControlPanel() {
               border: "1px solid var(--border)",
               background: "var(--surf2)",
               color: "var(--text2)",
-              cursor: "pointer",
+              cursor: controlDisabled ? "not-allowed" : "pointer",
               fontSize: "10px",
               fontWeight: 700,
+              opacity: controlDisabled ? 0.55 : 1,
             }}
           >
-            Clear Route
+            Clear route
           </button>
           <button
+            disabled={controlDisabled}
+            onClick={() => actions.setFlightMode("RTL")}
             style={{
               flex: 1,
               padding: "7px",
@@ -267,17 +313,17 @@ export default function ControlPanel() {
               border: "none",
               background: "var(--accent)",
               color: "#fff",
-              cursor: "pointer",
+              cursor: controlDisabled ? "not-allowed" : "pointer",
               fontSize: "10px",
               fontWeight: 800,
+              opacity: controlDisabled ? 0.55 : 1,
             }}
           >
-            Return Base
+            Sim RTL
           </button>
         </div>
       </div>
 
-      {/* Speed limiter */}
       <div>
         <div
           style={{
@@ -305,7 +351,7 @@ export default function ControlPanel() {
               fontFamily: "monospace",
             }}
           >
-            {speedLimit}{" "}
+            {simulation.speedLimitKph}{" "}
             <span
               style={{
                 fontSize: "9px",
@@ -320,20 +366,14 @@ export default function ControlPanel() {
         <input
           type="range"
           min={0}
-          max={30}
-          value={speedLimit}
-          onChange={(e) => setSpeedLimit(Number(e.target.value))}
-          style={{ width: "100%", accentColor: "var(--accent)" }}
+          max={60}
+          value={simulation.speedLimitKph}
+          disabled={controlDisabled}
+          onChange={(event) => actions.setSpeedLimitKph(Number(event.target.value))}
+          style={{ width: "100%", accentColor: "var(--accent)", opacity: controlDisabled ? 0.55 : 1 }}
         />
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ fontSize: "8px", color: "var(--text3)" }}>0</span>
-          <span style={{ fontSize: "8px", color: "var(--text3)" }}>
-            30 km/h
-          </span>
-        </div>
       </div>
 
-      {/* Sensor toggles */}
       <div>
         <div
           style={{
@@ -353,33 +393,34 @@ export default function ControlPanel() {
             gap: "4px",
           }}
         >
-          {SENSOR_TYPES.map((s) => (
+          {activeFrame.sensors.map((sensor) => (
             <button
-              key={s}
-              onClick={() => toggleSensor(s)}
+              key={sensor.id}
+              disabled={controlDisabled}
+              onClick={() => actions.setSensorEnabled(sensor.id, !sensor.active)}
               style={{
                 padding: "5px 6px",
                 borderRadius: "5px",
                 border: "none",
-                cursor: "pointer",
+                cursor: controlDisabled ? "not-allowed" : "pointer",
                 fontSize: "9px",
                 fontWeight: 700,
-                background: sensors[s]
+                background: sensor.active
                   ? "rgba(16,185,129,0.15)"
                   : "var(--surf2)",
-                color: sensors[s] ? "#10b981" : "var(--text3)",
+                color: sensor.active ? "#10b981" : "var(--text3)",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
+                opacity: controlDisabled ? 0.55 : 1,
               }}
             >
-              {sensors[s] ? "●" : "○"} {s}
+              {sensor.active ? "●" : "○"} {sensor.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* AI Override */}
       <div>
         <div
           style={{
@@ -390,31 +431,36 @@ export default function ControlPanel() {
             marginBottom: "6px",
           }}
         >
-          AI Control Source
+          Companion Route
         </div>
         <div style={{ display: "flex", gap: "6px" }}>
-          {(["local", "remote"] as const).map((v) => (
+          {(["local", "remote"] as const).map((route) => (
             <button
-              key={v}
-              onClick={() => setAiOverride(v)}
+              key={route}
+              disabled={controlDisabled}
+              onClick={() => actions.setCompanionRoute(route)}
               style={{
                 flex: 1,
                 padding: "7px",
                 borderRadius: "var(--rs)",
                 border: "none",
-                cursor: "pointer",
+                cursor: controlDisabled ? "not-allowed" : "pointer",
                 fontSize: "10px",
                 fontWeight: 800,
                 background:
-                  aiOverride === v ? "rgba(129,140,248,0.2)" : "var(--surf2)",
-                color: aiOverride === v ? "#818cf8" : "var(--text2)",
+                  simulation.companionRoute === route
+                    ? "rgba(129,140,248,0.2)"
+                    : "var(--surf2)",
+                color:
+                  simulation.companionRoute === route ? "#818cf8" : "var(--text2)",
+                opacity: controlDisabled ? 0.55 : 1,
               }}
             >
-              {v === "local" ? "🖥️ Local AI" : "☁️ Remote AI"}
+              {route === "local" ? "Local edge" : "Remote relay"}
             </button>
           ))}
         </div>
       </div>
     </div>
-  );
+  )
 }

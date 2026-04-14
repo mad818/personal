@@ -3,6 +3,12 @@
 import { useState, useCallback } from "react";
 import { useStore } from "@/store/useStore";
 import { callAI } from "@/lib/ai";
+import {
+  buildStructuredEvidenceInstruction,
+  parseStructuredEvidenceAnswer,
+  type StructuredEvidenceAnswer,
+} from "@/lib/aiStructuredEvidence";
+import EvidencePosturePanel from "@/components/ui/EvidencePosturePanel";
 
 // ── Stage definitions ────────────────────────────────────────────────────────
 type StageKey = "validate" | "offer" | "outreach" | "close" | "deliver";
@@ -92,6 +98,7 @@ export default function BusinessBuilder() {
   const [checks, setChecks] = useState<Record<string, boolean>>({});
   const [revenue, setRevenue] = useState(0);
   const [aiOut, setAiOut] = useState("");
+  const [structuredOutput, setStructuredOutput] = useState<StructuredEvidenceAnswer | null>(null);
   const [loading, setLoading] = useState(false);
 
   const stage = STAGES.find((s) => s.key === activeStage) ?? STAGES[0];
@@ -109,24 +116,43 @@ export default function BusinessBuilder() {
   })();
 
   const runAction = useCallback(async () => {
-    if (!settings.apiKey) {
-      setAiOut("Add your API key in Settings to get AI guidance.");
-      return;
-    }
     setLoading(true);
     setAiOut("");
+    setStructuredOutput(null);
     try {
       const userCtx = settings.userContext
         ? `\nContext about the user: ${settings.userContext}`
         : "";
-      const result = await callAI(stage.prompt + userCtx, 400);
-      setAiOut(result);
+      const prompt = `${stage.prompt}${userCtx}
+
+${buildStructuredEvidenceInstruction({
+  summaryKey: "plan",
+  summaryLabel: "stage action plan",
+  summaryLimitHint: "under 120 words and recommendation-first",
+  extraFields: [
+    {
+      key: "actions",
+      example: '["stage-specific next step"]',
+      rule: '"actions" should contain 2-4 concrete stage actions the user can do this week.',
+    },
+  ],
+})}`;
+      const result = await callAI(prompt, 400);
+      const structured = parseStructuredEvidenceAnswer(result, ["plan"]);
+      if (structured) {
+        setStructuredOutput(structured);
+        setAiOut("");
+      } else {
+        setAiOut(result);
+      }
     } catch {
-      setAiOut("Could not get AI response. Check your API key in Settings.");
+      setAiOut(
+        "Could not get AI guidance. Check your local runtime or free-first AI lane in Settings.",
+      );
     } finally {
       setLoading(false);
     }
-  }, [settings.apiKey, settings.userContext, stage.prompt]);
+  }, [settings.userContext, stage.prompt]);
 
   const revenueColor =
     revenue >= REVENUE_TARGET
@@ -413,6 +439,49 @@ export default function BusinessBuilder() {
           {aiOut}
         </div>
       )}
+
+      {structuredOutput ? (
+        <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <EvidencePosturePanel
+            title="Stage guidance posture"
+            summary={structuredOutput.summary}
+            observed={structuredOutput.observed}
+            inferred={structuredOutput.inferred}
+            verifyNext={structuredOutput.verifyNext}
+          />
+          {structuredOutput.actions.length > 0 ? (
+            <div
+              style={{
+                padding: "12px 14px",
+                background: "var(--surf3)",
+                borderRadius: "8px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "7px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "10.5px",
+                  fontWeight: 700,
+                  color: "var(--text3)",
+                  textTransform: "uppercase",
+                }}
+              >
+                Concrete actions
+              </div>
+              {structuredOutput.actions.map((action, index) => (
+                <div
+                  key={`${stage.key}-action-${index}`}
+                  style={{ fontSize: "12px", color: "var(--text)", lineHeight: 1.55 }}
+                >
+                  {index + 1}. {action}
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

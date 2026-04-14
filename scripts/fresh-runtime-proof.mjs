@@ -145,13 +145,7 @@ async function stopRuntimeServer(child) {
 async function main() {
   console.log(`fresh-runtime-proof building isolated runtime for ${baseUrl}`);
 
-  const npmCommand = process.platform === "win32" ? "cmd.exe" : "npm";
-  const buildArgs =
-    process.platform === "win32"
-      ? ["/d", "/s", "/c", "npm run build"]
-      : ["run", "build"];
-
-  await runCommand(npmCommand, buildArgs, {
+  await runNodeScript("scripts/build-runtime.mjs", {
     PORT: port,
     NEXUS_NEXT_DIST_DIR: distDir,
   });

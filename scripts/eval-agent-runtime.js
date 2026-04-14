@@ -16,6 +16,15 @@ function read(rel) {
   }
 }
 
+function readJson(rel) {
+  try {
+    const raw = read(rel)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
 function check(name, pass, detail, category, weight = 1) {
   return { name, pass, detail, category, weight }
 }
@@ -59,6 +68,21 @@ function main() {
   const verifyRoute = read('app/api/verify/route.ts')
   const hud = read('components/ui/TelemetryHUD.tsx')
   const statusRoute = read('app/api/status/route.ts')
+  const hqAnswerStyle = read('components/home/office/hqAnswerStyle.ts')
+  const hqTypes = read('components/home/office/types.ts')
+  const assistantGuidance = read('lib/assistantGuidance.ts')
+  const assistantRegistry = read('lib/assistantCapabilityRegistry.ts')
+  const assistantCanonicalRegistry = read('lib/assistantCanonicalRegistry.ts')
+  const assistantRetrieveRoute = read('app/api/assistant/retrieve/route.ts')
+  const assistantSessionMemory = read('lib/assistantSessionMemory.ts')
+  const assistantSessionRecovery = read('lib/assistantSessionRecovery.ts')
+  const assistantExecutionSignals = read('lib/assistantExecutionSignals.ts')
+  const artifactContinuity = read('lib/artifactContinuity.ts')
+  const binaryTriage = read('lib/binaryTriage.ts')
+  const secondBrainExport = read('lib/secondBrainExport.ts')
+  const specDrivenDevelopment = read('lib/specDrivenDevelopment.ts')
+  const schedulerEfficiencyLatest = readJson('docs/metrics/scheduler-efficiency-latest.json')
+  const forecastEvalLatest = readJson('docs/metrics/forecast-eval-latest.json')
 
   const checks = [
     check(
@@ -93,6 +117,91 @@ function main() {
       'observability',
       2,
     ),
+    check(
+      'assistant response kinds',
+      /responseKind/.test(hqAnswerStyle) &&
+        /assistant/.test(hqAnswerStyle) &&
+        /evidence/.test(hqAnswerStyle) &&
+        /workflow/.test(hqAnswerStyle),
+      'HQ answer style contract distinguishes assistant, evidence, and workflow replies',
+      'ux',
+      2,
+    ),
+    check(
+      'assistant capability registry',
+      /ASSISTANT_CAPABILITIES/.test(assistantRegistry) &&
+        /CANONICAL_ROUTE_ALIASES/.test(assistantCanonicalRegistry) &&
+        /normalizeCanonicalResourceParams/.test(assistantCanonicalRegistry) &&
+        /detectAssistantCapability/.test(assistantRegistry),
+      'Assistant capability registry centralizes route aliases, exact-session context, and capability routing',
+      'reliability',
+      2,
+    ),
+    check(
+      'shared assistant guidance',
+      /assistantGuidance\?: AssistantGuidance\[]/.test(hqTypes) &&
+        /mergeAssistantGuidance/.test(assistantGuidance) &&
+        /scope_drift/.test(assistantGuidance),
+      'Assistant replies use one shared guidance contract instead of separate cue fields',
+      'ux',
+      2,
+    ),
+    check(
+      'live retrieval adapter',
+      /GET\(req: NextRequest\)/.test(assistantRetrieveRoute) &&
+        /fetchOpenWebResults/.test(assistantRetrieveRoute) &&
+        /api\/prices/.test(assistantRetrieveRoute) &&
+        /api\/news/.test(assistantRetrieveRoute) &&
+        /api\/cves/.test(assistantRetrieveRoute),
+      'Assistant retrieval adapter verifies live queries through internal feeds or protected open-web fallback',
+      'safety',
+      3,
+    ),
+    check(
+      'assistant continuity memory',
+      /continuationValue/.test(assistantSessionMemory) &&
+        /artifactClass/.test(assistantSessionMemory) &&
+        /findStrongestUnfinishedSessionForPath/.test(assistantSessionMemory) &&
+        /findStrongestUnfinishedSessionForRoute/.test(assistantSessionMemory),
+      'Assistant session memory tracks richer unfinished-session continuity and broad-route recovery',
+      'reliability',
+      2,
+    ),
+    check(
+      'assistant session recovery',
+      /resolveAssistantSessionHref/.test(assistantSessionRecovery) &&
+        /includeRouteDefault/.test(assistantSessionRecovery) &&
+        /PREPARED_WORKSPACE_TTL_MS/.test(assistantSessionRecovery),
+      'Assistant session recovery centralizes prepared, unfinished, and route-default exact-session transport',
+      'reliability',
+      2,
+    ),
+    check(
+      'reverse engineering continuity',
+      /buildReverseEngineeringContinuityTag/.test(binaryTriage) &&
+        /reverse-engineering-brief/.test(binaryTriage) &&
+        /buildArtifactContinuityMetadata/.test(artifactContinuity),
+      'Reverse-engineering and research artifacts share deterministic continuity metadata',
+      'observability',
+      2,
+    ),
+    check(
+      'assistant execution and archive cues',
+      /buildAssistantExecutionAttachment/.test(assistantExecutionSignals) &&
+        /buildAssistantArchiveCue/.test(assistantExecutionSignals) &&
+        /preferredPreparedHref/.test(assistantExecutionSignals),
+      'Assistant turns can attach bounded execution context and compact archive continuity cues',
+      'ux',
+      2,
+    ),
+    check(
+      'spec drift cues',
+      /detectSpecScopeDrift/.test(specDrivenDevelopment) &&
+        /scopeSignals/.test(specDrivenDevelopment),
+      'Spec-driven execution exposes lightweight scope-drift cues for assistant turns',
+      'safety',
+      2,
+    ),
   ]
 
   const passed = checks.filter((c) => c.pass).length
@@ -123,6 +232,45 @@ function main() {
     categoryThresholds: opts.minCategory,
     categories,
     checks,
+    schedulerEfficiency: schedulerEfficiencyLatest
+      ? {
+          ts: schedulerEfficiencyLatest.ts || null,
+          providerId: schedulerEfficiencyLatest.provider?.id || 'native_scheduler',
+          quality: schedulerEfficiencyLatest.summary?.quality || 'guarded',
+          score: Number(schedulerEfficiencyLatest.summary?.score || 0),
+          activeJobs: Number(schedulerEfficiencyLatest.summary?.activeJobs || 0),
+          measuredRuns: Number(schedulerEfficiencyLatest.summary?.measuredRuns || 0),
+          cacheObservedCoverage: Number(
+            schedulerEfficiencyLatest.summary?.cacheObservedCoverage || 0,
+          ),
+          cacheHitCoverage: Number(
+            schedulerEfficiencyLatest.summary?.cacheHitCoverage || 0,
+          ),
+          batchedRuns: Number(
+            schedulerEfficiencyLatest.summary?.batchedRuns || 0,
+          ),
+          reasons: Array.isArray(schedulerEfficiencyLatest.summary?.reasons)
+            ? schedulerEfficiencyLatest.summary.reasons
+            : [],
+        }
+      : null,
+    forecastEval: forecastEvalLatest
+      ? {
+          ts: forecastEvalLatest.ts || null,
+          providerId: forecastEvalLatest.provider?.id || 'native_baseline',
+          ready: Boolean(forecastEvalLatest.provider?.ready),
+          quality: forecastEvalLatest.summary?.quality || 'degraded',
+          score: Number(forecastEvalLatest.summary?.score || 0),
+          assetsCovered: Number(forecastEvalLatest.summary?.assetsCovered || 0),
+          assetsRequested: Number(forecastEvalLatest.summary?.assetsRequested || 0),
+          horizons: Array.isArray(forecastEvalLatest.summary?.horizons)
+            ? forecastEvalLatest.summary.horizons
+            : [],
+          reasons: Array.isArray(forecastEvalLatest.summary?.reasons)
+            ? forecastEvalLatest.summary.reasons
+            : [],
+        }
+      : null,
   }
 
   console.log(`Agent runtime eval score: ${score} weighted (${weightedPassed}/${weightedTotal}) [min=${opts.minScore}]`)
@@ -131,6 +279,16 @@ function main() {
   }
   for (const [k, v] of Object.entries(categories)) {
     console.log(`  category:${k} => ${v.score} (${v.passedWeight}/${v.totalWeight})`)
+  }
+  if (report.schedulerEfficiency) {
+    console.log(
+      `Scheduler efficiency: ${report.schedulerEfficiency.quality} ${report.schedulerEfficiency.score}/100 · ${report.schedulerEfficiency.measuredRuns} measured · ${report.schedulerEfficiency.activeJobs} active`,
+    )
+  }
+  if (report.forecastEval) {
+    console.log(
+      `Forecast eval: ${report.forecastEval.quality} ${report.forecastEval.score}/100 · ${report.forecastEval.assetsCovered}/${report.forecastEval.assetsRequested} assets`,
+    )
   }
 
   const failedChecks = checks.filter((c) => !c.pass)

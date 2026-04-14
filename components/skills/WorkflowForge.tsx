@@ -2,12 +2,16 @@
 
 import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { ShellBadge, ShellButton, SectionLabel } from "@/components/ui/shell";
+import { InternalWorkbenchNotice } from "@/components/ui/InternalWorkbenchNotice";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { apiFetch } from "@/lib/apiFetch";
 import { useStore } from "@/store/useStore";
 import type {
   WorkflowDefinition,
   WorkflowNode,
   WorkflowRun,
 } from "@/lib/assimilation/types";
+import type { InternalWorkbenchMeta } from "@/lib/assimilation/contracts";
 
 const NODE_TONE: Record<WorkflowNode["type"], string> = {
   source: "#4fd1c5",
@@ -22,22 +26,25 @@ function nodeLabel(type: WorkflowNode["type"]) {
   return type.replace(/(^\w|-\w)/g, (chunk) => chunk.replace("-", "").toUpperCase());
 }
 
-async function loadJson<T>(url: string): Promise<T> {
-  const response = await fetch(url, { cache: "no-store" });
+async function loadJson<T>(url: string): Promise<T & { meta?: InternalWorkbenchMeta }> {
+  const response = await apiFetch(url, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load ${url}`);
-  return (await response.json()) as T;
+  return (await response.json()) as T & { meta?: InternalWorkbenchMeta };
 }
 
 export default function WorkflowForge() {
   const missionJobs = useStore((s) => s.settings.scheduledJobs ?? []);
   const [workflows, setWorkflows] = useState<WorkflowDefinition[]>([]);
   const [runs, setRuns] = useState<WorkflowRun[]>([]);
+  const [workflowMeta, setWorkflowMeta] = useState<InternalWorkbenchMeta | null>(null);
+  const [runMeta, setRunMeta] = useState<InternalWorkbenchMeta | null>(null);
   const [selectedId, setSelectedId] = useState<string>("");
   const [search, setSearch] = useState("");
   const [draftDescription, setDraftDescription] = useState("");
   const [draftApprovalMode, setDraftApprovalMode] =
     useState<WorkflowDefinition["approvalMode"]>("human_gate");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
   const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
@@ -45,14 +52,24 @@ export default function WorkflowForge() {
     void Promise.all([
       loadJson<{ workflows: WorkflowDefinition[] }>("/api/workflows"),
       loadJson<{ runs: WorkflowRun[] }>("/api/workflow-runs"),
-    ]).then(([workflowPayload, runPayload]) => {
-      if (!active) return;
-      startTransition(() => {
-        setWorkflows(workflowPayload.workflows);
-        setRuns(runPayload.runs);
-        setSelectedId((current) => current || workflowPayload.workflows[0]?.id || "");
+    ])
+      .then(([workflowPayload, runPayload]) => {
+        if (!active) return;
+        startTransition(() => {
+          setWorkflows(workflowPayload.workflows);
+          setRuns(runPayload.runs);
+          setWorkflowMeta(workflowPayload.meta ?? null);
+          setRunMeta(runPayload.meta ?? null);
+          setSelectedId((current) => current || workflowPayload.workflows[0]?.id || "");
+          setError("");
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setError(
+          "Workflow Forge is temporarily unavailable. Retained templates and recent runs stay visible until the route recovers.",
+        );
       });
-    });
     return () => {
       active = false;
     };
@@ -81,13 +98,14 @@ export default function WorkflowForge() {
   async function refreshRuns() {
     const runPayload = await loadJson<{ runs: WorkflowRun[] }>("/api/workflow-runs");
     setRuns(runPayload.runs);
+    setRunMeta(runPayload.meta ?? null);
   }
 
   async function saveDraft() {
     if (!selectedWorkflow) return;
     setBusy(true);
     try {
-      const response = await fetch("/api/workflows", {
+      const response = await apiFetch("/api/workflows", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -97,11 +115,21 @@ export default function WorkflowForge() {
           version: selectedWorkflow.version + 1,
         } satisfies WorkflowDefinition),
       });
-      const payload = (await response.json()) as { workflow: WorkflowDefinition };
+      if (!response.ok) throw new Error("Failed to save workflow.");
+      const payload = (await response.json()) as {
+        workflow: WorkflowDefinition;
+        meta?: InternalWorkbenchMeta;
+      };
+      setWorkflowMeta(payload.meta ?? workflowMeta);
       setWorkflows((current) =>
         current.map((workflow) =>
           workflow.id === payload.workflow.id ? payload.workflow : workflow,
         ),
+      );
+      setError("");
+    } catch {
+      setError(
+        "The workflow graph could not be saved. Existing templates were left untouched.",
       );
     } finally {
       setBusy(false);
@@ -119,14 +147,24 @@ export default function WorkflowForge() {
     };
     setBusy(true);
     try {
-      const response = await fetch("/api/workflows", {
+      const response = await apiFetch("/api/workflows", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(next),
       });
-      const payload = (await response.json()) as { workflow: WorkflowDefinition };
+      if (!response.ok) throw new Error("Failed to clone workflow.");
+      const payload = (await response.json()) as {
+        workflow: WorkflowDefinition;
+        meta?: InternalWorkbenchMeta;
+      };
+      setWorkflowMeta(payload.meta ?? workflowMeta);
       setWorkflows((current) => [payload.workflow, ...current]);
       setSelectedId(payload.workflow.id);
+      setError("");
+    } catch {
+      setError(
+        "The workflow template could not be cloned. Existing templates were kept locally.",
+      );
     } finally {
       setBusy(false);
     }
@@ -136,12 +174,18 @@ export default function WorkflowForge() {
     if (!selectedWorkflow) return;
     setBusy(true);
     try {
-      await fetch("/api/workflow-runs", {
+      const response = await apiFetch("/api/workflow-runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workflowId: selectedWorkflow.id }),
       });
+      if (!response.ok) throw new Error("Failed to start workflow run.");
       await refreshRuns();
+      setError("");
+    } catch {
+      setError(
+        "The workflow run did not start. Existing run history was preserved.",
+      );
     } finally {
       setBusy(false);
     }
@@ -170,6 +214,18 @@ export default function WorkflowForge() {
         }}
       >
         <SectionLabel detail={`${filtered.length} templates`}>Workflow Forge</SectionLabel>
+        <InternalWorkbenchNotice meta={workflowMeta} compact />
+        {error ? (
+          <div style={{ marginTop: "10px" }}>
+            <SurfaceCallout
+              tone="warning"
+              compact
+              icon="↺"
+              title="Workflow Forge degraded"
+              description={error}
+            />
+          </div>
+        ) : null}
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -402,6 +458,7 @@ export default function WorkflowForge() {
         }}
       >
         <SectionLabel detail="Mission Foundry linkage">Recent runs</SectionLabel>
+        <InternalWorkbenchNotice meta={runMeta} compact />
         <div style={{ display: "grid", gap: "10px", marginTop: "10px" }}>
           {runs.slice(0, 4).map((run) => (
             <div

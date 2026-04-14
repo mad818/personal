@@ -2,19 +2,40 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
+import { InternalWorkbenchNotice } from "@/components/ui/InternalWorkbenchNotice";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { apiFetch } from "@/lib/apiFetch";
 import type { GeoDeltaSnapshot, SweepTheater } from "@/lib/assimilation/types";
+import type { InternalWorkbenchMeta } from "@/lib/assimilation/contracts";
 
 export default function GeoDeltaPanel({ theater }: { theater: SweepTheater }) {
   const [snapshots, setSnapshots] = useState<GeoDeltaSnapshot[]>([]);
+  const [meta, setMeta] = useState<InternalWorkbenchMeta | null>(null);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     let active = true;
-    void fetch(`/api/geo-delta?theater=${theater}`, { cache: "no-store" })
-      .then((response) => response.json() as Promise<{ snapshots: GeoDeltaSnapshot[] }>)
-      .then((payload) => {
+    void (async () => {
+      try {
+        const response = await apiFetch(`/api/geo-delta?theater=${theater}`, {
+          cache: "no-store",
+        });
+        if (!response.ok) throw new Error("Failed to load geo delta.");
+        const payload = (await response.json()) as {
+          snapshots: GeoDeltaSnapshot[];
+          meta?: InternalWorkbenchMeta;
+        };
         if (!active) return;
         setSnapshots(payload.snapshots);
-      });
+        setMeta(payload.meta ?? null);
+        setLoadError("");
+      } catch {
+        if (!active) return;
+        setLoadError(
+          "Geo delta is temporarily unavailable. Retained local evidence stays visible until the route recovers.",
+        );
+      }
+    })();
     return () => {
       active = false;
     };
@@ -24,14 +45,36 @@ export default function GeoDeltaPanel({ theater }: { theater: SweepTheater }) {
 
   if (!latest) {
     return (
-      <div style={{ color: "var(--text3)", fontSize: "12px" }}>
-        No geo delta snapshot is stored for this theater yet. Run a sweep to seed the first before/after evidence chain.
+      <div style={{ display: "grid", gap: "8px" }}>
+        <InternalWorkbenchNotice meta={meta} compact />
+        {loadError ? (
+          <SurfaceCallout
+            tone="warning"
+            compact
+            icon="↺"
+            title="Geo delta unavailable"
+            description={loadError}
+          />
+        ) : null}
+        <div style={{ color: "var(--text3)", fontSize: "12px" }}>
+          No geo delta snapshot is stored for this theater yet. Run a sweep to seed the first before/after evidence chain.
+        </div>
       </div>
     );
   }
 
   return (
     <div style={{ display: "grid", gap: "12px" }}>
+      <InternalWorkbenchNotice meta={meta} compact />
+      {loadError ? (
+        <SurfaceCallout
+          tone="warning"
+          compact
+          icon="↺"
+          title="Showing retained geo delta evidence"
+          description={loadError}
+        />
+      ) : null}
       <div
         style={{
           display: "grid",

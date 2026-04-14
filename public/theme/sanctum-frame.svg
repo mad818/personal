@@ -1,0 +1,22 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="9" y="9" width="1182" height="702" rx="18" stroke="url(#frame)" stroke-width="2"/>
+  <path d="M48 48H196L164 80H80V164L48 196V48Z" stroke="url(#frame)" stroke-width="3"/>
+  <path d="M1152 48H1004L1036 80H1120V164L1152 196V48Z" stroke="url(#frame)" stroke-width="3"/>
+  <path d="M48 672H196L164 640H80V556L48 524V672Z" stroke="url(#frame)" stroke-width="3"/>
+  <path d="M1152 672H1004L1036 640H1120V556L1152 524V672Z" stroke="url(#frame)" stroke-width="3"/>
+  <path d="M540 28H660" stroke="url(#frame)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M558 692H642" stroke="url(#frame)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M584 24L600 8L616 24L600 40L584 24Z" fill="url(#seal)"/>
+  <path d="M584 696L600 680L616 696L600 712L584 696Z" fill="url(#seal)"/>
+  <defs>
+    <linearGradient id="frame" x1="120" y1="72" x2="1080" y2="648" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#CFA65C"/>
+      <stop offset="0.5" stop-color="#EAD6A2"/>
+      <stop offset="1" stop-color="#9F6D26"/>
+    </linearGradient>
+    <linearGradient id="seal" x1="584" y1="8" x2="616" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4E0AF"/>
+      <stop offset="1" stop-color="#A46E2A"/>
+    </linearGradient>
+  </defs>
+</svg>

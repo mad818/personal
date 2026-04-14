@@ -6,12 +6,15 @@
 import { useEffect, useState, useCallback } from "react";
 import { useStore } from "@/store/useStore";
 import { OFFICE_OPERATIONAL_PROFILES } from "@/components/home/office/constants";
+import { useInternetAvailability } from "@/hooks/useInternetAvailability";
+
+type StoreSnapshot = Partial<ReturnType<typeof useStore.getState>>;
 
 interface DataSource {
   key: string;
   label: string;
   full: string;
-  check: (s: ReturnType<typeof useStore.getState>) => boolean;
+  check: (s: StoreSnapshot) => boolean;
 }
 
 const DATA_SOURCES: DataSource[] = [
@@ -19,61 +22,61 @@ const DATA_SOURCES: DataSource[] = [
     key: "PRC",
     label: "PRC",
     full: "Prices",
-    check: (s) => Object.keys(s.prices).length > 0,
+    check: (s) => Object.keys(s.prices ?? {}).length > 0,
   },
   {
     key: "NEW",
     label: "NEW",
     full: "News",
-    check: (s) => s.articles.length > 0,
+    check: (s) => (s.articles?.length ?? 0) > 0,
   },
   {
     key: "CVE",
     label: "CVE",
     full: "CVEs",
-    check: (s) => s.cves.length > 0,
+    check: (s) => (s.cves?.length ?? 0) > 0,
   },
   {
     key: "OTX",
     label: "OTX",
     full: "OTX Pulses",
-    check: (s) => s.otxPulses.length > 0,
+    check: (s) => (s.otxPulses?.length ?? 0) > 0,
   },
   {
     key: "GDL",
     label: "GDL",
     full: "GDELT Events",
-    check: (s) => s.gdeltEvents.length > 0,
+    check: (s) => (s.gdeltEvents?.length ?? 0) > 0,
   },
   {
     key: "WTH",
     label: "WTH",
     full: "Weather",
-    check: (s) => s.weather !== null,
+    check: (s) => s.weather != null,
   },
   {
     key: "THR",
     label: "THR",
     full: "ThreatFox",
-    check: (s) => s.threatIntel.threatfox.length > 0,
+    check: (s) => (s.threatIntel?.threatfox?.length ?? 0) > 0,
   },
   {
     key: "DFI",
     label: "DFI",
     full: "DeFi",
-    check: (s) => s.defiData.protocols.length > 0,
+    check: (s) => (s.defiData?.protocols?.length ?? 0) > 0,
   },
   {
     key: "HKN",
     label: "HKN",
     full: "HackerNews",
-    check: (s) => s.hackerNews.length > 0,
+    check: (s) => (s.hackerNews?.length ?? 0) > 0,
   },
   {
     key: "SEC",
     label: "SEC",
     full: "SEC Filings",
-    check: (s) => s.secFilings.length > 0,
+    check: (s) => (s.secFilings?.length ?? 0) > 0,
   },
 ];
 
@@ -98,6 +101,7 @@ export default function SystemStatusFooter() {
   const [lastRefresh, setLastRefresh] = useState(() => Date.now());
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const { internetReachable } = useInternetAvailability();
 
   // Live clock
   useEffect(() => {
@@ -107,20 +111,28 @@ export default function SystemStatusFooter() {
 
   // Listen for data refresh events
   useEffect(() => {
-    const handler = () => setLastRefresh(Date.now());
+    const handler = () => {
+      setLastRefresh(Date.now());
+      setRefreshing(false);
+    };
     window.addEventListener("nexus-data-refreshed", handler);
     return () => window.removeEventListener("nexus-data-refreshed", handler);
   }, []);
 
+  useEffect(() => {
+    if (!internetReachable) {
+      setRefreshing(false);
+    }
+  }, [internetReachable]);
+
   const handleRefresh = useCallback(() => {
-    if (refreshing) return;
+    if (refreshing || !internetReachable) return;
     setRefreshing(true);
     window.dispatchEvent(new CustomEvent("nexus-refresh-trigger"));
     setTimeout(() => {
       setRefreshing(false);
-      setLastRefresh(Date.now());
     }, 2500);
-  }, [refreshing]);
+  }, [internetReachable, refreshing]);
 
   // Read all status checks from store
   const prices = useStore((s) => s.prices);
@@ -138,7 +150,7 @@ export default function SystemStatusFooter() {
   );
   const profile = OFFICE_OPERATIONAL_PROFILES[officeOperationalMode];
 
-  const storeSnapshot = {
+  const storeSnapshot: StoreSnapshot = {
     prices,
     articles,
     cves,
@@ -150,8 +162,6 @@ export default function SystemStatusFooter() {
     hackerNews,
     secFilings,
   };
-
-  const minsAgo = Math.floor((Date.now() - lastRefresh) / 60000);
 
   return (
     <div
@@ -215,7 +225,29 @@ export default function SystemStatusFooter() {
       {/* Center: API health indicators */}
       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
         {DATA_SOURCES.map((src) => {
-          const isOk = src.check(storeSnapshot as any);
+          const isOk = src.check(storeSnapshot);
+          const dotColor = isOk
+            ? internetReachable
+              ? "#22c55e"
+              : "#f59e0b"
+            : "#ef4444";
+          const dotGlow = isOk
+            ? internetReachable
+              ? "rgba(34,197,94,0.5)"
+              : "rgba(245,158,11,0.45)"
+            : "rgba(239,68,68,0.4)";
+          const labelColor = isOk
+            ? internetReachable
+              ? "rgba(34,197,94,0.6)"
+              : "rgba(245,158,11,0.7)"
+            : "rgba(239,68,68,0.5)";
+          const tooltipLabel = isOk
+            ? internetReachable
+              ? "● Connected"
+              : "● Last-known local copy"
+            : internetReachable
+              ? "● No data"
+              : "● Offline / no local data";
           return (
             <div
               key={src.key}
@@ -236,11 +268,9 @@ export default function SystemStatusFooter() {
                   width: "6px",
                   height: "6px",
                   borderRadius: "50%",
-                  background: isOk ? "#22c55e" : "#ef4444",
-                  boxShadow: isOk
-                    ? "0 0 4px rgba(34,197,94,0.5)"
-                    : "0 0 4px rgba(239,68,68,0.4)",
-                  transition: "background 0.3s",
+                  background: dotColor,
+                  boxShadow: `0 0 4px ${dotGlow}`,
+                  transition: "background var(--t)",
                 }}
               />
               {/* Label */}
@@ -248,7 +278,7 @@ export default function SystemStatusFooter() {
                 style={{
                   fontSize: "7px",
                   fontWeight: 700,
-                  color: isOk ? "rgba(34,197,94,0.6)" : "rgba(239,68,68,0.5)",
+                  color: labelColor,
                   fontFamily: "monospace",
                   letterSpacing: "0.2px",
                 }}
@@ -285,11 +315,11 @@ export default function SystemStatusFooter() {
                   <div
                     style={{
                       fontSize: "9px",
-                      color: isOk ? "#22c55e" : "#ef4444",
+                      color: dotColor,
                       marginTop: "2px",
                     }}
                   >
-                    {isOk ? "● Connected" : "● No data"}
+                    {tooltipLabel}
                   </div>
                 </div>
               )}
@@ -320,29 +350,44 @@ export default function SystemStatusFooter() {
         <span
           style={{
             fontSize: "9px",
-            color: "rgba(74,51,56,0.8)",
+            color: !internetReachable
+              ? "rgba(245,158,11,0.92)"
+              : "rgba(74,51,56,0.8)",
             fontFamily: "monospace",
           }}
         >
-          Last refresh: {formatLastRefresh(Date.now() - lastRefresh)}
+          {!internetReachable
+            ? `Internet offline · last sync ${formatLastRefresh(Date.now() - lastRefresh)}`
+            : refreshing
+              ? "Refreshing…"
+              : `Last refresh: ${formatLastRefresh(Date.now() - lastRefresh)}`}
         </span>
         <button
           onClick={handleRefresh}
-          title="Refresh all data"
+          disabled={refreshing || !internetReachable}
+          title={
+            internetReachable ? "Refresh all data" : "Browser offline — refresh paused"
+          }
           style={{
             width: "20px",
             height: "20px",
             borderRadius: "50%",
             border: "1px solid rgba(45,31,34,0.6)",
             background: "transparent",
-            color: refreshing ? "rgba(196,72,90,0.8)" : "rgba(74,51,56,0.8)",
-            cursor: "pointer",
+            color: !internetReachable
+              ? "rgba(245,158,11,0.75)"
+              : refreshing
+                ? "rgba(196,72,90,0.8)"
+                : "rgba(74,51,56,0.8)",
+            cursor:
+              refreshing || !internetReachable ? "not-allowed" : "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: "11px",
-            transition: "color 0.15s, border-color 0.15s",
+            transition: "color var(--t), border-color var(--t)",
             animation: refreshing ? "nexus-spin 0.8s linear infinite" : "none",
+            opacity: refreshing || !internetReachable ? 0.8 : 1,
           }}
           aria-label="Refresh data"
         >

@@ -25,6 +25,16 @@ import ErrorBoundary from "@/components/system/ErrorBoundary";
 import ToastContainer from "@/components/ui/Toast";
 import NotificationToastBridge from "@/components/ui/NotificationToastBridge";
 import ParticleBackground from "@/components/ui/ParticleBackground";
+import PersistedShellStateBootScript from "@/components/ui/PersistedShellStateBootScript";
+import PersistedShellStateNotice from "@/components/ui/PersistedShellStateNotice";
+import PreparedWorkspaceAutoHeal from "@/components/ui/PreparedWorkspaceAutoHeal";
+import RuntimePolicyCookieSync from "@/components/ui/RuntimePolicyCookieSync";
+import ShellHealthGuard from "@/components/ui/ShellHealthGuard";
+import ShellHydrationBeacon from "@/components/ui/ShellHydrationBeacon";
+import {
+  buildShellBootstrapGuardScript,
+  getCriticalShellCss,
+} from "@/lib/shellBootstrapGuard";
 
 const CommandBar = dynamic(() => import("@/components/ui/CommandBar"), {
   ssr: false,
@@ -40,6 +50,10 @@ const ChangeLogPanel = dynamic(
 const ClickDebug = dynamic(() => import("@/components/ui/ClickDebug"), {
   ssr: false,
 });
+const MemorySpineSync = dynamic(
+  () => import("@/components/ui/MemorySpineSync"),
+  { ssr: false },
+);
 
 assertNexusDoesNotChargeUsers();
 
@@ -78,17 +92,34 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <style
+          id="nexus-critical-shell-css"
+          dangerouslySetInnerHTML={{ __html: getCriticalShellCss() }}
+          suppressHydrationWarning
+        />
+        <PersistedShellStateBootScript />
+        <script
+          id="nexus-shell-bootstrap-guard"
+          dangerouslySetInnerHTML={{ __html: buildShellBootstrapGuardScript() }}
+          suppressHydrationWarning
+        />
         <ParticleBackground />
         <AuthGate initiallyAuthed={initiallyAuthed}>
+          <RuntimePolicyCookieSync />
+          <ShellHydrationBeacon />
           <ToastContainer>
             <ErrorBoundary label="RootLayout">
               <Nav />
+              <PersistedShellStateNotice />
+              <PreparedWorkspaceAutoHeal />
+              <ShellHealthGuard />
               <main style={{ paddingTop: "var(--top-rail-height)", minHeight: "100vh" }}>
                 {children}
               </main>
               {/* Global data — loads articles + keyword alerts on every page */}
               <GlobalDataLoader />
               <ArticlesLoader />
+              <MemorySpineSync />
               <CronSchedulerRunner />
               <NotificationToastBridge />
               {/* Global command dock — persists across all tabs */}

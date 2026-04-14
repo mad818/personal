@@ -18,8 +18,8 @@ Nexus Prime can receive messages via Telegram and route them to the agent system
 Add to `.env.local`:
 
 ```
-TELEGRAM_BOT_TOKEN=1234567890:ABCdef...
-TELEGRAM_SECRET=choose-a-random-secret-string
+TELEGRAM_BOT_TOKEN=<set-in-local-env-only>
+TELEGRAM_SECRET=<set-in-local-env-only>
 ```
 
 `TELEGRAM_SECRET` is a string you choose. Telegram will include it in every webhook call header so you can verify the request is genuine.

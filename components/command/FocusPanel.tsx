@@ -6,6 +6,12 @@
 import { useState } from "react";
 import { useStore } from "@/store/useStore";
 import { callAI } from "@/lib/ai";
+import {
+  buildStructuredEvidenceInstruction,
+  parseStructuredEvidenceAnswer,
+  type StructuredEvidenceAnswer,
+} from "@/lib/aiStructuredEvidence";
+import EvidencePosturePanel from "@/components/ui/EvidencePosturePanel";
 
 export default function FocusPanel() {
   const settings = useStore((s) => s.settings);
@@ -13,6 +19,7 @@ export default function FocusPanel() {
   const signals = useStore((s) => s.signals);
 
   const [output, setOutput] = useState("");
+  const [structuredOutput, setStructuredOutput] = useState<StructuredEvidenceAnswer | null>(null);
   const [loading, setLoading] = useState(false);
 
   const goals = settings.userGoals?.trim();
@@ -42,9 +49,9 @@ export default function FocusPanel() {
   ].slice(0, 6);
 
   async function generate() {
-    if (!settings.apiKey && !settings.localModel) return;
     setLoading(true);
     setOutput("");
+    setStructuredOutput(null);
     const btc = prices["bitcoin"];
     const fg = signals?.fg?.label;
     const mkt = btc
@@ -64,13 +71,34 @@ Write a tight daily action plan:
 3. ONE thing to watch in live data
 4. ONE thing to stop wasting time on
 
-Direct, personal, under 200 words.`;
+Direct, personal, under 200 words.
+
+${buildStructuredEvidenceInstruction({
+  summaryKey: "plan",
+  summaryLabel: "tight daily action plan",
+  summaryLimitHint: "under 120 words and direct",
+  extraFields: [
+    {
+      key: "actions",
+      example: '["highest-leverage task", "skill activity", "watch item", "stop doing"]',
+      rule: '"actions" should contain 3-4 concise action bullets that map to the requested plan categories.',
+    },
+  ],
+})}`;
 
     try {
       const resp = await callAI(prompt, 400);
-      setOutput(resp);
+      const structured = parseStructuredEvidenceAnswer(resp, ["plan"]);
+      if (structured) {
+        setStructuredOutput(structured);
+        setOutput("");
+      } else {
+        setOutput(resp);
+      }
     } catch {
-      setOutput("Could not generate plan. Check your API key.");
+      setOutput(
+        "Could not generate plan. Check the local runtime or your free-first AI lane in Settings.",
+      );
     } finally {
       setLoading(false);
     }
@@ -166,7 +194,50 @@ Direct, personal, under 200 words.`;
         </p>
       )}
 
-      {output && (
+      {structuredOutput ? (
+        <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <EvidencePosturePanel
+            title="Daily plan posture"
+            summary={structuredOutput.summary}
+            observed={structuredOutput.observed}
+            inferred={structuredOutput.inferred}
+            verifyNext={structuredOutput.verifyNext}
+          />
+          {structuredOutput.actions.length > 0 ? (
+            <div
+              style={{
+                padding: "12px 14px",
+                background: "var(--surf3)",
+                borderRadius: "8px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "7px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "10.5px",
+                  fontWeight: 700,
+                  color: "var(--text3)",
+                  textTransform: "uppercase",
+                }}
+              >
+                Next moves
+              </div>
+              {structuredOutput.actions.map((action, index) => (
+                <div
+                  key={`focus-action-${index}`}
+                  style={{ fontSize: "12px", color: "var(--text2)", lineHeight: 1.55 }}
+                >
+                  {index + 1}. {action}
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {output ? (
         <div
           style={{
             fontSize: "13px",
@@ -178,7 +249,7 @@ Direct, personal, under 200 words.`;
         >
           {output}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

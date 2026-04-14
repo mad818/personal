@@ -1,7 +1,8 @@
 // ── api/gdelt ───────────────────────────────────────────────
 // GDELT news API: global event database with real-time news clustering.
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { connectorJson } from "@/lib/connectorResponse";
 // https://api.gdeltproject.org/api/v2/doc/doc
 //
 // Usage:
@@ -89,26 +90,52 @@ export async function GET(req: NextRequest) {
       headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(8000),
     });
+    const isTimeline = TIMELINE_MODES.includes(mode as TimelineMode);
 
     if (!r.ok) {
       const text = await r.text();
-      return NextResponse.json(
-        { error: `GDELT API error: ${r.status}`, detail: text.slice(0, 200) },
-        { status: r.status },
+      return connectorJson(
+        {
+          error: `GDELT API error: ${r.status}`,
+          detail: text.slice(0, 200),
+          query,
+          mode,
+          timespan,
+          maxrecords: isTimeline ? null : maxrecords,
+          articles: [],
+          timeline: null,
+          count: 0,
+        },
+        {
+          source: "gdelt",
+          maxAgeSeconds: 60,
+          degraded: true,
+          warnings: [`GDELT upstream returned HTTP ${r.status}.`],
+          status: r.status,
+        },
       );
     }
 
     // GDELT sometimes returns malformed JSON for empty results — handle gracefully
     const text = await r.text();
     if (!text || text.trim() === "" || text.trim() === "null") {
-      return NextResponse.json({
-        query,
-        mode,
-        timespan,
-        articles: [],
-        timeline: null,
-        count: 0,
-      });
+      return connectorJson(
+        {
+          query,
+          mode,
+          timespan,
+          maxrecords: isTimeline ? null : maxrecords,
+          articles: [],
+          timeline: null,
+          count: 0,
+        },
+        {
+          source: "gdelt",
+          maxAgeSeconds: 60,
+          degraded: true,
+          warnings: ["GDELT returned an empty response body."],
+        },
+      );
     }
 
     let data: unknown;
@@ -116,19 +143,28 @@ export async function GET(req: NextRequest) {
       data = JSON.parse(text);
     } catch {
       // If GDELT returns non-JSON (can happen), return raw text wrapped
-      return NextResponse.json({
-        query,
-        mode,
-        timespan,
-        raw: text.slice(0, 5000),
-        count: 0,
-        articles: [],
-      });
+      return connectorJson(
+        {
+          query,
+          mode,
+          timespan,
+          maxrecords: isTimeline ? null : maxrecords,
+          raw: text.slice(0, 5000),
+          count: 0,
+          articles: [],
+          timeline: null,
+        },
+        {
+          source: "gdelt",
+          maxAgeSeconds: 60,
+          degraded: true,
+          warnings: ["GDELT returned a non-JSON payload; raw response truncated."],
+        },
+      );
     }
 
     // Augment with request metadata
-    const isTimeline = TIMELINE_MODES.includes(mode as TimelineMode);
-    return NextResponse.json(
+    return connectorJson(
       {
         query,
         mode,
@@ -142,13 +178,27 @@ export async function GET(req: NextRequest) {
           ? null
           : ((data as { articles?: unknown[] })?.articles?.length ?? 0),
       },
-      { headers: { "Cache-Control": "public, max-age=600, s-maxage=600" } },
+      {
+        source: "gdelt",
+        maxAgeSeconds: 600,
+      },
     );
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
-    return NextResponse.json(
-      { error: `GDELT fetch failed: ${msg}`, articles: [], timeline: null },
-      { status: 500 },
+    return connectorJson(
+      {
+        error: `GDELT fetch failed: ${msg}`,
+        articles: [],
+        timeline: null,
+        count: 0,
+      },
+      {
+        source: "gdelt",
+        maxAgeSeconds: 60,
+        degraded: true,
+        warnings: [msg],
+        status: 500,
+      },
     );
   }
 }

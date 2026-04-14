@@ -2,6 +2,7 @@
 // News aggregation API: multi-source news with sentiment and bias filtering.
 
 import { NextResponse } from "next/server";
+import { getRuntimeEnvValue } from "@/lib/serverEnvRuntime";
 // Pulls from crypto, tech, finance, and world news for broad OSINT coverage.
 
 interface NewsItem {
@@ -163,6 +164,43 @@ async function fetchCryptoCompare(): Promise<NewsItem[]> {
   }
 }
 
+async function fetchGuardian(): Promise<NewsItem[]> {
+  const guardianKey = await getRuntimeEnvValue("GUARDIAN_KEY");
+  if (!guardianKey) return [];
+  try {
+    const url =
+      `https://content.guardianapis.com/search?q=${encodeURIComponent("crypto finance markets")}` +
+      `&api-key=${encodeURIComponent(guardianKey)}` +
+      "&show-fields=trailText&page-size=20&order-by=newest";
+    const r = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; NexusBot/1.0)" },
+      signal: AbortSignal.timeout(9000),
+      next: { revalidate: 300 },
+    });
+    if (!r.ok) return [];
+    const d = (await r.json()) as {
+      response?: {
+        results?: Array<{
+          webTitle?: string;
+          webUrl?: string;
+          webPublicationDate?: string;
+        }>;
+      };
+    };
+    return (d.response?.results ?? [])
+      .map((item) => ({
+        title: clean(String(item.webTitle ?? "")),
+        link: clean(String(item.webUrl ?? "")),
+        date: String(item.webPublicationDate ?? ""),
+        src: "The Guardian",
+        cat: "markets",
+      }))
+      .filter((item) => item.title && item.link.startsWith("http"));
+  } catch {
+    return [];
+  }
+}
+
 export async function GET() {
   const feeds = [
     // Crypto
@@ -243,6 +281,7 @@ export async function GET() {
   const results = await Promise.allSettled([
     ...feeds.map((f) => fetchRSS(f.url, f.src, f.cat)),
     fetchCryptoCompare(),
+    fetchGuardian(),
   ]);
   const items: NewsItem[] = [];
   for (const r of results) {

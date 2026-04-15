@@ -128,6 +128,4 @@ export async function GET() {
       "Use this payload for secured-network diagnostics exports.",
     ],
   });
-  applyNoStoreHeaders(response.headers);
-  return response;
 }

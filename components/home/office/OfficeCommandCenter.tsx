@@ -1718,7 +1718,6 @@ export default function OfficeCommandCenter() {
             onOpenScheduler={() => setSchedulerOpen(true)}
           />
         </div>
-        </div>
       </div>
     </PageTransition>
   );

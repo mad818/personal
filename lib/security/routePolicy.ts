@@ -107,10 +107,6 @@ export function getDefaultNetworkMode(): NetworkMode {
   return process.env.NODE_ENV === "development" ? "internal" : "isolated";
 }
 
-export function getDefaultNetworkMode(): NetworkMode {
-  return process.env.NODE_ENV === "development" ? "internal" : "isolated";
-}
-
 export function readNetworkMode(): NetworkMode {
   const raw = (
     process.env.NEXUS_NETWORK_MODE ?? getDefaultNetworkMode()

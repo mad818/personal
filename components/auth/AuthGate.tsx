@@ -198,43 +198,6 @@ export default function AuthGate({
     };
   }, [initiallyAuthed]);
 
-  const checkRuntime = useCallback(async () => {
-    if (checkingRuntime) return;
-    setCheckingRuntime(true);
-    try {
-      const payload = await probeAuthDiagnostics();
-      if (mountedRef.current) {
-        if (!payload) {
-          setRuntimeOnline(false);
-          setTokenRouteWarm("failed");
-          setTransientStatus("Runtime diagnostics are unreachable.");
-          return;
-        }
-        setRuntimeOnline(payload.runtime.online ?? true);
-        setTokenRouteWarm("ready");
-        setRuntimeBootId(payload.runtime.bootId ?? "");
-        setRuntimeAgeSeconds(
-          typeof payload.runtime.ageSeconds === "number"
-            ? payload.runtime.ageSeconds
-            : null,
-        );
-        setTokenConfigured(Boolean(payload.auth.tokenConfigured));
-        setTransientStatus("Runtime diagnostics refreshed.");
-      }
-    } finally {
-      if (mountedRef.current) {
-        setCheckingRuntime(false);
-      }
-    }
-  }, [checkingRuntime]);
-
-  const handleNativeSubmit = useCallback(() => {
-    if (mountedRef.current) {
-      setSubmitting(true);
-      setTransientStatus("Submitting secure local login...");
-    }
-  }, []);
-
   useEffect(() => {
     if (initiallyAuthed) return;
 

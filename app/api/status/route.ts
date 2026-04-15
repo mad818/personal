@@ -29,8 +29,6 @@ import { protectedJson } from "@/lib/protectedApi";
 
 export const dynamic = "force-dynamic";
 
-export const dynamic = "force-dynamic";
-
 function present(v: string | undefined) {
   return Boolean(v && v.trim().length > 0);
 }
@@ -343,6 +341,4 @@ export async function GET() {
       experiments,
     },
   });
-  applyNoStoreHeaders(response.headers);
-  return response;
 }

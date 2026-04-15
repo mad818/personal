@@ -71,31 +71,6 @@ function startVisiblePolling(fn: () => void | Promise<void>, intervalMs: number)
   };
 }
 
-function startVisiblePolling(fn: () => void | Promise<void>, intervalMs: number) {
-  const run = () => {
-    if (typeof document !== "undefined" && document.hidden) return;
-    void fn();
-  };
-
-  run();
-  const id = setInterval(run, intervalMs);
-  const onVisible = () => {
-    if (typeof document === "undefined" || document.hidden) return;
-    void fn();
-  };
-
-  if (typeof document !== "undefined") {
-    document.addEventListener("visibilitychange", onVisible);
-  }
-
-  return () => {
-    clearInterval(id);
-    if (typeof document !== "undefined") {
-      document.removeEventListener("visibilitychange", onVisible);
-    }
-  };
-}
-
 // ── Prices (ALPHA + COMMAND tabs) ─────────────────────────────────────────────
 export function PricesLoader() {
   const { start, stop } = usePrices();

@@ -363,10 +363,6 @@ ${buildStructuredEvidenceInstruction({
     aiNote: analysed[s.id]?.note,
     aiEvidence: analysed[s.id]?.evidence,
   }));
-  const watchCandidates = rankedAssets.slice(0, 5).map((s) => ({
-    ...s,
-    aiNote: analysed[s.id],
-  }));
 
   const histSignals = (botHistory ?? []) as BotSignal[];
 

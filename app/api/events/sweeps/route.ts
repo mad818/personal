@@ -1,6 +1,10 @@
 import { NextRequest } from "next/server";
-import { getInternalSweepHeaders, getSweepSources } from "@/lib/assimilation/sweep";
+import { getSweepSources } from "@/lib/assimilation/sweep";
 import type { SweepTheater } from "@/lib/assimilation/types";
+import { fetchTrustedInternal } from "@/lib/internalFetch";
+import { resolveInternalServiceOrigin } from "@/lib/authSession";
+import { getRuntimeEnvValue } from "@/lib/serverEnvRuntime";
+import { assertSafePublicUrl } from "@/lib/security/networkGuards";
 
 export const dynamic = "force-dynamic";
 
@@ -18,11 +22,26 @@ function normalizeTheater(value: string | null): SweepTheater {
   return "markets";
 }
 
+async function resolveInternalOrigin(req: NextRequest) {
+  const configuredBaseUrl = await getRuntimeEnvValue("NEXUS_RELEASE_BASE_URL");
+  if (configuredBaseUrl) {
+    try {
+      return assertSafePublicUrl(configuredBaseUrl, {
+        allowHttp: true,
+        allowPrivateHosts: true,
+        maxLength: 512,
+      }).origin;
+    } catch {
+      // Fall back to the active runtime origin when the configured base is malformed.
+    }
+  }
+  return resolveInternalServiceOrigin();
+}
+
 export async function GET(req: NextRequest): Promise<Response> {
   const theater = normalizeTheater(req.nextUrl.searchParams.get("theater"));
   const encoder = new TextEncoder();
-  const origin = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
-  const headers = getInternalSweepHeaders();
+  const origin = await resolveInternalOrigin(req);
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -37,9 +56,9 @@ export async function GET(req: NextRequest): Promise<Response> {
       for (const source of getSweepSources(theater)) {
         const startedAt = Date.now();
         try {
-          const response = await fetch(new URL(source.endpoint, origin), {
+          const response = await fetchTrustedInternal(source.endpoint, {
+            origin,
             cache: "no-store",
-            headers,
           });
           const payload = (await response.json()) as unknown;
           const count = Array.isArray(payload)

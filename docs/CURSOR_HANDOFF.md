@@ -68,13 +68,10 @@ git show --stat HEAD
 
 ### What’s next (from `tasks/todo.md`)
 
-- A5 — Enable prompt caching and batch pathway for scheduled non-interactive missions
-- A6 — Add skill governance metadata (risk tier, approval requirement, domain tags) and cyber pack baseline
-- A7 — Add TimesFM forecasting adapter spike + eval metric hook for decision-lift measurement
-- 2B — Simplify pass: dead props + redundant state in OfficeRoom3D, SettingsDrawer, prompts.ts
-- 2C — Animation polish: consistent `var(--t)` usage + drawer exit animation
-- D5 — Implement Tauri isolation pattern and minimal capabilities (command boundary + sidecar subprocess guards + capability lockdown checks shipped; remaining: end-to-end isolation tests).
-- D6 — Implement binary signing + trusted release verification for desktop artifacts (verify workflow + checksum generation shipped; signing + SBOM still pending).
+- Review the live M4 replay branch at `http://localhost:3100` and confirm the protected shell/trust posture feels correct on HQ, COMMAND, VAULT, and RESOURCES before publishing the stack.
+- After acceptance, regenerate handoff from this replay branch and prepare the stacked commit/push flow for `codex/m2-shell-taste-replay`, `codex/m3-hq-route-replay`, and `codex/m4-trust-substrate-replay`.
+- Keep local `main` untouched until the replay branches are reviewed; no direct merge from `codex/preserve-main-2026-04-11`.
+- FD2 remains blocked on the real staged Coolify hostname in repo-root `.env.local`, so release-proof work still stays out of this replay stack.
 
 ### Where to look
 

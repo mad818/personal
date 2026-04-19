@@ -4,7 +4,7 @@ import type {
   SweepSourceResult,
   SweepTheater,
 } from "@/lib/assimilation/types";
-import { getConfiguredNexusToken } from "@/lib/authSession";
+import { fetchTrustedInternal } from "@/lib/internalFetch";
 
 interface SweepSourceDef {
   id: string;
@@ -54,14 +54,6 @@ function buildBaseUrl(reqUrl: string): string {
   return `${url.protocol}//${url.host}`;
 }
 
-export function getInternalSweepHeaders(): HeadersInit | undefined {
-  const token = getConfiguredNexusToken();
-  if (!token) return undefined;
-  return {
-    Authorization: `Bearer ${token}`,
-  };
-}
-
 function measureCount(payload: unknown): number {
   if (Array.isArray(payload)) return payload.length;
   if (payload && typeof payload === "object") {
@@ -94,15 +86,14 @@ function severityFromResults(results: SweepSourceResult[]): SweepSeverity {
 }
 
 async function runSingleSource(
-  baseUrl: string,
   source: SweepSourceDef,
-  headers?: HeadersInit,
+  origin?: string,
 ): Promise<SweepSourceResult> {
   const startedAt = Date.now();
   try {
-    const response = await fetch(new URL(source.endpoint, baseUrl), {
+    const response = await fetchTrustedInternal(source.endpoint, {
+      origin,
       cache: "no-store",
-      headers,
     });
     if (!response.ok) {
       return {
@@ -150,11 +141,10 @@ export async function performSweepBundle(
   theater: SweepTheater,
 ): Promise<SweepBundle> {
   const baseUrl = buildBaseUrl(reqUrl);
-  const headers = getInternalSweepHeaders();
   const startedAt = new Date().toISOString();
   const sources = await Promise.all(
     getSweepSources(theater).map((source) =>
-      runSingleSource(baseUrl, source, headers),
+      runSingleSource(source, baseUrl),
     ),
   );
   const severity = severityFromResults(sources);

@@ -4,27 +4,53 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { ArticlesLoader, CVEsLoader, OTXLoader } from "@/components/ui/DataLoader";
+import MissionHandoffStrip from "@/components/ui/MissionHandoffStrip";
+import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
 import {
-  SectionLabel,
+  OpsField,
+  OpsRail,
+  OpsStrip,
+  OpsWorkplane,
   ShellBadge,
-  ShellGrid,
   ShellPage,
-  ShellPanel,
   ShellSegmentedTabs,
   ShellStack,
 } from "@/components/ui/shell";
+import TrustOperationsRail from "@/components/ui/TrustOperationsRail";
+import { getAssistantWorkspace } from "@/lib/assistantSessionRegistry";
+import {
+  governanceApprovalLabel,
+  governanceRiskLabel,
+} from "@/lib/governanceCatalog";
+import {
+  resolveCyberChamber,
+  resolveCyberEvidenceView,
+  type CyberChamberId,
+} from "@/lib/surfaceCondensationRegistry";
+import { getWorkflowPack } from "@/lib/workflowPacks";
+import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
+import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
+import { getOpsLayoutDescriptor } from "@/lib/opsLayoutRegistry";
+import { getSurfaceModuleSpec } from "@/lib/surfaceRedesignRegistry";
 import { useStore } from "@/store/useStore";
 
-type CyberView = "triage" | "matrix" | "cves" | "otx" | "cisa";
-const VIEWS: Array<{ id: CyberView; label: string }> = [
+type CyberView = "triage" | "vuln-review" | "matrix" | "cves" | "otx" | "cisa" | "drone";
+
+const CHAMBER_VIEWS: Array<{ id: CyberChamberId; label: string }> = [
   { id: "triage", label: "🧠 TRIAGE" },
+  { id: "review", label: "🛡 REVIEW" },
   { id: "matrix", label: "📊 MATRIX" },
-  { id: "cves", label: "⚠️ CVES" },
-  { id: "otx", label: "🛰 OTX" },
-  { id: "cisa", label: "🏛 CISA KEV" },
+  { id: "evidence", label: "⚠️ EVIDENCE" },
+  { id: "drone", label: "DRONE OPS" },
+];
+
+const EVIDENCE_VIEWS: Array<{ id: "cves" | "otx" | "cisa"; label: string }> = [
+  { id: "cves", label: "CVEs" },
+  { id: "otx", label: "OTX" },
+  { id: "cisa", label: "CISA KEV" },
 ];
 
 const LazyCyberHeatmap = dynamic(
@@ -40,104 +66,414 @@ const LazyOTXFeed = dynamic(() => import("@/components/cyber/OTXFeed"), {
 const LazyCISAFeed = dynamic(() => import("@/components/cyber/CISAFeed"), {
   ssr: false,
 });
+const LazyDroneCompliancePanel = dynamic(
+  () => import("@/components/cyber/DroneCompliancePanel").then(m => ({ default: m.DroneCompliancePanel })),
+  { ssr: false },
+);
 const LazyTriageView = dynamic(() => import("@/components/cyber/TriageView"), {
   ssr: false,
 });
+const LazyVulnerabilityReviewWorkbench = dynamic(
+  () => import("@/components/cyber/VulnerabilityReviewWorkbench"),
+  { ssr: false },
+);
 const LazyCyberArticleHeatmap = dynamic(
   () => import("@/components/cyber/CyberArticleHeatmap"),
   { ssr: false },
 );
+const LazyOsintCasefileCard = dynamic(
+  () => import("@/components/recon/OsintCasefileCard"),
+  { ssr: false },
+);
 
 export default function CyberPage() {
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const { normalizedParams } = useSessionHrefAutoHeal();
+  const focus = normalizedParams.get("focus");
   const view = useStore((s) => s.cyberView) ?? "triage";
   const setView = useStore((s) => s.setCyberView);
+  const cves = useStore((s) => s.cves);
+  const otxPulses = useStore((s) => s.otxPulses);
+  const articles = useStore((s) => s.articles);
 
   const urlView = useMemo(() => {
-    const v = (searchParams?.get("view") ?? "").toLowerCase();
+    const v = (normalizedParams.get("view") ?? "").toLowerCase();
     return (
-      ["triage", "matrix", "cves", "otx", "cisa"] as CyberView[]
+      ["triage", "vuln-review", "matrix", "cves", "otx", "cisa", "drone"] as CyberView[]
     ).includes(v as CyberView)
       ? (v as CyberView)
       : null;
-  }, [searchParams]);
+  }, [normalizedParams]);
+
+  const focusView = useMemo(() => {
+    if (focus === "cyber-triage") return "triage";
+    if (focus === "cyber-vuln-review") return "vuln-review";
+    if (focus === "cyber-matrix") return "matrix";
+    if (focus === "cyber-cves") return "cves";
+    if (focus === "cyber-otx") return "otx";
+    if (focus === "cyber-cisa") return "cisa";
+    if (focus === "cyber-drone") return "drone";
+    return null;
+  }, [focus]);
+
+  const chamber = useMemo(() => resolveCyberChamber(view), [view]);
+  const evidenceView = useMemo(() => resolveCyberEvidenceView(view), [view]);
 
   useEffect(() => {
-    if (!urlView) return;
-    setView(urlView);
-  }, [urlView, setView]);
+    const nextView = focusView ?? urlView;
+    if (!nextView) return;
+    setView(nextView);
+  }, [focusView, setView, urlView]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams?.toString() ?? "");
-    if ((params.get("view") ?? "").toLowerCase() === view) return;
-    params.set("view", view);
+  const handleChamberChange = (nextView: CyberChamberId) => {
+    const targetView =
+      nextView === "evidence"
+        ? "cves"
+        : nextView === "review"
+          ? "vuln-review"
+          : nextView;
+    setView(targetView);
+    const params = new URLSearchParams(normalizedParams.toString());
+    params.set("view", targetView);
     router.replace(`/cyber?${params.toString()}`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view]);
+  };
+
+  const handleEvidenceViewChange = (nextView: "cves" | "otx" | "cisa") => {
+    setView(nextView);
+    const params = new URLSearchParams(normalizedParams.toString());
+    params.set("view", nextView);
+    router.replace(`/cyber?${params.toString()}`);
+  };
+
+  const focusTargetId =
+    focus === "cyber-triage"
+      ? "cyber-triage"
+      : focus === "cyber-vuln-review"
+        ? "cyber-vuln-review"
+      : focus === "cyber-matrix"
+        ? "cyber-matrix"
+        : focus === "cyber-cves"
+          ? "cyber-cves"
+          : focus === "cyber-otx"
+            ? "cyber-otx"
+            : focus === "cyber-cisa"
+              ? "cyber-cisa"
+              : focus === "cyber-drone"
+                ? "cyber-drone"
+                : null;
+
+  useSurfaceFocusScroll(focusTargetId);
+
+  const threatBriefSpec = getSurfaceModuleSpec("cyber", "threat-brief");
+  const priorityGridSpec = getSurfaceModuleSpec("cyber", "priority-grid");
+  const evidenceFeedsSpec = getSurfaceModuleSpec("cyber", "evidence-feeds", view);
+  const physicalOpsSpec = getSurfaceModuleSpec("cyber", "physical-ops");
+  const cyberLayout = getOpsLayoutDescriptor("cyber");
+  const cyberGovernancePack = getWorkflowPack("cyber-triage");
+  const cyberFollowThrough = [
+    getAssistantWorkspace("cyber-vuln-review"),
+    getAssistantWorkspace("recon-opsec"),
+    getAssistantWorkspace("recon-binary"),
+    getAssistantWorkspace("vault-compiled-pages"),
+  ];
+
+  if (!threatBriefSpec || !priorityGridSpec || !evidenceFeedsSpec || !physicalOpsSpec) {
+    return null;
+  }
+
+  const threatPostureStripSpec = {
+    ...threatBriefSpec,
+    title: "Threat Posture",
+    detail: "Cross-chamber readiness",
+  };
 
   return (
     <ShellPage
       width="wide"
       surface="cyber"
-      eyebrow="Containment mesh"
-      title="BASTION"
-      description="Triage vulnerabilities, correlate threat feeds, and monitor exposed posture inside the Aegis Vector containment lane."
-      actions={
-        <>
-          <ShellBadge tone="accent">Read-only intelligence</ShellBadge>
-          <ShellBadge tone="muted">Free-first posture</ShellBadge>
-        </>
-      }
+      eyebrow="Threat containment board"
+      title="Threat desk"
+      description="Triage, evidence, and repair on one desk."
+        actions={
+          <>
+            <ShellBadge tone="accent">Approval-staged triage</ShellBadge>
+            <ShellBadge tone="muted">Repair-first posture</ShellBadge>
+          </>
+        }
     >
       <CVEsLoader />
       <OTXLoader />
       <ArticlesLoader />
 
       <ShellStack>
-        <ShellSegmentedTabs items={VIEWS} active={view} onChange={setView} minButtonWidth={120} />
+        <OpsStrip className="nexus-surface-route-strip">
+          <div className="nexus-surface-route-strip__grid">
+            <div className="nexus-surface-route-strip__cell">
+              <span className="nexus-surface-route-strip__cellLabel">Triage queue</span>
+              <strong className="nexus-surface-route-strip__cellValue">
+                {cves.length}
+              </strong>
+              <span className="nexus-surface-route-strip__cellNote">
+                Current vulnerability intake stays visible across every chamber.
+              </span>
+            </div>
+            <div className="nexus-surface-route-strip__cell">
+              <span className="nexus-surface-route-strip__cellLabel">Evidence source</span>
+              <strong className="nexus-surface-route-strip__cellValue">
+                {evidenceView.toUpperCase()}
+              </strong>
+              <span className="nexus-surface-route-strip__cellNote">
+                CVEs, OTX, and KEV now share one evidence lane instead of three peer tabs.
+              </span>
+            </div>
+            <div className="nexus-surface-route-strip__cell">
+              <span className="nexus-surface-route-strip__cellLabel">Signal pressure</span>
+              <strong className="nexus-surface-route-strip__cellValue">
+                {articles.length}
+              </strong>
+              <span className="nexus-surface-route-strip__cellNote">
+                Threat-intelligence signals stay nearby without taking over the first screen.
+              </span>
+            </div>
+            <div className="nexus-surface-route-strip__cell">
+              <span className="nexus-surface-route-strip__cellLabel">Pulse count</span>
+              <strong className="nexus-surface-route-strip__cellValue">
+                {otxPulses.length}
+              </strong>
+              <span className="nexus-surface-route-strip__cellNote">
+                OTX pulse volume remains visible even when the chamber is focused elsewhere.
+              </span>
+            </div>
+          </div>
+        </OpsStrip>
 
-        {view === "triage" && (
-          <ShellGrid columns="minmax(0, 1.1fr) minmax(320px, 0.9fr)" align="start">
-            <ShellPanel>
-              <SectionLabel detail="Priority queue and action framing">Triage view</SectionLabel>
-              <LazyTriageView />
-            </ShellPanel>
-            <ShellPanel tone="muted">
-              <SectionLabel detail="Signal clustering">Threat intelligence signals</SectionLabel>
-              <LazyCyberArticleHeatmap />
-            </ShellPanel>
-          </ShellGrid>
+        <MissionHandoffStrip
+          surface="cyber"
+          mission={normalizedParams.get("mission")}
+          from={normalizedParams.get("from")}
+          source={normalizedParams.get("source")}
+        />
+
+        {focus === "cyber-triage" ? (
+          <SurfaceFocusStrip
+            title="Focused session: cyber triage"
+            description="Triage opens first."
+          />
+        ) : null}
+
+        {focus === "cyber-matrix" ? (
+          <SurfaceFocusStrip
+            title="Focused session: severity matrix"
+            description="Severity posture opens first."
+          />
+        ) : null}
+
+        {focus === "cyber-vuln-review" ? (
+          <SurfaceFocusStrip
+            title="Focused session: vulnerability review"
+            description="Repair lane opens first."
+          />
+        ) : null}
+
+        {focus === "cyber-cves" ? (
+          <SurfaceFocusStrip
+            title="Focused session: CVE feed"
+            description="Raw CVEs open first."
+          />
+        ) : null}
+
+        {focus === "cyber-otx" ? (
+          <SurfaceFocusStrip
+            title="Focused session: OTX feed"
+            description="Threat feed opens first."
+          />
+        ) : null}
+
+        {focus === "cyber-cisa" ? (
+          <SurfaceFocusStrip
+            title="Focused session: CISA KEV"
+            description="Exploited CVEs open first."
+          />
+        ) : null}
+
+        {focus === "cyber-drone" ? (
+          <SurfaceFocusStrip
+            title="Focused session: drone compliance"
+            description="Drone compliance opens first."
+          />
+        ) : null}
+
+        <ShellSegmentedTabs
+          items={CHAMBER_VIEWS}
+          active={chamber}
+          onChange={handleChamberChange}
+          minButtonWidth={120}
+        />
+
+        {chamber === "triage" && (
+          <div id="cyber-triage" style={{ scrollMarginTop: "120px" }}>
+            <OpsWorkplane className={cyberLayout.workplaneClass}>
+              <div className="nexus-surface-chamber-shell__body">
+                <div className="nexus-surface-chamber-shell__lead">
+                  <OpsField title="Priority queue" detail="Action framing for the hottest cyber pressure">
+                    <LazyTriageView />
+                  </OpsField>
+                </div>
+                <div className="nexus-surface-chamber-shell__support">
+                  <ShellStack gap="12px">
+                    <TrustOperationsRail
+                      title={cyberLayout.trustLabel}
+                      detail="Step-up, privacy shield, connector, and dangerous-action posture stays inline with containment."
+                      compact
+                    />
+                    <OpsField
+                      title="Governed baseline"
+                      detail="cyber-triage pack"
+                      tone="muted"
+                    >
+                      <div
+                        style={{
+                          display: "grid",
+                          gap: "10px",
+                        }}
+                      >
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                          <ShellBadge tone="accent">
+                            {governanceRiskLabel(cyberGovernancePack.riskTier)}
+                          </ShellBadge>
+                          <ShellBadge tone="muted">
+                            {governanceApprovalLabel(cyberGovernancePack)}
+                          </ShellBadge>
+                          <ShellBadge tone="muted">
+                            {cyberGovernancePack.title}
+                          </ShellBadge>
+                        </div>
+                        <p className="nexus-shell-copy nexus-shell-copy--compact">
+                          {cyberGovernancePack.summary}
+                        </p>
+                        <p className="nexus-shell-copy nexus-shell-copy--compact">
+                          {cyberGovernancePack.nextMove}
+                        </p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                          {cyberGovernancePack.domainTags.map((tag) => (
+                            <ShellBadge key={tag} tone="muted">
+                              {tag}
+                            </ShellBadge>
+                          ))}
+                        </div>
+                        <div style={{ display: "grid", gap: "8px" }}>
+                          {cyberFollowThrough.map((workspace) => (
+                            <a
+                              key={workspace.href}
+                              href={workspace.href}
+                              className="nexus-shell-button"
+                              style={{
+                                minHeight: "36px",
+                                padding: "8px 12px",
+                                justifyContent: "space-between",
+                                gap: "10px",
+                                textDecoration: "none",
+                              }}
+                            >
+                              <span>{workspace.label}</span>
+                              <span style={{ color: "var(--text3)", fontSize: "10px" }}>
+                                staged
+                              </span>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    </OpsField>
+                    <OpsField
+                      title="Threat intelligence signals"
+                      detail="Signal clustering"
+                      tone="muted"
+                    >
+                      <LazyCyberArticleHeatmap />
+                    </OpsField>
+                    <OpsField
+                      title="Caseflow loop"
+                      detail="Intake → Collect → Pivot → Package"
+                      tone="muted"
+                    >
+                      <LazyOsintCasefileCard route="/cyber" />
+                    </OpsField>
+                  </ShellStack>
+                </div>
+              </div>
+            </OpsWorkplane>
+          </div>
         )}
 
-        {view === "matrix" && (
-          <ShellPanel>
-            <SectionLabel detail="Severity correlation across CVE and OTX">
-              Severity matrix
-            </SectionLabel>
-            <LazyCyberHeatmap />
-          </ShellPanel>
+        {chamber === "matrix" && (
+          <div id="cyber-matrix" style={{ scrollMarginTop: "120px" }}>
+            <OpsWorkplane className={cyberLayout.workplaneClass}>
+              <OpsField title="Severity matrix" detail="Severity correlation across CVE and OTX">
+                <LazyCyberHeatmap />
+              </OpsField>
+            </OpsWorkplane>
+          </div>
         )}
 
-        {view === "cves" && (
-          <ShellPanel>
-            <SectionLabel detail="Raw NVD feed">CVE feed</SectionLabel>
-            <LazyCVEFeed />
-          </ShellPanel>
+        {chamber === "review" && (
+          <div id="cyber-vuln-review" style={{ scrollMarginTop: "120px" }}>
+            <OpsRail className={cyberLayout.railClass}>
+              <OpsField
+                title="Vulnerability review"
+                detail="Local code context, static security heuristics, and one exact repair lane"
+                tone="muted"
+              >
+                <LazyVulnerabilityReviewWorkbench />
+              </OpsField>
+            </OpsRail>
+          </div>
         )}
 
-        {view === "otx" && (
-          <ShellPanel>
-            <SectionLabel detail="AlienVault pulses">OTX feed</SectionLabel>
-            <LazyOTXFeed />
-          </ShellPanel>
+        {chamber === "evidence" && (
+          <div
+            id={evidenceView === "otx" ? "cyber-otx" : evidenceView === "cisa" ? "cyber-cisa" : "cyber-cves"}
+            style={{ scrollMarginTop: "120px" }}
+          >
+            <OpsWorkplane className={cyberLayout.workplaneClass}>
+              <div className="nexus-surface-subtabs">
+                <ShellSegmentedTabs
+                  items={EVIDENCE_VIEWS}
+                  active={evidenceView}
+                  onChange={handleEvidenceViewChange}
+                  minButtonWidth={110}
+                />
+                {evidenceView === "cves" ? (
+                  <OpsField title="CVE feed" detail="Raw NVD feed">
+                    <LazyCVEFeed />
+                  </OpsField>
+                ) : null}
+                {evidenceView === "otx" ? (
+                  <OpsField title="OTX feed" detail="AlienVault pulses">
+                    <LazyOTXFeed />
+                  </OpsField>
+                ) : null}
+                {evidenceView === "cisa" ? (
+                  <OpsField title="CISA KEV" detail="Known exploited vulnerabilities">
+                    <LazyCISAFeed />
+                  </OpsField>
+                ) : null}
+              </div>
+            </OpsWorkplane>
+          </div>
         )}
 
-        {view === "cisa" && (
-          <ShellPanel>
-            <SectionLabel detail="Known exploited vulnerabilities">CISA KEV</SectionLabel>
-            <LazyCISAFeed />
-          </ShellPanel>
+        {chamber === "drone" && (
+          <div id="cyber-drone" style={{ scrollMarginTop: "120px" }}>
+            <OpsRail className={cyberLayout.railClass}>
+              <OpsField
+                title="Drone compliance check"
+                detail="FAA, state, local, airspace, and parallel compliance review"
+                tone="muted"
+              >
+                <LazyDroneCompliancePanel />
+              </OpsField>
+            </OpsRail>
+          </div>
         )}
       </ShellStack>
     </ShellPage>

@@ -4,17 +4,17 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { BRAND_NAME } from "@/lib/brand";
 import {
+  apiFetch,
   clearSessionToken,
-  getSessionToken,
-  setSessionToken,
-  TOKEN_VALIDATION_TIMEOUT_MS,
-  validateToken,
+  validateAndStoreToken,
 } from "@/lib/apiFetch";
 import { getDefaultEntrypoint } from "@/lib/releaseMatrix";
+import { resolveAssistantSessionHref } from "@/lib/assistantSessionRecovery";
+import { useStore } from "@/store/useStore";
 
 interface Props {
   children: React.ReactNode;
@@ -31,7 +31,6 @@ type AuthDiagnostics = {
   auth: {
     tokenConfigured?: boolean;
     authenticated?: boolean;
-    cookiePresent?: boolean;
   };
   release?: {
     uiShellVersion?: string;
@@ -43,7 +42,7 @@ async function probeAuthDiagnostics(timeoutMs = 4000) {
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch("/api/auth-diagnostics", {
+    const response = await apiFetch("/api/auth-diagnostics", {
       method: "GET",
       cache: "no-store",
       signal: controller.signal,
@@ -67,7 +66,10 @@ export default function AuthGate({
 }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const preparedWorkspace = useStore((state) => state.preparedWorkspace);
+  const unfinishedSessions = useStore((state) => state.unfinishedSessions);
   const mountedRef = useRef(true);
+  const submitFallbackTimerRef = useRef<number | null>(null);
 
   const [authed, setAuthed] = useState(initiallyAuthed);
   const [runtimeOnline, setRuntimeOnline] = useState<boolean | null>(null);
@@ -81,10 +83,76 @@ export default function AuthGate({
   const [runtimeBootId, setRuntimeBootId] = useState("");
   const [runtimeAgeSeconds, setRuntimeAgeSeconds] = useState<number | null>(null);
   const [tokenConfigured, setTokenConfigured] = useState<boolean | null>(null);
+  const destinationBase = pathname === "/" ? getDefaultEntrypoint() : pathname;
+  const destinationQuery = searchParams.toString();
+  const destination = destinationQuery
+    ? `${destinationBase}?${destinationQuery}`
+    : destinationBase;
+  const submitDestination = useMemo(
+    () =>
+      resolveAssistantSessionHref({
+        href: destination,
+        pathname: destinationBase,
+        preparedWorkspace,
+        unfinishedSessions,
+        includeRouteDefault: true,
+      }),
+    [destination, destinationBase, preparedWorkspace, unfinishedSessions],
+  );
+
+  const clearSubmitFallbackTimer = useCallback(() => {
+    if (submitFallbackTimerRef.current === null) return;
+    window.clearTimeout(submitFallbackTimerRef.current);
+    submitFallbackTimerRef.current = null;
+  }, []);
+
+  const recoverStalledSubmit = useCallback(
+    async (tokenCandidate: string, nextPath: string) => {
+      if (!mountedRef.current) return;
+
+      setTransientStatus(
+        "Native submit stalled. Retrying through local session validation...",
+      );
+
+      const status = await validateAndStoreToken(tokenCandidate);
+      if (!mountedRef.current) return;
+
+      if (status === "ok") {
+        setAuthed(true);
+        setRuntimeOnline(true);
+        setTransientStatus("Local validation succeeded. Redirecting...");
+        window.location.assign(nextPath);
+        return;
+      }
+
+      setSubmitting(false);
+      if (status === "invalid") {
+        setTransientStatus("Invalid token. Check your .env.local NEXUS_TOKEN.");
+        return;
+      }
+      if (status === "rate_limited") {
+        setTransientStatus("Too many attempts. Try again in a few minutes.");
+        return;
+      }
+      if (status === "server_error") {
+        setRuntimeOnline(false);
+        setTokenRouteWarm("failed");
+        setTransientStatus("Token validation is not configured on the server.");
+        return;
+      }
+      setRuntimeOnline(false);
+      setTokenRouteWarm("failed");
+      setTransientStatus("Runtime validation is unreachable. Check the local server.");
+    },
+    [],
+  );
 
   useEffect(() => {
     return () => {
       mountedRef.current = false;
+      if (submitFallbackTimerRef.current !== null) {
+        window.clearTimeout(submitFallbackTimerRef.current);
+      }
     };
   }, []);
 
@@ -92,8 +160,9 @@ export default function AuthGate({
     if (initiallyAuthed) {
       setAuthed(true);
       setRuntimeOnline(true);
+      clearSubmitFallbackTimer();
     }
-  }, [initiallyAuthed]);
+  }, [clearSubmitFallbackTimer, initiallyAuthed]);
 
   useEffect(() => {
     let active = true;
@@ -123,39 +192,11 @@ export default function AuthGate({
     return () => {
       active = false;
     };
-  }, []);
+  }, [initiallyAuthed]);
 
   useEffect(() => {
-    if (initiallyAuthed) return;
-
-    const existing = getSessionToken();
-    let active = true;
-
-    if (existing) {
-      clearSessionToken();
-      validateToken(existing, {
-        timeoutMs: TOKEN_VALIDATION_TIMEOUT_MS,
-        persistOnSuccess: false,
-      })
-        .then((status) => {
-          if (!active || !mountedRef.current) return;
-          if (status === "ok") {
-            setSessionToken(existing);
-            setAuthed(true);
-            setRuntimeOnline(true);
-            return;
-          }
-          clearSessionToken();
-        })
-        .catch(() => {
-          clearSessionToken();
-        });
-    }
-
-    return () => {
-      active = false;
-    };
-  }, [initiallyAuthed]);
+    clearSessionToken();
+  }, []);
 
   const checkRuntime = useCallback(async () => {
     if (checkingRuntime) return;
@@ -187,16 +228,47 @@ export default function AuthGate({
     }
   }, [checkingRuntime]);
 
-  const handleNativeSubmit = useCallback(() => {
-    if (mountedRef.current) {
-      setSubmitting(true);
-      setTransientStatus("Submitting secure local login...");
-    }
-  }, []);
+  const handleNativeSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      if (!mountedRef.current || submitting) return;
+      if (!event.currentTarget.reportValidity()) {
+        setTransientStatus("Enter the local access token to continue.");
+        return;
+      }
+
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+      const nextPath = String(formData.get("next") ?? submitDestination);
+      const tokenCandidate = String(formData.get("token") ?? "");
+
+      // Let the browser kick off the real native submit first so click-based
+      // submits and Enter-key submits behave the same as requestSubmit().
+      window.requestAnimationFrame(() => {
+        if (!mountedRef.current) return;
+        clearSubmitFallbackTimer();
+        setSubmitting(true);
+        setTransientStatus("Submitting secure local login...");
+        submitFallbackTimerRef.current = window.setTimeout(() => {
+          submitFallbackTimerRef.current = null;
+          void recoverStalledSubmit(tokenCandidate, nextPath);
+        }, 1800);
+      });
+    },
+    [clearSubmitFallbackTimer, recoverStalledSubmit, submitDestination, submitting],
+  );
+
+  useEffect(() => {
+    const onPageHide = () => {
+      clearSubmitFallbackTimer();
+    };
+
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      window.removeEventListener("pagehide", onPageHide);
+    };
+  }, [clearSubmitFallbackTimer]);
 
   if (authed) return <>{children}</>;
-
-  const destination = pathname === "/" ? getDefaultEntrypoint() : pathname;
   const authErrorCode = searchParams.get("authError");
   const authErrorMessage =
     authErrorCode === "invalid"
@@ -282,7 +354,7 @@ export default function AuthGate({
             style={{
               position: "absolute",
               inset: 0,
-              backgroundImage: "url(/theme/citadel.svg)",
+              backgroundImage: "url(/theme/tactical-command-map.svg)",
               backgroundSize: "cover",
               backgroundPosition: "center center",
               transform: "scale(1.01)",
@@ -369,9 +441,9 @@ export default function AuthGate({
                 }}
               >
                 {[
-                  "/theme/citadel.svg",
-                  "/theme/vector.svg",
-                  "/theme/spectra.svg",
+                  "/theme/satops-hq-plate.svg",
+                  "/theme/satops-command-plate.svg",
+                  "/theme/satops-intel-plate.svg",
                 ].map((src, index) => (
                   <div
                     key={src}
@@ -429,7 +501,7 @@ export default function AuthGate({
                   backdropFilter: "blur(16px)",
                 }}
               >
-                Citadel ingress
+                Grid ingress
               </div>
               <div
                 style={{
@@ -505,7 +577,7 @@ export default function AuthGate({
                 letterSpacing: "-0.04em",
               }}
             >
-              Authorize the Citadel
+              Authorize command access
             </div>
             <div
               style={{
@@ -528,7 +600,7 @@ export default function AuthGate({
             data-testid="auth-form"
             style={{ display: "flex", flexDirection: "column", gap: "18px" }}
           >
-            <input type="hidden" name="next" value={destination} />
+            <input type="hidden" name="next" value={submitDestination} />
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <label
@@ -655,10 +727,31 @@ export default function AuthGate({
                       color: "var(--text2)",
                     }}
                   >
-                    NEXUS_TOKEN=...
+                    NEXUS_TOKEN=&lt;set-in-local-env-only&gt;
                   </code>{" "}
                   line.
                 </div>
+                {submitDestination !== destination ? (
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      color: "var(--text3)",
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    Exact session restore is ready after auth:{" "}
+                    <code
+                      style={{
+                        background: "var(--surf2)",
+                        padding: "1px 4px",
+                        borderRadius: "4px",
+                        color: "var(--text2)",
+                      }}
+                    >
+                      {submitDestination}
+                    </code>
+                  </div>
+                ) : null}
               </div>
 
               {(authErrorMessage || runtimeOnline === false) && (

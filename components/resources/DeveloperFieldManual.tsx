@@ -2,6 +2,7 @@
 
 import { useDeferredValue, useMemo, useState } from "react";
 import {
+  DEVELOPER_RESOURCE_FIT_LABELS,
   DEVELOPER_RESOURCES,
   DEVELOPER_RESOURCE_CATEGORIES,
   type ResourceCategory,
@@ -20,7 +21,13 @@ function categoryOrder(a: ResourceCategory, b: ResourceCategory): number {
 export default function DeveloperFieldManual() {
   const [query, setQuery] = useState("");
   const [costFilter, setCostFilter] = useState<
-    "all" | "free" | "limited_free" | "open_source" | "byok" | "license_check"
+    | "all"
+    | "free"
+    | "limited_free"
+    | "open_source"
+    | "byok"
+    | "free_local"
+    | "license_check"
   >("all");
   const deferredQuery = useDeferredValue(query);
 
@@ -64,7 +71,7 @@ export default function DeveloperFieldManual() {
     <div className="nexus-shell-resource-manual">
       <p className="nexus-shell-resource-intro">
         External references only — not part of Nexus. Use them to go deeper on
-        agents, workflow systems, doctrine, interviews, and IDE workflows.
+        agents, workflow systems, controls, interviews, and IDE workflows.
         Prefer official vendor docs for billing and security policy; never paste
         production secrets into third-party tools without reviewing their
         data-flow statements.
@@ -100,6 +107,7 @@ export default function DeveloperFieldManual() {
                 | "limited_free"
                 | "open_source"
                 | "byok"
+                | "free_local"
                 | "license_check",
             )
           }
@@ -116,6 +124,7 @@ export default function DeveloperFieldManual() {
           <option value="limited_free">Limited free</option>
           <option value="open_source">Open source</option>
           <option value="byok">BYOK</option>
+          <option value="free_local">Free local</option>
           <option value="license_check">License check</option>
         </select>
       </div>
@@ -155,6 +164,11 @@ export default function DeveloperFieldManual() {
                       {r.costTier ? (
                         <span className="nexus-shell-resource-card__chip">
                           {r.costTier.replace(/_/g, " ")}
+                        </span>
+                      ) : null}
+                      {r.integrationFit ? (
+                        <span className="nexus-shell-resource-card__chip">
+                          {DEVELOPER_RESOURCE_FIT_LABELS[r.integrationFit]}
                         </span>
                       ) : null}
                       <span className="nexus-shell-resource-card__external">

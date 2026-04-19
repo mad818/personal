@@ -11,11 +11,17 @@ import {
 } from "@/lib/productGuarantees";
 import { BRAND_DESCRIPTOR, BRAND_NAME } from "@/lib/brand";
 import {
+  hasAuthenticatedNexusSession,
   isNexusAuthEnabled,
-  matchesConfiguredNexusToken,
   NEXUS_SESSION_COOKIE,
 } from "@/lib/authSession";
+import PersistedShellStateBootScript from "@/components/ui/PersistedShellStateBootScript";
 import RootLayoutChrome from "@/components/ui/RootLayoutChrome";
+import SurfaceMotionBootScript from "@/components/ui/SurfaceMotionBootScript";
+import {
+  buildShellBootstrapGuardScript,
+  getCriticalShellCss,
+} from "@/lib/shellBootstrapGuard";
 
 assertNexusDoesNotChargeUsers();
 
@@ -41,7 +47,7 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -49,11 +55,23 @@ export default function RootLayout({
   const cookieStore = cookies();
   const sessionCookie = cookieStore.get(NEXUS_SESSION_COOKIE)?.value ?? "";
   const initiallyAuthed =
-    !isNexusAuthEnabled() || matchesConfiguredNexusToken(sessionCookie);
+    !isNexusAuthEnabled() || (await hasAuthenticatedNexusSession(sessionCookie));
 
   return (
     <html lang="en">
       <body>
+        <style
+          id="nexus-critical-shell-css"
+          dangerouslySetInnerHTML={{ __html: getCriticalShellCss() }}
+          suppressHydrationWarning
+        />
+        <PersistedShellStateBootScript />
+        <SurfaceMotionBootScript />
+        <script
+          id="nexus-shell-bootstrap-guard"
+          dangerouslySetInnerHTML={{ __html: buildShellBootstrapGuardScript() }}
+          suppressHydrationWarning
+        />
         <RootLayoutChrome initiallyAuthed={initiallyAuthed}>
           {children}
         </RootLayoutChrome>

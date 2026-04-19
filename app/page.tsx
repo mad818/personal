@@ -4,16 +4,16 @@
 import { cookies } from "next/headers";
 import LandingPage from "@/components/landing/LandingPage";
 import {
+  hasAuthenticatedNexusSession,
   isNexusAuthEnabled,
-  matchesConfiguredNexusToken,
   NEXUS_SESSION_COOKIE,
 } from "@/lib/authSession";
 
-export default function Root() {
+export default async function Root() {
   const cookieStore = cookies();
   const sessionCookie = cookieStore.get(NEXUS_SESSION_COOKIE)?.value ?? "";
   const isAuthenticated =
-    !isNexusAuthEnabled() || matchesConfiguredNexusToken(sessionCookie);
+    !isNexusAuthEnabled() || (await hasAuthenticatedNexusSession(sessionCookie));
 
   return <LandingPage isAuthenticated={isAuthenticated} />;
 }

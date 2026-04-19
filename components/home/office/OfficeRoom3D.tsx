@@ -6,6 +6,11 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useStore } from "@/store/useStore";
 import * as THREE from "three";
+import {
+  resolveOfficeSceneCue,
+  type OfficeSceneCue,
+  type SurfaceMotionProfile,
+} from "@/lib/surfaceMotion";
 import type { AgentId, OfficeObjectId, OfficeObjectPos } from "./types";
 import {
   AGENTS,
@@ -14,136 +19,42 @@ import {
   AGENT_WORK_POSE,
 } from "./constants";
 import type { AgentPoseType } from "./constants";
+import {
+  AGENT_3D_STYLES,
+  agentToShadowWorld,
+  CAMERA_PRESETS,
+  clampWorldByRadius,
+  commandTempoColor,
+  frontToneColor,
+  fromWorld,
+  getTimeOfDay,
+  missionStateColor,
+  RADIUS_BY_ID,
+  scenePalette,
+  toWorld,
+  type DispatchState,
+  type OfficeCameraPreset,
+  type OfficeMissionState,
+  type OfficeVfxQuality,
+  type Vec3,
+  type WallFrontTone,
+} from "./officeRoom3DScene";
 
-type Vec3 = [number, number, number];
-type DispatchState = { from: AgentId; to: AgentId } | null;
-type OfficeCameraPreset = "cinematic" | "closeOps" | "wallReadability";
-type OfficeVfxQuality = "off" | "low" | "high";
-type WallFrontTone = "steady" | "warning" | "critical";
-type OfficeMissionState = "standby" | "routing" | "handoff" | "executing";
-
-const CAMERA_PRESETS: Record<
-  OfficeCameraPreset,
-  { position: Vec3; fov: number; lookAt: Vec3 }
-> = {
-  cinematic: {
-    position: [0, 5.35, 8.55],
-    fov: 42,
-    lookAt: [0, 1.0, -0.45],
-  },
-  closeOps: {
-    position: [0, 4.95, 7.65],
-    fov: 39,
-    lookAt: [0, 1.05, -0.55],
-  },
-  wallReadability: {
-    position: [0, 5.05, 7.95],
-    fov: 37,
-    lookAt: [0, 1.38, -0.32],
-  },
+export type OfficeRoomControls = {
+  officeEditMode: boolean;
+  onToggleEditMode: () => void;
+  onResetLayout: () => void;
+  onOpenMemory: () => void;
+  onOpenScheduler: () => void;
+  onOpenPrimaryFront: () => void;
+  onOpenSweep: () => void;
+  onOpenForge: () => void;
+  onOpenDoctrine: () => void;
+  cameraPreset: OfficeCameraPreset;
+  onSetCameraPreset: (preset: OfficeCameraPreset) => void;
+  vfxQuality: OfficeVfxQuality;
+  onSetVfxQuality: (quality: OfficeVfxQuality) => void;
 };
-
-// Stable radii map used by world position clamping/anchoring.
-const RADIUS_BY_ID: Record<OfficeObjectId, number> = {
-  serverRack: 0.48,
-  plantBackLeft: 0.35,
-  plantBottomLeft: 0.3,
-  waterCooler: 0.34,
-  trashCan: 0.26,
-  fuelGauge: 0.24,
-  conferenceTable: 1.05,
-  sofa: 0.95,
-  janskyDesk: 0.78,
-  cipherDesk: 0.62,
-  fluxDesk: 0.62,
-  orbitDesk: 0.62,
-  novaDesk: 0.62,
-};
-
-// Per-agent 3D appearance overrides (Stranger Things theming).
-// Agent meshes are simple primitives; these tweaks give each character a distinct look.
-const AGENT_3D_STYLES: Record<
-  AgentId,
-  {
-    suit: string;
-    shirt: string;
-    hair: string;
-    tie?: string;
-    headphones?: boolean;
-    glasses?: boolean;
-    beard?: boolean;
-    hood?: boolean;
-    hat?: boolean;
-    cap?: boolean;
-    accessoryColor?: string;
-  }
-> = {
-  jansky: {
-    suit: "#ef4444",
-    shirt: "#e7edf5",
-    hair: "#b45309",
-    tie: "#c0392b",
-  }, // MAX
-  orbit: { suit: "#818cf8", shirt: "#dbeafe", hair: "#fbbf24", hood: true }, // EL
-  nova: { suit: "#f59e0b", shirt: "#e4eaf2", hair: "#7a3c18", glasses: true }, // DUSTIN
-  cipher: {
-    suit: "#3b82f6",
-    shirt: "#dbeafe",
-    hair: "#0f172a",
-    beard: true,
-    hat: true,
-    accessoryColor: "#4a3b2c",
-  }, // HOPPER
-  flux: {
-    suit: "#10b981",
-    shirt: "#e4eaf2",
-    hair: "#8b5e3c",
-    cap: true,
-    accessoryColor: "#111827",
-  }, // LUCAS
-};
-
-function toWorld(pos: OfficeObjectPos): Vec3 {
-  // 100% → 10 world units (room is roughly 10x6)
-  const roomW = 10;
-  const roomD = 6;
-
-  const px = pos.ax === "r" ? 100 - pos.x : pos.x;
-  const py = pos.ay === "b" ? 100 - pos.y : pos.y;
-
-  const x = (px / 100) * roomW - roomW / 2;
-  const z = (py / 100) * roomD - roomD / 2;
-  return [x, 0, z];
-}
-
-function fromWorld(p: Vec3, prev: OfficeObjectPos): OfficeObjectPos {
-  const roomW = 10;
-  const roomD = 6;
-
-  const px = ((p[0] + roomW / 2) / roomW) * 100;
-  const py = ((p[2] + roomD / 2) / roomD) * 100;
-
-  // Preserve anchoring scheme used by 2D editor.
-  const x = prev.ax === "r" ? 100 - px : px;
-  const y = prev.ay === "b" ? 100 - py : py;
-
-  return { ...prev, x, y };
-}
-
-function clampWorld(p: Vec3): Vec3 {
-  // Room bounds with margins.
-  const x = Math.max(-4.7, Math.min(4.7, p[0]));
-  const z = Math.max(-2.7, Math.min(2.7, p[2]));
-  return [x, p[1], z];
-}
-
-function clampWorldByRadius(p: Vec3, radius: number): Vec3 {
-  const marginX = Math.min(4.6, Math.max(0.2, radius));
-  const marginZ = Math.min(2.6, Math.max(0.2, radius));
-  const x = Math.max(-5 + marginX, Math.min(5 - marginX, p[0]));
-  const z = Math.max(-3 + marginZ, Math.min(3 - marginZ, p[2]));
-  return [x, p[1], z];
-}
 
 function Furniture3D({
   nightFactor,
@@ -294,7 +205,7 @@ function Furniture3D({
       <DraggableProp
         id="conferenceTable"
         pos={{ x: 50, y: 50, ax: "l", ay: "t" }}
-        color="#2a1c10"
+        color={pal.metalDark}
         size={[1.9, 0.06, 1.2]}
         y={0.26}
         radius={radiusById.conferenceTable}
@@ -377,12 +288,12 @@ function Furniture3D({
         </group>
       ))}
 
-      {/* Sofa (bottom center) */}
+      {/* Continuity console (bottom center) */}
       <DraggableProp
         id="sofa"
         pos={{ x: 50, y: 97, ax: "l", ay: "t" }}
-        color="#16102c"
-        size={[1.7, 0.18, 0.55]}
+        color="#102033"
+        size={[1.78, 0.2, 0.5]}
         y={0.22}
         radius={radiusById.sofa}
         enabled={enabled}
@@ -394,24 +305,56 @@ function Furniture3D({
         position={[worldPos.sofa[0], 0.31, worldPos.sofa[2]]}
         castShadow={false}
       >
-        <boxGeometry args={[1.7, 0.08, 0.52]} />
-        <meshStandardMaterial color={pal.upholstery} roughness={0.95} />
+        <boxGeometry args={[1.78, 0.08, 0.48]} />
+        <meshStandardMaterial color={pal.metalDark} roughness={0.86} />
       </mesh>
       <mesh
-        position={[worldPos.sofa[0], 0.39, worldPos.sofa[2] - 0.15]}
+        position={[worldPos.sofa[0], 0.375, worldPos.sofa[2] - 0.11]}
         castShadow={false}
       >
-        <boxGeometry args={[1.62, 0.14, 0.16]} />
-        <meshStandardMaterial color={pal.upholstery} roughness={0.9} />
+        <boxGeometry args={[1.56, 0.05, 0.2]} />
+        <meshStandardMaterial
+          color="#17324a"
+          emissive="#6ec5ff"
+          emissiveIntensity={0.18}
+          roughness={0.55}
+        />
       </mesh>
-      {/* Coffee table */}
+      {[-0.48, 0, 0.48].map((x, i) => (
+        <mesh
+          key={`continuity-console-${i}`}
+          position={[worldPos.sofa[0] + x, 0.355, worldPos.sofa[2] + 0.08]}
+          castShadow={false}
+        >
+          <boxGeometry args={[0.26, 0.014, 0.06]} />
+          <meshStandardMaterial
+            color="#7ec9ff"
+            emissive="#7ec9ff"
+            emissiveIntensity={0.3}
+            roughness={0.2}
+          />
+        </mesh>
+      ))}
+      {/* Forward telemetry rail */}
       <mesh
-        position={[worldPos.sofa[0], 0.18, worldPos.sofa[2] - 0.85]}
+        position={[worldPos.sofa[0], 0.2, worldPos.sofa[2] - 0.82]}
         castShadow
         receiveShadow
       >
-        <boxGeometry args={[0.95, 0.06, 0.5]} />
-        <meshStandardMaterial color="#3f3022" roughness={0.86} />
+        <boxGeometry args={[1.2, 0.08, 0.32]} />
+        <meshStandardMaterial color="#182636" roughness={0.78} />
+      </mesh>
+      <mesh
+        position={[worldPos.sofa[0], 0.255, worldPos.sofa[2] - 0.82]}
+        castShadow={false}
+      >
+        <boxGeometry args={[1.02, 0.02, 0.12]} />
+        <meshStandardMaterial
+          color="#0f2234"
+          emissive="#63c2ff"
+          emissiveIntensity={0.12}
+          roughness={0.35}
+        />
       </mesh>
 
       {/* Desks */}
@@ -515,86 +458,6 @@ function Furniture3D({
   );
 }
 
-function getTimeOfDay(): "morning" | "afternoon" | "night" {
-  const h = new Date().getHours();
-  if (h >= 7 && h < 9) return "morning";
-  if (h >= 14 && h < 16) return "afternoon";
-  return "night";
-}
-
-function scenePalette(tod: "morning" | "afternoon" | "night") {
-  if (tod === "morning") {
-    return {
-      floor: "#2a2520",
-      floorGrid: "#4b4036",
-      wall: "#d6c9b6",
-      wallPanel: "#c8baa6",
-      trim: "#8b6b4b",
-      sideWall: "#cfc2af",
-      baseboard: "#6f533b",
-      ambient: "#ffe5bf",
-      dir: "#ffd49a",
-      bg: "#f1e6d9",
-      rugOuter: "#37424f",
-      rugInner: "#4b5a69",
-      deskWood: "#7b5a40",
-      deskWoodDark: "#60442f",
-      glass: "#d7e7ff",
-      upholstery: "#5f6a78",
-      metalDark: "#5a6877",
-      skin: "#f1c27d",
-      suit: "#4b5a69",
-      shirt: "#e7edf5",
-    };
-  }
-  if (tod === "afternoon") {
-    return {
-      floor: "#29241f",
-      floorGrid: "#47403a",
-      wall: "#c9beb0",
-      wallPanel: "#b8ac9d",
-      trim: "#7b6247",
-      sideWall: "#c0b4a6",
-      baseboard: "#694f39",
-      ambient: "#f8dcc0",
-      dir: "#ffd3ad",
-      bg: "#e8ddd0",
-      rugOuter: "#343f4c",
-      rugInner: "#465462",
-      deskWood: "#74543b",
-      deskWoodDark: "#5a412e",
-      glass: "#cfe0fb",
-      upholstery: "#586273",
-      metalDark: "#556474",
-      skin: "#efbe79",
-      suit: "#465361",
-      shirt: "#e4eaf2",
-    };
-  }
-  return {
-    floor: "#1a1514",
-    floorGrid: "#382b29",
-    wall: "#272120",
-    wallPanel: "#1d1818",
-    trim: "#7a5d41",
-    sideWall: "#221c1d",
-    baseboard: "#46352b",
-    ambient: "#cfaa77",
-    dir: "#f1d2a4",
-    bg: "#090709",
-    rugOuter: "#2b1f21",
-    rugInner: "#4a3638",
-    deskWood: "#5a4031",
-    deskWoodDark: "#422d24",
-    glass: "#98b7d9",
-    upholstery: "#47393b",
-    metalDark: "#5b4a47",
-    skin: "#e7b772",
-    suit: "#3d4652",
-    shirt: "#dfe7f1",
-  };
-}
-
 function SceneAtmosphere({ bg }: { bg: string }) {
   const { scene } = useThree();
   useEffect(() => {
@@ -602,34 +465,6 @@ function SceneAtmosphere({ bg }: { bg: string }) {
     scene.fog = new THREE.Fog(bg, 9, 18);
   }, [scene, bg]);
   return null;
-}
-
-function commandTempoColor(commandTempo: string) {
-  if (commandTempo === "Critical") return "#ef4444";
-  if (commandTempo === "Compressed") return "#f59e0b";
-  if (commandTempo === "Active") return "#00DDFF";
-  return "#10b981";
-}
-
-function frontToneColor(tone: WallFrontTone) {
-  if (tone === "critical") return "#ef4444";
-  if (tone === "warning") return "#f59e0b";
-  return "#10b981";
-}
-
-function missionStateColor(state: OfficeMissionState) {
-  if (state === "executing") return "#00DDFF";
-  if (state === "handoff") return "#f59e0b";
-  if (state === "routing") return "#a78bfa";
-  return "#10b981";
-}
-
-function agentToShadowWorld(xPct: number, yPct: number): Vec3 {
-  const roomW = 10;
-  const roomD = 6;
-  const x = (xPct / 100) * roomW - roomW / 2;
-  const z = (yPct / 100) * roomD - roomD / 2;
-  return [x, 0.012, z];
 }
 
 function RoomShell({ tod }: { tod: "morning" | "afternoon" | "night" }) {
@@ -817,11 +652,16 @@ function RoomShell({ tod }: { tod: "morning" | "afternoon" | "night" }) {
       <group position={[-3.1, 1.25, -2.87]}>
         <mesh>
           <boxGeometry args={[1.8, 0.85, 0.025]} />
-          <meshStandardMaterial color="#d8e3ef" roughness={0.8} />
+          <meshStandardMaterial
+            color="#07111b"
+            emissive="#10263a"
+            emissiveIntensity={0.18}
+            roughness={0.72}
+          />
         </mesh>
         <mesh position={[0, -0.34, 0.015]}>
           <boxGeometry args={[1.8, 0.04, 0.02]} />
-          <meshStandardMaterial color="#4b5563" roughness={0.7} />
+          <meshStandardMaterial color="#24384a" roughness={0.7} />
         </mesh>
       </group>
 
@@ -940,21 +780,7 @@ function WallMountedPanels({
     note: string;
     tone: WallFrontTone;
   };
-  controls?: {
-    officeEditMode: boolean;
-    onToggleEditMode: () => void;
-    onResetLayout: () => void;
-    onOpenMemory: () => void;
-    onOpenScheduler: () => void;
-    onOpenPrimaryFront: () => void;
-    onOpenSweep: () => void;
-    onOpenForge: () => void;
-    onOpenDoctrine: () => void;
-    cameraPreset: OfficeCameraPreset;
-    onSetCameraPreset: (p: OfficeCameraPreset) => void;
-    vfxQuality: OfficeVfxQuality;
-    onSetVfxQuality: (q: OfficeVfxQuality) => void;
-  };
+  controls?: OfficeRoomControls;
 }) {
   const ids = Object.keys(AGENTS) as AgentId[];
   const [hoverLeft, setHoverLeft] = useState(false);
@@ -1414,7 +1240,7 @@ function WallMountedPanels({
                   marginBottom: 10,
                 }}
               >
-                WALL CONTROL
+                TACTICAL PANEL
               </div>
 
               <div style={{ display: "grid", gap: 8 }}>
@@ -1465,7 +1291,7 @@ function WallMountedPanels({
                     onClick={controls.onOpenDoctrine}
                     style={ctlBtn("#f59e0b")}
                   >
-                    DOCTRINE
+                    CONTROL
                   </button>
                 </div>
 
@@ -1484,7 +1310,7 @@ function WallMountedPanels({
                     type="button"
                     onClick={controls.onResetLayout}
                     style={ctlBtn("#ef4444")}
-                    title="Reset office layout"
+                    title="Reset command layout"
                   >
                     RESET
                   </button>
@@ -1764,6 +1590,7 @@ function StrategiumPulse({
   commandTempo,
   primaryFront,
   accentColor,
+  cue,
 }: {
   commandTempo: string;
   primaryFront: {
@@ -1773,6 +1600,7 @@ function StrategiumPulse({
     tone: WallFrontTone;
   };
   accentColor: string;
+  cue: OfficeSceneCue;
 }) {
   const outerRef = useRef<THREE.Mesh | null>(null);
   const innerRef = useRef<THREE.Mesh | null>(null);
@@ -1790,21 +1618,28 @@ function StrategiumPulse({
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    const wave = 0.62 + (Math.sin(t * pulseRate) + 1) * 0.19;
-    const sweep = 0.4 + (Math.sin(t * (pulseRate * 0.55) + 1.3) + 1) * 0.16;
+    const wave =
+      0.62 + (Math.sin(t * pulseRate * cue.tempoPulse) + 1) * 0.19;
+    const sweep =
+      0.4 +
+      (Math.sin(t * (pulseRate * 0.55) * cue.tempoPulse + 1.3) + 1) * 0.16;
     if (outerRef.current) {
       const mat = outerRef.current.material as THREE.MeshStandardMaterial;
-      outerRef.current.scale.setScalar(0.98 + wave * 0.035);
-      mat.emissiveIntensity = 0.24 + wave * 0.42;
+      outerRef.current.scale.setScalar(
+        0.98 + wave * (0.02 + cue.emissiveBoost * 0.03),
+      );
+      mat.emissiveIntensity = 0.18 + wave * (0.28 + cue.emissiveBoost * 0.24);
     }
     if (innerRef.current) {
       const mat = innerRef.current.material as THREE.MeshStandardMaterial;
-      innerRef.current.scale.setScalar(0.99 + sweep * 0.03);
-      mat.emissiveIntensity = 0.26 + sweep * 0.5;
+      innerRef.current.scale.setScalar(
+        0.99 + sweep * (0.02 + cue.emissiveBoost * 0.026),
+      );
+      mat.emissiveIntensity = 0.18 + sweep * (0.32 + cue.emissiveBoost * 0.28);
     }
     if (coreRef.current) {
       const mat = coreRef.current.material as THREE.MeshStandardMaterial;
-      mat.emissiveIntensity = 0.55 + wave * 0.35;
+      mat.emissiveIntensity = 0.42 + wave * (0.18 + cue.emissiveBoost * 0.26);
     }
   });
 
@@ -1862,7 +1697,7 @@ function StrategiumPulse({
               color: "#88a1c6",
             }}
           >
-            STRATEGIUM FLOOR
+            MISSION TABLE
           </div>
           <div
             style={{
@@ -1895,10 +1730,12 @@ function MissionStateBeacon({
   missionState,
   missionLabel,
   missionNote,
+  cue,
 }: {
   missionState: OfficeMissionState;
   missionLabel: string;
   missionNote: string;
+  cue: OfficeSceneCue;
 }) {
   const housingRef = useRef<THREE.Mesh | null>(null);
   const beamRef = useRef<THREE.Mesh | null>(null);
@@ -1914,17 +1751,18 @@ function MissionStateBeacon({
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    const pulse = 0.52 + (Math.sin(t * pulseRate) + 1) * 0.18;
+    const pulse =
+      0.52 + (Math.sin(t * pulseRate * cue.tempoPulse) + 1) * 0.18;
     if (housingRef.current) {
       const mat = housingRef.current.material as THREE.MeshStandardMaterial;
       mat.emissive.set(color);
-      mat.emissiveIntensity = 0.12 + pulse * 0.24;
+      mat.emissiveIntensity = 0.1 + pulse * (0.16 + cue.beaconStrength * 0.28);
     }
     if (beamRef.current) {
       const mat = beamRef.current.material as THREE.MeshStandardMaterial;
       mat.emissive.set(color);
-      mat.emissiveIntensity = 0.28 + pulse * 0.44;
-      beamRef.current.scale.x = 0.96 + pulse * 0.06;
+      mat.emissiveIntensity = 0.2 + pulse * (0.26 + cue.beaconStrength * 0.4);
+      beamRef.current.scale.x = 0.94 + pulse * (0.05 + cue.beaconStrength * 0.05);
     }
   });
 
@@ -2008,7 +1846,7 @@ function CityWindow({ nightFactor }: { nightFactor: number }) {
   const { gl } = useThree();
 
   const viewTex = useMemo(() => {
-    const t = new THREE.TextureLoader().load("/office/la-skyline.jpg");
+      const t = new THREE.TextureLoader().load("/theme/tactical-command-map.svg");
     t.colorSpace = THREE.SRGBColorSpace;
     t.minFilter = THREE.LinearFilter;
     t.magFilter = THREE.LinearFilter;
@@ -2045,7 +1883,7 @@ function CityWindow({ nightFactor }: { nightFactor: number }) {
         distance={4.5}
         decay={2}
       />
-      {/* LA skyline photo view */}
+      {/* Tactical wall projection */}
       <mesh ref={skyRef} position={[0, 1.55, Z_VIEW]} renderOrder={10}>
         <planeGeometry args={[3.55, 1.25]} />
         <meshStandardMaterial
@@ -2968,9 +2806,11 @@ function MatrixOverlay({ active, color }: { active: boolean; color: string }) {
 function DispatchBeam({
   dispatchBar,
   agentPos,
+  cue,
 }: {
   dispatchBar: DispatchState;
   agentPos?: Record<AgentId, { x: number; y: number }>;
+  cue: OfficeSceneCue;
 }) {
   const tRef = useRef(0);
   useFrame((_, delta) => {
@@ -3008,7 +2848,7 @@ function DispatchBeam({
         <meshBasicMaterial
           color={AGENTS[to].color}
           transparent
-          opacity={0.45}
+          opacity={0.18 + cue.dispatchEmphasis * 0.36}
         />
       </mesh>
       <mesh position={[dotX, 0.06, dotZ]}>
@@ -3016,7 +2856,7 @@ function DispatchBeam({
         <meshStandardMaterial
           color={AGENTS[to].color}
           emissive={AGENTS[to].color}
-          emissiveIntensity={0.8}
+          emissiveIntensity={0.5 + cue.dispatchEmphasis * 0.55}
           roughness={0.25}
         />
       </mesh>
@@ -3136,13 +2976,55 @@ function DraggableProp({
   );
 }
 
+function CinematicCameraRig({
+  preset,
+  cue,
+}: {
+  preset: { position: Vec3; lookAt: Vec3 };
+  cue: OfficeSceneCue;
+}) {
+  const { camera } = useThree();
+  const lookAtTarget = useMemo(() => new THREE.Vector3(), []);
+  const positionTarget = useMemo(() => new THREE.Vector3(), []);
+
+  useFrame((state, delta) => {
+    const drift = cue.profile === "reduced" ? 0 : cue.cameraDrift;
+    const t = state.clock.getElapsedTime();
+    const pointerX = cue.profile === "reduced" ? 0 : state.pointer.x;
+    const pointerY = cue.profile === "reduced" ? 0 : state.pointer.y;
+    positionTarget.set(
+      preset.position[0] +
+        Math.sin(t * 0.1) * 0.024 * drift +
+        pointerX * 0.24 * drift,
+      preset.position[1] +
+        Math.cos(t * 0.12) * 0.016 * drift +
+        pointerY * 0.1 * drift,
+      preset.position[2] +
+        Math.sin(t * 0.08 + 0.8) * 0.03 * drift -
+        Math.abs(pointerX) * 0.1 * drift,
+    );
+    lookAtTarget.set(
+      preset.lookAt[0] +
+        Math.sin(t * 0.09) * 0.02 * drift +
+        pointerX * 0.38 * drift,
+      preset.lookAt[1] +
+        Math.cos(t * 0.08) * 0.012 * drift +
+        pointerY * 0.18 * drift,
+      preset.lookAt[2] + Math.cos(t * 0.1) * 0.018 * drift,
+    );
+    camera.position.lerp(positionTarget, Math.min(1, delta * (1.7 + cue.shadowContrast)));
+    camera.lookAt(lookAtTarget);
+  });
+
+  return null;
+}
+
 function OfficeRoom3DInner({
-  officeEditMode,
   officeLayout,
   agentPos,
   activeAgent,
   missionState = "standby",
-  missionLabel = "Strategium standing by",
+  missionLabel = "Mission board on standby",
   missionNote = "No live routing or execution. The room is holding command posture.",
   commandTempo = "Calm",
   primaryFront = {
@@ -3152,22 +3034,13 @@ function OfficeRoom3DInner({
     tone: "steady" as WallFrontTone,
   },
   sceneMode = "auto",
+  motionProfile = "flagship",
   motionIntensity = 1,
   cameraPreset = "cinematic",
   vfxQuality = "low",
-  onOpenMemory,
-  onOpenScheduler,
-  onOpenPrimaryFront,
-  onOpenSweep,
-  onOpenForge,
-  onOpenDoctrine,
-  onToggleEditMode,
-  onResetLayout,
-  onSetCameraPreset,
-  onSetVfxQuality,
+  controls,
   dispatchBar = null,
 }: {
-  officeEditMode: boolean;
   officeLayout: Record<OfficeObjectId, OfficeObjectPos>;
   agentPos?: Record<AgentId, { x: number; y: number }>;
   activeAgent?: AgentId | null;
@@ -3182,19 +3055,11 @@ function OfficeRoom3DInner({
     tone: WallFrontTone;
   };
   sceneMode?: "auto" | "morning" | "afternoon" | "night";
+  motionProfile?: SurfaceMotionProfile;
   motionIntensity?: number;
   cameraPreset?: OfficeCameraPreset;
   vfxQuality?: OfficeVfxQuality;
-  onOpenMemory?: () => void;
-  onOpenScheduler?: () => void;
-  onOpenPrimaryFront?: () => void;
-  onOpenSweep?: () => void;
-  onOpenForge?: () => void;
-  onOpenDoctrine?: () => void;
-  onToggleEditMode?: () => void;
-  onResetLayout?: () => void;
-  onSetCameraPreset?: (p: OfficeCameraPreset) => void;
-  onSetVfxQuality?: (q: OfficeVfxQuality) => void;
+  controls?: OfficeRoomControls;
   dispatchBar?: DispatchState;
 }) {
   const [autoTod, setAutoTod] = useState<"morning" | "afternoon" | "night">(
@@ -3208,7 +3073,8 @@ function OfficeRoom3DInner({
   const tod = sceneMode === "auto" ? autoTod : sceneMode;
   const pal = scenePalette(tod);
   const nightFactor = tod === "night" ? 1 : tod === "afternoon" ? 0.55 : 0.75;
-  const motion = Math.max(0.25, Math.min(2.5, motionIntensity));
+  const motion = Math.max(0, Math.min(2.5, motionIntensity));
+  const officeEditMode = controls?.officeEditMode ?? false;
   const setOfficeObjectPos = useStore((s) => s.setOfficeObjectPos);
   const officeMessages = useStore((s) => s.officeMessages);
   const articlesCount = useStore((s) => s.articles.length);
@@ -3224,6 +3090,14 @@ function OfficeRoom3DInner({
   const tempoColor = commandTempoColor(commandTempo);
   const frontColor = frontToneColor(primaryFront.tone);
   const commandAccent = activeAgent ? AGENTS[activeAgent].color : frontColor;
+  const sceneCue = resolveOfficeSceneCue({
+    profile: motionProfile,
+    missionState,
+    commandTempo,
+    frontTone: primaryFront.tone,
+    activeAgentColor: commandAccent,
+    dispatchActive: Boolean(dispatchBar),
+  });
   const tokenEstimate = useMemo(() => {
     return officeMessages.reduce(
       (acc, m) => acc + Math.ceil(m.text.length / 4),
@@ -3312,18 +3186,29 @@ function OfficeRoom3DInner({
         }}
       >
         <SceneAtmosphere bg={pal.bg} />
+        <CinematicCameraRig preset={selectedPreset} cue={sceneCue} />
         <ambientLight
-          intensity={0.34 + nightFactor * 0.18}
+          intensity={
+            0.26 +
+            nightFactor * 0.16 +
+            sceneCue.lightingEmphasis * 0.1 -
+            sceneCue.shadowContrast * 0.04
+          }
           color={pal.ambient}
         />
         <hemisphereLight
           color={tod === "night" ? "#90b9ff" : "#fff6ea"}
           groundColor={tod === "night" ? "#1a2432" : "#3b2f24"}
-          intensity={0.3}
+          intensity={0.24 + sceneCue.lightingEmphasis * 0.08}
         />
         <directionalLight
           position={[4, 7, 5]}
-          intensity={0.62 + nightFactor * 0.22}
+          intensity={
+            0.56 +
+            nightFactor * 0.18 +
+            sceneCue.lightingEmphasis * 0.2 +
+            sceneCue.shadowContrast * 0.12
+          }
           color={pal.dir}
           castShadow
           shadow-mapSize-width={shadowSize}
@@ -3338,41 +3223,59 @@ function OfficeRoom3DInner({
         {/* Practical warm desk lamp fill */}
         <pointLight
           position={[0, 1.25, 1.2]}
-          intensity={tod === "night" ? 0.26 : 0.18}
+          intensity={
+            (tod === "night" ? 0.22 : 0.16) + sceneCue.practicalWarmth * 0.14
+          }
           color="#ffd7a8"
           distance={8}
         />
         {/* Cool monitor bounce light */}
         <pointLight
           position={[0, 0.9, -1.5]}
-          intensity={tod === "night" ? 0.18 : 0.12}
+          intensity={
+            (tod === "night" ? 0.14 : 0.1) + sceneCue.emissiveBoost * 0.08
+          }
           color="#9fb7da"
           distance={7}
         />
         {/* Extra practical fixtures for richer office ambience */}
         <pointLight
           position={[-2.7, 2.2, -1.2]}
-          intensity={tod === "night" ? 0.14 : 0.11}
+          intensity={
+            (tod === "night" ? 0.12 : 0.09) + sceneCue.practicalWarmth * 0.08
+          }
           color="#ffe7bf"
           distance={4.8}
         />
         <pointLight
           position={[2.7, 2.2, -1.2]}
-          intensity={tod === "night" ? 0.14 : 0.11}
+          intensity={
+            (tod === "night" ? 0.12 : 0.09) + sceneCue.practicalWarmth * 0.08
+          }
           color="#ffe7bf"
           distance={4.8}
         />
         <pointLight
           position={[0, 2.15, 1.9]}
-          intensity={tod === "night" ? 0.11 : 0.08}
+          intensity={
+            (tod === "night" ? 0.09 : 0.07) + sceneCue.practicalWarmth * 0.06
+          }
           color="#ffd9b0"
           distance={5.2}
         />
         <pointLight
           position={[0, 1.1, 0.2]}
-          intensity={tod === "night" ? 0.18 : 0.12}
-          color={tempoColor}
+          intensity={
+            (tod === "night" ? 0.12 : 0.09) + sceneCue.emissiveBoost * 0.14
+          }
+          color={sceneCue.accentColor}
           distance={4.2}
+        />
+        <pointLight
+          position={[0, 1.4, -0.1]}
+          intensity={sceneCue.alertWash * 0.18}
+          color="#b83b44"
+          distance={5.4}
         />
         <CeilingLights
           nightFactor={nightFactor * motion}
@@ -3390,7 +3293,10 @@ function OfficeRoom3DInner({
           if (!deskPos) return null;
           const agentColor = AGENTS[id].color;
           const baseIntensity = tod === "night" ? 0.32 : 0.16;
-          const activeBoost = activeAgent === id ? 0.22 : 0;
+          const activeBoost =
+            activeAgent === id
+              ? 0.12 + sceneCue.dispatchEmphasis * 0.2
+              : sceneCue.emissiveBoost * 0.04;
           return (
             <pointLight
               key={`desk-light-${id}`}
@@ -3408,11 +3314,13 @@ function OfficeRoom3DInner({
           missionState={missionState}
           missionLabel={missionLabel}
           missionNote={missionNote}
+          cue={sceneCue}
         />
         <StrategiumPulse
           commandTempo={commandTempo}
           primaryFront={primaryFront}
           accentColor={commandAccent}
+          cue={sceneCue}
         />
         <WallMountedPanels
           activeAgent={activeAgent}
@@ -3423,34 +3331,7 @@ function OfficeRoom3DInner({
           agentStats={agentStats}
           commandTempo={commandTempo}
           primaryFront={primaryFront}
-          controls={
-            onOpenMemory &&
-            onOpenScheduler &&
-            onOpenPrimaryFront &&
-            onOpenSweep &&
-            onOpenForge &&
-            onOpenDoctrine &&
-            onToggleEditMode &&
-            onResetLayout &&
-            onSetCameraPreset &&
-            onSetVfxQuality
-              ? {
-                  officeEditMode,
-                  onToggleEditMode,
-                  onResetLayout,
-                  onOpenMemory,
-                  onOpenScheduler,
-                  onOpenPrimaryFront,
-                  onOpenSweep,
-                  onOpenForge,
-                  onOpenDoctrine,
-                  cameraPreset,
-                  onSetCameraPreset,
-                  vfxQuality,
-                  onSetVfxQuality,
-                }
-              : undefined
-          }
+          controls={controls}
         />
         <Furniture3D
           nightFactor={nightFactor * motion}
@@ -3468,7 +3349,11 @@ function OfficeRoom3DInner({
           obstacles={agentObstacles}
           vfxQuality={vfxQuality}
         />
-        <DispatchBeam dispatchBar={dispatchBar} agentPos={agentPos} />
+        <DispatchBeam
+          dispatchBar={dispatchBar}
+          agentPos={agentPos}
+          cue={sceneCue}
+        />
 
         <DraggableProp
           id="serverRack"
@@ -3612,7 +3497,7 @@ function OfficeRoom3DInner({
           onMoveWorld={tryMove}
           hideProxyWhenNotEnabled
         />
-        {/* Water cooler detail model (used when edit-mode proxy is hidden). */}
+        {/* Uplink column (used when edit-mode proxy is hidden). */}
         <group
           position={[worldPos.waterCooler[0], 0.57, worldPos.waterCooler[2]]}
           castShadow={false}
@@ -3621,8 +3506,8 @@ function OfficeRoom3DInner({
             <cylinderGeometry args={[0.16, 0.18, 1.05, 16]} />
             <meshStandardMaterial
               color="#0f172a"
-              roughness={0.85}
-              metalness={0.06}
+              roughness={0.72}
+              metalness={0.12}
             />
           </mesh>
           <mesh position={[0, 0.525, 0]} castShadow={false}>
@@ -3633,11 +3518,17 @@ function OfficeRoom3DInner({
             <cylinderGeometry args={[0.21, 0.21, 0.04, 16]} />
             <meshStandardMaterial color="#0b1220" roughness={0.9} />
           </mesh>
-          {/* Spout / nozzle */}
-          <mesh position={[0.06, 0.05, 0.17]} castShadow={false}>
-            <boxGeometry args={[0.05, 0.08, 0.04]} />
-            <meshStandardMaterial color="#1f2937" roughness={0.8} />
-          </mesh>
+          {[-0.24, 0, 0.24].map((y, i) => (
+            <mesh key={`uplink-band-${i}`} position={[0, y, 0.15]} castShadow={false}>
+              <boxGeometry args={[0.18, 0.04, 0.02]} />
+              <meshStandardMaterial
+                color="#0d2134"
+                emissive="#6dc8ff"
+                emissiveIntensity={0.26}
+                roughness={0.24}
+              />
+            </mesh>
+          ))}
         </group>
         <DraggableProp
           id="trashCan"
@@ -3652,25 +3543,32 @@ function OfficeRoom3DInner({
           onMoveWorld={tryMove}
           hideProxyWhenNotEnabled
         />
-        {/* Trash can detail model + fill indicator */}
+        {/* Archive canister detail + fill indicator */}
         <group
           position={[worldPos.trashCan[0], 0.245, worldPos.trashCan[2]]}
           castShadow={false}
         >
           <mesh castShadow={false}>
-            <cylinderGeometry args={[0.16, 0.16, 0.45, 16]} />
+            <cylinderGeometry args={[0.15, 0.17, 0.45, 16]} />
             <meshStandardMaterial
-              color="#1f2937"
-              roughness={0.85}
-              metalness={0.03}
+              color="#152231"
+              roughness={0.76}
+              metalness={0.08}
             />
           </mesh>
-          {/* Lid */}
           <mesh position={[0, 0.215, 0]} castShadow={false}>
-            <cylinderGeometry args={[0.165, 0.165, 0.04, 14]} />
-            <meshStandardMaterial color="#111827" roughness={0.8} />
+            <cylinderGeometry args={[0.17, 0.17, 0.04, 14]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.7} />
           </mesh>
-          {/* Fill indicator cylinder (state-driven) */}
+          <mesh position={[0, 0.08, 0.145]} castShadow={false}>
+            <boxGeometry args={[0.18, 0.12, 0.02]} />
+            <meshStandardMaterial
+              color="#0d2134"
+              emissive="#67c7ff"
+              emissiveIntensity={0.18}
+              roughness={0.3}
+            />
+          </mesh>
           <mesh
             position={[
               0,
@@ -3696,7 +3594,6 @@ function OfficeRoom3DInner({
               emissiveIntensity={trashPct >= 1 ? 0.4 : 0}
             />
           </mesh>
-          {/* Small inner rim */}
           <mesh position={[0, 0.18, 0]} castShadow={false}>
             <cylinderGeometry args={[0.13, 0.13, 0.02, 14]} />
             <meshStandardMaterial color="#0f172a" roughness={0.9} />
@@ -3736,28 +3633,18 @@ function OfficeRoom3DInner({
           ]}
         >
           <mesh castShadow={false}>
-            <cylinderGeometry args={[0.022, 0.03, 0.26, 8]} />
-            <meshStandardMaterial color="#2e5b2f" roughness={0.85} />
+            <cylinderGeometry args={[0.03, 0.038, 0.32, 8]} />
+            <meshStandardMaterial color="#193040" roughness={0.8} />
           </mesh>
-          {[
-            [0.0, 0.18, 0.0, 0.17],
-            [-0.11, 0.15, 0.05, 0.11],
-            [0.11, 0.14, -0.03, 0.1],
-            [0.0, 0.26, -0.08, 0.09],
-            [-0.06, 0.23, -0.12, 0.08],
-          ].map((l, i) => (
-            <mesh
-              key={`leaf-a-${i}`}
-              position={[l[0], l[1], l[2]] as Vec3}
-              castShadow={false}
-            >
-              <sphereGeometry args={[l[3], 10, 10]} />
-              <meshStandardMaterial
-                color={i % 2 ? "#2f8f45" : "#3ba854"}
-                roughness={0.9}
-              />
-            </mesh>
-          ))}
+          <mesh position={[0, 0.2, 0]} castShadow={false}>
+            <sphereGeometry args={[0.12, 12, 12]} />
+            <meshStandardMaterial
+              color="#15314a"
+              emissive="#68c8ff"
+              emissiveIntensity={0.28}
+              roughness={0.18}
+            />
+          </mesh>
         </group>
         <DraggableProp
           id="plantBottomLeft"
@@ -3780,27 +3667,18 @@ function OfficeRoom3DInner({
           ]}
         >
           <mesh castShadow={false}>
-            <cylinderGeometry args={[0.018, 0.025, 0.2, 8]} />
-            <meshStandardMaterial color="#2e5b2f" roughness={0.85} />
+            <cylinderGeometry args={[0.026, 0.032, 0.24, 8]} />
+            <meshStandardMaterial color="#193040" roughness={0.8} />
           </mesh>
-          {[
-            [0.0, 0.14, 0.0, 0.12],
-            [-0.08, 0.12, 0.03, 0.08],
-            [0.08, 0.11, -0.02, 0.08],
-            [0.0, 0.2, -0.06, 0.06],
-          ].map((l, i) => (
-            <mesh
-              key={`leaf-b-${i}`}
-              position={[l[0], l[1], l[2]] as Vec3}
-              castShadow={false}
-            >
-              <sphereGeometry args={[l[3], 10, 10]} />
-              <meshStandardMaterial
-                color={i % 2 ? "#319a4c" : "#40b65e"}
-                roughness={0.9}
-              />
-            </mesh>
-          ))}
+          <mesh position={[0, 0.16, 0]} castShadow={false}>
+            <sphereGeometry args={[0.09, 12, 12]} />
+            <meshStandardMaterial
+              color="#15314a"
+              emissive="#68c8ff"
+              emissiveIntensity={0.24}
+              roughness={0.18}
+            />
+          </mesh>
         </group>
 
         {/* 3D parity gauge (replaces 2D LLMFuelGauge) */}

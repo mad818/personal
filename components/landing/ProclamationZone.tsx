@@ -1,4 +1,3 @@
-import Link from "next/link";
 import AtmosphereLayer from "./AtmosphereLayer";
 import SurfaceGrid from "./SurfaceGrid";
 
@@ -50,14 +49,14 @@ export default function ProclamationZone({
           </p>
 
           <div className="nexus-landing-proclamation__ctaGroup nexus-landing-enter">
-            <Link
+            <a
               href={ctaHref}
               className="nexus-landing-proclamation__primary"
               aria-label={`${ctaLabel}, go to HQ`}
               data-testid="landing-hero-cta"
             >
               {ctaLabel}
-            </Link>
+            </a>
             <a
               href="#nexus-landing-doctrine"
               className="nexus-landing-proclamation__secondary"

@@ -282,6 +282,7 @@ export const DISPATCH_LINES: Record<AgentId, string> = {
 export const TOOL_ICON: Record<string, string> = {
   web_search: "🔍",
   fetch_url: "🌐",
+  deep_research: "🧭",
   write_file: "💾",
   draft_file: "📝",
   read_file: "📂",
@@ -307,6 +308,7 @@ export const TOOL_ICON: Record<string, string> = {
 export const SKILL_ROUTE: Record<string, { label: string; color: string }> = {
   web_search: { label: "RESEARCH", color: "#00FF66" },
   fetch_url: { label: "RESEARCH", color: "#00FF66" },
+  deep_research: { label: "RESEARCH", color: "#00FF66" },
   read_project_file: { label: "ENGINEERING", color: "#7c3aed" },
   list_project_files: { label: "ENGINEERING", color: "#7c3aed" },
   patch_project_file: { label: "ENGINEERING", color: "#7c3aed" },
@@ -388,6 +390,7 @@ export const TOOL_POSE_MAP: Record<string, AgentPoseType> = {
   list_project_files: "read",
   web_search: "search",
   fetch_url: "search",
+  deep_research: "search",
   hf_papers_search: "search",
   calculate: "compute",
   sec_edgar_search: "compute",

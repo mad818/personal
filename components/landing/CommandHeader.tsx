@@ -1,7 +1,6 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import Link from "next/link";
 
 export interface CommandHeaderProps {
   ctaHref: string;
@@ -79,14 +78,14 @@ export default function CommandHeader({
           ))}
         </nav>
 
-        <Link
+        <a
           href={ctaHref}
           className="nexus-landing-header__cta"
           aria-label={`${ctaLabel}, go to HQ`}
           data-testid="landing-header-cta"
         >
           {ctaLabel}
-        </Link>
+        </a>
       </div>
     </header>
   );

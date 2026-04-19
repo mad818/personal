@@ -1,0 +1,483 @@
+"use client";
+
+import type { CSSProperties, KeyboardEvent, Ref } from "react";
+import CompactOperatorNote from "@/components/ui/CompactOperatorNote";
+import AssistantGuidanceStack from "@/components/ui/AssistantGuidanceStack";
+import DictationButton from "@/components/ui/DictationButton";
+import EvidencePosturePanel from "@/components/ui/EvidencePosturePanel";
+import { SpeakButton } from "@/components/ui/SpeakButton";
+import VoiceProjectButton from "@/components/ui/VoiceProjectButton";
+import { FileBackButton } from "@/components/home/office/FileBackButton";
+import { AskMemoryFromReplyButton } from "@/components/home/office/AskMemoryFromReplyButton";
+import MissionContinuationActions from "@/components/ui/MissionContinuationActions";
+import { parseInlineEvidencePosture } from "@/lib/aiStructuredEvidence";
+import {
+  buildInternalThinkingSummary,
+  extractThinkingTrace,
+} from "@/lib/aiThinkingTrace";
+import { getTabFromHref } from "@/lib/missionHandoff";
+import { getSurfaceModuleSpec } from "@/lib/surfaceRedesignRegistry";
+import {
+  resolveChronicleMotionPreset,
+  type SurfaceMotionProfile,
+} from "@/lib/surfaceMotion";
+import { AGENTS } from "./constants";
+import { ToolCallBadge } from "./ToolCallBadge";
+import { detectAgentDebug } from "./prompts";
+import { PersonaModeBar } from "./PersonaModeBar";
+import { CouncilResultsPanel } from "./CouncilResultsPanel";
+import { STRATEGIUM_PROMPTS } from "./officeCommandCenterConfig";
+import type { AgentId, ChatMessage, CouncilResult } from "./types";
+import type { AgentStep } from "@/lib/agent";
+
+interface HQTerminalSectionProps {
+  messages: ChatMessage[];
+  activeAgent: AgentId | null;
+  activeColor: string;
+  liveSteps: AgentStep[];
+  pendingLesson: {
+    text: string;
+    agent: string;
+  } | null;
+  input: string;
+  surfaceMotionProfile: SurfaceMotionProfile;
+  agentDebugMode: boolean;
+  canClear: boolean;
+  inputRef: Ref<HTMLTextAreaElement>;
+  scrollViewportRef: Ref<HTMLDivElement>;
+  onPrimePrompt: (prompt: string) => void;
+  onInputChange: (value: string) => void;
+  onDictationAppend: (value: string) => void;
+  onInputKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
+  onAskMemory: () => void;
+  onSend: () => void | Promise<void>;
+  onClear: () => void;
+  onMergeCouncil: (results: CouncilResult[]) => void;
+  onUseCouncilResult: (result: CouncilResult) => void;
+  onLogLesson: () => void;
+  onDismissLesson: () => void;
+}
+
+export default function HQTerminalSection({
+  messages,
+  activeAgent,
+  activeColor,
+  liveSteps,
+  pendingLesson,
+  input,
+  surfaceMotionProfile,
+  agentDebugMode,
+  canClear,
+  inputRef,
+  scrollViewportRef,
+  onPrimePrompt,
+  onInputChange,
+  onDictationAppend,
+  onInputKeyDown,
+  onAskMemory,
+  onSend,
+  onClear,
+  onMergeCouncil,
+  onUseCouncilResult,
+  onLogLesson,
+  onDismissLesson,
+}: HQTerminalSectionProps) {
+  const chronicleMotion = resolveChronicleMotionPreset(surfaceMotionProfile);
+  const debug = agentDebugMode && input.trim() ? detectAgentDebug(input) : null;
+  const chronicleSpec = getSurfaceModuleSpec("hq", "command-chronicle");
+  const debugScores = debug
+    ? Object.entries(debug.scores).sort(([, a], [, b]) => b - a)
+    : [];
+
+  return (
+    <div
+      className="nexus-hq-chronicle-shell"
+      data-chronicle-shell={chronicleMotion.shell}
+      data-sequence-state={
+        activeAgent ? "executing" : messages.length > 0 ? "settled" : "ready"
+      }
+      style={
+        {
+          "--nexus-chronicle-reply-duration": `${chronicleMotion.replyDurationMs}ms`,
+          "--nexus-chronicle-step-duration": `${chronicleMotion.stepDurationMs}ms`,
+          "--nexus-chronicle-handoff-duration": `${chronicleMotion.handoffDurationMs}ms`,
+          "--nexus-chronicle-lesson-duration": `${chronicleMotion.lessonDurationMs}ms`,
+          "--nexus-chronicle-order-duration": `${chronicleMotion.orderDurationMs}ms`,
+          "--nexus-chronicle-continuity-duration": `${chronicleMotion.continuityDurationMs}ms`,
+          "--nexus-chronicle-band-interval": `${chronicleMotion.bandIntervalMs}ms`,
+          "--nexus-chronicle-live-pulse": `${chronicleMotion.livePulseMs}ms`,
+          "--nexus-chronicle-composer-glow": `${chronicleMotion.composerGlow}`,
+          "--nexus-chronicle-live-accent": activeColor,
+        } as CSSProperties
+      }
+    >
+      <div
+        data-testid="hq-chronicle-scroll"
+        ref={scrollViewportRef}
+        className="nexus-hq-chronicle__scroll"
+      >
+        {messages.length === 0 ? (
+          <div className="nexus-hq-chronicle__empty">
+            <CompactOperatorNote
+              label={chronicleSpec?.title ?? "Issue the next move"}
+              summary={
+                chronicleSpec?.summary ??
+                "Prime the chamber with a command. Live signals stay mounted elsewhere so this lane can stay focused on dispatch, evidence, and final recommendations."
+              }
+              detail={
+                chronicleSpec?.strongestAction?.note ??
+                "Open the prompt chips when you want a fast starting point instead of a long wall of guidance."
+              }
+              tone="neutral"
+            >
+              <div className="nexus-hq-chronicle__prompts">
+                {STRATEGIUM_PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt.label}
+                    type="button"
+                    className="nexus-hq-composer__preset"
+                    onClick={() => onPrimePrompt(prompt.prompt)}
+                  >
+                    {prompt.label}
+                  </button>
+                ))}
+              </div>
+            </CompactOperatorNote>
+          </div>
+        ) : (
+          <div className="nexus-hq-chronicle__list">
+            {messages.map((message, index) => {
+              const cfgColor = message.agent
+                ? (AGENTS[message.agent]?.color ?? activeColor)
+                : activeColor;
+              const thinkingTrace =
+                message.role === "agent"
+                  ? extractThinkingTrace(message.text)
+                  : null;
+              const safeMessageText = thinkingTrace?.visibleText ?? message.text;
+              const parsedEvidence =
+                message.role === "agent"
+                  ? parseInlineEvidencePosture(safeMessageText)
+                  : null;
+              const inlineEvidence =
+                message.role === "agent" &&
+                message.showEvidencePosture !== false
+                  ? parsedEvidence
+                  : null;
+              const operatorVisibleText = (
+                parsedEvidence?.mainText?.trim() ||
+                safeMessageText ||
+                "No operator-visible answer was returned after internal reasoning. Review the runtime trace and retry."
+              ).trim();
+              const hasThinkingStep = Boolean(
+                message.steps?.some((step) => step.type === "thinking"),
+              );
+              const displaySteps =
+                message.role === "agent" &&
+                thinkingTrace?.hasThinking &&
+                !hasThinkingStep
+                  ? [
+                      {
+                        type: "thinking" as const,
+                        content: buildInternalThinkingSummary(
+                          thinkingTrace.thinkingBlocks,
+                        ),
+                      },
+                      ...(message.steps ?? []),
+                    ]
+                  : (message.steps ?? []);
+              const showPersistedSteps =
+                message.role === "agent" &&
+                message.responseKind !== "assistant" &&
+                displaySteps.length > 0;
+              const entryKind =
+                message.role === "user"
+                  ? "order"
+                  : message.preparedWorkspace
+                    ? "handoff"
+                    : message.responseKind === "workflow"
+                      ? "workflow"
+                      : "dispatch";
+
+              return (
+                <div
+                  key={index}
+                  className="nexus-hq-chronicle__entry"
+                  data-role={message.role}
+                  data-entry-kind={entryKind}
+                  style={
+                    {
+                      "--nexus-chronicle-accent": cfgColor,
+                      "--nexus-chronicle-entry-index": index,
+                    } as CSSProperties
+                  }
+                >
+                  {message.role === "agent" && message.agent ? (
+                    <div className="nexus-hq-chronicle__origin">
+                      <span className="nexus-hq-chronicle__originName">
+                        {AGENTS[message.agent].name}
+                      </span>
+                      <span className="nexus-hq-chronicle__originRole">
+                        {AGENTS[message.agent].role}
+                      </span>
+                    </div>
+                  ) : null}
+                  {showPersistedSteps ? (
+                    <div className="nexus-hq-chronicle__stepRail">
+                      <div className="nexus-hq-chronicle__stepLabel">
+                        Run trace
+                      </div>
+                      <div className="nexus-hq-chronicle__stepStack">
+                        {displaySteps.slice(-18).map((step, stepIndex) => (
+                          <ToolCallBadge key={stepIndex} step={step} />
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div
+                    className="nexus-hq-chronicle__bubble"
+                    data-role={message.role}
+                    data-response-kind={message.responseKind ?? "assistant"}
+                    data-entry-kind={entryKind}
+                  >
+                    {operatorVisibleText}
+                  </div>
+                  {message.role === "agent" && inlineEvidence ? (
+                    <div className="nexus-hq-chronicle__evidence">
+                      <EvidencePosturePanel
+                        title="Evidence posture"
+                        summary="Observed facts, inferred reasoning, and verify-next checks were extracted from the chronicle reply."
+                        observed={inlineEvidence.observed}
+                        inferred={inlineEvidence.inferred}
+                        verifyNext={inlineEvidence.verifyNext}
+                        compact
+                      />
+                    </div>
+                  ) : null}
+                  {message.role === "agent" && message.assistantGuidance?.length ? (
+                    <AssistantGuidanceStack items={message.assistantGuidance} />
+                  ) : null}
+                  {message.role === "agent" && operatorVisibleText ? (
+                    <div className="nexus-hq-chronicle__actions">
+                      <SpeakButton text={operatorVisibleText} size="sm" />
+                      <VoiceProjectButton
+                        text={operatorVisibleText}
+                        title={`${message.agent ? AGENTS[message.agent].name : "HQ"} briefing`}
+                        sourceKey={`hq-message-${index}`}
+                        sourceRoute="/hq"
+                      />
+                      <AskMemoryFromReplyButton
+                        query={message.sourceQuery}
+                        promptText={message.sourceQuery ?? operatorVisibleText}
+                      />
+                    </div>
+                  ) : null}
+                  {message.role === "agent" && message.agent ? (
+                    <div className="nexus-hq-chronicle__fileBack">
+                      <FileBackButton
+                        text={safeMessageText || operatorVisibleText}
+                        agentId={message.agent}
+                        suggestion={message.vaultCaptureSuggestion}
+                      />
+                    </div>
+                  ) : null}
+                  {message.role === "agent" && message.preparedWorkspace ? (
+                    <div className="nexus-hq-chronicle__handoff">
+                      <div className="nexus-hq-chronicle__handoffHeader">
+                        <span className="nexus-hq-chronicle__handoffEyebrow">
+                          Workspace prepared
+                        </span>
+                        <span className="nexus-hq-chronicle__handoffState">
+                          Exact session
+                        </span>
+                      </div>
+                      <div className="nexus-hq-chronicle__handoffDetail">
+                        {message.preparedWorkspace.detail}
+                      </div>
+                      <MissionContinuationActions
+                        extraTargets={[
+                          {
+                            href: message.preparedWorkspace.href,
+                            label: message.preparedWorkspace.label,
+                            tab: getTabFromHref(message.preparedWorkspace.href),
+                          },
+                        ]}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+
+            {activeAgent && liveSteps.length > 0 ? (
+              <div
+                className="nexus-hq-chronicle__liveRail"
+                data-live-state="active"
+                style={
+                  {
+                    "--nexus-chronicle-accent": activeColor,
+                  } as CSSProperties
+                }
+              >
+                <div className="nexus-hq-chronicle__stepLabel">
+                  Live execution
+                </div>
+                <div className="nexus-hq-chronicle__stepStack">
+                  {liveSteps.slice(-12).map((step, index) => (
+                    <ToolCallBadge key={index} step={step} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {activeAgent && liveSteps.length === 0 ? (
+              <div className="nexus-hq-chronicle__typing">
+                <span />
+                <span />
+                <span />
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+
+      {pendingLesson ? (
+        <div className="nexus-hq-lesson-bar">
+          <div className="nexus-hq-lesson-bar__copy">
+            <div className="nexus-hq-lesson-bar__eyebrow">
+              Lesson proposal
+              <span className="nexus-hq-lesson-bar__agent">
+                {pendingLesson.agent}
+              </span>
+            </div>
+            <div className="nexus-hq-lesson-bar__text">
+              {pendingLesson.text.slice(0, 200)}
+              {pendingLesson.text.length > 200 ? "…" : ""}
+            </div>
+          </div>
+          <div className="nexus-hq-lesson-bar__actions">
+            <button
+              type="button"
+              onClick={onLogLesson}
+              className="nexus-hq-composer__action is-send"
+            >
+              Log lesson
+            </button>
+            <button
+              type="button"
+              onClick={onDismissLesson}
+              className="nexus-hq-composer__action"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <div
+        data-testid="hq-composer"
+        className="nexus-hq-composer"
+        data-active={Boolean(activeAgent)}
+        data-composer-state={
+          activeAgent ? "locked" : input.trim() ? "armed" : "ready"
+        }
+      >
+        {!activeAgent && messages.length === 0 ? (
+          <div className="nexus-hq-chronicle__prompts">
+            {STRATEGIUM_PROMPTS.map((prompt) => (
+              <button
+                key={prompt.label}
+                type="button"
+                className="nexus-hq-composer__preset"
+                onClick={() => onPrimePrompt(prompt.prompt)}
+              >
+                {prompt.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {debug ? (
+          <div className="nexus-hq-composer__routeDebug">
+            <span className="nexus-hq-composer__routeLabel">Route</span>
+            {debugScores.map(([agent, score]) => (
+              <span
+                key={agent}
+                className="nexus-hq-composer__routeScore"
+                data-active={agent === debug.winner}
+              >
+                {agent.toUpperCase()} {score}
+              </span>
+            ))}
+            {debug.phrases.length > 0 ? (
+              <span className="nexus-hq-composer__routeHint">
+                [{debug.phrases.slice(0, 2).join(", ")}]
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+        <div className="nexus-hq-composer__topline">
+          <PersonaModeBar />
+        </div>
+        <div className="nexus-hq-composer__council">
+          <CouncilResultsPanel
+            onMerge={onMergeCouncil}
+            onUse={onUseCouncilResult}
+          />
+        </div>
+        <div className="nexus-hq-composer__dock">
+          <textarea
+            aria-label="HQ command input"
+            data-testid="hq-command-input"
+            ref={inputRef}
+            value={input}
+            onChange={(event) => onInputChange(event.target.value)}
+            onKeyDown={onInputKeyDown}
+            placeholder={
+              activeAgent
+                ? "Agent running..."
+                : "Issue a briefing, dispatch, or /deepresearch…"
+            }
+            disabled={Boolean(activeAgent)}
+            rows={1}
+            className="nexus-hq-composer__field"
+          />
+          <div className="nexus-hq-composer__actions">
+            <DictationButton
+              onTranscript={(transcript) => onDictationAppend(transcript)}
+              title="Dictate into HQ"
+            />
+            <button
+              type="button"
+              onClick={onAskMemory}
+              disabled={!input.trim() || Boolean(activeAgent)}
+              className="nexus-hq-composer__action"
+              title="Open this prompt in the local memory lane"
+            >
+              Ask memory
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void onSend();
+              }}
+              data-testid="hq-send"
+              disabled={!input.trim() || Boolean(activeAgent)}
+              className="nexus-hq-composer__action nexus-hq-composer__action--icon is-send"
+              title="Send"
+            >
+              {activeAgent ? "…" : "▶"}
+            </button>
+            <button
+              type="button"
+              onClick={onClear}
+              disabled={!canClear}
+              className="nexus-hq-composer__action"
+              title="Clear chat"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

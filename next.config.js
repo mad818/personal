@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const devPort = process.env.PORT || '3000'
-const devOrigins = [`http://127.0.0.1:${devPort}`, `http://localhost:${devPort}`]
+const devOrigins = ['127.0.0.1', 'localhost']
 const devSockets = [`ws://127.0.0.1:${devPort}`, `ws://localhost:${devPort}`]
 const distDir = process.env.NEXUS_NEXT_DIST_DIR || '.next'
 
@@ -87,7 +87,6 @@ module.exports = {
 
   async rewrites() {
     return [
-      { source: '/hq', destination: '/home' },
       { source: '/labs/signals', destination: '/intel?view=news' },
       { source: '/labs/ops', destination: '/intel?view=world' },
       { source: '/labs/security', destination: '/security' },

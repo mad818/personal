@@ -1,57 +1,54 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore, type ScheduledJob } from "@/store/useStore";
+import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
 import { OFFICE_OPERATIONAL_PROFILES } from "@/components/home/office/constants";
 import { getAutoJobsForMode, isAutoOpsModeEnabled } from "@/lib/autoOpsJobs";
+import CronSchedulerAutoOpsSection from "@/components/ui/CronSchedulerAutoOpsSection";
+import CronSchedulerComposerSection from "@/components/ui/CronSchedulerComposerSection";
+import CronSchedulerGovernanceSection from "@/components/ui/CronSchedulerGovernanceSection";
+import CronSchedulerJobsSection from "@/components/ui/CronSchedulerJobsSection";
+import CronSchedulerWorkflowTemplatesSection from "@/components/ui/CronSchedulerWorkflowTemplatesSection";
+import { readAnthropicNativeBatchPosture } from "@/lib/ai";
+import {
+  areSchedulerAuditFiltersEqual,
+  buildSchedulerAuditExport,
+  buildSavedSchedulerAuditViewsExport,
+  coerceSchedulerAuditFilters,
+  coerceSavedSchedulerAuditViewsImport,
+  coerceSavedSchedulerAuditViews,
+  DEFAULT_SCHEDULER_AUDIT_FILTERS,
+  hasActiveSchedulerAuditFilters,
+  MAX_SAVED_SCHEDULER_AUDIT_VIEWS,
+  type SavedSchedulerAuditView,
+  type SavedSchedulerAuditViewsImportPreview,
+  sanitizeSchedulerAuditViewName,
+  SCHEDULER_AUDIT_FILTER_PRESETS,
+  summarizeSavedSchedulerAuditViewsImport,
+} from "@/lib/schedulerGovernance";
+import {
+  buildHQWorkflowScheduledDraft,
+  HQ_WORKFLOW_CATALOG,
+  type HQWorkflowCommandId,
+} from "@/components/home/office/workflowCommands";
+import {
+  isValidCron,
+  MISSION_TEMPLATES,
+  type NativeBatchPostureState,
+  PRESET_CRONS,
+  SCHEDULER_AUDIT_FILTER_STORAGE_KEY,
+  SCHEDULER_AUDIT_VIEWS_STORAGE_KEY,
+} from "@/components/ui/cronSchedulerPanelUtils";
+import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  focus?: string | null;
 }
 
-const PRESET_CRONS = [
-  { label: "Every 15 min", value: "*/15 * * * *" },
-  { label: "Every hour", value: "0 * * * *" },
-  { label: "Every day at 09:00", value: "0 9 * * *" },
-  { label: "Every day at 18:00", value: "0 18 * * *" },
-  { label: "Mon-Fri 08:30", value: "30 8 * * 1-5" },
-];
-
-const MISSION_TEMPLATES = [
-  {
-    id: "brief",
-    label: "Morning brief",
-    outputTarget: "vault" as const,
-    approvalPolicy: "human_gate" as const,
-    prompt:
-      "Assemble a morning brief across markets, cyber, and geopolitics. Return five actionable bullets plus a one-sentence command takeaway.",
-  },
-  {
-    id: "dossier",
-    label: "Recon dossier",
-    outputTarget: "review" as const,
-    approvalPolicy: "human_gate" as const,
-    prompt:
-      "Build a recon dossier with passive DNS, headers, metadata, and OPSEC notes. Structure the output as a dossier-ready pack.",
-  },
-  {
-    id: "incident",
-    label: "Incident memo",
-    outputTarget: "notify" as const,
-    approvalPolicy: "approve_on_write" as const,
-    prompt:
-      "Summarize the latest cyber risk posture, likely exposure, and recommended triage actions as an operator incident memo.",
-  },
-];
-
-function isValidCron(expr: string): boolean {
-  const parts = expr.trim().split(/\s+/);
-  if (parts.length !== 5) return false;
-  return parts.every((p) => /^(\*|\d+|\*\/\d+|\d+-\d+|\d+(,\d+)*)$/.test(p));
-}
-
-export default function CronSchedulerPanel({ open, onClose }: Props) {
+export default function CronSchedulerPanel({ open, onClose, focus = null }: Props) {
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
   const jobs = useMemo(
@@ -68,7 +65,35 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
   const [approvalPolicy, setApprovalPolicy] =
     useState<NonNullable<ScheduledJob["approvalPolicy"]>>("human_gate");
   const [missionAgent, setMissionAgent] = useState("orbit");
+  const [templateId, setTemplateId] = useState("");
+  const [workflowTopic, setWorkflowTopic] = useState("");
   const [error, setError] = useState("");
+  const [auditMsg, setAuditMsg] = useState("");
+  const [auditFilters, setAuditFilters] = useState(
+    () => ({ ...DEFAULT_SCHEDULER_AUDIT_FILTERS }),
+  );
+  const [auditFiltersHydrated, setAuditFiltersHydrated] = useState(false);
+  const [savedAuditViews, setSavedAuditViews] = useState<SavedSchedulerAuditView[]>([]);
+  const [savedAuditViewsHydrated, setSavedAuditViewsHydrated] = useState(false);
+  const [showSaveAuditView, setShowSaveAuditView] = useState(false);
+  const [newAuditViewName, setNewAuditViewName] = useState("");
+  const [showPasteAuditViews, setShowPasteAuditViews] = useState(false);
+  const [pastedAuditViewsText, setPastedAuditViewsText] = useState("");
+  const [pendingImportedAuditViews, setPendingImportedAuditViews] = useState<{
+    views: SavedSchedulerAuditView[];
+    summary: SavedSchedulerAuditViewsImportPreview;
+  } | null>(null);
+  const importSavedViewsInputRef = useRef<HTMLInputElement | null>(null);
+  const [nativeBatchPosture, setNativeBatchPosture] =
+    useState<NativeBatchPostureState>({
+      loading: true,
+      nativeReady: false,
+      mode: "internal_fallback",
+      featureEnabled: false,
+      paidApisAllowed: false,
+      apiKeyConfigured: false,
+      reason: "Loading native batch posture…",
+    });
 
   const sortedJobs = useMemo(
     () =>
@@ -87,6 +112,48 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
   const cooldownMs =
     Math.max(10, Number(settings.autoOpsJobCooldownMin ?? 30)) * 60_000;
   const now = Date.now();
+  const automationCandidateWorkflows = useMemo(
+    () =>
+      HQ_WORKFLOW_CATALOG.filter(
+        (workflow) => workflow.automationReady && workflow.schedulerDefaults,
+      ),
+    [],
+  );
+  const reviewOnlyWorkflows = useMemo(
+    () =>
+      HQ_WORKFLOW_CATALOG.filter(
+        (workflow) => workflow.automationPosture === "review_only",
+      ),
+    [],
+  );
+  const hasActiveAuditFilters = useMemo(
+    () => hasActiveSchedulerAuditFilters(auditFilters),
+    [auditFilters],
+  );
+  const schedulerAuditPayload = useMemo(
+    () =>
+      buildSchedulerAuditExport(jobs, {
+        nativeReady: nativeBatchPosture.nativeReady,
+        mode: nativeBatchPosture.mode,
+        featureEnabled: nativeBatchPosture.featureEnabled,
+        paidApisAllowed: nativeBatchPosture.paidApisAllowed,
+        apiKeyConfigured: nativeBatchPosture.apiKeyConfigured,
+        reason: nativeBatchPosture.reason,
+      }, {
+        filters: auditFilters,
+      }),
+    [jobs, nativeBatchPosture, auditFilters],
+  );
+  const focusTargetId =
+    focus === "hq-scheduler-composer"
+      ? "cron-scheduler-composer"
+      : focus === "hq-scheduler-governance"
+        ? "cron-scheduler-governance"
+        : focus === "hq-scheduler-jobs"
+          ? "cron-scheduler-jobs"
+          : null;
+
+  useSurfaceFocusScroll(open ? focusTargetId : null);
 
   const fmtRemaining = (ms: number) => {
     if (ms <= 0) return "ready";
@@ -108,6 +175,19 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
     const add = intervalMin - (cur % intervalMin || intervalMin);
     d.setMinutes(cur + add, 0, 0);
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const applyWorkflowTemplate = (workflowId: HQWorkflowCommandId) => {
+    const draft = buildHQWorkflowScheduledDraft(workflowId, workflowTopic);
+    if (!draft) return;
+    setName(draft.name);
+    setPrompt(draft.prompt);
+    setCron(draft.cronSuggestion);
+    setJobType("mission");
+    setOutputTarget(draft.outputTarget);
+    setApprovalPolicy(draft.approvalPolicy);
+    setMissionAgent(draft.missionAgent);
+    setTemplateId(draft.templateId);
   };
 
   const addJob = () => {
@@ -133,6 +213,7 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
       outputTarget,
       approvalPolicy,
       missionAgent,
+      templateId: templateId || undefined,
     };
     saveJobs([next, ...jobs]);
     setName("");
@@ -142,6 +223,18 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
     setOutputTarget("vault");
     setApprovalPolicy("human_gate");
     setMissionAgent("orbit");
+    setTemplateId("");
+    setWorkflowTopic("");
+  };
+
+  const applyMissionTemplate = (templateId: string) => {
+    const template = MISSION_TEMPLATES.find((candidate) => candidate.id === templateId);
+    if (!template) return;
+    setName(template.label);
+    setPrompt(template.prompt);
+    setOutputTarget(template.outputTarget);
+    setApprovalPolicy(template.approvalPolicy);
+    setTemplateId(template.id);
   };
 
   const toggleJob = (id: string) => {
@@ -153,6 +246,407 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
   const removeJob = (id: string) => {
     saveJobs(jobs.filter((j) => j.id !== id));
   };
+
+  const clearQueuedJob = (id: string) => {
+    saveJobs(
+      jobs.map((job) =>
+        job.id === id
+          ? {
+              ...job,
+              lastStatus: "error" as const,
+              lastSummary: "Queued native batch cleared by operator.",
+              pendingBatchId: undefined,
+              pendingBatchProvider: undefined,
+              pendingBatchSubmittedAt: undefined,
+              pendingBatchSize: undefined,
+              pendingBatchPollFailures: undefined,
+              pendingBatchSystemPromptChars: undefined,
+              pendingBatchStablePrefixChars: undefined,
+              pendingBatchVolatilePromptChars: undefined,
+              pendingBatchCacheStrategy: undefined,
+            }
+          : job,
+      ),
+    );
+  };
+
+  const copySchedulerAudit = async () => {
+    try {
+      await navigator.clipboard.writeText(
+        JSON.stringify(schedulerAuditPayload, null, 2),
+      );
+      setAuditMsg("Scheduler audit copied to clipboard.");
+    } catch {
+      setAuditMsg("Copy failed.");
+    }
+  };
+
+  const exportSchedulerAudit = () => {
+    try {
+      const blob = new Blob([JSON.stringify(schedulerAuditPayload, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `scheduler-audit-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setAuditMsg("Scheduler audit exported.");
+    } catch {
+      setAuditMsg("Export failed.");
+    }
+  };
+
+  const copyJobAudit = async (job: ScheduledJob) => {
+    const payload = buildSchedulerAuditExport(
+      jobs,
+      {
+        nativeReady: nativeBatchPosture.nativeReady,
+        mode: nativeBatchPosture.mode,
+        featureEnabled: nativeBatchPosture.featureEnabled,
+        paidApisAllowed: nativeBatchPosture.paidApisAllowed,
+        apiKeyConfigured: nativeBatchPosture.apiKeyConfigured,
+        reason: nativeBatchPosture.reason,
+      },
+      {
+        jobIds: [job.id],
+        scopeLabel: `${job.name} audit`,
+        filters: auditFilters,
+      },
+    );
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+      setAuditMsg(`Copied audit for ${job.name}.`);
+    } catch {
+      setAuditMsg(`Copy failed for ${job.name}.`);
+    }
+  };
+
+  const exportJobAudit = (job: ScheduledJob) => {
+    const payload = buildSchedulerAuditExport(
+      jobs,
+      {
+        nativeReady: nativeBatchPosture.nativeReady,
+        mode: nativeBatchPosture.mode,
+        featureEnabled: nativeBatchPosture.featureEnabled,
+        paidApisAllowed: nativeBatchPosture.paidApisAllowed,
+        apiKeyConfigured: nativeBatchPosture.apiKeyConfigured,
+        reason: nativeBatchPosture.reason,
+      },
+      {
+        jobIds: [job.id],
+        scopeLabel: `${job.name} audit`,
+        filters: auditFilters,
+      },
+    );
+    try {
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `scheduler-audit-${job.id}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setAuditMsg(`Exported audit for ${job.name}.`);
+    } catch {
+      setAuditMsg(`Export failed for ${job.name}.`);
+    }
+  };
+
+  const saveCurrentAuditView = () => {
+    const sanitizedName = sanitizeSchedulerAuditViewName(newAuditViewName);
+    if (!sanitizedName) {
+      setAuditMsg("Saved view name is required.");
+      return;
+    }
+    let replaced = false;
+    let trimmed = false;
+    setSavedAuditViews((current) => {
+      const existing = current.find(
+        (view) => view.name.toLowerCase() === sanitizedName.toLowerCase(),
+      );
+      const nextView: SavedSchedulerAuditView = {
+        id:
+          existing?.id ??
+          `audit-view-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        name: sanitizedName,
+        filters: { ...auditFilters },
+      };
+      replaced = Boolean(existing);
+      const next = [
+        nextView,
+        ...current.filter((view) => view.id !== existing?.id),
+      ];
+      if (next.length > MAX_SAVED_SCHEDULER_AUDIT_VIEWS) {
+        trimmed = true;
+      }
+      return next.slice(0, MAX_SAVED_SCHEDULER_AUDIT_VIEWS);
+    });
+    setShowSaveAuditView(false);
+    setNewAuditViewName("");
+    setAuditMsg(
+      replaced
+        ? `Updated saved audit view ${sanitizedName}.`
+        : trimmed
+          ? `Saved ${sanitizedName}. Oldest saved view was removed.`
+          : `Saved audit view ${sanitizedName}.`,
+    );
+  };
+
+  const removeSavedAuditView = (viewId: string, viewName: string) => {
+    setSavedAuditViews((current) => current.filter((view) => view.id !== viewId));
+    setAuditMsg(`Removed saved audit view ${viewName}.`);
+  };
+
+  const exportSavedAuditViews = () => {
+    try {
+      const payload = buildSavedSchedulerAuditViewsExport(savedAuditViews);
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "scheduler-audit-views.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      setAuditMsg("Exported saved audit views.");
+    } catch {
+      setAuditMsg("Saved audit view export failed.");
+    }
+  };
+
+  const previewImportedSavedAuditViews = (incoming: SavedSchedulerAuditView[]) => {
+    if (!incoming.length) {
+      setAuditMsg("No valid saved audit views were found in that file.");
+      return;
+    }
+    const summary = summarizeSavedSchedulerAuditViewsImport(
+      savedAuditViews,
+      incoming,
+    );
+    setPendingImportedAuditViews({ views: incoming, summary });
+    setAuditMsg(`Loaded import preview for ${summary.incomingCount} saved audit views.`);
+  };
+
+  const previewImportedSavedAuditViewsFromText = (
+    rawText: string,
+    sourceLabel: "file" | "pasted JSON",
+  ) => {
+    try {
+      const incoming = coerceSavedSchedulerAuditViewsImport(JSON.parse(rawText));
+      if (!incoming.length) {
+        setAuditMsg(`No valid saved audit views were found in the ${sourceLabel}.`);
+        return;
+      }
+      previewImportedSavedAuditViews(incoming);
+    } catch {
+      setAuditMsg(
+        sourceLabel === "file"
+          ? "Saved audit view import failed. Use a valid JSON export."
+          : "Pasted JSON import failed. Use a valid saved audit view export.",
+      );
+    }
+  };
+
+  const mergeImportedSavedAuditViews = (incoming: SavedSchedulerAuditView[]) => {
+    if (!incoming.length) {
+      setAuditMsg("No valid saved audit views were found in that file.");
+      return;
+    }
+    let replaced = 0;
+    let trimmed = false;
+    setSavedAuditViews((current) => {
+      const next: SavedSchedulerAuditView[] = [];
+      const seenIds = new Set<string>();
+      const byName = new Map(
+        current.map((view) => [view.name.toLowerCase(), view] as const),
+      );
+
+      const allocateId = (preferredId: string, fallbackName: string) => {
+        if (preferredId && !seenIds.has(preferredId)) return preferredId;
+        let candidate = `audit-view-${fallbackName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") || "saved"}-${Date.now()}`;
+        let suffix = 1;
+        while (seenIds.has(candidate)) {
+          candidate = `${candidate}-${suffix++}`;
+        }
+        return candidate;
+      };
+
+      for (const view of incoming) {
+        const existing = byName.get(view.name.toLowerCase());
+        if (existing) replaced += 1;
+        const id = allocateId(existing?.id ?? view.id, view.name);
+        seenIds.add(id);
+        next.push({
+          id,
+          name: view.name,
+          filters: { ...view.filters },
+        });
+      }
+
+      for (const view of current) {
+        if (incoming.some((candidate) => candidate.name.toLowerCase() === view.name.toLowerCase())) {
+          continue;
+        }
+        const id = allocateId(view.id, view.name);
+        seenIds.add(id);
+        next.push({
+          id,
+          name: view.name,
+          filters: { ...view.filters },
+        });
+      }
+
+      if (next.length > MAX_SAVED_SCHEDULER_AUDIT_VIEWS) {
+        trimmed = true;
+      }
+      return next.slice(0, MAX_SAVED_SCHEDULER_AUDIT_VIEWS);
+    });
+    setAuditMsg(
+      trimmed
+        ? `Imported ${incoming.length} saved audit views. Oldest extra views were removed.`
+        : replaced
+          ? `Imported ${incoming.length} saved audit views and updated ${replaced} existing names.`
+          : `Imported ${incoming.length} saved audit views.`,
+    );
+  };
+
+  const applyImportedSavedAuditViews = () => {
+    if (!pendingImportedAuditViews) return;
+    mergeImportedSavedAuditViews(pendingImportedAuditViews.views);
+    setPendingImportedAuditViews(null);
+  };
+
+  const importSavedAuditViewsFromFile = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const text = await file.text();
+      previewImportedSavedAuditViewsFromText(text, "file");
+    } catch {
+      setAuditMsg("Saved audit view import failed. Use a valid JSON export.");
+    }
+  };
+
+  const previewPastedAuditViewsImport = () => {
+    const trimmed = pastedAuditViewsText.trim();
+    if (!trimmed) {
+      setAuditMsg("Paste a saved audit view JSON export first.");
+      return;
+    }
+    previewImportedSavedAuditViewsFromText(trimmed, "pasted JSON");
+  };
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(
+        SCHEDULER_AUDIT_FILTER_STORAGE_KEY,
+      );
+      if (stored) {
+        const parsed = JSON.parse(stored) as Partial<
+          typeof DEFAULT_SCHEDULER_AUDIT_FILTERS
+        >;
+        setAuditFilters(coerceSchedulerAuditFilters(parsed));
+      }
+    } catch {
+      // Ignore storage read failures and fall back to broad defaults.
+    } finally {
+      setAuditFiltersHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(
+        SCHEDULER_AUDIT_VIEWS_STORAGE_KEY,
+      );
+      if (stored) {
+        setSavedAuditViews(
+          coerceSavedSchedulerAuditViews(JSON.parse(stored)),
+        );
+      }
+    } catch {
+      // Ignore storage read failures and fall back to no saved views.
+    } finally {
+      setSavedAuditViewsHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!auditFiltersHydrated) return;
+    try {
+      window.localStorage.setItem(
+        SCHEDULER_AUDIT_FILTER_STORAGE_KEY,
+        JSON.stringify(auditFilters),
+      );
+    } catch {
+      // Ignore storage write failures and keep the in-memory filters active.
+    }
+  }, [auditFilters, auditFiltersHydrated]);
+
+  useEffect(() => {
+    if (!savedAuditViewsHydrated) return;
+    try {
+      window.localStorage.setItem(
+        SCHEDULER_AUDIT_VIEWS_STORAGE_KEY,
+        JSON.stringify(savedAuditViews),
+      );
+    } catch {
+      // Ignore storage write failures and keep the in-memory saved views active.
+    }
+  }, [savedAuditViews, savedAuditViewsHydrated]);
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setNativeBatchPosture((current) => ({
+      ...current,
+      loading: true,
+      reason: current.nativeReady
+        ? current.reason
+        : "Loading native batch posture…",
+    }));
+    void (async () => {
+      try {
+        const posture = await readAnthropicNativeBatchPosture();
+        if (cancelled) return;
+        setNativeBatchPosture({
+          loading: false,
+          nativeReady: posture.nativeReady,
+          mode: posture.mode,
+          featureEnabled: posture.featureEnabled,
+          paidApisAllowed: posture.paidApisAllowed,
+          apiKeyConfigured: posture.apiKeyConfigured,
+          reason: posture.reason,
+        });
+      } catch {
+        if (cancelled) return;
+        setNativeBatchPosture({
+          loading: false,
+          nativeReady: false,
+          mode: "internal_fallback",
+          featureEnabled: false,
+          paidApisAllowed: false,
+          apiKeyConfigured: false,
+          reason:
+            "Native batch posture is unavailable right now. Scheduler missions will continue on the internal batch lane.",
+        });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   if (!open) return null;
 
@@ -218,461 +712,134 @@ export default function CronSchedulerPanel({ open, onClose }: Props) {
             ✕
           </button>
         </div>
-
-        <div
-          style={{
-            padding: "10px 12px",
-            borderBottom: "1px solid #1A2040",
-            display: "grid",
-            gap: 8,
-          }}
-        >
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Job name (e.g. Morning macro brief)"
-            style={{
-              background: "#080d18",
-              border: "1px solid #1A2040",
-              borderRadius: 6,
-              color: "#ccd6f6",
-              padding: "7px 10px",
-            }}
-          />
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Task prompt (what should run on schedule)"
-            rows={3}
-            style={{
-              background: "#080d18",
-              border: "1px solid #1A2040",
-              borderRadius: 6,
-              color: "#ccd6f6",
-              padding: "7px 10px",
-              resize: "vertical",
-            }}
-          />
-          <div style={{ display: "flex", gap: 8 }}>
-            <select
-              value={cron}
-              onChange={(e) => setCron(e.target.value)}
-              style={{
-                flex: 1,
-                background: "#080d18",
-                border: "1px solid #1A2040",
-                borderRadius: 6,
-                color: "#ccd6f6",
-                padding: "7px 10px",
-              }}
-            >
-              {PRESET_CRONS.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={addJob}
-              style={{
-                background: "rgba(0,221,255,0.1)",
-                border: "1px solid #00DDFF55",
-                color: "#00DDFF",
-                borderRadius: 6,
-                padding: "0 12px",
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
-            >
-              ADD
-            </button>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-              gap: 8,
-            }}
-          >
-            <select
-              value={jobType}
-              onChange={(e) => setJobType(e.target.value as ScheduledJob["type"])}
-              style={{
-                background: "#080d18",
-                border: "1px solid #1A2040",
-                borderRadius: 6,
-                color: "#ccd6f6",
-                padding: "7px 10px",
-              }}
-            >
-              <option value="mission">Mission</option>
-              <option value="prompt">Prompt</option>
-            </select>
-            <select
-              value={outputTarget}
-              onChange={(e) =>
-                setOutputTarget(
-                  e.target.value as NonNullable<ScheduledJob["outputTarget"]>,
-                )
-              }
-              style={{
-                background: "#080d18",
-                border: "1px solid #1A2040",
-                borderRadius: 6,
-                color: "#ccd6f6",
-                padding: "7px 10px",
-              }}
-            >
-              <option value="vault">Vault</option>
-              <option value="notify">Notification</option>
-              <option value="telegram">Telegram</option>
-              <option value="download">Download pack</option>
-              <option value="review">Pending review</option>
-              <option value="none">No artifact</option>
-            </select>
-            <select
-              value={approvalPolicy}
-              onChange={(e) =>
-                setApprovalPolicy(
-                  e.target.value as NonNullable<ScheduledJob["approvalPolicy"]>,
-                )
-              }
-              style={{
-                background: "#080d18",
-                border: "1px solid #1A2040",
-                borderRadius: 6,
-                color: "#ccd6f6",
-                padding: "7px 10px",
-              }}
-            >
-              <option value="human_gate">Human gate</option>
-              <option value="approve_on_write">Approve on write</option>
-              <option value="observe">Observe only</option>
-            </select>
-            <select
-              value={missionAgent}
-              onChange={(e) => setMissionAgent(e.target.value)}
-              style={{
-                background: "#080d18",
-                border: "1px solid #1A2040",
-                borderRadius: 6,
-                color: "#ccd6f6",
-                padding: "7px 10px",
-              }}
-            >
-              <option value="orbit">ORBIT</option>
-              <option value="nova">NOVA</option>
-              <option value="cipher">CIPHER</option>
-              <option value="jansky">JANSKY</option>
-              <option value="flux">FLUX</option>
-            </select>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {MISSION_TEMPLATES.map((template) => (
-              <button
-                key={template.id}
-                type="button"
-                onClick={() => {
-                  setName(template.label);
-                  setPrompt(template.prompt);
-                  setOutputTarget(template.outputTarget);
-                  setApprovalPolicy(template.approvalPolicy);
-                }}
-                style={{
-                  background: "rgba(79,110,247,0.12)",
-                  border: "1px solid rgba(79,110,247,0.26)",
-                  color: "#9fb7ff",
-                  borderRadius: 999,
-                  padding: "4px 10px",
-                  fontSize: 10,
-                  cursor: "pointer",
-                }}
-              >
-                {template.label}
-              </button>
-            ))}
-          </div>
-          <input
-            value={cron}
-            onChange={(e) => setCron(e.target.value)}
-            placeholder="Cron expression (minute hour day month weekday)"
-            style={{
-              background: "#080d18",
-              border: "1px solid #1A2040",
-              borderRadius: 6,
-              color: "#ccd6f6",
-              padding: "7px 10px",
-              fontFamily: "monospace",
-            }}
-          />
-          {error ? (
-            <div style={{ color: "#ef4444", fontSize: 11 }}>{error}</div>
+        <div style={{ flex: 1, overflowY: "auto", paddingBottom: "16px" }}>
+          {focus === "hq-scheduler-composer" ? (
+            <div style={{ padding: "12px 12px 0" }}>
+              <SurfaceFocusStrip
+                title="Focused session: scheduler composer"
+                description="You opened the scheduler directly on mission composition so the draft prompt, cadence, and workflow defaults can be repaired without hunting through the drawer."
+              />
+            </div>
           ) : null}
-        </div>
 
-        <div
-          style={{
-            padding: "9px 12px",
-            borderBottom: "1px solid #1A2040",
-            display: "grid",
-            gap: 8,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ color: "#f59e0b", fontWeight: 800, fontSize: 11 }}>
-              AUTO OPS PREVIEW
-            </span>
-            <span style={{ color: "#6875a0", fontSize: 10 }}>
-              Mode: {profile.label}
-            </span>
-            <span
-              style={{
-                marginLeft: "auto",
-                color: modeEnabled ? "#10b981" : "#ef4444",
-                fontSize: 10,
-                fontWeight: 700,
-              }}
-            >
-              {modeEnabled ? "ARMED" : "DISARMED"}
-            </span>
+          {focus === "hq-scheduler-governance" ? (
+            <div style={{ padding: "12px 12px 0" }}>
+              <SurfaceFocusStrip
+                title="Focused session: scheduler governance"
+                description="You opened the scheduler directly on governance so native-batch readiness, audit exports, and saved review views are visible before broader automation edits."
+              />
+            </div>
+          ) : null}
+
+          {focus === "hq-scheduler-jobs" ? (
+            <div style={{ padding: "12px 12px 0" }}>
+              <SurfaceFocusStrip
+                title="Focused session: scheduler jobs"
+                description="You opened the scheduler directly on active jobs so mission state, last artifact posture, and queue recovery actions are visible immediately."
+              />
+            </div>
+          ) : null}
+
+          <div id="cron-scheduler-composer" style={{ scrollMarginTop: "96px" }}>
+            <CronSchedulerComposerSection
+              name={name}
+              prompt={prompt}
+              cron={cron}
+              jobType={jobType}
+              outputTarget={outputTarget}
+              approvalPolicy={approvalPolicy}
+              missionAgent={missionAgent}
+              workflowTopic={workflowTopic}
+              error={error}
+              automationCandidateWorkflows={automationCandidateWorkflows}
+              reviewOnlyWorkflows={reviewOnlyWorkflows}
+              onNameChange={setName}
+              onPromptChange={setPrompt}
+              onCronChange={setCron}
+              onJobTypeChange={setJobType}
+              onOutputTargetChange={setOutputTarget}
+              onApprovalPolicyChange={setApprovalPolicy}
+              onMissionAgentChange={setMissionAgent}
+              onWorkflowTopicChange={setWorkflowTopic}
+              onAddJob={addJob}
+              onApplyMissionTemplate={applyMissionTemplate}
+              onApplyWorkflowTemplate={applyWorkflowTemplate}
+            />
           </div>
-          {modeJobs.length === 0 ? (
-            <div style={{ color: "#6875a0", fontSize: 11 }}>
-              No mode auto-jobs in this profile.
-            </div>
-          ) : (
-            modeJobs.map((j) => {
-              const last = settings.autoOpsLastRunAt?.[j.id] ?? 0;
-              const remaining = Math.max(0, cooldownMs - (now - last));
-              return (
-                <div
-                  key={j.id}
-                  style={{
-                    border: "1px solid #1A2040",
-                    borderRadius: 8,
-                    background: "#080d18",
-                    padding: "8px 10px",
-                    display: "grid",
-                    gap: 4,
-                  }}
-                >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  >
-                    <span
-                      style={{
-                        color: "#ccd6f6",
-                        fontSize: 11,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {j.name}
-                    </span>
-                    <span
-                      style={{
-                        marginLeft: "auto",
-                        color: "#00DDFF",
-                        fontSize: 10,
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      every {j.intervalMin}m
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      fontSize: 10,
-                    }}
-                  >
-                    <span style={{ color: "#8892b0" }}>
-                      Next slot: {nextSlotLabel(j.intervalMin)}
-                    </span>
-                    <span style={{ color: "#8892b0" }}>
-                      Cooldown: {fmtRemaining(remaining)}
-                    </span>
-                    <span style={{ color: last ? "#6875a0" : "#304060" }}>
-                      Last run:{" "}
-                      {last
-                        ? new Date(last).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "never"}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", gap: 6, marginTop: 2 }}>
-                    <button
-                      onClick={() => triggerAutoJob(j.id, false)}
-                      disabled={!modeEnabled || remaining > 0}
-                      style={{
-                        borderRadius: 6,
-                        border: "1px solid #00DDFF55",
-                        background:
-                          modeEnabled && remaining <= 0
-                            ? "rgba(0,221,255,0.12)"
-                            : "rgba(26,32,64,0.2)",
-                        color:
-                          modeEnabled && remaining <= 0 ? "#00DDFF" : "#6875a0",
-                        padding: "4px 8px",
-                        cursor:
-                          modeEnabled && remaining <= 0
-                            ? "pointer"
-                            : "not-allowed",
-                        fontSize: 10,
-                        fontWeight: 700,
-                      }}
-                    >
-                      Run now
-                    </button>
-                    <button
-                      onClick={() => triggerAutoJob(j.id, true)}
-                      disabled={!modeEnabled}
-                      style={{
-                        borderRadius: 6,
-                        border: "1px solid rgba(245,158,11,.45)",
-                        background: modeEnabled
-                          ? "rgba(245,158,11,.12)"
-                          : "rgba(26,32,64,0.2)",
-                        color: modeEnabled ? "#f59e0b" : "#6875a0",
-                        padding: "4px 8px",
-                        cursor: modeEnabled ? "pointer" : "not-allowed",
-                        fontSize: 10,
-                        fontWeight: 700,
-                      }}
-                      title="Force run (bypass cooldown)"
-                    >
-                      Force
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
 
-        <div
-          style={{
-            padding: "9px 12px",
-            overflowY: "auto",
-            display: "grid",
-            gap: 8,
-          }}
-        >
-          {sortedJobs.length === 0 ? (
-            <div
-              style={{
-                color: "#6875a0",
-                textAlign: "center",
-                padding: "22px 8px",
+          <div id="cron-scheduler-governance" style={{ scrollMarginTop: "96px" }}>
+            <CronSchedulerGovernanceSection
+              jobs={jobs}
+              nativeBatchPosture={nativeBatchPosture}
+              savedAuditViews={savedAuditViews}
+              pendingImportedAuditViews={pendingImportedAuditViews}
+              importSavedViewsInputRef={importSavedViewsInputRef}
+              showSaveAuditView={showSaveAuditView}
+              newAuditViewName={newAuditViewName}
+              showPasteAuditViews={showPasteAuditViews}
+              pastedAuditViewsText={pastedAuditViewsText}
+              auditFilters={auditFilters}
+              hasActiveAuditFilters={hasActiveAuditFilters}
+              auditMsg={auditMsg}
+              onCopySchedulerAudit={() => {
+                void copySchedulerAudit();
               }}
-            >
-              No scheduled jobs yet.
-            </div>
-          ) : (
-            sortedJobs.map((job) => (
-              <div
-                key={job.id}
-                style={{
-                  border: `1px solid ${job.enabled ? "#00DDFF33" : "#1A2040"}`,
-                  borderRadius: 8,
-                  background: "#080d18",
-                  padding: "10px 12px",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div
-                    style={{ color: "#ccd6f6", fontWeight: 700, fontSize: 12 }}
-                  >
-                    {job.name}
-                  </div>
-                  <span
-                    style={{
-                      marginLeft: "auto",
-                      color: job.enabled ? "#10b981" : "#6875a0",
-                      fontSize: 10,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {job.enabled ? "ENABLED" : "DISABLED"}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    color: "#8892b0",
-                    fontSize: 11,
-                    marginTop: 4,
-                    lineHeight: 1.45,
-                  }}
-                >
-                  {job.prompt}
-                </div>
-                <div
-                  style={{
-                    marginTop: 6,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "monospace",
-                      color: "#00DDFF",
-                      fontSize: 11,
-                    }}
-                  >
-                    {job.cron}
-                  </span>
-                  {job.lastRunAt ? (
-                    <span style={{ color: "#6875a0", fontSize: 10 }}>
-                      Last run: {new Date(job.lastRunAt).toLocaleString()}
-                    </span>
-                  ) : (
-                    <span style={{ color: "#304060", fontSize: 10 }}>
-                      Never run
-                    </span>
-                  )}
-                  <span style={{ color: "#6875a0", fontSize: 10 }}>
-                    {job.outputTarget ?? "none"} · {job.approvalPolicy ?? "human_gate"} · {job.missionAgent ?? "orbit"}
-                  </span>
-                </div>
-                <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
-                  <button
-                    onClick={() => toggleJob(job.id)}
-                    style={{
-                      borderRadius: 6,
-                      border: "1px solid #1A2040",
-                      background: "transparent",
-                      color: "#ccd6f6",
-                      padding: "4px 8px",
-                      cursor: "pointer",
-                      fontSize: 10,
-                    }}
-                  >
-                    {job.enabled ? "Disable" : "Enable"}
-                  </button>
-                  <button
-                    onClick={() => removeJob(job.id)}
-                    style={{
-                      borderRadius: 6,
-                      border: "1px solid rgba(239,68,68,.45)",
-                      background: "rgba(239,68,68,.1)",
-                      color: "#ef4444",
-                      padding: "4px 8px",
-                      cursor: "pointer",
-                      fontSize: 10,
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
+              onExportSchedulerAudit={exportSchedulerAudit}
+              onToggleSaveAuditView={() => {
+                setShowSaveAuditView((current) => !current);
+                setNewAuditViewName("");
+              }}
+              onExportSavedAuditViews={exportSavedAuditViews}
+              onImportSavedAuditViewsClick={() => importSavedViewsInputRef.current?.click()}
+              onTogglePasteAuditViews={() => {
+                setShowPasteAuditViews((current) => !current);
+                if (showPasteAuditViews) {
+                  setPastedAuditViewsText("");
+                }
+              }}
+              onImportSavedAuditViewsFromFile={importSavedAuditViewsFromFile}
+              onPastedAuditViewsTextChange={setPastedAuditViewsText}
+              onPreviewPastedAuditViewsImport={previewPastedAuditViewsImport}
+              onApplyImportedSavedAuditViews={applyImportedSavedAuditViews}
+              onCancelImportedSavedAuditViews={() => {
+                setPendingImportedAuditViews(null);
+                setAuditMsg("Canceled saved audit view import preview.");
+              }}
+              onNewAuditViewNameChange={setNewAuditViewName}
+              onSaveCurrentAuditView={saveCurrentAuditView}
+              onApplySavedAuditView={(view) => {
+                setAuditFilters({ ...view.filters });
+                setAuditMsg(`Applied saved audit view ${view.name}.`);
+              }}
+              onRemoveSavedAuditView={(view) => removeSavedAuditView(view.id, view.name)}
+              onSetAuditFilters={setAuditFilters}
+            />
+          </div>
+
+          <CronSchedulerAutoOpsSection
+            profileLabel={profile.label}
+            modeEnabled={modeEnabled}
+            modeJobs={modeJobs}
+            autoOpsLastRunAt={settings.autoOpsLastRunAt}
+            cooldownMs={cooldownMs}
+            now={now}
+            nextSlotLabel={nextSlotLabel}
+            fmtRemaining={fmtRemaining}
+            onTriggerAutoJob={triggerAutoJob}
+          />
+
+          <div id="cron-scheduler-jobs" style={{ scrollMarginTop: "96px" }}>
+            <CronSchedulerJobsSection
+              sortedJobs={sortedJobs}
+              auditFilters={auditFilters}
+              hasActiveAuditFilters={hasActiveAuditFilters}
+              onToggleJob={toggleJob}
+              onRemoveJob={removeJob}
+              onCopyJobAudit={copyJobAudit}
+              onExportJobAudit={exportJobAudit}
+              onClearQueuedJob={clearQueuedJob}
+            />
+          </div>
         </div>
       </div>
     </>

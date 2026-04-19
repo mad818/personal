@@ -26,11 +26,14 @@ If you want to add/modify environmental objects, extend this file with native Th
 ## Visual contract: `OfficeRoom3D` props
 
 `OfficeRoom3D` expects:
+- `officeLayout`: persisted object layout.
 - `agentPos: Record<AgentId, { x: number; y: number }>`: where each agent is placed.
 - `activeAgent`: agent currently executing.
-- `officeEditMode`: whether drag/edit handles are enabled.
-- `officeLayout`: persisted object layout.
+- `missionState`, `missionLabel`, `missionNote`, `commandTempo`, `primaryFront`: the strategium posture shown in-room.
 - `sceneMode`: `auto`/`morning`/`afternoon`/`night`.
-- `motionIntensity`: quality/motion tuning.
+- `motionProfile`, `motionIntensity`, `cameraPreset`, `vfxQuality`: visual posture and quality tuning.
+- `controls: OfficeRoomControls`: the single interaction contract for edit mode, room actions, and camera/VFX controls.
 - `dispatchBar`: temporary dispatch travel state used for the 3D beam.
+
+`controls.officeEditMode` replaces the older direct `officeEditMode` prop. If you need to change room actions or edit posture, update the shared controls object rather than widening the prop list again.
 

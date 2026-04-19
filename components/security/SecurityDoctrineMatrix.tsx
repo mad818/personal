@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 import { SectionLabel, ShellBadge, ShellButton } from "@/components/ui/shell";
+import { InternalWorkbenchNotice } from "@/components/ui/InternalWorkbenchNotice";
 import type {
   SecurityRun,
   SecurityScenario,
   SecurityScenarioSource,
   SecurityScenarioStatus,
 } from "@/lib/assimilation/types";
+import type { InternalWorkbenchMeta } from "@/lib/assimilation/contracts";
 
 const STATUS_TONE: Record<SecurityScenarioStatus, "success" | "accent" | "muted" | "default"> = {
   "not-started": "default",
@@ -25,6 +28,9 @@ export default function SecurityDoctrineMatrix({ initialSource = "all" }: Props)
   const [source, setSource] = useState<SecurityScenarioSource | "all">(initialSource);
   const [scenarios, setScenarios] = useState<SecurityScenario[]>([]);
   const [runs, setRuns] = useState<SecurityRun[]>([]);
+  const [scenarioMeta, setScenarioMeta] = useState<InternalWorkbenchMeta | null>(null);
+  const [runMeta, setRunMeta] = useState<InternalWorkbenchMeta | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     setSource(initialSource);
@@ -32,18 +38,41 @@ export default function SecurityDoctrineMatrix({ initialSource = "all" }: Props)
 
   useEffect(() => {
     let active = true;
-    void Promise.all([
-      fetch("/api/security/scenarios", { cache: "no-store" }).then((response) =>
-        response.json() as Promise<{ scenarios: SecurityScenario[] }>,
-      ),
-      fetch("/api/security/runs", { cache: "no-store" }).then((response) =>
-        response.json() as Promise<{ runs: SecurityRun[] }>,
-      ),
-    ]).then(([scenarioPayload, runPayload]) => {
-      if (!active) return;
-      setScenarios(scenarioPayload.scenarios);
-      setRuns(runPayload.runs);
-    });
+    const load = async () => {
+      try {
+        const [scenarioResponse, runResponse] = await Promise.all([
+          apiFetch("/api/security/scenarios", { cache: "no-store" }),
+          apiFetch("/api/security/runs", { cache: "no-store" }),
+        ]);
+        if (!scenarioResponse.ok || !runResponse.ok) {
+          if (active) {
+            setLoadError("Security controls are unavailable right now.");
+          }
+          return;
+        }
+        const [scenarioPayload, runPayload] = await Promise.all([
+          scenarioResponse.json() as Promise<{
+            scenarios: SecurityScenario[];
+            meta?: InternalWorkbenchMeta;
+          }>,
+          runResponse.json() as Promise<{
+            runs: SecurityRun[];
+            meta?: InternalWorkbenchMeta;
+          }>,
+        ]);
+        if (!active) return;
+        setScenarios(scenarioPayload.scenarios);
+        setRuns(runPayload.runs);
+        setScenarioMeta(scenarioPayload.meta ?? null);
+        setRunMeta(runPayload.meta ?? null);
+        setLoadError(null);
+      } catch {
+        if (active) {
+          setLoadError("Security controls are unavailable right now.");
+        }
+      }
+    };
+    void load();
     return () => {
       active = false;
     };
@@ -68,21 +97,25 @@ export default function SecurityDoctrineMatrix({ initialSource = "all" }: Props)
       ...scenario,
       status: nextStatus,
     };
-    await fetch("/api/security/scenarios", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updated),
-    });
-    setScenarios((current) =>
-      current.map((entry) => (entry.id === scenario.id ? updated : entry)),
-    );
+    try {
+      const response = await apiFetch("/api/security/scenarios", {
+        method: "POST",
+        body: JSON.stringify(updated),
+      });
+      if (!response.ok) return;
+      setScenarios((current) =>
+        current.map((entry) => (entry.id === scenario.id ? updated : entry)),
+      );
+    } catch {
+      // Preserve the current doctrine view on failure.
+    }
   }
 
   return (
     <div style={{ display: "grid", gap: "14px" }}>
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         <ShellButton active={source === "all"} onClick={() => setSource("all")}>
-          All doctrine
+          All controls
         </ShellButton>
         <ShellButton
           active={source === "wstg-v42"}
@@ -98,6 +131,11 @@ export default function SecurityDoctrineMatrix({ initialSource = "all" }: Props)
         </ShellButton>
       </div>
 
+      <InternalWorkbenchNotice meta={scenarioMeta ?? runMeta} compact />
+      {loadError ? (
+        <div style={{ fontSize: "11px", color: "var(--text3)" }}>{loadError}</div>
+      ) : null}
+
       <div
         style={{
           display: "grid",
@@ -112,9 +150,11 @@ export default function SecurityDoctrineMatrix({ initialSource = "all" }: Props)
               key={scenario.id}
               style={{
                 padding: "14px",
-                borderRadius: "14px",
-                border: "1px solid var(--border)",
-                background: "rgba(10, 15, 30, 0.62)",
+                borderRadius: "6px",
+                borderTop: "1px solid rgba(184, 200, 216, 0.16)",
+                borderLeft: "1px solid rgba(184, 200, 216, 0.24)",
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0) 22%), rgba(8, 12, 19, 0.5)",
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
@@ -165,12 +205,14 @@ export default function SecurityDoctrineMatrix({ initialSource = "all" }: Props)
       <div
         style={{
           padding: "14px",
-          borderRadius: "14px",
-          border: "1px solid rgba(214, 165, 109, 0.35)",
-          background: "rgba(214, 165, 109, 0.08)",
+          borderRadius: "6px",
+          borderTop: "1px solid rgba(184, 200, 216, 0.18)",
+          borderLeft: "1px solid rgba(184, 200, 216, 0.24)",
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0) 24%), rgba(7, 12, 20, 0.46)",
         }}
       >
-        <SectionLabel detail="Doctrine posture">Coverage note</SectionLabel>
+        <SectionLabel detail="Control posture">Coverage note</SectionLabel>
         <p style={{ margin: "10px 0 0", fontSize: "12px", color: "var(--text2)", lineHeight: 1.65 }}>
           WSTG scenarios stay version-pinned to `v4.2` until the OWASP 5.0 guide stabilizes. AI-surface scenarios are tracked beside them, not disguised as WSTG categories, so prompt and tool risks remain visible as first-class security work.
         </p>

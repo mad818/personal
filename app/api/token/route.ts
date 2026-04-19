@@ -1,15 +1,22 @@
 // ── api/token ───────────────────────────────────────────────
-// Token info API: blockchain token metadata and on-chain analytics.
+// Local auth token exchange and minimal session introspection.
 
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import {
+  applyAuthNoStoreHeaders,
+  clearNexusSessionCookie,
+  createNexusSession,
+  createNexusStepUp,
   getConfiguredNexusToken,
-  matchesConfiguredNexusToken,
+  getNexusSessionState,
+  getNexusStepUpState,
   NEXUS_SESSION_COOKIE,
+  NEXUS_STEP_UP_COOKIE,
+  setNexusSessionCookie,
+  setNexusStepUpCookie,
 } from "@/lib/authSession";
 import { normalizeTokenCandidate } from "@/lib/authToken";
-import { applyNoStoreHeaders } from "@/lib/runtimeIdentity";
 
 type AttemptInfo = { count: number; resetAt: number };
 type TokenCode =
@@ -58,21 +65,26 @@ function cleanupExpiredAttempts(now: number) {
 function tokenJson(body: TokenResponse, status = 200) {
   TOKEN_METRICS[body.code] += 1;
   const response = NextResponse.json(body, { status });
-  applyNoStoreHeaders(response.headers);
+  applyAuthNoStoreHeaders(response.headers);
   return response;
 }
 
 export async function GET(req: NextRequest) {
+  const authEnabled = Boolean(getConfiguredNexusToken());
   const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? "";
+  const stepUpCookie = req.cookies.get(NEXUS_STEP_UP_COOKIE)?.value ?? "";
+  const sessionState = await getNexusSessionState(sessionCookie);
+  const stepUpState = await getNexusStepUpState(stepUpCookie, sessionCookie);
   const response = NextResponse.json({
     ok: true,
-    attemptsTracked: TOKEN_ATTEMPTS.size,
-    metrics: TOKEN_METRICS,
-    windowMs: WINDOW_MS,
-    maxAttempts: MAX_ATTEMPTS,
-    authenticated: matchesConfiguredNexusToken(sessionCookie),
+    authEnabled,
+    authenticated: authEnabled ? Boolean(sessionState) : true,
+    stepUpActive: authEnabled ? Boolean(stepUpState) : true,
+    sessionAgeSeconds: sessionState?.ageSeconds ?? null,
+    sessionRemainingSeconds: sessionState?.remainingSeconds ?? null,
+    stepUpRemainingSeconds: stepUpState?.remainingSeconds ?? null,
   });
-  applyNoStoreHeaders(response.headers);
+  applyAuthNoStoreHeaders(response.headers);
   return response;
 }
 
@@ -83,8 +95,9 @@ export async function GET(req: NextRequest) {
  * The frontend sends { token } and gets back { ok: true } if valid.
  * This is the equivalent of OpenClaw's dashboard connect flow.
  *
- * The token itself is never sent back — the client just stores what
- * it originally submitted (it already has it from the user entering it).
+ * The token itself is never sent back, and the browser should not persist the
+ * master token after validation. Successful auth relies on the httpOnly session
+ * cookie issued by the server.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -111,11 +124,12 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
-    const rawBody = (await req.json()) as { token?: unknown };
+    const rawBody = (await req.json()) as { token?: unknown; elevate?: unknown };
     const token =
       typeof rawBody.token === "string"
         ? normalizeTokenCandidate(rawBody.token)
         : undefined;
+    const elevate = rawBody.elevate === true;
     const serverToken = getConfiguredNexusToken();
 
     if (!serverToken) {
@@ -140,25 +154,38 @@ export async function POST(req: NextRequest) {
         { ok: false, code: "invalid_token", retryable: false, error: "Invalid token" },
         401,
       );
-      response.cookies.set(NEXUS_SESSION_COOKIE, "", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 0,
-      });
+      clearNexusSessionCookie(response);
       return response;
     }
 
     TOKEN_ATTEMPTS.delete(clientId);
-    const response = tokenJson({ ok: true, code: "ok", retryable: false });
-    response.cookies.set(NEXUS_SESSION_COOKIE, serverToken, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 12,
+    const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? "";
+    const existingSession = await getNexusSessionState(sessionCookie);
+    const session = existingSession ?? (await createNexusSession());
+    if (!session) {
+      return tokenJson(
+        {
+          ok: false,
+          code: "server_error",
+          retryable: true,
+          error: "Session minting failed on the local runtime.",
+        },
+        500,
+      );
+    }
+    const response = tokenJson({
+      ok: true,
+      code: "ok",
+      retryable: false,
     });
+    setNexusSessionCookie(response, session.cookieValue);
+    if (elevate) {
+      const stepUp = await createNexusStepUp(session.sessionId);
+      if (stepUp) {
+        setNexusStepUpCookie(response, stepUp.cookieValue);
+        response.headers.set("X-Nexus-Step-Up", "armed");
+      }
+    }
     return response;
   } catch {
     return tokenJson(

@@ -4,8 +4,37 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { OFFICE_OBJECT_DEFAULTS } from '@/components/home/office/constants'
-import type { OfficeObjectId, OfficeObjectPos } from '@/components/home/office/types'
+import type { OfficeObjectId, OfficeObjectPos, PersonaMode, CouncilResult, SwitchOperatorStatus, VaultArchiveLink, VaultGraphData, VaultSynthesis, VaultLintResult } from '@/components/home/office/types'
 import { DEFAULT_LOCAL_MODEL } from '@/lib/aiModelRouting'
+import { normalizePreferredAIProvider, type PreferredAIProvider } from '@/lib/aiProviderPreference'
+import {
+  type UnfinishedSessionCompletionState,
+  type UnfinishedSessionMemory,
+  rememberUnfinishedSession,
+  pruneUnfinishedSessions,
+  touchUnfinishedSession,
+} from '@/lib/assistantSessionMemory'
+import { normalizePreparedWorkspaceTarget } from '@/lib/assistantSessionRegistry'
+import { sanitizeClientSettingsForPersistence } from '@/lib/clientSettingsBoundary'
+import {
+  DEFAULT_VEHICLE_CONNECTOR_PROFILE,
+  normalizeVehicleChecklistState,
+  normalizeVehicleConnectorProfile,
+  VEHICLE_FIRST_HARDWARE_DAY_CHECKLIST,
+} from '@/lib/vehicle/hardwareReadiness'
+import { VEHICLE_BENCH_CHECKLIST } from '@/lib/vehicle/readiness'
+import type { HQAssistantIntent, PreparedWorkspaceTarget } from '@/components/home/office/types'
+import type { ContextLoadReport } from '@/lib/contextPolicy'
+import type { ArticleReasoningIndex } from '@/lib/articleReasoning'
+import type { VoiceProfile, VoiceProject } from '@/lib/voiceLab'
+
+// ── Lessons engine types ──────────────────────────────────────────────────────
+export interface Lesson {
+  id:               number
+  rule:             string
+  /** How many times this lesson has been injected into agent prompts. */
+  reinforcedCount:  number
+}
 
 // ── Notification types ────────────────────────────────────────────────────────
 export type NotificationType     = 'threat' | 'market' | 'seismic' | 'weather' | 'system' | 'intel'
@@ -27,6 +56,38 @@ export interface TaskItem {
   status: 'pending' | 'running' | 'done' | 'failed'
 }
 
+export interface ScheduledJobEfficiencySnapshot {
+  recordedAt:        number
+  systemPromptChars: number
+  stablePrefixChars: number
+  volatilePromptChars: number
+  promptChars:       number
+  outputChars:       number
+  toolCatalogChars:  number
+  cacheability:      'high' | 'medium' | 'low'
+  cacheStrategy:     'system_only' | 'system_plus_user_prefix'
+  singleFlightScope: 'job' | 'shared_window'
+  batchedRun:        boolean
+  batchMode:         'single' | 'internal' | 'provider_native'
+  batchSize:         number
+  cacheObserved:     boolean
+  cacheReadTokens:   number
+  cacheWriteTokens:  number
+  cacheHit:          boolean
+}
+
+export interface ScheduledJobRecentExecution {
+  recordedAt:      number
+  status:          'ok' | 'error'
+  executionOrigin: 'single_run' | 'internal_batch' | 'provider_native_batch'
+  summary:         string
+  wroteArtifact:   boolean
+  artifactTarget?: 'vault' | 'notify' | 'none' | 'telegram' | 'download' | 'review'
+  cacheStrategy:   ScheduledJobEfficiencySnapshot['cacheStrategy']
+  batchMode:       ScheduledJobEfficiencySnapshot['batchMode']
+  cacheHit:        boolean
+}
+
 export interface ScheduledJob {
   id:            string
   name:          string
@@ -34,14 +95,30 @@ export interface ScheduledJob {
   cron:          string     // 5-field cron expression (min hour dom mon dow)
   enabled:       boolean
   lastRunAt?:    number
-  lastStatus?:   'ok' | 'error'
+  lastStatus?:   'ok' | 'error' | 'queued'
   lastSummary?:  string
+  pendingBatchId?: string
+  pendingBatchProvider?: 'anthropic'
+  pendingBatchSubmittedAt?: number
+  pendingBatchSize?: number
+  pendingBatchPollFailures?: number
+  pendingBatchSystemPromptChars?: number
+  pendingBatchStablePrefixChars?: number
+  pendingBatchVolatilePromptChars?: number
+  pendingBatchCacheStrategy?: ScheduledJobEfficiencySnapshot['cacheStrategy']
   // Mission-type jobs: agent runs a structured objective + saves output to Vault
   type?:         'prompt' | 'mission'
   outputTarget?: 'vault' | 'notify' | 'none' | 'telegram' | 'download' | 'review'
   missionAgent?: string                         // override agent selection
   approvalPolicy?: 'human_gate' | 'approve_on_write' | 'observe'
   templateId?:   string
+  lastEfficiency?: ScheduledJobEfficiencySnapshot
+  lastExecutionOrigin?: 'single_run' | 'internal_batch' | 'provider_native_batch'
+  lastExecutionAt?: number
+  recentExecutions?: ScheduledJobRecentExecution[]
+  lastArtifactOrigin?: 'single_run' | 'internal_batch' | 'provider_native_batch'
+  lastArtifactTarget?: NonNullable<ScheduledJob['outputTarget']>
+  lastArtifactAt?: number
 }
 
 export interface PendingEdit {
@@ -105,6 +182,22 @@ export interface AgentToolTrace {
   output?: string
 }
 
+export interface AgentEfficiencyMetrics {
+  contextScope: 'full' | 'agent_scoped' | 'minimal' | 'unknown'
+  systemPromptChars: number
+  liveContextChars: number
+  liveContextCompacted: boolean
+  memoryDiffChars: number
+  memoryContextChars: number
+  ragChars: number
+  lessonsChars: number
+  toolCatalogCount: number
+  toolCatalogChars: number
+  toolPackId: string
+  readCacheHits: number
+  duplicateReadCount: number
+}
+
 export interface AgentRunArtifact {
   runId: string
   runtimeEngine: 'nexus' | 'claudeCode'
@@ -113,9 +206,11 @@ export interface AgentRunArtifact {
   userMessage: string
   finalAnswer: string
   verificationSummary: string
+  providerUsed?: string
   contextChars: number
   contextCompacted: boolean
   toolTraces: AgentToolTrace[]
+  efficiency: AgentEfficiencyMetrics
 }
 
 // ── Activity log ──────────────────────────────────────────────────────────────
@@ -140,6 +235,40 @@ export interface Notification {
   read:      boolean
 }
 
+export type FeedStatusKey =
+  | 'prices'
+  | 'articles'
+  | 'cves'
+  | 'threatIntel'
+  | 'conflict'
+  | 'polymarket'
+  | 'marketRates'
+  | 'cisaKev'
+  | 'weather'
+  | 'flights'
+  | 'secFilings'
+
+export interface FeedStatus {
+  lastAttemptAt: number | null
+  lastSuccessAt: number | null
+  lastFailureAt: number | null
+  lastError: string | null
+}
+
+export const DEFAULT_FEED_STATUS: Record<FeedStatusKey, FeedStatus> = {
+  prices:       { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  articles:     { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  cves:         { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  threatIntel:  { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  conflict:     { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  polymarket:   { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  marketRates:  { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  cisaKev:      { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  weather:      { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  flights:      { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  secFilings:   { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+}
+
 export interface ModeBriefing {
   id: string
   mode: 'normal' | 'war' | 'nightOps'
@@ -156,9 +285,9 @@ export const DEFAULT_SETTINGS = {
   // AI
   apiKey:            '',
   minimaxKey:        '',
-  aiProvider:        'openai' as 'openai' | 'anthropic' | 'minimax',
+  aiProvider:        'ollama' as PreferredAIProvider,
   localEndpoint:     'http://localhost:11434/v1/chat/completions',
-  localModel:        DEFAULT_LOCAL_MODEL,
+  localModel:        DEFAULT_LOCAL_MODEL as string,
   localApiKey:       '',
   useLocalReasoning: true,   // Use local deepseek-r1:14b for Think mode
   deploymentLanePreference: 'dualTrack' as 'webFirst' | 'dualTrack' | 'desktopFirst',
@@ -195,12 +324,18 @@ export const DEFAULT_SETTINGS = {
   botAlerts:     [] as unknown[],
   customFeeds:   [] as unknown[],
   alertKeywords: '',
+  doNotDisturb:  false,
+  agentDebugMode: false,
   officeSceneMode: 'auto' as 'auto' | 'morning' | 'afternoon' | 'night',
+  surfaceMotionProfile: 'flagship' as 'reduced' | 'standard' | 'flagship',
   officeMotion: 1,
   officeSplitHeightPx: 0,
   officeCameraPreset: 'cinematic' as 'cinematic' | 'closeOps' | 'wallReadability',
   officeOperationalMode: 'normal' as 'normal' | 'war' | 'nightOps',
   officeVfxQuality: 'low' as 'off' | 'low' | 'high',
+  vehicleBenchChecklist: {} as Record<string, boolean>,
+  vehicleFirstHardwareChecklist: {} as Record<string, boolean>,
+  vehicleConnectorProfile: DEFAULT_VEHICLE_CONNECTOR_PROFILE,
   enableWarAutoJobs: false,
   enableNightOpsAutoJobs: false,
   autoOpsJobCooldownMin: 30,
@@ -213,6 +348,31 @@ export const DEFAULT_SETTINGS = {
 }
 
 export type Settings = typeof DEFAULT_SETTINGS
+
+function normalizeSettingsPatch(patch: Partial<Settings>): Partial<Settings> {
+  const nextPatch: Partial<Settings> = { ...patch }
+  if (Object.prototype.hasOwnProperty.call(nextPatch, 'aiProvider')) {
+    nextPatch.aiProvider = normalizePreferredAIProvider(nextPatch.aiProvider)
+  }
+  if (Object.prototype.hasOwnProperty.call(nextPatch, 'vehicleBenchChecklist')) {
+    nextPatch.vehicleBenchChecklist = normalizeVehicleChecklistState(
+      nextPatch.vehicleBenchChecklist,
+      VEHICLE_BENCH_CHECKLIST.map((item) => item.id),
+    )
+  }
+  if (Object.prototype.hasOwnProperty.call(nextPatch, 'vehicleFirstHardwareChecklist')) {
+    nextPatch.vehicleFirstHardwareChecklist = normalizeVehicleChecklistState(
+      nextPatch.vehicleFirstHardwareChecklist,
+      VEHICLE_FIRST_HARDWARE_DAY_CHECKLIST.map((item) => item.id),
+    )
+  }
+  if (Object.prototype.hasOwnProperty.call(nextPatch, 'vehicleConnectorProfile')) {
+    nextPatch.vehicleConnectorProfile = normalizeVehicleConnectorProfile(
+      nextPatch.vehicleConnectorProfile,
+    )
+  }
+  return nextPatch
+}
 
 // ── Live data types ───────────────────────────────────────────────────────────
 export interface PriceData {
@@ -233,6 +393,8 @@ export interface Article {
   src?:  string
   cat?:  string    // crypto | markets | cyber | tech | world
   tags?: string[]  // user-defined tags for vault filtering (Siftly pattern)
+  index?: ArticleReasoningIndex
+  archiveLinks?: VaultArchiveLink[]
 }
 
 export interface PendingDraft {
@@ -301,12 +463,30 @@ export interface SecurityAlert {
   [key: string]: unknown
 }
 
+export interface PrivacyShieldStatus {
+  active: boolean
+  provider?: string
+  protectedKinds: string[]
+  protectedCount: number
+  summary: string
+  updatedAt: number
+}
+
 // ── Office chat message (persisted in-session) ────────────────────────────────
 export interface OfficeChatMessage {
   role:   'user' | 'agent'
   agent?: string   // AgentId
   text:   string
   // steps are NOT persisted (too large) — only shown live
+}
+
+export interface PreparedWorkspaceSession {
+  href: string
+  label: string
+  detail: string
+  intent: HQAssistantIntent
+  sourceQuery: string
+  preparedAt: number
 }
 
 // ── Store interface ───────────────────────────────────────────────────────────
@@ -330,9 +510,9 @@ interface NexusState {
   // Per-tab sub-tab selections (persisted)
   intelView:     'news' | 'world' | 'markets' | 'sweeps'
   marketsView:   'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices' | 'charts'
-  cyberView:     'triage' | 'matrix' | 'cves' | 'otx' | 'cisa'
+  cyberView:     'triage' | 'matrix' | 'cves' | 'otx' | 'cisa' | 'drone' | 'vuln-review'
   skillsWorkbenchView: 'forge' | 'blacksite' | 'brain' | 'library'
-  resourcesWorkbenchView: 'manual' | 'registry' | 'kits'
+  resourcesWorkbenchView: 'finder' | 'manual' | 'study' | 'surfaces' | 'playbooks' | 'specs' | 'system' | 'impact' | 'registry' | 'kits' | 'voice-lab'
   securityWorkbenchView: 'doctrine' | 'physical' | 'ai'
   prices:        Record<string, PriceData>
   sparklines:    Record<string, number[]>
@@ -359,6 +539,10 @@ interface NexusState {
   secFilings:     GeoRecord[]
   flights:        GeoRecord[]
   securityAlerts: SecurityAlert[]
+  voiceProfiles: VoiceProfile[]
+  voiceProjects: VoiceProject[]
+  activeVoiceProjectId: string | null
+  privacyShieldStatus: PrivacyShieldStatus | null
 
   // Operational phase
   currentPhase:      OperationalPhase
@@ -383,6 +567,10 @@ interface NexusState {
   agentStats:       Record<string, AgentStats>
   updateAgentStats: (agentId: string, patch: Partial<AgentStats>) => void
 
+  // Agent learnings — display cache (server is source of truth)
+  agentLearnings: Record<string, import("@/lib/agentLearnings").LearningEntry[]>
+  setAgentLearnings: (agent: string, entries: import("@/lib/agentLearnings").LearningEntry[]) => void
+
   // Agent runtime diagnostics (run id, phase durations, verification status)
   agentRuntime:      AgentRuntime
   beginAgentRun:     (runId: string) => void
@@ -390,11 +578,42 @@ interface NexusState {
   finishAgentRun:    (patch: Partial<Pick<AgentRuntime, 'status' | 'failureCause' | 'verification' | 'contextChars' | 'contextCompacted'>>) => void
   agentRunHistory:    AgentRunArtifact[]
   addAgentRunArtifact:(artifact: AgentRunArtifact) => void
+  contextLoadReport:  ContextLoadReport | null
+  setContextLoadReport: (report: ContextLoadReport | null) => void
+  switchOperatorStatus: SwitchOperatorStatus | null
+  setSwitchOperatorStatus: (status: SwitchOperatorStatus | null) => void
+  patchSwitchOperatorStatus: (patch: Partial<SwitchOperatorStatus>) => void
 
   // Office chat history (in-session, survives tab switches)
   officeMessages:      OfficeChatMessage[]
   addOfficeMessage:    (msg: OfficeChatMessage) => void
   clearOfficeMessages: () => void
+  preparedWorkspace:   PreparedWorkspaceSession | null
+  unfinishedSessions:  UnfinishedSessionMemory[]
+  setPreparedWorkspace: (
+    target: PreparedWorkspaceTarget | null,
+    meta?: {
+      intent: HQAssistantIntent
+      sourceQuery: string
+    }
+  ) => void
+  clearPreparedWorkspace: () => void
+  rememberUnfinishedSession: (
+    target: PreparedWorkspaceTarget | null,
+    meta: {
+      intent: HQAssistantIntent
+      sourceQuery: string
+      confidence?: number
+      capability?: import("@/lib/assistantCapabilityRegistry").AssistantCapabilityId | null
+      artifactClass?: import("@/lib/assistantSessionMemory").UnfinishedSessionArtifactClass
+      continuationValue?: number
+      completionState?: UnfinishedSessionCompletionState
+    }
+  ) => void
+  touchUnfinishedSession: (
+    href: string,
+    completionState?: UnfinishedSessionCompletionState
+  ) => void
 
   // HQ Prime layout editor (Drawbridge-style)
   officeEditMode:      boolean
@@ -414,12 +633,19 @@ interface NexusState {
   clearModeBriefings: () => void
 
   // Notifications
+  // Lessons engine
+  lessons:        Lesson[]
+  setLessons:     (lessons: Lesson[]) => void
+  reinforceLesson:(id: number) => void
+
   notifications:       Notification[]
   unreadCount:         number
   addNotification:     (n: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void
   markRead:            (id: string) => void
   markAllRead:         () => void
   dismissNotification: (id: string) => void
+  feedStatus:          Record<FeedStatusKey, FeedStatus>
+  updateFeedStatus:    (feed: FeedStatusKey, patch: Partial<FeedStatus>) => void
 
   // Core setters
   setTab:            (tab: string) => void
@@ -443,6 +669,9 @@ interface NexusState {
   clearChat:         () => void
   toggleSaveArticle:  (article: Article) => void
   updateArticleTags:  (articleId: string, tags: string[]) => void
+  updateArticleReasoningIndex: (articleId: string, index: ArticleReasoningIndex) => void
+  updateArticleArchiveLinks: (articleId: string, links: VaultArchiveLink[]) => void
+  confirmArticleArchiveLink: (articleId: string, targetId: string) => void
 
   // Extended setters
   setEarthquakes:    (data: GeoRecord[]) => void
@@ -456,11 +685,48 @@ interface NexusState {
   setSecFilings:     (data: GeoRecord[]) => void
   setFlights:        (data: GeoRecord[]) => void
   setSecurityAlerts: (data: SecurityAlert[]) => void
+  setVoiceProfiles: (profiles: VoiceProfile[]) => void
+  upsertVoiceProfile: (profile: VoiceProfile) => void
+  deleteVoiceProfile: (profileId: string) => void
+  setVoiceProjects: (projects: VoiceProject[]) => void
+  upsertVoiceProject: (project: VoiceProject) => void
+  deleteVoiceProject: (projectId: string) => void
+  setActiveVoiceProjectId: (projectId: string | null) => void
+  setPrivacyShieldStatus: (status: PrivacyShieldStatus | null) => void
 
   // PM Cockpit checklist (Phase B)
   pmChecklist:           PMChecklistItem[]
   togglePMChecklistItem: (id: string) => void
   resetPMChecklist:      () => void
+  toggleVehicleBenchChecklistItem: (id: string) => void
+  resetVehicleBenchChecklist: () => void
+  toggleVehicleFirstHardwareChecklistItem: (id: string) => void
+  resetVehicleFirstHardwareChecklist: () => void
+
+  // ── Dynamic UI rules ────────────────────────────────────────────────────────
+  activeUIRuleIds:  string[]
+  dismissedUIRuleKeys: string[]
+  setActiveUIRuleIds: (ids: string[]) => void
+  dismissUIRule:    (activationKey: string) => void
+  clearDismissedRules: () => void
+
+  // Persona engine (Block N)
+  activePersona:    PersonaMode
+  setPersona:       (mode: PersonaMode) => void
+  councilMode:      boolean
+  toggleCouncilMode: () => void
+  councilResults:   CouncilResult[]
+  setCouncilResults: (results: CouncilResult[]) => void
+  clearCouncilResults: () => void
+
+  // VAULT knowledge graph (Block Q)
+  vaultGraph:     VaultGraphData | null
+  setVaultGraph:  (g: VaultGraphData | null) => void
+  vaultSynthesis: VaultSynthesis | null
+  setVaultSynthesis: (s: VaultSynthesis | null) => void
+  // VAULT lint (Rule 7)
+  vaultLint:     VaultLintResult | null
+  setVaultLint:  (r: VaultLintResult | null) => void
 }
 
 // ── PM Checklist types + defaults ─────────────────────────────────────────────
@@ -473,7 +739,7 @@ export interface PMChecklistItem {
 
 const DEFAULT_PM_CHECKLIST: PMChecklistItem[] = [
   // Daily
-  { id: 'daily-todo',     label: 'Review tasks/todo.md — no stale tasks',         category: 'daily',         checked: false },
+  { id: 'daily-todo',     label: 'Review docs/SYSTEM_STATE.md — no stale queue drift', category: 'daily',         checked: false },
   { id: 'daily-verify',   label: 'npm run verify passes (tsc + lint)',             category: 'daily',         checked: false },
   { id: 'daily-handoff',  label: 'Handoff current (run handoff:write if needed)',  category: 'daily',         checked: false },
   // Pre-push
@@ -481,7 +747,7 @@ const DEFAULT_PM_CHECKLIST: PMChecklistItem[] = [
   { id: 'push-browser',   label: 'Tested in browser (no console errors)',          category: 'pre-push',      checked: false },
   { id: 'push-msg',       label: 'Commit message describes why, not just what',   category: 'pre-push',      checked: false },
   // Post-incident
-  { id: 'post-lesson',    label: 'Lesson added to tasks/lessons.md',              category: 'post-incident', checked: false },
+  { id: 'post-lesson',    label: 'Rule added to docs/STANDARDS.md',               category: 'post-incident', checked: false },
   { id: 'post-repro',     label: 'Root cause confirmed (not just symptom fixed)', category: 'post-incident', checked: false },
   { id: 'post-retest',    label: 'Regression path manually retested',             category: 'post-incident', checked: false },
 ]
@@ -493,7 +759,12 @@ export const useStore = create<NexusState>()(
       // Settings
       settings:       DEFAULT_SETTINGS,
       updateSettings: (patch) =>
-        set((s) => ({ settings: { ...s.settings, ...patch } })),
+        set((s) => ({
+          settings: {
+            ...s.settings,
+            ...normalizeSettingsPatch(patch),
+          },
+        })),
 
       // AI mode
       aiMode:    'local',
@@ -557,6 +828,15 @@ export const useStore = create<NexusState>()(
       secFilings:     [],
       flights:        [],
       securityAlerts: [],
+      voiceProfiles: [],
+      voiceProjects: [],
+      activeVoiceProjectId: null,
+      privacyShieldStatus: null,
+
+      // VAULT knowledge graph (Block Q) — rebuilt from savedArticles, not persisted
+      vaultGraph:     null,
+      vaultSynthesis: null,
+      vaultLint:      null,
 
       // Operational phase
       currentPhase:    'idle',
@@ -607,6 +887,11 @@ export const useStore = create<NexusState>()(
             },
           },
         })),
+
+      // Agent learnings — display cache
+      agentLearnings: {},
+      setAgentLearnings: (agent, entries) =>
+        set(s => ({ agentLearnings: { ...s.agentLearnings, [agent]: entries } })),
 
       // Agent runtime diagnostics
       agentRuntime: {
@@ -684,6 +969,38 @@ export const useStore = create<NexusState>()(
         set((s) => ({
           agentRunHistory: [artifact, ...s.agentRunHistory].slice(0, 40),
         })),
+      contextLoadReport: null,
+      setContextLoadReport: (contextLoadReport) => set({ contextLoadReport }),
+      switchOperatorStatus: null,
+      setSwitchOperatorStatus: (switchOperatorStatus) => set({ switchOperatorStatus }),
+      patchSwitchOperatorStatus: (patch) =>
+        set((s) => ({
+          switchOperatorStatus: s.switchOperatorStatus
+            ? {
+                ...s.switchOperatorStatus,
+                ...patch,
+                updatedAt: Date.now(),
+              }
+            : patch.mode
+              ? {
+                  mode: patch.mode,
+                  requestedAt:
+                    typeof patch.requestedAt === 'number'
+                      ? patch.requestedAt
+                      : Date.now(),
+                  updatedAt: Date.now(),
+                  readinessSummary: patch.readinessSummary ?? '',
+                  taskLabel: patch.taskLabel,
+                  taskId: patch.taskId,
+                  selectedLane: patch.selectedLane,
+                  selectedHref: patch.selectedHref,
+                  selectedAgent: patch.selectedAgent,
+                  providerUsed: patch.providerUsed,
+                  nextStep: patch.nextStep,
+                  detail: patch.detail,
+                }
+              : null,
+        })),
 
       // Office chat history
       officeMessages:      [],
@@ -692,6 +1009,40 @@ export const useStore = create<NexusState>()(
           officeMessages: [...s.officeMessages, msg].slice(-100),
         })),
       clearOfficeMessages: () => set({ officeMessages: [] }),
+      preparedWorkspace: null,
+      unfinishedSessions: [],
+      setPreparedWorkspace: (target, meta) =>
+        set(() => {
+          const normalized = normalizePreparedWorkspaceTarget(target)
+          if (!normalized || !meta?.sourceQuery) {
+            return { preparedWorkspace: null }
+          }
+          return {
+            preparedWorkspace: {
+              ...normalized,
+              intent: meta.intent,
+              sourceQuery: meta.sourceQuery,
+              preparedAt: Date.now(),
+            },
+          }
+        }),
+      clearPreparedWorkspace: () => set({ preparedWorkspace: null }),
+      rememberUnfinishedSession: (target, meta) =>
+        set((s) => ({
+          unfinishedSessions: rememberUnfinishedSession(
+            s.unfinishedSessions,
+            target,
+            meta,
+          ),
+        })),
+      touchUnfinishedSession: (href, completionState = 'active') =>
+        set((s) => ({
+          unfinishedSessions: touchUnfinishedSession(
+            s.unfinishedSessions,
+            href,
+            completionState,
+          ),
+        })),
 
       // HQ Prime layout editor
       officeEditMode:    false,
@@ -729,9 +1080,20 @@ export const useStore = create<NexusState>()(
         })),
       clearModeBriefings: () => set({ modeBriefings: [] }),
 
+      // Lessons engine defaults
+      lessons: [],
+      setLessons: (lessons) => set({ lessons }),
+      reinforceLesson: (id) =>
+        set((s) => ({
+          lessons: s.lessons.map((l) =>
+            l.id === id ? { ...l, reinforcedCount: l.reinforcedCount + 1 } : l
+          ),
+        })),
+
       // Notifications defaults
       notifications: [],
       unreadCount:   0,
+      feedStatus:    { ...DEFAULT_FEED_STATUS },
 
       // Core setters
       setTab:        (tab)        => set({ tab }),
@@ -769,6 +1131,33 @@ export const useStore = create<NexusState>()(
             a.id === articleId ? { ...a, tags } : a,
           ),
         })),
+      updateArticleReasoningIndex: (articleId, index) =>
+        set((s) => ({
+          savedArticles: s.savedArticles.map((a) =>
+            a.id === articleId ? { ...a, index } : a,
+          ),
+        })),
+      updateArticleArchiveLinks: (articleId, links) =>
+        set((s) => ({
+          savedArticles: s.savedArticles.map((a) =>
+            a.id === articleId ? { ...a, archiveLinks: links } : a,
+          ),
+        })),
+      confirmArticleArchiveLink: (articleId, targetId) =>
+        set((s) => ({
+          savedArticles: s.savedArticles.map((article) =>
+            article.id !== articleId
+              ? article
+              : {
+                  ...article,
+                  archiveLinks: (article.archiveLinks ?? []).map((link) =>
+                    link.targetId === targetId
+                      ? { ...link, state: "confirmed" }
+                      : link,
+                  ),
+                },
+          ),
+        })),
 
       // Extended setters
       setEarthquakes:    (earthquakes)    => set({ earthquakes }),
@@ -782,6 +1171,37 @@ export const useStore = create<NexusState>()(
       setSecFilings:     (secFilings)     => set({ secFilings }),
       setFlights:        (flights)        => set({ flights }),
       setSecurityAlerts: (securityAlerts) => set({ securityAlerts }),
+      setVoiceProfiles: (voiceProfiles) => set({ voiceProfiles }),
+      upsertVoiceProfile: (profile) =>
+        set((s) => ({
+          voiceProfiles: [
+            profile,
+            ...s.voiceProfiles.filter((entry) => entry.id !== profile.id),
+          ].slice(0, 32),
+        })),
+      deleteVoiceProfile: (profileId) =>
+        set((s) => ({
+          voiceProfiles: s.voiceProfiles.filter((entry) => entry.id !== profileId),
+        })),
+      setVoiceProjects: (voiceProjects) => set({ voiceProjects }),
+      upsertVoiceProject: (project) =>
+        set((s) => ({
+          voiceProjects: [
+            project,
+            ...s.voiceProjects.filter((entry) => entry.id !== project.id),
+          ]
+            .sort((left, right) => right.updatedAt - left.updatedAt)
+            .slice(0, 64),
+          activeVoiceProjectId: project.id,
+        })),
+      deleteVoiceProject: (projectId) =>
+        set((s) => ({
+          voiceProjects: s.voiceProjects.filter((entry) => entry.id !== projectId),
+          activeVoiceProjectId:
+            s.activeVoiceProjectId === projectId ? null : s.activeVoiceProjectId,
+        })),
+      setActiveVoiceProjectId: (activeVoiceProjectId) => set({ activeVoiceProjectId }),
+      setPrivacyShieldStatus: (privacyShieldStatus) => set({ privacyShieldStatus }),
 
       // Notification actions
       addNotification: (n) =>
@@ -812,6 +1232,16 @@ export const useStore = create<NexusState>()(
           const notifications = s.notifications.filter((n) => n.id !== id)
           return { notifications, unreadCount: notifications.filter((n) => !n.read).length }
         }),
+      updateFeedStatus: (feed, patch) =>
+        set((s) => ({
+          feedStatus: {
+            ...s.feedStatus,
+            [feed]: {
+              ...s.feedStatus[feed],
+              ...patch,
+            },
+          },
+        })),
 
       // PM Checklist
       pmChecklist: DEFAULT_PM_CHECKLIST,
@@ -825,12 +1255,75 @@ export const useStore = create<NexusState>()(
         set((s) => ({
           pmChecklist: s.pmChecklist.map((item) => ({ ...item, checked: false })),
         })),
+      toggleVehicleBenchChecklistItem: (id) =>
+        set((s) => ({
+          settings: {
+            ...s.settings,
+            vehicleBenchChecklist: {
+              ...(s.settings.vehicleBenchChecklist ?? {}),
+              [id]: !(s.settings.vehicleBenchChecklist?.[id] ?? false),
+            },
+          },
+        })),
+      resetVehicleBenchChecklist: () =>
+        set((s) => ({
+          settings: {
+            ...s.settings,
+            vehicleBenchChecklist: {},
+          },
+        })),
+      toggleVehicleFirstHardwareChecklistItem: (id) =>
+        set((s) => ({
+          settings: {
+            ...s.settings,
+            vehicleFirstHardwareChecklist: {
+              ...(s.settings.vehicleFirstHardwareChecklist ?? {}),
+              [id]: !(s.settings.vehicleFirstHardwareChecklist?.[id] ?? false),
+            },
+          },
+        })),
+      resetVehicleFirstHardwareChecklist: () =>
+        set((s) => ({
+          settings: {
+            ...s.settings,
+            vehicleFirstHardwareChecklist: {},
+          },
+        })),
+
+      // Dynamic UI rules
+      activeUIRuleIds:  [],
+      dismissedUIRuleKeys: [],
+      setActiveUIRuleIds: (ids) => set({ activeUIRuleIds: ids }),
+      dismissUIRule: (activationKey) => set((s) => ({
+        dismissedUIRuleKeys: Array.from(
+          new Set([...s.dismissedUIRuleKeys, activationKey]),
+        ).slice(-40),
+      })),
+      clearDismissedRules: () => set({ dismissedUIRuleKeys: [] }),
+
+      // Persona engine (Block N)
+      activePersona:   'formal',
+      setPersona:      (mode) => set({ activePersona: mode }),
+      councilMode:     false,
+      toggleCouncilMode: () =>
+        set((s) => ({
+          councilMode: !s.councilMode,
+          councilResults: s.councilMode ? [] : s.councilResults,
+        })),
+      councilResults:  [],
+      setCouncilResults: (results) => set({ councilResults: results }),
+      clearCouncilResults: () => set({ councilResults: [] }),
+
+      // VAULT knowledge graph (Block Q)
+      setVaultGraph:     (g) => set({ vaultGraph: g }),
+      setVaultSynthesis: (s) => set({ vaultSynthesis: s }),
+      setVaultLint:      (r) => set({ vaultLint: r }),
     }),
     {
       name:       'nexus-settings',
       version:    1,
       partialize: (s) => ({
-        settings:      s.settings,
+        settings:      sanitizeClientSettingsForPersistence(s.settings),
         savedArticles: s.savedArticles,
         pendingDrafts: s.pendingDrafts,
         aiMode:        s.aiMode,
@@ -841,16 +1334,54 @@ export const useStore = create<NexusState>()(
         skillsWorkbenchView: s.skillsWorkbenchView,
         resourcesWorkbenchView: s.resourcesWorkbenchView,
         securityWorkbenchView: s.securityWorkbenchView,
+        voiceProfiles: s.voiceProfiles,
+        voiceProjects: s.voiceProjects,
+        activeVoiceProjectId: s.activeVoiceProjectId,
+        preparedWorkspace: s.preparedWorkspace,
+        unfinishedSessions: s.unfinishedSessions,
+        dismissedUIRuleKeys: s.dismissedUIRuleKeys,
+        activePersona:   s.activePersona,
       }),
       migrate: (persisted: any) => {
         // Ensure new persisted keys have safe defaults.
         const next = { ...(persisted ?? {}) }
+        next.settings = sanitizeClientSettingsForPersistence({
+          ...DEFAULT_SETTINGS,
+          ...(next.settings ?? {}),
+        })
+        next.settings.aiProvider = normalizePreferredAIProvider(
+          next.settings.aiProvider,
+        )
         if (!next.intelView) next.intelView = 'news'
         if (!next.marketsView) next.marketsView = 'watchlist'
         if (!next.cyberView) next.cyberView = 'triage'
         if (!next.skillsWorkbenchView) next.skillsWorkbenchView = 'forge'
         if (!next.resourcesWorkbenchView) next.resourcesWorkbenchView = 'manual'
         if (!next.securityWorkbenchView) next.securityWorkbenchView = 'doctrine'
+        if (!Array.isArray(next.voiceProfiles)) next.voiceProfiles = []
+        if (!Array.isArray(next.voiceProjects)) next.voiceProjects = []
+        if (!next.activeVoiceProjectId) next.activeVoiceProjectId = null
+        if (next.preparedWorkspace) {
+          const normalizedPrepared = normalizePreparedWorkspaceTarget(next.preparedWorkspace)
+          next.preparedWorkspace = normalizedPrepared
+            ? {
+                ...next.preparedWorkspace,
+                ...normalizedPrepared,
+                preparedAt:
+                  typeof next.preparedWorkspace.preparedAt === 'number'
+                    ? next.preparedWorkspace.preparedAt
+                    : Date.now(),
+                intent: next.preparedWorkspace.intent ?? 'conversation',
+                sourceQuery: next.preparedWorkspace.sourceQuery ?? '',
+              }
+            : null
+        }
+        next.unfinishedSessions = pruneUnfinishedSessions(next.unfinishedSessions)
+        next.dismissedUIRuleKeys = Array.isArray(next.dismissedUIRuleKeys)
+          ? next.dismissedUIRuleKeys
+          : Array.isArray(next.dismissedRuleIds)
+            ? next.dismissedRuleIds
+            : []
         return next
       },
     }

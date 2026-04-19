@@ -1,7 +1,19 @@
 // ── page ────────────────────────────────────────────────────
-// App root: redirects authenticated users to the canonical HQ entrypoint.
+// App root: renders the public Nexus landing page.
 
-import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import LandingPage from "@/components/landing/LandingPage";
+import {
+  isNexusAuthEnabled,
+  matchesConfiguredNexusToken,
+  NEXUS_SESSION_COOKIE,
+} from "@/lib/authSession";
+
 export default function Root() {
-  redirect("/hq");
+  const cookieStore = cookies();
+  const sessionCookie = cookieStore.get(NEXUS_SESSION_COOKIE)?.value ?? "";
+  const isAuthenticated =
+    !isNexusAuthEnabled() || matchesConfiguredNexusToken(sessionCookie);
+
+  return <LandingPage isAuthenticated={isAuthenticated} />;
 }

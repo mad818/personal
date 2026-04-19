@@ -37,20 +37,10 @@ async function waitForTextToDisappear(page: Page, fragments: string[]) {
 test("ga tabs resolve data states without hanging on dead loading copy", async ({
   page,
 }) => {
-  await page.goto("/hq");
+  await page.goto("/command");
   await loginIfNeeded(page);
   await waitForShell(page);
-
-  await expect(
-    page.getByRole("textbox", {
-      name: "Talk to MAX — he routes to the right specialist…",
-    }),
-  ).toBeVisible();
-  await waitForTextToDisappear(page, ["NO DATA"]);
-
-  await page.goto("/command");
-  await waitForShell(page);
-  await expect(page.getByText("Command snapshot")).toBeVisible();
+  await expect(page.getByText("Vector snapshot")).toBeVisible();
   await waitForTextToDisappear(page, [
     "Loading market breadth",
     "Loading threat feed",

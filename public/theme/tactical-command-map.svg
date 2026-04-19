@@ -1,0 +1,38 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#060A0F"/>
+  <rect x="28" y="28" width="1544" height="844" rx="18" stroke="#27313D" stroke-width="2"/>
+  <path d="M120 120H1480" stroke="#18212B" stroke-width="2"/>
+  <path d="M120 220H1480" stroke="#18212B" stroke-width="2"/>
+  <path d="M120 320H1480" stroke="#18212B" stroke-width="2"/>
+  <path d="M120 420H1480" stroke="#18212B" stroke-width="2"/>
+  <path d="M120 520H1480" stroke="#18212B" stroke-width="2"/>
+  <path d="M120 620H1480" stroke="#18212B" stroke-width="2"/>
+  <path d="M120 720H1480" stroke="#18212B" stroke-width="2"/>
+  <path d="M220 120V780" stroke="#18212B" stroke-width="2"/>
+  <path d="M420 120V780" stroke="#18212B" stroke-width="2"/>
+  <path d="M620 120V780" stroke="#18212B" stroke-width="2"/>
+  <path d="M820 120V780" stroke="#18212B" stroke-width="2"/>
+  <path d="M1020 120V780" stroke="#18212B" stroke-width="2"/>
+  <path d="M1220 120V780" stroke="#18212B" stroke-width="2"/>
+  <path d="M1420 120V780" stroke="#18212B" stroke-width="2"/>
+  <rect x="120" y="120" width="1320" height="660" rx="22" stroke="#3E4B59" stroke-width="3"/>
+  <circle cx="364" cy="312" r="102" stroke="#4E6173" stroke-width="2"/>
+  <circle cx="364" cy="312" r="168" stroke="#27313D" stroke-width="2"/>
+  <circle cx="364" cy="312" r="240" stroke="#18212B" stroke-width="2"/>
+  <circle cx="1120" cy="540" r="140" stroke="#4E6173" stroke-width="2"/>
+  <circle cx="1120" cy="540" r="210" stroke="#27313D" stroke-width="2"/>
+  <circle cx="1120" cy="540" r="286" stroke="#18212B" stroke-width="2"/>
+  <path d="M364 312L612 390L824 312L1120 540" stroke="#D7E1EA" stroke-width="4"/>
+  <path d="M364 312L540 520L790 604L1120 540" stroke="#6E8295" stroke-width="3" stroke-dasharray="10 10"/>
+  <rect x="704" y="182" width="266" height="112" rx="18" fill="#0B1118" stroke="#34404E" stroke-width="2"/>
+  <text x="738" y="230" fill="#AAB9C7" font-family="Arial, sans-serif" font-size="26" letter-spacing="6">ACTIVE THEATER</text>
+  <text x="738" y="266" fill="#E5EEF6" font-family="Arial, sans-serif" font-size="42" font-weight="700">VECTOR / HQ</text>
+  <rect x="120" y="802" width="420" height="42" rx="8" fill="#0A1016" stroke="#27313D"/>
+  <text x="146" y="830" fill="#8496A7" font-family="Arial, sans-serif" font-size="18" letter-spacing="4">COMMAND MAP · TACTICAL OVERLAY · LIVE SECTORS</text>
+  <circle cx="364" cy="312" r="10" fill="#E5EEF6"/>
+  <circle cx="1120" cy="540" r="10" fill="#E5EEF6"/>
+  <circle cx="824" cy="312" r="10" fill="#9EAFBF"/>
+  <path d="M1382 148L1456 148" stroke="#D7E1EA" stroke-width="3"/>
+  <path d="M1382 164L1426 164" stroke="#6E8295" stroke-width="3"/>
+  <path d="M1382 180L1442 180" stroke="#4E6173" stroke-width="3"/>
+</svg>

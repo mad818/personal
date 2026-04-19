@@ -89,7 +89,7 @@ export default function SecurityPage() {
       surface="security"
       eyebrow="Security control surface"
       title="Security controls"
-      description="Route, auth, AI, and physical posture on one desk."
+      description="Route, auth, AI, and physical posture."
       actions={
         <>
           <ShellBadge tone="muted">Beta workbench</ShellBadge>
@@ -143,7 +143,7 @@ export default function SecurityPage() {
                       compact
                     >
                       <div className="nexus-shell-copy nexus-shell-copy--compact">
-                        Route policy, prompt boundary, protected actions, and hardening coverage stay on one control surface.
+                        Route policy, prompt boundary, protected actions, and hardening stay on one surface.
                       </div>
                     </OpsField>
                     <TrustOperationsRail
@@ -176,7 +176,7 @@ export default function SecurityPage() {
                     <OpsField title="AI boundary note" detail="Prompt, tool, retrieval, and persistence posture" tone="muted" compact>
                       <div className="nexus-shell-copy nexus-shell-copy--compact">
                         The AI matrix stays beside the control plane.
-                        Prompt injection, tool misuse, unsafe retrieval, approval bypass, and persistence poisoning stay explicit.
+                        Injection, tool misuse, unsafe retrieval, approval bypass, and persistence poisoning stay explicit.
                       </div>
                       </OpsField>
                       <TrustOperationsRail
@@ -246,8 +246,8 @@ export default function SecurityPage() {
                         compact
                       >
                         <div className="nexus-shell-copy nexus-shell-copy--compact">
-                          Physical operations stay control-led here.
-                          Camera and perimeter lanes stay primary while alerts and protected-action readiness stay embedded.
+                          Physical operations stay control-led.
+                          Camera and perimeter lanes stay primary while alerts and protected posture stay embedded.
                         </div>
                       </OpsField>
                       <TrustOperationsRail

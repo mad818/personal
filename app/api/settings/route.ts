@@ -1,9 +1,8 @@
 // ── api/settings ────────────────────────────────────────────
 // Settings API: user configuration persistence (keys, watchlist, theme).
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import * as fs from "fs/promises";
-import * as path from "path";
 import {
   DEFAULT_CONNECTOR_POLICY,
   parseConnectorPolicy,
@@ -15,8 +14,15 @@ import {
 } from "@/lib/brand";
 import {
   getDefaultNetworkMode,
+  type NetworkMode,
   readNetworkMode,
 } from "@/lib/security/routePolicy";
+import {
+  applyRateLimitHeaders,
+  checkRateLimit,
+} from "@/lib/security/rateLimit";
+import { applyProtectedActionHeaders } from "@/lib/security/protectedActionTelemetry";
+import { applyRuntimePolicyCookies } from "@/lib/security/runtimePolicyCookies";
 import {
   getDefaultEntrypoint,
   listSurfaceAliases,
@@ -26,6 +32,14 @@ import {
   RELEASE_DEFAULTS,
   summarizeSurfaceTiers,
 } from "@/lib/releaseMatrix";
+import { protectedJson } from "@/lib/protectedApi";
+import { getRuntimeEnvFilePath } from "@/lib/serverEnvRuntime";
+import { isConfiguredSecretValue } from "@/lib/secretReadiness";
+import { requireStepUpForAction } from "@/lib/security/stepUpAuth";
+import {
+  readProtectedActionContext,
+  resolveProtectedActionDescriptor,
+} from "@/lib/security/toolCapabilityPolicy";
 
 /**
  * Server-side settings store — OpenClaw-style.
@@ -57,6 +71,9 @@ const SENSITIVE_KEYS = [
   "AISSTREAM_KEY",
   "FIRMS_MAP_KEY",
   "FIRECRAWL_KEY",
+  "HIBP_API_KEY",
+  "VT_API_KEY",
+  "SHODAN_API_KEY",
   "OPENCLAW_TOKEN",
   "NEXUS_TOKEN",
   "NEXUS_NETWORK_MODE",
@@ -72,7 +89,35 @@ const LEGACY_KEY_ALIASES: Record<string, string> = {
   FIRMS_KEY: "FIRMS_MAP_KEY",
 };
 
-const ENV_FILE = path.join(process.cwd(), ".env.local");
+const READONLY_SENSITIVE_KEYS = new Set(["NEXUS_TOKEN", "OPENCLAW_TOKEN"]);
+const BROWSER_MUTATION_BLOCKED_KEYS = new Set([
+  "NEXUS_TOKEN",
+  "OPENCLAW_TOKEN",
+  "NEXUS_NETWORK_MODE",
+  "NEXUS_ENABLE_HIGH_RISK_TOOLS",
+  "NEXUS_ALLOW_PAID_APIS",
+  "NEXUS_CONNECTOR_POLICY_JSON",
+  "NEXUS_DEPLOYMENT_PROFILE",
+]);
+
+const ENV_FILE = getRuntimeEnvFilePath();
+const SETTINGS_RATE_LIMIT = {
+  bucket: "api-settings",
+  windowMs: 60_000,
+  maxAttempts: 20,
+  includeBearerToken: false,
+} as const;
+
+function applySettingsRateLimit(req: NextRequest) {
+  const state = checkRateLimit(req, SETTINGS_RATE_LIMIT);
+  if (state.ok) return null;
+  const response = protectedJson(
+    { ok: false, error: "Settings rate limited. Try again shortly." },
+    { status: 429 },
+  );
+  applyRateLimitHeaders(response, SETTINGS_RATE_LIMIT, state.retryAfterSec);
+  return response;
+}
 
 async function readEnvFile(): Promise<Record<string, string>> {
   try {
@@ -146,24 +191,61 @@ function readPendingDeploymentProfile(env: Record<string, string>) {
   return "local-dev";
 }
 
+function buildSecretPosture(status: Record<string, boolean>) {
+  const configuredCount = Object.values(status).filter(Boolean).length;
+  const readonlyConfiguredCount = Array.from(READONLY_SENSITIVE_KEYS).filter(
+    (key) => status[key] === true,
+  ).length;
+  const editableConfiguredCount = configuredCount - readonlyConfiguredCount;
+
+  return {
+    inventoryCount: SENSITIVE_KEYS.length,
+    configuredCount,
+    readonlyConfiguredCount,
+    editableConfiguredCount,
+    tokenGateConfigured: READONLY_SENSITIVE_KEYS.has("NEXUS_TOKEN")
+      ? status.NEXUS_TOKEN === true
+      : false,
+    localEnvOnly: true as const,
+    rawValuesReturned: false as const,
+  };
+}
+
 // GET — return which keys are set (true/false), not the values
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const rateLimited = applySettingsRateLimit(req);
+  if (rateLimited) return rateLimited;
+
+  const trustContext = await readProtectedActionContext(req);
   const env = await readEnvFile();
   const effectiveEnv = { ...process.env, ...env };
+  const protectedAction = resolveProtectedActionDescriptor(
+    "settings_writes",
+    trustContext,
+  );
   const status: Record<string, boolean> = {};
   for (const key of SENSITIVE_KEYS) {
     const legacyMatch = Object.entries(LEGACY_KEY_ALIASES).find(
       ([, canonical]) => canonical === key,
     )?.[0];
-    status[key] = !!(
+    status[key] = isConfiguredSecretValue(
       env[key] ??
       process.env[key] ??
-      (legacyMatch ? (env[legacyMatch] ?? process.env[legacyMatch]) : "")
+      (legacyMatch ? (env[legacyMatch] ?? process.env[legacyMatch]) : ""),
     );
   }
-  const config = {
+  const config: {
+    NEXUS_NETWORK_MODE: NetworkMode;
+    NEXUS_ENABLE_HIGH_RISK_TOOLS: "true" | "false" | string;
+    NEXUS_ALLOW_PAID_APIS: "true" | "false" | string;
+    NEXUS_CONNECTOR_POLICY_JSON: ReturnType<typeof parseConnectorPolicy>;
+    NEXUS_DEPLOYMENT_PROFILE: ReturnType<typeof readPendingDeploymentProfile>;
+  } = {
     NEXUS_NETWORK_MODE:
-      env.NEXUS_NETWORK_MODE ?? process.env.NEXUS_NETWORK_MODE ?? readNetworkMode(),
+      normalizeConfigValue(
+        "NEXUS_NETWORK_MODE",
+        env.NEXUS_NETWORK_MODE ?? process.env.NEXUS_NETWORK_MODE ?? readNetworkMode(),
+      ) as NetworkMode,
     NEXUS_ENABLE_HIGH_RISK_TOOLS:
       env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
       process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
@@ -175,8 +257,9 @@ export async function GET() {
     ),
     NEXUS_DEPLOYMENT_PROFILE: readPendingDeploymentProfile(env),
   };
-  return NextResponse.json({
+  const response = protectedJson({
     status,
+    secretPosture: buildSecretPosture(status),
     config,
     brand: {
       name: BRAND_NAME,
@@ -193,45 +276,127 @@ export async function GET() {
       aliases: listSurfaceAliases(),
       surfaces: summarizeSurfaceTiers().counts,
     },
+    protectedAction,
   });
+  applyRuntimePolicyCookies(response, {
+    networkMode: config.NEXUS_NETWORK_MODE,
+    highRiskEnabled: config.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true",
+  });
+  applyProtectedActionHeaders(response, protectedAction);
+  applyRateLimitHeaders(response, SETTINGS_RATE_LIMIT);
+  return response;
 }
 
 // POST — update one or more keys in .env.local
 export async function POST(req: NextRequest) {
+  const rateLimited = applySettingsRateLimit(req);
+  if (rateLimited) return rateLimited;
+
+  const stepUpRequired = await requireStepUpForAction(req, {
+    action: "settings_writes",
+  });
+  if (stepUpRequired) return stepUpRequired;
+
   try {
     const body = (await req.json()) as Record<string, string>;
 
-    // Internal tokens the user cannot overwrite via the settings UI
-    const READONLY_KEYS = new Set(["NEXUS_TOKEN", "OPENCLAW_TOKEN"]);
-
     // Only allow updating known sensitive keys (minus internal tokens)
     const updates: Record<string, string> = {};
+    const blockedKeys = new Set<string>();
     for (const [k, v] of Object.entries(body)) {
       const canonicalKey = LEGACY_KEY_ALIASES[k] ?? k;
+      if (BROWSER_MUTATION_BLOCKED_KEYS.has(canonicalKey)) {
+        blockedKeys.add(canonicalKey);
+        continue;
+      }
       if (
         SENSITIVE_KEYS.includes(canonicalKey) &&
-        !READONLY_KEYS.has(canonicalKey)
+        !READONLY_SENSITIVE_KEYS.has(canonicalKey)
       ) {
         updates[canonicalKey] = normalizeConfigValue(canonicalKey, String(v));
       }
     }
 
     if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        { ok: false, error: "No valid keys provided" },
+      const response = protectedJson(
+        {
+          ok: false,
+          error:
+            blockedKeys.size > 0
+              ? "Protected runtime policy must be changed through local environment control, not the browser settings API."
+              : "No valid keys provided",
+          blockedKeys: Array.from(blockedKeys),
+          protectedAction: {
+            action: "settings_writes",
+            status: "blocked_policy",
+            blockedReason:
+              blockedKeys.size > 0 ? "browser_blocked_keys" : "no_valid_keys",
+          },
+        },
         { status: 400 },
       );
+      applyProtectedActionHeaders(response, {
+        action: "settings_writes",
+        status: "blocked_policy",
+        blockedReason:
+          blockedKeys.size > 0 ? "browser_blocked_keys" : "no_valid_keys",
+      });
+      applyRateLimitHeaders(response, SETTINGS_RATE_LIMIT);
+      return response;
     }
 
     await writeEnvFile(updates);
-
-    // Note: env vars don't hot-reload in Next.js — a restart is needed
-    // to pick up new values. We return a flag so the UI can warn the user.
-    return NextResponse.json({ ok: true, needsRestart: true });
+    for (const [key, value] of Object.entries(updates)) {
+      process.env[key] = value;
+    }
+    const env = await readEnvFile();
+    const networkMode = normalizeConfigValue(
+      "NEXUS_NETWORK_MODE",
+      env.NEXUS_NETWORK_MODE ?? process.env.NEXUS_NETWORK_MODE ?? getDefaultNetworkMode(),
+    ) as NetworkMode;
+    const highRiskEnabled =
+      normalizeConfigValue(
+        "NEXUS_ENABLE_HIGH_RISK_TOOLS",
+        env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
+          process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
+          "false",
+      ) === "true";
+    const response = protectedJson({
+      ok: true,
+      needsRestart: false,
+      runtimePatched: true,
+      blockedKeys: Array.from(blockedKeys),
+      protectedAction: {
+        action: "settings_writes",
+        status: "ready",
+      },
+    });
+    applyRuntimePolicyCookies(response, { networkMode, highRiskEnabled });
+    applyProtectedActionHeaders(response, {
+      action: "settings_writes",
+      status: "ready",
+    });
+    applyRateLimitHeaders(response, SETTINGS_RATE_LIMIT);
+    return response;
   } catch {
-    return NextResponse.json(
-      { ok: false, error: "Write failed" },
+    const response = protectedJson(
+      {
+        ok: false,
+        error: "Write failed",
+        protectedAction: {
+          action: "settings_writes",
+          status: "blocked_policy",
+          blockedReason: "write_failed",
+        },
+      },
       { status: 500 },
     );
+    applyProtectedActionHeaders(response, {
+      action: "settings_writes",
+      status: "blocked_policy",
+      blockedReason: "write_failed",
+    });
+    applyRateLimitHeaders(response, SETTINGS_RATE_LIMIT);
+    return response;
   }
 }

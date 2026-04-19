@@ -1,5 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { spawn } from "child_process";
+import { fetchTrustedInternal } from "@/lib/internalFetch";
+import { protectedJson } from "@/lib/protectedApi";
+import {
+  applyRateLimitHeaders,
+  checkRateLimit,
+} from "@/lib/security/rateLimit";
+import { applyProtectedActionHeaders } from "@/lib/security/protectedActionTelemetry";
+import { requireStepUpForAction } from "@/lib/security/stepUpAuth";
+import {
+  readProtectedActionContext,
+  resolveProtectedActionDescriptor,
+  type ProtectedActionDescriptor,
+} from "@/lib/security/toolCapabilityPolicy";
 
 type VerificationAdapter =
   | "typecheck"
@@ -17,7 +30,22 @@ type AdapterResult = {
 type VerificationResponse = {
   ok: boolean;
   adapters: AdapterResult[];
+  protectedAction?: ProtectedActionDescriptor;
 };
+
+const VERIFY_RATE_LIMIT = {
+  bucket: "api-verify",
+  windowMs: 60_000,
+  maxAttempts: 8,
+  includeBearerToken: false,
+} as const;
+
+function resolveCommandExecutable(cmd: string) {
+  if (process.platform === "win32" && (cmd === "npm" || cmd === "npx")) {
+    return `${cmd}.cmd`;
+  }
+  return cmd;
+}
 
 function runCommand(
   cmd: string,
@@ -25,7 +53,10 @@ function runCommand(
   timeoutMs: number,
 ): Promise<{ ok: boolean; output: string }> {
   return new Promise((resolve) => {
-    const child = spawn(cmd, args, { shell: true, windowsHide: true });
+    const child = spawn(resolveCommandExecutable(cmd), args, {
+      shell: false,
+      windowsHide: true,
+    });
     let out = "";
     const timer = setTimeout(() => {
       child.kill();
@@ -49,9 +80,6 @@ function runCommand(
 }
 
 async function checkRouteSmoke(req: NextRequest): Promise<AdapterResult> {
-  const proto = req.headers.get("x-forwarded-proto") ?? "http";
-  const host = req.headers.get("host") ?? "localhost:3000";
-  const base = `${proto}://${host}`;
   const publicUrls = ["/api/health"];
   const protectedUrls = [
     "/api/status",
@@ -63,7 +91,7 @@ async function checkRouteSmoke(req: NextRequest): Promise<AdapterResult> {
   const publicChecks = await Promise.all(
     publicUrls.map(async (u) => {
       try {
-        const r = await fetch(`${base}${u}`, {
+        const r = await fetchTrustedInternal(u, {
           signal: AbortSignal.timeout(6000),
         });
         return { u, ok: r.ok, status: r.status };
@@ -77,7 +105,7 @@ async function checkRouteSmoke(req: NextRequest): Promise<AdapterResult> {
   const protectedChecks = await Promise.all(
     protectedUrls.map(async (u) => {
       try {
-        const r = await fetch(`${base}${u}`, {
+        const r = await fetchTrustedInternal(u, {
           signal: AbortSignal.timeout(6000),
         });
         const ok = r.status === 200 || r.status === 401 || r.status === 403;
@@ -100,7 +128,39 @@ async function checkRouteSmoke(req: NextRequest): Promise<AdapterResult> {
 }
 
 export async function POST(req: NextRequest) {
+  const rateLimited = checkRateLimit(req, VERIFY_RATE_LIMIT);
+  if (!rateLimited.ok) {
+    const response = protectedJson(
+      {
+        ok: false,
+        adapters: [
+          {
+            adapter: "route_smoke",
+            passed: false,
+            summary: "Verification route rate limited.",
+          },
+        ],
+      } satisfies VerificationResponse,
+      { status: 429 },
+    );
+    applyRateLimitHeaders(response, VERIFY_RATE_LIMIT, rateLimited.retryAfterSec);
+    return response;
+  }
+
+  const stepUpRequired = await requireStepUpForAction(req, {
+    action: "verification",
+  });
+  if (stepUpRequired) {
+    applyRateLimitHeaders(stepUpRequired, VERIFY_RATE_LIMIT);
+    return stepUpRequired;
+  }
+
   try {
+    const trustContext = await readProtectedActionContext(req);
+    const protectedAction = resolveProtectedActionDescriptor(
+      "verification",
+      trustContext,
+    );
     const body = await req.json().catch(() => ({}));
     const adapters = (
       Array.isArray(body.adapters)
@@ -175,10 +235,14 @@ export async function POST(req: NextRequest) {
     const payload: VerificationResponse = {
       ok: results.every((r) => r.passed),
       adapters: results,
+      protectedAction,
     };
-    return NextResponse.json(payload);
+    const response = protectedJson(payload);
+    applyProtectedActionHeaders(response, protectedAction);
+    applyRateLimitHeaders(response, VERIFY_RATE_LIMIT);
+    return response;
   } catch (err) {
-    return NextResponse.json(
+    const response = protectedJson(
       {
         ok: false,
         adapters: [
@@ -188,8 +252,20 @@ export async function POST(req: NextRequest) {
             summary: `Verification route error: ${err instanceof Error ? err.message : "unknown error"}`,
           },
         ],
+        protectedAction: {
+          action: "verification",
+          status: "blocked_policy",
+          blockedReason: "verification_error",
+        },
       } satisfies VerificationResponse,
       { status: 500 },
     );
+    applyProtectedActionHeaders(response, {
+      action: "verification",
+      status: "blocked_policy",
+      blockedReason: "verification_error",
+    });
+    applyRateLimitHeaders(response, VERIFY_RATE_LIMIT);
+    return response;
   }
 }

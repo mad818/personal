@@ -5,6 +5,21 @@ import { NextRequest, NextResponse } from "next/server";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { getBrandServiceName } from "@/lib/brand";
+import { resolveInternalServiceOrigin } from "@/lib/authSession";
+import {
+  buildDeepResearchSynthesisPrompt,
+  runDeepResearch,
+  type DeepResearchPipelineInput,
+} from "@/lib/deepResearch";
+import { callInternalAi } from "@/lib/internalAi";
+import {
+  buildRepoCompareSynthesisPrompt,
+  runRepoCompare,
+} from "@/lib/repoCompare";
+import {
+  buildRepoAssimilationSynthesisPrompt,
+  runRepoAssimilation,
+} from "@/lib/repoAssimilation";
 import {
   assertSafeExternalUrl,
   readResponseTextWithLimit,
@@ -13,8 +28,37 @@ import {
   applyRateLimitHeaders,
   checkRateLimit,
 } from "@/lib/security/rateLimit";
+import { applyProtectedActionHeaders } from "@/lib/security/protectedActionTelemetry";
+import { buildStepUpRequiredResponse } from "@/lib/security/stepUpAuth";
+import {
+  getToolCapabilityClass,
+  readProtectedActionContext,
+  resolveProtectedActionBlockedReason,
+  resolveProtectedActionDescriptor,
+  requiresToolStepUp,
+  type ProtectedActionDescriptor,
+  type ProtectedActionKind,
+  type ProtectedActionStatus,
+} from "@/lib/security/toolCapabilityPolicy";
+import { formatRepoIntelToolResult } from "@/lib/repoIntel";
+import { getRepoIntelProfile, RepoIntelError } from "@/lib/serverRepoIntel";
+import { loadSavedRepoAssimilationBrief } from "@/lib/serverRepoCompare";
 
 const TOOL_USER_AGENT = `${getBrandServiceName()}/1.0`;
+
+interface ToolResponseMeta {
+  cacheHit?: boolean;
+  duplicateRead?: boolean;
+}
+
+interface ToolResult {
+  result: string;
+  meta: ToolResponseMeta;
+}
+
+function withToolResult(result: string, meta: ToolResponseMeta = {}): ToolResult {
+  return { result, meta };
+}
 
 // ── Workspace root (files the agent can read/write) ───────────────────────────
 const WORKSPACE =
@@ -24,15 +68,130 @@ async function ensureWorkspace() {
   await fs.mkdir(WORKSPACE, { recursive: true });
 }
 
+function getToolProtectedAction(capability: ReturnType<typeof getToolCapabilityClass>) {
+  return (capability === "networked"
+    ? "tools_networked"
+    : "tools_mutate_exec") as ProtectedActionKind;
+}
+
+function buildToolBlockedMessage(status: ProtectedActionStatus) {
+  switch (status) {
+    case "network_locked":
+      return "Tool blocked by network policy.";
+    case "high_risk_blocked":
+      return "Tool blocked until high-risk tools are enabled.";
+    case "connector_limited":
+      return "Tool blocked because connector exposure is disabled.";
+    case "session_required":
+      return "Tool blocked until the local session is re-established.";
+    default:
+      return "Tool blocked by protected-action policy.";
+  }
+}
+
 // ── Tool handlers ─────────────────────────────────────────────────────────────
 
 async function webSearch(query: string): Promise<string> {
   const braveKey = process.env.BRAVE_SEARCH_KEY ?? "";
+  const trimmedQuery = query.trim();
+
+  function stripHtml(value: string) {
+    return value
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function decodeDuckDuckGoHref(value: string) {
+    try {
+      const href = value.startsWith("//") ? `https:${value}` : value;
+      const url = new URL(href, "https://duckduckgo.com");
+      const redirected = url.searchParams.get("uddg");
+      return redirected ? decodeURIComponent(redirected) : url.toString();
+    } catch {
+      return value;
+    }
+  }
+
+  function buildOpenWebQueries(value: string) {
+    const queries = [value];
+    const lower = value.toLowerCase();
+    const looksLikeHandleLookup =
+      /\b(twitch|streamer|youtube|creator|channel|handle)\b/i.test(value) ||
+      /^[a-z0-9_]{3,32}$/i.test(value.replace(/\s+/g, ""));
+
+    if (looksLikeHandleLookup) {
+      if (!lower.includes("site:twitch.tv")) {
+        queries.unshift(`site:twitch.tv ${value}`);
+      }
+      if (!lower.includes("site:x.com") && !lower.includes("site:twitter.com")) {
+        queries.push(`site:x.com OR site:twitter.com ${value}`);
+      }
+    }
+
+    return Array.from(new Set(queries));
+  }
+
+  async function searchOpenWeb(value: string) {
+    const collected: { title: string; url: string; source: string }[] = [];
+
+    for (const candidate of buildOpenWebQueries(value)) {
+      try {
+        const response = await fetch(
+          `https://html.duckduckgo.com/html/?q=${encodeURIComponent(candidate)}`,
+          {
+            headers: {
+              "User-Agent": `Mozilla/5.0 (compatible; ${TOOL_USER_AGENT})`,
+            },
+            signal: AbortSignal.timeout(8000),
+          },
+        );
+        if (!response.ok) continue;
+        const html = await response.text();
+        const matches = Array.from(
+          html.matchAll(
+            /<a[^>]+class="(?:result__a|result-link)"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi,
+          ),
+        );
+        for (const match of matches) {
+          const href = decodeDuckDuckGoHref(match[1] ?? "");
+          const title = stripHtml(match[2] ?? "");
+          if (!href || !title) continue;
+          if (collected.some((row) => row.url === href)) continue;
+          let source = "open web";
+          try {
+            source = new URL(href).hostname;
+          } catch {
+            /* ignore */
+          }
+          collected.push({ title, url: href, source });
+          if (collected.length >= 8) break;
+        }
+        if (collected.length >= 8) break;
+      } catch {
+        /* try next query */
+      }
+    }
+
+    if (!collected.length) return "";
+    return collected
+      .slice(0, 8)
+      .map(
+        (a, i) =>
+          `${i + 1}. ${a.title}\n   Source: ${a.source} | ${a.url}`,
+      )
+      .join("\n\n");
+  }
 
   // ── Brave Search (preferred, much better quality) ──────────────────────────
   if (braveKey) {
     try {
-      const q = encodeURIComponent(query);
+      const q = encodeURIComponent(trimmedQuery);
       const url = `https://api.search.brave.com/res/v1/web/search?q=${q}&count=8&text_decorations=0`;
       const r = await fetch(url, {
         headers: {
@@ -59,13 +218,16 @@ async function webSearch(query: string): Promise<string> {
           .join("\n\n");
       }
     } catch {
-      // fall through to GDELT
+      // fall through to open web / GDELT
     }
   }
 
+  const openWeb = await searchOpenWeb(trimmedQuery);
+  if (openWeb) return openWeb;
+
   // ── GDELT fallback (no key required) ───────────────────────────────────────
   try {
-    const q = encodeURIComponent(query);
+    const q = encodeURIComponent(trimmedQuery);
     const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${q}&mode=artlist&maxrecords=10&format=json`;
     const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
     const d = await r.json();
@@ -343,12 +505,32 @@ function resolveProjectPath(relPath: string): {
   return { safe: full, blocked: null };
 }
 
-async function readProjectFile(relPath: string): Promise<string> {
+function normalizeProjectPathKey(relPath: string): string {
+  return relPath.replace(/^[/\\]+/, "").replace(/\\/g, "/");
+}
+
+async function readProjectFile(
+  relPath: string,
+  runId: string,
+): Promise<ToolResult> {
   const { safe, blocked } = resolveProjectPath(relPath);
-  if (blocked) return `Blocked: ${blocked}`;
+  if (blocked) return withToolResult(`Blocked: ${blocked}`);
   const ext = path.extname(relPath).toLowerCase();
   if (!READABLE_EXTS.has(ext))
-    return `Cannot read file type "${ext}". Allowed: ${Array.from(READABLE_EXTS).join(", ")}`;
+    return withToolResult(
+      `Cannot read file type "${ext}". Allowed: ${Array.from(READABLE_EXTS).join(", ")}`,
+    );
+  const normalizedPath = normalizeProjectPathKey(relPath);
+  const duplicateRead = recordDuplicateRead(
+    runId,
+    "read_project_file",
+    normalizedPath,
+  );
+  const cacheKey = `read_project_file:${normalizedPath}`;
+  const cached = cacheGet(cacheKey);
+  if (cached !== null) {
+    return withToolResult(cached, { cacheHit: true, duplicateRead });
+  }
   try {
     const content = await fs.readFile(safe, "utf-8");
     const preview = content.slice(0, 60_000);
@@ -356,13 +538,18 @@ async function readProjectFile(relPath: string): Promise<string> {
       content.length > 60_000
         ? `\n\n[Truncated — showing first 60,000 of ${content.length} chars]`
         : "";
-    return preview + truncated;
+    const result = preview + truncated;
+    cachePut(cacheKey, result);
+    return withToolResult(result, { duplicateRead });
   } catch {
-    return `File not found: ${relPath}`;
+    return withToolResult(`File not found: ${relPath}`, { duplicateRead });
   }
 }
 
-async function listProjectFiles(relDir: string): Promise<string> {
+async function listProjectFiles(
+  relDir: string,
+  runId: string,
+): Promise<ToolResult> {
   const cleanDir = relDir.replace(/^[/\\]+/, "").replace(/\\/g, "/") || ".";
   const { safe, blocked } = resolveProjectPath(
     cleanDir === "." ? "_root_sentinel" : cleanDir,
@@ -370,7 +557,17 @@ async function listProjectFiles(relDir: string): Promise<string> {
   // For root listing, bypass the sentinel trick
   const targetPath = cleanDir === "." ? PROJECT_ROOT : blocked ? null : safe;
 
-  if (!targetPath) return `Blocked: ${blocked}`;
+  if (!targetPath) return withToolResult(`Blocked: ${blocked}`);
+  const duplicateRead = recordDuplicateRead(
+    runId,
+    "list_project_files",
+    cleanDir,
+  );
+  const cacheKey = `list_project_files:${cleanDir}`;
+  const cached = cacheGet(cacheKey);
+  if (cached !== null) {
+    return withToolResult(cached, { cacheHit: true, duplicateRead });
+  }
 
   try {
     const entries = await fs.readdir(targetPath, { withFileTypes: true });
@@ -382,9 +579,13 @@ async function listProjectFiles(relDir: string): Promise<string> {
           ),
       )
       .map((e) => `${e.isDirectory() ? "📁" : "📄"} ${e.name}`);
-    return lines.length ? lines.join("\n") : "Directory is empty.";
+    const result = lines.length ? lines.join("\n") : "Directory is empty.";
+    cachePut(cacheKey, result);
+    return withToolResult(result, { duplicateRead });
   } catch {
-    return `Directory not found: ${relDir}`;
+    return withToolResult(`Directory not found: ${relDir}`, {
+      duplicateRead,
+    });
   }
 }
 
@@ -501,6 +702,141 @@ async function githubTrending(
   return agentReachProxy("/github-trending", params);
 }
 
+async function analyzeRepo(repo: string): Promise<ToolResult> {
+  try {
+    const { profile, cacheHit } = await getRepoIntelProfile(repo);
+    return withToolResult(formatRepoIntelToolResult(profile), { cacheHit });
+  } catch (error) {
+    const message =
+      error instanceof RepoIntelError
+        ? error.message
+        : "Repo intel could not read GitHub metadata.";
+    return withToolResult(message);
+  }
+}
+
+async function assimilateRepo(
+  repo: string,
+  origin: string,
+): Promise<ToolResult> {
+  if (!repo.trim()) {
+    return withToolResult("assimilate_repo: owner_slash_repo is required.");
+  }
+
+  try {
+    const result = await runRepoAssimilation(repo, {
+      getProfile: getRepoIntelProfile,
+      synthesize: async (profile) => {
+        const aiResult = await callInternalAi({
+          origin,
+          task: "repo_assimilation",
+          maxTokens: 900,
+          timeoutMs: 45_000,
+          messages: [
+            {
+              role: "user",
+              content: buildRepoAssimilationSynthesisPrompt(profile),
+            },
+          ],
+        });
+
+        if (!aiResult.ok || !aiResult.text.trim()) {
+          throw new Error("Repo assimilation synthesis failed.");
+        }
+
+        return aiResult.text;
+      },
+    });
+
+    return withToolResult(result.brief, { cacheHit: result.cacheHit });
+  } catch (error) {
+    return withToolResult(
+      error instanceof Error
+        ? error.message
+        : "Repo assimilation failed while reading GitHub metadata.",
+    );
+  }
+}
+
+async function compareRepos(
+  rawRepoRefs: string[] | string,
+  origin: string,
+): Promise<ToolResult> {
+  try {
+    const result = await runRepoCompare(rawRepoRefs, {
+      getProfile: getRepoIntelProfile,
+      getSavedAssimilationBrief: loadSavedRepoAssimilationBrief,
+      synthesize: async (input) => {
+        const aiResult = await callInternalAi({
+          origin,
+          task: "repo_compare",
+          maxTokens: 1_000,
+          timeoutMs: 45_000,
+          messages: [
+            {
+              role: "user",
+              content: buildRepoCompareSynthesisPrompt(input),
+            },
+          ],
+        });
+
+        if (!aiResult.ok || !aiResult.text.trim()) {
+          throw new Error("Repo compare synthesis failed.");
+        }
+
+        return aiResult.text;
+      },
+    });
+
+    return withToolResult(result.brief, { cacheHit: result.cacheHit });
+  } catch (error) {
+    return withToolResult(
+      error instanceof Error
+        ? error.message
+        : "Repo compare failed while reading GitHub metadata.",
+    );
+  }
+}
+
+async function deepResearch(
+  topic: string,
+  origin: string,
+): Promise<ToolResult> {
+  const normalizedTopic = topic.trim();
+  if (!normalizedTopic) {
+    return withToolResult("deep_research: topic is required.");
+  }
+
+  const result = await runDeepResearch(normalizedTopic, {
+    hfPapersSearch: hfPapersSearch,
+    webSearch: webSearch,
+    rssFetch: rssFetch,
+    fetchUrl: fetchUrl,
+    synthesize: async (input: DeepResearchPipelineInput) => {
+      const aiResult = await callInternalAi({
+        origin,
+        task: "deep_research",
+        maxTokens: 900,
+        timeoutMs: 45_000,
+        messages: [
+          {
+            role: "user",
+            content: buildDeepResearchSynthesisPrompt(input),
+          },
+        ],
+      });
+
+      if (!aiResult.ok || !aiResult.text.trim()) {
+        throw new Error("Deep research synthesis failed.");
+      }
+
+      return aiResult.text;
+    },
+  });
+
+  return withToolResult(result);
+}
+
 async function rssFetch(feedUrl: string, limit: string): Promise<string> {
   if (!feedUrl.trim()) return "rss_fetch: url is required.";
   try {
@@ -521,6 +857,11 @@ interface CacheEntry {
   expiresAt: number;
 }
 const readCache = new Map<string, CacheEntry>();
+interface DuplicateReadEntry {
+  count: number;
+  lastAccessAt: number;
+}
+const duplicateReadAudit = new Map<string, DuplicateReadEntry>();
 
 function cacheGet(key: string): string | null {
   const entry = readCache.get(key);
@@ -539,6 +880,29 @@ function cacheEvict(prefix: string): void {
   for (const k of Array.from(readCache.keys())) {
     if (k.startsWith(prefix)) readCache.delete(k);
   }
+}
+
+function pruneDuplicateReadAudit(now = Date.now()): void {
+  if (duplicateReadAudit.size <= 1500) return;
+  for (const [key, entry] of Array.from(duplicateReadAudit.entries())) {
+    if (now - entry.lastAccessAt > 30 * 60_000) {
+      duplicateReadAudit.delete(key);
+    }
+  }
+}
+
+function recordDuplicateRead(
+  runId: string,
+  kind: string,
+  target: string,
+): boolean {
+  const now = Date.now();
+  pruneDuplicateReadAudit(now);
+  const key = `${runId}:${kind}:${target}`;
+  const next = duplicateReadAudit.get(key);
+  const count = (next?.count ?? 0) + 1;
+  duplicateReadAudit.set(key, { count, lastAccessAt: now });
+  return count >= 3;
 }
 
 // ── HuggingFace daily papers search ──────────────────────────────────────────
@@ -709,7 +1073,7 @@ async function secEdgarSearch(
 
 // ── Lesson logger (OpenClaw autoresearch pattern) ─────────────────────────────
 // Agents propose lessons after corrections; human reviews on next session open.
-const LESSONS_FILE = path.join(PROJECT_ROOT, "tasks", "lessons.md");
+const LESSONS_FILE = path.join(PROJECT_ROOT, "docs", "STANDARDS.md");
 
 async function logLesson(agent: string, lesson: string): Promise<string> {
   if (!lesson.trim()) return "log_lesson: lesson text is required.";
@@ -719,7 +1083,7 @@ async function logLesson(agent: string, lesson: string): Promise<string> {
     await fs.appendFile(LESSONS_FILE, entry, "utf-8");
     return `Lesson logged for review: "${lesson.trim()}"`;
   } catch {
-    return "Could not write to tasks/lessons.md — check file permissions.";
+    return "Could not write to docs/STANDARDS.md — check file permissions.";
   }
 }
 
@@ -782,13 +1146,99 @@ export async function POST(req: NextRequest) {
     return response;
   }
 
+  let toolCapability: ReturnType<typeof getToolCapabilityClass> | null = null;
+  let protectedActionMeta: ProtectedActionDescriptor | null = null;
+
   try {
+    const runId = req.headers.get("x-nexus-run-id") ?? "anon";
     const { tool, input } = (await req.json()) as {
       tool: string;
       input: Record<string, string>;
     };
 
+    const capability = getToolCapabilityClass(tool);
+    toolCapability = capability;
+
+    if (capability === "networked" || requiresToolStepUp(capability)) {
+      const trustContext = await readProtectedActionContext(req);
+      const protectedAction = getToolProtectedAction(capability);
+      protectedActionMeta = resolveProtectedActionDescriptor(
+        protectedAction,
+        trustContext,
+        { capability },
+      );
+      const capabilityStatus = protectedActionMeta.status;
+
+      if (capability === "networked" && capabilityStatus !== "ready") {
+        const blockedReason =
+          resolveProtectedActionBlockedReason(capabilityStatus) ?? "blocked_policy";
+        const response = NextResponse.json(
+          {
+            result: "Tool execution blocked.",
+            error: buildToolBlockedMessage(capabilityStatus),
+            protectedAction: {
+              action: protectedAction,
+              capability,
+              status: capabilityStatus,
+              blockedReason,
+            },
+          },
+          { status: 403 },
+        );
+        applyProtectedActionHeaders(response, {
+          action: protectedAction,
+          capability,
+          status: capabilityStatus,
+          blockedReason,
+        });
+        applyRateLimitHeaders(response, rateLimitConfig);
+        return response;
+      }
+
+      if (requiresToolStepUp(capability)) {
+        if (capabilityStatus === "revalidate") {
+          const response = buildStepUpRequiredResponse(
+            trustContext.sessionAuthenticated,
+            {
+              action: protectedAction,
+              capability,
+            },
+          );
+          response.headers.set("X-Tool-Capability", capability);
+          applyRateLimitHeaders(response, rateLimitConfig);
+          return response;
+        }
+
+        if (capabilityStatus !== "ready") {
+          const blockedReason =
+            resolveProtectedActionBlockedReason(capabilityStatus) ?? "blocked_policy";
+          const response = NextResponse.json(
+            {
+              result: "Tool execution blocked.",
+              error: buildToolBlockedMessage(capabilityStatus),
+              protectedAction: {
+                action: protectedAction,
+                capability,
+                status: capabilityStatus,
+                blockedReason,
+              },
+            },
+            { status: 403 },
+          );
+          applyProtectedActionHeaders(response, {
+            action: protectedAction,
+            capability,
+            status: capabilityStatus,
+            blockedReason,
+          });
+          applyRateLimitHeaders(response, rateLimitConfig);
+          return response;
+        }
+      }
+    }
+
     let result = "";
+    let meta: ToolResponseMeta = {};
 
     switch (tool) {
       case "web_search":
@@ -822,14 +1272,26 @@ export async function POST(req: NextRequest) {
         result = await askMax(input.message ?? "");
         break;
       case "read_project_file":
-        result = await readProjectFile(input.path ?? "");
+        {
+          const toolResult = await readProjectFile(input.path ?? "", runId);
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
         break;
       case "list_project_files":
-        result = await listProjectFiles(input.directory ?? ".");
+        {
+          const toolResult = await listProjectFiles(
+            input.directory ?? ".",
+            runId,
+          );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
         break;
       case "patch_project_file":
         // Evict any cached reads for this file path before patching
-        cacheEvict(`read_project_file:${input.path ?? ""}`);
+        cacheEvict(`read_project_file:${normalizeProjectPathKey(input.path ?? "")}`);
+        cacheEvict("list_project_files:");
         result = await patchProjectFile(
           input.path ?? "",
           input.old_string ?? "",
@@ -837,6 +1299,8 @@ export async function POST(req: NextRequest) {
         );
         break;
       case "create_project_file":
+        cacheEvict(`read_project_file:${normalizeProjectPathKey(input.path ?? "")}`);
+        cacheEvict("list_project_files:");
         result = await createProjectFile(input.path ?? "", input.content ?? "");
         break;
       case "reddit_search":
@@ -851,6 +1315,56 @@ export async function POST(req: NextRequest) {
           input.language ?? "",
           input.since ?? "daily",
         );
+        break;
+      case "analyze_repo":
+        {
+          const toolResult = await analyzeRepo(
+            input.owner_slash_repo ?? input.repo ?? "",
+          );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "compare_repos":
+        {
+          const rawRepoRefs = (input as { repo_refs?: unknown }).repo_refs;
+          const parsedRepoRefs = Array.isArray(rawRepoRefs)
+            ? rawRepoRefs.filter(
+                (value): value is string => typeof value === "string",
+              )
+            : typeof rawRepoRefs === "string"
+              ? rawRepoRefs
+                  .split(/\s+\bvs\b\s+/i)
+                  .map((value) => value.trim())
+                  .filter(Boolean)
+              : [];
+          const toolResult = await compareRepos(
+            parsedRepoRefs,
+            resolveInternalServiceOrigin(),
+          );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "assimilate_repo":
+        {
+          const toolResult = await assimilateRepo(
+            input.owner_slash_repo ?? input.repo ?? "",
+            resolveInternalServiceOrigin(),
+          );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "deep_research":
+        {
+          const toolResult = await deepResearch(
+            input.topic ?? input.question ?? "",
+            resolveInternalServiceOrigin(),
+          );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
         break;
       case "rss_fetch":
         result = await rssFetch(input.url ?? "", input.limit ?? "10");
@@ -886,7 +1400,22 @@ export async function POST(req: NextRequest) {
         result = `Unknown tool: ${tool}`;
     }
 
-    const response = NextResponse.json({ result });
+    const response = NextResponse.json(
+      protectedActionMeta
+        ? {
+            result,
+            protectedAction: protectedActionMeta,
+          }
+        : { result },
+    );
+    response.headers.set("X-Tool-Capability", capability);
+    if (protectedActionMeta) {
+      applyProtectedActionHeaders(response, protectedActionMeta);
+    }
+    if (meta.cacheHit) response.headers.set("X-Tool-Cache", "hit");
+    if (meta.duplicateRead) {
+      response.headers.set("X-Tool-Duplicate-Read", "1");
+    }
     applyRateLimitHeaders(response, rateLimitConfig);
     return response;
   } catch (err) {
@@ -894,9 +1423,30 @@ export async function POST(req: NextRequest) {
       {
         result: "Tool execution error.",
         error: err instanceof Error ? err.message : "Unknown error",
+        ...(protectedActionMeta
+          ? {
+              protectedAction: {
+                action: protectedActionMeta.action,
+                capability: protectedActionMeta.capability,
+                status: "blocked_policy" as const,
+                blockedReason: "tool_error",
+              },
+            }
+          : {}),
       },
       { status: 500 },
     );
+    if (toolCapability) {
+      response.headers.set("X-Tool-Capability", toolCapability);
+    }
+    if (protectedActionMeta) {
+      applyProtectedActionHeaders(response, {
+        action: protectedActionMeta.action,
+        capability: protectedActionMeta.capability,
+        status: "blocked_policy",
+        blockedReason: "tool_error",
+      });
+    }
     applyRateLimitHeaders(response, rateLimitConfig);
     return response;
   }

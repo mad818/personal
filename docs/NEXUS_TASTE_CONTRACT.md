@@ -10,6 +10,12 @@ It is a reference for shell, route, and interaction work. It is not a runtime de
 - `MOTION_INTENSITY`: `6`
 - `VISUAL_DENSITY`: `7`
 
+## Plugin References
+
+- Canva concept board view: `https://www.canva.com/d/FZ3EWE2EOWssOoF`
+- Canva concept board edit: `https://www.canva.com/d/IAVbi_asV5rgiY8`
+- Repo-native implementation rules: `docs/NEXUS_FIGMA_IMPLEMENTATION_RULES.md`
+
 ## Core Rules
 
 1. One dominant visual idea per route.
@@ -22,9 +28,21 @@ It is a reference for shell, route, and interaction work. It is not a runtime de
 ## Nexus-Specific Interpretation
 
 - HQ remains a 3D flagship surface, but the chronicle/composer stays primary.
-- COMMAND, INTEL, ALPHA, CYBER, RECON, VAULT, RESOURCES, SECURITY, SKILLS, and VEHICLE all share the same Satellite Ops material language.
-- Route differences come from plates, overlays, copy, and support emphasis, not from separate design systems.
-- The shell keeps the cold blue / steel Satellite Ops identity; this contract sharpens taste and consistency rather than changing theme families again.
+- COMMAND, INTEL, ALPHA, CYBER, RECON, VAULT, RESOURCES, SECURITY, SKILLS, and VEHICLE all share one cinematic command-room family.
+- Route differences come from plates, overlays, scan geometry, and accent bias, not from separate design systems.
+- The shell now resolves through obsidian, graphite, smoked glass, liquid chrome, electric cyan, and restrained amber alerts instead of older brass-heavy residue.
+- Typography should read as compressed display plus disciplined operator text.
+- Trust chrome should read like instrument status: summary first, detail on demand.
+
+## Material and Motion Rules
+
+- Backgrounds stay near-black or graphite, never navy-brass by default.
+- The primary accent is electric cyan / ice blue.
+- Amber is reserved for readiness, warnings, and escalation.
+- Borders stay thin, cool, and contour-like instead of embossed.
+- Workplanes should feel paneled into the room, not stacked as cards.
+- Motion should follow one sequence: environment fade, route plate lock-in, workplane reveal, support rail arrival, continuity pulse.
+- Scene sweeps and hover response should feel deliberate and cinematic, not busy or game-like.
 
 ## Anti-Patterns
 

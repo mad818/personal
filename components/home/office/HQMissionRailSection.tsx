@@ -34,8 +34,8 @@ export default function HQMissionRailSection({
   const items: Array<MissionRailItem & { onClick: () => void }> = [
     {
       id: "observe",
-      label: "Watch sector",
-      note: "Open COMMAND and hold runtime plus pressure in one live lane.",
+      label: "Watch",
+      note: "COMMAND runtime and pressure.",
       tone: "steady",
       actionLabel: "Watch",
       onClick: onObserve,
@@ -54,24 +54,24 @@ export default function HQMissionRailSection({
     },
     {
       id: "automate",
-      label: "Queue orders",
-      note: "Stage repeatable orders without leaving the active picture.",
+      label: "Queue",
+      note: "Stage repeatable orders in-line.",
       tone: "warning",
       actionLabel: "Queue",
       onClick: onAutomate,
     },
     {
       id: "archive",
-      label: "Vault recall",
-      note: "Open VAULT for compiled pages and durable recall.",
+      label: "Archive",
+      note: "VAULT recall and dossiers.",
       tone: "steady",
       actionLabel: "Recall",
       onClick: onArchive,
     },
     {
       id: "launch",
-      label: "Launch bridge",
-      note: "Open VEHICLE readiness for bridge posture and bundles.",
+      label: "Bridge",
+      note: "VEHICLE readiness and bundles.",
       tone: "critical",
       actionLabel: "Launch",
       onClick: onLaunch,
@@ -84,9 +84,9 @@ export default function HQMissionRailSection({
       aria-label="HQ tactical queue"
     >
       <div className="nexus-hq-tacticalBoard__header">
-        <span className="nexus-shell-eyebrow">Action queue</span>
+        <span className="nexus-shell-eyebrow">Queue</span>
         <p className="nexus-hq-tacticalBoard__copy">
-          Move from watch to investigate, queue, recall, or launch without breaking the thread.
+          Watch, pivot, queue, recall, launch.
         </p>
       </div>
 

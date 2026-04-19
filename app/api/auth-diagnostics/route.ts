@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   applyAuthNoStoreHeaders,
   getConfiguredNexusToken,
-  getNexusSessionState,
-  getNexusStepUpState,
   isNexusAuthEnabled,
-  NEXUS_STEP_UP_COOKIE,
-  NEXUS_SESSION_COOKIE,
 } from "@/lib/authSession";
 import { getDefaultEntrypoint, RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
 import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
+import {
+  readProtectedActionContext,
+  resolveProtectedActionDescriptor,
+} from "@/lib/security/toolCapabilityPolicy";
 
 export const dynamic = "force-dynamic";
 
@@ -17,11 +17,7 @@ export async function GET(req: NextRequest) {
   const runtime = readRuntimeIdentity();
   const configuredToken = getConfiguredNexusToken();
   const authEnabled = isNexusAuthEnabled();
-  const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? "";
-  const stepUpCookie = req.cookies.get(NEXUS_STEP_UP_COOKIE)?.value ?? "";
-  const sessionState = await getNexusSessionState(sessionCookie);
-  const stepUpState = await getNexusStepUpState(stepUpCookie, sessionCookie);
-  const authenticated = Boolean(sessionState);
+  const trustContext = await readProtectedActionContext(req);
 
   const response = NextResponse.json({
     ok: true,
@@ -33,16 +29,33 @@ export async function GET(req: NextRequest) {
     },
     auth: {
       tokenConfigured: Boolean(configuredToken),
-      authenticated: authEnabled ? authenticated : true,
-      stepUpActive: authEnabled ? Boolean(stepUpState) : true,
-      sessionRemainingSeconds: sessionState?.remainingSeconds ?? null,
-      stepUpRemainingSeconds: stepUpState?.remainingSeconds ?? null,
-      mode: !authEnabled
-        ? "open-no-token"
-        : authenticated
-          ? "cookie-session"
-          : "locked",
-      cookiePresent: Boolean(sessionCookie),
+      authenticated: authEnabled ? trustContext.sessionAuthenticated : true,
+      stepUpActive: authEnabled ? trustContext.stepUpActive : true,
+      sessionRemainingSeconds: trustContext.session?.remainingSeconds ?? null,
+      stepUpRemainingSeconds: trustContext.stepUp?.remainingSeconds ?? null,
+    },
+    trust: {
+      networkMode: trustContext.networkMode,
+      highRiskEnabled: trustContext.highRiskEnabled,
+      connectorExposure: {
+        enabled: trustContext.connectorEnabled,
+        total: trustContext.connectorTotal,
+      },
+      protectedActions: {
+        settingsWrites: resolveProtectedActionDescriptor(
+          "settings_writes",
+          trustContext,
+        ),
+        verification: resolveProtectedActionDescriptor("verification", trustContext),
+        mutateExecTools: resolveProtectedActionDescriptor(
+          "tools_mutate_exec",
+          trustContext,
+        ),
+        networkedTools: resolveProtectedActionDescriptor(
+          "tools_networked",
+          trustContext,
+        ),
+      },
     },
     release: {
       defaultEntrypoint: getDefaultEntrypoint(),

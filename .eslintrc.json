@@ -9,18 +9,25 @@
   "plugins": ["tailwindcss"],
   "rules": {
     "tailwindcss/no-custom-classname": "off",
-    "tailwindcss/classnames-order": "off"
+    "tailwindcss/classnames-order": "off",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "react-hooks/exhaustive-deps": "warn"
   },
   "settings": {
     "tailwindcss": {
-      "callees": ["cn", "cva"],
-      "config": "tailwind.config.js"
+      "callees": ["cn", "cva"]
     }
   },
   "overrides": [
     {
       "files": ["*.ts", "*.tsx"],
       "parser": "@typescript-eslint/parser"
+    },
+    {
+      "files": ["__tests__/**/*.ts", "scripts/**/*.mjs"],
+      "rules": {
+        "no-console": "off"
+      }
     }
   ]
 }

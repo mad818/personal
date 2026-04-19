@@ -209,10 +209,10 @@ export function HQStrategiumDeck({
     <section className="nexus-hq-strategium" aria-label="Operations deck">
       <div className="nexus-hq-strategium__headerBand">
         <div className="nexus-hq-strategium__hero">
-          <div className="nexus-hq-strategium__eyebrow">Command deck</div>
-          <h2 className="nexus-hq-strategium__title">Route the next move.</h2>
+          <div className="nexus-hq-strategium__eyebrow">Ops deck</div>
+          <h2 className="nexus-hq-strategium__title">Route next move.</h2>
           <p className="nexus-hq-strategium__description">
-            Front pressure, runtime, and trust stay tight around the chronicle.
+            Fronts, runtime, trust.
           </p>
         </div>
 
@@ -331,12 +331,12 @@ export function HQStrategiumDeck({
           </OpsField>
           <div className="nexus-hq-strategium__modeActions">
             <ShellButton onClick={() => onOpenTab(missionCodex.primaryActionHref)}>
-              Open front
+              Open
             </ShellButton>
             <ShellButton onClick={() => onOpenTab(missionCodex.secondaryActionHref)}>
               {missionCodex.secondaryActionLabel}
             </ShellButton>
-            <ShellButton onClick={onOpenScheduler}>Mission queue</ShellButton>
+            <ShellButton onClick={onOpenScheduler}>Queue</ShellButton>
           </div>
         </OpsWorkplane>
 
@@ -389,7 +389,7 @@ export function HQStrategiumDeck({
           </OpsField>
           <div className="nexus-hq-strategium__modeActions">
             <ShellButton onClick={() => onOpenTab(missionCodex.primaryActionHref)}>
-              Engage front
+              Engage
             </ShellButton>
             <ShellButton onClick={() => onOpenTab("/skills?view=forge")}>
               Forge
@@ -450,7 +450,7 @@ export function HQStrategiumDeck({
             </div>
             <TrustOperationsRail
               title={hqLayout.trustLabel}
-              detail="Privilege, shield, and degraded posture stay on the same rail."
+              detail="Privilege on-rail."
               compact
             />
             <details className="nexus-surface-disclosure nexus-hq-strategium__disclosure">
@@ -492,9 +492,9 @@ export function HQStrategiumDeck({
             </details>
           </OpsField>
           <div className="nexus-hq-strategium__modeActions">
-            <ShellButton onClick={onOpenMemory}>Archive recall</ShellButton>
-            <ShellButton onClick={onOpenScheduler}>Mission queue</ShellButton>
-            <ShellButton onClick={() => onOpenTab("resources")}>Field manual</ShellButton>
+            <ShellButton onClick={onOpenMemory}>Archive</ShellButton>
+            <ShellButton onClick={onOpenScheduler}>Queue</ShellButton>
+            <ShellButton onClick={() => onOpenTab("resources")}>Manual</ShellButton>
           </div>
         </OpsRail>
       </div>

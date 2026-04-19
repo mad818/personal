@@ -492,7 +492,7 @@ export default function VaultPage() {
       surface="vault"
       eyebrow="Dossier archive"
       title="Archive spine"
-      description="Memory, research, and graph recall on one archive spine."
+      description="Memory, research, and graph recall."
       actions={
         <>
           <ShellBadge tone="accent">Durable memory</ShellBadge>
@@ -509,7 +509,7 @@ export default function VaultPage() {
                 {archiveCount}
               </strong>
               <span className="nexus-surface-route-strip__cellNote">
-                Saved clips and compiled memory stay on one archive spine.
+                Saved clips and compiled memory stay on one spine.
               </span>
             </div>
             <div className="nexus-surface-route-strip__cell">
@@ -518,7 +518,7 @@ export default function VaultPage() {
                 {chamber}
               </strong>
               <span className="nexus-surface-route-strip__cellNote">
-                One workbench chamber stays in front of one quieter rail.
+                One chamber in front of one rail.
               </span>
             </div>
             <div className="nexus-surface-route-strip__cell">
@@ -527,7 +527,7 @@ export default function VaultPage() {
                 {filteredGraph.nodes.length}
               </strong>
               <span className="nexus-surface-route-strip__cellNote">
-                Relation mode keeps the visible topology primary.
+                Relation mode keeps topology primary.
               </span>
             </div>
             <div className="nexus-surface-route-strip__cell">
@@ -892,7 +892,7 @@ export default function VaultPage() {
                         <ShellBadge tone="accent">{compiledPages.length} pages</ShellBadge>
                         <ShellBadge tone="muted">{savedArticles.length} clips</ShellBadge>
                         <ShellBadge tone="muted">
-                          {compiledLoading ? "Refreshing archive" : "Archive ready"}
+                          {compiledLoading ? "Refreshing" : "Archive ready"}
                         </ShellBadge>
                       </div>
                     </OpsField>

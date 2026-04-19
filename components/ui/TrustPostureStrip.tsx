@@ -87,7 +87,7 @@ export default function TrustPostureStrip() {
         (row) =>
           row.label === "Session" ||
           row.label === "Step-up" ||
-          row.label === "Network",
+          row.label === "High-risk",
       ),
     [trustRows],
   );
@@ -122,7 +122,7 @@ export default function TrustPostureStrip() {
   return (
     <details className="nexus-trust-strip" data-state={summaryState}>
       <summary className="nexus-trust-strip__summary">
-        <span className="nexus-trust-strip__label">Trust ops</span>
+        <span className="nexus-trust-strip__label">Trust</span>
         <div className="nexus-trust-strip__badges">
           {summaryRows.map((row) => (
             <span key={row.label} className="nexus-trust-strip__badge">
@@ -150,7 +150,7 @@ export default function TrustPostureStrip() {
         ))}
         <div className="nexus-trust-strip__actions">
           <ShellButton onClick={handleRevalidate} disabled={revalidating}>
-            {revalidating ? "Refreshing" : "Refresh"}
+            {revalidating ? "Checking" : "Recheck"}
           </ShellButton>
           {revalidateNote ? (
             <span className="nexus-trust-strip__note">{revalidateNote}</span>

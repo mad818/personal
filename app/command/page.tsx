@@ -220,7 +220,7 @@ export default function CommandPage() {
         surface="command"
         eyebrow="Live operations grid"
         title="Operations grid"
-        description="Dispatch, runtime, and pressure on one board."
+        description="Dispatch, runtime, pressure."
         actions={
           <>
             <ShellBadge tone="accent">Live readiness</ShellBadge>
@@ -277,28 +277,28 @@ export default function CommandPage() {
                   Command
                 </strong>
                 <span className="nexus-surface-route-strip__cellNote">
-                  KPIs and readiness open in the brief chamber.
+                  KPIs and readiness in front.
                 </span>
               </div>
               <div className="nexus-surface-route-strip__cell" id="command-provider-health">
                 <span className="nexus-surface-route-strip__cellLabel">Provider health</span>
                 <strong className="nexus-surface-route-strip__cellValue">Switch operator</strong>
                 <span className="nexus-surface-route-strip__cellNote">
-                  Provider chain and local runtime stay one move away.
+                  Provider chain one move away.
                 </span>
               </div>
               <div className="nexus-surface-route-strip__cell" id="command-runtime-efficiency">
                 <span className="nexus-surface-route-strip__cellLabel">Runtime pressure</span>
                 <strong className="nexus-surface-route-strip__cellValue">Efficiency</strong>
                 <span className="nexus-surface-route-strip__cellNote">
-                  Prompt waste, tool packs, and cache pressure stay staged.
+                  Waste and cache pressure staged.
                 </span>
               </div>
               <div className="nexus-surface-route-strip__cell" id="command-agent-health">
                 <span className="nexus-surface-route-strip__cellLabel">Choir posture</span>
                 <strong className="nexus-surface-route-strip__cellValue">Agents</strong>
                 <span className="nexus-surface-route-strip__cellNote">
-                  Agent health stays visible without taking the viewport.
+                  Agent posture stays visible.
                 </span>
               </div>
               <div className="nexus-surface-route-strip__cell">
@@ -310,7 +310,7 @@ export default function CommandPage() {
                   Memory
                 </strong>
                 <span className="nexus-surface-route-strip__cellNote">
-                  Project stack and memory recall stay pinned in the rail.
+                  Memory and stack stay pinned.
                 </span>
               </div>
             </div>
@@ -428,7 +428,7 @@ export default function CommandPage() {
                         </OpsField>
                         <OpsField
                           title="Efficiency ops"
-                          detail="Mission queue, cache and batch proof, and the next strongest recurring-mission repair"
+                          detail="Queue, cache, and the next recurring repair"
                           tone="muted"
                         >
                           <LazyEfficiencyOpsCard />
@@ -551,7 +551,7 @@ export default function CommandPage() {
                 </OpsField>
                 <OpsField
                   title="Runtime efficiency"
-                  detail="Prompt waste, tool-pack posture, and read-cache pressure"
+                  detail="Waste, tool-pack posture, and cache pressure"
                   compact
                 >
                   <LazyRuntimeEfficiencyCard />

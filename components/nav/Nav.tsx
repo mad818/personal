@@ -106,19 +106,19 @@ export default function Nav() {
               <span className="nexus-command-header__brandTag">{BRAND_TAGLINE}</span>
             </Link>
             <div className="nexus-command-header__context">
-              <span className="nexus-command-header__contextLabel">Active sector</span>
+              <span className="nexus-command-header__contextLabel">Sector</span>
               <span className="nexus-command-header__contextValue">
                 {previewBranding.visibleLabel}
               </span>
               <span className="nexus-command-header__contextMeta">
-                {previewBranding.functionalLabel} · {previewTaste.headerNote}
+                {previewBranding.functionalLabel}
               </span>
             </div>
           </div>
 
           <div className="nexus-command-header__rail" data-surface={activeTab?.id ?? "hq"}>
             <div className="nexus-command-header__railMeta">
-              <span className="nexus-command-header__railLabel">Sector rail</span>
+              <span className="nexus-command-header__railLabel">Directive</span>
               <span className="nexus-command-header__railNote">{previewTaste.routeDirective}</span>
               <span className="nexus-command-header__railMetaHint">
                 {formatNexusTasteProfile()} · Alt+1-8
@@ -188,7 +188,7 @@ export default function Nav() {
               <TrustPostureStrip />
             </div>
             <span className="nexus-command-header__utilityNote">
-              {previewTaste.continuityLabel} armed while exact continuity holds.
+              Exact continuity armed.
             </span>
 
             <button

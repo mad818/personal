@@ -1,10 +1,10 @@
-export const BRAND_NAME = "Aegis Vector";
-export const BRAND_SHORT_NAME = "Aegis";
+export const BRAND_NAME = "Nexus Prime";
+export const BRAND_SHORT_NAME = "Nexus";
 export const BRAND_TAGLINE = "Local-first command intelligence";
 export const BRAND_DESCRIPTOR =
-  "A local-first command-and-intelligence workspace for markets, cyber, recon, and operator AI on web and desktop.";
+  "A local-first command room for markets, cyber, recon, and operator AI on web and desktop.";
 export const BRAND_GITHUB_DESCRIPTION =
-  "Aegis Vector is a local-first command-and-intelligence workspace for markets, cyber, recon, and operator AI on web and desktop. Free-first, self-hosted, and interactive by design.";
+  "Nexus Prime is a local-first command room for markets, cyber, recon, and operator AI on web and desktop. Free-first, self-hosted, and interactive by design.";
 
 export type BillingTier =
   | "free_local"
@@ -71,14 +71,14 @@ function isConfiguredSecretValue(value?: string | null) {
 
 export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
   default: {
-    visibleLabel: "Aegis",
+    visibleLabel: "Nexus",
     functionalLabel: "Home",
-    heroTitle: "Aegis Vector",
-    heroKicker: "Tactical intelligence shell",
-    surfaceArtKey: "aegis",
-    accentPalette: ["#8294a7", "#e1e9f0"],
-    ariaLabel: "Aegis Vector home surface",
-    note: "A local-first intelligence shell designed as one operating picture instead of a decorative dashboard.",
+    heroTitle: "Nexus Prime",
+    heroKicker: "Command room shell",
+    surfaceArtKey: "nexus",
+    accentPalette: ["#38d7ff", "#dcefff"],
+    ariaLabel: "Nexus Prime home surface",
+    note: "A local-first command shell designed as one operating picture instead of a decorative dashboard.",
   },
   hq: {
     visibleLabel: "HQ",
@@ -86,9 +86,9 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     heroTitle: "HQ",
     heroKicker: "Command center",
     surfaceArtKey: "citadel",
-    accentPalette: ["#8da0b4", "#edf3f8"],
+    accentPalette: ["#3fd8ff", "#e4f2ff"],
     ariaLabel: "HQ mission control surface",
-    note: "Operator presence, agent orchestration, and live continuity should read like one active operating picture.",
+    note: "Operator presence, live continuity, and tactical control should read like one active operating picture.",
   },
   command: {
     visibleLabel: "COMMAND",
@@ -96,9 +96,9 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     heroTitle: "COMMAND",
     heroKicker: "Live operations board",
     surfaceArtKey: "vector",
-    accentPalette: ["#7f94a8", "#dfe7ee"],
+    accentPalette: ["#36c8ff", "#cde8ff"],
     ariaLabel: "Command operations surface",
-    note: "Mission lanes, readiness posture, and system status should read like a live tasking board.",
+    note: "Mission lanes, readiness, and system status should read like a live tasking board.",
   },
   intel: {
     visibleLabel: "INTEL",
@@ -106,7 +106,7 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     heroTitle: "INTEL",
     heroKicker: "Signal field",
     surfaceArtKey: "spectra",
-    accentPalette: ["#8599ae", "#e7edf3"],
+    accentPalette: ["#62cfff", "#d7ebff"],
     ariaLabel: "Intel world picture surface",
     note: "Narratives, world posture, and prediction layers should feel like an active briefing board, not a themed archive.",
   },
@@ -116,7 +116,7 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     heroTitle: "ALPHA",
     heroKicker: "Market picture",
     surfaceArtKey: "quant",
-    accentPalette: ["#8799ab", "#e3eaf0"],
+    accentPalette: ["#64d8ff", "#dff4ff"],
     ariaLabel: "Alpha market desk surface",
     note: "Scanner flows, watchlists, and position sizing should feel like a disciplined trading desk inside the same war room.",
   },
@@ -126,7 +126,7 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     heroTitle: "CYBER",
     heroKicker: "Containment board",
     surfaceArtKey: "bastion",
-    accentPalette: ["#7c90a4", "#e3ebf1"],
+    accentPalette: ["#7be5ff", "#d6f3ff"],
     ariaLabel: "Cyber threat desk surface",
     note: "Threat monitoring, exploit posture, and repair lanes should read like one containment board under pressure.",
   },
@@ -136,7 +136,7 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     heroTitle: "RECON",
     heroKicker: "Acquisition sweep",
     surfaceArtKey: "parallax",
-    accentPalette: ["#8a9eb1", "#e6edf3"],
+    accentPalette: ["#8fdfff", "#dcefff"],
     ariaLabel: "Recon collection surface",
     note: "Collection, OPSEC, and repo intel should stay quiet, fast, and exact inside the same operating room.",
   },
@@ -146,7 +146,7 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     heroTitle: "VAULT",
     heroKicker: "Dossier archive",
     surfaceArtKey: "archive",
-    accentPalette: ["#90a2b4", "#edf3f7"],
+    accentPalette: ["#b9d8ff", "#eff7ff"],
     ariaLabel: "Vault archive surface",
     note: "Saved artifacts and dossiers should feel indexed, linked, and easy to recover under pressure.",
   },
@@ -156,7 +156,7 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     heroTitle: "VEHICLE",
     heroKicker: "Vehicle operations lab",
     surfaceArtKey: "vehicle",
-    accentPalette: ["#8093a7", "#e3ebf1"],
+    accentPalette: ["#4fd5ff", "#d8eeff"],
     ariaLabel: "Vehicle operations lab",
     note: "Internal mobility systems should inherit the same tactical shell language as the rest of the room.",
   },
@@ -166,9 +166,29 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     heroTitle: "RESOURCES",
     heroKicker: "Manuals and playbooks",
     surfaceArtKey: "manual",
-    accentPalette: ["#8b9daf", "#e7edf3"],
+    accentPalette: ["#8ddcff", "#deefff"],
     ariaLabel: "Resources reference desk",
     note: "References and internal manuals should feel like part of the same operating system, not a separate utility page.",
+  },
+  security: {
+    visibleLabel: "SECURITY",
+    functionalLabel: "Control surface",
+    heroTitle: "SECURITY",
+    heroKicker: "Protected controls",
+    surfaceArtKey: "security",
+    accentPalette: ["#7acfff", "#ddefff"],
+    ariaLabel: "Security control surface",
+    note: "Protected actions, route posture, and hardening state should read like one control surface.",
+  },
+  skills: {
+    visibleLabel: "SKILLS",
+    functionalLabel: "Workflow forge",
+    heroTitle: "SKILLS",
+    heroKicker: "Capability forge",
+    surfaceArtKey: "skills",
+    accentPalette: ["#8ddcff", "#e6f4ff"],
+    ariaLabel: "Skills workflow forge surface",
+    note: "Reusable workflow capability should feel like a forge rail, not a catalog wall.",
   },
 };
 

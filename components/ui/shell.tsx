@@ -28,19 +28,19 @@ const SURFACE_ART: Record<
   default: {
     plateSrc: "/theme/satops-command-plate.svg",
     platePosition: "50% 50%",
-    strap: "Operations picture",
-    caption: "Calibrated surface plate with embedded telemetry and route-specific map context.",
+    strap: "Command picture",
+    caption: "One live command plate.",
     readouts: [
       { label: "Window", value: "Live" },
-      { label: "Posture", value: "Aligned" },
-      { label: "Trace", value: "Stable" },
+      { label: "Posture", value: "Locked" },
+      { label: "Trace", value: "Clean" },
     ],
   },
   hq: {
     plateSrc: "/theme/satops-hq-plate.svg",
     platePosition: "50% 50%",
-    strap: "Mission picture",
-    caption: "Primary theater plate for live dispatch, continuity, and command-state sweep.",
+    strap: "Mission plate",
+    caption: "Chronicle-first command plate.",
     readouts: [
       { label: "Station", value: "JANSKY" },
       { label: "Track", value: "Command" },
@@ -50,8 +50,8 @@ const SURFACE_ART: Record<
   command: {
     plateSrc: "/theme/satops-command-plate.svg",
     platePosition: "50% 50%",
-    strap: "Operations board",
-    caption: "Provider posture, pressure, and dispatch opportunities held inside one live grid.",
+    strap: "Ops grid",
+    caption: "Pressure and dispatch on one grid.",
     readouts: [
       { label: "Watch", value: "Pressure" },
       { label: "Risk", value: "Bounded" },
@@ -62,7 +62,7 @@ const SURFACE_ART: Record<
     plateSrc: "/theme/satops-intel-plate.svg",
     platePosition: "50% 50%",
     strap: "Signal sweep",
-    caption: "Narrative, map, and signal lanes aligned for evidence-first investigation.",
+    caption: "Evidence-led scan plate.",
     readouts: [
       { label: "Signal", value: "Wideband" },
       { label: "Sweep", value: "Queued" },
@@ -73,7 +73,7 @@ const SURFACE_ART: Record<
     plateSrc: "/theme/satops-alpha-plate.svg",
     platePosition: "50% 50%",
     strap: "Decision frame",
-    caption: "Thesis, pressure, and market memory staged as one disciplined review picture.",
+    caption: "Thesis and pressure in one frame.",
     readouts: [
       { label: "Review", value: "Market" },
       { label: "Bias", value: "Measured" },
@@ -84,7 +84,7 @@ const SURFACE_ART: Record<
     plateSrc: "/theme/satops-cyber-plate.svg",
     platePosition: "50% 50%",
     strap: "Threat mesh",
-    caption: "Containment, evidence, and exposure lanes woven into one threat picture.",
+    caption: "Containment and repair in one picture.",
     readouts: [
       { label: "Threat", value: "Tracked" },
       { label: "Exposure", value: "Scoped" },
@@ -95,7 +95,7 @@ const SURFACE_ART: Record<
     plateSrc: "/theme/satops-recon-plate.svg",
     platePosition: "50% 50%",
     strap: "Field sweep",
-    caption: "Case progression, public repo intel, and triangulated evidence held in one scan plate.",
+    caption: "Case and evidence in one sweep.",
     readouts: [
       { label: "Sweep", value: "OSINT" },
       { label: "Case", value: "Open" },
@@ -106,7 +106,7 @@ const SURFACE_ART: Record<
     plateSrc: "/theme/satops-vault-plate.svg",
     platePosition: "50% 50%",
     strap: "Archive lattice",
-    caption: "Compiled memory, graph continuity, and dossier export held in one lattice view.",
+    caption: "Recall and graph in one lattice.",
     readouts: [
       { label: "Recall", value: "Exact" },
       { label: "Graph", value: "Pinned" },
@@ -117,7 +117,7 @@ const SURFACE_ART: Record<
     plateSrc: "/theme/satops-vehicle-plate.svg",
     platePosition: "50% 50%",
     strap: "Launch board",
-    caption: "Bridge posture, readiness, and bundle continuity aligned on a single launch grid.",
+    caption: "Readiness and launch on one board.",
     readouts: [
       { label: "Bridge", value: "Cold" },
       { label: "Check", value: "Ready" },
@@ -128,7 +128,7 @@ const SURFACE_ART: Record<
     plateSrc: "/theme/satops-resources-plate.svg",
     platePosition: "50% 50%",
     strap: "Reference lattice",
-    caption: "Playbooks, architecture maps, and field references staged in one indexed work plane.",
+    caption: "Playbooks and maps in one plane.",
     readouts: [
       { label: "Finder", value: "Indexed" },
       { label: "Manual", value: "Local" },
@@ -139,7 +139,7 @@ const SURFACE_ART: Record<
     plateSrc: "/theme/satops-security-plate.svg",
     platePosition: "50% 50%",
     strap: "Control surface",
-    caption: "Policy, controls, and risk posture held as one operating control surface.",
+    caption: "Protected posture in one surface.",
     readouts: [
       { label: "Guard", value: "Tight" },
       { label: "Policy", value: "Visible" },
@@ -150,7 +150,7 @@ const SURFACE_ART: Record<
     plateSrc: "/theme/satops-skills-plate.svg",
     platePosition: "50% 50%",
     strap: "Workflow forge",
-    caption: "Reusable operator capability and workflow patterns staged as a forge lattice.",
+    caption: "Capability and flow in one forge.",
     readouts: [
       { label: "Forge", value: "Warm" },
       { label: "Packs", value: "Governed" },
@@ -425,7 +425,6 @@ export function OpsHeader({
             </div>
           ))}
         </div>
-        <p className="nexus-shell-opsHead__caption">{art.caption}</p>
       </div>
     </header>
   );

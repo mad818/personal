@@ -47,106 +47,128 @@ export const BILLING_TIER_LABELS: Record<BillingTier, string> = {
   paid_optional_hidden: "Advanced BYOK",
 };
 
+type CloudNetworkMode = "isolated" | "internal" | "open";
+
+function normalizeCloudNetworkMode(mode?: string | null): CloudNetworkMode {
+  if (mode === "internal" || mode === "open") return mode;
+  return "isolated";
+}
+
+function isCloudInferenceAllowedInMode(mode: CloudNetworkMode) {
+  return mode !== "isolated";
+}
+
+function isCloudInferenceProvider(providerId: string) {
+  return providerId !== "ollama";
+}
+
+function isConfiguredSecretValue(value?: string | null) {
+  if (typeof value !== "string") return false;
+  const normalized = value.trim();
+  if (!normalized) return false;
+  return !/^(your-|replace-|changeme|example|placeholder)/i.test(normalized);
+}
+
 export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
   default: {
     visibleLabel: "Aegis",
     functionalLabel: "Home",
     heroTitle: "Aegis Vector",
-    heroKicker: "Command intelligence shell",
+    heroKicker: "Tactical intelligence shell",
     surfaceArtKey: "aegis",
-    accentPalette: ["#7dd3fc", "#f59e0b"],
+    accentPalette: ["#8294a7", "#e1e9f0"],
     ariaLabel: "Aegis Vector home surface",
-    note: "A hard-sci-fi command shell tuned for fast comprehension, not ornamental clutter.",
+    note: "A local-first intelligence shell designed as one operating picture instead of a decorative dashboard.",
   },
   hq: {
-    visibleLabel: "CITADEL",
-    functionalLabel: "HQ",
-    heroTitle: "CITADEL",
-    heroKicker: "Orbital command bridge",
+    visibleLabel: "HQ",
+    functionalLabel: "Mission control",
+    heroTitle: "HQ",
+    heroKicker: "Command center",
     surfaceArtKey: "citadel",
-    accentPalette: ["#67e8f9", "#60a5fa"],
-    ariaLabel: "Citadel, formerly HQ",
-    note: "Operator presence, AI orchestration, and ambient telemetry anchored in one bridge.",
+    accentPalette: ["#8da0b4", "#edf3f8"],
+    ariaLabel: "HQ mission control surface",
+    note: "Operator presence, agent orchestration, and live continuity should read like one active operating picture.",
   },
   command: {
-    visibleLabel: "VECTOR",
-    functionalLabel: "COMMAND",
-    heroTitle: "VECTOR",
-    heroKicker: "Mission lane",
+    visibleLabel: "COMMAND",
+    functionalLabel: "Operations grid",
+    heroTitle: "COMMAND",
+    heroKicker: "Live operations board",
     surfaceArtKey: "vector",
-    accentPalette: ["#f59e0b", "#fb7185"],
-    ariaLabel: "Vector, formerly Command",
-    note: "Mission lanes, tactical routes, and readiness signals tuned for decision speed.",
+    accentPalette: ["#7f94a8", "#dfe7ee"],
+    ariaLabel: "Command operations surface",
+    note: "Mission lanes, readiness posture, and system status should read like a live tasking board.",
   },
   intel: {
-    visibleLabel: "SPECTRA",
-    functionalLabel: "INTEL",
-    heroTitle: "SPECTRA",
-    heroKicker: "Signal interference field",
+    visibleLabel: "INTEL",
+    functionalLabel: "World picture",
+    heroTitle: "INTEL",
+    heroKicker: "Signal field",
     surfaceArtKey: "spectra",
-    accentPalette: ["#a78bfa", "#38bdf8"],
-    ariaLabel: "Spectra, formerly Intel",
-    note: "Narratives, world posture, and prediction layers presented as one signal theater.",
+    accentPalette: ["#8599ae", "#e7edf3"],
+    ariaLabel: "Intel world picture surface",
+    note: "Narratives, world posture, and prediction layers should feel like an active briefing board, not a themed archive.",
   },
   alpha: {
-    visibleLabel: "QUANT",
-    functionalLabel: "ALPHA",
-    heroTitle: "QUANT",
-    heroKicker: "Execution lattice",
+    visibleLabel: "ALPHA",
+    functionalLabel: "Market desk",
+    heroTitle: "ALPHA",
+    heroKicker: "Market picture",
     surfaceArtKey: "quant",
-    accentPalette: ["#34d399", "#facc15"],
-    ariaLabel: "Quant, formerly Alpha",
-    note: "Scanner flows, watchlists, and position sizing framed like a live trading lattice.",
+    accentPalette: ["#8799ab", "#e3eaf0"],
+    ariaLabel: "Alpha market desk surface",
+    note: "Scanner flows, watchlists, and position sizing should feel like a disciplined trading desk inside the same war room.",
   },
   cyber: {
-    visibleLabel: "BASTION",
-    functionalLabel: "CYBER",
-    heroTitle: "BASTION",
-    heroKicker: "Containment mesh",
+    visibleLabel: "CYBER",
+    functionalLabel: "Threat desk",
+    heroTitle: "CYBER",
+    heroKicker: "Containment board",
     surfaceArtKey: "bastion",
-    accentPalette: ["#2dd4bf", "#fb7185"],
-    ariaLabel: "Bastion, formerly Cyber",
-    note: "Threat monitoring and exploit posture organized around containment, not noise.",
+    accentPalette: ["#7c90a4", "#e3ebf1"],
+    ariaLabel: "Cyber threat desk surface",
+    note: "Threat monitoring, exploit posture, and repair lanes should read like one containment board under pressure.",
   },
   recon: {
-    visibleLabel: "PARALLAX",
-    functionalLabel: "RECON",
-    heroTitle: "PARALLAX",
-    heroKicker: "Triangulation sweep",
+    visibleLabel: "RECON",
+    functionalLabel: "Collection desk",
+    heroTitle: "RECON",
+    heroKicker: "Acquisition sweep",
     surfaceArtKey: "parallax",
-    accentPalette: ["#c084fc", "#67e8f9"],
-    ariaLabel: "Parallax, formerly Recon",
-    note: "Free-first reconnaissance shaped as a quiet sweep deck with sharper drill-down cues.",
+    accentPalette: ["#8a9eb1", "#e6edf3"],
+    ariaLabel: "Recon collection surface",
+    note: "Collection, OPSEC, and repo intel should stay quiet, fast, and exact inside the same operating room.",
   },
   vault: {
-    visibleLabel: "ARCHIVE",
-    functionalLabel: "VAULT",
-    heroTitle: "ARCHIVE",
-    heroKicker: "Cold-storage vault",
+    visibleLabel: "VAULT",
+    functionalLabel: "Archive spine",
+    heroTitle: "VAULT",
+    heroKicker: "Dossier archive",
     surfaceArtKey: "archive",
-    accentPalette: ["#93c5fd", "#fda4af"],
-    ariaLabel: "Archive, formerly Vault",
-    note: "Saved artifacts and dossiers feel sealed, durable, and easy to recover under pressure.",
+    accentPalette: ["#90a2b4", "#edf3f7"],
+    ariaLabel: "Vault archive surface",
+    note: "Saved artifacts and dossiers should feel indexed, linked, and easy to recover under pressure.",
   },
   vehicle: {
     visibleLabel: "VEHICLE",
-    functionalLabel: "VEHICLE",
+    functionalLabel: "Systems lab",
     heroTitle: "VEHICLE",
-    heroKicker: "Flight systems lab",
+    heroKicker: "Vehicle operations lab",
     surfaceArtKey: "vehicle",
-    accentPalette: ["#38bdf8", "#f59e0b"],
+    accentPalette: ["#8093a7", "#e3ebf1"],
     ariaLabel: "Vehicle operations lab",
-    note: "Internal mobility systems remain aligned with the same command shell language.",
+    note: "Internal mobility systems should inherit the same tactical shell language as the rest of the room.",
   },
   resources: {
-    visibleLabel: "FIELD MANUAL",
-    functionalLabel: "RESOURCES",
-    heroTitle: "FIELD MANUAL",
-    heroKicker: "Operator schematic deck",
+    visibleLabel: "RESOURCES",
+    functionalLabel: "Reference desk",
+    heroTitle: "RESOURCES",
+    heroKicker: "Manuals and playbooks",
     surfaceArtKey: "manual",
-    accentPalette: ["#fbbf24", "#7dd3fc"],
-    ariaLabel: "Field Manual, formerly Resources",
-    note: "External references stay inside the same operational frame instead of dropping into a utility page.",
+    accentPalette: ["#8b9daf", "#e7edf3"],
+    ariaLabel: "Resources reference desk",
+    note: "References and internal manuals should feel like part of the same operating system, not a separate utility page.",
   },
 };
 
@@ -229,12 +251,20 @@ export function summarizeProviderReadiness(
   env: Record<string, string | undefined> = process.env,
 ) {
   const paidApisEnabled = env.NEXUS_ALLOW_PAID_APIS === "true";
+  const networkMode = normalizeCloudNetworkMode(
+    env.NEXUS_NETWORK_MODE ??
+      (process.env.NODE_ENV === "development" ? "internal" : "isolated"),
+  );
+  const cloudInferenceEnabled = isCloudInferenceAllowedInMode(networkMode);
   const items: ProviderReadinessItem[] = AI_PROVIDER_BRANDING.map((provider) => {
     const configured = provider.envKey
-      ? Boolean(env[provider.envKey]?.trim())
+      ? isConfiguredSecretValue(env[provider.envKey])
       : true;
-    const enabledByPolicy =
-      provider.billingTier !== "paid_optional_hidden" || paidApisEnabled;
+    const enabledByPolicy = isCloudInferenceProvider(provider.id)
+      ? provider.billingTier === "paid_optional_hidden"
+        ? paidApisEnabled && cloudInferenceEnabled
+        : cloudInferenceEnabled
+      : provider.billingTier !== "paid_optional_hidden" || paidApisEnabled;
     const status: ProviderReadinessItem["status"] = !enabledByPolicy
       ? "hidden_by_default"
       : configured

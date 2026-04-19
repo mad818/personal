@@ -3,7 +3,6 @@
 
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
-import dynamic from "next/dynamic";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import {
@@ -16,30 +15,7 @@ import {
   matchesConfiguredNexusToken,
   NEXUS_SESSION_COOKIE,
 } from "@/lib/authSession";
-import Nav from "@/components/nav/Nav";
-import AuthGate from "@/components/auth/AuthGate";
-import GlobalDataLoader from "@/components/ui/GlobalDataLoader";
-import { ArticlesLoader } from "@/components/ui/DataLoader";
-import CronSchedulerRunner from "@/components/ui/CronSchedulerRunner";
-import ErrorBoundary from "@/components/system/ErrorBoundary";
-import ToastContainer from "@/components/ui/Toast";
-import NotificationToastBridge from "@/components/ui/NotificationToastBridge";
-import ParticleBackground from "@/components/ui/ParticleBackground";
-
-const CommandBar = dynamic(() => import("@/components/ui/CommandBar"), {
-  ssr: false,
-});
-const ProposedEditPanel = dynamic(
-  () => import("@/components/ui/ProposedEditPanel"),
-  { ssr: false },
-);
-const ChangeLogPanel = dynamic(
-  () => import("@/components/ui/ChangeLogPanel"),
-  { ssr: false },
-);
-const ClickDebug = dynamic(() => import("@/components/ui/ClickDebug"), {
-  ssr: false,
-});
+import RootLayoutChrome from "@/components/ui/RootLayoutChrome";
 
 assertNexusDoesNotChargeUsers();
 
@@ -78,29 +54,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ParticleBackground />
-        <AuthGate initiallyAuthed={initiallyAuthed}>
-          <ToastContainer>
-            <ErrorBoundary label="RootLayout">
-              <Nav />
-              <main style={{ paddingTop: "var(--top-rail-height)", minHeight: "100vh" }}>
-                {children}
-              </main>
-              {/* Global data — loads articles + keyword alerts on every page */}
-              <GlobalDataLoader />
-              <ArticlesLoader />
-              <CronSchedulerRunner />
-              <NotificationToastBridge />
-              {/* Global command dock — persists across all tabs */}
-              <CommandBar />
-              <ClickDebug />
-              {/* Proposed edit overlay — agent proposes, user approves/rejects */}
-              <ProposedEditPanel />
-              {/* Audit trail — all applied/rejected changes */}
-              <ChangeLogPanel />
-            </ErrorBoundary>
-          </ToastContainer>
-        </AuthGate>
+        <RootLayoutChrome initiallyAuthed={initiallyAuthed}>
+          {children}
+        </RootLayoutChrome>
       </body>
     </html>
   );

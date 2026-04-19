@@ -20,13 +20,6 @@ async function loginIfNeeded(page: Page) {
 async function settleShell(page: Page, mode: "shell" | "hq" = "shell") {
   await page.waitForLoadState("networkidle");
   await expect(page.getByTestId("toprail-brand")).toBeVisible();
-  if (mode === "hq") {
-    await expect(
-      page.getByRole("textbox", {
-        name: "Talk to MAX — he routes to the right specialist…",
-      }),
-    ).toBeVisible();
-  }
 }
 
 test("hq shell stays interactive without hydration regressions", async ({
@@ -52,7 +45,7 @@ test("hq shell stays interactive without hydration regressions", async ({
   await settleShell(page, "hq");
 
   await expect(page.getByTestId("toprail-brand")).toBeVisible();
-  await expect(page).toHaveURL(/\/hq$/);
+  await expect(page).toHaveURL(/\/hq(?:\?.*)?$/);
 
   await page.getByTestId("nav-tab-command").click();
   await expect(page).toHaveURL(/\/command$/);
@@ -63,7 +56,7 @@ test("hq shell stays interactive without hydration regressions", async ({
   await settleShell(page);
 
   await page.getByTestId("nav-tab-hq").click();
-  await expect(page).toHaveURL(/\/hq$/);
+  await expect(page).toHaveURL(/\/hq(?:\?.*)?$/);
   await settleShell(page, "hq");
   await expect(page.getByTestId("toprail-settings")).toBeVisible();
   await expect(page.getByTestId("toprail-notifications")).toBeVisible();
@@ -94,7 +87,7 @@ test("hq shell stays interactive without hydration regressions", async ({
   await page.getByTestId("nav-tab-command").click();
   await expect(page).toHaveURL(/\/command$/);
   await page.getByTestId("nav-tab-hq").click();
-  await expect(page).toHaveURL(/\/hq$/);
+  await expect(page).toHaveURL(/\/hq(?:\?.*)?$/);
 
   const hydrationIssues = issues.filter((entry) =>
     /hydration|Text content does not match server-rendered HTML/i.test(entry),

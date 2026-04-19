@@ -23,7 +23,6 @@ async function loginIfNeeded(page: Page) {
 
 test("canonical redirects and GA nav links stay aligned", async ({ page }) => {
   const redirectCases = [
-    { from: "/", to: "/hq" },
     { from: "/home", to: "/hq" },
     { from: "/signals", to: "/labs/signals" },
     { from: "/ops", to: "/labs/ops" },

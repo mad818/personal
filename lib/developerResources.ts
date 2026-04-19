@@ -8,6 +8,15 @@ export type ResourceCategory =
   | "tooling"
   | "ecosystem";
 
+export type ResourceFit = "fit_now" | "reference" | "defer";
+export type ResourceChamberHint =
+  | "finder"
+  | "start"
+  | "study"
+  | "system"
+  | "launch"
+  | "utilities";
+
 export interface DeveloperResource {
   title: string;
   href: string;
@@ -24,6 +33,8 @@ export interface DeveloperResource {
     | "license_check";
   licenseHint?: string;
   tags?: string[];
+  integrationFit?: ResourceFit;
+  recommendedChambers?: ResourceChamberHint[];
 }
 
 export const DEVELOPER_RESOURCE_CATEGORIES: Record<ResourceCategory, string> = {
@@ -31,6 +42,12 @@ export const DEVELOPER_RESOURCE_CATEGORIES: Record<ResourceCategory, string> = {
   study: "Study & interviews",
   tooling: "Tooling",
   ecosystem: "Agents & plugins",
+};
+
+export const DEVELOPER_RESOURCE_FIT_LABELS: Record<ResourceFit, string> = {
+  fit_now: "Integrate now",
+  reference: "Pattern reference",
+  defer: "Later lane",
 };
 
 export const DEVELOPER_RESOURCES: DeveloperResource[] = [
@@ -77,6 +94,58 @@ export const DEVELOPER_RESOURCES: DeveloperResource[] = [
     tags: ["local-models", "fine-tune", "studio"],
   },
   {
+    title: "Voicebox",
+    href: "https://github.com/jamiepine/voicebox",
+    description:
+      "Local-first voice cloning and synthesis reference for profile management, effect presets, and multi-segment audio project workflows.",
+    category: "tooling",
+    note: "Pattern reference for Nexus Voice Lab. Keep generated audio and profile state local, with browser TTS remaining the zero-dependency fallback.",
+    costTier: "free_local",
+    licenseHint: "Check upstream repo",
+    tags: ["voice", "audio", "local-runtime", "tts"],
+    integrationFit: "fit_now",
+    recommendedChambers: ["launch", "utilities"],
+  },
+  {
+    title: "CodeFlow",
+    href: "https://github.com/braedonsaunders/codeflow",
+    description:
+      "Architecture-analysis reference for dependency graphs, ownership, churn hotspots, blast radius, and code health visualization.",
+    category: "tooling",
+    note: "Reference for the local-only Impact expansion. Keep Nexus analysis repo-local and privacy-first instead of widening into remote code upload.",
+    costTier: "open_source",
+    licenseHint: "Check upstream repo",
+    tags: ["architecture", "graph", "ownership", "security"],
+    integrationFit: "fit_now",
+    recommendedChambers: ["system", "utilities"],
+  },
+  {
+    title: "LLM anonymization",
+    href: "https://github.com/zeroc00I/LLM-anonymization",
+    description:
+      "Reference implementation patterns for masking sensitive identifiers before cloud-bound inference while preserving reversible local surrogates.",
+    category: "ecosystem",
+    note: "Useful for privacy-shield posture in HQ, CYBER, and RECON. Keep surrogate maps local and session-scoped instead of creating a remote privacy service.",
+    costTier: "open_source",
+    licenseHint: "Check upstream repo",
+    tags: ["privacy", "anonymization", "surrogates", "security"],
+    integrationFit: "fit_now",
+    recommendedChambers: ["system", "utilities"],
+  },
+  {
+    title: "Awesome LLMs for Vulnerability Detection",
+    href: "https://github.com/huhusmang/Awesome-LLMs-for-Vulnerability-Detection",
+    description:
+      "Curated benchmark, paper, and tool index for defensive vulnerability detection with LLMs, evaluation strategies, and prompt patterns.",
+    category: "study",
+    note: "Use as the benchmark and literature map behind CYBER vulnerability review. Treat it as a defensive evaluation catalog, not an autonomous exploitation lane.",
+    costTier: "open_source",
+    licenseHint: "Check upstream repo",
+    tags: ["security", "evals", "vulnerability-detection", "benchmarks"],
+    integrationFit: "fit_now",
+    recommendedChambers: ["study", "system"],
+  },
+  {
     title: "factory-cursor-bridge",
     href: "https://github.com/0xSero/factory-cursor-bridge",
     description:
@@ -96,6 +165,73 @@ export const DEVELOPER_RESOURCES: DeveloperResource[] = [
     costTier: "open_source",
     licenseHint: "Check upstream repo",
     tags: ["plugins", "mcp", "samples"],
+    integrationFit: "reference",
+    recommendedChambers: ["start", "utilities"],
+  },
+  {
+    title: "Multica",
+    href: "https://github.com/multica-ai/multica",
+    description:
+      "Managed-agent platform for assigning issues, tracking agent progress, reusing skills, and connecting local or cloud runtimes from one board.",
+    category: "ecosystem",
+    note: "Strong COMMAND/HQ fit for managed-runtime and teammate-agent posture. Treat as an optional companion, not a shell replacement.",
+    costTier: "open_source",
+    licenseHint: "Check upstream repo",
+    tags: ["agents", "runtimes", "board", "skills"],
+    integrationFit: "fit_now",
+    recommendedChambers: ["launch", "utilities"],
+  },
+  {
+    title: "Lightpanda Browser",
+    href: "https://github.com/lightpanda-io/browser",
+    description:
+      "Headless browser built for AI agents and automation, with a CDP server plus native MCP mode and much lower memory use than Chrome in its published benchmarks.",
+    category: "tooling",
+    note: "Best fit for browser-ops and sweep execution. Upstream documents Windows support via WSL2 or Docker and calls the browser beta.",
+    costTier: "open_source",
+    licenseHint: "Check upstream repo",
+    tags: ["browser", "automation", "mcp", "cdp"],
+    integrationFit: "fit_now",
+    recommendedChambers: ["system", "launch"],
+  },
+  {
+    title: "Claude-Mem",
+    href: "https://github.com/thedotmack/claude-mem",
+    description:
+      "Persistent memory compression stack with lifecycle hooks, progressive disclosure, hybrid search, and memory citations across sessions.",
+    category: "ecosystem",
+    note: "Great reference for VAULT/HQ memory posture. Keep Nexus source clean and treat AGPL/PolyForm pieces as companion-pattern inspiration unless we deliberately self-host around that license.",
+    costTier: "open_source",
+    licenseHint: "AGPL-3.0; ragtime subdirectory is PolyForm Noncommercial",
+    tags: ["memory", "progressive-disclosure", "citations", "hooks"],
+    integrationFit: "fit_now",
+    recommendedChambers: ["study", "system", "utilities"],
+  },
+  {
+    title: "xyOps",
+    href: "https://github.com/pixlcore/xyops",
+    description:
+      "Unified scheduling, workflow automation, monitoring, alerting, and incident-response platform that keeps jobs, telemetry, and remediation context in one place.",
+    category: "tooling",
+    note: "Strong COMMAND and scheduler-governance reference. Borrow the ops loop and dispatch grammar rather than the whole product shell.",
+    costTier: "open_source",
+    licenseHint: "BSD-3-Clause",
+    tags: ["scheduler", "monitoring", "alerts", "incident-response"],
+    integrationFit: "fit_now",
+    recommendedChambers: ["launch", "utilities"],
+  },
+  {
+    title: "autoskills",
+    href: "https://github.com/midudev/autoskills",
+    description:
+      "Tech-stack scanner that installs matching AI skills automatically and can summarize them for Claude Code from detected project files.",
+    category: "ecosystem",
+    note: "Useful for skill-gap discovery. Keep Nexus on the 4-file context spine rather than reviving CLAUDE.md as live truth.",
+    costTier: "open_source",
+    licenseHint: "CC BY-NC 4.0",
+    tags: ["skills", "autodetect", "bootstrap", "claude-code"],
+    integrationFit: "reference",
+    recommendedChambers: ["start", "system"],
   },
   {
     title: "last30days skill",
@@ -107,6 +243,39 @@ export const DEVELOPER_RESOURCES: DeveloperResource[] = [
     costTier: "byok",
     licenseHint: "Check upstream repo",
     tags: ["skill", "research", "citations"],
+  },
+  {
+    title: "Feynman",
+    href: "https://github.com/getcompanion-ai/feynman",
+    description:
+      "Research-assistant reference for reusable slash workflows, compact cited briefs, and MCP-aware operator research patterns.",
+    category: "ecosystem",
+    note: "Patterns only — Nexus absorbs the workflow grammar, not the product shell.",
+    costTier: "open_source",
+    licenseHint: "Check upstream repo",
+    tags: ["research", "workflow", "briefs"],
+  },
+  {
+    title: "Pentagi",
+    href: "https://github.com/vxcontrol/pentagi",
+    description:
+      "Security workflow reference for evidence-first triage, investigation packaging, and incident playbook structure.",
+    category: "ecosystem",
+    note: "Defensive inspiration only — no offensive automation or exploit guidance should be ported into Nexus.",
+    costTier: "open_source",
+    licenseHint: "Check upstream repo",
+    tags: ["cyber", "triage", "evidence"],
+  },
+  {
+    title: "RTK",
+    href: "https://github.com/rtk-ai/rtk",
+    description:
+      "Reasoning toolkit reference for compact operator response contracts, workflow compression, and structured execution discipline.",
+    category: "tooling",
+    note: "Use for response-shape ideas and runtime discipline, not as a separate UI stack.",
+    costTier: "open_source",
+    licenseHint: "Check upstream repo",
+    tags: ["reasoning", "workflow", "compression"],
   },
   {
     title: "Flowise",

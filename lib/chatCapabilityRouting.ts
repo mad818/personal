@@ -3,11 +3,14 @@
 
 export type NexusRoute =
   | "/hq"
+  | "/command"
+  | "/resources"
   | "/labs/signals"
   | "/alpha"
   | "/labs/ops"
   | "/intel"
   | "/cyber"
+  | "/recon"
   | "/labs/security"
   | "/internal/skills"
   | "/internal/vehicle"
@@ -16,22 +19,82 @@ export type NexusRoute =
 
 const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
   {
+    route: "/command",
+    keywords: [
+      "provider health",
+      "operator readiness",
+      "switch operator",
+      "run operator mode",
+      "run the next local tranche",
+      "/operator",
+    ],
+  },
+  {
+    route: "/resources",
+    keywords: [
+      "voice lab",
+      "voice profile",
+      "voice project",
+      "audio briefing",
+      "render as audio",
+      "dictation",
+      "microphone",
+      "impact graph",
+      "dependency graph",
+      "blast radius",
+      "ownership",
+      "hotspots",
+      "security scan",
+      "architecture intelligence",
+      "codeflow",
+    ],
+  },
+  {
     route: "/cyber",
     keywords: [
       "cve",
+      "vulnerability review",
       "vulnerability",
+      "security review",
+      "appsec",
       "threat intel",
       "otx",
       "security advisory",
       "threat feed",
       "malware",
+      "threat hunt",
+      "evidence pack",
+      "incident triage",
+      "drone compliance",
+      "faa",
+      "part 107",
+      "laanc",
+      "remote id",
+      "airspace authorization",
+      "municipal drone law",
+      "/threat-hunt",
+      "/evidence-pack",
+    ],
+  },
+  {
+    route: "/recon",
+    keywords: [
+      "github repo",
+      "github dependency",
+      "repo intel",
+      "repo assimilation",
+      "assimilate repo",
+      "public repo",
+      "reference repo",
+      "oss competitor",
+      "assess this dependency",
+      "/assimilate-repo",
     ],
   },
   {
     route: "/labs/security",
     keywords: [
       "camera",
-      "drone",
       "perimeter",
       "security posture",
       "alert timeline",
@@ -88,6 +151,14 @@ const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
       "polymarket",
       "sec filing",
       "framework",
+      "deep research",
+      "lit review",
+      "literature review",
+      "compare matrix",
+      "research brief",
+      "/deepresearch",
+      "/lit-review",
+      "/compare",
     ],
   },
   {
@@ -103,8 +174,28 @@ const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
   {
     route: "/internal/vehicle",
     keywords: [
+      "drone",
+      "f450",
+      "pixhawk",
+      "ardupilot",
+      "mavlink",
+      "mission planner",
+      "qgroundcontrol",
+      "mavproxy",
+      "pixhawk setup",
+      "ardupilot onboarding",
       "vehicle",
       "telemetry",
+      "telemetry bridge",
+      "bridge stub",
+      "bench checklist",
+      "first hardware day",
+      "flight session bundle",
+      "props off",
+      "rtl",
+      "loiter",
+      "failsafe",
+      "sortie",
       "sensor fusion",
       "radar sweep",
       "camera array",
@@ -146,19 +237,30 @@ const TOOL_TO_ROUTE: Record<string, NexusRoute | null> = {
   read_current_tab: "/hq",
   click_element: "/hq",
   type_text: "/hq",
+  analyze_repo: "/recon",
+  assimilate_repo: "/recon",
+  compare_repos: "/recon",
 };
 
 export function detectRouteFromPrompt(prompt: string): NexusRoute | null {
   const lower = prompt.toLowerCase();
-  let best: { route: NexusRoute; score: number } | null = null;
+  let best: { route: NexusRoute; score: number; specificity: number } | null = null;
 
   for (const item of KEYWORD_ROUTE_HINTS) {
-    const score = item.keywords.reduce(
-      (acc, k) => (lower.includes(k) ? acc + 1 : acc),
+    const matchedKeywords = item.keywords.filter((keyword) => lower.includes(keyword));
+    const score = matchedKeywords.length;
+    const specificity = matchedKeywords.reduce(
+      (max, keyword) => Math.max(max, keyword.length),
       0,
     );
     if (score <= 0) continue;
-    if (!best || score > best.score) best = { route: item.route, score };
+    if (
+      !best ||
+      score > best.score ||
+      (score === best.score && specificity > best.specificity)
+    ) {
+      best = { route: item.route, score, specificity };
+    }
   }
 
   return best?.route ?? null;

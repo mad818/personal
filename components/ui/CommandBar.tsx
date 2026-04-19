@@ -329,19 +329,19 @@ const ROUTE_AGENT: Record<string, AgentId> = {
 };
 
 const ROUTE_LABEL: Record<string, string> = {
-  "/hq": "CITADEL",
-  "/command": "VECTOR",
+  "/hq": "HQ",
+  "/command": "COMMAND",
   "/labs/signals": "SIGNALS",
-  "/alpha": "QUANT",
+  "/alpha": "ALPHA",
   "/labs/ops": "OPS",
-  "/intel": "SPECTRA",
-  "/cyber": "BASTION",
+  "/intel": "INTEL",
+  "/cyber": "CYBER",
   "/labs/security": "LAB",
   "/internal/skills": "FORGE",
   "/internal/vehicle": "VEHICLE",
   "/internal/iot": "IOT",
-  "/resources": "FIELD MANUAL",
-  "/vault": "ARCHIVE",
+  "/resources": "RESOURCES",
+  "/vault": "VAULT",
 };
 
 type CommandDirective = {
@@ -718,7 +718,7 @@ export default function CommandBar() {
       { label: "HQ", href: "/hq", color: "#4f6ef7" },
       { label: "FORGE", href: "/skills?view=forge", color: "#7c3aed" },
       { label: "SWEEP", href: "/intel?view=sweeps", color: "#00DDFF" },
-      { label: "DOCTRINE", href: "/security?view=doctrine", color: "#f59e0b" },
+      { label: "CONTROL", href: "/security?view=doctrine", color: "#f59e0b" },
       ],
     [],
   );
@@ -743,7 +743,7 @@ export default function CommandBar() {
     if (cveCount >= 12) {
       return {
         label: "TRIAGE BASTION",
-        note: `Critical vulnerability pressure is elevated with ${cveCount} active CVEs in memory. Jump into cyber triage and doctrine review.`,
+        note: `Critical vulnerability pressure is elevated with ${cveCount} active CVEs in memory. Jump into cyber triage and controls review.`,
         href: "/cyber?view=triage",
         color: "#ef4444",
       };
@@ -795,8 +795,8 @@ export default function CommandBar() {
     }
 
     return {
-      label: "RETURN CITADEL",
-      note: "Resume the strategium with the current theater, doctrine, and command systems already aligned.",
+      label: "RETURN HQ",
+      note: "Resume the strategium with the current theater, controls posture, and command systems already aligned.",
       href: "/hq",
       color: "#4f6ef7",
     };
@@ -823,7 +823,7 @@ export default function CommandBar() {
         return [
           { label: "TRIAGE", href: "/cyber?view=triage", color: "#ef4444" },
           { label: "CVES", href: "/cyber?view=cves", color: "#f87171" },
-          { label: "DOCTRINE", href: "/security?view=doctrine", color: "#f59e0b" },
+          { label: "CONTROL", href: "/security?view=doctrine", color: "#f59e0b" },
         ];
       case "/alpha":
         return [
@@ -840,9 +840,9 @@ export default function CommandBar() {
       case "/hq":
       case "/command":
         return [
-          { label: "CITADEL", href: "/hq", color: "#4f6ef7" },
-          { label: "SPECTRA", href: "/intel?view=world", color: "#00DDFF" },
-          { label: "BASTION", href: "/cyber?view=triage", color: "#ef4444" },
+          { label: "HQ", href: "/hq", color: "#4f6ef7" },
+          { label: "INTEL", href: "/intel?view=world", color: "#00DDFF" },
+          { label: "CYBER", href: "/cyber?view=triage", color: "#ef4444" },
         ];
       default:
         return [];
@@ -1401,7 +1401,7 @@ export default function CommandBar() {
                   padding: "4px 0",
                 }}
               >
-                Ask anything — JANSKY routes to the right specialist.
+                Issue a command. JANSKY routes it.
               </div>
             )}
 

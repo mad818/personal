@@ -1,16 +1,28 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
 import { usePathname, useSelectedLayoutSegments } from "next/navigation";
 import AuthGate from "@/components/auth/AuthGate";
+import { DynamicAlerts } from "@/components/home/DynamicAlerts";
+import UIRulesEvaluator from "@/components/home/UIRulesEvaluator";
 import Nav from "@/components/nav/Nav";
 import ErrorBoundary from "@/components/system/ErrorBoundary";
-import ToastContainer from "@/components/ui/Toast";
 import NotificationToastBridge from "@/components/ui/NotificationToastBridge";
 import ParticleBackground from "@/components/ui/ParticleBackground";
+import PersistedShellStateNotice from "@/components/ui/PersistedShellStateNotice";
+import PreparedWorkspaceAutoHeal from "@/components/ui/PreparedWorkspaceAutoHeal";
+import RuntimePolicyCookieSync from "@/components/ui/RuntimePolicyCookieSync";
+import ShellHealthGuard from "@/components/ui/ShellHealthGuard";
+import ShellHydrationBeacon from "@/components/ui/ShellHydrationBeacon";
+import ToastContainer from "@/components/ui/Toast";
 import GlobalDataLoader from "@/components/ui/GlobalDataLoader";
-import { ArticlesLoader } from "@/components/ui/DataLoader";
+import {
+  ArticlesLoader,
+  CVEsLoader,
+  FearGreedLoader,
+  PricesLoader,
+  WorldRiskLoader,
+} from "@/components/ui/DataLoader";
 import CronSchedulerRunner from "@/components/ui/CronSchedulerRunner";
 
 const CommandBar = dynamic(() => import("@/components/ui/CommandBar"), {
@@ -27,18 +39,15 @@ const ChangeLogPanel = dynamic(
 const ClickDebug = dynamic(() => import("@/components/ui/ClickDebug"), {
   ssr: false,
 });
+const MemorySpineSync = dynamic(
+  () => import("@/components/ui/MemorySpineSync"),
+  { ssr: false },
+);
 
 type RootLayoutChromeProps = {
   children: React.ReactNode;
   initiallyAuthed: boolean;
 };
-
-function applyMotionProfile(mediaQuery: MediaQueryList) {
-  document.documentElement.setAttribute(
-    "data-nexus-motion-profile",
-    mediaQuery.matches ? "reduced" : "flagship",
-  );
-}
 
 export default function RootLayoutChrome({
   children,
@@ -49,20 +58,6 @@ export default function RootLayoutChrome({
   const isPublicLanding =
     pathname === "/" || (pathname == null && segments.length === 0);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const handleChange = () => applyMotionProfile(mediaQuery);
-    handleChange();
-
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", handleChange);
-      return () => mediaQuery.removeEventListener("change", handleChange);
-    }
-
-    mediaQuery.addListener(handleChange);
-    return () => mediaQuery.removeListener(handleChange);
-  }, []);
-
   if (isPublicLanding) {
     return <>{children}</>;
   }
@@ -71,9 +66,16 @@ export default function RootLayoutChrome({
     <>
       <ParticleBackground />
       <AuthGate initiallyAuthed={initiallyAuthed}>
+        <RuntimePolicyCookieSync />
+        <ShellHydrationBeacon />
         <ToastContainer>
           <ErrorBoundary label="RootLayout">
             <Nav />
+            <UIRulesEvaluator />
+            <DynamicAlerts />
+            <PersistedShellStateNotice />
+            <PreparedWorkspaceAutoHeal />
+            <ShellHealthGuard />
             <main
               style={{
                 paddingTop: "var(--top-rail-height)",
@@ -83,7 +85,12 @@ export default function RootLayoutChrome({
               {children}
             </main>
             <GlobalDataLoader />
+            <PricesLoader />
             <ArticlesLoader />
+            <FearGreedLoader />
+            <CVEsLoader />
+            <WorldRiskLoader />
+            <MemorySpineSync />
             <CronSchedulerRunner />
             <NotificationToastBridge />
             <CommandBar />

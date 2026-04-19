@@ -2,7 +2,11 @@
 
 import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { SectionLabel, ShellBadge, ShellButton } from "@/components/ui/shell";
+import { InternalWorkbenchNotice } from "@/components/ui/InternalWorkbenchNotice";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { apiFetch } from "@/lib/apiFetch";
 import type { ModelLabRun } from "@/lib/assimilation/types";
+import type { InternalWorkbenchMeta } from "@/lib/assimilation/contracts";
 
 const MUTATION_FAMILIES = [
   "boundary inversion",
@@ -16,15 +20,19 @@ const MUTATION_FAMILIES = [
 const MODELS = ["claude-opus", "local-qwen", "openrouter-stack", "groq-fast"];
 
 async function loadRuns() {
-  const response = await fetch("/api/model-lab", { cache: "no-store" });
+  const response = await apiFetch("/api/model-lab", { cache: "no-store" });
   if (!response.ok) throw new Error("Failed to load model lab.");
-  return (await response.json()) as { runs: ModelLabRun[] };
+  return (await response.json()) as {
+    runs: ModelLabRun[];
+    meta?: InternalWorkbenchMeta;
+  };
 }
 
 export default function BlacksiteLab() {
   const [runs, setRuns] = useState<ModelLabRun[]>([]);
+  const [meta, setMeta] = useState<InternalWorkbenchMeta | null>(null);
   const [title, setTitle] = useState("Operator boundary tournament");
-  const [promptLabel, setPromptLabel] = useState("Sanctum baseline");
+  const [promptLabel, setPromptLabel] = useState("Control baseline");
   const [notes, setNotes] = useState(
     "Keep this lab isolated from HQ memory. Score models on hierarchy stability and leakage pressure.",
   );
@@ -38,16 +46,26 @@ export default function BlacksiteLab() {
   ]);
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
   const deferredFilter = useDeferredValue(filter);
 
   useEffect(() => {
     let active = true;
-    void loadRuns().then((payload) => {
-      if (!active) return;
-      startTransition(() => {
-        setRuns(payload.runs);
+    void loadRuns()
+      .then((payload) => {
+        if (!active) return;
+        startTransition(() => {
+          setRuns(payload.runs);
+          setMeta(payload.meta ?? null);
+          setError("");
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setError(
+          "Model Lab is temporarily unavailable. Retained tournament runs stay visible until the route recovers.",
+        );
       });
-    });
     return () => {
       active = false;
     };
@@ -82,7 +100,7 @@ export default function BlacksiteLab() {
     if (!selectedFamilies.length || !selectedModels.length) return;
     setBusy(true);
     try {
-      const response = await fetch("/api/model-lab", {
+      const response = await apiFetch("/api/model-lab", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -93,8 +111,18 @@ export default function BlacksiteLab() {
           operatorNotes: notes,
         }),
       });
-      const payload = (await response.json()) as { run: ModelLabRun };
+      if (!response.ok) throw new Error("Failed to run model lab.");
+      const payload = (await response.json()) as {
+        run: ModelLabRun;
+        meta?: InternalWorkbenchMeta;
+      };
+      setMeta(payload.meta ?? meta);
       setRuns((current) => [payload.run, ...current]);
+      setError("");
+    } catch {
+      setError(
+        "The model lab run did not complete. Existing tournament history was kept locally.",
+      );
     } finally {
       setBusy(false);
     }
@@ -121,6 +149,18 @@ export default function BlacksiteLab() {
         <SectionLabel detail="Operator-only prompt warfare">
           Blacksite control
         </SectionLabel>
+        <InternalWorkbenchNotice meta={meta} compact />
+        {error ? (
+          <div style={{ marginTop: "10px" }}>
+            <SurfaceCallout
+              tone="warning"
+              compact
+              icon="↺"
+              title="Model Lab degraded"
+              description={error}
+            />
+          </div>
+        ) : null}
         <div style={{ display: "grid", gap: "12px", marginTop: "10px" }}>
           <label style={{ display: "grid", gap: "6px" }}>
             <span style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
@@ -156,7 +196,7 @@ export default function BlacksiteLab() {
           </label>
           <label style={{ display: "grid", gap: "6px" }}>
             <span style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Isolation doctrine
+              Isolation controls
             </span>
             <textarea
               value={notes}
@@ -250,6 +290,7 @@ export default function BlacksiteLab() {
         }}
       >
         <SectionLabel detail="Search previous tournaments">Blacksite ledger</SectionLabel>
+        <InternalWorkbenchNotice meta={meta} compact />
         <input
           value={filter}
           onChange={(event) => setFilter(event.target.value)}

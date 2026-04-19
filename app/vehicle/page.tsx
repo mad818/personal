@@ -1,20 +1,35 @@
 "use client";
 
 import CameraArray from "@/components/vehicle/CameraArray";
+import BenchBringUpChecklist from "@/components/vehicle/BenchBringUpChecklist";
 import ControlPanel from "@/components/vehicle/ControlPanel";
 import RadarSweep from "@/components/vehicle/RadarSweep";
 import SensorFusion from "@/components/vehicle/SensorFusion";
 import SensorHealthRadial from "@/components/vehicle/SensorHealthRadial";
 import TelemetryChart from "@/components/vehicle/TelemetryChart";
 import TelemetryPanel from "@/components/vehicle/TelemetryPanel";
+import DroneOpsLaunchpad from "@/components/vehicle/DroneOpsLaunchpad";
+import FirstHardwareDayCard from "@/components/vehicle/FirstHardwareDayCard";
+import VehicleArtifactManifestCard from "@/components/vehicle/VehicleArtifactManifestCard";
+import VehicleBridgeStatusCard from "@/components/vehicle/VehicleBridgeStatusCard";
+import VehicleConnectorOnboardingCard from "@/components/vehicle/VehicleConnectorOnboardingCard";
+import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry";
+import { VEHICLE_CONTRACT_FIELDS } from "@/lib/vehicle/types";
 import {
-  SectionLabel,
+  OpsField,
+  OpsInspector,
+  OpsRail,
+  OpsStrip,
+  OpsWorkplane,
   ShellBadge,
-  ShellGrid,
   ShellPage,
-  ShellPanel,
   ShellStack,
 } from "@/components/ui/shell";
+import MissionHandoffStrip from "@/components/ui/MissionHandoffStrip";
+import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
+import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
+import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
+import { getOpsLayoutDescriptor } from "@/lib/opsLayoutRegistry";
 
 const READINESS_PHASES = [
   {
@@ -46,181 +61,296 @@ const STACK_LAYERS = [
 const GUARDRAILS = [
   "No flight-critical loops in Next.js or the desktop shell.",
   "Manual and assisted flight get proven before autonomy or lidar work.",
+  "Radar readiness stays passive and advisory-only until a later hardware lane exists.",
   "Every control must be labeled read-only, advisory, or command-capable.",
   "Flight logs and incidents should land in Vault for replay later.",
 ];
 
+const RADAR_READINESS_SEQUENCE = [
+  "Capture",
+  "Preprocess",
+  "Detect",
+  "Track",
+  "Review",
+];
+
 export default function VehiclePage() {
+  const { normalizedParams } = useSessionHrefAutoHeal();
+  const { controlPosture, history, sourceMode } = useVehicleTelemetry();
+  const focus = normalizedParams.get("focus");
+
+  const focusTargetId =
+    focus === "vehicle-bridge-status" ||
+    focus === "vehicle-connector-onboarding" ||
+    focus === "vehicle-bench-checklist" ||
+    focus === "vehicle-artifact-convention"
+      ? focus
+      : null;
+
+  useSurfaceFocusScroll(focusTargetId);
+  const vehicleLayout = getOpsLayoutDescriptor("vehicle");
+
   return (
     <ShellPage
       width="wide"
       surface="vehicle"
-      eyebrow="Internal mobility lab"
-      title="VEHICLE LAB"
-      description="A cleaner internal staging area for future airframe work: simulated telemetry now, F450 mission operations later."
+      eyebrow="Systems readiness lab"
+      title="Systems lab"
+      description="Telemetry, readiness, and bundles on one systems lab."
       actions={
         <>
           <ShellBadge tone="accent">Internal lab</ShellBadge>
-          <ShellBadge tone="muted">F450 queued</ShellBadge>
-          <ShellBadge tone="success">Simulation-first</ShellBadge>
+          <ShellBadge tone="muted">
+            {sourceMode === "replay"
+              ? "Replay active"
+              : sourceMode === "live_bridge"
+                ? "Live bridge feed"
+                : "Live sim feed"}
+          </ShellBadge>
+          <ShellBadge tone="success">{controlPosture.label}</ShellBadge>
         </>
       }
     >
       <ShellStack>
-        <ShellGrid columns="minmax(0, 1.06fr) minmax(320px, 0.94fr)" align="start">
-          <ShellPanel tone="hero">
-            <SectionLabel detail="What this lane becomes once the drone arrives">
-              Readiness brief
-            </SectionLabel>
-            <div className="nexus-shell-copy">
-              <p>
-                The F450 gives us room for a real flight stack, telemetry, GPS,
-                and later companion compute. Nexus should meet it as an
-                operator console first, then grow into replay, mission review,
-                and sensor fusion once the aircraft is stable.
-              </p>
-            </div>
+        <MissionHandoffStrip
+          surface="vehicle"
+          mission={normalizedParams.get("mission")}
+          from={normalizedParams.get("from")}
+          source={normalizedParams.get("source")}
+        />
 
-            <div className="nexus-shell-lab-grid" aria-label="Vehicle readiness phases">
-              {READINESS_PHASES.map((phase) => (
-                <div key={phase.title} className="nexus-shell-lab-card">
-                  <span className="nexus-shell-lab-card__eyebrow">{phase.eyebrow}</span>
-                  <div className="nexus-shell-lab-card__title">{phase.title}</div>
-                  <p className="nexus-shell-lab-card__description">
-                    {phase.description}
+        {focus === "vehicle-bridge-status" ? (
+          <SurfaceFocusStrip
+            title="Focused session: bridge status"
+            description="Bridge readiness opens first."
+          />
+        ) : null}
+
+        {focus === "vehicle-connector-onboarding" ? (
+          <SurfaceFocusStrip
+            title="Focused session: connector onboarding"
+            description="Arrival prep opens first."
+          />
+        ) : null}
+
+        {focus === "vehicle-bench-checklist" ? (
+          <SurfaceFocusStrip
+            title="Focused session: bench checklist"
+            description="Checklist opens first."
+          />
+        ) : null}
+
+        {focus === "vehicle-artifact-convention" ? (
+          <SurfaceFocusStrip
+            title="Focused session: session bundles and artifacts"
+            description="Bundle lane opens first."
+          />
+        ) : null}
+
+        <div className="nexus-surface-chamber-shell">
+          <div className="nexus-surface-chamber-shell__body">
+            <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${vehicleLayout.workplaneClass}`}>
+              <OpsField
+                title="Readiness brief"
+                detail="What this lane becomes once the drone arrives"
+              >
+                <div className="nexus-shell-copy">
+                  <p>
+                    The F450 gives us room for a real flight stack, telemetry, GPS,
+                    and later companion compute. Nexus should meet it as an operator
+                    console first, then grow into replay and mission review once the aircraft is stable.
                   </p>
                 </div>
-              ))}
-            </div>
-          </ShellPanel>
+                <div className="nexus-shell-lab-grid" aria-label="Vehicle readiness phases">
+                  {READINESS_PHASES.map((phase) => (
+                    <div key={phase.title} className="nexus-shell-lab-card">
+                      <span className="nexus-shell-lab-card__eyebrow">{phase.eyebrow}</span>
+                      <div className="nexus-shell-lab-card__title">{phase.title}</div>
+                      <p className="nexus-shell-lab-card__description">
+                        {phase.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </OpsField>
+            </OpsWorkplane>
 
-          <ShellStack>
-            <ShellPanel tone="muted">
-              <SectionLabel detail="How the future system stays safe">
-                Flight architecture
-              </SectionLabel>
-              <ul className="nexus-shell-kicker-list" aria-label="Flight architecture">
-                {STACK_LAYERS.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </ShellPanel>
+            <OpsRail className={`nexus-surface-chamber-shell__support ${vehicleLayout.railClass}`}>
+              <ShellStack>
+                <OpsField title="Flight architecture" detail="How the future system stays safe" tone="muted" compact>
+                  <ul className="nexus-shell-kicker-list" aria-label="Flight architecture">
+                    {STACK_LAYERS.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </OpsField>
 
-            <ShellPanel>
-              <SectionLabel detail="No-repeat rules for later hardware work">
-                Guardrails
-              </SectionLabel>
-              <ul className="nexus-shell-kicker-list" aria-label="Vehicle guardrails">
-                {GUARDRAILS.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </ShellPanel>
+                <OpsField title="Guardrails" detail="No-repeat rules for later hardware work" compact>
+                  <ul className="nexus-shell-kicker-list" aria-label="Vehicle guardrails">
+                    {GUARDRAILS.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </OpsField>
 
-            <ShellPanel tone="muted">
-              <SectionLabel>Future telemetry contract</SectionLabel>
-              <div className="nexus-shell-inline-list" aria-label="Telemetry contract">
-                {[
-                  "heartbeat",
-                  "flight mode",
-                  "arming state",
-                  "GPS lock",
-                  "battery",
-                  "link quality",
-                  "mission status",
-                  "failsafes",
-                ].map((item) => (
-                  <span key={item} className="nexus-shell-inline-chip">
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </ShellPanel>
-          </ShellStack>
-        </ShellGrid>
+                <div id="vehicle-bridge-status">
+                  <OpsField
+                    title="Bridge status"
+                    detail="Fresh bridge frames override simulation without making Nexus flight-critical"
+                    tone="muted"
+                    compact
+                  >
+                    <VehicleBridgeStatusCard />
+                  </OpsField>
+                </div>
 
-        <ShellGrid columns="minmax(0, 1.08fr) 320px" align="start">
-          <div className="nexus-shell-embed">
-            <SectionLabel detail="Visual and sensor feeds">Camera array</SectionLabel>
-            <CameraArray />
+                <div id="vehicle-connector-onboarding">
+                  <OpsField
+                    title="Connector onboarding"
+                    detail="Save the future Pixhawk / ArduPilot profile before the hardware arrives"
+                    tone="muted"
+                    compact
+                  >
+                    <VehicleConnectorOnboardingCard />
+                  </OpsField>
+                </div>
+
+                <OpsField
+                  title="Future telemetry contract"
+                  detail={`${history.length} shared frames retained for replay`}
+                  tone="muted"
+                  compact
+                >
+                  <div className="nexus-shell-copy nexus-shell-copy--compact" style={{ marginBottom: "10px" }}>
+                    <p>
+                      Simulation, replay, and fresh bridge frames now resolve through one telemetry shape.
+                    </p>
+                  </div>
+                  <div className="nexus-shell-inline-list" aria-label="Telemetry contract">
+                    {VEHICLE_CONTRACT_FIELDS.map((item) => (
+                      <span key={item} className="nexus-shell-inline-chip">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </OpsField>
+              </ShellStack>
+            </OpsRail>
           </div>
-          <div className="nexus-shell-embed">
-            <SectionLabel detail="Spatial contact awareness">Radar sweep</SectionLabel>
-            <RadarSweep />
-          </div>
-        </ShellGrid>
-
-        <div className="nexus-shell-embed">
-          <SectionLabel detail="Trend line for future flight logs">Telemetry trend</SectionLabel>
-          <TelemetryChart />
         </div>
 
-        <ShellGrid columns="minmax(280px, 0.86fr) minmax(300px, 0.92fr) minmax(280px, 1.12fr)" align="start">
-          <div className="nexus-shell-embed">
-            <SectionLabel detail="Live status and health">Telemetry</SectionLabel>
-            <TelemetryPanel />
-          </div>
+        <div className="nexus-surface-chamber-shell">
+          <div className="nexus-surface-chamber-shell__body">
+            <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${vehicleLayout.workplaneClass}`}>
+              <ShellStack gap="12px">
+                <OpsField
+                  title="Sensor table"
+                  detail="Visual feeds and passive radar readiness"
+                >
+                  <CameraArray />
+                </OpsField>
+                <OpsField
+                  title="Radar sweep"
+                  detail="Spatial contact awareness and future passive review"
+                  tone="muted"
+                >
+                  <RadarSweep />
+                  <div className="nexus-shell-copy nexus-shell-copy--compact">
+                    Radar stays a future passive lane here: {RADAR_READINESS_SEQUENCE.join(" → ")}.
+                    Use it to stage readiness and archive notes, not RF control.
+                  </div>
+                </OpsField>
+              </ShellStack>
+            </OpsWorkplane>
 
-          <div className="nexus-shell-embed">
-            <SectionLabel detail="Mode, route, and cutout handling">Control panel</SectionLabel>
-            <ControlPanel />
+            <OpsRail className={`nexus-surface-chamber-shell__support ${vehicleLayout.railClass}`}>
+              <ShellStack gap="12px">
+                <OpsField
+                  title="Telemetry trend"
+                  detail="Flight-log shaped trend review"
+                  tone="muted"
+                  compact
+                >
+                  <TelemetryChart />
+                </OpsField>
+                <OpsField
+                  title="Sensor trust"
+                  detail="Health, latency, and fusion posture"
+                  compact
+                >
+                  <ShellStack gap="12px">
+                    <SensorHealthRadial />
+                    <SensorFusion />
+                  </ShellStack>
+                </OpsField>
+                <OpsField
+                  title="Operator note"
+                  detail="Readiness stays louder than instrumentation density"
+                  tone="muted"
+                  compact
+                >
+                  <div className="nexus-shell-copy nexus-shell-copy--compact">
+                    Keep telemetry, control, and launch decisions on one systems table.
+                    Bench validation and archive packaging stay adjacent to the live stack.
+                  </div>
+                </OpsField>
+              </ShellStack>
+            </OpsRail>
           </div>
+        </div>
 
-          <ShellStack>
-            <div className="nexus-shell-embed">
-              <SectionLabel detail="Sensor trust and latency posture">
-                Sensor health
-              </SectionLabel>
-              <SensorHealthRadial />
+        <div className="nexus-surface-continuity-strip">
+          <OpsStrip className={vehicleLayout.continuityClass}>
+            <div className="nexus-surface-chamber-shell__body">
+              <div className="nexus-surface-chamber-shell__lead">
+                <ShellStack gap="12px">
+                  <OpsField
+                    title="Flight operations"
+                    detail="Live telemetry, mode posture, and cutout handling"
+                  >
+                    <div className="nexus-ops-composite-grid">
+                      <TelemetryPanel />
+                      <ControlPanel />
+                    </div>
+                  </OpsField>
+                  <OpsField
+                    title="Launch and archive"
+                    detail="Bench, bridge, compliance, and durable session packaging"
+                    tone="muted"
+                  >
+                    <DroneOpsLaunchpad />
+                    <div id="vehicle-artifact-convention">
+                      <div id="vehicle-flight-session-bundles" />
+                      <VehicleArtifactManifestCard />
+                    </div>
+                  </OpsField>
+                </ShellStack>
+              </div>
+              <OpsInspector className={`nexus-surface-chamber-shell__support ${vehicleLayout.inspectorClass}`}>
+                <ShellStack gap="12px">
+                  <OpsField
+                    id="vehicle-bench-checklist"
+                    title="Bench checklist"
+                    detail="Persistent props-off validation before any real sortie"
+                    compact
+                  >
+                    <BenchBringUpChecklist />
+                  </OpsField>
+                  <OpsField
+                    title="First hardware day"
+                    detail="Arrival-day checklist and recovery flows for the first bridge session"
+                    tone="muted"
+                    compact
+                  >
+                    <div id="vehicle-first-hardware-day">
+                      <FirstHardwareDayCard />
+                    </div>
+                  </OpsField>
+                </ShellStack>
+              </OpsInspector>
             </div>
-            <div className="nexus-shell-embed">
-              <SectionLabel detail="What later lidar and vision work will feed">
-                Sensor fusion
-              </SectionLabel>
-              <SensorFusion />
-            </div>
-          </ShellStack>
-        </ShellGrid>
-
-        <ShellPanel tone="muted">
-          <SectionLabel detail="What we should complete before real airframe integration">
-            Operator runway
-          </SectionLabel>
-          <div className="nexus-shell-utility-rail" aria-label="Operator runway">
-            <div className="nexus-shell-utility-stat">
-              <span className="nexus-shell-utility-stat__label">Before hardware</span>
-              <span className="nexus-shell-utility-stat__value">Sim + replay</span>
-              <p className="nexus-shell-utility-stat__note">
-                Vehicle Lab should be useful with simulated flight data before
-                the F450 arrives.
-              </p>
-            </div>
-            <div className="nexus-shell-utility-stat">
-              <span className="nexus-shell-utility-stat__label">First benching</span>
-              <span className="nexus-shell-utility-stat__value">Props off</span>
-              <p className="nexus-shell-utility-stat__note">
-                Power, RC, orientation, GPS, and failsafes get proven on the
-                bench before any open-throttle testing.
-              </p>
-            </div>
-            <div className="nexus-shell-utility-stat">
-              <span className="nexus-shell-utility-stat__label">First flights</span>
-              <span className="nexus-shell-utility-stat__value">Assist mode</span>
-              <p className="nexus-shell-utility-stat__note">
-                Early sorties should produce logs and confidence, not autonomy
-                theater.
-              </p>
-            </div>
-            <div className="nexus-shell-utility-stat">
-              <span className="nexus-shell-utility-stat__label">Later expansion</span>
-              <span className="nexus-shell-utility-stat__value">Lidar later</span>
-              <p className="nexus-shell-utility-stat__note">
-                Mapping and obstacle experiments come only after the base
-                airframe and telemetry path are boringly stable.
-              </p>
-            </div>
-          </div>
-        </ShellPanel>
+          </OpsStrip>
+        </div>
       </ShellStack>
     </ShellPage>
   );

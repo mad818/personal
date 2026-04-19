@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  applyAuthNoStoreHeaders,
   getConfiguredNexusToken,
+  getNexusSessionState,
+  getNexusStepUpState,
   isNexusAuthEnabled,
-  matchesConfiguredNexusToken,
+  NEXUS_STEP_UP_COOKIE,
   NEXUS_SESSION_COOKIE,
 } from "@/lib/authSession";
 import { getDefaultEntrypoint, RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
-import { applyNoStoreHeaders, readRuntimeIdentity } from "@/lib/runtimeIdentity";
+import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +18,10 @@ export async function GET(req: NextRequest) {
   const configuredToken = getConfiguredNexusToken();
   const authEnabled = isNexusAuthEnabled();
   const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? "";
-  const authenticated = matchesConfiguredNexusToken(sessionCookie);
+  const stepUpCookie = req.cookies.get(NEXUS_STEP_UP_COOKIE)?.value ?? "";
+  const sessionState = await getNexusSessionState(sessionCookie);
+  const stepUpState = await getNexusStepUpState(stepUpCookie, sessionCookie);
+  const authenticated = Boolean(sessionState);
 
   const response = NextResponse.json({
     ok: true,
@@ -28,6 +34,9 @@ export async function GET(req: NextRequest) {
     auth: {
       tokenConfigured: Boolean(configuredToken),
       authenticated: authEnabled ? authenticated : true,
+      stepUpActive: authEnabled ? Boolean(stepUpState) : true,
+      sessionRemainingSeconds: sessionState?.remainingSeconds ?? null,
+      stepUpRemainingSeconds: stepUpState?.remainingSeconds ?? null,
       mode: !authEnabled
         ? "open-no-token"
         : authenticated
@@ -41,6 +50,6 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  applyNoStoreHeaders(response.headers);
+  applyAuthNoStoreHeaders(response.headers);
   return response;
 }

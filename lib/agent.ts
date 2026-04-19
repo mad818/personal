@@ -30,18 +30,39 @@ import {
   type AIMode,
   type OperationalPhase,
   type TaskItem,
+  type AgentEfficiencyMetrics,
 } from "@/store/useStore";
 import { useStore } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
 import {
+  getCloudInferenceBlockedMessage,
+  normalizeCloudNetworkMode,
+} from "@/lib/aiCloudReadiness";
+import {
+  ANTHROPIC_DEFAULT_CHAT_MODEL,
   DEFAULT_LOCAL_MODEL,
   MINIMAX_DEFAULT_AGENT_MODEL,
 } from "@/lib/aiModelRouting";
+import {
+  extractOllamaErrorMessage,
+  isMissingOllamaModelError,
+  resolveInstalledOllamaModel,
+  summarizeInstalledOllamaModels,
+} from "@/lib/ollamaModelResolver";
+import {
+  buildInternalThinkingSummary,
+  extractThinkingTrace,
+} from "@/lib/aiThinkingTrace";
+import { readPrivacyShieldStatusFromHeaders } from "@/lib/privacyShieldClient";
 import {
   remember as memRemember,
   recall as memRecall,
   recallByType,
 } from "@/lib/memoryStore";
+import { hasDeepResearchIntent } from "@/lib/deepResearch";
+import { hasRepoCompareSignal } from "@/lib/repoCompare";
+import { hasRepoAssimilationSignal } from "@/lib/repoAssimilation";
+import { hasRepoIntelSignal } from "@/lib/repoIntel";
 
 type ToolRiskTier = "tier0" | "tier1" | "tier2";
 
@@ -49,6 +70,9 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   // Tier 0: read/search/analysis actions
   web_search: "tier0",
   fetch_url: "tier0",
+  deep_research: "tier0",
+  compare_repos: "tier0",
+  assimilate_repo: "tier0",
   read_file: "tier0",
   list_files: "tier0",
   read_project_file: "tier0",
@@ -56,6 +80,7 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   calculate: "tier0",
   recall: "tier0",
   read_current_tab: "tier0",
+  analyze_repo: "tier0",
 
   // Tier 1: local/browser/session side-effects
   remember: "tier1",
@@ -74,6 +99,34 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
 
 function getToolRisk(name: string): ToolRiskTier {
   return TOOL_RISK[name] ?? "tier1";
+}
+
+function sanitizeAgentReply(
+  raw: string,
+  onStep: (step: AgentStep) => void,
+): string {
+  const trace = extractThinkingTrace(raw);
+  if (trace.hasThinking) {
+    onStep({
+      type: "thinking",
+      content: buildInternalThinkingSummary(trace.thinkingBlocks),
+    });
+  }
+
+  return (
+    trace.visibleText ||
+    "No operator-visible answer was returned after internal reasoning. Review the runtime trace and retry."
+  );
+}
+
+function syncPrivacyShieldStatus(response: Response) {
+  try {
+    useStore
+      .getState()
+      .setPrivacyShieldStatus(readPrivacyShieldStatusFromHeaders(response));
+  } catch {
+    // local UI posture only
+  }
 }
 
 // ── Tool definitions (shown to the model) ────────────────────────────────────
@@ -100,6 +153,73 @@ export const AGENT_TOOLS = [
         url: { type: "string", description: "The full URL to fetch" },
       },
       required: ["url"],
+    },
+  },
+  {
+    name: "deep_research",
+    description:
+      "Run a bounded multi-source deep-research pipeline for an explicitly requested deep dive, full report, or research brief. Orchestrates papers, targeted web angles, optional RSS, and source fetching server-side, then returns one structured six-section brief. Use this only when the user clearly asks for deep research, not for every normal search question.",
+    input_schema: {
+      type: "object",
+      properties: {
+        topic: {
+          type: "string",
+          description:
+            "The research topic or question to investigate deeply.",
+        },
+      },
+      required: ["topic"],
+    },
+  },
+  {
+    name: "analyze_repo",
+    description:
+      "Fetch metadata-only intelligence for a public GitHub repo. Use this for read-only dependency assessment, competitor review, or reference-library reconnaissance. Returns repo summary, inferred stack, top-level tree, README excerpt, and a compact implementation brief. Never use it for local file edits.",
+    input_schema: {
+      type: "object",
+      properties: {
+        owner_slash_repo: {
+          type: "string",
+          description:
+            'GitHub repo reference as "owner/repo" or a full https://github.com/owner/repo URL.',
+        },
+      },
+      required: ["owner_slash_repo"],
+    },
+  },
+  {
+    name: "compare_repos",
+    description:
+      "Build a public-safe comparison brief for 2 or 3 public GitHub repos using existing metadata-only repo intel. Use this for explicit compare, versus, or which-should-we-adopt questions when the user wants one bounded recommendation rather than single-repo assessment.",
+    input_schema: {
+      type: "object",
+      properties: {
+        repo_refs: {
+          type: "array",
+          description:
+            'Exactly 2 or 3 GitHub repo references as "owner/repo" or full https://github.com/owner/repo URLs.',
+          items: { type: "string" },
+          minItems: 2,
+          maxItems: 3,
+        },
+      },
+      required: ["repo_refs"],
+    },
+  },
+  {
+    name: "assimilate_repo",
+    description:
+      "Build a public-safe repo-assimilation brief for a public GitHub repo using existing metadata-only repo intel. Use this for explicit adopt/adapt/fit questions when the user wants a Nexus-local implementation brief, not raw code ingestion. Returns a deterministic six-section assimilation brief and never fetches arbitrary source files.",
+    input_schema: {
+      type: "object",
+      properties: {
+        owner_slash_repo: {
+          type: "string",
+          description:
+            'GitHub repo reference as "owner/repo" or a full https://github.com/owner/repo URL.',
+        },
+      },
+      required: ["owner_slash_repo"],
     },
   },
   {
@@ -366,6 +486,179 @@ export const AGENT_TOOLS = [
   },
 ];
 
+type AgentToolDefinition = (typeof AGENT_TOOLS)[number];
+
+interface AgentToolCatalog {
+  id: string;
+  tools: AgentToolDefinition[];
+}
+
+interface RoutePolicyBlockPayload {
+  error?: string;
+  route?: string;
+  mode?: string;
+  routeClass?: string;
+}
+
+const TOOL_BY_NAME = Object.fromEntries(
+  AGENT_TOOLS.map((tool) => [tool.name, tool]),
+) as Record<string, AgentToolDefinition>;
+
+function isRoutePolicyBlockPayload(
+  value: unknown,
+): value is RoutePolicyBlockPayload {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as RoutePolicyBlockPayload;
+  return (
+    candidate.error === "Blocked by network policy" &&
+    candidate.route === "/api/ai"
+  );
+}
+
+function buildCloudInferencePolicyMessage(payload?: RoutePolicyBlockPayload) {
+  return getCloudInferenceBlockedMessage({
+    mode: normalizeCloudNetworkMode(payload?.mode),
+    providerLabel: "Groq or another cloud AI lane",
+  });
+}
+
+const CODE_INTENT_RE =
+  /\b(code|implement|build|fix|debug|patch|refactor|edit|component|typescript|react|next|file|save|write)\b/i;
+const OUTPUT_INTENT_RE =
+  /\b(report|summary|save|download|artifact|brief|memo|write file|workspace file)\b/i;
+const BROWSER_INTENT_RE =
+  /\b(browser|tab|page|website|site|navigate|open|click|form|input|type into)\b/i;
+const RESEARCH_INTENT_RE =
+  /\b(research|search|find|latest|current|news|read|summarize|verify|look up|cite|source)\b/i;
+const DELEGATE_INTENT_RE =
+  /\b(max|delegate|second opinion|double-check)\b/i;
+
+function pickAgentTools(names: Iterable<string>): AgentToolDefinition[] {
+  return Array.from(names)
+    .map((name) => TOOL_BY_NAME[name])
+    .filter(Boolean);
+}
+
+function applyDraftModeToTools(
+  tools: AgentToolDefinition[],
+  draftMode: boolean,
+): AgentToolDefinition[] {
+  if (!draftMode) return tools;
+  let replaced = false;
+  const next = tools.map((tool) => {
+    if (tool.name !== "write_file") return tool;
+    replaced = true;
+    return DRAFT_FILE_TOOL as AgentToolDefinition;
+  });
+  return replaced ? next : tools;
+}
+
+function estimateToolCatalogChars(tools: AgentToolDefinition[]): number {
+  try {
+    return JSON.stringify(tools).length;
+  } catch {
+    return 0;
+  }
+}
+
+export function getAgentToolCatalog(
+  agentId: string | undefined,
+  userMessage: string,
+): AgentToolCatalog {
+  const normalizedAgent = agentId?.toLowerCase() ?? "unknown";
+  const groups = new Set<string>(["base", "memory"]);
+  const names = new Set<string>(["calculate", "remember", "recall"]);
+
+  const codeIntent = CODE_INTENT_RE.test(userMessage);
+  const outputIntent = OUTPUT_INTENT_RE.test(userMessage);
+  const browserIntent = BROWSER_INTENT_RE.test(userMessage);
+  const researchIntent =
+    RESEARCH_INTENT_RE.test(userMessage) ||
+    (!codeIntent && normalizedAgent !== "orbit");
+  const deepResearchIntent = hasDeepResearchIntent(userMessage);
+  const repoCompareIntent = hasRepoCompareSignal(userMessage);
+  const repoAssimilationIntent = hasRepoAssimilationSignal(userMessage);
+  const delegateIntent = DELEGATE_INTENT_RE.test(userMessage);
+  const repoIntelIntent = hasRepoIntelSignal(userMessage);
+  const workspaceReadIntent =
+    codeIntent || normalizedAgent === "orbit" || normalizedAgent === "jansky";
+  const workspaceWriteIntent =
+    codeIntent && (normalizedAgent === "orbit" || normalizedAgent === "jansky");
+
+  if (researchIntent) {
+    groups.add("research");
+    names.add("web_search");
+    names.add("fetch_url");
+  }
+
+  if (deepResearchIntent && (normalizedAgent === "nova" || normalizedAgent === "jansky")) {
+    groups.add("deep_research");
+    names.add("deep_research");
+  }
+
+  if (
+    repoCompareIntent &&
+    (normalizedAgent === "nova" ||
+      normalizedAgent === "orbit" ||
+      normalizedAgent === "jansky")
+  ) {
+    groups.add("repo_compare");
+    names.add("compare_repos");
+  }
+
+  if (
+    repoAssimilationIntent &&
+    (normalizedAgent === "nova" ||
+      normalizedAgent === "orbit" ||
+      normalizedAgent === "jansky")
+  ) {
+    groups.add("repo_assimilation");
+    names.add("assimilate_repo");
+  }
+
+  if (repoIntelIntent) {
+    groups.add("repo_intel");
+    names.add("analyze_repo");
+  }
+
+  if (workspaceReadIntent) {
+    groups.add("workspace_read");
+    names.add("read_project_file");
+    names.add("list_project_files");
+  }
+
+  if (workspaceWriteIntent) {
+    groups.add("workspace_write");
+    names.add("propose_project_edit");
+    names.add("patch_project_file");
+    names.add("create_project_file");
+  }
+
+  if (outputIntent) {
+    groups.add("workspace_files");
+    names.add("write_file");
+    names.add("read_file");
+    names.add("list_files");
+  }
+
+  if (browserIntent) {
+    groups.add("browser");
+    names.add("navigate_to");
+    names.add("read_current_tab");
+    names.add("click_element");
+    names.add("type_text");
+  }
+
+  if (delegateIntent) {
+    groups.add("ops");
+    names.add("ask_max");
+  }
+
+  const tools = pickAgentTools(names);
+  const id = Array.from(groups).sort().join("+");
+  return { id, tools };
+}
+
 // Draft-mode replacement for write_file
 const DRAFT_FILE_TOOL = {
   name: "draft_file",
@@ -530,6 +823,10 @@ export interface AgentOptions {
   onToken?: (token: string) => void; // optional streaming callback for final answer
   maxIterations?: number;
   draftMode?: boolean;
+  agentId?: string;
+  toolCatalog?: AgentToolCatalog;
+  efficiencyHint?: Partial<AgentEfficiencyMetrics>;
+  onToolMetric?: (metric: ToolExecutionMeta) => void;
 }
 
 export type AgentRuntimeEngine = "nexus" | "claudeCode";
@@ -538,10 +835,7 @@ export type AgentRuntimeEngine = "nexus" | "claudeCode";
 function getSettings(): Settings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
-    const raw = localStorage.getItem("nexus-settings");
-    return raw
-      ? (JSON.parse(raw).state?.settings ?? DEFAULT_SETTINGS)
-      : DEFAULT_SETTINGS;
+    return useStore.getState().settings ?? DEFAULT_SETTINGS;
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -672,10 +966,24 @@ function browserType(selector: string, text: string): string {
   }
 }
 
-async function executeTool(
+interface ToolExecutionMeta {
+  cacheHit: boolean;
+  duplicateRead: boolean;
+}
+
+interface ToolExecutionResult {
+  result: string;
+  meta: ToolExecutionMeta;
+}
+
+function emptyToolExecutionMeta(): ToolExecutionMeta {
+  return { cacheHit: false, duplicateRead: false };
+}
+
+async function executeToolDetailed(
   name: string,
   input: Record<string, string>,
-): Promise<string> {
+): Promise<ToolExecutionResult> {
   const risk = getToolRisk(name);
 
   // High-risk write operations require explicit proposal/approval flow by default.
@@ -686,15 +994,15 @@ async function executeTool(
     if (requireApproval) {
       const pathOrFile = input.path ?? input.filename ?? name;
       const blocked = `🔒 Blocked ${name} (${risk}). Use propose_project_edit first so the user can review and approve the change.`;
-      store.addChangeEntry({
-        path: pathOrFile,
-        agent: "orbit",
-        summary: `Policy blocked high-risk tool: ${name}`,
-        type: "rejected",
-        linesAdded: 0,
-        linesRemoved: 0,
-      });
-      return blocked;
+        store.addChangeEntry({
+          path: pathOrFile,
+          agent: "orbit",
+          summary: `Policy blocked high-risk tool: ${name}`,
+          type: "rejected",
+          linesAdded: 0,
+          linesRemoved: 0,
+        });
+      return { result: blocked, meta: emptyToolExecutionMeta() };
     }
   }
 
@@ -702,17 +1010,43 @@ async function executeTool(
   if (typeof window !== "undefined") {
     if (name === "navigate_to") {
       const newTab = (input.new_tab ?? "true") !== "false";
-      return browserNavigate(input.url ?? "", newTab);
+      return {
+        result: browserNavigate(input.url ?? "", newTab),
+        meta: emptyToolExecutionMeta(),
+      };
     }
-    if (name === "read_current_tab") return browserReadCurrentTab();
-    if (name === "click_element") return browserClick(input.selector ?? "");
+    if (name === "read_current_tab") {
+      return {
+        result: browserReadCurrentTab(),
+        meta: emptyToolExecutionMeta(),
+      };
+    }
+    if (name === "click_element") {
+      return {
+        result: browserClick(input.selector ?? ""),
+        meta: emptyToolExecutionMeta(),
+      };
+    }
     if (name === "type_text")
-      return browserType(input.selector ?? "", input.text ?? "");
+      return {
+        result: browserType(input.selector ?? "", input.text ?? ""),
+        meta: emptyToolExecutionMeta(),
+      };
   }
 
   // Intercept memory tools client-side — IndexedDB, no server round-trip
-  if (name === "remember") return handleRemember(input.note ?? "");
-  if (name === "recall") return handleRecall(input.query ?? input.note ?? "");
+  if (name === "remember") {
+    return {
+      result: await handleRemember(input.note ?? ""),
+      meta: emptyToolExecutionMeta(),
+    };
+  }
+  if (name === "recall") {
+    return {
+      result: await handleRecall(input.query ?? input.note ?? ""),
+      meta: emptyToolExecutionMeta(),
+    };
+  }
 
   // Intercept propose_project_edit — queue for user review, do NOT apply yet
   if (name === "propose_project_edit") {
@@ -726,26 +1060,51 @@ async function executeTool(
         risk: (input.risk ?? "medium") as "low" | "medium" | "high",
         agentId: "orbit",
       });
-      return `⏳ Edit proposed for "${input.path}". User will see a diff and must approve before the file is changed.`;
+      return {
+        result: `⏳ Edit proposed for "${input.path}". User will see a diff and must approve before the file is changed.`,
+        meta: emptyToolExecutionMeta(),
+      };
     } catch {
-      return "Failed to queue proposed edit.";
+      return {
+        result: "Failed to queue proposed edit.",
+        meta: emptyToolExecutionMeta(),
+      };
     }
   }
 
   try {
+    const runId = useStore.getState().agentRuntime.runId || "interactive";
     const r = await apiFetch("/api/tools", {
       method: "POST",
       body: JSON.stringify({ tool: name, input }),
+      headers: { "X-Nexus-Run-Id": runId },
       signal: AbortSignal.timeout(TOOL_TIMEOUT_MS),
     });
     const d = await r.json();
-    return d.result ?? "No result.";
+    return {
+      result: d.result ?? "No result.",
+      meta: {
+        cacheHit: r.headers.get("X-Tool-Cache") === "hit",
+        duplicateRead: r.headers.get("X-Tool-Duplicate-Read") === "1",
+      },
+    };
   } catch (e) {
     const isTimeout = e instanceof Error && e.name === "TimeoutError";
-    return isTimeout
-      ? `Tool "${name}" timed out after ${TOOL_TIMEOUT_MS / 1000}s.`
-      : `Tool "${name}" failed.`;
+    return {
+      result: isTimeout
+        ? `Tool "${name}" timed out after ${TOOL_TIMEOUT_MS / 1000}s.`
+        : `Tool "${name}" failed.`,
+      meta: emptyToolExecutionMeta(),
+    };
   }
+}
+
+async function executeTool(
+  name: string,
+  input: Record<string, string>,
+): Promise<string> {
+  const { result } = await executeToolDetailed(name, input);
+  return result;
 }
 
 // ── Stream the final answer from /api/ai ─────────────────────────────────────
@@ -772,6 +1131,7 @@ async function streamFinalAnswer(
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
     });
+    syncPrivacyShieldStatus(fallback);
     if (!fallback.ok) return "";
     const d = await fallback.json();
     const txt =
@@ -782,6 +1142,8 @@ async function streamFinalAnswer(
     onToken(txt);
     return txt;
   }
+
+  syncPrivacyShieldStatus(res);
 
   if (!res.ok || !res.body) {
     // Parse error body if possible
@@ -826,7 +1188,7 @@ async function streamFinalAnswer(
 }
 
 // ── OpenAI-format tools (for Ollama) ─────────────────────────────────────────
-function toOAITools(tools: typeof AGENT_TOOLS) {
+function toOAITools(tools: AgentToolDefinition[]) {
   return tools.map((t) => ({
     type: "function" as const,
     function: {
@@ -981,21 +1343,15 @@ Example: ["User is analyzing BTC/USD 4h chart", "User prefers RSI(14) over MACD 
         extracted = match ? JSON.parse(match[0]) : [];
       }
     } else if (settings.localEndpoint && settings.localModel) {
-      const res = await fetch(settings.localEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(settings.localApiKey
-            ? { Authorization: `Bearer ${settings.localApiKey}` }
-            : {}),
-        },
-        body: JSON.stringify({
+      const res = await postOllamaProxy(
+        settings,
+        {
           model: settings.localModel,
           max_tokens: 256,
           messages: [{ role: "user", content: prompt }],
-        }),
-        signal: AbortSignal.timeout(30_000),
-      });
+        },
+        AbortSignal.timeout(30_000),
+      );
       if (res.ok) {
         const data = await res.json();
         const raw = data.choices?.[0]?.message?.content ?? "[]";
@@ -1015,6 +1371,29 @@ Example: ["User is analyzing BTC/USD 4h chart", "User prefers RSI(14) over MACD 
 }
 
 // ── Ollama agent loop (OpenAI-compat function calling) ────────────────────────
+async function postOllamaProxy(
+  settings: Settings,
+  payload: Record<string, unknown>,
+  signal?: AbortSignal,
+) {
+  const response = await apiFetch("/api/ai", {
+    method: "POST",
+    body: JSON.stringify({
+      provider: "ollama",
+      ...payload,
+      ...(settings.localEndpoint
+        ? { localEndpoint: settings.localEndpoint }
+        : {}),
+      ...(settings.localApiKey
+        ? { localApiKey: settings.localApiKey }
+        : {}),
+    }),
+    signal,
+  });
+  syncPrivacyShieldStatus(response);
+  return response;
+}
+
 async function runOllamaAgent(opts: AgentOptions): Promise<string> {
   const {
     settings: s,
@@ -1023,27 +1402,59 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     onStep,
     maxIterations = 6,
     draftMode = false,
+    agentId,
+    toolCatalog,
+    onToolMetric,
   } = opts;
   const endpoint =
     s.localEndpoint || "http://localhost:11434/v1/chat/completions";
-  const model = s.localModel || DEFAULT_LOCAL_MODEL;
+  const configuredModel = s.localModel || DEFAULT_LOCAL_MODEL;
+  let activeModel = configuredModel;
+  let modelRecoveryAttempted = false;
+  let initialResolutionReason: string | null = null;
 
-  // In draft mode, swap write_file out for draft_file
-  const tools = draftMode
-    ? [...AGENT_TOOLS.filter((t) => t.name !== "write_file"), DRAFT_FILE_TOOL]
-    : AGENT_TOOLS;
+  const selectedCatalog =
+    toolCatalog ??
+    getAgentToolCatalog(agentId, messages.at(-1)?.content ?? "");
+  const tools = applyDraftModeToTools(selectedCatalog.tools, draftMode);
 
   if (typeof window !== "undefined")
     useStore.getState().setCurrentPhase("executing");
   onStep({ type: "phase", content: "executing", phase: "executing" });
 
+  const initialResolution = await resolveInstalledOllamaModel({
+    endpoint,
+    apiKey: s.localApiKey,
+    requestedModel: configuredModel,
+    task: "default",
+    preferActiveModel: true,
+  });
+  if (initialResolution.reachable && initialResolution.resolvedModel) {
+    activeModel = initialResolution.resolvedModel;
+    initialResolutionReason = initialResolution.reason;
+    if (typeof window !== "undefined" && activeModel !== configuredModel) {
+      useStore.getState().updateSettings({
+        localModel: activeModel,
+      } as Partial<Settings>);
+    }
+  }
+
   if (draftMode) {
     onStep({
       type: "thinking",
-      content: `⚠️ Draft mode — using ${model}. File writes are queued for Claude to finalize.`,
+      content:
+        initialResolutionReason === "active_runtime" && activeModel !== configuredModel
+          ? `⚠️ Draft mode — using active Ollama runtime model ${activeModel}. File writes are queued for Claude to finalize.`
+          : `⚠️ Draft mode — using ${activeModel}. File writes are queued for Claude to finalize.`,
     });
   } else {
-    onStep({ type: "thinking", content: `Using local model: ${model}` });
+    onStep({
+      type: "thinking",
+      content:
+        initialResolutionReason === "active_runtime" && activeModel !== configuredModel
+          ? `Using active Ollama runtime model: ${activeModel}`
+          : `Using local model: ${activeModel}`,
+    });
   }
 
   type OAIMsg = {
@@ -1064,47 +1475,98 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
   for (let iter = 0; iter < maxIterations; iter++) {
     let res: Response;
     try {
-      res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(s.localApiKey
-            ? { Authorization: `Bearer ${s.localApiKey}` }
-            : {}),
-        },
-        body: JSON.stringify({
-          model,
+      res = await postOllamaProxy(
+        s,
+        {
+          model: activeModel,
           max_tokens: 4096,
           messages: conv,
           tools: toOAITools(tools),
           tool_choice: "auto",
-        }),
-        signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
-      });
+          preferRunningModel: true,
+        },
+        AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
+      );
     } catch (e) {
+      // Throw so the caller decides how to handle it.
+      // The !s.apiKey dispatch path will catch this and try free cloud providers.
+      // The storeAiMode === "local" dispatch path will catch and show an error.
       const isTimeout = e instanceof Error && e.name === "TimeoutError";
-      finalAnswer = isTimeout
-        ? `Ollama took too long to respond (${OLLAMA_TIMEOUT_MS / 1000}s). The model may still be loading — try again in a moment.`
-        : `Could not reach Ollama at ${endpoint}. Make sure Ollama is running: open a terminal and run \`ollama serve\`.`;
-      onStep({ type: "answer", content: finalAnswer });
-      break;
+      throw new Error(
+        isTimeout
+          ? `Ollama took too long (${OLLAMA_TIMEOUT_MS / 1000}s). The model may still be loading.`
+          : `Ollama unreachable at ${endpoint}.`,
+      );
     }
 
     let data: Record<string, unknown>;
     try {
       data = await res.json();
     } catch {
-      finalAnswer = "Ollama returned an unreadable response. Try again.";
-      onStep({ type: "answer", content: finalAnswer });
-      break;
+      throw new Error("Ollama returned an unreadable response.");
+    }
+
+    const proxyRecoveredModel = res.headers.get("X-Model")?.trim();
+    const proxyResolutionReason =
+      res.headers.get("X-Ollama-Resolution-Reason")?.trim() ?? null;
+    if (proxyRecoveredModel && proxyRecoveredModel !== activeModel) {
+      const previousModel = activeModel;
+      activeModel = proxyRecoveredModel;
+      if (typeof window !== "undefined") {
+        useStore.getState().updateSettings({
+          localModel: activeModel,
+        } as Partial<Settings>);
+      }
+      if (previousModel === configuredModel) {
+        onStep({
+          type: "thinking",
+          content:
+            proxyResolutionReason === "active_runtime"
+              ? `Using active Ollama runtime model ${activeModel} instead of saved model ${configuredModel}.`
+              : `Using detected local model ${activeModel}.`,
+        });
+      }
     }
 
     if (!res.ok) {
-      finalAnswer =
-        (data?.error as { message?: string })?.message ??
-        `Ollama error (HTTP ${res.status}).`;
-      onStep({ type: "answer", content: finalAnswer });
-      break;
+      const errorMessage = extractOllamaErrorMessage(data, res.status);
+      if (
+        !modelRecoveryAttempted &&
+        isMissingOllamaModelError(errorMessage)
+      ) {
+        modelRecoveryAttempted = true;
+        const recovery = await resolveInstalledOllamaModel({
+          endpoint,
+          apiKey: s.localApiKey,
+          requestedModel: activeModel,
+          task: "default",
+          preferActiveModel: true,
+        });
+        if (recovery.resolvedModel && recovery.resolvedModel !== activeModel) {
+          activeModel = recovery.resolvedModel;
+          if (typeof window !== "undefined") {
+            useStore.getState().updateSettings({
+              localModel: activeModel,
+            } as Partial<Settings>);
+          }
+          onStep({
+            type: "thinking",
+            content:
+              recovery.reason === "active_runtime"
+                ? `Using active Ollama runtime model ${activeModel} instead of saved model ${configuredModel}.`
+                : `Using detected local model ${activeModel}.`,
+          });
+          iter -= 1;
+          continue;
+        }
+        const availableModels = summarizeInstalledOllamaModels(recovery.models);
+        throw new Error(
+          availableModels
+            ? `Configured local model ${configuredModel} is not installed. Detected models: ${availableModels}.`
+            : `Configured local model ${configuredModel} is not installed, and no local Ollama models were detected.`,
+        );
+      }
+      throw new Error(errorMessage);
     }
 
     type OAIChoice = {
@@ -1123,7 +1585,7 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
 
     // No tool calls → final answer
     if (!msg?.tool_calls?.length) {
-      finalAnswer = msg?.content ?? "";
+      finalAnswer = sanitizeAgentReply(msg?.content ?? "", onStep);
       onStep({ type: "answer", content: finalAnswer });
       break;
     }
@@ -1160,12 +1622,14 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
         store.addPendingDraft({
           filename: input.filename ?? "draft.md",
           content: input.content ?? "",
-          model,
+          model: activeModel,
           prompt: messages.at(-1)?.content ?? "",
         });
         result = `📝 Draft saved: "${input.filename ?? "draft.md"}" — queued for Claude to finalize.`;
       } else {
-        result = await executeTool(name, input);
+        const exec = await executeToolDetailed(name, input);
+        result = exec.result;
+        onToolMetric?.(exec.meta);
       }
 
       onStep({ type: "tool_result", content: result, tool: name });
@@ -1186,9 +1650,15 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
     messages,
     onStep,
     maxIterations = 6,
+    agentId,
+    toolCatalog,
+    onToolMetric,
   } = opts;
   const model = MINIMAX_DEFAULT_AGENT_MODEL;
-  const tools = AGENT_TOOLS;
+  const selectedCatalog =
+    toolCatalog ??
+    getAgentToolCatalog(agentId, messages.at(-1)?.content ?? "");
+  const tools = selectedCatalog.tools;
 
   if (typeof window !== "undefined")
     useStore.getState().setCurrentPhase("executing");
@@ -1233,6 +1703,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
         }),
         signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
       });
+      syncPrivacyShieldStatus(res);
     } catch (e) {
       const isTimeout = e instanceof Error && e.name === "TimeoutError";
       finalAnswer = isTimeout
@@ -1276,7 +1747,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
     const stopReason = choices?.[0]?.finish_reason ?? "";
 
     if (!msg?.tool_calls?.length) {
-      finalAnswer = msg?.content ?? "";
+      finalAnswer = sanitizeAgentReply(msg?.content ?? "", onStep);
       onStep({ type: "answer", content: finalAnswer });
       break;
     }
@@ -1303,7 +1774,9 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
         tool: name,
       });
 
-      const result = await executeTool(name, input);
+      const exec = await executeToolDetailed(name, input);
+      const result = exec.result;
+      onToolMetric?.(exec.meta);
       onStep({ type: "tool_result", content: result, tool: name });
       conv.push({ role: "tool", tool_call_id: tc.id, name, content: result });
     }
@@ -1327,6 +1800,8 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     onStep,
     maxIterations = 8,
     onToken,
+    agentId,
+    efficiencyHint,
   } = opts;
   void onToken; // referenced via opts.onToken in loop body
   const s = settings ?? getSettings();
@@ -1338,6 +1813,9 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     input: string;
     output?: string;
   }[] = [];
+  let providerUsed: string | undefined;
+  let readCacheHits = 0;
+  let duplicateReadCount = 0;
   const phaseStart = new Map<OperationalPhase, number>();
   const phaseDurations: Partial<Record<OperationalPhase, number>> = {};
   const markPhase = (phase: OperationalPhase) => {
@@ -1378,15 +1856,30 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   // ── Auto-recall: inject relevant memories into system prompt ─────────────
   const memoryContext = await buildMemoryContext(userMessage);
   const enrichedPrompt = systemPrompt + memoryContext;
-  const contextChars = memoryContext.length;
-  const contextCompacted = memoryContext.includes("[CONTEXT COMPACTED");
+  const contextChars = enrichedPrompt.length;
+  const contextCompacted =
+    Boolean(efficiencyHint?.liveContextCompacted) ||
+    memoryContext.includes("[CONTEXT COMPACTED");
   const runtimeEngine = getRuntimeEngine(s);
+  const selectedToolCatalog =
+    opts.toolCatalog ?? getAgentToolCatalog(agentId, userMessage);
+  const toolCatalogChars = estimateToolCatalogChars(selectedToolCatalog.tools);
+  const recordToolMetric = (metric: ToolExecutionMeta) => {
+    if (metric.cacheHit) readCacheHits += 1;
+    if (metric.duplicateRead) duplicateReadCount += 1;
+  };
 
   // Read current AI mode from store (outside React — getState() is safe)
   const storeAiMode: AIMode =
     typeof window !== "undefined" ? useStore.getState().aiMode : "auto";
 
-  const enrichedOpts = { ...opts, systemPrompt: enrichedPrompt };
+  const enrichedOpts = {
+    ...opts,
+    systemPrompt: enrichedPrompt,
+    agentId,
+    toolCatalog: selectedToolCatalog,
+    onToolMetric: recordToolMetric,
+  };
 
   const finalizeRunState = (ok: boolean) => {
     if (typeof window === "undefined") return;
@@ -1449,6 +1942,21 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
           ? "required:passed"
           : "required:failed"
         : "not-required";
+    const efficiency: AgentEfficiencyMetrics = {
+      contextScope: efficiencyHint?.contextScope ?? "unknown",
+      systemPromptChars: enrichedPrompt.length,
+      liveContextChars: efficiencyHint?.liveContextChars ?? 0,
+      liveContextCompacted: Boolean(efficiencyHint?.liveContextCompacted),
+      memoryDiffChars: efficiencyHint?.memoryDiffChars ?? 0,
+      memoryContextChars: memoryContext.length,
+      ragChars: efficiencyHint?.ragChars ?? 0,
+      lessonsChars: efficiencyHint?.lessonsChars ?? 0,
+      toolCatalogCount: selectedToolCatalog.tools.length,
+      toolCatalogChars,
+      toolPackId: selectedToolCatalog.id,
+      readCacheHits,
+      duplicateReadCount,
+    };
     useStore.getState().addAgentRunArtifact({
       runId,
       runtimeEngine,
@@ -1457,13 +1965,15 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       userMessage,
       finalAnswer: args.finalAnswer ?? "",
       verificationSummary,
+      providerUsed,
       contextChars,
       contextCompacted,
       toolTraces,
+      efficiency,
     });
   };
 
-  // No API key in settings AND not a server-cloud default → Ollama in regular mode
+  // No API key in settings — try Ollama first, then fall through to free cloud auto-chain.
   // Anthropic / MiniMax always try /api/ai (keys in .env). OpenAI path uses legacy apiKey or auto chain.
   if (s.aiProvider !== "anthropic" && s.aiProvider !== "minimax" && !s.apiKey) {
     try {
@@ -1471,13 +1981,75 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
         ...enrichedOpts,
         draftMode: false,
       });
+      providerUsed = "ollama";
       finalizeRunState(Boolean(answer));
       finishDiagnostics({ ok: Boolean(answer), finalAnswer: answer });
       void autoLearn(userMessage, answer, s);
       return answer;
-    } catch {
+    } catch (error) {
+      const localFailure =
+        error instanceof Error && error.message ? error.message : "";
+      // Ollama not running — silently fall through to free cloud auto-chain.
+      // The chain tries up to 19 free providers (Groq, Cerebras, SambaNova…)
+      // before surfacing any error, so the user sees a response regardless.
+      onStep({
+        type: "thinking",
+        content: isMissingOllamaModelError(localFailure)
+          ? `${localFailure} Trying free cloud providers…`
+          : "Ollama not available — trying free cloud providers…",
+      });
+      try {
+        const cloudMessages = messages.map((m) => ({
+          role: m.role === "user" ? "user" : "assistant",
+          content: m.content,
+        }));
+        const cloudRes = await apiFetch("/api/ai", {
+          method: "POST",
+          body: JSON.stringify({
+            // No provider = auto-chain through all 19 free providers in score order.
+            max_tokens: 4096,
+            system: enrichedPrompt,
+            messages: cloudMessages,
+          }),
+          signal: AbortSignal.timeout(30_000),
+        });
+        syncPrivacyShieldStatus(cloudRes);
+        const cloudData = (await cloudRes
+          .json()
+          .catch(() => null)) as Record<string, unknown> | null;
+        if (cloudRes.ok) {
+          providerUsed = cloudRes.headers.get("X-Provider")?.trim() ?? providerUsed;
+          type CloudMsg = {
+            choices?: { message?: { content?: string } }[];
+            content?: { text?: string }[];
+          };
+          const d = cloudData as CloudMsg | null;
+          const cloudAnswer =
+            d?.choices?.[0]?.message?.content ??
+            d?.content?.[0]?.text ??
+            "";
+          if (cloudAnswer) {
+            const sanitizedCloudAnswer = sanitizeAgentReply(cloudAnswer, onStep);
+            finalizeRunState(true);
+            finishDiagnostics({ ok: true, finalAnswer: sanitizedCloudAnswer });
+            void autoLearn(userMessage, sanitizedCloudAnswer, s);
+            onStep({ type: "answer", content: sanitizedCloudAnswer });
+            return sanitizedCloudAnswer;
+          }
+        }
+        if (cloudRes.status === 403 && isRoutePolicyBlockPayload(cloudData)) {
+          const err = buildCloudInferencePolicyMessage(cloudData);
+          finalizeRunState(false);
+          finishDiagnostics({ ok: false, failureCause: err, finalAnswer: err });
+          onStep({ type: "answer", content: err });
+          return err;
+        }
+      } catch { /* ignore — fall through to final error below */ }
+      // All providers failed
       const err =
-        "Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.";
+        "No AI providers are responding. " +
+        "Start Ollama locally (`ollama serve`) or add a free cloud key in Settings " +
+        "(Groq, Cerebras, or SambaNova are free and take 30 seconds to set up).";
       finalizeRunState(false);
       finishDiagnostics({ ok: false, failureCause: err, finalAnswer: err });
       onStep({ type: "answer", content: err });
@@ -1485,17 +2057,22 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     }
   }
 
-  // User forced local/draft mode explicitly
+  // User forced local/draft mode explicitly — Ollama only, no cloud fallback.
   if (storeAiMode === "local") {
     try {
       const answer = await runOllamaAgent({ ...enrichedOpts, draftMode: true });
+      providerUsed = "ollama";
       finalizeRunState(Boolean(answer));
       finishDiagnostics({ ok: Boolean(answer), finalAnswer: answer });
       void autoLearn(userMessage, answer, s);
       return answer;
-    } catch {
-      const err =
-        "Could not reach Ollama. Make sure it is running: open Terminal and run `ollama serve`.";
+    } catch (error) {
+      const localFailure =
+        error instanceof Error && error.message ? error.message : "";
+      const err = isMissingOllamaModelError(localFailure)
+        ? `${localFailure} Update the Local Model in Settings or let Nexus switch to a detected model by retrying in Auto mode.`
+        : "Ollama is not running. Open a terminal and run `ollama serve`, then try again. " +
+          "To use free cloud providers instead, switch the AI mode to Auto in Settings.";
       finalizeRunState(false);
       finishDiagnostics({ ok: false, failureCause: err, finalAnswer: err });
       onStep({ type: "answer", content: err });
@@ -1507,6 +2084,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   if (s.aiProvider === "minimax") {
     try {
       const answer = await runMiniMaxAgent(enrichedOpts);
+      providerUsed = "minimax";
       finalizeRunState(Boolean(answer));
       finishDiagnostics({ ok: Boolean(answer), finalAnswer: answer });
       void autoLearn(userMessage, answer, s);
@@ -1537,14 +2115,16 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
         method: "POST",
         body: JSON.stringify({
           provider: "anthropic",
-          model: "claude-opus-4-5",
+          model: ANTHROPIC_DEFAULT_CHAT_MODEL,
           max_tokens: 4096,
           system: enrichedPrompt,
-          tools: AGENT_TOOLS,
+          tools: selectedToolCatalog.tools,
           messages: conv,
         }),
         signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
       });
+      syncPrivacyShieldStatus(res);
+      providerUsed = res.headers.get("X-Provider")?.trim() ?? providerUsed;
     } catch (e) {
       const isTimeout = e instanceof Error && e.name === "TimeoutError";
       finalAnswer = isTimeout
@@ -1557,6 +2137,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
             ...enrichedOpts,
             draftMode: false,
           });
+          providerUsed = "ollama";
           finalizeRunState(Boolean(fallback));
           finishDiagnostics({ ok: Boolean(fallback), finalAnswer: fallback });
           return fallback;
@@ -1589,6 +2170,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
           ...enrichedOpts,
           draftMode: true,
         });
+        providerUsed = "ollama";
         finalizeRunState(Boolean(answer));
         finishDiagnostics({ ok: Boolean(answer), finalAnswer: answer });
         void autoLearn(userMessage, answer, s);
@@ -1604,7 +2186,9 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     }
 
     if (!res.ok) {
-      finalAnswer = data?.error?.message ?? "Claude API error.";
+      finalAnswer = isRoutePolicyBlockPayload(data)
+        ? buildCloudInferencePolicyMessage(data)
+        : data?.error?.message ?? "Claude API error.";
       finalizeRunState(false);
       finishDiagnostics({ ok: false, failureCause: finalAnswer, finalAnswer });
       break;
@@ -1623,26 +2207,36 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       .filter((b) => b.type === "text")
       .map((b) => b.text ?? "")
       .join("");
-    if (textBlocks) onStep({ type: "thinking", content: textBlocks });
+    const textTrace = extractThinkingTrace(textBlocks);
+    if (textTrace.hasThinking) {
+      onStep({
+        type: "thinking",
+        content: buildInternalThinkingSummary(textTrace.thinkingBlocks),
+      });
+    } else if (textTrace.visibleText) {
+      onStep({ type: "thinking", content: textTrace.visibleText });
+    }
 
     if (
       stopReason === "end_turn" ||
       !content.find((b) => b.type === "tool_use")
     ) {
-      finalAnswer = textBlocks;
+      finalAnswer =
+        textTrace.visibleText ||
+        "No operator-visible answer was returned after internal reasoning. Review the runtime trace and retry.";
 
       // ── Streaming delivery: push tokens progressively if caller wants it ────
       // Splits the final text into ~4-char chunks and calls onToken with a small
       // delay between each, giving a live-typing appearance without a second API call.
-      if (opts.onToken && textBlocks.length > 0) {
+      if (opts.onToken && finalAnswer.length > 0) {
         markPhase("responding");
         const CHUNK = 4;
-        for (let i = 0; i < textBlocks.length; i += CHUNK) {
-          opts.onToken(textBlocks.slice(i, i + CHUNK));
+        for (let i = 0; i < finalAnswer.length; i += CHUNK) {
+          opts.onToken(finalAnswer.slice(i, i + CHUNK));
           await new Promise((r) => setTimeout(r, 8));
         }
       } else {
-        onStep({ type: "answer", content: textBlocks });
+        onStep({ type: "answer", content: finalAnswer });
       }
       break;
     }
@@ -1687,7 +2281,9 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
           content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
           tool: name,
         });
-        const result = await executeTool(name, input);
+        const exec = await executeToolDetailed(name, input);
+        const result = exec.result;
+        recordToolMetric(exec.meta);
         trace.output = result;
         onStep({ type: "tool_result", content: result, tool: name });
         toolResults.push({

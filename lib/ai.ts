@@ -2,39 +2,145 @@
 
 // ── AI call wrappers — all Anthropic calls go through /api/ai (server-side key)
 
-import { DEFAULT_SETTINGS, type Settings } from "@/store/useStore";
+import { useStore, DEFAULT_SETTINGS, type Settings } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
-import { MINIMAX_DEFAULT_CHAT_MODEL, TASK_MODELS } from "@/lib/aiModelRouting";
+import {
+  ANTHROPIC_DEFAULT_CHAT_MODEL,
+  MINIMAX_DEFAULT_CHAT_MODEL,
+  OPENAI_DEFAULT_CHAT_MODEL,
+  TASK_MODELS,
+} from "@/lib/aiModelRouting";
+import {
+  extractOllamaErrorMessage,
+  isMissingOllamaModelError,
+  resolveInstalledOllamaModel,
+  shouldPreferActiveOllamaModel,
+} from "@/lib/ollamaModelResolver";
+import {
+  AI_NO_IMPLICIT_TOOLING_BLOCK,
+  AI_EVIDENCE_DISCIPLINE_BLOCK,
+  AI_TRUTH_BOUNDARY_BLOCK,
+} from "@/lib/aiTruthBoundary";
+import {
+  normalizePreferredAIProvider,
+  resolveApiAIProvider,
+} from "@/lib/aiProviderPreference";
 import { NEXUS_AGENT_NO_BILLING_RULE } from "@/lib/productGuarantees";
 import { getNavProductSurfaces, summarizeSurfaceTiers } from "@/lib/releaseMatrix";
 
 function getSettings(): Settings {
+  // BUG-04 fix: read from the in-memory Zustand store, not localStorage.
+  // localStorage is only updated at persist intervals and can be stale by
+  // several seconds when settings change while an AI call is in flight.
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
-    const raw = localStorage.getItem("nexus-settings");
-    return raw
-      ? (JSON.parse(raw).state?.settings ?? DEFAULT_SETTINGS)
-      : DEFAULT_SETTINGS;
+    const settings = useStore.getState().settings ?? DEFAULT_SETTINGS;
+    return {
+      ...DEFAULT_SETTINGS,
+      ...settings,
+      aiProvider: normalizePreferredAIProvider(settings.aiProvider),
+    };
   } catch {
     return DEFAULT_SETTINGS;
   }
 }
 
 function aiReady(s: Settings): boolean {
-  // Cloud providers route via /api/ai with server-side keys
-  if (
-    s.aiProvider === "anthropic" ||
-    s.aiProvider === "openai" ||
-    s.aiProvider === "minimax"
-  )
-    return true;
+  if (resolveApiAIProvider(normalizePreferredAIProvider(s.aiProvider))) return true;
   // Local Ollama — needs endpoint + model
   if (s.localEndpoint && s.localModel) return true;
   return false;
 }
 
-const NON_INTERACTIVE_SINGLE_FLIGHT = new Map<string, Promise<string>>();
+function readServerRoutedProvider(settings: Settings) {
+  return resolveApiAIProvider(normalizePreferredAIProvider(settings.aiProvider));
+}
+
+function readServerRoutedModel(
+  provider: ReturnType<typeof readServerRoutedProvider>,
+) {
+  switch (provider) {
+    case "anthropic":
+      return ANTHROPIC_DEFAULT_CHAT_MODEL;
+    case "minimax":
+      return MINIMAX_DEFAULT_CHAT_MODEL;
+    case "openai":
+      return OPENAI_DEFAULT_CHAT_MODEL;
+    default:
+      return undefined;
+  }
+}
+
+const NON_INTERACTIVE_SINGLE_FLIGHT = new Map<
+  string,
+  Promise<NonInteractiveAIResult>
+>();
 const SYSTEM_PROMPT_CACHE = new Map<string, string>();
+
+export interface NonInteractivePromptParts {
+  cacheablePrefix?: string;
+  volatilePrompt: string;
+  fullPrompt: string;
+  cacheStrategy: "system_only" | "system_plus_user_prefix";
+}
+
+export interface NonInteractiveCallMeta {
+  provider?: string;
+  model?: string;
+  cacheObserved: boolean;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  cacheHit: boolean;
+}
+
+export interface NonInteractiveBatchItem {
+  id: string;
+  name: string;
+  prompt: string;
+}
+
+export interface NonInteractiveAIResult {
+  content: string;
+  meta: NonInteractiveCallMeta;
+}
+
+export interface NonInteractiveBatchResult {
+  id: string;
+  status: "ok" | "error";
+  content: string;
+}
+
+export interface NonInteractiveBatchResponse {
+  results: NonInteractiveBatchResult[];
+  meta: NonInteractiveCallMeta;
+}
+
+export interface NativeAnthropicBatchSubmission {
+  batchId: string;
+  provider: "anthropic";
+  model?: string;
+  processingStatus: string;
+  requestCount: number;
+}
+
+export interface NativeAnthropicBatchPollResult {
+  batchId: string;
+  provider: "anthropic";
+  model?: string;
+  processingStatus: string;
+  requestCount: number;
+  results: NonInteractiveBatchResult[];
+}
+
+export interface NativeAnthropicBatchPosture {
+  provider: "anthropic";
+  nativeReady: boolean;
+  mode: "provider_native" | "internal_fallback";
+  featureEnabled: boolean;
+  paidApisAllowed: boolean;
+  apiKeyConfigured: boolean;
+  reason: string;
+}
 
 function stableHash(input: string): string {
   let hash = 2166136261;
@@ -67,6 +173,280 @@ export function buildCachedSystemPrompt(s: Settings, liveContext = ""): string {
   return prompt;
 }
 
+function buildDirectCallProfileBlock(s: Settings): string {
+  const parts: string[] = [];
+  if (s.userGoals) parts.push(`Goals: ${s.userGoals}`);
+  if (s.userSkills) parts.push(`Building: ${s.userSkills}`);
+  if (s.userLearning) parts.push(`Learning: ${s.userLearning}`);
+  if (s.userContext) parts.push(`Context: ${s.userContext}`);
+  if (!parts.length) return "";
+  const name = s.userName || "Mario";
+  return `\n\n== ${name.toUpperCase()}'S PROFILE ==\n${parts.join("\n")}\n== END PROFILE ==`;
+}
+
+export function buildDirectCallSystemPrompt(s: Settings): string {
+  const name = s.userName || "Mario";
+  return `You are Nexus AI — ${name}'s direct analysis and drafting lane.
+
+${NEXUS_AGENT_NO_BILLING_RULE}
+
+This is a direct completion path. You do not automatically have tool execution, browsing, live file access, or verified current-world context unless the prompt explicitly includes it.
+
+${AI_TRUTH_BOUNDARY_BLOCK}
+
+${AI_NO_IMPLICIT_TOOLING_BLOCK}
+
+${AI_EVIDENCE_DISCIPLINE_BLOCK}${buildDirectCallProfileBlock(s)}`;
+}
+
+export function buildScheduledMissionPromptParts(
+  operationalPrefix: string,
+  jobPrompt: string,
+): NonInteractivePromptParts {
+  const prefix = `${operationalPrefix.trim()}\n\n[Scheduled Task]\n`;
+  const volatilePrompt = jobPrompt.trim();
+  return {
+    cacheablePrefix: prefix,
+    volatilePrompt,
+    fullPrompt: `${prefix}${volatilePrompt}`,
+    cacheStrategy: "system_plus_user_prefix",
+  };
+}
+
+export function buildScheduledMissionSingleFlightKey(input: {
+  systemPrompt: string;
+  cacheablePrefix?: string;
+  volatilePrompt: string;
+  timeWindowMs?: number;
+}): string {
+  const { systemPrompt, cacheablePrefix = "", volatilePrompt, timeWindowMs = 60_000 } =
+    input;
+  const windowBucket = Math.floor(Date.now() / Math.max(1, timeWindowMs));
+  return `scheduled:${windowBucket}:${stableHash(
+    `${systemPrompt}\n${cacheablePrefix}\n${volatilePrompt}`,
+  )}`;
+}
+
+function readNonInteractiveMeta(res: Response): NonInteractiveCallMeta {
+  const cacheReadTokens = Number(res.headers.get("X-Cache-Read-Tokens") ?? 0);
+  const cacheWriteTokens = Number(res.headers.get("X-Cache-Write-Tokens") ?? 0);
+  const cacheObserved = res.headers.get("X-Cache-Observed") === "true";
+  return {
+    provider: res.headers.get("X-Provider") ?? undefined,
+    model: res.headers.get("X-Model") ?? undefined,
+    cacheObserved,
+    cacheReadTokens: Number.isFinite(cacheReadTokens) ? cacheReadTokens : 0,
+    cacheWriteTokens: Number.isFinite(cacheWriteTokens) ? cacheWriteTokens : 0,
+    cacheHit: res.headers.get("X-Cache-Hit") === "true",
+  };
+}
+
+export function buildNonInteractiveBatchPrompt(
+  items: NonInteractiveBatchItem[],
+): string {
+  const manifest = items
+    .map(
+      (item, index) =>
+        `## Mission ${index + 1}\nid: ${item.id}\nname: ${item.name}\nprompt:\n${item.prompt.trim()}`,
+    )
+    .join("\n\n");
+
+  return [
+    "Process each mission independently and return ONLY valid JSON.",
+    'Return an array where every item matches this exact shape: {"id":"string","status":"ok|error","content":"string"}',
+    "Do not omit any mission. Keep each content concise, operator-grade, and specific to that mission only.",
+    "If a mission cannot be completed, still return its id with status=\"error\" and a brief explanation in content.",
+    "",
+    manifest,
+  ].join("\n");
+}
+
+function extractJsonPayload(raw: string): string {
+  const trimmed = raw.trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) return fenced[1].trim();
+  const arrayStart = trimmed.indexOf("[");
+  const arrayEnd = trimmed.lastIndexOf("]");
+  if (arrayStart >= 0 && arrayEnd > arrayStart) {
+    return trimmed.slice(arrayStart, arrayEnd + 1);
+  }
+  return trimmed;
+}
+
+export async function callNonInteractiveAIBatch(opts: {
+  systemPrompt: string;
+  items: NonInteractiveBatchItem[];
+  maxTokens?: number;
+  task?: string;
+  singleFlightKey?: string;
+  promptParts?: NonInteractivePromptParts;
+}): Promise<NonInteractiveBatchResponse> {
+  const {
+    systemPrompt,
+    items,
+    maxTokens = 900,
+    task = "fast",
+    singleFlightKey,
+    promptParts,
+  } = opts;
+  const userPrompt =
+    promptParts?.fullPrompt ?? buildNonInteractiveBatchPrompt(items);
+  const raw = await callNonInteractiveAIWithMeta({
+    systemPrompt,
+    userPrompt,
+    maxTokens,
+    task,
+    singleFlightKey,
+    promptParts,
+  });
+  const parsed = JSON.parse(extractJsonPayload(raw.content)) as unknown;
+  if (!Array.isArray(parsed)) {
+    throw new Error("Batch response did not return a JSON array.");
+  }
+  const results = parsed
+    .filter(
+      (item): item is Record<string, unknown> =>
+        typeof item === "object" && item !== null,
+    )
+    .map<NonInteractiveBatchResult>((item) => ({
+      id: String(item.id ?? "").trim(),
+      status: item.status === "error" ? "error" : "ok",
+      content: String(item.content ?? "").trim(),
+    }))
+    .filter((item) => item.id.length > 0);
+  if (results.length !== items.length) {
+    throw new Error("Batch response did not include every scheduled mission.");
+  }
+  return {
+    results,
+    meta: raw.meta,
+  };
+}
+
+export async function submitAnthropicNativeBatch(opts: {
+  systemPrompt: string;
+  sharedPrefix?: string;
+  items: NonInteractiveBatchItem[];
+  maxTokens?: number;
+}): Promise<NativeAnthropicBatchSubmission> {
+  const res = await apiFetch("/api/ai/batches", {
+    method: "POST",
+    body: JSON.stringify({
+      provider: "anthropic",
+      system: opts.systemPrompt,
+      sharedPrefix: opts.sharedPrefix ?? "",
+      items: opts.items,
+      max_tokens: opts.maxTokens ?? 900,
+    }),
+  });
+  const data = (await res.json()) as {
+    error?: unknown;
+    batchId?: unknown;
+    provider?: unknown;
+    model?: unknown;
+    processingStatus?: unknown;
+    requestCount?: unknown;
+  };
+  if (!res.ok) {
+    throw new Error(
+      typeof data.error === "string"
+        ? data.error
+        : `Native Anthropic batch submit failed (${res.status}).`,
+    );
+  }
+  return {
+    batchId: String(data.batchId ?? "").trim(),
+    provider: "anthropic",
+    model: typeof data.model === "string" ? data.model : undefined,
+    processingStatus: String(data.processingStatus ?? "unknown"),
+    requestCount: Math.max(0, Number(data.requestCount ?? opts.items.length) || 0),
+  };
+}
+
+export async function pollAnthropicNativeBatch(
+  batchId: string,
+): Promise<NativeAnthropicBatchPollResult> {
+  const res = await apiFetch(`/api/ai/batches/${encodeURIComponent(batchId)}`, {
+    method: "GET",
+  });
+  const data = (await res.json()) as {
+    error?: unknown;
+    batchId?: unknown;
+    provider?: unknown;
+    model?: unknown;
+    processingStatus?: unknown;
+    requestCount?: unknown;
+    results?: unknown;
+  };
+  if (!res.ok) {
+    throw new Error(
+      typeof data.error === "string"
+        ? data.error
+        : `Native Anthropic batch poll failed (${res.status}).`,
+    );
+  }
+  const results = Array.isArray(data.results)
+    ? data.results
+        .filter(
+          (item): item is { id?: unknown; status?: unknown; content?: unknown } =>
+            typeof item === "object" && item !== null,
+        )
+        .map<NonInteractiveBatchResult>((item) => ({
+          id: String(item.id ?? "").trim(),
+          status: item.status === "error" ? "error" : "ok",
+          content: String(item.content ?? "").trim(),
+        }))
+        .filter((item) => item.id.length > 0)
+    : [];
+
+  return {
+    batchId: String(data.batchId ?? batchId).trim(),
+    provider: "anthropic",
+    model: typeof data.model === "string" ? data.model : undefined,
+    processingStatus: String(data.processingStatus ?? "unknown"),
+    requestCount: Math.max(0, Number(data.requestCount ?? results.length) || 0),
+    results,
+  };
+}
+
+export async function readAnthropicNativeBatchPosture(): Promise<NativeAnthropicBatchPosture> {
+  const res = await apiFetch("/api/ai/batches", {
+    method: "GET",
+  });
+  const data = (await res.json()) as {
+    error?: unknown;
+    provider?: unknown;
+    nativeReady?: unknown;
+    mode?: unknown;
+    featureEnabled?: unknown;
+    paidApisAllowed?: unknown;
+    apiKeyConfigured?: unknown;
+    reason?: unknown;
+  };
+  if (!res.ok) {
+    throw new Error(
+      typeof data.error === "string"
+        ? data.error
+        : `Native Anthropic batch posture failed (${res.status}).`,
+    );
+  }
+  return {
+    provider: "anthropic",
+    nativeReady: data.nativeReady === true,
+    mode:
+      data.mode === "provider_native"
+        ? "provider_native"
+        : "internal_fallback",
+    featureEnabled: data.featureEnabled === true,
+    paidApisAllowed: data.paidApisAllowed === true,
+    apiKeyConfigured: data.apiKeyConfigured === true,
+    reason:
+      typeof data.reason === "string"
+        ? data.reason
+        : "Native batch posture unavailable.",
+  };
+}
+
 // ── Streaming helper ──────────────────────────────────────────────────────────
 async function streamRequest(
   url: string,
@@ -75,6 +455,7 @@ async function streamRequest(
   onChunk: (text: string) => void,
   useApiFetch = false,
 ): Promise<string> {
+  let full = "";
   const res = useApiFetch
     ? await apiFetch(url, { method: "POST", body: JSON.stringify(body) })
     : await fetch(url, {
@@ -83,9 +464,11 @@ async function streamRequest(
         body: JSON.stringify(body),
       });
   if (!res.ok) throw new Error(`API ${res.status}`);
-  const reader = res.body!.getReader();
+  // BUG-02 fix: guard against null body (204 No Content or empty response)
+  // instead of crashing with the non-null assertion operator.
+  if (!res.body) return full;
+  const reader = res.body.getReader();
   const decoder = new TextDecoder();
-  let full = "";
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -119,78 +502,250 @@ async function callLocalModel(
     task?: string;
   },
 ) {
-  const model = body.task
+  const requestedModel = body.task
     ? (TASK_MODELS[body.task as keyof typeof TASK_MODELS] ?? s.localModel)
     : s.localModel;
-  const res = await fetch(s.localEndpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(s.localApiKey ? { Authorization: `Bearer ${s.localApiKey}` } : {}),
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: body.max_tokens,
-      messages: body.messages,
-    }),
-  });
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
+  const preferRunningModel = shouldPreferActiveOllamaModel(body.task ?? "default");
+  try {
+    const res = await apiFetch("/api/ai", {
+      method: "POST",
+      body: JSON.stringify({
+        provider: "ollama",
+        model: requestedModel,
+        max_tokens: body.max_tokens,
+        messages: body.messages,
+        preferRunningModel,
+        ...(body.task ? { task: body.task } : {}),
+        ...(s.localEndpoint ? { localEndpoint: s.localEndpoint } : {}),
+        ...(s.localApiKey ? { localApiKey: s.localApiKey } : {}),
+      }),
+    });
+    const data = (await res.json().catch(() => null)) as
+      | Record<string, unknown>
+      | null;
+    if (!res.ok) {
+      return "";
+    }
+    const activeModel = res.headers.get("X-Model")?.trim();
+    if (
+      activeModel &&
+      requestedModel === s.localModel &&
+      activeModel !== s.localModel
+    ) {
+      useStore.getState().updateSettings({
+        localModel: activeModel,
+      } as Partial<Settings>);
+    }
+    return (data as { choices?: { message?: { content?: string } }[] })?.choices?.[0]
+      ?.message?.content ?? "";
+  } catch {
+    return "";
+  }
 }
 
+export const __aiTestUtils = {
+  stableHash,
+  callLocalModel,
+};
+
 // ── Main AI call (non-streaming) ──────────────────────────────────────────────
-export async function callAI(
-  prompt: string,
-  maxTokens = 1024,
-  task?: string,
-): Promise<string> {
+interface DirectAiRequestOptions {
+  systemPrompt: string;
+  messages: { role: string; content: string }[];
+  maxTokens?: number;
+  task?: string;
+  provider?: string;
+  model?: string;
+}
+
+async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
   const s = getSettings();
   if (!aiReady(s)) throw new Error("No AI configured");
 
-  // Route cloud providers through /api/ai — key never leaves the server
-  if (
-    s.aiProvider === "anthropic" ||
-    s.aiProvider === "openai" ||
-    s.aiProvider === "minimax"
-  ) {
-    const cloudProvider = s.aiProvider;
+  const cloudProvider = opts.provider ?? readServerRoutedProvider(s);
+  if (cloudProvider) {
     const cloudModel =
-      cloudProvider === "anthropic"
-        ? "claude-opus-4-5"
-        : cloudProvider === "minimax"
-          ? MINIMAX_DEFAULT_CHAT_MODEL
-          : "gpt-4o-mini";
+      opts.model ??
+      (cloudProvider === "anthropic" ||
+      cloudProvider === "minimax" ||
+      cloudProvider === "openai"
+        ? readServerRoutedModel(cloudProvider)
+        : undefined);
     const res = await apiFetch("/api/ai", {
       method: "POST",
       body: JSON.stringify({
         provider: cloudProvider,
-        model: cloudModel,
-        max_tokens: maxTokens,
-        messages: [{ role: "user", content: prompt }],
-        ...(task ? { task } : {}),
+        ...(cloudModel ? { model: cloudModel } : {}),
+        max_tokens: opts.maxTokens ?? 1024,
+        system: opts.systemPrompt,
+        messages: opts.messages,
+        ...(opts.task ? { task: opts.task } : {}),
       }),
     });
     const data = await res.json();
     if (!res.ok) {
       if (s.localEndpoint && s.localModel) {
         return callLocalModel(s, {
-          max_tokens: maxTokens,
-          messages: [{ role: "user", content: prompt }],
-          task,
+          max_tokens: opts.maxTokens ?? 1024,
+          messages: opts.systemPrompt
+            ? [{ role: "system", content: opts.systemPrompt }, ...opts.messages]
+            : opts.messages,
+          task: opts.task,
         });
       }
       throw new Error(data?.error?.message ?? `API error ${res.status}`);
     }
-    // Anthropic returns content array; OpenAI-compat returns choices
     return data.content?.[0]?.text ?? data.choices?.[0]?.message?.content ?? "";
   }
 
-  // Local Ollama — pick model by task hint
   return callLocalModel(s, {
-    max_tokens: maxTokens,
+    max_tokens: opts.maxTokens ?? 1024,
+    messages: opts.systemPrompt
+      ? [{ role: "system", content: opts.systemPrompt }, ...opts.messages]
+      : opts.messages,
+    task: opts.task,
+  });
+}
+
+export async function callAI(
+  prompt: string,
+  maxTokens = 1024,
+  task?: string,
+): Promise<string> {
+  return callAIInternal({
+    systemPrompt: buildDirectCallSystemPrompt(getSettings()),
     messages: [{ role: "user", content: prompt }],
+    maxTokens,
     task,
   });
+}
+
+export async function callAIWithSystemPrompt(
+  opts: DirectAiRequestOptions,
+): Promise<string> {
+  return callAIInternal(opts);
+}
+
+async function callNonInteractiveAIInternal(opts: {
+  systemPrompt: string;
+  userPrompt: string;
+  maxTokens?: number;
+  task?: string;
+  singleFlightKey?: string;
+  promptParts?: NonInteractivePromptParts;
+}): Promise<NonInteractiveAIResult> {
+  const {
+    systemPrompt,
+    userPrompt,
+    maxTokens = 300,
+    task = "fast",
+    singleFlightKey,
+    promptParts,
+  } = opts;
+  const existing = singleFlightKey
+    ? NON_INTERACTIVE_SINGLE_FLIGHT.get(singleFlightKey)
+    : null;
+  if (existing) {
+    return existing.then((result) => ({
+      content: result.content,
+      meta: result.meta,
+    }));
+  }
+
+  const run = async () => {
+    const s = getSettings();
+    if (!aiReady(s)) throw new Error("No AI configured");
+
+    const cloudProvider = readServerRoutedProvider(s);
+    if (cloudProvider) {
+      const cloudModel = readServerRoutedModel(cloudProvider);
+      const anthropicMessages =
+        cloudProvider === "anthropic" &&
+        promptParts?.cacheStrategy === "system_plus_user_prefix" &&
+        promptParts.cacheablePrefix
+          ? [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: promptParts.cacheablePrefix,
+                    cache_control: { type: "ephemeral" as const },
+                  },
+                  {
+                    type: "text",
+                    text: promptParts.volatilePrompt,
+                  },
+                ],
+              },
+            ]
+          : [{ role: "user", content: userPrompt }];
+      const res = await apiFetch("/api/ai", {
+        method: "POST",
+        body: JSON.stringify({
+          provider: cloudProvider,
+          ...(cloudModel ? { model: cloudModel } : {}),
+          max_tokens: maxTokens,
+          system: systemPrompt,
+          messages: anthropicMessages,
+          task,
+          non_interactive: true,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (s.localEndpoint && s.localModel) {
+          const content = await callLocalModel(s, {
+            max_tokens: maxTokens,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            task,
+          });
+          return {
+            content,
+            meta: {
+              cacheObserved: false,
+              cacheReadTokens: 0,
+              cacheWriteTokens: 0,
+              cacheHit: false,
+            },
+          };
+        }
+        throw new Error(data?.error?.message ?? `API error ${res.status}`);
+      }
+      return {
+        content:
+          data.content?.[0]?.text ?? data.choices?.[0]?.message?.content ?? "",
+        meta: readNonInteractiveMeta(res),
+      };
+    }
+
+    const content = await callLocalModel(s, {
+      max_tokens: maxTokens,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      task,
+    });
+    return {
+      content,
+      meta: {
+        cacheObserved: false,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+        cacheHit: false,
+      },
+    };
+  };
+
+  const promise = run().finally(() => {
+    if (singleFlightKey) NON_INTERACTIVE_SINGLE_FLIGHT.delete(singleFlightKey);
+  });
+  if (singleFlightKey) NON_INTERACTIVE_SINGLE_FLIGHT.set(singleFlightKey, promise);
+  return promise;
 }
 
 export async function callNonInteractiveAI(opts: {
@@ -199,75 +754,21 @@ export async function callNonInteractiveAI(opts: {
   maxTokens?: number;
   task?: string;
   singleFlightKey?: string;
+  promptParts?: NonInteractivePromptParts;
 }): Promise<string> {
-  const { systemPrompt, userPrompt, maxTokens = 300, task = "fast", singleFlightKey } = opts;
-  const existing = singleFlightKey
-    ? NON_INTERACTIVE_SINGLE_FLIGHT.get(singleFlightKey)
-    : null;
-  if (existing) return existing;
+  const result = await callNonInteractiveAIInternal(opts);
+  return result.content;
+}
 
-  const run = async () => {
-    const s = getSettings();
-    if (!aiReady(s)) throw new Error("No AI configured");
-
-    if (
-      s.aiProvider === "anthropic" ||
-      s.aiProvider === "openai" ||
-      s.aiProvider === "minimax"
-    ) {
-      const cloudProvider = s.aiProvider;
-      const cloudModel =
-        cloudProvider === "anthropic"
-          ? "claude-opus-4-5"
-          : cloudProvider === "minimax"
-            ? MINIMAX_DEFAULT_CHAT_MODEL
-            : "gpt-4o-mini";
-      const res = await apiFetch("/api/ai", {
-        method: "POST",
-        body: JSON.stringify({
-          provider: cloudProvider,
-          model: cloudModel,
-          max_tokens: maxTokens,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userPrompt }],
-          task,
-          non_interactive: true,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (s.localEndpoint && s.localModel) {
-          return callLocalModel(s, {
-            max_tokens: maxTokens,
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt },
-            ],
-            task,
-          });
-        }
-        throw new Error(data?.error?.message ?? `API error ${res.status}`);
-      }
-      return (
-        data.content?.[0]?.text ?? data.choices?.[0]?.message?.content ?? ""
-      );
-    }
-
-    return callLocalModel(s, {
-      max_tokens: maxTokens,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      task,
-    });
-  };
-
-  const promise = run().finally(() => {
-    if (singleFlightKey) NON_INTERACTIVE_SINGLE_FLIGHT.delete(singleFlightKey);
-  });
-  if (singleFlightKey) NON_INTERACTIVE_SINGLE_FLIGHT.set(singleFlightKey, promise);
-  return promise;
+export async function callNonInteractiveAIWithMeta(opts: {
+  systemPrompt: string;
+  userPrompt: string;
+  maxTokens?: number;
+  task?: string;
+  singleFlightKey?: string;
+  promptParts?: NonInteractivePromptParts;
+}): Promise<NonInteractiveAIResult> {
+  return callNonInteractiveAIInternal(opts);
 }
 
 // ── Streaming AI call ─────────────────────────────────────────────────────────
@@ -281,24 +782,15 @@ export async function streamAI(
   const s = getSettings();
   if (!aiReady(s)) throw new Error("No AI configured");
 
-  if (
-    s.aiProvider === "anthropic" ||
-    s.aiProvider === "openai" ||
-    s.aiProvider === "minimax"
-  ) {
-    const cloudProvider = s.aiProvider;
-    const cloudModel =
-      cloudProvider === "anthropic"
-        ? "claude-opus-4-5"
-        : cloudProvider === "minimax"
-          ? MINIMAX_DEFAULT_CHAT_MODEL
-          : "gpt-4o-mini";
+  const cloudProvider = readServerRoutedProvider(s);
+  if (cloudProvider) {
+    const cloudModel = readServerRoutedModel(cloudProvider);
     return streamRequest(
       "/api/ai",
       {},
       {
         provider: cloudProvider,
-        model: cloudModel,
+        ...(cloudModel ? { model: cloudModel } : {}),
         max_tokens: maxTokens,
         system: systemPrompt,
         messages,
@@ -310,21 +802,26 @@ export async function streamAI(
     );
   }
 
-  // Local Ollama — pick model by task hint
-  const model = task
+  // Local Ollama via same-origin proxy — avoids browser CORS failures against localhost.
+  const requestedModel = task
     ? (TASK_MODELS[task as keyof typeof TASK_MODELS] ?? s.localModel)
     : s.localModel;
   return streamRequest(
-    s.localEndpoint,
-    s.localApiKey ? { Authorization: `Bearer ${s.localApiKey}` } : {},
+    "/api/ai",
+    {},
     {
-      model,
+      provider: "ollama",
+      model: requestedModel,
       max_tokens: maxTokens,
       messages: [{ role: "system", content: systemPrompt }, ...messages],
       stream: true,
+      preferRunningModel: shouldPreferActiveOllamaModel(task ?? "default"),
+      ...(task ? { task } : {}),
+      ...(s.localEndpoint ? { localEndpoint: s.localEndpoint } : {}),
+      ...(s.localApiKey ? { localApiKey: s.localApiKey } : {}),
     },
     onChunk,
-    false,
+    true,
   );
 }
 
@@ -396,18 +893,23 @@ export async function streamAIWithThinking(
   };
 
   if (s.localEndpoint) {
-    // Direct Ollama call — deepseek-r1:14b
+    // Same-origin Ollama proxy — avoids browser CORS failures against localhost.
     await streamRequest(
-      s.localEndpoint,
-      s.localApiKey ? { Authorization: `Bearer ${s.localApiKey}` } : {},
+      "/api/ai",
+      {},
       {
+        provider: "ollama",
         model: TASK_MODELS.reasoning,
         max_tokens: maxTokens,
         messages: [{ role: "system", content: systemPrompt }, ...messages],
         stream: true,
+        task: "reasoning",
+        preferRunningModel: false,
+        ...(s.localEndpoint ? { localEndpoint: s.localEndpoint } : {}),
+        ...(s.localApiKey ? { localApiKey: s.localApiKey } : {}),
       },
       handleToken,
-      false,
+      true,
     );
   } else {
     // Cloud fallback — Claude via /api/ai (no <think> blocks, onThink unused)
@@ -416,7 +918,7 @@ export async function streamAIWithThinking(
       {},
       {
         provider: "anthropic",
-        model: "claude-opus-4-5",
+        model: ANTHROPIC_DEFAULT_CHAT_MODEL,
         max_tokens: maxTokens,
         system: systemPrompt,
         messages,
@@ -467,7 +969,7 @@ You have full access to the Nexus Prime project source code through these tools:
 - list_project_files(directory) — explore the project structure
 - read_project_file(path) — read any source file before editing
 - patch_project_file(path, old_string, new_string) — make targeted edits to components, pages, or library files
-- fetch_url('/api/project') — read CLAUDE.md, active tasks, and lessons learned
+- fetch_url('/api/project') — read the canonical context spine (AGENTS, SYSTEM_STATE, STANDARDS, PROJECT_BIBLE)
 
 Project structure:
 - app/ — Next.js routes. Supported GA tabs this cycle: ${supportedTabs}
@@ -491,5 +993,9 @@ Reasoning standard — operate like a senior analyst:
 - When answering about markets, lead with the live numbers you can see right now
 - When researching, search → read sources → synthesize with citations (Perplexity style)
 - When coding, read the file first, understand context, then patch surgically
-- Never give generic answers when live data is available — use it${profile}${liveContext}`;
+- Never give generic answers when live data is available — use it
+
+${AI_TRUTH_BOUNDARY_BLOCK}
+
+${AI_EVIDENCE_DISCIPLINE_BLOCK}${profile}${liveContext}`;
 }

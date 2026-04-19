@@ -1,8 +1,29 @@
 "use client";
 
-import { SectionLabel, ShellBadge, ShellButton, ShellSegmentedTabs } from "@/components/ui/shell";
-import { AGENTS, OFFICE_OPERATIONAL_PROFILES, type OfficeOperationalMode } from "./constants";
+import { useMemo } from "react";
+import OperatorReadinessLane from "@/components/ui/OperatorReadinessLane";
+import {
+  OpsField,
+  OpsInspector,
+  OpsRail,
+  OpsWorkplane,
+  OpsStrip,
+  ShellBadge,
+  ShellButton,
+  ShellSegmentedTabs,
+} from "@/components/ui/shell";
+import TrustOperationsRail from "@/components/ui/TrustOperationsRail";
+import { getOpsLayoutDescriptor } from "@/lib/opsLayoutRegistry";
+import { getSurfaceModuleSpec } from "@/lib/surfaceRedesignRegistry";
+import { buildWorkflowOpsSnapshot } from "@/lib/nativeAssimilation";
+import { useStore } from "@/store/useStore";
+import {
+  AGENTS,
+  OFFICE_OPERATIONAL_PROFILES,
+  type OfficeOperationalMode,
+} from "./constants";
 import type { AgentId } from "./types";
+import { HQ_WORKFLOW_CATALOG } from "./workflowCommands";
 
 type FrontTone = "steady" | "warning" | "critical";
 type AgentRowStatus = "active" | "hot" | "ready" | "standby";
@@ -82,7 +103,6 @@ interface Props {
   latestChronicle: string;
   pendingLessonAgent?: string | null;
   pendingLessonSummary?: string | null;
-  modeBriefingCount: number;
   postureSummary: string;
   threatLabel: string;
   tempoLabel: string;
@@ -145,7 +165,6 @@ export function HQStrategiumDeck({
   latestChronicle,
   pendingLessonAgent,
   pendingLessonSummary,
-  modeBriefingCount,
   postureSummary,
   threatLabel,
   tempoLabel,
@@ -164,29 +183,64 @@ export function HQStrategiumDeck({
   onOpenScheduler,
 }: Props) {
   const mode = OFFICE_OPERATIONAL_PROFILES[operationalMode];
+  const missionBriefSpec = getSurfaceModuleSpec("hq", "mission-brief");
+  const nextMoveSpec = getSurfaceModuleSpec("hq", "next-move");
+  const runtimeContinuitySpec = getSurfaceModuleSpec("hq", "runtime-continuity");
+  const hqLayout = getOpsLayoutDescriptor("hq");
+  const scheduledJobs = useStore((s) => s.settings.scheduledJobs ?? []);
+  const agentRuntime = useStore((s) => s.agentRuntime);
+  const unfinishedSessions = useStore((s) => s.unfinishedSessions);
+  const workflowOps = useMemo(
+    () =>
+      buildWorkflowOpsSnapshot({
+        jobs: scheduledJobs,
+        runtime: agentRuntime,
+        unfinishedSessions,
+        workflowCatalog: HQ_WORKFLOW_CATALOG,
+      }),
+    [agentRuntime, scheduledJobs, unfinishedSessions],
+  );
+
+  if (!missionBriefSpec || !nextMoveSpec || !runtimeContinuitySpec) {
+    return null;
+  }
 
   return (
-    <section className="nexus-hq-strategium" aria-label="Strategium command deck">
-      <div className="nexus-hq-strategium__hero">
-        <div className="nexus-hq-strategium__eyebrow">Strategium doctrine</div>
-        <h2 className="nexus-hq-strategium__title">
-          Reinforce HQ into a live command sanctum instead of a loose dashboard.
-        </h2>
-        <p className="nexus-hq-strategium__description">
-          The room now frames signal synthesis, agent dispatch, sanction, and
-          return-to-tab routing as one operator ritual. Warhammer influence is
-          used for weight and hierarchy, while the actions stay plain and fast.
-        </p>
-        <div className="nexus-hq-strategium__badges">
-          <ShellBadge tone="accent">{mode.label}</ShellBadge>
-          <ShellBadge tone="muted">{tempoLabel}</ShellBadge>
-          <ShellBadge tone={activeAgent ? "success" : "muted"}>
-            {activeAgent ? `${AGENTS[activeAgent].name} executing` : "Choir on standby"}
-          </ShellBadge>
-          <ShellBadge tone={evalGrade === "A" || evalGrade === "B" ? "success" : "muted"}>
-            Runtime {evalGrade.toUpperCase()}
-            {evalStale ? " · stale" : ""}
-          </ShellBadge>
+    <section className="nexus-hq-strategium" aria-label="Operations deck">
+      <div className="nexus-hq-strategium__headerBand">
+        <div className="nexus-hq-strategium__hero">
+          <div className="nexus-hq-strategium__eyebrow">Command deck</div>
+          <h2 className="nexus-hq-strategium__title">Route the next move.</h2>
+          <p className="nexus-hq-strategium__description">
+            Front pressure, runtime, and trust stay tight around the chronicle.
+          </p>
+        </div>
+
+        <div className="nexus-hq-strategium__mode">
+          <ShellSegmentedTabs
+            items={MODE_ITEMS}
+            active={operationalMode}
+            onChange={onSetOperationalMode}
+            minButtonWidth={112}
+          />
+          <div className="nexus-hq-strategium__badges">
+            <ShellBadge tone="accent">{mode.label}</ShellBadge>
+            <ShellBadge tone={activeAgent ? "success" : "muted"}>
+              {activeAgent ? `${AGENTS[activeAgent].name} live` : "Choir idle"}
+            </ShellBadge>
+            <ShellBadge tone={evalGrade === "A" || evalGrade === "B" ? "success" : "muted"}>
+              Eval {evalGrade.toUpperCase()}
+              {evalStale ? " · stale" : ""}
+            </ShellBadge>
+          </div>
+        </div>
+      </div>
+
+      <OpsStrip className="nexus-hq-strategium__sessionStrip">
+        <div className="nexus-hq-strategium__recap">
+          <div className="nexus-hq-strategium__recapTitle">{sessionRecap.title}</div>
+          <p className="nexus-hq-strategium__recapSummary">{sessionRecap.summary}</p>
+          <p className="nexus-hq-strategium__recapNote">{sessionRecap.note}</p>
         </div>
         <div className="nexus-hq-strategium__promptRow">
           {prompts.map((prompt) => (
@@ -200,259 +254,249 @@ export function HQStrategiumDeck({
             </button>
           ))}
         </div>
-        <div className="nexus-hq-strategium__recap">
-          <div className="nexus-hq-strategium__recapTitle">{sessionRecap.title}</div>
-          <p className="nexus-hq-strategium__recapSummary">{sessionRecap.summary}</p>
-          <p className="nexus-hq-strategium__recapNote">{sessionRecap.note}</p>
-        </div>
-      </div>
+      </OpsStrip>
 
-      <div className="nexus-hq-strategium__mode">
-        <SectionLabel detail="Doctrine shifts layout, scene posture, and operator emphasis">
-          Operational Litany
-        </SectionLabel>
-        <ShellSegmentedTabs
-          items={MODE_ITEMS}
-          active={operationalMode}
-          onChange={onSetOperationalMode}
-          minButtonWidth={112}
-        />
-        <p className="nexus-hq-strategium__modeCopy">
-          {postureSummary}
-        </p>
-        <div className="nexus-hq-strategium__modeActions">
-          <ShellButton onClick={() => onOpenTab(missionCodex.primaryActionHref)}>
-            {missionCodex.primaryActionLabel}
-          </ShellButton>
-          <ShellButton onClick={() => onOpenTab("/skills?view=forge")}>
-            Dispatch Workflow
-          </ShellButton>
-          <ShellButton onClick={onOpenMemory}>Open Archive</ShellButton>
-          <ShellButton onClick={onOpenScheduler}>Auto Orders</ShellButton>
-        </div>
+      <div className="nexus-hq-strategium__fronts nexus-hq-strategium__fronts--hero">
+        {fronts.map((front) => (
+          <button
+            key={front.id}
+            type="button"
+            className={`nexus-hq-strategium__front ${frontToneClass(front.tone)}`}
+            onClick={() => onOpenTab(front.href)}
+          >
+            <div className="nexus-hq-strategium__frontMeta">
+              <span className="nexus-hq-strategium__frontLabel">{front.label}</span>
+              <span className="nexus-hq-strategium__frontValue">{front.value}</span>
+            </div>
+            <span className="nexus-hq-strategium__frontNote">{front.note}</span>
+          </button>
+        ))}
       </div>
 
       <div className="nexus-hq-strategium__grid">
-        <article className="nexus-hq-strategium__panel">
-          <SectionLabel detail={threatLabel}>Posture</SectionLabel>
-          <div className="nexus-hq-strategium__statGrid">
-            <div className="nexus-hq-strategium__stat">
-              <span className="nexus-hq-strategium__statLabel">Eval sanction</span>
-              <strong className="nexus-hq-strategium__statValue">{evalGrade.toUpperCase()}</strong>
-              <span className="nexus-hq-strategium__statNote">
-                {evalStale ? "Signals stale" : "Fresh posture"}
-              </span>
-            </div>
-            <div className="nexus-hq-strategium__stat">
-              <span className="nexus-hq-strategium__statLabel">Runtime</span>
-              <strong className="nexus-hq-strategium__statValue">{runtimeStatus}</strong>
-              <span className="nexus-hq-strategium__statNote">{runtimePhase}</span>
-            </div>
-            <div className="nexus-hq-strategium__stat">
-              <span className="nexus-hq-strategium__statLabel">Doctrine</span>
-              <strong className="nexus-hq-strategium__statValue">{mode.label}</strong>
-              <span className="nexus-hq-strategium__statNote">
-                {mode.focusTabs.join(" · ").toUpperCase()}
-              </span>
-            </div>
-            <div className="nexus-hq-strategium__stat">
-              <span className="nexus-hq-strategium__statLabel">Command tempo</span>
-              <strong className="nexus-hq-strategium__statValue">{tempoLabel}</strong>
-              <span className="nexus-hq-strategium__statNote">
-                Pressure and room cadence combined
-              </span>
-            </div>
-            <div className="nexus-hq-strategium__stat">
-              <span className="nexus-hq-strategium__statLabel">Mode briefings</span>
-              <strong className="nexus-hq-strategium__statValue">{modeBriefingCount}</strong>
-              <span className="nexus-hq-strategium__statNote">
-                Recent strategic summaries
-              </span>
-            </div>
-          </div>
-        </article>
-
-        <article className="nexus-hq-strategium__panel">
-          <SectionLabel detail="Objective, urgency, evidence, and next move">
-            Mission codex
-          </SectionLabel>
-          <div className="nexus-hq-strategium__codex">
-            <div className="nexus-hq-strategium__codexTitle">{missionCodex.title}</div>
-            <div className="nexus-hq-strategium__codexGrid">
-              <div className="nexus-hq-strategium__codexCell">
-                <span className="nexus-hq-strategium__codexLabel">Objective</span>
-                <span className="nexus-hq-strategium__codexValue">{missionCodex.objective}</span>
+        <OpsWorkplane className={`nexus-hq-strategium__panel ${hqLayout.workplaneClass}`}>
+          <OpsField title={missionBriefSpec.title} detail={missionBriefSpec.detail}>
+            <p className="nexus-hq-strategium__modeCopy">{postureSummary}</p>
+            <div className="nexus-hq-strategium__statGrid">
+              <div className="nexus-hq-strategium__stat">
+                <span className="nexus-hq-strategium__statLabel">Eval posture</span>
+                <strong className="nexus-hq-strategium__statValue">{evalGrade.toUpperCase()}</strong>
+                <span className="nexus-hq-strategium__statNote">
+                  {evalStale ? "Signals stale" : "Fresh posture"}
+                </span>
               </div>
-              <div className="nexus-hq-strategium__codexCell">
-                <span className="nexus-hq-strategium__codexLabel">Urgency</span>
-                <span className="nexus-hq-strategium__codexValue">{missionCodex.urgency}</span>
+              <div className="nexus-hq-strategium__stat">
+                <span className="nexus-hq-strategium__statLabel">Runtime</span>
+                <strong className="nexus-hq-strategium__statValue">{runtimeStatus}</strong>
+                <span className="nexus-hq-strategium__statNote">{runtimePhase}</span>
               </div>
-              <div className="nexus-hq-strategium__codexCell">
-                <span className="nexus-hq-strategium__codexLabel">Evidence basis</span>
-                <span className="nexus-hq-strategium__codexValue">{missionCodex.evidence}</span>
+              <div className="nexus-hq-strategium__stat">
+                <span className="nexus-hq-strategium__statLabel">Mode</span>
+                <strong className="nexus-hq-strategium__statValue">{mode.label}</strong>
+                <span className="nexus-hq-strategium__statNote">
+                  {mode.focusTabs.join(" · ").toUpperCase()}
+                </span>
               </div>
-              <div className="nexus-hq-strategium__codexCell">
-                <span className="nexus-hq-strategium__codexLabel">Next action</span>
-                <span className="nexus-hq-strategium__codexValue">{missionCodex.nextAction}</span>
+              <div className="nexus-hq-strategium__stat">
+                <span className="nexus-hq-strategium__statLabel">Threat</span>
+                <strong className="nexus-hq-strategium__statValue">{threatLabel}</strong>
+                <span className="nexus-hq-strategium__statNote">{tempoLabel}</span>
               </div>
             </div>
-            <div className="nexus-hq-strategium__lesson">
-              <div className="nexus-hq-strategium__lessonLabel">Handoff</div>
-              <p className="nexus-hq-strategium__lessonText">{missionCodex.handoff}</p>
-            </div>
-            <div className="nexus-hq-strategium__modeActions">
-              <ShellButton onClick={() => onOpenTab(missionCodex.primaryActionHref)}>
-                {missionCodex.primaryActionLabel}
-              </ShellButton>
-              <ShellButton onClick={() => onOpenTab(missionCodex.secondaryActionHref)}>
-                {missionCodex.secondaryActionLabel}
-              </ShellButton>
-            </div>
-          </div>
-        </article>
-
-        <article className="nexus-hq-strategium__panel">
-          <SectionLabel detail="Click a front to jump with intent">Active fronts</SectionLabel>
-          <div className="nexus-hq-strategium__fronts">
-            {fronts.map((front) => (
-              <button
-                key={front.id}
-                type="button"
-                className={`nexus-hq-strategium__front ${frontToneClass(front.tone)}`}
-                onClick={() => onOpenTab(front.href)}
-              >
-                <div className="nexus-hq-strategium__frontMeta">
-                  <span className="nexus-hq-strategium__frontLabel">{front.label}</span>
-                  <span className="nexus-hq-strategium__frontValue">{front.value}</span>
+            <div className="nexus-hq-strategium__codex">
+              <div className="nexus-hq-strategium__codexTitle">Active front</div>
+              <div className="nexus-hq-strategium__codexGrid">
+                <div className="nexus-hq-strategium__codexCell">
+                  <span className="nexus-hq-strategium__codexLabel">Objective</span>
+                  <span className="nexus-hq-strategium__codexValue">{missionCodex.objective}</span>
                 </div>
-                <span className="nexus-hq-strategium__frontNote">{front.note}</span>
-              </button>
-            ))}
-          </div>
-        </article>
-
-        <article className="nexus-hq-strategium__panel">
-          <SectionLabel detail="The four verbs that should dominate HQ operation">
-            Command verbs
-          </SectionLabel>
-          <div className="nexus-hq-strategium__fronts">
-            {verbs.map((verb) => (
-              <button
-                key={verb.id}
-                type="button"
-                className={`nexus-hq-strategium__front ${frontToneClass(verb.tone)}`}
-                onClick={() => onOpenTab(verb.href)}
-              >
-                <div className="nexus-hq-strategium__frontMeta">
-                  <span className="nexus-hq-strategium__frontLabel">{verb.label}</span>
-                  <span className="nexus-hq-strategium__frontValue">Act</span>
+                <div className="nexus-hq-strategium__codexCell">
+                  <span className="nexus-hq-strategium__codexLabel">Urgency</span>
+                  <span className="nexus-hq-strategium__codexValue">{missionCodex.urgency}</span>
                 </div>
-                <span className="nexus-hq-strategium__frontNote">{verb.note}</span>
-              </button>
-            ))}
-          </div>
-        </article>
-
-        <article className="nexus-hq-strategium__panel">
-          <SectionLabel detail="Keyboard-first command rituals">
-            Operator shortcuts
-          </SectionLabel>
-          <div className="nexus-hq-strategium__shortcuts">
-            {shortcuts.map((shortcut) => (
-              <div key={`${shortcut.key}-${shortcut.label}`} className="nexus-hq-strategium__shortcut">
-                <span className="nexus-hq-strategium__shortcutKey">{shortcut.key}</span>
-                <div className="nexus-hq-strategium__shortcutCopy">
-                  <div className="nexus-hq-strategium__shortcutLabel">{shortcut.label}</div>
-                  <div className="nexus-hq-strategium__shortcutNote">{shortcut.note}</div>
+                <div className="nexus-hq-strategium__codexCell">
+                  <span className="nexus-hq-strategium__codexLabel">Evidence basis</span>
+                  <span className="nexus-hq-strategium__codexValue">{missionCodex.evidence}</span>
+                </div>
+                <div className="nexus-hq-strategium__codexCell">
+                  <span className="nexus-hq-strategium__codexLabel">Next action</span>
+                  <span className="nexus-hq-strategium__codexValue">{missionCodex.nextAction}</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="nexus-hq-strategium__panel">
-          <SectionLabel detail="Agent stations and readiness">Command choir</SectionLabel>
-          <div className="nexus-hq-strategium__agents">
-            {agents.map((agent) => (
-              <div key={agent.id} className="nexus-hq-strategium__agent">
-                <div className="nexus-hq-strategium__agentTop">
-                  <div>
-                    <div className="nexus-hq-strategium__agentName">
-                      {AGENTS[agent.id].name}
-                    </div>
-                    <div className="nexus-hq-strategium__agentRole">
-                      {AGENTS[agent.id].role}
-                    </div>
-                  </div>
-                  <span
-                    className={`nexus-hq-strategium__agentStatus ${agentStatusClass(agent.status)}`}
-                  >
-                    {statusCopy(agent.status)}
-                  </span>
-                </div>
-                <div className="nexus-hq-strategium__agentBar">
-                  <span
-                    className="nexus-hq-strategium__agentBarFill"
-                    style={{
-                      width: `${Math.max(8, Math.min(100, Math.round(agent.confidence || 0)))}%`,
-                      background: AGENTS[agent.id].color,
-                    }}
-                  />
-                </div>
-                <div className="nexus-hq-strategium__agentFoot">
-                  <span>{confidenceLabel(agent.confidence)}</span>
-                  <span>{agent.lastSeen}</span>
-                </div>
-                <p className="nexus-hq-strategium__agentTask">
-                  {agent.lastTask || "No confirmed field action yet."}
-                </p>
+              <div className="nexus-hq-strategium__lesson">
+                <div className="nexus-hq-strategium__lessonLabel">Continuity</div>
+                <p className="nexus-hq-strategium__lessonText">{missionCodex.handoff}</p>
               </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="nexus-hq-strategium__panel">
-          <SectionLabel detail="Assimilated systems surfaced as command actions">
-            Command systems
-          </SectionLabel>
-          <div className="nexus-hq-strategium__fronts">
-            {systems.map((system) => (
-              <button
-                key={system.id}
-                type="button"
-                className={`nexus-hq-strategium__front ${frontToneClass(system.tone)}`}
-                onClick={() => onOpenTab(system.href)}
-              >
-                <div className="nexus-hq-strategium__frontMeta">
-                  <span className="nexus-hq-strategium__frontLabel">{system.label}</span>
-                  <span className="nexus-hq-strategium__frontValue">{system.status}</span>
-                </div>
-                <span className="nexus-hq-strategium__frontNote">{system.note}</span>
-              </button>
-            ))}
-          </div>
-        </article>
-
-        <article className="nexus-hq-strategium__panel">
-          <SectionLabel detail="Evidence, lesson queue, and command memory">Sanction rail</SectionLabel>
-          <div className="nexus-hq-strategium__chronicle">
-            <div className="nexus-hq-strategium__chronicleLabel">Latest chronicle</div>
-            <p className="nexus-hq-strategium__chronicleText">{latestChronicle}</p>
-          </div>
-          <div className="nexus-hq-strategium__lesson">
-            <div className="nexus-hq-strategium__lessonLabel">
-              {pendingLessonAgent ? `${pendingLessonAgent.toUpperCase()} lesson proposal` : "Doctrine queue"}
             </div>
-            <p className="nexus-hq-strategium__lessonText">
-              {pendingLessonSummary ?? "No pending lesson sanction. The strategium is clear for the next operation."}
-            </p>
-          </div>
+          </OpsField>
           <div className="nexus-hq-strategium__modeActions">
-            <ShellButton onClick={onOpenMemory}>Review memory</ShellButton>
-            <ShellButton onClick={onOpenScheduler}>Open scheduler</ShellButton>
+            <ShellButton onClick={() => onOpenTab(missionCodex.primaryActionHref)}>
+              Open front
+            </ShellButton>
+            <ShellButton onClick={() => onOpenTab(missionCodex.secondaryActionHref)}>
+              {missionCodex.secondaryActionLabel}
+            </ShellButton>
+            <ShellButton onClick={onOpenScheduler}>Mission queue</ShellButton>
+          </div>
+        </OpsWorkplane>
+
+        <OpsInspector className={`nexus-hq-strategium__panel ${hqLayout.inspectorClass}`}>
+          <OpsField title={nextMoveSpec.title} detail={nextMoveSpec.detail}>
+            <div className="nexus-hq-strategium__chronicle">
+              <div className="nexus-hq-strategium__chronicleLabel">Strongest continuation</div>
+              <p className="nexus-hq-strategium__chronicleText">{missionCodex.nextAction}</p>
+            </div>
+            <details className="nexus-surface-disclosure nexus-hq-strategium__disclosure">
+              <summary>Action rail</summary>
+              <div className="nexus-surface-disclosure__body nexus-hq-strategium__disclosureBody">
+                <div className="nexus-hq-strategium__fronts">
+                  {verbs.map((verb) => (
+                    <button
+                      key={verb.id}
+                      type="button"
+                      className={`nexus-hq-strategium__front ${frontToneClass(verb.tone)}`}
+                      onClick={() => onOpenTab(verb.href)}
+                    >
+                      <div className="nexus-hq-strategium__frontMeta">
+                        <span className="nexus-hq-strategium__frontLabel">{verb.label}</span>
+                        <span className="nexus-hq-strategium__frontValue">Act</span>
+                      </div>
+                      <span className="nexus-hq-strategium__frontNote">{verb.note}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </details>
+            <details className="nexus-surface-disclosure nexus-hq-strategium__disclosure">
+              <summary>Access keys</summary>
+              <div className="nexus-surface-disclosure__body nexus-hq-strategium__disclosureBody">
+                <div className="nexus-hq-strategium__shortcuts">
+                  {shortcuts.map((shortcut) => (
+                    <div
+                      key={`${shortcut.key}-${shortcut.label}`}
+                      className="nexus-hq-strategium__shortcut"
+                    >
+                      <span className="nexus-hq-strategium__shortcutKey">{shortcut.key}</span>
+                      <div className="nexus-hq-strategium__shortcutCopy">
+                        <div className="nexus-hq-strategium__shortcutLabel">{shortcut.label}</div>
+                        <div className="nexus-hq-strategium__shortcutNote">{shortcut.note}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </details>
+          </OpsField>
+          <div className="nexus-hq-strategium__modeActions">
+            <ShellButton onClick={() => onOpenTab(missionCodex.primaryActionHref)}>
+              Engage front
+            </ShellButton>
+            <ShellButton onClick={() => onOpenTab("/skills?view=forge")}>
+              Forge
+            </ShellButton>
+          </div>
+        </OpsInspector>
+
+        <OpsRail className={`nexus-hq-strategium__panel ${hqLayout.railClass}`}>
+          <OpsField title={runtimeContinuitySpec.title} detail={runtimeContinuitySpec.detail} tone="muted">
+            <div className="nexus-hq-strategium__agents">
+              {agents.map((agent) => (
+                <div key={agent.id} className="nexus-hq-strategium__agent">
+                  <div className="nexus-hq-strategium__agentTop">
+                    <div>
+                      <div className="nexus-hq-strategium__agentName">{AGENTS[agent.id].name}</div>
+                      <div className="nexus-hq-strategium__agentRole">{AGENTS[agent.id].role}</div>
+                    </div>
+                    <span
+                      className={`nexus-hq-strategium__agentStatus ${agentStatusClass(agent.status)}`}
+                    >
+                      {statusCopy(agent.status)}
+                    </span>
+                  </div>
+                  <div className="nexus-hq-strategium__agentBar">
+                    <span
+                      className="nexus-hq-strategium__agentBarFill"
+                      style={{
+                        width: `${Math.max(8, Math.min(100, Math.round(agent.confidence || 0)))}%`,
+                        background: AGENTS[agent.id].color,
+                      }}
+                    />
+                  </div>
+                  <div className="nexus-hq-strategium__agentFoot">
+                    <span>{confidenceLabel(agent.confidence)}</span>
+                    <span>{agent.lastSeen}</span>
+                  </div>
+                  <p className="nexus-hq-strategium__agentTask">
+                    {agent.lastTask || "No confirmed field action yet."}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="nexus-hq-strategium__fronts">
+              {systems.map((system) => (
+                <button
+                  key={system.id}
+                  type="button"
+                  className={`nexus-hq-strategium__front ${frontToneClass(system.tone)}`}
+                  onClick={() => onOpenTab(system.href)}
+                >
+                  <div className="nexus-hq-strategium__frontMeta">
+                    <span className="nexus-hq-strategium__frontLabel">{system.label}</span>
+                    <span className="nexus-hq-strategium__frontValue">{system.status}</span>
+                  </div>
+                  <span className="nexus-hq-strategium__frontNote">{system.note}</span>
+                </button>
+              ))}
+            </div>
+            <TrustOperationsRail
+              title={hqLayout.trustLabel}
+              detail="Privilege, shield, and degraded posture stay on the same rail."
+              compact
+            />
+            <details className="nexus-surface-disclosure nexus-hq-strategium__disclosure">
+              <summary>Continuity</summary>
+              <div className="nexus-surface-disclosure__body nexus-hq-strategium__disclosureBody">
+                <div className="nexus-hq-strategium__chronicle">
+                  <div className="nexus-hq-strategium__chronicleLabel">Latest output</div>
+                  <p className="nexus-hq-strategium__chronicleText">{latestChronicle}</p>
+                </div>
+                <div className="nexus-hq-strategium__lesson">
+                  <div className="nexus-hq-strategium__lessonLabel">Workflow ops</div>
+                  <p className="nexus-hq-strategium__lessonText">{workflowOps.headline}</p>
+                  <div className="nexus-hq-strategium__badges">
+                    <ShellBadge tone="success">{workflowOps.activeCount} live</ShellBadge>
+                    <ShellBadge tone="accent">{workflowOps.queuedCount} queued</ShellBadge>
+                    <ShellBadge tone="accent">{workflowOps.handoffCount} handoff</ShellBadge>
+                    <ShellBadge tone="muted">{workflowOps.ownerCount} owners</ShellBadge>
+                  </div>
+                  <p className="nexus-hq-strategium__lessonText">{workflowOps.detail}</p>
+                </div>
+                <OperatorReadinessLane
+                  surfaceId="hq"
+                  workflowCatalog={HQ_WORKFLOW_CATALOG}
+                  detail="Token gate, providers, guarded browser lanes, queue, and memory stay nearby."
+                  showNextMoves={false}
+                />
+                <div className="nexus-hq-strategium__lesson">
+                  <div className="nexus-hq-strategium__lessonLabel">
+                    {pendingLessonAgent
+                      ? `${pendingLessonAgent.toUpperCase()} lesson proposal`
+                      : "Lesson queue"}
+                  </div>
+                  <p className="nexus-hq-strategium__lessonText">
+                    {pendingLessonSummary ??
+                      "No pending lesson. The board is clear."}
+                  </p>
+                </div>
+              </div>
+            </details>
+          </OpsField>
+          <div className="nexus-hq-strategium__modeActions">
+            <ShellButton onClick={onOpenMemory}>Archive recall</ShellButton>
+            <ShellButton onClick={onOpenScheduler}>Mission queue</ShellButton>
             <ShellButton onClick={() => onOpenTab("resources")}>Field manual</ShellButton>
           </div>
-        </article>
+        </OpsRail>
       </div>
     </section>
   );

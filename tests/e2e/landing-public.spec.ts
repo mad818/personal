@@ -1,21 +1,8 @@
-import { expect, test, type Page } from "@playwright/test";
-
-const validToken = process.env.NEXUS_TOKEN ?? "";
-
-async function submitAuthForm(page: Page) {
-  await page.getByTestId("auth-form").evaluate((form) => {
-    HTMLFormElement.prototype.requestSubmit.call(form);
-  });
-}
-
-async function loginIfNeeded(page: Page) {
-  const authGate = page.getByTestId("auth-gate");
-  if (!(await authGate.isVisible().catch(() => false))) return;
-  test.skip(!validToken, "NEXUS_TOKEN is required for landing:e2e");
-  await page.getByTestId("auth-token-input").fill(validToken);
-  await submitAuthForm(page);
-  await expect(authGate).toHaveCount(0);
-}
+import { expect, test } from "@playwright/test";
+import {
+  seedAuthenticatedShell,
+  waitForAuthenticatedShell,
+} from "@/tests/e2e/support/authenticatedShell";
 
 test("public root stays outside protected shell chrome and hands off to /hq", async ({
   page,
@@ -40,9 +27,8 @@ test("public root stays outside protected shell chrome and hands off to /hq", as
 
 test("authenticated operators keep the public landing and get a direct HQ continuation", async ({
   page,
-}) => {
-  await page.goto("/hq", { waitUntil: "domcontentloaded" });
-  await loginIfNeeded(page);
+}, testInfo) => {
+  await seedAuthenticatedShell(page);
 
   const response = await page.goto("/", { waitUntil: "domcontentloaded" });
 
@@ -58,8 +44,10 @@ test("authenticated operators keep the public landing and get a direct HQ contin
   await expect(page.getByTestId("toprail-brand")).toHaveCount(0);
 
   await page.getByTestId("landing-hero-cta").click();
+  await waitForAuthenticatedShell(page, testInfo, {
+    anchorTestId: "hq-command-input",
+  });
   await expect(page).toHaveURL(/\/hq(?:\?.*)?$/);
-  await expect(page.getByTestId("toprail-brand")).toBeVisible();
 });
 
 test("landing honors reduced motion and stays inside common viewport widths", async ({
@@ -73,11 +61,6 @@ test("landing honors reduced motion and stays inside common viewport widths", as
 
     expect(response?.status()).toBe(200);
     await expect(page.getByTestId("landing-page")).toBeVisible();
-    await page.waitForFunction(
-      () =>
-        document.documentElement.getAttribute("data-nexus-motion-profile") ===
-        "reduced",
-    );
 
     const posture = await page.evaluate(() => {
       const drift = document.querySelector<HTMLElement>(

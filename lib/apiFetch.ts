@@ -1,12 +1,11 @@
 // ── lib/apiFetch ────────────────────────────────────────────
-// Authenticated fetch wrapper for all /api/* routes with error handling.
+// Cookie-backed fetch wrapper for all /api/* routes with error handling.
 
 /**
  * apiFetch — authenticated fetch for all /api/* routes.
  *
- * The NEXUS_TOKEN is stored in sessionStorage after the user validates it
- * once via /api/token. This helper injects the Bearer header automatically
- * so no component has to think about auth headers.
+ * Authentication is cookie-backed after the user validates once via /api/token.
+ * The browser should not persist or replay the master NEXUS_TOKEN through JS.
  *
  * Usage:
  *   import { apiFetch } from '@/lib/apiFetch'
@@ -23,18 +22,15 @@ const TOKEN_KEY = "nexus_session_token";
 const inflightRequests = new Map<string, Promise<Response>>();
 
 export function getSessionToken(): string {
-  if (typeof window === "undefined") return "";
-  try {
-    return sessionStorage.getItem(TOKEN_KEY) ?? "";
-  } catch {
-    return "";
-  }
+  return "";
 }
 
 export function setSessionToken(token: string) {
   if (typeof window === "undefined") return;
   try {
-    sessionStorage.setItem(TOKEN_KEY, token);
+    if (token) {
+      sessionStorage.removeItem(TOKEN_KEY);
+    }
   } catch {
     // Ignore storage write failures (private mode / policy-restricted webviews).
   }
@@ -53,14 +49,9 @@ export async function apiFetch(
   url: string,
   options: RequestInit = {},
 ): Promise<Response> {
-  const token = getSessionToken();
-
   const headers = new Headers(options.headers ?? {});
   if (!headers.has("Content-Type") && !(options.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
-  }
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
   }
 
   const method = (options.method ?? "GET").toUpperCase();
@@ -70,16 +61,24 @@ export async function apiFetch(
   // POST/PUT/DELETE always fire independently.
   if (method === "GET") {
     const existing = inflightRequests.get(url);
-    if (existing) return existing;
+    if (existing) return existing.then((response) => response.clone());
 
-    const p = fetch(url, { ...options, headers }).finally(() => {
+    const p = fetch(url, {
+      ...options,
+      headers,
+      credentials: options.credentials ?? "same-origin",
+    }).finally(() => {
       inflightRequests.delete(url);
     });
     inflightRequests.set(url, p);
-    return p;
+    return p.then((response) => response.clone());
   }
 
-  return fetch(url, { ...options, headers });
+  return fetch(url, {
+    ...options,
+    headers,
+    credentials: options.credentials ?? "same-origin",
+  });
 }
 
 export type TokenValidationStatus =
@@ -93,6 +92,7 @@ export const TOKEN_VALIDATION_TIMEOUT_MS = 8000;
 interface ValidateTokenOptions {
   persistOnSuccess?: boolean;
   timeoutMs?: number;
+  elevate?: boolean;
 }
 
 async function xhrPostJson(
@@ -109,6 +109,7 @@ async function xhrPostJson(
     const xhr = new XMLHttpRequest();
     xhr.open("POST", url, true);
     xhr.timeout = timeoutMs;
+    xhr.withCredentials = true;
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.setRequestHeader("Accept", "application/json");
 
@@ -186,6 +187,7 @@ export async function validateToken(
   const {
     persistOnSuccess = false,
     timeoutMs = TOKEN_VALIDATION_TIMEOUT_MS,
+    elevate = false,
   } = options;
   const normalizedToken = normalizeTokenCandidate(token);
   if (!normalizedToken) return "invalid";
@@ -193,7 +195,7 @@ export async function validateToken(
   try {
     const r = await postJsonWithBrowserFallback(
       "/api/token",
-      { token: normalizedToken },
+      { token: normalizedToken, elevate },
       timeoutMs,
     );
     if (!r.ok) {
@@ -213,7 +215,7 @@ export async function validateToken(
     const d = await r.json();
 
     if (d.ok) {
-      if (persistOnSuccess) setSessionToken(normalizedToken);
+      if (persistOnSuccess) clearSessionToken();
       return "ok";
     }
 

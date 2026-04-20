@@ -4,6 +4,7 @@ import Image from "next/image";
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import PageTransition from "@/components/ui/PageTransition";
+import SpatialCommandStrip from "@/components/ui/SpatialCommandStrip";
 import { getSurfaceBranding } from "@/lib/brand";
 import { getNexusTasteContract } from "@/lib/nexusTasteContract";
 import {
@@ -240,6 +241,16 @@ function shellWidthClass(width: ShellWidth) {
   return "nexus-shell-page--standard";
 }
 
+function buildSequenceDelays(
+  sequence: ReturnType<typeof resolveSurfaceSequencePreset>,
+) {
+  const hero = sequence.heroDelayMs;
+  const primary = Math.max(sequence.primaryDelayMs, hero + 120);
+  const support = Math.max(sequence.supportDelayMs, primary + 120);
+  const continuity = Math.max(sequence.continuityDelayMs, support + 120);
+  return { hero, primary, support, continuity };
+}
+
 export function ShellPage({
   eyebrow,
   title,
@@ -263,6 +274,7 @@ export function ShellPage({
   const taste = getNexusTasteContract(surface);
   const atmosphere = resolveSurfaceAtmosphereSpec(surface);
   const sequence = resolveSurfaceSequencePreset(surface);
+  const delays = buildSequenceDelays(sequence);
 
   return (
     <PageTransition>
@@ -279,10 +291,10 @@ export function ShellPage({
             "--nexus-atmosphere-veil-opacity": `${atmosphere.veilOpacity}`,
             "--nexus-atmosphere-frame-opacity": `${atmosphere.frameOpacity}`,
             "--nexus-atmosphere-spotlight": atmosphere.spotlight,
-            "--nexus-sequence-hero-delay": `${sequence.heroDelayMs}ms`,
-            "--nexus-sequence-primary-delay": `${sequence.primaryDelayMs}ms`,
-            "--nexus-sequence-support-delay": `${sequence.supportDelayMs}ms`,
-            "--nexus-sequence-continuity-delay": `${sequence.continuityDelayMs}ms`,
+            "--nexus-sequence-hero-delay": `${delays.hero}ms`,
+            "--nexus-sequence-primary-delay": `${delays.primary}ms`,
+            "--nexus-sequence-support-delay": `${delays.support}ms`,
+            "--nexus-sequence-continuity-delay": `${delays.continuity}ms`,
             "--nexus-ops-pointer-x": "50%",
             "--nexus-ops-pointer-y": "50%",
             "--nexus-ops-parallax-x": "0px",
@@ -305,15 +317,24 @@ export function ShellPage({
               branding={branding}
               atmosphere={atmosphere}
             />
-            <OpsStrip className="nexus-shell-page__missionStrip">
+            {surface !== "default" ? (
+              <SpatialCommandStrip surface={surface} />
+            ) : null}
+            <OpsStrip
+              className={cn(
+                "nexus-shell-page__missionStrip",
+                "nexus-motion-enter",
+                "nexus-motion-enter--continuity",
+              )}
+            >
               <span className="nexus-shell-page__missionStripLabel">
                 {taste.workplaneLabel || layout.stripLabel}
               </span>
               <span className="nexus-shell-page__missionStripCopy">
-                {taste.routeDirective}
+                {taste.supportLabel}
               </span>
               <div className="nexus-shell-page__missionStripReadouts">
-                {art.readouts.map((readout) => (
+                {art.readouts.slice(0, 2).map((readout) => (
                   <span
                     key={`${surface}-${readout.label}`}
                     className="nexus-shell-page__missionStripReadout"
@@ -441,6 +462,7 @@ export function ShellStage({
   const branding = getSurfaceBranding(surface);
   const atmosphere = resolveSurfaceAtmosphereSpec(surface);
   const sequence = resolveSurfaceSequencePreset(surface);
+  const delays = buildSequenceDelays(sequence);
   return (
     <div
       className={cn("nexus-shell-stage", `nexus-shell-stage--${surface}`)}
@@ -455,17 +477,17 @@ export function ShellStage({
           "--nexus-atmosphere-veil-opacity": `${atmosphere.veilOpacity}`,
           "--nexus-atmosphere-frame-opacity": `${atmosphere.frameOpacity}`,
           "--nexus-atmosphere-spotlight": atmosphere.spotlight,
-          "--nexus-sequence-hero-delay": `${sequence.heroDelayMs}ms`,
-          "--nexus-sequence-primary-delay": `${sequence.primaryDelayMs}ms`,
-          "--nexus-sequence-support-delay": `${sequence.supportDelayMs}ms`,
-          "--nexus-sequence-continuity-delay": `${sequence.continuityDelayMs}ms`,
+          "--nexus-sequence-hero-delay": `${delays.hero}ms`,
+          "--nexus-sequence-primary-delay": `${delays.primary}ms`,
+          "--nexus-sequence-support-delay": `${delays.support}ms`,
+          "--nexus-sequence-continuity-delay": `${delays.continuity}ms`,
           "--nexus-ops-pointer-x": "50%",
           "--nexus-ops-pointer-y": "50%",
           "--nexus-ops-parallax-x": "0px",
           "--nexus-ops-parallax-y": "0px",
         } as CSSProperties
       }
-    >
+      >
       <ShellStageBackdrop surface={surface} art={art} branding={branding} />
       <div className="nexus-shell-stage__veil" aria-hidden="true" />
       <div className="nexus-shell-stage__focus" aria-hidden="true" />

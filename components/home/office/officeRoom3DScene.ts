@@ -13,19 +13,19 @@ export const CAMERA_PRESETS: Record<
   { position: Vec3; fov: number; lookAt: Vec3 }
 > = {
   cinematic: {
-    position: [0, 5.05, 8.05],
-    fov: 40,
-    lookAt: [0, 1.04, -0.28],
+    position: [0, 5.02, 8.1],
+    fov: 39,
+    lookAt: [0, 1.08, -0.22],
   },
   closeOps: {
-    position: [0, 4.72, 7.12],
-    fov: 37,
-    lookAt: [0, 1.08, -0.36],
+    position: [0, 4.76, 7.18],
+    fov: 36,
+    lookAt: [0, 1.14, -0.28],
   },
   wallReadability: {
-    position: [0, 4.82, 7.42],
-    fov: 35,
-    lookAt: [0, 1.38, -0.18],
+    position: [0, 4.86, 7.5],
+    fov: 34,
+    lookAt: [0, 1.34, -0.12],
   },
 };
 
@@ -36,7 +36,7 @@ export const RADIUS_BY_ID: Record<OfficeObjectId, number> = {
   waterCooler: 0.34,
   trashCan: 0.26,
   fuelGauge: 0.24,
-  conferenceTable: 1.05,
+  conferenceTable: 1.18,
   sofa: 0.95,
   janskyDesk: 0.78,
   cipherDesk: 0.62,

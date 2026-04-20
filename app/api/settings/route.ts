@@ -35,6 +35,7 @@ import {
 import { protectedJson } from "@/lib/protectedApi";
 import { getRuntimeEnvFilePath } from "@/lib/serverEnvRuntime";
 import { isConfiguredSecretValue } from "@/lib/secretReadiness";
+import { readLocalDataPolicySummary } from "@/lib/security/localDataPolicy";
 import { requireStepUpForAction } from "@/lib/security/stepUpAuth";
 import {
   readProtectedActionContext,
@@ -257,7 +258,21 @@ export async function GET(req: NextRequest) {
     ),
     NEXUS_DEPLOYMENT_PROFILE: readPendingDeploymentProfile(env),
   };
+  const localData = readLocalDataPolicySummary();
   const response = protectedJson({
+    summary: {
+      networkMode: config.NEXUS_NETWORK_MODE,
+      highRiskEnabled: config.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true",
+      allowPaidApis: config.NEXUS_ALLOW_PAID_APIS === "true",
+      tokenConfigured: status.NEXUS_TOKEN,
+      localData,
+      release: {
+        buildChannel: readBuildChannel(),
+        deploymentProfile: readDeploymentProfile(),
+        defaultEntrypoint: getDefaultEntrypoint(),
+        uiShellVersion: RELEASE_DEFAULTS.uiShellVersion,
+      },
+    },
     status,
     secretPosture: buildSecretPosture(status),
     config,

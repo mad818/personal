@@ -73,7 +73,7 @@ export default function TrustPostureStrip() {
       providerPosture: posture,
       privacyShieldStatus,
     });
-  }, [diagnostics, posture.noAiLaneAvailable, posture.runtimeReachable, privacyShieldStatus]);
+  }, [diagnostics, posture, privacyShieldStatus]);
 
   const actionRows = useMemo(
     () => buildTrustActionRows({ diagnostics }),

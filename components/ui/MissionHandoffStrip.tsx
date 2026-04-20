@@ -140,9 +140,13 @@ export default function MissionHandoffStrip({
     >
       <div className="nexus-mission-handoff__lead">
         <span className="nexus-mission-handoff__label">Continue mission</span>
-        <p className="nexus-mission-handoff__summary">{content.summary}</p>
+        <p className="nexus-mission-handoff__summary">{content.contextHint ?? content.summary}</p>
       </div>
-      <div className="nexus-mission-handoff__detail">{content.detail}</div>
+      <details className="nexus-mission-handoff__detail">
+        <summary>Why this lane</summary>
+        <p>{content.summary}</p>
+        <p>{content.detail}</p>
+      </details>
       <div className="nexus-mission-handoff__actions">
         {content.contextHint ? (
           <span className="nexus-mission-handoff__chip">{content.contextHint}</span>

@@ -116,6 +116,10 @@ export function readNetworkMode(): NetworkMode {
   return getDefaultNetworkMode();
 }
 
+export function isLocalOnlyNetworkMode(mode: NetworkMode = readNetworkMode()) {
+  return mode === "isolated";
+}
+
 export function isRouteAllowedInMode(
   routeClass: RouteClass,
   mode: NetworkMode,

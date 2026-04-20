@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import {
   applyAuthNoStoreHeaders,
   getConfiguredNexusToken,
@@ -6,6 +6,8 @@ import {
 } from "@/lib/authSession";
 import { getDefaultEntrypoint, RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
 import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
+import { protectedJson } from "@/lib/protectedApi";
+import { readLocalDataPolicySummary } from "@/lib/security/localDataPolicy";
 import {
   readProtectedActionContext,
   resolveProtectedActionDescriptor,
@@ -18,9 +20,17 @@ export async function GET(req: NextRequest) {
   const configuredToken = getConfiguredNexusToken();
   const authEnabled = isNexusAuthEnabled();
   const trustContext = await readProtectedActionContext(req);
+  const localData = readLocalDataPolicySummary();
 
-  const response = NextResponse.json({
+  const response = protectedJson({
     ok: true,
+    summary: {
+      authenticated: authEnabled ? trustContext.sessionAuthenticated : true,
+      stepUpActive: authEnabled ? trustContext.stepUpActive : true,
+      networkMode: trustContext.networkMode,
+      highRiskEnabled: trustContext.highRiskEnabled,
+      localData,
+    },
     runtime: {
       online: true,
       bootId: runtime.bootId,

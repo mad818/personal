@@ -206,8 +206,8 @@ function Furniture3D({
         id="conferenceTable"
         pos={{ x: 50, y: 50, ax: "l", ay: "t" }}
         color={pal.metalDark}
-        size={[1.9, 0.06, 1.2]}
-        y={0.26}
+        size={[2.08, 0.08, 1.34]}
+        y={0.28}
         radius={radiusById.conferenceTable}
         enabled={enabled}
         worldPos={worldPos}
@@ -215,29 +215,21 @@ function Furniture3D({
         onMoveWorld={tryMove}
       />
       <mesh
-        position={[
-          worldPos.conferenceTable[0],
-          0.3,
-          worldPos.conferenceTable[2],
-        ]}
+        position={[worldPos.conferenceTable[0], 0.32, worldPos.conferenceTable[2]]}
         castShadow
         receiveShadow
       >
-        <boxGeometry args={[1.7, 0.06, 1.0]} />
-        <meshStandardMaterial color={pal.deskWood} roughness={0.9} />
+        <boxGeometry args={[1.94, 0.08, 1.16]} />
+        <meshStandardMaterial color={pal.deskWood} roughness={0.88} />
       </mesh>
       {/* Faux wood grain lines */}
-      {[-0.35, -0.17, 0, 0.17, 0.35].map((z, i) => (
+      {[-0.42, -0.22, 0, 0.22, 0.42].map((z, i) => (
         <mesh
           key={`table-grain-${i}`}
-          position={[
-            worldPos.conferenceTable[0],
-            0.334,
-            worldPos.conferenceTable[2] + z,
-          ]}
+          position={[worldPos.conferenceTable[0], 0.366, worldPos.conferenceTable[2] + z]}
           castShadow={false}
         >
-          <boxGeometry args={[1.55, 0.004, 0.012]} />
+          <boxGeometry args={[1.76, 0.004, 0.012]} />
           <meshStandardMaterial
             color={pal.deskWoodDark}
             roughness={0.75}
@@ -247,14 +239,10 @@ function Furniture3D({
       ))}
       {/* Table accent strip + embedded terminal */}
       <mesh
-        position={[
-          worldPos.conferenceTable[0],
-          0.34,
-          worldPos.conferenceTable[2],
-        ]}
+        position={[worldPos.conferenceTable[0], 0.37, worldPos.conferenceTable[2]]}
         castShadow={false}
       >
-        <boxGeometry args={[0.55, 0.03, 0.28]} />
+        <boxGeometry args={[0.68, 0.03, 0.32]} />
         <meshStandardMaterial
           color="#1e2936"
           emissive="#000000"
@@ -262,6 +250,34 @@ function Furniture3D({
           roughness={0.55}
         />
       </mesh>
+      <mesh
+        position={[worldPos.conferenceTable[0], 0.215, worldPos.conferenceTable[2]]}
+        castShadow
+        receiveShadow={false}
+      >
+        <boxGeometry args={[1.48, 0.03, 0.08]} />
+        <meshStandardMaterial color="#273240" roughness={0.72} metalness={0.26} />
+      </mesh>
+      {[
+        [-0.82, -0.47],
+        [0.82, -0.47],
+        [-0.82, 0.47],
+        [0.82, 0.47],
+      ].map(([x, z], i) => (
+        <mesh
+          key={`table-leg-${i}`}
+          position={[
+            worldPos.conferenceTable[0] + x,
+            0.12,
+            worldPos.conferenceTable[2] + z,
+          ]}
+          castShadow
+          receiveShadow
+        >
+          <boxGeometry args={[0.08, 0.28, 0.08]} />
+          <meshStandardMaterial color="#202834" roughness={0.72} metalness={0.18} />
+        </mesh>
+      ))}
       {/* Conference chairs */}
       {[
         [-1.05, 0.18, 0],
@@ -816,27 +832,32 @@ function WallMountedPanels({
     <>
       {/* Left wall roster board (closer to camera/agents) */}
       <group position={[-4.86, 1.54, -0.38]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh>
-          <boxGeometry args={[2.2, 1.55, 0.03]} />
+        <mesh
+          onPointerEnter={() => setHoverLeft(true)}
+          onPointerLeave={() => setHoverLeft(false)}
+        >
+          <boxGeometry args={[1.96, 1.34, 0.03]} />
           <meshStandardMaterial
             color={hoverLeft ? "#172033" : "#111827"}
             roughness={0.78}
             metalness={0.15}
           />
         </mesh>
-        <mesh position={[0, 0.74, 0.012]}>
-          <boxGeometry args={[2.2, 0.07, 0.02]} />
+        <mesh position={[0, 0.63, 0.012]}>
+          <boxGeometry args={[1.96, 0.06, 0.02]} />
           <meshStandardMaterial color="#1f2937" roughness={0.65} />
         </mesh>
-        <Html transform position={[0, 0.08, 0.02]} distanceFactor={2.2}>
+        <Html
+          transform
+          position={[0, 0.08, 0.02]}
+          distanceFactor={1.8}
+          style={{ pointerEvents: "none" }}
+        >
           <div
-            onMouseEnter={() => setHoverLeft(true)}
-            onMouseLeave={() => setHoverLeft(false)}
             style={{
-              width: 290,
+              width: 246,
               fontFamily: "Inter, system-ui, sans-serif",
               color: "#9fb3d7",
-              cursor: "pointer",
               filter: hoverLeft ? "brightness(1.07)" : "none",
               transition: "filter 120ms ease",
             }}
@@ -844,15 +865,15 @@ function WallMountedPanels({
             <div
               style={{
                 textAlign: "center",
-                fontSize: 13,
+                fontSize: 11,
                 fontWeight: 800,
                 letterSpacing: ".11em",
-                marginBottom: 8,
+                marginBottom: 6,
               }}
             >
               WALL ROSTER
             </div>
-            <div style={{ display: "grid", gap: 4 }}>
+            <div style={{ display: "grid", gap: 3 }}>
               {ids.map((id) => {
                 const cfg = AGENTS[id];
                 const st = agentStats[id];
@@ -868,7 +889,7 @@ function WallMountedPanels({
                     style={{
                       border: `1px solid ${cfg.color}30`,
                       borderRadius: 6,
-                      padding: "4px 6px",
+                      padding: "3px 5px",
                       background: "rgba(8,12,22,0.78)",
                     }}
                   >
@@ -887,7 +908,7 @@ function WallMountedPanels({
                       <span
                         style={{
                           color: cfg.color,
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: 700,
                         }}
                       >
@@ -896,9 +917,9 @@ function WallMountedPanels({
                       <span
                         style={{
                           marginLeft: "auto",
-                          fontSize: 10,
+                          fontSize: 9,
                           color: "#7e8fab",
-                          maxWidth: 130,
+                          maxWidth: 112,
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -918,7 +939,7 @@ function WallMountedPanels({
                       <span
                         style={{
                           flex: 1,
-                          height: 5,
+                          height: 4,
                           borderRadius: 999,
                           overflow: "hidden",
                           border: "1px solid #2b364d",
@@ -936,7 +957,7 @@ function WallMountedPanels({
                       </span>
                       <span
                         style={{
-                          fontSize: 10,
+                          fontSize: 9,
                           color: "#8fa2c4",
                           whiteSpace: "nowrap",
                         }}
@@ -956,27 +977,32 @@ function WallMountedPanels({
 
       {/* Right wall system board (closer to camera/agents) */}
       <group position={[4.86, 1.28, 0.55]} rotation={[0, -Math.PI / 2, 0]}>
-        <mesh>
-          <boxGeometry args={[1.95, 1.2, 0.03]} />
+        <mesh
+          onPointerEnter={() => setHoverRight(true)}
+          onPointerLeave={() => setHoverRight(false)}
+        >
+          <boxGeometry args={[1.72, 1.02, 0.03]} />
           <meshStandardMaterial
             color={hoverRight ? "#172033" : "#111827"}
             roughness={0.78}
             metalness={0.15}
           />
         </mesh>
-        <mesh position={[0, 0.56, 0.012]}>
-          <boxGeometry args={[1.95, 0.07, 0.02]} />
+        <mesh position={[0, 0.47, 0.012]}>
+          <boxGeometry args={[1.72, 0.06, 0.02]} />
           <meshStandardMaterial color="#1f2937" roughness={0.65} />
         </mesh>
-        <Html transform position={[0, 0.14, 0.02]} distanceFactor={2.35}>
+        <Html
+          transform
+          position={[0, 0.14, 0.02]}
+          distanceFactor={1.92}
+          style={{ pointerEvents: "none" }}
+        >
           <div
-            onMouseEnter={() => setHoverRight(true)}
-            onMouseLeave={() => setHoverRight(false)}
             style={{
-              width: 290,
+              width: 240,
               fontFamily: "Inter, system-ui, sans-serif",
               color: "#9fb3d7",
-              cursor: "pointer",
               filter: hoverRight ? "brightness(1.1)" : "none",
               transition: "filter 120ms ease",
             }}
@@ -984,10 +1010,10 @@ function WallMountedPanels({
             <div
               style={{
                 textAlign: "center",
-                fontSize: 17,
+                fontSize: 14,
                 fontWeight: 800,
                 letterSpacing: ".12em",
-                marginBottom: 10,
+                marginBottom: 8,
               }}
             >
               SYS
@@ -1027,8 +1053,8 @@ function WallMountedPanels({
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  fontSize: 14,
-                  padding: "4px 0",
+                  fontSize: 12,
+                  padding: "3px 0",
                 }}
               >
                 <span style={{ color: "#7e8fab", fontWeight: 600 }}>
@@ -1039,11 +1065,11 @@ function WallMountedPanels({
             ))}
             <div
               style={{
-                marginTop: 8,
-                paddingTop: 8,
+                marginTop: 6,
+                paddingTop: 6,
                 borderTop: "1px solid rgba(126,143,171,0.18)",
-                fontSize: 11,
-                lineHeight: 1.55,
+                fontSize: 10,
+                lineHeight: 1.45,
                 color: "#90a4c5",
               }}
             >
@@ -1056,27 +1082,32 @@ function WallMountedPanels({
       {/* Back wall command center KPI board (moves WelcomeHUD off the chat pane) */}
       {/* Align with window centerline */}
       <group position={[-3.1, 1.55, -2.875]} rotation={[0, 0, 0]}>
-        <mesh>
-          <boxGeometry args={[1.85, 1.05, 0.03]} />
+        <mesh
+          onPointerEnter={() => setHoverCmd(true)}
+          onPointerLeave={() => setHoverCmd(false)}
+        >
+          <boxGeometry args={[1.62, 0.94, 0.03]} />
           <meshStandardMaterial
             color={hoverCmd ? "#172033" : "#111827"}
             roughness={0.78}
             metalness={0.15}
           />
         </mesh>
-        <mesh position={[0, 0.49, 0.012]}>
-          <boxGeometry args={[1.85, 0.07, 0.02]} />
+        <mesh position={[0, 0.43, 0.012]}>
+          <boxGeometry args={[1.62, 0.06, 0.02]} />
           <meshStandardMaterial color="#1f2937" roughness={0.65} />
         </mesh>
-        <Html transform position={[0, -0.02, 0.02]} distanceFactor={2.25}>
+        <Html
+          transform
+          position={[0, -0.02, 0.02]}
+          distanceFactor={1.88}
+          style={{ pointerEvents: "none" }}
+        >
           <div
-            onMouseEnter={() => setHoverCmd(true)}
-            onMouseLeave={() => setHoverCmd(false)}
             style={{
-              width: 260,
+              width: 228,
               fontFamily: "Inter, system-ui, sans-serif",
               color: "#9fb3d7",
-              cursor: "default",
               userSelect: "none",
               filter: hoverCmd ? "brightness(1.08)" : "none",
               transition: "filter 120ms ease",
@@ -1085,10 +1116,10 @@ function WallMountedPanels({
             <div
               style={{
                 textAlign: "center",
-                fontSize: 13,
+                fontSize: 11,
                 fontWeight: 900,
                 letterSpacing: ".12em",
-                marginBottom: 10,
+                marginBottom: 8,
               }}
             >
               COMMAND CENTER
@@ -1099,8 +1130,8 @@ function WallMountedPanels({
                 display: "flex",
                 justifyContent: "space-between",
                 gap: 8,
-                marginBottom: 10,
-                fontSize: 11,
+                marginBottom: 8,
+                fontSize: 10,
                 color: "#8ea4c7",
               }}
             >
@@ -1114,7 +1145,7 @@ function WallMountedPanels({
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(3, 1fr)",
-                gap: 8,
+                gap: 6,
               }}
             >
               <KpiCard
@@ -1434,24 +1465,24 @@ function KpiCard({
         borderRadius: 10,
         border: `1px solid ${color}22`,
         background: "rgba(8,12,22,0.82)",
-        padding: "8px 8px",
+        padding: "6px 7px",
         textAlign: "center",
       }}
     >
       <div
         style={{
-          fontSize: 9,
+          fontSize: 8,
           fontWeight: 900,
           letterSpacing: ".12em",
           color: "#304060",
-          marginBottom: 4,
+          marginBottom: 3,
         }}
       >
         {label}
       </div>
       <div
         style={{
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: 900,
           letterSpacing: ".06em",
           color,
@@ -1675,11 +1706,16 @@ function StrategiumPulse({
           roughness={0.42}
         />
       </mesh>
-      <Html transform position={[0, 0.18, 0]} distanceFactor={6.5}>
+      <Html
+        transform
+        position={[0, 0.18, 0]}
+        distanceFactor={5.2}
+        style={{ pointerEvents: "none" }}
+      >
         <div
           style={{
-            minWidth: 180,
-            padding: "8px 10px",
+            minWidth: 156,
+            padding: "6px 8px",
             borderRadius: 14,
             border: `1px solid ${tempoColor}33`,
             background: "rgba(7,11,19,0.86)",
@@ -1691,7 +1727,7 @@ function StrategiumPulse({
         >
           <div
             style={{
-              fontSize: 9,
+              fontSize: 8,
               fontWeight: 800,
               letterSpacing: ".18em",
               color: "#88a1c6",
@@ -1702,7 +1738,7 @@ function StrategiumPulse({
           <div
             style={{
               marginTop: 4,
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: 900,
               letterSpacing: ".08em",
               color: tempoColor,
@@ -1713,7 +1749,7 @@ function StrategiumPulse({
           <div
             style={{
               marginTop: 4,
-              fontSize: 10,
+              fontSize: 9,
               lineHeight: 1.5,
               color: "#a7bad7",
             }}
@@ -1965,9 +2001,7 @@ function DustParticles({ nightFactor }: { nightFactor: number }) {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          count={points.length / 3}
-          array={points}
-          itemSize={3}
+          args={[points, 3]}
         />
       </bufferGeometry>
       <pointsMaterial
@@ -2979,11 +3013,18 @@ function DraggableProp({
 function CinematicCameraRig({
   preset,
   cue,
+  focusPoint,
 }: {
   preset: { position: Vec3; lookAt: Vec3 };
   cue: OfficeSceneCue;
+  focusPoint?: Vec3 | null;
 }) {
   const { camera } = useThree();
+  const baseLookAt = useMemo(
+    () => new THREE.Vector3(preset.lookAt[0], preset.lookAt[1], preset.lookAt[2]),
+    [preset],
+  );
+  const focusTarget = useMemo(() => new THREE.Vector3(), []);
   const lookAtTarget = useMemo(() => new THREE.Vector3(), []);
   const positionTarget = useMemo(() => new THREE.Vector3(), []);
 
@@ -3003,15 +3044,15 @@ function CinematicCameraRig({
         Math.sin(t * 0.08 + 0.8) * 0.03 * drift -
         Math.abs(pointerX) * 0.1 * drift,
     );
-    lookAtTarget.set(
-      preset.lookAt[0] +
-        Math.sin(t * 0.09) * 0.02 * drift +
-        pointerX * 0.38 * drift,
-      preset.lookAt[1] +
-        Math.cos(t * 0.08) * 0.012 * drift +
-        pointerY * 0.18 * drift,
-      preset.lookAt[2] + Math.cos(t * 0.1) * 0.018 * drift,
-    );
+    lookAtTarget.copy(baseLookAt);
+    lookAtTarget.x += Math.sin(t * 0.09) * 0.02 * drift + pointerX * 0.38 * drift;
+    lookAtTarget.y += Math.cos(t * 0.08) * 0.012 * drift + pointerY * 0.18 * drift;
+    lookAtTarget.z += Math.cos(t * 0.1) * 0.018 * drift;
+    if (focusPoint) {
+      focusTarget.set(focusPoint[0], focusPoint[1], focusPoint[2]);
+      const focusBlend = 0.22 + cue.dispatchEmphasis * 0.22 + cue.lightingEmphasis * 0.1;
+      lookAtTarget.lerp(focusTarget, Math.min(0.62, focusBlend));
+    }
     camera.position.lerp(positionTarget, Math.min(1, delta * (1.7 + cue.shadowContrast)));
     camera.lookAt(lookAtTarget);
   });
@@ -3127,6 +3168,19 @@ function OfficeRoom3DInner({
     });
     return next;
   }, [layout, radiusById]);
+  const cameraFocusPoint = useMemo<Vec3>(() => {
+    if (missionState !== "standby") {
+      return [worldPos.conferenceTable[0], 0.44, worldPos.conferenceTable[2]];
+    }
+    if (activeAgent) {
+      const deskId = `${activeAgent}Desk` as OfficeObjectId;
+      const desk = worldPos[deskId];
+      if (desk) {
+        return [desk[0], 0.9, desk[2] - 0.12];
+      }
+    }
+    return [0, 0.86, -0.58];
+  }, [activeAgent, missionState, worldPos]);
 
   const agentObstacles = useMemo(() => {
     const ids: OfficeObjectId[] = [
@@ -3186,7 +3240,11 @@ function OfficeRoom3DInner({
         }}
       >
         <SceneAtmosphere bg={pal.bg} />
-        <CinematicCameraRig preset={selectedPreset} cue={sceneCue} />
+        <CinematicCameraRig
+          preset={selectedPreset}
+          cue={sceneCue}
+          focusPoint={cameraFocusPoint}
+        />
         <ambientLight
           intensity={
             0.26 +
@@ -3276,6 +3334,21 @@ function OfficeRoom3DInner({
           intensity={sceneCue.alertWash * 0.18}
           color="#b83b44"
           distance={5.4}
+        />
+        <pointLight
+          position={[
+            cameraFocusPoint[0],
+            cameraFocusPoint[1] + 1.15,
+            cameraFocusPoint[2] + 0.28,
+          ]}
+          intensity={
+            0.16 +
+            sceneCue.dispatchEmphasis * 0.26 +
+            sceneCue.lightingEmphasis * 0.1
+          }
+          color={commandAccent}
+          distance={5.2}
+          decay={2}
         />
         <CeilingLights
           nightFactor={nightFactor * motion}

@@ -24,6 +24,7 @@ import {
   assertSafeExternalUrl,
   readResponseTextWithLimit,
 } from "@/lib/security/networkGuards";
+import { isSensitiveLocalDataPath } from "@/lib/security/localDataPolicy";
 import {
   applyRateLimitHeaders,
   checkRateLimit,
@@ -501,6 +502,8 @@ function resolveProjectPath(relPath: string): {
     BLOCKED_PREFIXES.some((p) => topLevel === p || cleaned.startsWith(p + "/"))
   )
     return { safe: "", blocked: `"${topLevel}" is off-limits.` };
+  if (isSensitiveLocalDataPath(cleaned))
+    return { safe: "", blocked: `"${cleaned}" is treated as sensitive local data.` };
   const full = path.join(PROJECT_ROOT, cleaned);
   return { safe: full, blocked: null };
 }
@@ -521,6 +524,11 @@ async function readProjectFile(
       `Cannot read file type "${ext}". Allowed: ${Array.from(READABLE_EXTS).join(", ")}`,
     );
   const normalizedPath = normalizeProjectPathKey(relPath);
+  if (isSensitiveLocalDataPath(normalizedPath)) {
+    return withToolResult(`Blocked: "${relPath}" is treated as sensitive local data.`, {
+      duplicateRead: false,
+    });
+  }
   const duplicateRead = recordDuplicateRead(
     runId,
     "read_project_file",
@@ -572,12 +580,7 @@ async function listProjectFiles(
   try {
     const entries = await fs.readdir(targetPath, { withFileTypes: true });
     const lines = entries
-      .filter(
-        (e) =>
-          !BLOCKED_PREFIXES.some(
-            (b) => e.name === b || e.name.startsWith(".env"),
-          ),
-      )
+      .filter((e) => !isSensitiveLocalDataPath(path.posix.join(cleanDir, e.name)))
       .map((e) => `${e.isDirectory() ? "📁" : "📄"} ${e.name}`);
     const result = lines.length ? lines.join("\n") : "Directory is empty.";
     cachePut(cacheKey, result);

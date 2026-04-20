@@ -52,7 +52,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(NEXUS_SESSION_COOKIE)?.value ?? "";
   const initiallyAuthed =
     !isNexusAuthEnabled() || (await hasAuthenticatedNexusSession(sessionCookie));

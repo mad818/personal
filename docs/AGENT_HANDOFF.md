@@ -68,8 +68,9 @@ git show --stat HEAD
 
 ### What’s next (from `tasks/todo.md`)
 
-- Review the live M4 replay branch at `http://localhost:3100` and confirm the protected shell/trust posture feels correct on HQ, COMMAND, VAULT, and RESOURCES before publishing the stack.
-- After acceptance, regenerate handoff from this replay branch and prepare the stacked commit/push flow for `codex/m2-shell-taste-replay`, `codex/m3-hq-route-replay`, and `codex/m4-trust-substrate-replay`.
+- UXA3 — Switch the local browser runtime to `codex/uxa3-mainline-consolidation`, then review `/hq?focus=hq-chronicle`, `/command`, `/security`, `/vault`, and `/resources` on the real replay branch and confirm the shell/layout density, HQ room, lockdown posture, and Next 15 runtime lane feel right together.
+- UXA3 — After acceptance, regenerate handoff from this replay branch, commit/push `codex/uxa3-mainline-consolidation`, open the replay PR to `main`, merge it, and leave local review running from the merged branch instead of the older local checkout.
+- Retire the older M2/M3/M4 review queue only after UXA3 is accepted and the new replay branch is the branch serving local browser review.
 - Keep local `main` untouched until the replay branches are reviewed; no direct merge from `codex/preserve-main-2026-04-11`.
 - FD2 remains blocked on the real staged Coolify hostname in repo-root `.env.local`, so release-proof work still stays out of this replay stack.
 

@@ -4,6 +4,8 @@ import {
   waitForAuthenticatedShell,
 } from "@/tests/e2e/support/authenticatedShell";
 
+const authEnabled = Boolean(process.env.NEXUS_TOKEN?.trim());
+
 test("public root stays outside protected shell chrome and hands off to /hq", async ({
   page,
 }) => {
@@ -21,8 +23,13 @@ test("public root stays outside protected shell chrome and hands off to /hq", as
   await page.getByTestId("landing-hero-cta").click();
 
   await expect(page).toHaveURL(/\/hq(?:\?.*)?$/);
-  await expect(page.getByTestId("auth-gate")).toBeVisible();
-  await expect(page.getByTestId("toprail-brand")).toHaveCount(0);
+  if (authEnabled) {
+    await expect(page.getByTestId("auth-gate")).toBeVisible();
+    await expect(page.getByTestId("toprail-brand")).toHaveCount(0);
+  } else {
+    await expect(page.getByTestId("auth-gate")).toHaveCount(0);
+    await expect(page.getByTestId("toprail-brand")).toBeVisible();
+  }
 });
 
 test("authenticated operators keep the public landing and get a direct HQ continuation", async ({

@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { DEFAULT_LOCAL_MODEL, TASK_MODELS } from "@/lib/aiModelRouting";
 import {
   BRAND_DESCRIPTOR,
@@ -12,6 +11,7 @@ import { gradeFromEvalScore } from "@/lib/helpers";
 import { summarizeSkillGovernance } from "@/lib/skillMetadata";
 import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
+import { readLocalDataPolicySummary } from "@/lib/security/localDataPolicy";
 import {
   getDefaultEntrypoint,
   listSurfaceAliases,
@@ -23,7 +23,8 @@ import {
   summarizeConnectorReadiness,
   summarizeSurfaceTiers,
 } from "@/lib/releaseMatrix";
-import { applyNoStoreHeaders, readRuntimeIdentity } from "@/lib/runtimeIdentity";
+import { protectedJson } from "@/lib/protectedApi";
+import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
@@ -308,8 +309,9 @@ export async function GET() {
   const experiments = {
     timesfmSpike: readTimesfmSpikeStatus(),
   };
+  const localData = readLocalDataPolicySummary();
 
-  const response = NextResponse.json({
+  return protectedJson({
     status: "ok",
     service: getBrandServiceName(),
     brand: {
@@ -319,6 +321,19 @@ export async function GET() {
     },
     generatedAt: new Date().toISOString(),
     startedAt: runtimeIdentity.startedAt,
+    summary: {
+      networkMode: policies.networkMode,
+      highRiskRoutesEnabled: policies.highRiskRoutesEnabled,
+      allowPaidApis: policies.allowPaidApis,
+      tokenConfigured: auth.nexusTokenConfigured,
+      localData,
+      release: {
+        buildChannel: readBuildChannel(),
+        deploymentProfile: readDeploymentProfile(),
+        defaultEntrypoint: getDefaultEntrypoint(),
+        uiShellVersion: RELEASE_DEFAULTS.uiShellVersion,
+      },
+    },
     runtime: {
       bootId: runtimeIdentity.bootId,
       startedAt: runtimeIdentity.startedAt,
@@ -341,6 +356,4 @@ export async function GET() {
       experiments,
     },
   });
-  applyNoStoreHeaders(response.headers);
-  return response;
 }

@@ -20,7 +20,7 @@ interface Props {
     views: SavedSchedulerAuditView[];
     summary: SavedSchedulerAuditViewsImportPreview;
   } | null;
-  importSavedViewsInputRef: RefObject<HTMLInputElement>;
+  importSavedViewsInputRef: RefObject<HTMLInputElement | null>;
   showSaveAuditView: boolean;
   newAuditViewName: string;
   showPasteAuditViews: boolean;

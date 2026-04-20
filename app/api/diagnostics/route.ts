@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import {
   BRAND_DESCRIPTOR,
   BRAND_NAME,
@@ -8,6 +7,7 @@ import {
 } from "@/lib/brand";
 import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
+import { readLocalDataPolicySummary } from "@/lib/security/localDataPolicy";
 import { readTimesfmSpikeStatus } from "@/lib/experiments";
 import {
   getDefaultEntrypoint,
@@ -20,7 +20,8 @@ import {
   summarizeSurfaceTiers,
 } from "@/lib/releaseMatrix";
 import { summarizeSkillGovernance } from "@/lib/skillMetadata";
-import { applyNoStoreHeaders, readRuntimeIdentity } from "@/lib/runtimeIdentity";
+import { protectedJson } from "@/lib/protectedApi";
+import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export async function GET() {
   const runtimeIdentity = readRuntimeIdentity();
   const now = new Date().toISOString();
   const mode = readNetworkMode();
+  const localData = readLocalDataPolicySummary();
 
   const security = {
     networkMode: mode,
@@ -86,8 +88,15 @@ export async function GET() {
     brave: present(process.env.BRAVE_SEARCH_KEY),
   };
 
-  const response = NextResponse.json({
+  return protectedJson({
     generatedAt: now,
+    summary: {
+      networkMode: security.networkMode,
+      highRiskRoutesEnabled: security.highRiskRoutesEnabled,
+      allowPaidApis: security.allowPaidApis,
+      tokenConfigured: security.tokenConfigured,
+      localData,
+    },
     release: {
       service: getBrandServiceName(),
       brand: {
@@ -128,6 +137,4 @@ export async function GET() {
       "Use this payload for secured-network diagnostics exports.",
     ],
   });
-  applyNoStoreHeaders(response.headers);
-  return response;
 }

@@ -10,6 +10,8 @@ async function submitAuthForm(page: Page) {
 
 test.describe("auth gate", () => {
   test("rejects an invalid token and stays on the gate", async ({ page }) => {
+    test.skip(!validToken, "NEXUS_TOKEN is required for auth:e2e");
+
     await page.goto("/hq");
 
     await expect(page.getByTestId("auth-gate")).toBeVisible();
@@ -41,6 +43,8 @@ test.describe("auth gate", () => {
   test("clears stale session token state and relocks after reset", async ({
     page,
   }) => {
+    test.skip(!validToken, "NEXUS_TOKEN is required for auth:e2e");
+
     await page.goto("/hq");
     await expect(page.getByTestId("auth-gate")).toBeVisible();
 

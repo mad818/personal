@@ -65,12 +65,15 @@ function buildCsp() {
 module.exports = {
   // Enables `.next/standalone` for Docker / Coolify reproducible deploys (see Dockerfile)
   output: 'standalone',
+  outputFileTracingRoot: __dirname,
   distDir,
   poweredByHeader: false,
   allowedDevOrigins: devOrigins,
 
-  // Air-gapped profile: do not allow optimized remote images.
-  images: {},
+  // Air-gapped profile: keep `next/image` rendering without exposing the built-in optimizer.
+  images: {
+    unoptimized: true,
+  },
 
   async redirects() {
     return [

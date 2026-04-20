@@ -10161,3 +10161,280 @@ html[data-nexus-motion-profile="reduced"] .nexus-landing-proclamation__scan {
     display: none;
   }
 }
+
+/* UXA2 spatial command-system overrides */
+
+.nexus-shell-stage {
+  padding: 16px var(--shell-gutter) 84px;
+}
+
+.nexus-shell-page {
+  padding: 16px var(--shell-gutter) 72px;
+}
+
+.nexus-ops-canvas,
+.nexus-ops-workplane,
+.nexus-ops-rail,
+.nexus-ops-inspector,
+.nexus-ops-strip {
+  position: relative;
+}
+
+.nexus-spatial-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 180px) minmax(0, 1fr) minmax(240px, 320px);
+  align-items: start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(129, 154, 183, 0.16);
+  background:
+    linear-gradient(180deg, rgba(8, 12, 18, 0.96), rgba(7, 11, 18, 0.88)),
+    radial-gradient(circle at 12% 30%, rgba(55, 198, 255, 0.08), transparent 30%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 22px 42px rgba(0, 0, 0, 0.24);
+}
+
+.nexus-spatial-strip__meta {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+
+.nexus-spatial-strip__eyebrow,
+.nexus-spatial-strip__dockLabel {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(167, 187, 212, 0.62);
+}
+
+.nexus-spatial-strip__note {
+  color: rgba(222, 232, 243, 0.8);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.nexus-spatial-strip__anchors {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.nexus-spatial-strip__anchor {
+  display: grid;
+  gap: 4px;
+  padding: 12px 12px 10px;
+  border: 1px solid rgba(129, 154, 183, 0.14);
+  background: linear-gradient(180deg, rgba(10, 15, 24, 0.96), rgba(7, 10, 17, 0.92));
+  color: rgba(235, 242, 249, 0.94);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.nexus-spatial-strip__anchor:hover,
+.nexus-spatial-strip__anchor:focus-visible,
+.nexus-spatial-strip__anchor[data-state="preview"],
+.nexus-spatial-strip__anchor[data-state="focused"],
+.nexus-spatial-strip__anchor[data-state="active"] {
+  border-color: rgba(55, 198, 255, 0.34);
+  background:
+    linear-gradient(180deg, rgba(10, 18, 28, 0.98), rgba(7, 12, 18, 0.94)),
+    radial-gradient(circle at 0% 0%, rgba(55, 198, 255, 0.08), transparent 40%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 10px 24px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+
+.nexus-spatial-strip__anchor[data-tone="warning"][data-state="preview"],
+.nexus-spatial-strip__anchor[data-tone="warning"][data-state="focused"],
+.nexus-spatial-strip__anchor[data-tone="warning"][data-state="active"] {
+  border-color: rgba(245, 158, 11, 0.34);
+}
+
+.nexus-spatial-strip__anchor[data-tone="critical"][data-state="preview"],
+.nexus-spatial-strip__anchor[data-tone="critical"][data-state="focused"],
+.nexus-spatial-strip__anchor[data-tone="critical"][data-state="active"] {
+  border-color: rgba(239, 68, 68, 0.34);
+}
+
+.nexus-spatial-strip__anchorLabel {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nexus-spatial-strip__anchorStatus,
+.nexus-spatial-strip__dockValue {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(160, 186, 214, 0.9);
+}
+
+.nexus-spatial-strip__dock {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+  align-items: start;
+}
+
+.nexus-spatial-strip__dockSignal {
+  display: grid;
+  gap: 4px;
+}
+
+.nexus-spatial-strip__dockDisclosure {
+  grid-column: 1 / -1;
+  border-top: 1px solid rgba(129, 154, 183, 0.12);
+  padding-top: 8px;
+}
+
+.nexus-spatial-strip__dockDisclosure summary {
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(165, 184, 208, 0.76);
+}
+
+.nexus-spatial-strip__dockDisclosure p {
+  margin: 8px 0 0;
+  color: rgba(215, 225, 238, 0.82);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.nexus-spatial-strip__dockLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  width: fit-content;
+  padding: 0 14px;
+  border: 1px solid rgba(129, 154, 183, 0.16);
+  color: rgba(121, 184, 255, 0.96);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.nexus-shell-page__missionStrip {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 10px 14px;
+  min-height: 0;
+  padding: 10px 14px;
+}
+
+.nexus-shell-page__missionStripCopy,
+.nexus-shell-page__missionStripReadoutValue {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.nexus-shell-page__missionStripReadouts {
+  justify-self: end;
+  gap: 8px;
+}
+
+.nexus-shell-page__missionStripReadout {
+  min-width: 88px;
+  padding: 6px 8px;
+}
+
+.nexus-mission-handoff {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 16px;
+  align-items: start;
+}
+
+.nexus-mission-handoff__lead {
+  gap: 6px;
+}
+
+.nexus-mission-handoff__summary {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.nexus-mission-handoff__detail {
+  grid-column: 1 / -1;
+  border-top: 1px solid rgba(124, 150, 176, 0.16);
+  padding-top: 8px;
+}
+
+.nexus-mission-handoff__detail summary {
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(165, 184, 208, 0.76);
+}
+
+.nexus-mission-handoff__detail p {
+  margin: 8px 0 0;
+  color: rgba(215, 225, 238, 0.82);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1180px) {
+  .nexus-spatial-strip,
+  .nexus-command-header__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-command-header__utilityCore,
+  .nexus-command-header__actions {
+    justify-content: flex-start;
+  }
+
+  .nexus-shell-page__missionStrip {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-shell-page__missionStripReadouts {
+    justify-self: start;
+  }
+
+  .nexus-mission-handoff {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-mission-handoff__actions {
+    justify-items: start;
+  }
+}
+
+@media (max-width: 767px) {
+  .nexus-spatial-strip {
+    padding: 10px 12px;
+  }
+
+  .nexus-spatial-strip__anchors,
+  .nexus-spatial-strip__dock {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-command-header__tabs {
+    grid-auto-columns: minmax(96px, 1fr);
+  }
+
+  .nexus-command-header__link {
+    min-height: 40px;
+    padding: 7px 8px;
+  }
+}

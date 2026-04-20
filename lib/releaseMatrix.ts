@@ -119,11 +119,18 @@ export function readBuildChannel(): BuildChannel {
   return "dev";
 }
 
+function readShortBuildToken(value?: string | null) {
+  const normalized = value?.trim();
+  if (!normalized) return null;
+  return normalized.slice(0, 12);
+}
+
 export function readBuildVersion(): string {
   return (
     process.env.NEXUS_BUILD_VERSION ??
-    process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ??
-    process.env.GITHUB_SHA?.slice(0, 12) ??
+    readShortBuildToken(process.env.NEXUS_BUILD_COMMIT_SHA) ??
+    readShortBuildToken(process.env.GITHUB_SHA) ??
+    process.env.NEXUS_BUILD_ID?.trim() ??
     "local-dev"
   );
 }

@@ -12,6 +12,7 @@ import {
   applyRateLimitHeaders,
   checkRateLimit,
 } from "@/lib/security/rateLimit";
+import { readProtectedActionContext } from "@/lib/security/toolCapabilityPolicy";
 
 /**
  * Multi-provider AI proxy with task-based model routing.
@@ -165,7 +166,8 @@ const RESEARCH_CHAIN = [
 const FREE_DEFAULT_PROVIDERS = new Set(["ollama"]);
 const ALLOW_PAID_APIS = process.env.NEXUS_ALLOW_PAID_APIS === "true";
 
-function providerAllowedByPolicy(providerName: string) {
+function providerAllowedByPolicy(providerName: string, localOnlyMode: boolean) {
+  if (localOnlyMode) return providerName === "ollama";
   if (ALLOW_PAID_APIS) return true;
   return FREE_DEFAULT_PROVIDERS.has(providerName);
 }
@@ -302,13 +304,26 @@ export async function POST(req: NextRequest) {
     const taskModel = task
       ? (TASK_MODELS[task as keyof typeof TASK_MODELS] ?? DEFAULT_LOCAL_MODEL)
       : undefined;
+    const trustContext = await readProtectedActionContext(req);
+    const localOnlyMode = trustContext.networkMode === "isolated";
 
     // Determine provider chain
     let chain: string[];
     let resolvedModel: string | undefined;
 
     if (provider && PROVIDERS[provider]) {
-      if (!providerAllowedByPolicy(provider)) {
+      if (localOnlyMode && provider !== "ollama") {
+        return NextResponse.json(
+          {
+            error: {
+              message:
+                `Provider "${provider}" is blocked while the network mode is isolated. Start Ollama locally or switch to internal/connected mode first.`,
+            },
+          },
+          { status: 403 },
+        );
+      }
+      if (!providerAllowedByPolicy(provider, localOnlyMode)) {
         return NextResponse.json(
           {
             error: {
@@ -332,13 +347,17 @@ export async function POST(req: NextRequest) {
       resolvedModel = taskModel ?? model;
     }
 
-    const policyFilteredChain = chain.filter(providerAllowedByPolicy);
+    const policyFilteredChain = chain.filter((providerName) =>
+      providerAllowedByPolicy(providerName, localOnlyMode),
+    );
     if (policyFilteredChain.length === 0) {
       return NextResponse.json(
         {
           error: {
             message:
-              "No providers allowed by free-use policy. Set NEXUS_ALLOW_PAID_APIS=true to opt in.",
+              localOnlyMode
+                ? "No local providers are available while the network mode is isolated. Start Ollama locally to continue."
+                : "No providers allowed by free-use policy. Set NEXUS_ALLOW_PAID_APIS=true to opt in.",
           },
         },
         { status: 403 },

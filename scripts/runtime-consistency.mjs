@@ -7,6 +7,7 @@ loadEnv({ path: ".env.local" });
 
 const baseUrl = process.env.NEXUS_RELEASE_BASE_URL ?? "http://127.0.0.1:3000";
 const token = process.env.NEXUS_TOKEN ?? "";
+const INTERNAL_AUTH_HEADER = "x-nexus-internal-auth";
 const TRANSIENT_STATUSES = new Set([404, 500, 502, 503]);
 
 function fail(message) {
@@ -23,7 +24,7 @@ async function readJson(
   { auth = false, retries = 8, retryDelayMs = 750 } = {},
 ) {
   const headers =
-    auth && token ? { Authorization: `Bearer ${token}` } : undefined;
+    auth && token ? { [INTERNAL_AUTH_HEADER]: token } : undefined;
   let lastFailure = "unknown";
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {

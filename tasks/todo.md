@@ -171,6 +171,7 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 
 ## Next Up
 
+- [x] MAIN-RESTORE — The original `C:\Users\mario\Desktop\personal` checkout is back on `main`, the previous dirty root state is preserved on `codex/root-preserve-before-main-restore-2026-04-21`, the dedicated `main` worktree is archived on `codex/mainline-runtime-archive-2026-04-21`, and root-main verification plus `npm run runtime:fresh-proof` are green.
 - [ ] UXA3b — Compact COMMAND's deep-scroll behavior on merged `main` by making the support rail sticky/capped on wide viewports and moving heavyweight secondary modules behind disclosure-first shells unless the active focus/session needs them open.
 - [ ] UXA3c — Continue merged-main route compaction across `SECURITY`, `VAULT`, and `RESOURCES` by bounding support rails, hiding heavyweight secondary modules behind disclosures, and trimming the remaining pre-workplane chrome.
 - [ ] UXA3d — Continue merged-main first-viewport compaction by measuring remaining workplane offsets on `COMMAND`, `SECURITY`, `VAULT`, and `RESOURCES`, then trim whichever layer still dominates the fold: route strips, segmented-tab density, or tall workbench modules.

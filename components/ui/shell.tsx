@@ -15,6 +15,7 @@ import {
 
 type ShellWidth = "standard" | "wide" | "full";
 type ShellSurface = SurfaceMotionSurface;
+type ShellHeroDensity = "standard" | "compact";
 
 const SURFACE_ART: Record<
   ShellSurface,
@@ -258,6 +259,7 @@ export function ShellPage({
   actions,
   width = "standard",
   surface = "default",
+  heroDensity,
   children,
 }: {
   eyebrow?: string;
@@ -266,6 +268,7 @@ export function ShellPage({
   actions?: ReactNode;
   width?: ShellWidth;
   surface?: ShellSurface;
+  heroDensity?: ShellHeroDensity;
   children: ReactNode;
 }) {
   const art = SURFACE_ART[surface] ?? SURFACE_ART.default;
@@ -275,6 +278,9 @@ export function ShellPage({
   const atmosphere = resolveSurfaceAtmosphereSpec(surface);
   const sequence = resolveSurfaceSequencePreset(surface);
   const delays = buildSequenceDelays(sequence);
+  const resolvedHeroDensity: ShellHeroDensity =
+    heroDensity ?? (surface === "hq" || surface === "default" ? "standard" : "compact");
+  const compactChrome = resolvedHeroDensity === "compact";
 
   return (
     <PageTransition>
@@ -313,16 +319,21 @@ export function ShellPage({
               description={description}
               actions={actions}
               surface={surface}
+              density={resolvedHeroDensity}
               art={art}
               branding={branding}
               atmosphere={atmosphere}
             />
             {surface !== "default" ? (
-              <SpatialCommandStrip surface={surface} />
+              <SpatialCommandStrip
+                surface={surface}
+                className={compactChrome ? "nexus-spatial-strip--compact" : undefined}
+              />
             ) : null}
             <OpsStrip
               className={cn(
                 "nexus-shell-page__missionStrip",
+                compactChrome && "nexus-shell-page__missionStrip--compact",
                 "nexus-motion-enter",
                 "nexus-motion-enter--continuity",
               )}
@@ -363,6 +374,7 @@ export function OpsHeader({
   description,
   actions,
   surface,
+  density = "standard",
   art,
   branding,
   atmosphere,
@@ -372,6 +384,7 @@ export function OpsHeader({
   description?: string;
   actions?: ReactNode;
   surface: ShellSurface;
+  density?: ShellHeroDensity;
   art: (typeof SURFACE_ART)[ShellSurface];
   branding: ReturnType<typeof getSurfaceBranding>;
   atmosphere: ReturnType<typeof resolveSurfaceAtmosphereSpec>;
@@ -386,6 +399,7 @@ export function OpsHeader({
         "nexus-motion-enter--hero",
       )}
       data-surface={surface}
+      data-density={density}
       data-chamber-tone={atmosphere.chamberTone}
       style={
         {
@@ -724,14 +738,20 @@ export function ShellSegmentedTabs<T extends string>({
   active,
   onChange,
   minButtonWidth = 132,
+  className,
 }: {
   items: Array<{ id: T; label: string }>;
   active: T;
   onChange: (id: T) => void;
   minButtonWidth?: number;
+  className?: string;
 }) {
   return (
-    <div className="nexus-shell-segmented" role="tablist" aria-label="Section view switcher">
+    <div
+      className={cn("nexus-shell-segmented", className)}
+      role="tablist"
+      aria-label="Section view switcher"
+    >
       {items.map((item) => (
         <button
           key={item.id}

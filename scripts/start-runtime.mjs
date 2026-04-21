@@ -1,15 +1,29 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
-import { existsSync, rmSync } from "fs";
-import { join } from "path";
+import { cpSync, existsSync, mkdirSync, rmSync } from "fs";
+import { dirname, join } from "path";
 import { randomUUID } from "crypto";
 import { spawn } from "child_process";
 
 const root = process.cwd();
 const nextDistDir = process.env.NEXUS_NEXT_DIST_DIR ?? ".next";
 const standaloneServer = join(root, nextDistDir, "standalone", "server.js");
+const standaloneRoot = join(root, nextDistDir, "standalone");
 const runtimeIdentityPath = join(root, ".nexus-runtime-identity.json");
+
+function syncRuntimeAsset(relativeSource, relativeTarget = relativeSource) {
+  const source = join(root, relativeSource);
+  const target = join(standaloneRoot, relativeTarget);
+
+  if (!existsSync(source)) {
+    return;
+  }
+
+  rmSync(target, { recursive: true, force: true });
+  mkdirSync(dirname(target), { recursive: true });
+  cpSync(source, target, { recursive: true, force: true });
+}
 
 if (!existsSync(standaloneServer)) {
   console.error(
@@ -21,6 +35,11 @@ if (!existsSync(standaloneServer)) {
 if (existsSync(runtimeIdentityPath)) {
   rmSync(runtimeIdentityPath, { force: true });
 }
+
+// Next standalone output excludes static and public assets, so mirror them
+// into the runtime folder before booting the local production server.
+syncRuntimeAsset("public");
+syncRuntimeAsset(join(nextDistDir, "static"), join(".next", "static"));
 
 const env = {
   ...process.env,
@@ -37,7 +56,7 @@ console.log(
 );
 
 const child = spawn(process.execPath, [standaloneServer], {
-  cwd: join(root, nextDistDir, "standalone"),
+  cwd: standaloneRoot,
   env,
   stdio: "inherit",
 });

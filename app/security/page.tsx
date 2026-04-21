@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import CameraGrid from "@/components/security/CameraGrid";
 import SecurityAlerts from "@/components/security/SecurityAlerts";
@@ -41,8 +41,12 @@ export default function SecurityPage() {
   const router = useRouter();
   const { normalizedParams } = useSessionHrefAutoHeal();
   const focus = normalizedParams.get("focus");
+  const mission = normalizedParams.get("mission");
+  const from = normalizedParams.get("from");
+  const source = normalizedParams.get("source");
   const view = useStore((s) => s.securityWorkbenchView);
   const setView = useStore((s) => s.setSecurityWorkbenchView);
+  const [physicalSweepExpanded, setPhysicalSweepExpanded] = useState(false);
 
   const urlView = useMemo(() => {
     const value = (normalizedParams.get("view") ?? "").toLowerCase();
@@ -98,14 +102,16 @@ export default function SecurityPage() {
           <ShellBadge tone="success">Physical ops preserved</ShellBadge>
         </>
       }
-    >
+      >
       <ShellStack>
-        <MissionHandoffStrip
-          surface="security"
-          mission={normalizedParams.get("mission")}
-          from={normalizedParams.get("from")}
-          source={normalizedParams.get("source")}
-        />
+        {mission || from || source ? (
+          <MissionHandoffStrip
+            surface="security"
+            mission={mission}
+            from={from}
+            source={source}
+          />
+        ) : null}
 
         {focus === "security-doctrine" ? (
           <SurfaceFocusStrip
@@ -128,13 +134,18 @@ export default function SecurityPage() {
           />
         ) : null}
 
-        <ShellSegmentedTabs items={VIEWS} active={view} onChange={handleViewChange} />
+        <ShellSegmentedTabs
+          items={VIEWS}
+          active={view}
+          onChange={handleViewChange}
+          className="nexus-shell-segmented--compactLane"
+        />
 
         {view === "doctrine" && (
           <div id="security-doctrine" style={{ scrollMarginTop: "120px" }}>
             <div className="nexus-surface-chamber-shell">
               <div className="nexus-surface-chamber-shell__body">
-                <OpsRail className={`nexus-surface-chamber-shell__support ${securityLayout.railClass}`}>
+                <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${securityLayout.railClass}`}>
                   <ShellStack gap="12px">
                     <OpsField
                       title="Control fascia"
@@ -171,7 +182,7 @@ export default function SecurityPage() {
             <ShellStack>
               <div className="nexus-surface-chamber-shell">
                 <div className="nexus-surface-chamber-shell__body">
-                  <OpsRail className={`nexus-surface-chamber-shell__support ${securityLayout.railClass}`}>
+                  <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${securityLayout.railClass}`}>
                     <ShellStack gap="12px">
                     <OpsField title="AI boundary note" detail="Prompt, tool, retrieval, and persistence posture" tone="muted" compact>
                       <div className="nexus-shell-copy nexus-shell-copy--compact">
@@ -200,7 +211,12 @@ export default function SecurityPage() {
                     detail="Observable hardening stages and current evidence-posture coverage"
                     tone="muted"
                   >
-                    <AIHardeningCoveragePanel />
+                    <details className="nexus-surface-disclosure">
+                      <summary>Open hardening coverage</summary>
+                      <div className="nexus-surface-disclosure__body">
+                        <AIHardeningCoveragePanel />
+                      </div>
+                    </details>
                   </OpsField>
                 </OpsStrip>
               </div>
@@ -214,23 +230,28 @@ export default function SecurityPage() {
               <div className="nexus-surface-chamber-shell">
                 <div className="nexus-surface-chamber-shell__body">
                   <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${securityLayout.workplaneClass}`}>
-                    <ShellStack gap="12px">
-                      <OpsField
-                        title="Live monitoring"
-                        detail="Camera coverage and perimeter sweep posture"
-                      >
+                    <OpsField
+                      title="Live monitoring"
+                      detail="Camera coverage stays primary while sweep posture opens on demand"
+                    >
+                      <ShellStack gap="10px">
                         <CameraGrid />
-                      </OpsField>
-                      <OpsField
-                        title="Perimeter sweep"
-                        detail="Zones, motion vectors, and approach cues"
-                        tone="muted"
-                      >
-                        <PerimeterSweep />
-                      </OpsField>
-                    </ShellStack>
+                        <details
+                          className="nexus-surface-disclosure"
+                          open={physicalSweepExpanded}
+                          onToggle={(event) =>
+                            setPhysicalSweepExpanded(event.currentTarget.open)
+                          }
+                        >
+                          <summary>Open perimeter sweep</summary>
+                          <div className="nexus-surface-disclosure__body">
+                            <PerimeterSweep />
+                          </div>
+                        </details>
+                      </ShellStack>
+                    </OpsField>
                   </OpsWorkplane>
-                  <OpsRail className={`nexus-surface-chamber-shell__support ${securityLayout.railClass}`}>
+                  <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${securityLayout.railClass}`}>
                     <ShellStack gap="12px">
                       <OpsField
                         title="Threat posture"
@@ -272,23 +293,28 @@ export default function SecurityPage() {
                       </OpsField>
                     </div>
                     <OpsInspector className={`nexus-surface-chamber-shell__support ${securityLayout.inspectorClass}`}>
-                      <ShellStack gap="12px">
-                        <OpsField
-                          title="Alert timeline"
-                          detail="Sequence, escalation history, and recent transitions"
-                          tone="muted"
-                          compact
-                        >
-                          <AlertTimeline />
-                        </OpsField>
-                        <OpsField
-                          title="Drone panel"
-                          detail="Air-adjacent response posture and monitoring continuity"
-                          compact
-                        >
-                          <DronePanel />
-                        </OpsField>
-                      </ShellStack>
+                      <details className="nexus-surface-disclosure">
+                        <summary>Open incident continuity</summary>
+                        <div className="nexus-surface-disclosure__body">
+                          <ShellStack gap="12px">
+                            <OpsField
+                              title="Alert timeline"
+                              detail="Sequence, escalation history, and recent transitions"
+                              tone="muted"
+                              compact
+                            >
+                              <AlertTimeline />
+                            </OpsField>
+                            <OpsField
+                              title="Drone panel"
+                              detail="Air-adjacent response posture and monitoring continuity"
+                              compact
+                            >
+                              <DronePanel />
+                            </OpsField>
+                          </ShellStack>
+                        </div>
+                      </details>
                     </OpsInspector>
                   </div>
                 </OpsStrip>

@@ -4,7 +4,7 @@
 "use client";
 // filter controls, per-alert acknowledge functionality, and weather-based alerts.
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiFetch } from "@/lib/apiFetch";
 import { useStore } from "@/store/useStore";
@@ -118,6 +118,188 @@ function typeIcon(type: DetectionType): string {
   return "❓";
 }
 
+function alertPriority(alert: Alert): number {
+  const base = alert.acknowledged ? 0 : 1000;
+  const typeBoost =
+    alert.isWeather ? 280 : alert.type === "Person" ? 220 : alert.type === "Vehicle" ? 160 : 60;
+  const nightBoost = alert.isNight ? 40 : 0;
+  return base + typeBoost + nightBoost + alert.confidence;
+}
+
+function AlertPreviewCard({ alert }: { alert: Alert }) {
+  return (
+    <div
+      style={{
+        background: alertBgColor(alert),
+        border: `1px solid ${alertBorderColor(alert)}`,
+        borderRadius: "var(--rs)",
+        padding: "9px 10px",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          marginBottom: "4px",
+        }}
+      >
+        <span style={{ fontSize: "12px" }}>{typeIcon(alert.type)}</span>
+        <span
+          style={{
+            fontSize: "10px",
+            fontWeight: 800,
+            color: alert.isWeather ? "#818cf8" : "var(--text)",
+          }}
+        >
+          {alert.camera}
+        </span>
+        <span
+          style={{
+            marginLeft: "auto",
+            fontSize: "9px",
+            color: "var(--text3)",
+            fontFamily: "monospace",
+          }}
+        >
+          {alert.timestamp}
+        </span>
+      </div>
+      <div style={{ fontSize: "10px", color: "var(--text2)" }}>{alert.detail}</div>
+    </div>
+  );
+}
+
+function AlertFeedCard({
+  alert,
+  onAcknowledge,
+}: {
+  alert: Alert;
+  onAcknowledge: (id: string) => void;
+}) {
+  return (
+    <motion.div
+      key={alert.id}
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: alert.acknowledged ? 0.5 : 1, y: 0 }}
+      exit={{ opacity: 0, height: 0 }}
+      style={{
+        background: alertBgColor(alert),
+        border: `1px solid ${alertBorderColor(alert)}`,
+        borderRadius: "var(--rs)",
+        padding: "10px 12px",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          marginBottom: "4px",
+        }}
+      >
+        <span style={{ fontSize: "13px" }}>{typeIcon(alert.type)}</span>
+        <span
+          style={{
+            fontSize: "11px",
+            fontWeight: 800,
+            color: alert.isWeather ? "#818cf8" : "var(--text)",
+          }}
+        >
+          {alert.isWeather ? "WEATHER" : alert.type}
+        </span>
+        <span
+          style={{
+            fontSize: "9px",
+            fontWeight: 700,
+            fontFamily: "monospace",
+            color: "var(--text3)",
+            marginLeft: "2px",
+          }}
+        >
+          {alert.confidence}% conf
+        </span>
+        <span
+          style={{
+            marginLeft: "auto",
+            fontSize: "9px",
+            fontFamily: "monospace",
+            color: "var(--text3)",
+          }}
+        >
+          {alert.isNight ? "🌙 " : ""}
+          {alert.timestamp}
+        </span>
+      </div>
+      <div
+        style={{
+          fontSize: "10px",
+          color: "var(--text2)",
+          marginBottom: "6px",
+        }}
+      >
+        <span
+          style={{
+            fontWeight: 700,
+            color: alert.isWeather ? "#818cf8" : "var(--accent2)",
+          }}
+        >
+          {alert.camera}
+        </span>
+        {" — "}
+        {alert.detail}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div
+          style={{
+            flex: 1,
+            height: "3px",
+            background: "var(--surf3)",
+            borderRadius: "2px",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              width: `${alert.confidence}%`,
+              height: "100%",
+              background: alertBorderColor(alert),
+              borderRadius: "2px",
+            }}
+          />
+        </div>
+        {!alert.acknowledged ? (
+          <button
+            onClick={() => onAcknowledge(alert.id)}
+            style={{
+              fontSize: "9px",
+              fontWeight: 700,
+              padding: "2px 8px",
+              borderRadius: "4px",
+              border: "none",
+              background: "var(--surf3)",
+              color: "var(--text2)",
+              cursor: "pointer",
+            }}
+          >
+            ACK
+          </button>
+        ) : (
+          <span
+            style={{
+              fontSize: "9px",
+              color: "var(--text3)",
+              fontWeight: 700,
+            }}
+          >
+            ✓ ACK
+          </span>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 // ── Build weather alerts from current conditions ──────────────────────────────
 function buildWeatherAlerts(weather: WeatherData): Alert[] {
   const alerts: Alert[] = [];
@@ -189,6 +371,7 @@ export default function SecurityAlerts() {
   const [weatherAlerts, setWeatherAlerts] = useState<Alert[]>([]);
   const [filter, setFilter] = useState<FilterType>("All");
   const [localWeather, setLocalWeather] = useState<WeatherData | null>(null);
+  const [feedExpanded, setFeedExpanded] = useState(false);
 
   // Read from Zustand store
   const storeWeather = useStore(
@@ -249,6 +432,9 @@ export default function SecurityAlerts() {
 
   const effectiveBase = storeAlerts.length > 0 ? storeAlerts : baseAlerts;
   const allAlerts = [...weatherAlerts, ...effectiveBase];
+  const unreadCount = allAlerts.filter((alert) => !alert.acknowledged).length;
+  const weatherCount = weatherAlerts.filter((alert) => !alert.acknowledged).length;
+  const acknowledgedCount = allAlerts.filter((alert) => alert.acknowledged).length;
 
   const acknowledge = (id: string) => {
     if (id.startsWith("weather-")) {
@@ -267,9 +453,16 @@ export default function SecurityAlerts() {
     if (filter === "Motion") return !a.acknowledged;
     return a.type === filter;
   });
+  const previewAlerts = useMemo(
+    () =>
+      [...filtered]
+        .sort((a, b) => alertPriority(b) - alertPriority(a))
+        .slice(0, 3),
+    [filtered],
+  );
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <div
         style={{
           fontSize: "10px",
@@ -281,7 +474,7 @@ export default function SecurityAlerts() {
         }}
       >
         Detection Alerts
-        {weatherAlerts.filter((a) => !a.acknowledged).length > 0 && (
+        {weatherCount > 0 && (
           <span
             style={{
               marginLeft: "8px",
@@ -293,12 +486,47 @@ export default function SecurityAlerts() {
               fontWeight: 700,
             }}
           >
-            {weatherAlerts.filter((a) => !a.acknowledged).length} weather
+            {weatherCount} weather
           </span>
         )}
       </div>
 
-      {/* Filter bar */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
+          gap: "6px",
+        }}
+      >
+        {[
+          { label: "Unread", value: unreadCount, color: "var(--accent)" },
+          { label: "Acknowledged", value: acknowledgedCount, color: "var(--text2)" },
+          { label: "Weather", value: weatherCount, color: "#818cf8" },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            style={{
+              background: "var(--surf)",
+              border: "1px solid var(--border)",
+              borderRadius: "8px",
+              padding: "8px 10px",
+            }}
+          >
+            <div style={{ fontSize: "9px", color: "var(--text3)" }}>{stat.label}</div>
+            <div
+              style={{
+                marginTop: "4px",
+                fontSize: "13px",
+                fontWeight: 700,
+                color: stat.color,
+              }}
+            >
+              {stat.value}
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div
         style={{
           display: "flex",
@@ -330,166 +558,85 @@ export default function SecurityAlerts() {
             marginLeft: "auto",
             fontSize: "10px",
             color: "var(--text3)",
-            lineHeight: "26px",
-          }}
-        >
-          {allAlerts.filter((a) => !a.acknowledged).length} unread
+          lineHeight: "26px",
+        }}
+      >
+          {unreadCount} unread
         </span>
       </div>
 
-      {/* Alert list */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "6px",
-          maxHeight: "360px",
-          overflowY: "auto",
-        }}
-      >
-        <AnimatePresence>
-          {filtered.map((alert) => (
-            <motion.div
-              key={alert.id}
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: alert.acknowledged ? 0.5 : 1, y: 0 }}
-              exit={{ opacity: 0, height: 0 }}
-              style={{
-                background: alertBgColor(alert),
-                border: `1px solid ${alertBorderColor(alert)}`,
-                borderRadius: "var(--rs)",
-                padding: "10px 12px",
-              }}
-            >
-              {/* Top row */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  marginBottom: "4px",
-                }}
-              >
-                <span style={{ fontSize: "13px" }}>{typeIcon(alert.type)}</span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 800,
-                    color: alert.isWeather ? "#818cf8" : "var(--text)",
-                  }}
-                >
-                  {alert.isWeather ? "WEATHER" : alert.type}
-                </span>
-                <span
-                  style={{
-                    fontSize: "9px",
-                    fontWeight: 700,
-                    fontFamily: "monospace",
-                    color: "var(--text3)",
-                    marginLeft: "2px",
-                  }}
-                >
-                  {alert.confidence}% conf
-                </span>
-                <span
-                  style={{
-                    marginLeft: "auto",
-                    fontSize: "9px",
-                    fontFamily: "monospace",
-                    color: "var(--text3)",
-                  }}
-                >
-                  {alert.isNight ? "🌙 " : ""}
-                  {alert.timestamp}
-                </span>
-              </div>
-              {/* Camera + detail */}
-              <div
-                style={{
-                  fontSize: "10px",
-                  color: "var(--text2)",
-                  marginBottom: "6px",
-                }}
-              >
-                <span
-                  style={{
-                    fontWeight: 700,
-                    color: alert.isWeather ? "#818cf8" : "var(--accent2)",
-                  }}
-                >
-                  {alert.camera}
-                </span>
-                {" — "}
-                {alert.detail}
-              </div>
-              {/* Confidence bar + ack button */}
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
-              >
-                <div
-                  style={{
-                    flex: 1,
-                    height: "3px",
-                    background: "var(--surf3)",
-                    borderRadius: "2px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${alert.confidence}%`,
-                      height: "100%",
-                      background: alertBorderColor(alert),
-                      borderRadius: "2px",
-                    }}
-                  />
-                </div>
-                {!alert.acknowledged && (
-                  <button
-                    onClick={() => acknowledge(alert.id)}
-                    style={{
-                      fontSize: "9px",
-                      fontWeight: 700,
-                      padding: "2px 8px",
-                      borderRadius: "4px",
-                      border: "none",
-                      background: "var(--surf3)",
-                      color: "var(--text2)",
-                      cursor: "pointer",
-                    }}
-                  >
-                    ACK
-                  </button>
-                )}
-                {alert.acknowledged && (
-                  <span
-                    style={{
-                      fontSize: "9px",
-                      color: "var(--text3)",
-                      fontWeight: 700,
-                    }}
-                  >
-                    ✓ ACK
-                  </span>
-                )}
-              </div>
-            </motion.div>
+      {previewAlerts.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          {previewAlerts.map((alert) => (
+            <AlertPreviewCard key={alert.id} alert={alert} />
           ))}
-        </AnimatePresence>
+        </div>
+      ) : (
+        <div
+          style={{
+            padding: "16px 14px",
+            border: "1px dashed var(--border)",
+            borderRadius: "8px",
+            color: "var(--text3)",
+            fontSize: "11px",
+          }}
+        >
+          No incidents match the current filter.
+        </div>
+      )}
 
-        {filtered.length === 0 && (
+      <details
+        className="nexus-surface-disclosure"
+        open={feedExpanded}
+        onToggle={(event) => setFeedExpanded(event.currentTarget.open)}
+      >
+        <summary>Open incident feed</summary>
+        <div className="nexus-surface-disclosure__body">
           <div
             style={{
-              padding: "40px",
-              textAlign: "center",
+              fontSize: "10px",
               color: "var(--text3)",
-              fontSize: "12px",
+              marginBottom: "10px",
             }}
           >
-            No alerts for this filter
+            Review the full queue, acknowledge incidents, and keep the compact
+            preview above focused on the highest-priority alerts.
           </div>
-        )}
-      </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "6px",
+              maxHeight: "360px",
+              overflowY: "auto",
+            }}
+          >
+            <AnimatePresence>
+              {filtered.map((alert) => (
+                <AlertFeedCard
+                  key={alert.id}
+                  alert={alert}
+                  onAcknowledge={acknowledge}
+                />
+              ))}
+            </AnimatePresence>
+
+            {filtered.length === 0 && (
+              <div
+                style={{
+                  padding: "40px",
+                  textAlign: "center",
+                  color: "var(--text3)",
+                  fontSize: "12px",
+                }}
+              >
+                No alerts for this filter
+              </div>
+            )}
+          </div>
+        </div>
+      </details>
     </div>
   );
 }

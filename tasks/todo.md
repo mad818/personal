@@ -171,13 +171,19 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 
 ## Next Up
 
-- [ ] UXA3 — Switch the local browser runtime to `codex/uxa3-mainline-consolidation`, then review `/hq?focus=hq-chronicle`, `/command`, `/security`, `/vault`, and `/resources` on the real replay branch and confirm the shell/layout density, HQ room, lockdown posture, and Next 15 runtime lane feel right together.
-- [ ] UXA3 — After acceptance, regenerate handoff from this replay branch, commit/push `codex/uxa3-mainline-consolidation`, open the replay PR to `main`, merge it, and leave local review running from the merged branch instead of the older local checkout.
+- [ ] UXA3b — Compact COMMAND's deep-scroll behavior on merged `main` by making the support rail sticky/capped on wide viewports and moving heavyweight secondary modules behind disclosure-first shells unless the active focus/session needs them open.
+- [ ] UXA3c — Continue merged-main route compaction across `SECURITY`, `VAULT`, and `RESOURCES` by bounding support rails, hiding heavyweight secondary modules behind disclosures, and trimming the remaining pre-workplane chrome.
+- [ ] UXA3d — Continue merged-main first-viewport compaction by measuring remaining workplane offsets on `COMMAND`, `SECURITY`, `VAULT`, and `RESOURCES`, then trim whichever layer still dominates the fold: route strips, segmented-tab density, or tall workbench modules.
+- [ ] UXA3e — Follow the shared chrome pass by compacting the still-tall module stacks on merged `main`, especially nested segmented clusters and oversized workbench modules inside `COMMAND` and `SECURITY`, before doing another first-viewport measurement sweep.
+- [x] UXA3f — After flattening the `COMMAND` and `SECURITY` module stacks, compact the next remaining depth drivers on merged `main`: continuity bundles in `COMMAND`, residual physical-ops continuity in `SECURITY`, and any still-tall archive/support bundles in `VAULT` or `RESOURCES`.
+- [ ] UXA3g — Validate the new summary-first continuity surfaces on merged `main`, then only widen into `VAULT` / `RESOURCES` archive-support compaction if those routes still keep the primary workplane materially below the fold on live `3100`.
+- [ ] UXA3 — Review `/hq?focus=hq-chronicle`, `/command`, `/security`, `/vault`, and `/resources` on the merged `main` runtime at `http://localhost:3100` and confirm the shell/layout density, HQ room, lockdown posture, and Next 15 runtime lane feel right together.
+- [ ] UXA3 — After acceptance on merged `main`, retire the older replay worktree queue only once we no longer need side-by-side rollback or visual-reference inspection.
 - [x] M2 — Replay the shared shell, taste contract, route plates, and public landing/root-route contract onto the clean `main`-based branch `codex/m2-shell-taste-replay`.
 - [x] M3 — Replay the accepted HQ flagship and first-view COMMAND / SECURITY / SKILLS / VEHICLE / RESOURCES / VAULT interiors onto `codex/m3-hq-route-replay`, with `npm run type-check`, `npm run route:e2e`, `npm run hq:e2e`, and `npm run tabs:e2e` green there.
 - [x] M4 — Replay the trust/auth/protected-action substrate onto `codex/m4-trust-substrate-replay`, with `npm run type-check` and `npm run auth:e2e` green on the clean main-based worktree.
-- [ ] Retire the older M2/M3/M4 review queue only after UXA3 is accepted and the new replay branch is the branch serving local browser review.
-- [ ] Keep local `main` untouched until the replay branches are reviewed; no direct merge from `codex/preserve-main-2026-04-11`.
+- [ ] Retire the older M2/M3/M4 review queue only after UXA3 is accepted on merged `main` and there is no remaining need for replay-era rollback/reference worktrees.
+- [x] Keep local `main` untouched until the replay branches are reviewed; no direct merge from `codex/preserve-main-2026-04-11`.
 - [ ] FD2 remains blocked on the real staged Coolify hostname in repo-root `.env.local`, so release-proof work still stays out of this replay stack.
 
 ## Batch 3–7 Assimilation (completed 2026-03-28)

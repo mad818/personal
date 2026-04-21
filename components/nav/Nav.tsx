@@ -6,7 +6,7 @@
 import { clsx } from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import SettingsDrawer from "@/components/settings/SettingsDrawer";
@@ -33,6 +33,7 @@ import {
 export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
+  const toprailRef = useRef<HTMLElement | null>(null);
   const [activeOverlay, setActiveOverlay] = useState<"settings" | "notifications" | null>(null);
   const [hoverSurface, setHoverSurface] = useState<SurfaceMotionSurface | null>(null);
   const unreadCount = useStore((s) => s.unreadCount);
@@ -82,9 +83,49 @@ export default function Nav() {
     (entry) => entry.rule.action === "header-indicator",
   );
 
+  useEffect(() => {
+    const toprail = toprailRef.current;
+    if (!toprail || typeof window === "undefined") return;
+
+    const root = document.documentElement;
+    let frame = 0;
+
+    const syncToprailHeight = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const height = Math.ceil(toprail.getBoundingClientRect().height);
+        if (height > 0) {
+          root.style.setProperty("--top-rail-height", `${height}px`);
+        }
+      });
+    };
+
+    syncToprailHeight();
+
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            syncToprailHeight();
+          })
+        : null;
+    observer?.observe(toprail);
+    window.addEventListener("resize", syncToprailHeight);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer?.disconnect();
+      window.removeEventListener("resize", syncToprailHeight);
+      root.style.removeProperty("--top-rail-height");
+    };
+  }, []);
+
   return (
     <>
-      <nav className="nexus-toprail nexus-command-header" data-overlay-state={activeOverlay ?? "closed"}>
+      <nav
+        ref={toprailRef}
+        className="nexus-toprail nexus-command-header"
+        data-overlay-state={activeOverlay ?? "closed"}
+      >
         <div
           className="nexus-toprail__inner nexus-command-header__inner"
           data-surface={activeTab?.id ?? "hq"}

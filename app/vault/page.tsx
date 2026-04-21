@@ -207,6 +207,10 @@ export default function VaultPage() {
   const [chamber, setChamber] = useState<VaultChamberId>("archive");
   const [memoryView, setMemoryView] = useState<MemoryBriefView>("spine");
   const [archiveLane, setArchiveLane] = useState<ArchiveLaneView>("intake");
+  const [archiveMemoryExpanded, setArchiveMemoryExpanded] = useState(
+    () => Boolean(focusToMemoryView(focus)),
+  );
+  const [publishStewardExpanded, setPublishStewardExpanded] = useState(false);
   const [compiledPages, setCompiledPages] = useState<CompiledMemoryPageSummary[]>([]);
   const [compiledLoading, setCompiledLoading] = useState(false);
   const [graphSourceFilter, setGraphSourceFilter] =
@@ -250,6 +254,12 @@ export default function VaultPage() {
     const nextMemoryView = focusToMemoryView(focus);
     if (nextMemoryView) {
       setMemoryView(nextMemoryView);
+    }
+  }, [focus]);
+
+  useEffect(() => {
+    if (focusToMemoryView(focus)) {
+      setArchiveMemoryExpanded(true);
     }
   }, [focus]);
 
@@ -542,12 +552,14 @@ export default function VaultPage() {
           </div>
         </OpsStrip>
 
-        <MissionHandoffStrip
-          surface="vault"
-          mission={mission}
-          from={from}
-          source={source}
-        />
+        {mission || from || source ? (
+          <MissionHandoffStrip
+            surface="vault"
+            mission={mission}
+            from={from}
+            source={source}
+          />
+        ) : null}
 
         {focus === "vault-memory-project" ? (
           <SurfaceFocusStrip
@@ -612,48 +624,65 @@ export default function VaultPage() {
           />
         ) : null}
 
-        <VaultModeOrientationSection mode={chamber} />
+        <details className="nexus-surface-disclosure">
+          <summary>Open chamber briefing</summary>
+          <div className="nexus-surface-disclosure__body">
+            <VaultModeOrientationSection mode={chamber} />
+          </div>
+        </details>
 
         <ShellSegmentedTabs
           items={CHAMBERS}
           active={chamber}
           onChange={handleChamberChange}
           minButtonWidth={132}
+          className="nexus-shell-segmented--compactLane"
         />
         {chamber === "archive" ? (
           <div id="vault-archive" style={{ scrollMarginTop: "120px" }}>
             <div className="nexus-surface-chamber-shell">
               <div className="nexus-surface-chamber-shell__body">
-                <OpsRail className={`nexus-surface-chamber-shell__support ${vaultLayout.railClass}`}>
+                <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.railClass}`}>
                   <div id="vault-memory-brief" style={{ scrollMarginTop: "120px" }}>
                     <OpsField title={memoryBriefSpec.title} detail={memoryBriefSpec.detail} tone="muted" compact>
-                      <div className="nexus-surface-subtabs">
-                        <ShellSegmentedTabs
-                          items={MEMORY_VIEWS}
-                          active={memoryView}
-                          onChange={setMemoryView}
-                          minButtonWidth={110}
-                        />
-                        {memoryView === "spine" ? <LazyMemorySpineOverview /> : null}
-                        {memoryView === "project" ? (
-                          <LazyMemoryPalacePanel compartment="project" />
-                        ) : null}
-                        {memoryView === "conversation" ? (
-                          <LazyMemoryPalacePanel compartment="conversation" />
-                        ) : null}
-                        {memoryView === "general" ? (
-                          <LazyMemoryPalacePanel compartment="general" />
-                        ) : null}
-                        {memoryView === "research" ? (
-                          <LazyMemoryPalacePanel compartment="research" />
-                        ) : null}
-                        {memoryView === "study" ? (
-                          <LazyMemoryPalacePanel compartment="study" />
-                        ) : null}
-                        {memoryView === "stewardship" ? (
-                          <LazyVaultStewardshipPanel compiledPages={compiledPages} />
-                        ) : null}
-                      </div>
+                      <details
+                        className="nexus-surface-disclosure"
+                        open={archiveMemoryExpanded}
+                        onToggle={(event) =>
+                          setArchiveMemoryExpanded(event.currentTarget.open)
+                        }
+                      >
+                        <summary>Open memory lanes</summary>
+                        <div className="nexus-surface-disclosure__body">
+                          <div className="nexus-surface-subtabs">
+                            <ShellSegmentedTabs
+                              items={MEMORY_VIEWS}
+                              active={memoryView}
+                              onChange={setMemoryView}
+                              minButtonWidth={110}
+                            />
+                            {memoryView === "spine" ? <LazyMemorySpineOverview /> : null}
+                            {memoryView === "project" ? (
+                              <LazyMemoryPalacePanel compartment="project" />
+                            ) : null}
+                            {memoryView === "conversation" ? (
+                              <LazyMemoryPalacePanel compartment="conversation" />
+                            ) : null}
+                            {memoryView === "general" ? (
+                              <LazyMemoryPalacePanel compartment="general" />
+                            ) : null}
+                            {memoryView === "research" ? (
+                              <LazyMemoryPalacePanel compartment="research" />
+                            ) : null}
+                            {memoryView === "study" ? (
+                              <LazyMemoryPalacePanel compartment="study" />
+                            ) : null}
+                            {memoryView === "stewardship" ? (
+                              <LazyVaultStewardshipPanel compiledPages={compiledPages} />
+                            ) : null}
+                          </div>
+                        </div>
+                      </details>
                     </OpsField>
                   </div>
                 </OpsRail>
@@ -715,7 +744,7 @@ export default function VaultPage() {
           <div id="vault-relations" style={{ scrollMarginTop: "120px" }}>
             <div className="nexus-surface-chamber-shell">
               <div className="nexus-surface-chamber-shell__body">
-                <OpsRail className={`nexus-surface-chamber-shell__support ${vaultLayout.railClass}`}>
+                <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.railClass}`}>
                   <ShellStack gap="12px">
                     <OpsField
                       title={memoryBriefSpec.title}
@@ -835,7 +864,7 @@ export default function VaultPage() {
                         </div>
                       </div>
                       <OpsInspector
-                        className={`nexus-surface-chamber-shell__support ${vaultLayout.inspectorClass}`}
+                        className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.inspectorClass}`}
                       >
                         <ShellStack gap="12px">
                           <OpsField
@@ -877,7 +906,7 @@ export default function VaultPage() {
           <div id="vault-publish" style={{ scrollMarginTop: "120px" }}>
             <div className="nexus-surface-chamber-shell">
               <div className="nexus-surface-chamber-shell__body">
-                <OpsRail className={`nexus-surface-chamber-shell__support ${vaultLayout.railClass}`}>
+                <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.railClass}`}>
                   <ShellStack gap="12px">
                     <OpsField
                       title={memoryBriefSpec.title}
@@ -907,7 +936,18 @@ export default function VaultPage() {
                       tone="muted"
                       compact
                     >
-                      <LazyVaultStewardshipPanel compiledPages={compiledPages} />
+                      <details
+                        className="nexus-surface-disclosure"
+                        open={publishStewardExpanded}
+                        onToggle={(event) =>
+                          setPublishStewardExpanded(event.currentTarget.open)
+                        }
+                      >
+                        <summary>Open stewardship detail</summary>
+                        <div className="nexus-surface-disclosure__body">
+                          <LazyVaultStewardshipPanel compiledPages={compiledPages} />
+                        </div>
+                      </details>
                     </OpsField>
                   </ShellStack>
                 </OpsRail>
@@ -941,7 +981,7 @@ export default function VaultPage() {
                       </OpsField>
                     </div>
                     <OpsInspector
-                      className={`nexus-surface-chamber-shell__support ${vaultLayout.inspectorClass}`}
+                      className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.inspectorClass}`}
                     >
                       <OpsField
                         title="Saved article archive"

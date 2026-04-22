@@ -171,6 +171,7 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 
 ## Next Up
 
+- [x] MAIN-PUBLISH — Root `main` now owns a repo-native `3100` review lane through `npm run runtime:launch:3100` / `npm run runtime:stop:3100`, local pid/log artifacts are ignored, and the original `C:\Users\mario\Desktop\personal` checkout is back to being the normal published runtime lane.
 - [x] MAIN-RESTORE — The original `C:\Users\mario\Desktop\personal` checkout is back on `main`, the previous dirty root state is preserved on `codex/root-preserve-before-main-restore-2026-04-21`, the dedicated `main` worktree is archived on `codex/mainline-runtime-archive-2026-04-21`, and root-main verification plus `npm run runtime:fresh-proof` are green.
 - [ ] UXA3b — Compact COMMAND's deep-scroll behavior on merged `main` by making the support rail sticky/capped on wide viewports and moving heavyweight secondary modules behind disclosure-first shells unless the active focus/session needs them open.
 - [ ] UXA3c — Continue merged-main route compaction across `SECURITY`, `VAULT`, and `RESOURCES` by bounding support rails, hiding heavyweight secondary modules behind disclosures, and trimming the remaining pre-workplane chrome.

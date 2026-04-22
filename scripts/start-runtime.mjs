@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
+import { config as loadEnv } from "dotenv";
 import { cpSync, existsSync, mkdirSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { randomUUID } from "crypto";
 import { spawn } from "child_process";
+
+loadEnv({ path: ".env.local" });
 
 const root = process.cwd();
 const nextDistDir = process.env.NEXUS_NEXT_DIST_DIR ?? ".next";

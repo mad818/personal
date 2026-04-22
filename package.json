@@ -26,6 +26,8 @@
     "tabs:e2e": "playwright test -c playwright.auth.config.ts tests/e2e/tab-surfaces.spec.ts",
     "runtime:consistency": "node scripts/runtime-consistency.mjs",
     "runtime:fresh-proof": "node scripts/fresh-runtime-proof.mjs",
+    "runtime:launch:3100": "node scripts/runtime-launch-3100.mjs",
+    "runtime:stop:3100": "node scripts/runtime-stop-3100.mjs",
     "release:checksums": "node scripts/generate-desktop-checksums.mjs",
     "orbit:next": "node scripts/orbit.js",
     "audit:full": "node scripts/audit.js",

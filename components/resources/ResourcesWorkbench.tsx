@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import DeveloperFieldManual from "@/components/resources/DeveloperFieldManual";
 import PlaybooksConsole from "@/components/resources/PlaybooksConsole";
@@ -215,6 +215,8 @@ export default function ResourcesWorkbench() {
     () => resolveResourcesViewForChamber(chamber, resolvedView),
     [chamber, resolvedView],
   );
+  const [stackExpanded, setStackExpanded] = useState(false);
+  const [readinessExpanded, setReadinessExpanded] = useState(false);
   const chamberIntegrationHighlights = useMemo(
     () =>
       DEVELOPER_RESOURCES.filter(
@@ -312,11 +314,12 @@ export default function ResourcesWorkbench() {
         active={chamber}
         onChange={handleChamberChange}
         minButtonWidth={118}
+        className="nexus-shell-segmented--compactLane"
       />
 
       <div className="nexus-surface-chamber-shell">
         <div className="nexus-surface-chamber-shell__body">
-          <OpsRail className={`nexus-surface-chamber-shell__support ${resourcesLayout.railClass}`}>
+          <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${resourcesLayout.railClass}`}>
             <OpsField title={introSpec.title} detail={introSpec.detail} tone="muted" compact>
               <div className="nexus-shell-copy nexus-shell-copy--compact">
                 <p>{activeViewSpec.introSummary}</p>
@@ -329,47 +332,56 @@ export default function ResourcesWorkbench() {
 
             {chamberIntegrationHighlights.length ? (
               <OpsField title={stackSpec.title} detail={stackSpec.detail} tone="muted" compact>
-                <div className="nexus-shell-copy nexus-shell-copy--compact">
-                  <p>
-                    These upstream projects map cleanly onto the current chamber, so
-                    we can absorb their runtime, memory, browser-ops, or skill ideas
-                    without breaking the Satellite Ops workplane.
-                  </p>
-                </div>
-                <div style={{ display: "grid", gap: "10px" }}>
-                  {chamberIntegrationHighlights.map((resource) => (
-                    <a
-                      key={resource.href}
-                      href={resource.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="nexus-shell-resource-card"
-                    >
-                      <div className="nexus-shell-resource-card__meta">
-                        <span className="nexus-shell-resource-card__chip">
-                          {DEVELOPER_RESOURCE_CATEGORIES[resource.category]}
-                        </span>
-                        {resource.integrationFit ? (
-                          <span className="nexus-shell-resource-card__chip">
-                            {DEVELOPER_RESOURCE_FIT_LABELS[resource.integrationFit]}
-                          </span>
-                        ) : null}
-                        <span className="nexus-shell-resource-card__external">
-                          External ↗
-                        </span>
-                      </div>
-                      <div className="nexus-shell-resource-card__title">
-                        {resource.title}
-                      </div>
-                      <p className="nexus-shell-resource-card__description">
-                        {resource.description}
+                <details
+                  className="nexus-surface-disclosure"
+                  open={stackExpanded}
+                  onToggle={(event) => setStackExpanded(event.currentTarget.open)}
+                >
+                  <summary>Open external stack</summary>
+                  <div className="nexus-surface-disclosure__body">
+                    <div className="nexus-shell-copy nexus-shell-copy--compact">
+                      <p>
+                        These upstream projects map cleanly onto the current chamber, so
+                        we can absorb their runtime, memory, browser-ops, or skill ideas
+                        without breaking the Satellite Ops workplane.
                       </p>
-                      {resource.note ? (
-                        <p className="nexus-shell-resource-card__note">{resource.note}</p>
-                      ) : null}
-                    </a>
-                  ))}
-                </div>
+                    </div>
+                    <div style={{ display: "grid", gap: "10px" }}>
+                      {chamberIntegrationHighlights.map((resource) => (
+                        <a
+                          key={resource.href}
+                          href={resource.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="nexus-shell-resource-card"
+                        >
+                          <div className="nexus-shell-resource-card__meta">
+                            <span className="nexus-shell-resource-card__chip">
+                              {DEVELOPER_RESOURCE_CATEGORIES[resource.category]}
+                            </span>
+                            {resource.integrationFit ? (
+                              <span className="nexus-shell-resource-card__chip">
+                                {DEVELOPER_RESOURCE_FIT_LABELS[resource.integrationFit]}
+                              </span>
+                            ) : null}
+                            <span className="nexus-shell-resource-card__external">
+                              External ↗
+                            </span>
+                          </div>
+                          <div className="nexus-shell-resource-card__title">
+                            {resource.title}
+                          </div>
+                          <p className="nexus-shell-resource-card__description">
+                            {resource.description}
+                          </p>
+                          {resource.note ? (
+                            <p className="nexus-shell-resource-card__note">{resource.note}</p>
+                          ) : null}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </details>
               </OpsField>
             ) : null}
 
@@ -379,10 +391,21 @@ export default function ResourcesWorkbench() {
               tone="muted"
               compact
             >
-              <OperatorReadinessLane
-                surfaceId="resources"
-                detail="Use this rail to confirm secret hygiene, governance posture, browser readiness, memory strength, and capability coverage before opening external workflows."
-              />
+              <details
+                className="nexus-surface-disclosure"
+                open={readinessExpanded}
+                onToggle={(event) =>
+                  setReadinessExpanded(event.currentTarget.open)
+                }
+              >
+                <summary>Open readiness detail</summary>
+                <div className="nexus-surface-disclosure__body">
+                  <OperatorReadinessLane
+                    surfaceId="resources"
+                    detail="Use this rail to confirm secret hygiene, governance posture, browser readiness, memory strength, and capability coverage before opening external workflows."
+                  />
+                </div>
+              </details>
             </OpsField>
           </OpsRail>
 

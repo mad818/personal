@@ -58,7 +58,6 @@ async function expectOk(pathname) {
 async function main() {
   console.log(`route-integrity against ${baseUrl}`);
 
-  await expectRedirect("/", "/hq");
   await expectRedirect("/home", "/hq");
   await expectRedirect("/signals", "/labs/signals");
   await expectRedirect("/ops", "/labs/ops");
@@ -68,6 +67,7 @@ async function main() {
   await expectRedirect("/iot", "/internal/iot");
   await expectRedirect("/reset", "/internal/reset");
 
+  await expectOk("/");
   await expectOk("/hq");
   await expectOk("/command");
   await expectOk("/resources");

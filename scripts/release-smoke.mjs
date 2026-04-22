@@ -8,6 +8,7 @@ const matrixPath = path.join(root, "lib", "release-matrix.json");
 const matrix = JSON.parse(fs.readFileSync(matrixPath, "utf8"));
 const baseUrl = process.env.NEXUS_RELEASE_BASE_URL ?? "http://127.0.0.1:3000";
 const token = process.env.NEXUS_TOKEN ?? "";
+const INTERNAL_AUTH_HEADER = "x-nexus-internal-auth";
 
 const gaSurfaces = matrix.surfaces.filter((surface) => surface.tier === "ga");
 const gaNavTabs = matrix.surfaces.filter(
@@ -83,7 +84,7 @@ async function main() {
   }
 
   const protectedHeaders = token
-    ? { Authorization: `Bearer ${token}` }
+    ? { [INTERNAL_AUTH_HEADER]: token }
     : undefined;
 
   const statusRes = await check("/api/status", {

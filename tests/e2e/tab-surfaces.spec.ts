@@ -36,8 +36,8 @@ test("ga tabs resolve data states without hanging on dead loading copy", async (
   page,
 }, testInfo) => {
   await gotoShell(page, "/command");
-  await waitForShell(page, testInfo, { anchorText: "Offline readiness" });
-  await expect(page.getByText("Offline readiness", { exact: true })).toBeVisible();
+  await waitForShell(page, testInfo, { anchorText: "Connectivity posture" });
+  await expect(page.getByText("Connectivity posture", { exact: true })).toBeVisible();
   await waitForTextToDisappear(page, [
     "Loading market breadth",
     "Loading threat feed",

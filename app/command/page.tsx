@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import AssistantGuidanceStack from "@/components/ui/AssistantGuidanceStack";
 import {
@@ -13,6 +13,7 @@ import {
   OpsStrip,
   OpsWorkplane,
   ShellBadge,
+  ShellGrid,
   ShellPage,
   ShellSegmentedTabs,
   ShellStack,
@@ -139,6 +140,19 @@ export default function CommandPage() {
   const focus = normalizedParams.get("focus");
   const [briefView, setBriefView] = useState<CommandBriefView>("brief");
   const [dispatchView, setDispatchView] = useState<CommandDispatchView>("dispatch");
+  const [dispatchEfficiencyExpanded, setDispatchEfficiencyExpanded] = useState(
+    () => focus === "runtime-efficiency",
+  );
+  const [programRiskExpanded, setProgramRiskExpanded] = useState(false);
+  const [readinessExpanded, setReadinessExpanded] = useState(
+    () => focus === "provider-health",
+  );
+  const [agentHealthExpanded, setAgentHealthExpanded] = useState(
+    () => focus === "agent-health",
+  );
+  const [memoryExpanded, setMemoryExpanded] = useState(
+    () => Boolean(initialMemoryAsk.trim()) || focus === "memory-spine",
+  );
 
   const focusTargetId =
     focus === "provider-health"
@@ -152,6 +166,25 @@ export default function CommandPage() {
           : null;
 
   useSurfaceFocusScroll(focusTargetId);
+
+  useEffect(() => {
+    if (focus === "provider-health") {
+      setReadinessExpanded(true);
+    }
+    if (focus === "agent-health") {
+      setAgentHealthExpanded(true);
+    }
+    if (focus === "runtime-efficiency") {
+      setDispatchView("dispatch");
+      setDispatchEfficiencyExpanded(true);
+    }
+  }, [focus]);
+
+  useEffect(() => {
+    if (focus === "memory-spine" || initialMemoryAsk.trim()) {
+      setMemoryExpanded(true);
+    }
+  }, [focus, initialMemoryAsk]);
 
   const systemPostureSpec = getSurfaceModuleSpec("command", "system-posture");
   const operationalBriefSpec = getSurfaceModuleSpec("command", "operational-brief");
@@ -229,12 +262,14 @@ export default function CommandPage() {
         }
       >
         <ShellStack>
-          <MissionHandoffStrip
-            surface="command"
-            mission={mission}
-            from={from}
-            source={source}
-          />
+          {mission || from || source ? (
+            <MissionHandoffStrip
+              surface="command"
+              mission={mission}
+              from={from}
+              source={source}
+            />
+          ) : null}
 
           {focus === "runtime-efficiency" ? (
             <SurfaceFocusStrip
@@ -280,21 +315,21 @@ export default function CommandPage() {
                   KPIs and readiness in front.
                 </span>
               </div>
-              <div className="nexus-surface-route-strip__cell" id="command-provider-health">
+              <div className="nexus-surface-route-strip__cell">
                 <span className="nexus-surface-route-strip__cellLabel">Provider health</span>
                 <strong className="nexus-surface-route-strip__cellValue">Switch operator</strong>
                 <span className="nexus-surface-route-strip__cellNote">
                   Provider chain one move away.
                 </span>
               </div>
-              <div className="nexus-surface-route-strip__cell" id="command-runtime-efficiency">
+              <div className="nexus-surface-route-strip__cell">
                 <span className="nexus-surface-route-strip__cellLabel">Runtime pressure</span>
                 <strong className="nexus-surface-route-strip__cellValue">Efficiency</strong>
                 <span className="nexus-surface-route-strip__cellNote">
                   Waste and cache pressure staged.
                 </span>
               </div>
-              <div className="nexus-surface-route-strip__cell" id="command-agent-health">
+              <div className="nexus-surface-route-strip__cell">
                 <span className="nexus-surface-route-strip__cellLabel">Choir posture</span>
                 <strong className="nexus-surface-route-strip__cellValue">Agents</strong>
                 <span className="nexus-surface-route-strip__cellNote">
@@ -334,10 +369,15 @@ export default function CommandPage() {
                     />
 
                     {briefView === "brief" ? (
-                      <ShellStack gap="12px">
+                      <ShellGrid
+                        columns="repeat(2, minmax(0, 1fr))"
+                        gap="12px"
+                        className="nexus-command-briefGrid"
+                      >
                         <OpsField
                           title="Operations snapshot"
                           detail="KPI stack plus command status ring"
+                          className="nexus-command-gridSpan"
                         >
                           <div className="nexus-surface-chamber-shell__body">
                             <div className="nexus-surface-chamber-shell__lead">
@@ -361,11 +401,15 @@ export default function CommandPage() {
                         >
                           <LazyEventRadar />
                         </OpsField>
-                      </ShellStack>
+                      </ShellGrid>
                     ) : null}
 
                     {briefView === "pressure" ? (
-                      <ShellStack gap="12px">
+                      <ShellGrid
+                        columns="minmax(0, 1.18fr) minmax(280px, 0.82fr)"
+                        gap="12px"
+                        className="nexus-command-pressureGrid"
+                      >
                         <OpsField
                           title="Threat heatmap"
                           detail="Conflict, cyber, and narrative clustering"
@@ -379,11 +423,15 @@ export default function CommandPage() {
                         >
                           <LazyWorldEventMap />
                         </OpsField>
-                      </ShellStack>
+                      </ShellGrid>
                     ) : null}
 
                     {briefView === "world" ? (
-                      <ShellStack gap="12px">
+                      <ShellGrid
+                        columns="minmax(280px, 0.82fr) minmax(0, 1.18fr)"
+                        gap="12px"
+                        className="nexus-command-worldGrid"
+                      >
                         <OpsField
                           title="World event map"
                           detail="Global live theater"
@@ -397,14 +445,14 @@ export default function CommandPage() {
                         >
                           <LazyEventRadar />
                         </OpsField>
-                      </ShellStack>
+                      </ShellGrid>
                     ) : null}
                   </div>
                 </OpsField>
               </OpsWorkplane>
 
               <OpsRail
-                className={`nexus-surface-chamber-shell__support ${commandLayout.railClass}`}
+                className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${commandLayout.railClass}`}
               >
                 <OpsField
                   title={programsWorkflowsSpec.title}
@@ -419,39 +467,51 @@ export default function CommandPage() {
                     />
 
                     {dispatchView === "dispatch" ? (
-                      <ShellStack gap="12px">
-                        <OpsField
-                          title="Focus panel"
-                          detail="What should move next"
-                        >
+                      <OpsField
+                        title="Action brief"
+                        detail="What should move next"
+                      >
+                        <ShellStack gap="10px">
                           <LazyFocusPanel />
-                        </OpsField>
-                        <OpsField
-                          title="Efficiency ops"
-                          detail="Queue, cache, and the next recurring repair"
-                          tone="muted"
-                        >
-                          <LazyEfficiencyOpsCard />
-                        </OpsField>
-                      </ShellStack>
+                          <details
+                            className="nexus-surface-disclosure"
+                            open={dispatchEfficiencyExpanded}
+                            onToggle={(event) =>
+                              setDispatchEfficiencyExpanded(
+                                event.currentTarget.open,
+                              )
+                            }
+                          >
+                            <summary>Open efficiency ops</summary>
+                            <div className="nexus-surface-disclosure__body">
+                              <LazyEfficiencyOpsCard />
+                            </div>
+                          </details>
+                        </ShellStack>
+                      </OpsField>
                     ) : null}
 
                     {dispatchView === "programs" ? (
-                      <ShellStack gap="12px">
-                        <OpsField
-                          title="Business builder"
-                          detail="Program design"
-                        >
+                      <OpsField
+                        title="Business builder"
+                        detail="Program design"
+                      >
+                        <ShellStack gap="10px">
                           <LazyBusinessBuilder />
-                        </OpsField>
-                        <OpsField
-                          title="Job risk analyzer"
-                          detail="Automation exposure"
-                          tone="muted"
-                        >
-                          <LazyJobRiskAnalyzer />
-                        </OpsField>
-                      </ShellStack>
+                          <details
+                            className="nexus-surface-disclosure"
+                            open={programRiskExpanded}
+                            onToggle={(event) =>
+                              setProgramRiskExpanded(event.currentTarget.open)
+                            }
+                          >
+                            <summary>Open risk scan</summary>
+                            <div className="nexus-surface-disclosure__body">
+                              <LazyJobRiskAnalyzer />
+                            </div>
+                          </details>
+                        </ShellStack>
+                      </OpsField>
                     ) : null}
                   </div>
                 </OpsField>
@@ -467,59 +527,89 @@ export default function CommandPage() {
                       detail="Protected settings, verification, and dangerous tool posture stays inline with dispatch."
                       compact
                     />
-                    <OpsField
-                      title="Operator readiness"
-                      detail="Security posture, governance coverage, guarded browser ops, native queue strength, and memory lifecycle"
-                      compact
+                    <ShellGrid
+                      columns="repeat(2, minmax(0, 1fr))"
+                      gap="12px"
+                      className="nexus-command-supportGrid"
                     >
-                      <LazyOperatorReadinessLane
-                        surfaceId="command"
-                        workflowCatalog={HQ_WORKFLOW_CATALOG}
-                      />
-                    </OpsField>
-                    <OpsField
-                      id="command-provider-health"
-                      title="Provider health"
-                      detail="Server-scored chain posture plus true local runtime reachability"
-                      compact
-                    >
-                      <LazyProviderHealthStrip surface="command" />
-                    </OpsField>
-                    <OpsField
-                      title="Operator mode"
-                      detail="One-shot switch-operator posture and the latest explicit run"
-                      compact
-                    >
-                      <LazyOperatorStatusCard surface="command" />
-                    </OpsField>
-                    <OpsField
-                      title="Project stack context"
-                      detail="Static stack context injected into agent prompts"
-                      compact
-                    >
-                      <LazyProjectStackCard />
-                    </OpsField>
-                    <OpsField
-                      id="command-memory-spine"
-                      title="Memory spine"
-                      detail="Local-only operator memory with free-first posture"
-                      compact
-                    >
-                      <LazyMemorySpineStatusCard />
-                    </OpsField>
-                    <OpsField
-                      title="Ask memory"
-                      detail="Native citation-first recall inside the mission lane"
-                      tone="muted"
-                      compact
-                    >
-                      <LazyMemoryAskPanel
-                        surface="command"
-                        initialQuery={initialMemoryAsk}
-                        initialCompare={initialMemoryCompare}
-                        autoRunOnInitialQuery={Boolean(initialMemoryAsk.trim())}
-                      />
-                    </OpsField>
+                      <OpsField
+                        title="Operator readiness"
+                        detail="Security posture, governance coverage, guarded browser ops, native queue strength, and memory lifecycle"
+                        compact
+                        className="nexus-command-gridSpan"
+                      >
+                        <details
+                          className="nexus-surface-disclosure"
+                          open={readinessExpanded}
+                          onToggle={(event) =>
+                            setReadinessExpanded(event.currentTarget.open)
+                          }
+                        >
+                          <summary>Open readiness detail</summary>
+                          <div className="nexus-surface-disclosure__body">
+                            <LazyOperatorReadinessLane
+                              surfaceId="command"
+                              workflowCatalog={HQ_WORKFLOW_CATALOG}
+                            />
+                          </div>
+                        </details>
+                      </OpsField>
+                      <OpsField
+                        id="command-provider-health"
+                        title="Provider health"
+                        detail="Server-scored chain posture plus true local runtime reachability"
+                        compact
+                      >
+                        <LazyProviderHealthStrip surface="command" />
+                      </OpsField>
+                      <OpsField
+                        title="Operator mode"
+                        detail="One-shot switch-operator posture and the latest explicit run"
+                        compact
+                      >
+                        <LazyOperatorStatusCard surface="command" />
+                      </OpsField>
+                      <OpsField
+                        title="Project stack context"
+                        detail="Static stack context injected into agent prompts"
+                        compact
+                      >
+                        <LazyProjectStackCard />
+                      </OpsField>
+                      <OpsField
+                        id="command-memory-spine"
+                        title="Memory spine"
+                        detail="Local-only operator memory with free-first posture"
+                        compact
+                      >
+                        <LazyMemorySpineStatusCard />
+                      </OpsField>
+                      <OpsField
+                        title="Ask memory"
+                        detail="Native citation-first recall inside the mission lane"
+                        tone="muted"
+                        compact
+                        className="nexus-command-gridSpan"
+                      >
+                        <details
+                          className="nexus-surface-disclosure"
+                          open={memoryExpanded}
+                          onToggle={(event) =>
+                            setMemoryExpanded(event.currentTarget.open)
+                          }
+                        >
+                          <summary>Open memory ask</summary>
+                          <div className="nexus-surface-disclosure__body">
+                            <LazyMemoryAskPanel
+                              surface="command"
+                              initialQuery={initialMemoryAsk}
+                              initialCompare={initialMemoryCompare}
+                              autoRunOnInitialQuery={Boolean(initialMemoryAsk.trim())}
+                            />
+                          </div>
+                        </details>
+                      </OpsField>
+                    </ShellGrid>
                   </ShellStack>
                 </OpsField>
               </OpsRail>
@@ -528,33 +618,38 @@ export default function CommandPage() {
             <OpsStrip className={commandLayout.continuityClass}>
               <div className="nexus-surface-continuity-strip">
                 <OpsField
-                  title="Offline readiness"
-                  detail="Internet loss pauses feed churn while local runtime surfaces stay visible"
+                  title="Connectivity posture"
+                  detail="Offline fallback, route reachability, and agent readiness on one telemetry lane"
                   tone="muted"
                   compact
                 >
-                  <LazyOfflineReadinessCallout surface="command" />
+                  <ShellStack gap="12px">
+                    <LazyOfflineReadinessCallout surface="command" />
+                    <LazyNetworkHealth />
+                    <details
+                      id="command-agent-health"
+                      className="nexus-surface-disclosure"
+                      open={agentHealthExpanded}
+                      onToggle={(event) =>
+                        setAgentHealthExpanded(event.currentTarget.open)
+                      }
+                    >
+                      <summary>Open agent health</summary>
+                      <div className="nexus-surface-disclosure__body">
+                        <LazyAgentHealthCard />
+                      </div>
+                    </details>
+                  </ShellStack>
                 </OpsField>
                 <OpsField
-                  title="Network health"
-                  detail="Connectivity and route reachability"
-                  compact
-                >
-                  <LazyNetworkHealth />
-                </OpsField>
-                <OpsField
-                  title="Agent health"
-                  detail="Internal regression suite metrics"
-                  compact
-                >
-                  <LazyAgentHealthCard />
-                </OpsField>
-                <OpsField
+                  id="command-runtime-efficiency"
                   title="Runtime efficiency"
-                  detail="Waste, tool-pack posture, and cache pressure"
+                  detail="Waste, tool-pack posture, and cache pressure without another tall continuity desk"
                   compact
                 >
-                  <LazyRuntimeEfficiencyCard />
+                  <LazyRuntimeEfficiencyCard
+                    initialExpanded={focus === "runtime-efficiency"}
+                  />
                 </OpsField>
               </div>
             </OpsStrip>

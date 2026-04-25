@@ -752,6 +752,52 @@ const DEFAULT_PM_CHECKLIST: PMChecklistItem[] = [
   { id: 'post-retest',    label: 'Regression path manually retested',             category: 'post-incident', checked: false },
 ]
 
+function normalizePersistedNexusState(persisted: unknown): Partial<NexusState> {
+  const next =
+    persisted && typeof persisted === 'object'
+      ? { ...(persisted as Partial<NexusState> & { dismissedRuleIds?: unknown }) }
+      : {}
+
+  next.settings = sanitizeClientSettingsForPersistence({
+    ...DEFAULT_SETTINGS,
+    ...(next.settings ?? {}),
+  })
+  next.settings.aiProvider = normalizePreferredAIProvider(
+    next.settings.aiProvider,
+  )
+  if (!next.intelView) next.intelView = 'news'
+  if (!next.marketsView) next.marketsView = 'watchlist'
+  if (!next.cyberView) next.cyberView = 'triage'
+  if (!next.skillsWorkbenchView) next.skillsWorkbenchView = 'forge'
+  if (!next.resourcesWorkbenchView) next.resourcesWorkbenchView = 'manual'
+  if (!next.securityWorkbenchView) next.securityWorkbenchView = 'doctrine'
+  if (!Array.isArray(next.voiceProfiles)) next.voiceProfiles = []
+  if (!Array.isArray(next.voiceProjects)) next.voiceProjects = []
+  if (!next.activeVoiceProjectId) next.activeVoiceProjectId = null
+  if (next.preparedWorkspace) {
+    const normalizedPrepared = normalizePreparedWorkspaceTarget(next.preparedWorkspace)
+    next.preparedWorkspace = normalizedPrepared
+      ? {
+          ...next.preparedWorkspace,
+          ...normalizedPrepared,
+          preparedAt:
+            typeof next.preparedWorkspace.preparedAt === 'number'
+              ? next.preparedWorkspace.preparedAt
+              : Date.now(),
+          intent: next.preparedWorkspace.intent ?? 'conversation',
+          sourceQuery: next.preparedWorkspace.sourceQuery ?? '',
+        }
+      : null
+  }
+  next.unfinishedSessions = pruneUnfinishedSessions(next.unfinishedSessions)
+  next.dismissedUIRuleKeys = Array.isArray(next.dismissedUIRuleKeys)
+    ? next.dismissedUIRuleKeys
+    : Array.isArray(next.dismissedRuleIds)
+      ? next.dismissedRuleIds
+      : []
+
+  return next
+}
 // ── Store ─────────────────────────────────────────────────────────────────────
 export const useStore = create<NexusState>()(
   persist(
@@ -1342,48 +1388,10 @@ export const useStore = create<NexusState>()(
         dismissedUIRuleKeys: s.dismissedUIRuleKeys,
         activePersona:   s.activePersona,
       }),
-      migrate: (persisted: any) => {
-        // Ensure new persisted keys have safe defaults.
-        const next = { ...(persisted ?? {}) }
-        next.settings = sanitizeClientSettingsForPersistence({
-          ...DEFAULT_SETTINGS,
-          ...(next.settings ?? {}),
-        })
-        next.settings.aiProvider = normalizePreferredAIProvider(
-          next.settings.aiProvider,
-        )
-        if (!next.intelView) next.intelView = 'news'
-        if (!next.marketsView) next.marketsView = 'watchlist'
-        if (!next.cyberView) next.cyberView = 'triage'
-        if (!next.skillsWorkbenchView) next.skillsWorkbenchView = 'forge'
-        if (!next.resourcesWorkbenchView) next.resourcesWorkbenchView = 'manual'
-        if (!next.securityWorkbenchView) next.securityWorkbenchView = 'doctrine'
-        if (!Array.isArray(next.voiceProfiles)) next.voiceProfiles = []
-        if (!Array.isArray(next.voiceProjects)) next.voiceProjects = []
-        if (!next.activeVoiceProjectId) next.activeVoiceProjectId = null
-        if (next.preparedWorkspace) {
-          const normalizedPrepared = normalizePreparedWorkspaceTarget(next.preparedWorkspace)
-          next.preparedWorkspace = normalizedPrepared
-            ? {
-                ...next.preparedWorkspace,
-                ...normalizedPrepared,
-                preparedAt:
-                  typeof next.preparedWorkspace.preparedAt === 'number'
-                    ? next.preparedWorkspace.preparedAt
-                    : Date.now(),
-                intent: next.preparedWorkspace.intent ?? 'conversation',
-                sourceQuery: next.preparedWorkspace.sourceQuery ?? '',
-              }
-            : null
-        }
-        next.unfinishedSessions = pruneUnfinishedSessions(next.unfinishedSessions)
-        next.dismissedUIRuleKeys = Array.isArray(next.dismissedUIRuleKeys)
-          ? next.dismissedUIRuleKeys
-          : Array.isArray(next.dismissedRuleIds)
-            ? next.dismissedRuleIds
-            : []
-        return next
-      },
-    }
+      migrate: (persisted: any) => normalizePersistedNexusState(persisted),
+      merge: (persisted, current) => ({
+        ...current,
+        ...normalizePersistedNexusState(persisted),
+      }),    }
   )
 )

@@ -18,6 +18,8 @@ module.exports = {
     },
     extend: {
       fontFamily: {
+        heading: ["'Instrument Serif'", 'serif'],
+        body: ["'Barlow'", 'sans-serif'],
         sans: ['var(--font-geist-sans)'],
         mono: ['var(--font-geist-mono)']
       },

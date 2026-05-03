@@ -77,6 +77,12 @@ async function expectCinematicIA(page: Page, surface: string) {
   if (surface !== "hq") {
     const threshold = page.getByTestId("homefront-command-threshold");
     await expect(page.getByTestId("homefront-doctrine-strip")).toBeVisible();
+    await expect(
+      page.getByTestId("homefront-operating-contract"),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("homefront-operating-contract").getByText("Lead"),
+    ).toBeVisible();
     await expect(threshold).toBeVisible();
     await expect(threshold).toHaveAttribute("data-live-state", /.+/);
     await expect(
@@ -88,9 +94,7 @@ async function expectCinematicIA(page: Page, surface: string) {
       page.getByTestId("homefront-live-vision-strip").getByText("Image plane"),
     ).toBeVisible();
     await expect(
-      page
-        .getByTestId("homefront-live-vision-strip")
-        .getByText("RPG separate"),
+      page.getByTestId("homefront-live-vision-strip").getByText("RPG separate"),
     ).toBeVisible();
   }
 }

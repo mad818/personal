@@ -16,13 +16,27 @@ test("public root stays outside protected shell chrome and hands off to /hq", as
   await expect(page.getByTestId("landing-header")).toBeVisible();
   await expect(page.getByTestId("landing-hero-cta")).toContainText("Enter HQ");
   await expect(page.getByTestId("landing-live-command-preview")).toBeVisible();
+  await expect(page.getByTestId("landing-system-architecture")).toBeVisible();
+  await expect(page.getByTestId("landing-build-ledger")).toContainText(
+    "Being shaped",
+  );
+  await expect(page.getByTestId("landing-command-contract")).toContainText(
+    "The same rules carry inside",
+  );
   await expect(page.getByTestId("landing-surface-showcase")).toBeVisible();
+  await expect(page.getByTestId("landing-agent-bench")).toContainText("ORBIT");
+  await expect(page.getByTestId("landing-operator-flow")).toContainText(
+    "From signal to remembered proof",
+  );
   await expect(page.getByTestId("landing-proof-wall")).toBeVisible();
   await expect(page.getByTestId("landing-surface-panel")).toContainText(
-    /Mission Queue|World Picture|Threat Posture|Memory Spine|Proof Plane/,
+    /Mission Queue|World Picture|Threat Posture|Memory Spine|Proof Plane|Operator Playbooks|Open-Source Sweep/,
   );
   await expect(
     page.getByText(/Aether Reliquary|RPG production lane|RPG world/),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText(/Get Started|Watch the Film|Client satisfaction/),
   ).toHaveCount(0);
   await expect(page.getByTestId("auth-gate")).toHaveCount(0);
   await expect(page.getByTestId("toprail-brand")).toHaveCount(0);

@@ -240,6 +240,12 @@ type HomefrontThresholdSpec = {
   signals: Array<{ label: string; value: string }>;
   proof: string[];
 };
+type HomefrontOperatingContract = {
+  promise: string;
+  lead: string;
+  proof: string;
+  next: string;
+};
 type HomefrontVisionItem = {
   label: string;
   value: string;
@@ -351,6 +357,78 @@ const HOMEFRONT_THRESHOLD: Partial<
   },
 };
 
+const HOMEFRONT_OPERATING_CONTRACT: Partial<
+  Record<ShellSurface, HomefrontOperatingContract>
+> = {
+  command: {
+    promise: "Decide what moves next.",
+    lead: "Queue",
+    proof:
+      "Risk gates, agent runs, and route health stay visible before execution.",
+    next: "Dispatch only after the operator can see scope, proof, and fallback.",
+  },
+  intel: {
+    promise: "Turn noise into an operating picture.",
+    lead: "Brief",
+    proof: "Sources, topic heat, sweep state, and theater posture stay linked.",
+    next: "Escalate only the signals that change a decision.",
+  },
+  alpha: {
+    promise: "Frame market judgment before action.",
+    lead: "Thesis",
+    proof:
+      "Tape, risk, recall, and setup pressure stay in the same decision loop.",
+    next: "Act only after the risk lane and confirmation lane agree.",
+  },
+  cyber: {
+    promise: "Keep security work conservative and legible.",
+    lead: "Triage",
+    proof: "Exposure, policy, evidence, and containment remain close together.",
+    next: "Stage repair from ranked evidence, not from raw feed panic.",
+  },
+  recon: {
+    promise: "Collect without losing the case.",
+    lead: "Case",
+    proof: "Target, OPSEC, lookup modes, and evidence bundles stay connected.",
+    next: "Promote findings only when the source trail is usable.",
+  },
+  vault: {
+    promise: "Make memory recoverable.",
+    lead: "Recall",
+    proof:
+      "Archive work, compiled pages, graph focus, and exports share one spine.",
+    next: "Store proof where the next session can actually find it.",
+  },
+  resources: {
+    promise: "Find the safest starting lane.",
+    lead: "Manual",
+    proof:
+      "Finder, playbooks, specs, system maps, and impact traces stay indexed.",
+    next: "Leave overview mode as soon as the exact working context is clear.",
+  },
+  security: {
+    promise: "Keep trust posture inspectable.",
+    lead: "Control",
+    proof:
+      "Access policy, hardening checks, AI surface review, and drills stay visible.",
+    next: "Open protected moves from the control surface, not scattered notes.",
+  },
+  skills: {
+    promise: "Turn repeatable work into capability.",
+    lead: "Forge",
+    proof:
+      "Workflow packs, review state, scheduler posture, and lessons stay governed.",
+    next: "Ship reusable patterns only after the review path is clear.",
+  },
+  vehicle: {
+    promise: "Prepare future telemetry without flight risk.",
+    lead: "Bench",
+    proof:
+      "Replay, schema, passive bridge posture, and failsafe notes stay separated.",
+    next: "Keep Nexus advisory, simulated, and never flight-critical.",
+  },
+};
+
 function resolveHomefrontThreshold(
   surface: ShellSurface,
   art: (typeof SURFACE_ART)[ShellSurface],
@@ -362,6 +440,22 @@ function resolveHomefrontThreshold(
       body: `${branding.functionalLabel} keeps its live signals, protected access, and route proof in one operating view.`,
       signals: art.readouts,
       proof: [NEXUS_FREE_USE_LABEL, "Token-gated", "Route proof"],
+    }
+  );
+}
+
+function resolveHomefrontOperatingContract(
+  surface: ShellSurface,
+  art: (typeof SURFACE_ART)[ShellSurface],
+  branding: ReturnType<typeof getSurfaceBranding>,
+): HomefrontOperatingContract {
+  return (
+    HOMEFRONT_OPERATING_CONTRACT[surface] ?? {
+      promise: `${branding.functionalLabel} keeps the work bounded.`,
+      lead: art.strap,
+      proof:
+        "Route state, runtime posture, local proof, and operator control stay visible.",
+      next: "Move from overview into the exact lane only when the scope is clear.",
     }
   );
 }
@@ -391,7 +485,8 @@ function resolveHomefrontVisionItems({
     {
       label: "Boundary",
       value: "RPG separate",
-      detail: "Aether Reliquary stays private in /hq while this surface carries Homefront operations.",
+      detail:
+        "Aether Reliquary stays private in /hq while this surface carries Homefront operations.",
     },
   ];
 }
@@ -623,6 +718,50 @@ function HomefrontDoctrineRail({
         <span>{cinematicIA.posture}</span>
       </div>
     </div>
+  );
+}
+
+function HomefrontOperatingContractRail({
+  surface,
+  art,
+  branding,
+}: {
+  surface: ShellSurface;
+  art: (typeof SURFACE_ART)[ShellSurface];
+  branding: ReturnType<typeof getSurfaceBranding>;
+}) {
+  const contract = resolveHomefrontOperatingContract(surface, art, branding);
+
+  return (
+    <section
+      className="nexus-shell-operatingContract"
+      data-testid="homefront-operating-contract"
+      data-surface={surface}
+      aria-label={`${branding.visibleLabel} operating contract`}
+    >
+      <div className="nexus-shell-operatingContract__lead">
+        <span className="nexus-shell-operatingContract__kicker">
+          Operating contract
+        </span>
+        <strong className="nexus-shell-operatingContract__promise">
+          {contract.promise}
+        </strong>
+      </div>
+      <div className="nexus-shell-operatingContract__grid">
+        <span>
+          <em>Lead</em>
+          <strong>{contract.lead}</strong>
+        </span>
+        <span>
+          <em>Proof</em>
+          <strong>{contract.proof}</strong>
+        </span>
+        <span>
+          <em>Next</em>
+          <strong>{contract.next}</strong>
+        </span>
+      </div>
+    </section>
   );
 }
 
@@ -1093,6 +1232,13 @@ export function OpsHeader({
         ) : null}
         {surface !== "default" ? (
           <HomefrontDoctrineRail surface={surface} branding={branding} />
+        ) : null}
+        {surface !== "default" && surface !== "hq" ? (
+          <HomefrontOperatingContractRail
+            surface={surface}
+            art={art}
+            branding={branding}
+          />
         ) : null}
         {surface !== "default" && surface !== "hq" ? (
           <HomefrontCommandThreshold

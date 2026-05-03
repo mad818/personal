@@ -60,6 +60,45 @@ const LIVE_COMMAND_ROWS = [
     detail: "handoffs, artifacts, saved pages, and state mirrors",
     pulse: "local",
   },
+  {
+    lane: "Resources",
+    status: "proving",
+    detail: "system state, impact maps, route checks, and readiness notes",
+    pulse: "proof",
+  },
+  {
+    lane: "Skills",
+    status: "staging",
+    detail: "operator playbooks, reusable workflows, and tool patterns",
+    pulse: "bench",
+  },
+];
+
+const COMMAND_ARCHITECTURE = [
+  {
+    index: "01",
+    label: "Threshold",
+    title: "Public page, protected room",
+    body: "The landing explains the system, then hands authenticated operators straight into HQ without a second landing or sales detour.",
+  },
+  {
+    index: "02",
+    label: "Context",
+    title: "Live local picture",
+    body: "Runtime health, route focus, system state, docs, memory, and outside signals become one readable command posture.",
+  },
+  {
+    index: "03",
+    label: "Dispatch",
+    title: "Specialized agent lanes",
+    body: "Research, engineering, markets, security, and strategy each get a named lane so decisions do not collapse into one generic chat box.",
+  },
+  {
+    index: "04",
+    label: "Continuity",
+    title: "Recoverable work",
+    body: "Specs, handoffs, proof records, saved artifacts, and Vault memory keep the project awake across sessions.",
+  },
 ];
 
 const SURFACE_SHOWCASE = [
@@ -132,6 +171,36 @@ const SURFACE_SHOWCASE = [
     ],
     lines: ["Open system state", "Check route health", "Inspect impact"],
   },
+  {
+    id: "skills",
+    label: "SKILLS",
+    title: "Operator Playbooks",
+    body: "Repeatable patterns, tool lanes, and working rituals become reusable skills instead of knowledge that disappears after one run.",
+    href: "/skills",
+    readouts: [
+      ["Playbooks", "ready"],
+      ["Patterns", "codified"],
+      ["Use", "repeatable"],
+    ],
+    lines: [
+      "Find the right workflow",
+      "Apply a local pattern",
+      "Keep the lesson",
+    ],
+  },
+  {
+    id: "recon",
+    label: "RECON",
+    title: "Open-Source Sweep",
+    body: "External projects, docs, repos, and ideas can be inspected, adapted, and brought home without losing the operator's context.",
+    href: "/recon",
+    readouts: [
+      ["Scope", "bounded"],
+      ["Sources", "checked"],
+      ["Signal", "useful"],
+    ],
+    lines: ["Inspect source", "Extract the pattern", "Bring back the lesson"],
+  },
 ];
 
 const PROOF_WALL = [
@@ -161,6 +230,44 @@ const PROOF_WALL = [
   },
 ];
 
+const BUILD_LEDGER = [
+  {
+    title: "Live now",
+    body: "Public threshold, route-aware protected shell, local auth handoff, command surfaces, and proof-minded state pages.",
+  },
+  {
+    title: "Being shaped",
+    body: "More live signals, tighter surface previews, stronger memory recovery, richer operator playbooks, and deeper visual continuity.",
+  },
+  {
+    title: "Kept separate",
+    body: "Personal creative lanes stay private until they have their own house. The public story remains Homefront command intelligence.",
+  },
+];
+
+const HOMEFRONT_CONTRACT = [
+  {
+    label: "Lead",
+    title: "Every surface has one job",
+    body: "COMMAND decides what moves next. INTEL frames the outside world. CYBER ranks risk. VAULT keeps memory recoverable.",
+  },
+  {
+    label: "Proof",
+    title: "No magic black boxes",
+    body: "Route health, source posture, specs, handoffs, and verification stay close enough to inspect before the next move.",
+  },
+  {
+    label: "Control",
+    title: "The operator stays in charge",
+    body: "Agents can help research, patch, review, and frame decisions, but risky work stays visible and gated.",
+  },
+  {
+    label: "Continuity",
+    title: "The room remembers",
+    body: "Useful outcomes become artifacts, memories, specs, and state instead of disappearing into chat history.",
+  },
+];
+
 const ACCESS_SEQUENCE = [
   "Public threshold stays calm",
   "Token validates locally",
@@ -187,6 +294,67 @@ const WHY_US = [
     icon: ShieldIcon,
     title: "Protected Tools",
     body: "Risky actions stay review-gated, protected routes respect token access, and verification proof matters more than promising a finished myth too early.",
+  },
+];
+
+const AGENT_BENCH = [
+  {
+    callsign: "ORBIT",
+    role: "Engineering lane",
+    body: "Turns product intent into code, patches, verification, and clean handoff updates.",
+    proof: ["code", "tests", "handoff"],
+  },
+  {
+    callsign: "NOVA",
+    role: "Research lane",
+    body: "Finds source-grounded context, compares options, and brings the outside world into usable shape.",
+    proof: ["sources", "synthesis", "briefs"],
+  },
+  {
+    callsign: "CIPHER",
+    role: "Security lane",
+    body: "Keeps risky actions conservative, reviews exposure, and pushes safety into the product posture.",
+    proof: ["risk", "controls", "review"],
+  },
+  {
+    callsign: "FLUX",
+    role: "Markets lane",
+    body: "Tracks price, macro, volatility, liquidity, and probability without turning noise into command.",
+    proof: ["signals", "macro", "pressure"],
+  },
+  {
+    callsign: "JANSKY",
+    role: "Strategy lane",
+    body: "Frames missions, breaks vague work into operating lanes, and keeps the room pointed at the next useful move.",
+    proof: ["plans", "routing", "judgment"],
+  },
+];
+
+const OPERATOR_FLOW = [
+  {
+    step: "Sense",
+    title: "Bring the signal in",
+    body: "Markets, route health, docs, repos, alerts, and memory enter as context, not clutter.",
+  },
+  {
+    step: "Frame",
+    title: "Name the work",
+    body: "A vague urge becomes a lane: fix, research, review, ship, archive, or wait.",
+  },
+  {
+    step: "Dispatch",
+    title: "Choose the bench",
+    body: "The right agent or surface gets the job, with the operator still holding the steering wheel.",
+  },
+  {
+    step: "Review",
+    title: "Gate the risky parts",
+    body: "Writes, automation, external actions, and security-sensitive steps stay visible before they move.",
+  },
+  {
+    step: "Remember",
+    title: "Keep the proof",
+    body: "Outcomes become handoffs, specs, saved artifacts, and state that the next session can trust.",
   },
 ];
 
@@ -726,6 +894,140 @@ function StartSection({ accessHref }: { accessHref: string }) {
   );
 }
 
+function ArchitectureSection() {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <section
+      className="bg-black px-6 py-28"
+      data-testid="landing-system-architecture"
+    >
+      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
+        <div className="lg:sticky lg:top-28">
+          <SectionBadge>System Architecture</SectionBadge>
+          <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+            More than a beautiful front door.
+          </h2>
+          <p className="mt-6 max-w-xl text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
+            The landing should make the room legible before the token ever
+            appears: what it watches, where work goes, how proof survives, and
+            why local-first matters.
+          </p>
+          <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="text-xs uppercase text-white/35 font-body">
+              Current promise
+            </div>
+            <p className="mt-3 text-2xl font-heading italic leading-tight text-white">
+              A command room that explains itself without pretending to be
+              finished.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          {COMMAND_ARCHITECTURE.map((item, index) => (
+            <motion.article
+              key={item.title}
+              animate={reduceMotion ? undefined : { opacity: [0.82, 1, 0.82] }}
+              className="liquid-glass rounded-3xl p-5 md:p-6"
+              transition={{
+                delay: index * 0.16,
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <div className="flex flex-col gap-5 md:flex-row md:items-start">
+                <div className="flex items-center gap-3 md:w-44">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full border border-white/15 text-xs text-white/55 font-body">
+                    {item.index}
+                  </span>
+                  <span className="text-xs uppercase tracking-[0.2em] text-white/35 font-body">
+                    {item.label}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-3xl font-heading italic leading-none text-white md:text-4xl">
+                    {item.title}
+                  </h3>
+                  <p className="mt-4 text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
+                    {item.body}
+                  </p>
+                </div>
+              </div>
+            </motion.article>
+          ))}
+        </div>
+
+        <div className="lg:col-span-2">
+          <div
+            className="grid gap-4 md:grid-cols-3"
+            data-testid="landing-build-ledger"
+          >
+            {BUILD_LEDGER.map((item) => (
+              <article
+                key={item.title}
+                className="rounded-3xl border border-white/10 bg-white/[0.025] p-6"
+              >
+                <h3 className="text-2xl font-heading italic text-white">
+                  {item.title}
+                </h3>
+                <p className="mt-4 text-sm font-light leading-relaxed text-white/58 font-body">
+                  {item.body}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CommandContractSection() {
+  return (
+    <section
+      className="bg-black px-6 py-28"
+      data-testid="landing-command-contract"
+    >
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-14 grid gap-8 lg:grid-cols-[0.72fr_1fr] lg:items-end">
+          <div>
+            <SectionBadge>Command Contract</SectionBadge>
+            <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+              The same rules carry inside.
+            </h2>
+          </div>
+          <p className="max-w-2xl text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
+            The public page and protected shell should feel like the same room:
+            local-first, route-aware, proof-minded, and calm enough to work in
+            for a long session.
+          </p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-4">
+          {HOMEFRONT_CONTRACT.map((item) => (
+            <article
+              key={item.label}
+              className="liquid-glass min-h-[250px] rounded-3xl p-5"
+            >
+              <div className="text-xs uppercase tracking-[0.22em] text-white/35 font-body">
+                {item.label}
+              </div>
+              <h3 className="mt-6 text-3xl font-heading italic leading-none text-white">
+                {item.title}
+              </h3>
+              <p className="mt-5 text-sm font-light leading-relaxed text-white/60 font-body">
+                {item.body}
+              </p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FeaturesChess({ accessHref }: { accessHref: string }) {
   const reduceMotion = useReducedMotion();
   const [activeSurfaceId, setActiveSurfaceId] = useState(
@@ -883,6 +1185,60 @@ function FeaturesChess({ accessHref }: { accessHref: string }) {
   );
 }
 
+function AgentBenchSection() {
+  return (
+    <section className="bg-black px-6 py-28" data-testid="landing-agent-bench">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-14 grid gap-8 lg:grid-cols-[0.72fr_1fr] lg:items-end">
+          <div>
+            <SectionBadge>Agent Bench</SectionBadge>
+            <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+              The room has named hands.
+            </h2>
+          </div>
+          <p className="max-w-2xl text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
+            Homefront works best when each kind of thinking has a lane.
+            Research, code, security, markets, and strategy stay distinct, then
+            meet inside the same operating picture.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {AGENT_BENCH.map((agent) => (
+            <article
+              key={agent.callsign}
+              className="liquid-glass flex min-h-[300px] flex-col rounded-3xl p-5"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-xs uppercase tracking-[0.22em] text-white/35 font-body">
+                  {agent.role}
+                </div>
+                <span className="size-2 rounded-full bg-white/65 shadow-[0_0_18px_rgba(255,255,255,0.6)]" />
+              </div>
+              <h3 className="mt-6 text-4xl font-heading italic leading-none text-white">
+                {agent.callsign}
+              </h3>
+              <p className="mt-5 text-sm font-light leading-relaxed text-white/60 font-body">
+                {agent.body}
+              </p>
+              <div className="mt-auto flex flex-wrap gap-2 pt-8">
+                {agent.proof.map((proof) => (
+                  <span
+                    key={proof}
+                    className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] uppercase text-white/45 font-body"
+                  >
+                    {proof}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FeaturesGrid() {
   return (
     <section id="posture" className="bg-black px-6 py-28">
@@ -906,6 +1262,70 @@ function FeaturesGrid() {
                 {item.body}
               </p>
             </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function OperatorFlowSection() {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <section
+      className="bg-black px-6 py-28"
+      data-testid="landing-operator-flow"
+    >
+      <div className="mx-auto max-w-7xl">
+        <div className="mx-auto mb-16 max-w-4xl text-center">
+          <SectionBadge>Operator Flow</SectionBadge>
+          <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+            From signal to remembered proof.
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
+            The point is not more panels. The point is a shorter path from
+            noticing something, to framing the work, to leaving behind evidence
+            the next session can use.
+          </p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-5">
+          {OPERATOR_FLOW.map((item, index) => (
+            <article
+              key={item.step}
+              className="liquid-glass relative min-h-[280px] overflow-hidden rounded-3xl p-5"
+            >
+              <motion.div
+                aria-hidden="true"
+                animate={
+                  reduceMotion
+                    ? undefined
+                    : { x: ["-30%", "100%"], opacity: [0, 0.4, 0] }
+                }
+                className="absolute top-0 h-px w-2/3 bg-gradient-to-r from-transparent via-white to-transparent"
+                transition={{
+                  delay: index * 0.28,
+                  duration: 4.8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              <div className="flex items-center justify-between">
+                <span className="flex size-10 items-center justify-center rounded-full border border-white/15 text-xs text-white/60 font-body">
+                  0{index + 1}
+                </span>
+                <span className="text-xs uppercase tracking-[0.2em] text-white/30 font-body">
+                  {item.step}
+                </span>
+              </div>
+              <h3 className="mt-8 text-3xl font-heading italic leading-none text-white">
+                {item.title}
+              </h3>
+              <p className="mt-5 text-sm font-light leading-relaxed text-white/58 font-body">
+                {item.body}
+              </p>
+            </article>
           ))}
         </div>
       </div>
@@ -1185,8 +1605,12 @@ export default function LandingPage({
       <Hero accessHref={accessHref} />
       <div className="relative z-10 bg-black">
         <StartSection accessHref={accessHref} />
+        <ArchitectureSection />
+        <CommandContractSection />
         <FeaturesChess accessHref={accessHref} />
+        <AgentBenchSection />
         <FeaturesGrid />
+        <OperatorFlowSection />
         <StatsSection />
         <Testimonials />
         <CtaFooter

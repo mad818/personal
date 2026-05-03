@@ -75,8 +75,14 @@ async function expectCinematicIA(page: Page, surface: string) {
       .first(),
   ).toBeVisible();
   if (surface !== "hq") {
+    const threshold = page.getByTestId("homefront-command-threshold");
     await expect(page.getByTestId("homefront-doctrine-strip")).toBeVisible();
-    await expect(page.getByTestId("homefront-command-threshold")).toBeVisible();
+    await expect(threshold).toBeVisible();
+    await expect(threshold).toHaveAttribute("data-live-state", /.+/);
+    await expect(
+      threshold.getByText("Session active", { exact: true }),
+    ).toBeVisible();
+    await expect(threshold.getByText("Focus", { exact: true })).toBeVisible();
   }
 }
 

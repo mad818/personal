@@ -240,6 +240,11 @@ type HomefrontThresholdSpec = {
   signals: Array<{ label: string; value: string }>;
   proof: string[];
 };
+type HomefrontVisionItem = {
+  label: string;
+  value: string;
+  detail: string;
+};
 
 const HOMEFRONT_THRESHOLD: Partial<
   Record<ShellSurface, HomefrontThresholdSpec>
@@ -359,6 +364,36 @@ function resolveHomefrontThreshold(
       proof: [NEXUS_FREE_USE_LABEL, "Token-gated", "Route proof"],
     }
   );
+}
+
+function resolveHomefrontVisionItems({
+  art,
+  branding,
+  focusLabel,
+  routeLabel,
+}: {
+  art: (typeof SURFACE_ART)[ShellSurface];
+  branding: ReturnType<typeof getSurfaceBranding>;
+  focusLabel: string;
+  routeLabel: string;
+}): HomefrontVisionItem[] {
+  return [
+    {
+      label: "Image plane",
+      value: art.strap,
+      detail: art.caption,
+    },
+    {
+      label: "Live focus",
+      value: focusLabel,
+      detail: `${branding.functionalLabel} is reading ${routeLabel} from the current protected route.`,
+    },
+    {
+      label: "Boundary",
+      value: "RPG separate",
+      detail: "Aether Reliquary stays private in /hq while this surface carries Homefront operations.",
+    },
+  ];
 }
 
 function humanizeRouteToken(rawValue?: string | null) {
@@ -664,6 +699,16 @@ function HomefrontCommandThreshold({
     ],
     [liveState.evalPosture, liveState.networkMode, routeLabel, spec.proof],
   );
+  const visionItems = useMemo(
+    () =>
+      resolveHomefrontVisionItems({
+        art,
+        branding,
+        focusLabel,
+        routeLabel,
+      }),
+    [art, branding, focusLabel, routeLabel],
+  );
 
   useEffect(() => {
     function syncRouteState() {
@@ -833,6 +878,28 @@ function HomefrontCommandThreshold({
       >
         {proofChips.map((item) => (
           <span key={`${surface}-${item}`}>{item}</span>
+        ))}
+      </div>
+      <div
+        className="nexus-shell-commandThreshold__vision"
+        data-testid="homefront-live-vision-strip"
+        aria-label="Premium live vision"
+      >
+        {visionItems.map((item) => (
+          <span
+            key={`${surface}-${item.label}`}
+            className="nexus-shell-commandThreshold__visionItem"
+          >
+            <span className="nexus-shell-commandThreshold__visionLabel">
+              {item.label}
+            </span>
+            <strong className="nexus-shell-commandThreshold__visionValue">
+              {item.value}
+            </strong>
+            <span className="nexus-shell-commandThreshold__visionDetail">
+              {item.detail}
+            </span>
+          </span>
         ))}
       </div>
     </section>

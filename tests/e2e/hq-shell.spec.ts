@@ -266,6 +266,15 @@ test("hq arpg room exposes a playable reliquary loop without blocking command in
   await expect(page.getByTestId("arpg-illustrated-batch-arsenal-vfx-drops")).toContainText(
     "12 fx sheet",
   );
+  await expect(page.getByTestId("arpg-visual-replacement-queue")).toContainText(
+    "Replacement queue",
+  );
+  await expect(page.getByTestId("arpg-visual-replacement-queue")).toContainText(
+    "prologue-hifi-story-pack",
+  );
+  await expect(page.getByTestId("arpg-visual-replacement-queue")).toContainText(
+    "rejected prologue sheets are retired",
+  );
   await expect(page.getByTestId("arpg-real-asset-intake")).toContainText(
     "Real asset intake",
   );
@@ -332,6 +341,15 @@ test("hq arpg room exposes a playable reliquary loop without blocking command in
   );
   await expect(page.getByTestId("arpg-presentation-readiness")).toContainText(
     "No rejected prologue art",
+  );
+  await expect(page.getByTestId("arpg-visual-replacement-readiness")).toContainText(
+    "Visual replacement lane",
+  );
+  await expect(page.getByTestId("arpg-visual-replacement-readiness")).toContainText(
+    "10 queued",
+  );
+  await expect(page.getByTestId("arpg-visual-replacement-bellroot-vestibule")).toContainText(
+    "Bellroot Vestibule",
   );
   await expect(page.getByTestId("arpg-production-large-chunk")).toContainText(
     "arpg:release:check",

@@ -3,6 +3,7 @@
 
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
+import "./design-md.generated.css";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import {

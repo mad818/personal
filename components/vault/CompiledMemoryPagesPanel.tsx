@@ -11,6 +11,11 @@ import {
   SurfaceSkeletonRows,
 } from "@/components/ui/surfacePrimitives";
 import { apiFetch } from "@/lib/apiFetch";
+import {
+  formatArtifactParserHintLabel,
+  formatArtifactTypeLabel,
+  type ArtifactClassification,
+} from "@/lib/artifactClassification";
 import type { ArtifactContinuityMetadata } from "@/lib/artifactContinuity";
 import { rankRelatedArtifacts } from "@/lib/artifactContinuity";
 import {
@@ -31,11 +36,18 @@ import {
   rankOsintCasefilePages,
 } from "@/lib/xr1Workflows";
 import {
+  AI_EXPOSURE_PACK_LOOKUP,
+  parseAiExposureReviewMarkdown,
+  rankAiExposureReviewPages,
+} from "@/lib/aiExposureReview";
+import {
   buildRepoCompareOrbitPrompt,
   parseRepoCompareMarkdown,
 } from "@/lib/repoCompare";
 import {
   buildRepoAssimilationOrbitPrompt,
+  formatRepoAssimilationDecisionLabel,
+  getRepoAssimilationDecision,
   parseRepoAssimilationMarkdown,
 } from "@/lib/repoAssimilation";
 import { parseVulnerabilityReviewMarkdown } from "@/lib/vulnerabilityReview";
@@ -75,6 +87,7 @@ interface CompiledMemoryPage {
   visibility: "safe" | "internal" | "restricted";
   tags: string[];
   continuity: ArtifactContinuityMetadata;
+  artifactClassification: ArtifactClassification;
   createdAt: number;
   updatedAt: number;
   content?: string;
@@ -85,6 +98,7 @@ type CompiledPageArtifactKind =
   | "generic"
   | "market_review"
   | "vuln_review"
+  | "ai_exposure_review"
   | "repo_compare"
   | "repo_assimilation"
   | "vault_librarian"
@@ -105,6 +119,7 @@ type CompiledPageRepairFilter =
 type CompiledPageWorkflowFilter =
   | "market-review"
   | "vuln-review"
+  | "ai-exposure-review"
   | "osint-casefile"
   | "repo-assimilation"
   | "vault-librarian"
@@ -141,6 +156,8 @@ function truncateInline(text: string, max = 180) {
 
 function buildCompiledPageMeta(page: CompiledMemoryPage) {
   const parts = [
+    formatArtifactTypeLabel(page.artifactClassification.artifactType),
+    formatArtifactParserHintLabel(page.artifactClassification.parserHint),
     page.researchSignals.structure === "document_heavy"
       ? "document-heavy"
       : page.researchSignals.structure === "structured"
@@ -166,6 +183,14 @@ function buildCompiledPageMeta(page: CompiledMemoryPage) {
         : null,
   ].filter(Boolean);
   return parts.join(" · ");
+}
+
+function getClassificationTone(page: CompiledMemoryPage) {
+  return page.artifactClassification.sensitivity === "restricted"
+    ? "accent"
+    : page.artifactClassification.sensitivity === "internal"
+      ? "muted"
+      : "success";
 }
 
 function formatEvidenceStrength(value: string | null | undefined) {
@@ -211,6 +236,9 @@ function detectCompiledPageArtifactKind(page: CompiledMemoryPage): CompiledPageA
   }
   if (page.workflowId === "vuln-review") {
     return "vuln_review";
+  }
+  if (page.workflowId === "ai-exposure-review") {
+    return "ai_exposure_review";
   }
   if (page.workflowId === "repo-compare") {
     return "repo_compare";
@@ -271,6 +299,18 @@ function getRepoAssimilationInsights(page: CompiledMemoryPage) {
 function getVulnerabilityReviewInsights(page: CompiledMemoryPage) {
   if (page.workflowId !== "vuln-review" || !page.content) return null;
   return parseVulnerabilityReviewMarkdown(page.content);
+}
+
+function getAiExposureReviewInsights(page: CompiledMemoryPage) {
+  if (page.workflowId !== "ai-exposure-review" || !page.content) return null;
+  const review = parseAiExposureReviewMarkdown(page.content);
+  return {
+    ...review,
+    packIds: page.tags
+      .filter((tag) => tag.startsWith("pack:"))
+      .map((tag) => tag.slice("pack:".length))
+      .filter((value): value is keyof typeof AI_EXPOSURE_PACK_LOOKUP => value in AI_EXPOSURE_PACK_LOOKUP),
+  };
 }
 
 function getRepoCompareInsights(page: CompiledMemoryPage) {
@@ -351,6 +391,32 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
     };
   }
 
+  if (artifactKind === "ai_exposure_review") {
+    const reviewInsights = getAiExposureReviewInsights(page);
+    const packLabels =
+      reviewInsights?.packIds
+        .slice(0, 2)
+        .map((packId) => AI_EXPOSURE_PACK_LOOKUP[packId]?.shortLabel)
+        .filter(Boolean) ?? [];
+    return {
+      artifactKind,
+      articleStyle: {
+        border: "1px solid rgba(56, 189, 248, 0.24)",
+        background:
+          "linear-gradient(180deg, rgba(7, 21, 35, 0.94), rgba(13, 24, 39, 0.78))",
+      },
+      eyebrow: "AI exposure review",
+      accentBadges: [
+        { label: "Advisory only", tone: "accent" as const },
+        ...packLabels.map((label) => ({ label, tone: "muted" as const })),
+        { label: getCompiledPageEvidenceStrength(page), tone: "muted" as const },
+      ],
+      cue: reviewInsights?.nextReviewedMove
+        ? `Next move: ${truncateInline(reviewInsights.nextReviewedMove, 132)}`
+        : "This durable thread preserves passive evidence, containment guidance, and AI exposure posture without widening into scanning or exploit behavior.",
+    };
+  }
+
   if (artifactKind === "repo_assimilation") {
     const assimilation = getRepoAssimilationInsights(page);
     const repoLabel = page.continuity.repoMemoryBinding ?? extractTagValue(page, "repo:");
@@ -358,6 +424,9 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       .filter((tag) => tag.startsWith("stack:"))
       .slice(0, 3)
       .map((tag) => tag.slice("stack:".length).replace(/-/g, " "));
+    const decisionLabel = assimilation
+      ? formatRepoAssimilationDecisionLabel(getRepoAssimilationDecision(assimilation))
+      : null;
     return {
       artifactKind,
       articleStyle: {
@@ -368,13 +437,16 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       eyebrow: "Repo assimilation",
       accentBadges: [
         { label: "Public-safe", tone: "accent" as const },
+        ...(decisionLabel ? [{ label: decisionLabel, tone: "muted" as const }] : []),
         ...(repoLabel ? [{ label: repoLabel.replace(/-/g, " "), tone: "muted" as const }] : []),
         ...stackTags.map((tag) => ({ label: tag, tone: "muted" as const })),
         { label: getCompiledPageEvidenceStrength(page), tone: "muted" as const },
       ],
-      cue: assimilation?.nexusFitMap
-        ? `Fit map: ${truncateInline(assimilation.nexusFitMap, 148)}`
-        : "This durable brief captures how a public reference repo fits Nexus before ORBIT widens into local implementation planning.",
+      cue: assimilation?.extensionPointsAndSmallestSlice
+        ? `Smallest slice: ${truncateInline(assimilation.extensionPointsAndSmallestSlice, 148)}`
+        : assimilation?.implementationDecision
+          ? `Decision: ${truncateInline(assimilation.implementationDecision, 148)}`
+          : "This durable brief captures how a public reference repo fits Nexus before ORBIT widens into local implementation planning.",
     };
   }
 
@@ -664,6 +736,7 @@ function getCompiledPageWorkflowFilter(
 ): CompiledPageWorkflowFilter {
   return value === "market-review" ||
     value === "vuln-review" ||
+    value === "ai-exposure-review" ||
     value === "osint-casefile" ||
     value === "repo-assimilation" ||
     value === "vault-librarian" ||
@@ -837,6 +910,15 @@ export default function CompiledMemoryPagesPanel() {
         .slice(0, 3);
     }
 
+    if (workflowId === "ai-exposure-review") {
+      return rankAiExposureReviewPages(
+        pages.filter((page) => page.workflowId === "ai-exposure-review"),
+        activePage?.title ?? null,
+        activePage?.continuity?.continuityId,
+        activePage?.route ?? pages.find((page) => page.workflowId === "ai-exposure-review")?.route,
+      ).slice(0, 3);
+    }
+
     if (workflowId === "osint-casefile") {
       return rankOsintCasefilePages(
         pages.filter((page) => page.workflowId === "osint-casefile"),
@@ -872,6 +954,7 @@ export default function CompiledMemoryPagesPanel() {
         const leftXR1 =
           left.workflowId === "market-review" ||
           left.workflowId === "vuln-review" ||
+          left.workflowId === "ai-exposure-review" ||
           left.workflowId === "osint-casefile" ||
           left.workflowId === "repo-assimilation" ||
           left.workflowId === "vault-librarian" ||
@@ -882,6 +965,7 @@ export default function CompiledMemoryPagesPanel() {
         const rightXR1 =
           right.workflowId === "market-review" ||
           right.workflowId === "vuln-review" ||
+          right.workflowId === "ai-exposure-review" ||
           right.workflowId === "osint-casefile" ||
           right.workflowId === "repo-assimilation" ||
           right.workflowId === "vault-librarian" ||
@@ -920,6 +1004,17 @@ export default function CompiledMemoryPagesPanel() {
         .sort((left, right) => right.updatedAt - left.updatedAt)[0] ?? null
     );
   }, [pages, workflowId]);
+  const latestAiExposureReview = useMemo(() => {
+    if (workflowId !== "ai-exposure-review") return null;
+    return (
+      rankAiExposureReviewPages(
+        pages.filter((page) => page.workflowId === "ai-exposure-review"),
+        activePage?.title ?? null,
+        activePage?.continuity?.continuityId,
+        activePage?.route ?? pages.find((page) => page.workflowId === "ai-exposure-review")?.route,
+      )[0] ?? null
+    );
+  }, [activePage, pages, workflowId]);
   const latestRepoAssimilation = useMemo(() => {
     if (workflowId !== "repo-assimilation") return null;
     return (
@@ -1214,6 +1309,8 @@ export default function CompiledMemoryPagesPanel() {
             ? "No market reviews yet"
             : workflowId === "vuln-review"
               ? "No vulnerability reviews yet"
+            : workflowId === "ai-exposure-review"
+              ? "No AI exposure reviews yet"
             : workflowId === "osint-casefile"
               ? "No OSINT casefiles yet"
               : workflowId === "repo-assimilation"
@@ -1235,6 +1332,8 @@ export default function CompiledMemoryPagesPanel() {
             ? "File a market review from ALPHA and the durable thesis lane will show up here with market-specific continuity cues."
             : workflowId === "vuln-review"
               ? "Run a defensive review from CYBER and the durable vuln-review brief will reopen here with exact repair continuity."
+            : workflowId === "ai-exposure-review"
+              ? "File a passive AI exposure review from RECON or CYBER and the durable advisory thread will reopen here with exact continuity."
             : workflowId === "osint-casefile"
               ? "File an OSINT casefile from RECON or CYBER and the passive-first durable thread will show up here."
               : workflowId === "repo-assimilation"
@@ -1286,8 +1385,10 @@ export default function CompiledMemoryPagesPanel() {
                   ? "Reopen thesis continuity, the strongest next rule, or file the next market review from the same lane."
                   : workflowId === "vuln-review"
                     ? "Reopen the latest defensive review, jump back into CYBER, or widen into the saved archive only after the repair lane is explicit."
-                  : workflowId === "osint-casefile"
-                    ? "Reopen passive-first case progression before widening collection or packaging."
+                    : workflowId === "ai-exposure-review"
+                      ? "Reopen the latest advisory pack, jump back into RECON or CYBER, and keep AI exposure review passive-first before widening follow-through."
+                    : workflowId === "osint-casefile"
+                      ? "Reopen passive-first case progression before widening collection or packaging."
                     : workflowId === "repo-assimilation"
                       ? "Reopen the latest repo-fit brief, send the saved assimilation to ORBIT, or return to RECON before widening local implementation."
                     : workflowId === "vault-librarian"
@@ -1350,6 +1451,37 @@ export default function CompiledMemoryPagesPanel() {
                 title={latestVulnerabilityReview.title}
               >
                 Latest review
+              </button>
+            ) : null}
+            {workflowId === "ai-exposure-review" && latestAiExposureReview ? (
+              <button
+                type="button"
+                onClick={() => openExactCompiledPage(latestAiExposureReview)}
+                className="nexus-shell-button"
+                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                title={latestAiExposureReview.title}
+              >
+                Latest advisory
+              </button>
+            ) : null}
+            {workflowId === "ai-exposure-review" ? (
+              <button
+                type="button"
+                onClick={() => router.push("/recon?view=osint&focus=recon-lookup")}
+                className="nexus-shell-button"
+                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+              >
+                Reopen in RECON
+              </button>
+            ) : null}
+            {workflowId === "ai-exposure-review" ? (
+              <button
+                type="button"
+                onClick={() => router.push("/cyber?view=triage&focus=cyber-triage")}
+                className="nexus-shell-button"
+                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+              >
+                Reopen in CYBER
               </button>
             ) : null}
             {workflowId === "vuln-review" ? (
@@ -1648,16 +1780,25 @@ export default function CompiledMemoryPagesPanel() {
                 color: "var(--text3)",
               }}
             >
-              {repoAssimilationInsights.nexusFitMap ? (
+              {repoAssimilationInsights.implementationDecision ? (
                 <div>
-                  <strong style={{ color: "#a7f3d0" }}>Fit map:</strong>{" "}
-                  {truncateInline(repoAssimilationInsights.nexusFitMap, 164)}
+                  <strong style={{ color: "#a7f3d0" }}>Decision:</strong>{" "}
+                  {truncateInline(repoAssimilationInsights.implementationDecision, 164)}
                 </div>
               ) : null}
-              {repoAssimilationInsights.safeAdoptionPoints ? (
+              {repoAssimilationInsights.localFitAndWhyNow ? (
                 <div>
-                  <strong style={{ color: "var(--text)" }}>Safe adoption:</strong>{" "}
-                  {truncateInline(repoAssimilationInsights.safeAdoptionPoints, 164)}
+                  <strong style={{ color: "var(--text)" }}>Local fit:</strong>{" "}
+                  {truncateInline(repoAssimilationInsights.localFitAndWhyNow, 164)}
+                </div>
+              ) : null}
+              {repoAssimilationInsights.extensionPointsAndSmallestSlice ? (
+                <div>
+                  <strong style={{ color: "var(--text)" }}>Smallest slice:</strong>{" "}
+                  {truncateInline(
+                    repoAssimilationInsights.extensionPointsAndSmallestSlice,
+                    164,
+                  )}
                 </div>
               ) : null}
               {repoAssimilationInsights.boundariesAndRisks ? (
@@ -1821,6 +1962,12 @@ export default function CompiledMemoryPagesPanel() {
                 {badge.label}
               </ShellBadge>
             ))}
+            <ShellBadge tone={getClassificationTone(page)}>
+              {formatArtifactTypeLabel(page.artifactClassification.artifactType)}
+            </ShellBadge>
+            <ShellBadge tone="muted">
+              {formatArtifactParserHintLabel(page.artifactClassification.parserHint)}
+            </ShellBadge>
             <ShellBadge tone="accent">{page.layer}</ShellBadge>
             <ShellBadge tone="muted">{page.domain}</ShellBadge>
             <ShellBadge tone={page.visibility === "safe" ? "success" : "muted"}>
@@ -1836,6 +1983,9 @@ export default function CompiledMemoryPagesPanel() {
 
           <div style={{ fontSize: "10px", lineHeight: 1.45, color: "var(--text3)" }}>
             {truncateInline(page.sourceLabel, 96)}
+            {page.artifactClassification.reasons.length > 0
+              ? ` · ${truncateInline(page.artifactClassification.reasons.join(" · "), 84)}`
+              : ""}
             {page.documentMetadata &&
             !page.documentMetadata.metadataWithheld &&
             page.documentMetadata.originLabel
@@ -1856,6 +2006,7 @@ export default function CompiledMemoryPagesPanel() {
               </button>
               {page.workflowId === "market-review" ||
               page.workflowId === "vuln-review" ||
+              page.workflowId === "ai-exposure-review" ||
               page.workflowId === "osint-casefile" ||
               page.workflowId === "repo-assimilation" ||
               page.workflowId === "vault-librarian" ||
@@ -1920,6 +2071,22 @@ export default function CompiledMemoryPagesPanel() {
                   style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
                 >
                   Reopen in CYBER
+                </button>
+              ) : null}
+              {page.workflowId === "ai-exposure-review" ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    router.push(
+                      page.route === "/cyber"
+                        ? "/cyber?view=triage&focus=cyber-triage"
+                        : "/recon?view=osint&focus=recon-lookup",
+                    )
+                  }
+                  className="nexus-shell-button"
+                  style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                >
+                  {page.route === "/cyber" ? "Reopen in CYBER" : "Reopen in RECON"}
                 </button>
               ) : null}
               {promotionEvaluation.targetClass ? (

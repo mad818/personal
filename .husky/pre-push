@@ -2,5 +2,6 @@
 set -eu
 
 npm run handoff:check
+npm run design:check
 npm run type-check
 npm run lint

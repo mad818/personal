@@ -1,12 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
+import type {
+  CSSProperties,
+  PointerEvent as ReactPointerEvent,
+  ReactNode,
+} from "react";
 import { cn } from "@/lib/cn";
 import PageTransition from "@/components/ui/PageTransition";
 import SpatialCommandStrip from "@/components/ui/SpatialCommandStrip";
 import { getSurfaceBranding } from "@/lib/brand";
+import { CINEMATIC_IA_VERSION, getCinematicIASurface } from "@/lib/cinematicIA";
 import { getNexusTasteContract } from "@/lib/nexusTasteContract";
+import { NEXUS_FREE_USE_LABEL } from "@/lib/productGuarantees";
 import {
   resolveSurfaceAtmosphereSpec,
   resolveSurfaceSequencePreset,
@@ -168,27 +174,196 @@ const SURFACE_LAYOUT: Record<
     stripLabel: string;
   }
 > = {
-  default: { canvasClass: "nexus-ops-canvas--balanced", stripLabel: "Operating picture" },
+  default: {
+    canvasClass: "nexus-ops-canvas--balanced",
+    stripLabel: "Operating picture",
+  },
   hq: { canvasClass: "nexus-ops-canvas--hq", stripLabel: "Command table" },
-  command: { canvasClass: "nexus-ops-canvas--command", stripLabel: "Operations grid" },
+  command: {
+    canvasClass: "nexus-ops-canvas--command",
+    stripLabel: "Operations grid",
+  },
   intel: { canvasClass: "nexus-ops-canvas--intel", stripLabel: "Signal sweep" },
-  alpha: { canvasClass: "nexus-ops-canvas--alpha", stripLabel: "Decision frame" },
-  cyber: { canvasClass: "nexus-ops-canvas--cyber", stripLabel: "Threat picture" },
-  recon: { canvasClass: "nexus-ops-canvas--recon", stripLabel: "Collection sweep" },
-  vault: { canvasClass: "nexus-ops-canvas--vault", stripLabel: "Archive lattice" },
-  vehicle: { canvasClass: "nexus-ops-canvas--vehicle", stripLabel: "Launch board" },
-  resources: { canvasClass: "nexus-ops-canvas--resources", stripLabel: "Reference lattice" },
-  security: { canvasClass: "nexus-ops-canvas--security", stripLabel: "Control surface" },
-  skills: { canvasClass: "nexus-ops-canvas--skills", stripLabel: "Workflow forge" },
+  alpha: {
+    canvasClass: "nexus-ops-canvas--alpha",
+    stripLabel: "Decision frame",
+  },
+  cyber: {
+    canvasClass: "nexus-ops-canvas--cyber",
+    stripLabel: "Threat picture",
+  },
+  recon: {
+    canvasClass: "nexus-ops-canvas--recon",
+    stripLabel: "Collection sweep",
+  },
+  vault: {
+    canvasClass: "nexus-ops-canvas--vault",
+    stripLabel: "Archive lattice",
+  },
+  vehicle: {
+    canvasClass: "nexus-ops-canvas--vehicle",
+    stripLabel: "Launch board",
+  },
+  resources: {
+    canvasClass: "nexus-ops-canvas--resources",
+    stripLabel: "Reference lattice",
+  },
+  security: {
+    canvasClass: "nexus-ops-canvas--security",
+    stripLabel: "Control surface",
+  },
+  skills: {
+    canvasClass: "nexus-ops-canvas--skills",
+    stripLabel: "Workflow forge",
+  },
 };
+
+type HomefrontThresholdSpec = {
+  title: string;
+  body: string;
+  signals: Array<{ label: string; value: string }>;
+  proof: string[];
+};
+
+const HOMEFRONT_THRESHOLD: Partial<
+  Record<ShellSurface, HomefrontThresholdSpec>
+> = {
+  command: {
+    title: "Mission queue in view",
+    body: "Dispatch, health, and review gates stay visible before an agent run leaves your hands.",
+    signals: [
+      { label: "Dispatch", value: "Bounded" },
+      { label: "Runtime", value: "Watched" },
+      { label: "Review", value: "Required" },
+    ],
+    proof: [NEXUS_FREE_USE_LABEL, "Local queue", "Operator gate"],
+  },
+  intel: {
+    title: "World picture staged",
+    body: "Signals enter as evidence, not noise: topic heat, source posture, and narrative risk stay paired.",
+    signals: [
+      { label: "Sweep", value: "Evidence" },
+      { label: "Sources", value: "Labeled" },
+      { label: "Posture", value: "Current" },
+    ],
+    proof: [NEXUS_FREE_USE_LABEL, "Source trail", "Local notes"],
+  },
+  alpha: {
+    title: "Decision frame ready",
+    body: "Market context, thesis pressure, and recall prompts sit together before any move becomes action.",
+    signals: [
+      { label: "Thesis", value: "Framed" },
+      { label: "Risk", value: "Measured" },
+      { label: "Recall", value: "Armed" },
+    ],
+    proof: [NEXUS_FREE_USE_LABEL, "BYOK optional", "No app billing"],
+  },
+  cyber: {
+    title: "Threat workbench armed",
+    body: "Exposure, containment, and repair posture stay compact so security work starts from triage.",
+    signals: [
+      { label: "Exposure", value: "Scoped" },
+      { label: "Policy", value: "Visible" },
+      { label: "Repair", value: "Queued" },
+    ],
+    proof: [NEXUS_FREE_USE_LABEL, "Policy rail", "Silent failure"],
+  },
+  recon: {
+    title: "Collection lane open",
+    body: "Cases, lookups, and evidence bundles stay tied to the same local command surface.",
+    signals: [
+      { label: "Lookup", value: "Ready" },
+      { label: "Case", value: "Open" },
+      { label: "Evidence", value: "Bundled" },
+    ],
+    proof: [NEXUS_FREE_USE_LABEL, "Local casework", "Evidence-first"],
+  },
+  vault: {
+    title: "Memory spine online",
+    body: "Recall, compiled pages, and graph focus remain close to the work that created them.",
+    signals: [
+      { label: "Recall", value: "Exact" },
+      { label: "Graph", value: "Pinned" },
+      { label: "Pages", value: "Compiled" },
+    ],
+    proof: [NEXUS_FREE_USE_LABEL, "Local archive", "Operator recall"],
+  },
+  vehicle: {
+    title: "Bench lane separated",
+    body: "Future telemetry stays in preparation mode: simulated, passive, and never flight-critical.",
+    signals: [
+      { label: "Bridge", value: "Cold" },
+      { label: "Replay", value: "Ready" },
+      { label: "Failsafe", value: "Manual" },
+    ],
+    proof: [NEXUS_FREE_USE_LABEL, "Sim first", "Passive only"],
+  },
+  resources: {
+    title: "Proof plane indexed",
+    body: "Docs, plans, and massive-win tracking stay native to the command room instead of becoming a separate wiki.",
+    signals: [
+      { label: "Manual", value: "Local" },
+      { label: "Impact", value: "Mapped" },
+      { label: "Queue", value: "Visible" },
+    ],
+    proof: [NEXUS_FREE_USE_LABEL, "Route proof", "Local docs"],
+  },
+  security: {
+    title: "Control surface visible",
+    body: "Access posture, policy checks, and diagnostics stay readable before the next protected move.",
+    signals: [
+      { label: "Access", value: "Token" },
+      { label: "Policy", value: "Tight" },
+      { label: "Drill", value: "Ready" },
+    ],
+    proof: [NEXUS_FREE_USE_LABEL, "Token gate", "Route policy"],
+  },
+  skills: {
+    title: "Workflow forge staged",
+    body: "Capability packs, scheduler posture, and review state stay together while a workflow takes shape.",
+    signals: [
+      { label: "Forge", value: "Warm" },
+      { label: "Review", value: "Gated" },
+      { label: "Queue", value: "Open" },
+    ],
+    proof: [NEXUS_FREE_USE_LABEL, "Review first", "Local runs"],
+  },
+};
+
+function resolveHomefrontThreshold(
+  surface: ShellSurface,
+  art: (typeof SURFACE_ART)[ShellSurface],
+  branding: ReturnType<typeof getSurfaceBranding>,
+): HomefrontThresholdSpec {
+  return (
+    HOMEFRONT_THRESHOLD[surface] ?? {
+      title: `${art.strap} online`,
+      body: `${branding.functionalLabel} keeps its live signals, protected access, and route proof in one operating view.`,
+      signals: art.readouts,
+      proof: [NEXUS_FREE_USE_LABEL, "Token-gated", "Route proof"],
+    }
+  );
+}
 
 function setStagePointerVars(target: HTMLElement, x: number, y: number) {
   const px = Math.min(Math.max(x, 0), 1);
   const py = Math.min(Math.max(y, 0), 1);
-  target.style.setProperty("--nexus-ops-pointer-x", `${(px * 100).toFixed(2)}%`);
-  target.style.setProperty("--nexus-ops-pointer-y", `${(py * 100).toFixed(2)}%`);
-  target.style.setProperty("--nexus-ops-parallax-x", `${((px - 0.5) * 18).toFixed(2)}px`);
-  target.style.setProperty("--nexus-ops-parallax-y", `${((py - 0.5) * 14).toFixed(2)}px`);
+  target.style.setProperty(
+    "--nexus-ops-pointer-x",
+    `${(px * 100).toFixed(2)}%`,
+  );
+  target.style.setProperty(
+    "--nexus-ops-pointer-y",
+    `${(py * 100).toFixed(2)}%`,
+  );
+  target.style.setProperty(
+    "--nexus-ops-parallax-x",
+    `${((px - 0.5) * 18).toFixed(2)}px`,
+  );
+  target.style.setProperty(
+    "--nexus-ops-parallax-y",
+    `${((py - 0.5) * 14).toFixed(2)}px`,
+  );
 }
 
 function handleStagePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
@@ -252,6 +427,102 @@ function buildSequenceDelays(
   return { hero, primary, support, continuity };
 }
 
+function HomefrontDoctrineRail({
+  surface,
+  branding,
+}: {
+  surface: ShellSurface;
+  branding: ReturnType<typeof getSurfaceBranding>;
+}) {
+  const cinematicIA = getCinematicIASurface(surface);
+
+  return (
+    <div
+      className="nexus-shell-doctrineRail"
+      data-testid="homefront-doctrine-strip"
+      data-surface={surface}
+    >
+      <div className="nexus-shell-doctrineRail__copy">
+        <span className="nexus-shell-doctrineRail__kicker">
+          Homefront continuity
+        </span>
+        <span className="nexus-shell-doctrineRail__line">
+          {branding.functionalLabel} inherits the landing threshold: local
+          first, token-gated, and useful without an app billing layer.
+        </span>
+      </div>
+      <div
+        className="nexus-shell-doctrineRail__chips"
+        aria-label="Homefront posture"
+      >
+        <span>{NEXUS_FREE_USE_LABEL}</span>
+        <span>BYOK optional</span>
+        <span>{cinematicIA.posture}</span>
+      </div>
+    </div>
+  );
+}
+
+function HomefrontCommandThreshold({
+  surface,
+  art,
+  branding,
+}: {
+  surface: ShellSurface;
+  art: (typeof SURFACE_ART)[ShellSurface];
+  branding: ReturnType<typeof getSurfaceBranding>;
+}) {
+  const spec = resolveHomefrontThreshold(surface, art, branding);
+
+  return (
+    <section
+      className="nexus-shell-commandThreshold"
+      data-testid="homefront-command-threshold"
+      data-surface={surface}
+      aria-label={`${branding.visibleLabel} Homefront threshold`}
+    >
+      <div className="nexus-shell-commandThreshold__header">
+        <span className="nexus-shell-commandThreshold__kicker">
+          Live threshold
+        </span>
+        <strong className="nexus-shell-commandThreshold__title">
+          {spec.title}
+        </strong>
+        <span className="nexus-shell-commandThreshold__body">{spec.body}</span>
+      </div>
+      <div
+        className="nexus-shell-commandThreshold__grid"
+        aria-label="Surface signals"
+      >
+        {spec.signals.map((signal, index) => (
+          <div
+            key={`${surface}-${signal.label}-${signal.value}`}
+            className="nexus-shell-commandThreshold__signal"
+          >
+            <span className="nexus-shell-commandThreshold__signalTop">
+              0{index + 1}
+            </span>
+            <span className="nexus-shell-commandThreshold__signalLabel">
+              {signal.label}
+            </span>
+            <span className="nexus-shell-commandThreshold__signalValue">
+              {signal.value}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div
+        className="nexus-shell-commandThreshold__proof"
+        aria-label="Route proof"
+      >
+        {spec.proof.map((item) => (
+          <span key={`${surface}-${item}`}>{item}</span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function ShellPage({
   eyebrow,
   title,
@@ -278,14 +549,20 @@ export function ShellPage({
   const atmosphere = resolveSurfaceAtmosphereSpec(surface);
   const sequence = resolveSurfaceSequencePreset(surface);
   const delays = buildSequenceDelays(sequence);
+  const cinematicIA = getCinematicIASurface(surface);
   const resolvedHeroDensity: ShellHeroDensity =
-    heroDensity ?? (surface === "hq" || surface === "default" ? "standard" : "compact");
+    heroDensity ??
+    (surface === "hq" || surface === "default" ? "standard" : "compact");
   const compactChrome = resolvedHeroDensity === "compact";
 
   return (
     <PageTransition>
       <div
         className={cn("nexus-shell-stage", `nexus-shell-stage--${surface}`)}
+        data-cinematic-ia={CINEMATIC_IA_VERSION}
+        data-cinematic-surface={cinematicIA.surface}
+        data-cinematic-posture={cinematicIA.posture}
+        data-cinematic-hierarchy={cinematicIA.hierarchy}
         data-chamber-tone={atmosphere.chamberTone}
         data-focus-bias={atmosphere.focusBias}
         data-ingress={sequence.ingress.kind}
@@ -327,7 +604,9 @@ export function ShellPage({
             {surface !== "default" ? (
               <SpatialCommandStrip
                 surface={surface}
-                className={compactChrome ? "nexus-spatial-strip--compact" : undefined}
+                className={
+                  compactChrome ? "nexus-spatial-strip--compact" : undefined
+                }
               />
             ) : null}
             <OpsStrip
@@ -411,7 +690,9 @@ export function OpsHeader({
     >
       <div className="nexus-shell-opsHead__manifest">
         <div className="nexus-shell-opsHead__heading">
-          {eyebrow ? <div className="nexus-shell-eyebrow">{eyebrow}</div> : null}
+          {eyebrow ? (
+            <div className="nexus-shell-eyebrow">{eyebrow}</div>
+          ) : null}
           <div className="nexus-shell-opsHead__identity">
             <div className="nexus-shell-opsHead__identityCopy">
               <span className="nexus-shell-opsHead__identityLabel">
@@ -426,6 +707,16 @@ export function OpsHeader({
         <h1 className="nexus-shell-title">{title}</h1>
         {description ? (
           <p className="nexus-shell-description">{description}</p>
+        ) : null}
+        {surface !== "default" ? (
+          <HomefrontDoctrineRail surface={surface} branding={branding} />
+        ) : null}
+        {surface !== "default" && surface !== "hq" ? (
+          <HomefrontCommandThreshold
+            surface={surface}
+            art={art}
+            branding={branding}
+          />
         ) : null}
         <div className="nexus-shell-opsHead__tape" aria-hidden="true">
           <span>{taste.supportLabel}</span>
@@ -454,9 +745,16 @@ export function OpsHeader({
         </div>
         <div className="nexus-shell-opsHead__telemetry">
           {art.readouts.map((readout) => (
-            <div key={`${surface}-${readout.label}`} className="nexus-shell-opsHead__readout">
-              <span className="nexus-shell-opsHead__readoutLabel">{readout.label}</span>
-              <span className="nexus-shell-opsHead__readoutValue">{readout.value}</span>
+            <div
+              key={`${surface}-${readout.label}`}
+              className="nexus-shell-opsHead__readout"
+            >
+              <span className="nexus-shell-opsHead__readoutLabel">
+                {readout.label}
+              </span>
+              <span className="nexus-shell-opsHead__readoutValue">
+                {readout.value}
+              </span>
             </div>
           ))}
         </div>
@@ -477,9 +775,14 @@ export function ShellStage({
   const atmosphere = resolveSurfaceAtmosphereSpec(surface);
   const sequence = resolveSurfaceSequencePreset(surface);
   const delays = buildSequenceDelays(sequence);
+  const cinematicIA = getCinematicIASurface(surface);
   return (
     <div
       className={cn("nexus-shell-stage", `nexus-shell-stage--${surface}`)}
+      data-cinematic-ia={CINEMATIC_IA_VERSION}
+      data-cinematic-surface={cinematicIA.surface}
+      data-cinematic-posture={cinematicIA.posture}
+      data-cinematic-hierarchy={cinematicIA.hierarchy}
       data-chamber-tone={atmosphere.chamberTone}
       data-focus-bias={atmosphere.focusBias}
       data-ingress={sequence.ingress.kind}
@@ -501,7 +804,7 @@ export function ShellStage({
           "--nexus-ops-parallax-y": "0px",
         } as CSSProperties
       }
-      >
+    >
       <ShellStageBackdrop surface={surface} art={art} branding={branding} />
       <div className="nexus-shell-stage__veil" aria-hidden="true" />
       <div className="nexus-shell-stage__focus" aria-hidden="true" />
@@ -517,7 +820,14 @@ export function OpsCanvas({
   children: ReactNode;
   className?: string;
 }) {
-  return <div className={cn("nexus-ops-canvas", className)}>{children}</div>;
+  return (
+    <div
+      className={cn("nexus-ops-canvas", className)}
+      data-cinematic-zone="canvas"
+    >
+      {children}
+    </div>
+  );
 }
 
 export function OpsWorkplane({
@@ -527,7 +837,14 @@ export function OpsWorkplane({
   children: ReactNode;
   className?: string;
 }) {
-  return <div className={cn("nexus-ops-workplane", className)}>{children}</div>;
+  return (
+    <div
+      className={cn("nexus-ops-workplane", className)}
+      data-cinematic-zone="lead"
+    >
+      {children}
+    </div>
+  );
 }
 
 export function OpsRail({
@@ -537,7 +854,14 @@ export function OpsRail({
   children: ReactNode;
   className?: string;
 }) {
-  return <aside className={cn("nexus-ops-rail", className)}>{children}</aside>;
+  return (
+    <aside
+      className={cn("nexus-ops-rail", className)}
+      data-cinematic-zone="support"
+    >
+      {children}
+    </aside>
+  );
 }
 
 export function OpsInspector({
@@ -547,7 +871,14 @@ export function OpsInspector({
   children: ReactNode;
   className?: string;
 }) {
-  return <aside className={cn("nexus-ops-inspector", className)}>{children}</aside>;
+  return (
+    <aside
+      className={cn("nexus-ops-inspector", className)}
+      data-cinematic-zone="inspector"
+    >
+      {children}
+    </aside>
+  );
 }
 
 export function OpsStrip({
@@ -557,7 +888,14 @@ export function OpsStrip({
   children: ReactNode;
   className?: string;
 }) {
-  return <div className={cn("nexus-ops-strip", className)}>{children}</div>;
+  return (
+    <div
+      className={cn("nexus-ops-strip", className)}
+      data-cinematic-zone="continuity"
+    >
+      {children}
+    </div>
+  );
 }
 
 export function OpsField({
@@ -588,13 +926,20 @@ export function OpsField({
       )}
       data-tone={tone}
       data-field-compact={compact ? "true" : "false"}
+      data-cinematic-zone={tone === "muted" ? "support" : "lead"}
     >
       <header className="nexus-ops-field__header">
         <div className="nexus-ops-field__kicker">
           <span className="nexus-ops-field__tone">
-            {tone === "muted" ? "Support rail" : compact ? "Inset rail" : "Active lane"}
+            {tone === "muted"
+              ? "Support rail"
+              : compact
+                ? "Inset rail"
+                : "Active lane"}
           </span>
-          {detail ? <span className="nexus-ops-field__detail">{detail}</span> : null}
+          {detail ? (
+            <span className="nexus-ops-field__detail">{detail}</span>
+          ) : null}
         </div>
         <div className="nexus-ops-field__title">{title}</div>
       </header>
@@ -622,6 +967,9 @@ export function ShellPanel({
         dense && "nexus-shell-panel--dense",
         className,
       )}
+      data-cinematic-zone={
+        tone === "muted" ? "support" : tone === "hero" ? "lead" : "panel"
+      }
     >
       {children}
     </section>
@@ -686,7 +1034,9 @@ export function SectionLabel({
   return (
     <div className="nexus-shell-section-label">
       <span>{children}</span>
-      {detail ? <span className="nexus-shell-section-label__detail">{detail}</span> : null}
+      {detail ? (
+        <span className="nexus-shell-section-label__detail">{detail}</span>
+      ) : null}
     </div>
   );
 }
@@ -699,7 +1049,12 @@ export function ShellBadge({
   tone?: "default" | "success" | "accent" | "muted";
 }) {
   return (
-    <span className={cn("nexus-shell-badge", tone !== "default" && `nexus-shell-badge--${tone}`)}>
+    <span
+      className={cn(
+        "nexus-shell-badge",
+        tone !== "default" && `nexus-shell-badge--${tone}`,
+      )}
+    >
       {children}
     </span>
   );

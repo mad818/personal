@@ -1,0 +1,237 @@
+{
+  "schemaVersion": "aether-reliquary-save-envelope-v1",
+  "gameTitle": "Aether Reliquary",
+  "activeSlotId": "manual-01",
+  "exportedAt": "2026-04-26T12:00:00.000Z",
+  "slots": [
+    {
+      "id": "autosave",
+      "label": "Autosave",
+      "kind": "autosave",
+      "savedAt": 1767225600000,
+      "checkpointId": "gate-room",
+      "save": {
+        "version": 3,
+        "player": {
+          "x": 0,
+          "z": 0,
+          "hp": 100,
+          "maxHp": 100,
+          "mana": 50,
+          "maxMana": 50,
+          "xp": 0,
+          "level": 1,
+          "gold": 0,
+          "origin": "wardbound",
+          "inventoryIds": [],
+          "equipped": {},
+          "unlockedSkillIds": ["wardbreaker-cleave"],
+          "equippedSkillIds": ["wardbreaker-cleave"],
+          "activeQuestId": "wake-the-gate"
+        },
+        "storyFlags": [],
+        "world": {
+          "zoneId": "first-reliquary",
+          "checkpointId": "gate-room",
+          "openedChestIds": [],
+          "defeatedEnemyIds": [],
+          "npcDialogueFlags": []
+        },
+        "crafting": {
+          "unlockedRecipeIds": ["first-temper"],
+          "knownMaterialIds": ["upgrade-shard", "relic-dust"],
+          "cityDiscounts": {}
+        },
+        "journey": {
+          "selectedCityId": "first-reliquary",
+          "selectedSubCityId": null,
+          "activeRouteId": null,
+          "activeTravelEventId": null,
+          "resolvedTravelEventIds": [],
+          "unlockedRouteIds": []
+        },
+        "endgame": {
+          "unlocked": false,
+          "difficultyTierId": "oathbound",
+          "eliteAffixRotationId": "iron-vow",
+          "activeDungeonId": null,
+          "activeTrialId": null,
+          "activeBossRematchId": null,
+          "activeArenaChallengeId": null,
+          "completedDungeonIds": [],
+          "completedTrialIds": [],
+          "completedBossRematchIds": [],
+          "discoveredTreasureMapIds": [],
+          "completedTreasureMapIds": [],
+          "completedArenaChallengeIds": [],
+          "collectionGoalIds": [],
+          "cosmeticRewardIds": []
+        },
+        "combat": {
+          "playerStatuses": [],
+          "cooldowns": {},
+          "targetEnemyId": null,
+          "latestEvents": [],
+          "discoveredEnemyCodexIds": [],
+          "reducedMotionVfx": false
+        },
+        "lastSavedAt": 1767225600000
+      }
+    },
+    {
+      "id": "manual-01",
+      "label": "Manual save",
+      "kind": "manual",
+      "savedAt": 1767225900000,
+      "checkpointId": "forge-pedestal",
+      "save": {
+        "version": 3,
+        "player": {
+          "x": 1,
+          "z": -1,
+          "hp": 96,
+          "maxHp": 110,
+          "mana": 44,
+          "maxMana": 55,
+          "xp": 95,
+          "level": 3,
+          "gold": 42,
+          "origin": "wardbound",
+          "inventoryIds": ["health-vial", "upgrade-shard"],
+          "equipped": {
+            "weapon": "cinder-glaive"
+          },
+          "unlockedSkillIds": ["wardbreaker-cleave", "wardbreaker-guard"],
+          "equippedSkillIds": ["wardbreaker-cleave"],
+          "activeQuestId": "quiet-the-warden"
+        },
+        "storyFlags": ["quest:wake-the-gate:complete"],
+        "world": {
+          "zoneId": "first-reliquary",
+          "checkpointId": "forge-pedestal",
+          "openedChestIds": ["loom-shard-pedestal"],
+          "defeatedEnemyIds": ["hollow-sentry"],
+          "npcDialogueFlags": ["oracle:first-warning"]
+        },
+        "crafting": {
+          "unlockedRecipeIds": ["first-temper"],
+          "knownMaterialIds": ["upgrade-shard", "relic-dust"],
+          "cityDiscounts": {}
+        },
+        "journey": {
+          "selectedCityId": "first-reliquary",
+          "selectedSubCityId": null,
+          "activeRouteId": null,
+          "activeTravelEventId": null,
+          "resolvedTravelEventIds": [],
+          "unlockedRouteIds": []
+        },
+        "endgame": {
+          "unlocked": false,
+          "difficultyTierId": "oathbound",
+          "eliteAffixRotationId": "iron-vow",
+          "activeDungeonId": null,
+          "activeTrialId": null,
+          "activeBossRematchId": null,
+          "activeArenaChallengeId": null,
+          "completedDungeonIds": [],
+          "completedTrialIds": [],
+          "completedBossRematchIds": [],
+          "discoveredTreasureMapIds": [],
+          "completedTreasureMapIds": [],
+          "completedArenaChallengeIds": [],
+          "collectionGoalIds": [],
+          "cosmeticRewardIds": []
+        },
+        "combat": {
+          "playerStatuses": [],
+          "cooldowns": {},
+          "targetEnemyId": "hollow-sentry",
+          "latestEvents": [],
+          "discoveredEnemyCodexIds": ["hollow-sentry"],
+          "reducedMotionVfx": false
+        },
+        "lastSavedAt": 1767225900000
+      }
+    },
+    {
+      "id": "checkpoint-warden",
+      "label": "Checkpoint",
+      "kind": "checkpoint",
+      "savedAt": 1767226200000,
+      "checkpointId": "warden-door",
+      "save": {
+        "version": 3,
+        "player": {
+          "x": 2,
+          "z": -2,
+          "hp": 88,
+          "maxHp": 110,
+          "mana": 40,
+          "maxMana": 55,
+          "xp": 125,
+          "level": 3,
+          "gold": 47,
+          "origin": "wardbound",
+          "inventoryIds": ["health-vial", "focus-draught", "gate-key-fragment"],
+          "equipped": {
+            "weapon": "cinder-glaive",
+            "offhand": "first-reliquary-shield"
+          },
+          "unlockedSkillIds": ["wardbreaker-cleave", "wardbreaker-guard"],
+          "equippedSkillIds": ["wardbreaker-cleave"],
+          "activeQuestId": "quiet-the-warden"
+        },
+        "storyFlags": ["quest:wake-the-gate:complete", "gate:north-ready"],
+        "world": {
+          "zoneId": "first-reliquary",
+          "checkpointId": "warden-door",
+          "openedChestIds": ["loom-shard-pedestal"],
+          "defeatedEnemyIds": ["hollow-sentry", "ashling-scout"],
+          "npcDialogueFlags": ["oracle:first-warning", "forge:first-temper"]
+        },
+        "crafting": {
+          "unlockedRecipeIds": ["first-temper"],
+          "knownMaterialIds": ["upgrade-shard", "relic-dust", "gate-key-fragment"],
+          "cityDiscounts": {
+            "veyrhold": 5
+          }
+        },
+        "journey": {
+          "selectedCityId": "veyrhold",
+          "selectedSubCityId": "oathmarket",
+          "activeRouteId": null,
+          "activeTravelEventId": null,
+          "resolvedTravelEventIds": ["pilgrim-road-ambush"],
+          "unlockedRouteIds": ["first-reliquary-to-veyrhold"]
+        },
+        "endgame": {
+          "unlocked": false,
+          "difficultyTierId": "oathbound",
+          "eliteAffixRotationId": "iron-vow",
+          "activeDungeonId": null,
+          "activeTrialId": null,
+          "activeBossRematchId": null,
+          "activeArenaChallengeId": null,
+          "completedDungeonIds": [],
+          "completedTrialIds": [],
+          "completedBossRematchIds": [],
+          "discoveredTreasureMapIds": [],
+          "completedTreasureMapIds": [],
+          "completedArenaChallengeIds": [],
+          "collectionGoalIds": [],
+          "cosmeticRewardIds": []
+        },
+        "combat": {
+          "playerStatuses": [],
+          "cooldowns": {},
+          "targetEnemyId": "brass-warden",
+          "latestEvents": [],
+          "discoveredEnemyCodexIds": ["hollow-sentry", "ashling-scout", "brass-warden"],
+          "reducedMotionVfx": false
+        },
+        "lastSavedAt": 1767226200000
+      }
+    }
+  ]
+}

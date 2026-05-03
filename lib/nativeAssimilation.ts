@@ -8,7 +8,10 @@ import {
 } from "@/lib/governanceCatalog";
 import type { MemorySpineItem, MemorySpineSnapshot } from "@/lib/memorySpine";
 import type { SurfaceCapabilityId } from "@/lib/resourceSessionRegistry";
-import { analyzeScheduledJobs } from "@/lib/schedulerGovernance";
+import {
+  analyzeScheduledJobs,
+  getScheduledMissionReviewSummary,
+} from "@/lib/schedulerGovernance";
 import type { NetworkMode } from "@/lib/security/routePolicy";
 import type { Skill } from "@/lib/skillEngine";
 import { inferWorkflowPackIdFromText, getWorkflowPack } from "@/lib/workflowPacks";
@@ -147,6 +150,9 @@ function resolveWorkflowOwner(
 
 function deriveWorkflowStatus(job: ScheduledJob): WorkflowOpsQueueStatus {
   if (!job.enabled) return "standby";
+  const missionReview = getScheduledMissionReviewSummary(job);
+  if (missionReview.status === "expired") return "blocked";
+  if (missionReview.status === "pending_review") return "queued";
   if (job.lastStatus === "error") return "blocked";
   if (job.lastStatus === "queued" || job.pendingBatchId) return "queued";
   if (job.lastStatus === "ok") return "ready";
@@ -176,8 +182,19 @@ function buildWorkflowJobNote(
   job: ScheduledJob,
   workflow?: HQWorkflowCatalogItem,
 ) {
+  const missionReview = getScheduledMissionReviewSummary(job);
   const summary = job.lastSummary?.trim();
-  if (summary) return summary;
+  if (summary && missionReview.status !== "pending_review" && missionReview.status !== "expired") {
+    return summary;
+  }
+
+  if (missionReview.status === "expired") {
+    return `${summary ? `${summary} · ` : ""}review expired${missionReview.scope ? ` · ${missionReview.scope}` : ""}`;
+  }
+
+  if (missionReview.status === "pending_review") {
+    return `${summary ? `${summary} · ` : ""}awaiting operator review${missionReview.expiresAt ? ` · due in ${Math.max(1, Math.ceil((missionReview.expiresAt - Date.now()) / (60 * 60 * 1000)))}h` : ""}`;
+  }
 
   const pieces = [
     workflow?.label ??

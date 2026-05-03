@@ -1,67 +1,37 @@
-<!-- Committed companion to auto handoff — edit when shipping a batch of work; links use branch main. -->
+<!-- Compact companion to the generated Codex handoff. Keep this short. -->
 
-**Ecosystem assimilation (docs-only, no vendored third-party code)**
+**Codex operating spine**
 
-- [docs/ideas/assimilated-ecosystem.md](https://github.com/mad818/personal/blob/main/docs/ideas/assimilated-ecosystem.md) — maps external repos (PM Skills, Coolify, autoresearch, UncommonRoute, Onyx, Sentrux, etc.) to Nexus patterns.
-- [docs/ideas/external-links-mapping.md](https://github.com/mad818/personal/blob/main/docs/ideas/external-links-mapping.md) — broader link inventory.
-- [docs/ideas/README.md](https://github.com/mad818/personal/blob/main/docs/ideas/README.md) — ideas index.
+- `AGENTS.md` — session startup rules and repo-specific coding constraints.
+- `docs/SYSTEM_STATE.md` — current shipped state, active architecture, and known blockers.
+- `tasks/todo.md` — active queue; use `## Next Up` as the work selector.
+- `tasks/lessons.md` — corrections and rules from past sessions.
 
-**Self-hosting & containers**
+**Private RPG lane**
 
-- [docs/deployment/coolify.md](https://github.com/mad818/personal/blob/main/docs/deployment/coolify.md) — Coolify vs Nixpacks vs Dockerfile.
-- [docs/deployment/README.md](https://github.com/mad818/personal/blob/main/docs/deployment/README.md) — deployment index + `docker build` one-liner.
-- [Dockerfile](https://github.com/mad818/personal/blob/main/Dockerfile) — multi-stage Node 20 Alpine, Next **standalone** (`node server.js`, port 3000).
-- [.dockerignore](https://github.com/mad818/personal/blob/main/.dockerignore) — keeps build context lean.
-- [next.config.js](https://github.com/mad818/personal/blob/main/next.config.js) — `output: 'standalone'` for the Docker image.
+- `Aether Reliquary` is a personal/private RPG world currently housed inside `/hq`; do not frame it as public Nexus Prime positioning.
+- Keep landing, README, and product-shell copy focused on Homefront/Nexus command intelligence, local memory, protected tools, and route proof.
+- The RPG world is expected to move into its own separate thing later, so keep boundaries clean and avoid tying public product identity to it.
+- MW5 shipped the Phaser RPG replacement foundation; MW6 now has the Bible-first spine, MW6F-H playable character foundation, MW6I-L/V first-zone combat art, MW6I-S systems/world loop foundation, MW6T dungeons/endgame foundation, an MW6V real-asset intake bridge, an MW6W image-driven browser-RPG shell, and a completion control plane for MW6U-AA closure.
+- Keep `/hq` route-stable, preserve the command input, and keep the game local-first.
 
-**Environment & IDE routers**
+**Game production anchors**
 
-- [.env.example](https://github.com/mad818/personal/blob/main/.env.example) — optional block for **UncommonRoute** / **factory-cursor-bridge** (`OPENAI_BASE_URL` / `ANTHROPIC_BASE_URL` in Cursor, not Nexus server).
+- `docs/game/aether-reliquary/README.md` — MW6 production spine, canon docs, and validation gates.
+- `lib/arpgProductionContent.json` and `lib/arpgProductionContent.ts` — typed 12-city, 48-sub-city production registry.
+- `lib/arpgCharacterContent.json`, `lib/arpgCharacterContent.ts`, and `docs/game/aether-reliquary/character-foundation.md` — playable lineages, class trees, subclasses, palettes, starter skills, and v3 character identity rules.
+- `lib/arpgCombatContent.ts` and `docs/game/aether-reliquary/combat-art-foundation.md` — first-zone combat profiles, damage/status rules, generated sprite/icon sheets, HUD/codex proof, and validation gates.
+- `lib/arpgEnemyTaxonomyContent.*`, `lib/arpgArmoryEconomyContent.*`, `lib/arpgWorldLoopContent.*`, and `docs/game/aether-reliquary/mw6-i-s-systems-world-foundation.md` — MW6I-S enemy, armory/economy, quest/faction/companion/NPC, and travel-event systems.
+- `lib/arpgEndgameContent.*` and `docs/game/aether-reliquary/mw6-t-dungeons-endgame.md` — MW6T repeatable dungeons, relic trials, boss rematches, treasure maps, arena challenges, collection goals, cosmetics, and postgame state.
+- `docs/game/aether-reliquary/image-driven-browser-rpg.md` and `components/home/arpg/ArpgHud.tsx` — MW6W click-to-travel/fight/loot/story card shell and compact Adventure drawer.
+- `lib/arpgCompletionContent.*` and `docs/game/aether-reliquary/mw6-full-game-completion.md` — MW6 parent completion registry, `/hq` Production drawer, save export/import recovery proof, and remaining MW6U-AA gate tracking.
+- `lib/arpgAssetCandidateSources.json`, `lib/arpgAssetIntake.ts`, `scripts/import-arpg-real-assets.mjs`, and `docs/game/aether-reliquary/real-asset-acquisition.md` — MW6V real 3D asset candidate queue, import bridge, and blocked-until-pack-placement proof lane.
+- `docs/superpowers/plans/2026-04-25-arpg-phaser-rpg-replacement.md` — MW5 outcome and proof.
+- `docs/assets/arpg-asset-ledger.md` — asset provenance and CC0/CC-BY intake rules.
+- `lib/arpgGame.ts` and `lib/arpgGameContent.ts` — save contract, systems, and authored content.
 
-**Repo entrypoints updated**
+**Handoff rule**
 
-- [README.md](https://github.com/mad818/personal/blob/main/README.md) — Self-hosting section, project tree includes `Dockerfile`, `docs/deployment/`, `docs/ideas/assimilated-ecosystem.md`.
-- [CLAUDE.md](https://github.com/mad818/personal/blob/main/CLAUDE.md) — `docs/` paths + assimilated ecosystem pointer.
-- [docs/release-support-matrix.md](https://github.com/mad818/personal/blob/main/docs/release-support-matrix.md) — GA vs beta vs internal product surface policy for this cycle.
-- [docs/deployment/release-readiness-checklist.md](https://github.com/mad818/personal/blob/main/docs/deployment/release-readiness-checklist.md) — shared web/desktop release gate checklist.
-
-**Handoff automation**
-
-- [scripts/generate-handoff.js](https://github.com/mad818/personal/blob/main/scripts/generate-handoff.js) — **branch** tree + commit history links from `origin`, plus this file appended into `docs/AGENT_HANDOFF.md` and compatibility copies (no per-commit SHA — avoids handoff sync oscillation).
-
-**PM operator + cockpit (planned)**
-
-- [docs/pm-operator-model.md](https://github.com/mad818/personal/blob/main/docs/pm-operator-model.md) — you = PM, in-app/IDE agents = engineering squad; what “always running” means.
-- [docs/pm-cockpit-plan.md](https://github.com/mad818/personal/blob/main/docs/pm-cockpit-plan.md) — phased plan: health strip → checklist UI → optional CI hooks; includes **HTTP 500 triage** (identify route, 401 vs 503 vs 500, check dev server logs).
-
-Use **`blob/main/...`** links above for stable file URLs. For the exact revision after a push, see [commit history](https://github.com/mad818/personal/commits/main) or run `git log -1` locally.
-
----
-
-## Handoff template — use this at end of every work session
-
-Agents and IDE sessions should close with this structure in their final message:
-
-```
-## HANDOFF — [agent name] — [date]
-
-### COMPLETED
-- [task] — [file changed] — [what it does]
-
-### ARTIFACTS
-- [file path] — [one-line description]
-
-### VERIFICATION
-- [ ] tsc --noEmit passes
-- [ ] npm run verify passes
-- [ ] Patched sections re-read and confirmed correct
-
-### KNOWN ISSUES
-- [anything left broken or incomplete — none if clean]
-
-### NEXT
-- [suggested next task] — owner: [agent or Mario]
-```
-
-This template feeds `docs/AGENT_HANDOFF.md` via `npm run handoff:write`, along with tool-compatible copies for Claude, Codex, and Cursor.
-If nothing broke and verify is green, state that explicitly — "No known issues."
+- Run `npm run handoff:write` after task/docs state changes.
+- Run `npm run handoff:check` before calling handoff docs synced.
+- Do not expand Claude/Cursor mirrors unless Mario explicitly asks; this repo is Codex-first now.

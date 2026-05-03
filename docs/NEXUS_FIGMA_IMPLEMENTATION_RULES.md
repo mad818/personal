@@ -8,11 +8,13 @@ Use it when translating a cinematic concept into production code. Do not treat t
 
 - Canva concept board view: `https://www.canva.com/d/FZ3EWE2EOWssOoF`
 - Canva concept board edit: `https://www.canva.com/d/IAVbi_asV5rgiY8`
-- Permanent design contract: `docs/NEXUS_TASTE_CONTRACT.md`
+- Permanent design-system source: `DESIGN.md`
+- Interpretive design contract: `docs/NEXUS_TASTE_CONTRACT.md`
+- Generated runtime outputs: `app/design-md.generated.css`, `lib/generated/designMdRuntime.ts`
 
 ## 1. Design Token Definitions
 
-Primary runtime tokens live in `app/globals.css` under `:root`.
+Primary runtime tokens live in `DESIGN.md`. `app/design-md.generated.css` and `lib/generated/designMdRuntime.ts` are generated outputs and must not be edited by hand; `app/globals.css` consumes those variables for selectors, keyframes, layout rules, and component styling.
 
 - Color tokens: `--bg`, `--surf*`, `--border*`, `--text*`, `--accent`, `--accent2`
 - Material tokens: `--panel`, `--panel-muted`, `--panel-hero`, `--hairline`, `--accent-glow`
@@ -36,8 +38,9 @@ const atmosphere = resolveSurfaceAtmosphereSpec("hq");
 
 Implementation rule:
 
-- Add or change cinematic tokens in `app/globals.css` first
+- Add or change cinematic tokens in `DESIGN.md` first, then run `npm run design:generate`
 - Use `lib/brand.ts` and `lib/nexusTasteContract.ts` for route-specific differentiation
+- Do not hand-edit `app/design-md.generated.css` or `lib/generated/designMdRuntime.ts`
 - Do not create a second detached token source in JSON, Figma-only notes, or component-local constants unless it is strictly local behavior
 
 ## 2. Component Library
@@ -161,6 +164,7 @@ Implementation rule:
 
 Styling is hybrid:
 
+- Generated design foundation in `app/design-md.generated.css`, imported before globals
 - Global semantic CSS in `app/globals.css`
 - Tailwind utility classes in component markup
 - `lib/cn.ts` merges class strings with `clsx` + `tailwind-merge`

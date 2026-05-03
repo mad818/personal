@@ -1,0 +1,627 @@
+{
+  "schemaVersion": "mw6-first-town-services-v1",
+  "cityId": "veyrhold",
+  "title": "Veyrhold First Town Hub",
+  "summary": "Veyrhold is the first release town: a civic oath hub with starter services, four district hooks, and early armor/accessory progression before the wider 12-city campaign opens.",
+  "unlockPath": ["Bellroot intro", "Brass Warden defeated", "Gate Key Fragment recovered", "North-gate route resolved"],
+  "services": [
+    {
+      "id": "bellroot-anvil",
+      "label": "Bellroot Anvil",
+      "kind": "blacksmith",
+      "districtId": "veyrhold-wardens-steps",
+      "summary": "Temper low-tier weapons and teach the first armor upgrade language.",
+      "primaryAction": "Craft First Temper",
+      "rewardItemIds": ["upgrade-shard"],
+      "unlocks": ["starter-armor-upgrades", "shield-and-helm-fitting"]
+    },
+    {
+      "id": "lamp-still",
+      "label": "Oath-Lamp Still",
+      "kind": "alchemy",
+      "districtId": "veyrhold-bellroot-commons",
+      "summary": "Brew safe health and focus consumables from reliquary dust and monster parts.",
+      "primaryAction": "Brew Vials",
+      "rewardItemIds": ["health-vial", "focus-draught"],
+      "unlocks": ["starter-alchemy", "condition-cleanses"]
+    },
+    {
+      "id": "oathmarket-stalls",
+      "label": "Oathmarket Stalls",
+      "kind": "market",
+      "districtId": "veyrhold-oathmarket",
+      "summary": "Trade city scrip for practical rings, amulets, and travel goods.",
+      "primaryAction": "Browse Starter Wares",
+      "rewardItemIds": ["city-scrip"],
+      "unlocks": ["starter-accessories", "vendor-discounts"]
+    },
+    {
+      "id": "pilgrim-rest",
+      "label": "Pilgrim Rest",
+      "kind": "inn",
+      "districtId": "veyrhold-pilgrim-rows",
+      "summary": "Set a safe checkpoint, hear rumors, and recover before the road widens.",
+      "primaryAction": "Set Checkpoint",
+      "rewardItemIds": ["health-vial"],
+      "unlocks": ["checkpoint-recovery", "road-rumors"]
+    },
+    {
+      "id": "warden-oath-board",
+      "label": "Warden Oath Board",
+      "kind": "quest-board",
+      "districtId": "veyrhold-wardens-steps",
+      "summary": "Post the first civic contracts for district threats, reputation, and local gear.",
+      "primaryAction": "Take Oath Work",
+      "rewardItemIds": ["city-scrip", "upgrade-shard"],
+      "unlocks": ["local-bounties", "veyrhold-reputation"]
+    }
+  ],
+  "npcRoster": [
+    {
+      "id": "dame-ivara-bellroot",
+      "name": "Dame Ivara Bellroot",
+      "role": "retired oath knight",
+      "districtId": "veyrhold-wardens-steps",
+      "serviceId": "warden-oath-board",
+      "summary": "A shield-captain with a cracked bronze pauldron who still remembers every family name carved into the old steps.",
+      "dialogueHook": "She asks whether the north gate opened because of courage, luck, or a promise the hero does not understand yet.",
+      "rewardItemId": "city-scrip",
+      "reputationFactionId": "veyrhold",
+      "visualCue": "Plain warden mail, oath-cloth sash, heavy tower shield leaning against the board."
+    },
+    {
+      "id": "mara-cindersmith",
+      "name": "Mara Cindersmith",
+      "role": "bellroot blacksmith",
+      "districtId": "veyrhold-wardens-steps",
+      "serviceId": "bellroot-anvil",
+      "summary": "A practical smith who judges people by how they set a blade down before they speak.",
+      "dialogueHook": "She can teach the first temper, but only if the hero brings proof the Brass Warden's oath did not break.",
+      "rewardItemId": "upgrade-shard",
+      "reputationFactionId": "veyrhold",
+      "visualCue": "Heat-dark apron, brass hand wraps, ember-lit forge tongs, no decorative high technology."
+    },
+    {
+      "id": "ilo-little-oracle",
+      "name": "Ilo",
+      "role": "little oracle companion",
+      "districtId": "veyrhold-bellroot-commons",
+      "serviceId": "lamp-still",
+      "summary": "A small blue-lit oracle who speaks softly when the oath-lamps flicker and loudly when nobody listens.",
+      "dialogueHook": "Ilo thinks the blue lamps are not warnings; they are invitations from something under Veyrhold.",
+      "rewardItemId": "focus-draught",
+      "reputationFactionId": "veyrhold",
+      "visualCue": "Warm moth-blue glow, little brass mantle, floating lamp beads, curious expression."
+    },
+    {
+      "id": "tovin-oathmarket",
+      "name": "Tovin of the Oathmarket",
+      "role": "market fixer",
+      "districtId": "veyrhold-oathmarket",
+      "serviceId": "oathmarket-stalls",
+      "summary": "A smiling broker who knows which rings are sentimental, which are cursed, and which are merely overpriced.",
+      "dialogueHook": "Tovin will open the plain accessory table after the hero resolves a debt written in witness-brass.",
+      "rewardItemId": "copper-oath-ring",
+      "reputationFactionId": "veyrhold",
+      "visualCue": "Layered market scarf, ring trays, belt of stamped promise coins."
+    },
+    {
+      "id": "sister-vael-pilgrim",
+      "name": "Sister Vael of the Rows",
+      "role": "pilgrim keeper",
+      "districtId": "veyrhold-pilgrim-rows",
+      "serviceId": "pilgrim-rest",
+      "summary": "A road-weary healer who treats vows like wounds: clean them, bind them, check them again before sunrise.",
+      "dialogueHook": "She offers the first safe road blessing if the hero listens to three pilgrims and does not mock any of them.",
+      "rewardItemId": "pilgrim-tin-ring",
+      "reputationFactionId": "veyrhold",
+      "visualCue": "Travel cloak, tin prayer rings, stitched boot kit, soft lamp tied to a walking staff."
+    }
+  ],
+  "miniQuests": [
+    {
+      "id": "oathmarket-ledger-debt",
+      "title": "The Ledger That Would Not Close",
+      "districtId": "veyrhold-oathmarket",
+      "npcId": "tovin-oathmarket",
+      "serviceId": "oathmarket-stalls",
+      "summary": "Settle a witness-brass debt so the Oathmarket trusts the hero with starter accessories.",
+      "steps": ["Read the disputed ledger", "Ask the bell-ringer who signed last", "Choose mercy or strict repayment"],
+      "rewardItemIds": ["city-scrip", "copper-oath-ring"],
+      "storyFlags": ["veyrhold:oathmarket-ledger-started", "veyrhold:oathmarket-ledger-resolved"],
+      "reputationDelta": 2,
+      "unlockCopy": "Opens the plain ring table and teaches that Veyrhold law is warmer than it looks."
+    },
+    {
+      "id": "wardens-steps-shield-fitting",
+      "title": "Shield Fitting at the Steps",
+      "districtId": "veyrhold-wardens-steps",
+      "npcId": "dame-ivara-bellroot",
+      "serviceId": "bellroot-anvil",
+      "summary": "Let Ivara and Mara refit the starter kit so armor progression begins with craftable, visible upgrades.",
+      "steps": ["Show the Brass Warden scar", "Hold stance through three hammer rings", "Choose helm, gloves, or chest first"],
+      "rewardItemIds": ["upgrade-shard", "oath-stitch-gloves"],
+      "storyFlags": ["veyrhold:shield-fitting-started", "veyrhold:shield-fitting-complete"],
+      "reputationDelta": 2,
+      "unlockCopy": "Opens the first armor upgrade language for helm, armor, gloves, and boots."
+    },
+    {
+      "id": "bellroot-commons-blue-lamps",
+      "title": "Blue Lamps in Bellroot Commons",
+      "districtId": "veyrhold-bellroot-commons",
+      "npcId": "ilo-little-oracle",
+      "serviceId": "lamp-still",
+      "summary": "Follow Ilo through three blue oath-lamps and learn why the city is answering the reliquary.",
+      "steps": ["Relight the quiet lamp", "Listen to the house with no door", "Bottle the blue ash before it fades"],
+      "rewardItemIds": ["focus-draught", "relic-dust"],
+      "storyFlags": ["veyrhold:blue-lamps-started", "veyrhold:blue-lamps-heard"],
+      "reputationDelta": 1,
+      "unlockCopy": "Opens safe alchemy work and the first city mystery chain."
+    },
+    {
+      "id": "pilgrim-rows-road-blessing",
+      "title": "Three Pilgrims and a Road Blessing",
+      "districtId": "veyrhold-pilgrim-rows",
+      "npcId": "sister-vael-pilgrim",
+      "serviceId": "pilgrim-rest",
+      "summary": "Hear the first road rumors before leaving town, then bind a blessing into the hero's travel kit.",
+      "steps": ["Hear the lantern pilgrim", "Hear the salt-road widow", "Hear the child who saw the north gate blink"],
+      "rewardItemIds": ["health-vial", "pilgrim-tin-ring"],
+      "storyFlags": ["veyrhold:road-blessing-started", "veyrhold:road-blessing-bound"],
+      "reputationDelta": 1,
+      "unlockCopy": "Makes the inn checkpoint feel like story preparation, not just a reset button."
+    }
+  ],
+  "serviceOutcomes": [
+    {
+      "id": "bellroot-anvil-first-temper",
+      "serviceId": "bellroot-anvil",
+      "label": "First Temper",
+      "result": "Mara tempers the active weapon and explains why bland common gear should slowly gain silhouette, not random glow.",
+      "rewardItemIds": ["upgrade-shard"],
+      "statusFlag": "veyrhold:service:first-temper"
+    },
+    {
+      "id": "lamp-still-safe-vials",
+      "serviceId": "lamp-still",
+      "label": "Safe Vials",
+      "result": "Ilo steadies the still while the hero bottles health and focus supplies for the next road.",
+      "rewardItemIds": ["health-vial", "focus-draught"],
+      "statusFlag": "veyrhold:service:safe-vials"
+    },
+    {
+      "id": "oathmarket-starter-wares",
+      "serviceId": "oathmarket-stalls",
+      "label": "Starter Wares",
+      "result": "Tovin unlocks practical rings and the first accessory comparison lesson.",
+      "rewardItemIds": ["city-scrip", "copper-oath-ring"],
+      "statusFlag": "veyrhold:service:starter-wares"
+    },
+    {
+      "id": "pilgrim-rest-checkpoint",
+      "serviceId": "pilgrim-rest",
+      "label": "Road Checkpoint",
+      "result": "Sister Vael binds the next checkpoint to a warm lamp and a plain tin ring.",
+      "rewardItemIds": ["health-vial", "pilgrim-tin-ring"],
+      "statusFlag": "veyrhold:service:road-checkpoint"
+    },
+    {
+      "id": "warden-oath-board-first-contract",
+      "serviceId": "warden-oath-board",
+      "label": "First Civic Contract",
+      "result": "Dame Ivara posts the first town contract and marks the hero as witnessed by Veyrhold.",
+      "rewardItemIds": ["city-scrip", "upgrade-shard"],
+      "statusFlag": "veyrhold:service:first-contract"
+    }
+  ],
+  "districtMapNodes": [
+    {
+      "id": "veyrhold-oathmarket-hub",
+      "districtId": "veyrhold-oathmarket",
+      "label": "Oathmarket",
+      "mapRole": "starter market and accessory lane",
+      "summary": "A warm, crowded promise-market where plain rings, city scrip, rumors, and first vendor choices teach the economy.",
+      "visualMood": "canvas awnings, brass oath coins, ring trays, small lamps reflected in wet stone",
+      "primaryNpcIds": ["tovin-oathmarket"],
+      "serviceIds": ["oathmarket-stalls"],
+      "miniQuestIds": ["oathmarket-ledger-debt"],
+      "rewardItemIds": ["city-scrip", "copper-oath-ring"],
+      "storyFlag": "veyrhold:visited:oathmarket",
+      "releaseAction": "Visit the market and unlock the first accessory comparison path."
+    },
+    {
+      "id": "veyrhold-wardens-steps-hub",
+      "districtId": "veyrhold-wardens-steps",
+      "label": "Warden's Steps",
+      "mapRole": "blacksmith, oath-board, and armor lane",
+      "summary": "Stepped civic stone, old shield marks, and forge heat make this the first place the hero learns armor identity.",
+      "visualMood": "bronze stair rails, oath banners, shield racks, hammer sparks under a civic arch",
+      "primaryNpcIds": ["dame-ivara-bellroot", "mara-cindersmith"],
+      "serviceIds": ["bellroot-anvil", "warden-oath-board"],
+      "miniQuestIds": ["wardens-steps-shield-fitting"],
+      "rewardItemIds": ["upgrade-shard", "oath-stitch-gloves"],
+      "storyFlag": "veyrhold:visited:wardens-steps",
+      "releaseAction": "Visit the steps and start the first armor upgrade path."
+    },
+    {
+      "id": "veyrhold-bellroot-commons-hub",
+      "districtId": "veyrhold-bellroot-commons",
+      "label": "Bellroot Commons",
+      "mapRole": "alchemy, Ilo follow-up, and city mystery lane",
+      "summary": "A softer residential commons where oath-lamps glow blue and the reliquary answers through small household rituals.",
+      "visualMood": "blue oath-lamps, moss between warm stones, little oracle lights, quiet doorways",
+      "primaryNpcIds": ["ilo-little-oracle"],
+      "serviceIds": ["lamp-still"],
+      "miniQuestIds": ["bellroot-commons-blue-lamps"],
+      "rewardItemIds": ["focus-draught", "relic-dust"],
+      "storyFlag": "veyrhold:visited:bellroot-commons",
+      "releaseAction": "Visit the commons and open the first alchemy and city-mystery follow-up."
+    },
+    {
+      "id": "veyrhold-pilgrim-rows-hub",
+      "districtId": "veyrhold-pilgrim-rows",
+      "label": "Pilgrim Rows",
+      "mapRole": "inn, checkpoint, rumors, and road prep lane",
+      "summary": "Narrow sleeping rows and lantern rails prepare the hero for the next road without making travel feel like a menu.",
+      "visualMood": "travel cloaks, tin rings, bedside lamps, road maps pinned under string",
+      "primaryNpcIds": ["sister-vael-pilgrim"],
+      "serviceIds": ["pilgrim-rest"],
+      "miniQuestIds": ["pilgrim-rows-road-blessing"],
+      "rewardItemIds": ["health-vial", "pilgrim-tin-ring"],
+      "storyFlag": "veyrhold:visited:pilgrim-rows",
+      "releaseAction": "Visit the rows and bind the first checkpoint and road blessing."
+    }
+  ],
+  "oathmarketVendorWares": [
+    {
+      "id": "oathmarket-copper-oath-ring",
+      "label": "Copper Oath Ring",
+      "itemId": "copper-oath-ring",
+      "priceCurrencyItemId": "city-scrip",
+      "priceAmount": 1,
+      "slotHint": "ring-left",
+      "qualityHint": "common",
+      "comparisonCopy": "A plain defensive ring: small ward and focus gains, intentionally bland so later rare/relic rings look meaningfully different.",
+      "storyFlag": "veyrhold:oathmarket:ware:copper-oath-ring"
+    },
+    {
+      "id": "oathmarket-pilgrim-tin-ring",
+      "label": "Pilgrim Tin Ring",
+      "itemId": "pilgrim-tin-ring",
+      "priceCurrencyItemId": "city-scrip",
+      "priceAmount": 1,
+      "slotHint": "ring-right",
+      "qualityHint": "common",
+      "comparisonCopy": "A travel ring: tiny speed and resonance gains for road prep, not a combat spike.",
+      "storyFlag": "veyrhold:oathmarket:ware:pilgrim-tin-ring"
+    },
+    {
+      "id": "oathmarket-bellroot-cord-amulet",
+      "label": "Bellroot Cord Amulet",
+      "itemId": "bellroot-cord-amulet",
+      "priceCurrencyItemId": "city-scrip",
+      "priceAmount": 2,
+      "slotHint": "amulet",
+      "qualityHint": "common",
+      "comparisonCopy": "A starter necklace path: ward and resonance now, with lamp-glass silhouettes reserved for rare and relic upgrades.",
+      "storyFlag": "veyrhold:oathmarket:ware:bellroot-cord-amulet"
+    },
+    {
+      "id": "oathmarket-road-vial",
+      "label": "Road Health Vial",
+      "itemId": "health-vial",
+      "priceCurrencyItemId": "city-scrip",
+      "priceAmount": 1,
+      "slotHint": "consumable",
+      "qualityHint": "common",
+      "comparisonCopy": "A practical road supply that keeps the first town economy useful without replacing combat rewards.",
+      "storyFlag": "veyrhold:oathmarket:ware:health-vial"
+    }
+  ],
+  "oathmarketLedgerChoices": [
+    {
+      "id": "oathmarket-ledger-mercy",
+      "label": "Mercy ruling",
+      "stance": "forgive part of the debt",
+      "summary": "Tovin loses a little coin but the market warms to the hero as someone who protects frightened pilgrims.",
+      "rewardItemIds": ["city-scrip", "pilgrim-tin-ring"],
+      "reputationDelta": 2,
+      "storyFlag": "veyrhold:oathmarket:ledger:mercy",
+      "outcomeCopy": "Better reputation and road-travel flavor; weaker immediate crafting pressure."
+    },
+    {
+      "id": "oathmarket-ledger-strict",
+      "label": "Strict ruling",
+      "stance": "enforce the debt exactly",
+      "summary": "The ledgers balance cleanly and the market guild trusts the hero with sharper prices.",
+      "rewardItemIds": ["city-scrip", "upgrade-shard"],
+      "reputationDelta": 1,
+      "storyFlag": "veyrhold:oathmarket:ledger:strict",
+      "outcomeCopy": "Better early upgrade material pressure; colder local response."
+    },
+    {
+      "id": "oathmarket-ledger-witness",
+      "label": "Witness compromise",
+      "stance": "split debt under oath witness",
+      "summary": "The bell-ringer witnesses a compromise that keeps both families in the market.",
+      "rewardItemIds": ["city-scrip", "copper-oath-ring"],
+      "reputationDelta": 2,
+      "storyFlag": "veyrhold:oathmarket:ledger:witness",
+      "outcomeCopy": "Balanced accessory reward and reputation, ideal for the first-release default path."
+    }
+  ],
+  "wardensStepsArmorFittings": [
+    {
+      "id": "wardens-helm-visor-fit",
+      "label": "Oath-Bronze Visor Fit",
+      "slot": "helm",
+      "serviceId": "bellroot-anvil",
+      "npcId": "mara-cindersmith",
+      "starterItemId": "pilgrim-helm",
+      "materialItemIds": ["upgrade-shard"],
+      "rewardItemIds": ["pilgrim-helm", "city-scrip"],
+      "qualityPath": ["common", "uncommon", "rare"],
+      "visualUpgrade": "A dented pilgrim cap gains a low bronze brow, small cheek guards, and the first visible oath etch.",
+      "statLesson": "Helm fittings teach ward and focus defense before flashy relic silhouettes appear.",
+      "storyFlag": "veyrhold:wardens-steps:fit:helm",
+      "comparisonCopy": "Plain protection now; uncommon and rare helms become noticeably more civic, crested, and oath-marked."
+    },
+    {
+      "id": "wardens-wardplate-repair",
+      "label": "Civic Wardplate Repair",
+      "slot": "armor",
+      "serviceId": "bellroot-anvil",
+      "npcId": "mara-cindersmith",
+      "starterItemId": "threadbare-wardplate",
+      "materialItemIds": ["upgrade-shard", "relic-dust"],
+      "rewardItemIds": ["threadbare-wardplate", "upgrade-shard"],
+      "qualityPath": ["common", "uncommon", "rare", "epic"],
+      "visualUpgrade": "Patched bronze plates get a warmer center seal, cleaner shoulder lines, and fewer mismatched straps.",
+      "statLesson": "Chest armor is the main ward budget: slower, sturdier, and visibly heavier as quality rises.",
+      "storyFlag": "veyrhold:wardens-steps:fit:armor",
+      "comparisonCopy": "A practical tank path for early survival; epic wardplate should look unmistakably city-forged."
+    },
+    {
+      "id": "wardens-forge-grip-gloves",
+      "label": "Forge-Grip Glove Stitch",
+      "slot": "gloves",
+      "serviceId": "bellroot-anvil",
+      "npcId": "mara-cindersmith",
+      "starterItemId": "oath-stitch-gloves",
+      "materialItemIds": ["upgrade-shard"],
+      "rewardItemIds": ["oath-stitch-gloves"],
+      "qualityPath": ["common", "uncommon", "rare"],
+      "visualUpgrade": "Work leather gains brass knuckle plates, tool-stitch seams, and a small forge stamp.",
+      "statLesson": "Gloves lean into might, speed, and crafting identity rather than raw armor.",
+      "storyFlag": "veyrhold:wardens-steps:fit:gloves",
+      "comparisonCopy": "A hand-feel upgrade: bland common leather first, then visible grip plates for better strikes and forging."
+    },
+    {
+      "id": "wardens-roadwarden-soles",
+      "label": "Roadwarden Sole Fit",
+      "slot": "boots",
+      "serviceId": "warden-oath-board",
+      "npcId": "dame-ivara-bellroot",
+      "starterItemId": "ash-runner-boots",
+      "materialItemIds": ["city-scrip", "upgrade-shard"],
+      "rewardItemIds": ["ash-runner-boots", "health-vial"],
+      "qualityPath": ["common", "uncommon", "rare"],
+      "visualUpgrade": "Soft road boots gain reinforced heel bands, route-rune straps, and a brighter sole edge.",
+      "statLesson": "Boot fittings make speed, dodge timing, and road readiness readable without becoming high-tech.",
+      "storyFlag": "veyrhold:wardens-steps:fit:boots",
+      "comparisonCopy": "A mobility path for the first road: better soles, clearer dodge identity, and later rare route marks."
+    }
+  ],
+  "wardensStepsOathContracts": [
+    {
+      "id": "wardens-contract-shield-line",
+      "label": "Hold the Shield Line",
+      "sponsorNpcId": "dame-ivara-bellroot",
+      "serviceId": "warden-oath-board",
+      "stance": "stand with the old wardens during a civic drill",
+      "summary": "The hero learns why Veyrhold armor begins as plain duty before it becomes legendary metal.",
+      "rewardItemIds": ["city-scrip", "upgrade-shard"],
+      "reputationDelta": 2,
+      "storyFlag": "veyrhold:wardens-steps:contract:shield-line",
+      "outcomeCopy": "Best early reputation path: a shield-drill contract that makes low-tier armor feel earned."
+    },
+    {
+      "id": "wardens-contract-forge-witness",
+      "label": "Witness the First Temper",
+      "sponsorNpcId": "mara-cindersmith",
+      "serviceId": "bellroot-anvil",
+      "stance": "help Mara certify a safe repair for pilgrim armor",
+      "summary": "Mara turns a routine fitting into a lesson about quality tiers, materials, and honest silhouettes.",
+      "rewardItemIds": ["upgrade-shard", "relic-dust"],
+      "reputationDelta": 1,
+      "storyFlag": "veyrhold:wardens-steps:contract:forge-witness",
+      "outcomeCopy": "Best crafting path: more upgrade pressure and the first hint that relic-tier armor needs proof, not sparkle."
+    },
+    {
+      "id": "wardens-contract-step-watch",
+      "label": "Take the Step Watch",
+      "sponsorNpcId": "dame-ivara-bellroot",
+      "serviceId": "warden-oath-board",
+      "stance": "watch the civic steps while apprentices carry armor through the crowd",
+      "summary": "A quiet town-watch job introduces armor as social identity: who trusts the hero, who steps aside, and who does not.",
+      "rewardItemIds": ["health-vial", "city-scrip"],
+      "reputationDelta": 2,
+      "storyFlag": "veyrhold:wardens-steps:contract:step-watch",
+      "outcomeCopy": "Best town-readiness path: safer supplies and stronger civic warmth before the next road opens."
+    }
+  ],
+  "bellrootCommonsBrews": [
+    {
+      "id": "bellroot-safe-health-vials",
+      "label": "Safe Health Vials",
+      "serviceId": "lamp-still",
+      "npcId": "ilo-little-oracle",
+      "brewRole": "recovery",
+      "ingredientItemIds": ["relic-dust"],
+      "rewardItemIds": ["health-vial", "health-vial"],
+      "conditionTags": ["recovery", "road-prep"],
+      "summary": "Ilo steadies the blue flame while the hero learns why safe healing starts with patient heat, not stronger magic.",
+      "storyFlag": "veyrhold:bellroot:brew:safe-health-vials",
+      "outcomeCopy": "Basic recovery for the first road; later alchemy can specialize into cleanses and resistance draughts."
+    },
+    {
+      "id": "bellroot-focus-draught",
+      "label": "Quiet Focus Draught",
+      "serviceId": "lamp-still",
+      "npcId": "ilo-little-oracle",
+      "brewRole": "skill support",
+      "ingredientItemIds": ["relic-dust", "focus-draught"],
+      "rewardItemIds": ["focus-draught"],
+      "conditionTags": ["focus", "skill-cast"],
+      "summary": "The draught hums only after the hero lets the lamp settle, teaching calm resource recovery before harder roads.",
+      "storyFlag": "veyrhold:bellroot:brew:quiet-focus-draught",
+      "outcomeCopy": "A starter mana/focus support lane for Relicweaver-style play without turning alchemy into a full economy yet."
+    },
+    {
+      "id": "bellroot-blue-ash-cleanse",
+      "label": "Blue Ash Cleanse",
+      "serviceId": "lamp-still",
+      "npcId": "ilo-little-oracle",
+      "brewRole": "condition lesson",
+      "ingredientItemIds": ["relic-dust", "health-vial"],
+      "rewardItemIds": ["focus-draught", "relic-dust"],
+      "conditionTags": ["cleanse", "curse-warning", "low-flash"],
+      "summary": "A pale blue ash gathers under the lamp bowl, giving the first safe lesson about future poison, curse, and burn counters.",
+      "storyFlag": "veyrhold:bellroot:brew:blue-ash-cleanse",
+      "outcomeCopy": "A teaching brew: small reward now, clear future hook for status cleanses and dungeon preparation."
+    }
+  ],
+  "bellrootLampReadings": [
+    {
+      "id": "bellroot-reading-house-with-no-door",
+      "label": "House With No Door",
+      "npcId": "ilo-little-oracle",
+      "districtId": "veyrhold-bellroot-commons",
+      "mysteryHook": "A blue lamp shines from a sealed house and answers Ilo before any person speaks.",
+      "summary": "The hero learns the city is not haunted in the normal way; some homes are listening for oaths older than Veyrhold.",
+      "rewardItemIds": ["relic-dust"],
+      "reputationDelta": 1,
+      "storyFlag": "veyrhold:bellroot:reading:house-with-no-door",
+      "outcomeCopy": "Adds the first civic mystery clue and points toward later city-catacomb storytelling."
+    },
+    {
+      "id": "bellroot-reading-moth-lamp-circle",
+      "label": "Moth-Lamp Circle",
+      "npcId": "ilo-little-oracle",
+      "districtId": "veyrhold-bellroot-commons",
+      "mysteryHook": "Three lamps attract brass-winged moths that circle only when the hero stands still.",
+      "summary": "Ilo insists the moths are counting the hero's pauses, not their steps, introducing quiet observation as a real verb.",
+      "rewardItemIds": ["focus-draught"],
+      "reputationDelta": 1,
+      "storyFlag": "veyrhold:bellroot:reading:moth-lamp-circle",
+      "outcomeCopy": "Builds the non-combat mystery loop: stop, listen, record, then prepare before the next road."
+    },
+    {
+      "id": "bellroot-reading-root-under-bell",
+      "label": "Root Under the Bell",
+      "npcId": "ilo-little-oracle",
+      "districtId": "veyrhold-bellroot-commons",
+      "mysteryHook": "A bellroot thread under the cobbles rings like metal when the oath-lamp warms.",
+      "summary": "The reading ties Veyrhold's warm civic face to something older under the district, useful for later dungeon keys.",
+      "rewardItemIds": ["city-scrip", "relic-dust"],
+      "reputationDelta": 2,
+      "storyFlag": "veyrhold:bellroot:reading:root-under-bell",
+      "outcomeCopy": "The strongest early mystery clue: it rewards patience and hints that alchemy, city roots, and relic doors are connected."
+    }
+  ],
+  "districtHooks": [
+    {
+      "id": "veyrhold-oathmarket-release-hook",
+      "districtId": "veyrhold-oathmarket",
+      "label": "Oathmarket",
+      "releaseRole": "starter vendor and accessory identity",
+      "firstConflict": "Merchants refuse to sell oath-metal until the hero proves the north gate opened cleanly."
+    },
+    {
+      "id": "veyrhold-wardens-steps-release-hook",
+      "districtId": "veyrhold-wardens-steps",
+      "label": "Warden's Steps",
+      "releaseRole": "blacksmith, oath board, and shield training",
+      "firstConflict": "The old wardens want the Brass Warden's defeat witnessed before they re-open civic training."
+    },
+    {
+      "id": "veyrhold-bellroot-commons-release-hook",
+      "districtId": "veyrhold-bellroot-commons",
+      "label": "Bellroot Commons",
+      "releaseRole": "alchemy, recovery, and Ilo story follow-up",
+      "firstConflict": "The oath-lamps burn blue around certain homes, hinting at the first city-side mystery."
+    },
+    {
+      "id": "veyrhold-pilgrim-rows-release-hook",
+      "districtId": "veyrhold-pilgrim-rows",
+      "label": "Pilgrim Rows",
+      "releaseRole": "inn checkpoint, rumors, and road preparation",
+      "firstConflict": "Pilgrims whisper that the next gate wants a city oath, not another key."
+    }
+  ],
+  "starterGearProgression": [
+    {
+      "slot": "helm",
+      "starterItemId": "pilgrim-helm",
+      "firstUpgradeTheme": "oath-bronze visor",
+      "source": "Bellroot Anvil fitting",
+      "qualityPath": ["common", "uncommon", "rare"],
+      "visualRule": "Common helms stay dented and practical; rare helms gain cleaner crests and visible oath-etching."
+    },
+    {
+      "slot": "armor",
+      "starterItemId": "threadbare-wardplate",
+      "firstUpgradeTheme": "repaired civic wardplate",
+      "source": "Warden's Steps training",
+      "qualityPath": ["common", "uncommon", "rare", "epic"],
+      "visualRule": "Low-tier plate is patched bronze; epic plate gains a clear city seal and warmer ward glow."
+    },
+    {
+      "slot": "gloves",
+      "starterItemId": "oath-stitch-gloves",
+      "firstUpgradeTheme": "forge-grip stitching",
+      "source": "Bellroot Anvil commission",
+      "qualityPath": ["common", "uncommon", "rare"],
+      "visualRule": "Common gloves read like work leather; rare gloves show brass knuckle plates and crafting marks."
+    },
+    {
+      "slot": "boots",
+      "starterItemId": "ash-runner-boots",
+      "firstUpgradeTheme": "roadwarden soles",
+      "source": "Pilgrim Rest road kit",
+      "qualityPath": ["common", "uncommon", "rare"],
+      "visualRule": "Common boots are soft travel gear; rare boots gain route-rune straps and a brighter sole edge."
+    },
+    {
+      "slot": "ring-left",
+      "starterItemId": "copper-oath-ring",
+      "firstUpgradeTheme": "market oath band",
+      "source": "Oathmarket Stalls",
+      "qualityPath": ["common", "uncommon", "rare", "relic"],
+      "visualRule": "Common rings are plain copper; relic rings show a floating civic seal and distinct silhouette."
+    },
+    {
+      "slot": "ring-right",
+      "starterItemId": "pilgrim-tin-ring",
+      "firstUpgradeTheme": "pilgrim route band",
+      "source": "Pilgrim Rows rumor chain",
+      "qualityPath": ["common", "uncommon", "rare", "relic"],
+      "visualRule": "Low-tier rings are nearly bland; unique/relic variants use asymmetric stones and route-mark glow."
+    },
+    {
+      "slot": "amulet",
+      "starterItemId": "bellroot-cord-amulet",
+      "firstUpgradeTheme": "oath-lamp pendant",
+      "source": "Oath-Lamp Still",
+      "qualityPath": ["common", "uncommon", "rare", "epic", "relic"],
+      "visualRule": "Common amulets are cord and brass; higher tiers gain lamp-glass cores and recognizable aura color."
+    }
+  ],
+  "releaseAcceptance": [
+    "Veyrhold exposes at least five services after the town opens.",
+    "Armor progression explicitly covers helm, armor, gloves, and boots.",
+    "Accessory progression explicitly covers rings and amulet/necklace identity.",
+    "Services use existing local-first game actions or drawer routes.",
+    "Future cities remain locked previews until later city slices."
+  ]
+}

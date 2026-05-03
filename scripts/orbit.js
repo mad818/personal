@@ -8,16 +8,7 @@ const path = require('path')
 
 const TODO_FILE = path.join(process.cwd(), 'tasks', 'todo.md')
 
-function main() {
-  let content
-  try {
-    content = fs.readFileSync(TODO_FILE, 'utf-8')
-  } catch {
-    console.error('ERROR: tasks/todo.md not found. Run from the project root.')
-    process.exit(1)
-  }
-
-  const lines = content.split('\n')
+function extractPending(lines) {
   const pending = []
 
   for (const line of lines) {
@@ -34,6 +25,38 @@ function main() {
     }
   }
 
+  return pending
+}
+
+function getSectionLines(lines, heading) {
+  const start = lines.findIndex((line) => line.trim() === heading)
+  if (start < 0) return null
+
+  const section = []
+  for (let index = start + 1; index < lines.length; index += 1) {
+    const trimmed = lines[index].trim()
+    if (trimmed.startsWith('## ')) break
+    section.push(lines[index])
+  }
+
+  return section
+}
+
+function main() {
+  let content
+  try {
+    content = fs.readFileSync(TODO_FILE, 'utf-8')
+  } catch {
+    console.error('ERROR: tasks/todo.md not found. Run from the project root.')
+    process.exit(1)
+  }
+
+  const lines = content.split('\n')
+  const nextUpLines = getSectionLines(lines, '## Next Up')
+  const nextUpPending = nextUpLines ? extractPending(nextUpLines) : []
+  const pending = nextUpPending.length ? nextUpPending : extractPending(lines)
+  const sourceLabel = nextUpPending.length ? 'Next Up ' : ''
+
   if (!pending.length) {
     console.log('✅ No pending tasks found in tasks/todo.md — backlog is clear.')
     process.exit(0)
@@ -45,7 +68,7 @@ function main() {
   console.log('─────────────────────────────────────────')
   console.log(next)
   console.log('')
-  console.log(`(${pending.length} task${pending.length > 1 ? 's' : ''} pending total)`)
+  console.log(`(${pending.length} ${sourceLabel}task${pending.length > 1 ? 's' : ''} pending)`)
   console.log('─────────────────────────────────────────')
 }
 

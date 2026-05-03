@@ -99,7 +99,7 @@ export function useOfficeConsoleShellControls({
     (next: number, announce?: string) => {
       const maxByViewport =
         typeof window !== "undefined"
-          ? Math.round(window.innerHeight * 0.62)
+          ? Math.round(window.innerHeight * 0.76)
           : OFFICE_HEIGHT_MAX_PX;
       const maxAllowed = Math.max(
         OFFICE_HEIGHT_MIN_PX,
@@ -162,7 +162,7 @@ export function useOfficeConsoleShellControls({
         event.preventDefault();
         const maxByViewport =
           typeof window !== "undefined"
-            ? Math.round(window.innerHeight * 0.62)
+            ? Math.round(window.innerHeight * 0.76)
             : OFFICE_HEIGHT_MAX_PX;
         const maxAllowed = Math.max(
           OFFICE_HEIGHT_MIN_PX,
@@ -188,6 +188,7 @@ export function useOfficeConsoleShellControls({
   }, [setSplitDragLocked, setSplitNotice]);
 
   return {
+    applySplitHeight,
     openBriefingTab,
     startResize,
     resetSplit,

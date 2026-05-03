@@ -1,0 +1,105 @@
+{
+  "version": 3,
+  "character": {
+    "characterName": "Reliquary Warden",
+    "raceId": "veyr-human",
+    "originId": "wardbound",
+    "classPathId": "wardbreaker",
+    "subclassId": "wardbreaker-shieldcleaver",
+    "portraitId": "portrait-veyr-warden",
+    "paletteId": "palette-veyr-ember",
+    "cosmeticAccent": "#ffd166"
+  },
+  "player": {
+    "x": 1,
+    "z": -1,
+    "hp": 92,
+    "maxHp": 110,
+    "mana": 42,
+    "maxMana": 55,
+    "xp": 95,
+    "level": 3,
+    "gold": 42,
+    "origin": "wardbound",
+    "inventoryIds": ["health-vial", "focus-draught", "upgrade-shard", "relic-dust"],
+    "equipped": {
+      "weapon": "cinder-glaive",
+      "offhand": "first-reliquary-shield",
+      "armor": "warded-mail",
+      "helm": null,
+      "boots": null,
+      "relic": "oracle-sigil",
+      "sigil": "first-gate-sigil",
+      "charm": null
+    },
+    "unlockedSkillIds": ["wardbreaker-cleave", "wardbreaker-guard"],
+    "equippedSkillIds": ["wardbreaker-cleave"],
+    "activeQuestId": "quiet-the-warden"
+  },
+  "activeZoneId": "first-reliquary",
+  "discoveredCityIds": ["veyrhold"],
+  "discoveredSubCityIds": ["oathmarket"],
+  "reputations": {
+    "veyrhold": 2
+  },
+  "companions": {
+    "oracle-guide": {
+      "recruited": true,
+      "loyalty": 1
+    }
+  },
+  "questLog": {
+    "activeQuestIds": ["quiet-the-warden"],
+    "completedQuestIds": ["wake-the-gate"],
+    "failedQuestIds": []
+  },
+  "storyFlags": ["lore:gate-monolith", "loot:loom-shard", "quest:wake-the-gate:complete"],
+  "mapFlags": ["map:first-reliquary"],
+  "codex": {
+    "enemyIds": ["hollow-sentry"],
+    "loreIds": ["gate-monolith"],
+    "cityIds": ["veyrhold"]
+  },
+  "crafting": {
+    "unlockedRecipeIds": ["first-temper"],
+    "knownMaterialIds": ["upgrade-shard", "relic-dust"],
+    "cityDiscounts": {
+      "veyrhold": 5
+    }
+  },
+  "journey": {
+    "selectedCityId": "veyrhold",
+    "selectedSubCityId": "oathmarket",
+    "activeRouteId": null,
+    "activeTravelEventId": null,
+    "resolvedTravelEventIds": ["pilgrim-road-ambush"],
+    "unlockedRouteIds": ["first-reliquary-to-veyrhold"]
+  },
+  "endgame": {
+    "unlocked": false,
+    "difficultyTierId": "oathbound",
+    "eliteAffixRotationId": "iron-vow",
+    "activeDungeonId": null,
+    "activeTrialId": null,
+    "activeBossRematchId": null,
+    "activeArenaChallengeId": null,
+    "completedDungeonIds": [],
+    "completedTrialIds": [],
+    "completedBossRematchIds": [],
+    "discoveredTreasureMapIds": [],
+    "completedTreasureMapIds": [],
+    "completedArenaChallengeIds": [],
+    "collectionGoalIds": [],
+    "cosmeticRewardIds": []
+  },
+  "combat": {
+    "playerStatuses": [],
+    "cooldowns": {},
+    "targetEnemyId": "hollow-sentry",
+    "latestEvents": [],
+    "discoveredEnemyCodexIds": ["hollow-sentry"],
+    "reducedMotionVfx": false
+  },
+  "lastEvent": "Fixture save: city, quest, companion, combat, and crafting state survive migration.",
+  "lastSavedAt": 1767225600000
+}

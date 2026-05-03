@@ -3,7 +3,11 @@
 import type { ScheduledJob } from "@/store/useStore";
 import CompactOperatorNote from "@/components/ui/CompactOperatorNote";
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions";
-import { filterScheduledJobRecentExecutions, type SchedulerAuditFilters } from "@/lib/schedulerGovernance";
+import {
+  filterScheduledJobRecentExecutions,
+  getScheduledMissionReviewSummary,
+  type SchedulerAuditFilters,
+} from "@/lib/schedulerGovernance";
 import { getHQWorkflowCatalogItem } from "@/components/home/office/workflowCommands";
 import {
   buildMissionHref,
@@ -22,6 +26,14 @@ function truncateInline(text: string, max = 180) {
   return `${clean.slice(0, max - 1).trimEnd()}…`;
 }
 
+function fmtMissionReviewWindow(expiresAt: number | null) {
+  if (!expiresAt) return "not queued yet";
+  const diffMs = expiresAt - Date.now();
+  const absHours = Math.max(1, Math.ceil(Math.abs(diffMs) / (60 * 60 * 1000)));
+  if (diffMs <= 0) return `${absHours}h overdue`;
+  return `${absHours}h remaining`;
+}
+
 interface CronSchedulerJobsSectionProps {
   sortedJobs: ScheduledJob[];
   auditFilters: SchedulerAuditFilters;
@@ -31,6 +43,7 @@ interface CronSchedulerJobsSectionProps {
   onCopyJobAudit: (job: ScheduledJob) => void | Promise<void>;
   onExportJobAudit: (job: ScheduledJob) => void;
   onClearQueuedJob: (id: string) => void;
+  onClearMissionReview: (id: string) => void;
 }
 
 export default function CronSchedulerJobsSection({
@@ -42,6 +55,7 @@ export default function CronSchedulerJobsSection({
   onCopyJobAudit,
   onExportJobAudit,
   onClearQueuedJob,
+  onClearMissionReview,
 }: CronSchedulerJobsSectionProps) {
   return (
     <div
@@ -91,6 +105,7 @@ export default function CronSchedulerJobsSection({
             job,
             auditFilters,
           );
+          const missionReview = getScheduledMissionReviewSummary(job);
           const stableShare = efficiency
             ? Math.round(
                 (efficiency.stablePrefixChars /
@@ -287,6 +302,131 @@ export default function CronSchedulerJobsSection({
                   </div>
                   <div style={{ color: "#6875a0", fontSize: 10, lineHeight: 1.45 }}>
                     {truncateInline(workflow.automationGuidance, 132)}
+                  </div>
+                </div>
+              ) : null}
+              {missionReview.required ? (
+                <div
+                  style={{
+                    marginTop: 8,
+                    padding: "8px 9px",
+                    borderRadius: 8,
+                    border:
+                      missionReview.status === "expired" ||
+                      missionReview.status === "missing_contract"
+                        ? "1px solid rgba(252,165,165,.24)"
+                        : missionReview.status === "pending_review"
+                          ? "1px solid rgba(251,191,36,.24)"
+                          : "1px solid #1A2040",
+                    background:
+                      missionReview.status === "expired" ||
+                      missionReview.status === "missing_contract"
+                        ? "rgba(127,29,29,.14)"
+                        : missionReview.status === "pending_review"
+                          ? "rgba(120,53,15,.18)"
+                          : "#0a1120",
+                    display: "grid",
+                    gap: 6,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color:
+                          missionReview.status === "expired" ||
+                          missionReview.status === "missing_contract"
+                            ? "#fca5a5"
+                            : missionReview.status === "pending_review"
+                              ? "#fbbf24"
+                              : "#86efac",
+                        fontSize: 10,
+                        fontWeight: 800,
+                      }}
+                    >
+                      {missionReview.status === "missing_contract"
+                        ? "MISSION CONTRACT MISSING"
+                        : missionReview.status === "pending_review"
+                          ? "PENDING REVIEW"
+                          : missionReview.status === "expired"
+                            ? "REVIEW EXPIRED"
+                            : missionReview.status === "cleared"
+                              ? "REVIEW CLEARED"
+                              : "CONTRACT READY"}
+                    </span>
+                    <span style={{ color: "#6875a0", fontSize: 10 }}>
+                      {missionReview.targetAgent?.toUpperCase() ?? "ORBIT"} ·{" "}
+                      {missionReview.outputTarget ?? job.outputTarget ?? "review"} ·{" "}
+                      {(
+                        missionReview.approvalPolicy ??
+                        job.approvalPolicy ??
+                        "human_gate"
+                      ).replace(/_/g, " ")}
+                    </span>
+                    {missionReview.expiryHours ? (
+                      <span style={{ color: "#9fb7ff", fontSize: 10 }}>
+                        {missionReview.expiryHours}h window
+                      </span>
+                    ) : null}
+                    {(missionReview.status === "pending_review" ||
+                      missionReview.status === "expired") ? (
+                      <button
+                        type="button"
+                        onClick={() => onClearMissionReview(job.id)}
+                        style={{
+                          marginLeft: "auto",
+                          borderRadius: 999,
+                          border: "1px solid rgba(0,221,255,.28)",
+                          background: "rgba(0,221,255,.08)",
+                          color: "#9fe5ff",
+                          padding: "4px 9px",
+                          cursor: "pointer",
+                          fontSize: 10,
+                          fontWeight: 700,
+                        }}
+                      >
+                        Mark reviewed
+                      </button>
+                    ) : null}
+                  </div>
+                  <div style={{ color: "#cbd5e1", fontSize: 10, lineHeight: 1.45 }}>
+                    Scope:{" "}
+                    {missionReview.scope
+                      ? truncateInline(missionReview.scope, 160)
+                      : "Add a bounded mission scope before this job becomes the overnight lane."}
+                  </div>
+                  <div style={{ color: "#6875a0", fontSize: 10, lineHeight: 1.45 }}>
+                    Re-entry:{" "}
+                    {missionReview.reentrySummary
+                      ? truncateInline(missionReview.reentrySummary, 170)
+                      : "Missing re-entry summary."}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      flexWrap: "wrap",
+                      color: "#6875a0",
+                      fontSize: 10,
+                    }}
+                  >
+                    <span>{missionReview.localOnly ? "local-first" : "external review"}</span>
+                    <span>
+                      Review window: {fmtMissionReviewWindow(missionReview.expiresAt)}
+                    </span>
+                    {missionReview.lastQueuedAt ? (
+                      <span>queued {fmtAgeSince(missionReview.lastQueuedAt)}</span>
+                    ) : null}
+                    {missionReview.lastClearedAt ? (
+                      <span>cleared {fmtAgeSince(missionReview.lastClearedAt)}</span>
+                    ) : null}
                   </div>
                 </div>
               ) : null}

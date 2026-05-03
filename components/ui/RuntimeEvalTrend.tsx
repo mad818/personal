@@ -117,6 +117,7 @@ export default function RuntimeEvalTrend() {
   }, [data?.history]);
 
   const latest = data?.latest;
+  const latestExperiment = data?.experiments?.latest ?? null;
   const threshold = latest?.minScore ?? 85;
   const latestScore = latest?.score ?? 0;
   const pass = latest ? latestScore >= threshold : false;
@@ -427,6 +428,65 @@ export default function RuntimeEvalTrend() {
           <div style={{ fontSize: 10, color: "var(--text3)", marginTop: 6 }}>
             last {Math.max(0, data?.points ?? 0)} run(s)
           </div>
+          {latestExperiment ? (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "8px 10px",
+                border: "1px solid #1f315e",
+                borderRadius: 8,
+                background: "rgba(30,64,175,0.08)",
+                display: "grid",
+                gap: 4,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 8,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: "#7ba7d4",
+                    textTransform: "uppercase",
+                    letterSpacing: ".08em",
+                  }}
+                >
+                  Latest experiment
+                </span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    color:
+                      latestExperiment.recommendation === "candidate_win"
+                        ? "#10b981"
+                        : latestExperiment.recommendation === "review"
+                          ? "#f59e0b"
+                          : "#ef4444",
+                    fontWeight: 700,
+                  }}
+                >
+                  {latestExperiment.recommendation}
+                </span>
+              </div>
+              <div style={{ fontSize: 11, color: "var(--text)" }}>
+                {latestExperiment.title}
+              </div>
+              <div style={{ fontSize: 10, color: "var(--text3)" }}>
+                {latestExperiment.variantKind?.replaceAll("_", " ")} · score delta{" "}
+                {Number(latestExperiment.scoreDelta ?? 0) >= 0 ? "+" : ""}
+                {latestExperiment.scoreDelta ?? 0}
+              </div>
+              <div style={{ fontSize: 10, color: "var(--text3)" }}>
+                {latestExperiment.summary}
+              </div>
+            </div>
+          ) : null}
           {data?.runner?.nextEligibleAt && (
             <div style={{ fontSize: 10, color: "var(--text3)", marginTop: 2 }}>
               cooldown {data.runner.cooldownMin ?? 30}m

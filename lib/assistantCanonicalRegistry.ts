@@ -139,6 +139,7 @@ export const CANONICAL_RESOURCES_VIEWS = new Set([
   "impact",
   "study",
   "voice-lab",
+  "wins",
 ] as const);
 
 export const CANONICAL_RESOURCE_VIEW_ALIASES: Record<string, string> = {
@@ -147,6 +148,9 @@ export const CANONICAL_RESOURCE_VIEW_ALIASES: Record<string, string> = {
   impacts: "impact",
   playbook: "playbooks",
   spec: "specs",
+  win: "wins",
+  "massive-win": "wins",
+  "massive-wins": "wins",
 };
 
 export const CANONICAL_VAULT_FOCUSES = new Set([

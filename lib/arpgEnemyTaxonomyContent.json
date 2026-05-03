@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "mw6-enemy-taxonomy-v1",
+  "traits": [
+    { "id": "armored", "summary": "Heavy plating lowers physical burst damage until exposed." },
+    { "id": "swift", "summary": "Shorter telegraphs and faster patrol reacquisition." },
+    { "id": "spectral", "summary": "Partially ignores collision and resists bleed." },
+    { "id": "burrowing", "summary": "Can vanish, reposition, and surface with a stagger pulse." },
+    { "id": "packbound", "summary": "Gains morale when allied enemies are nearby." },
+    { "id": "bloodied", "summary": "Changes behavior after dropping below half health." },
+    { "id": "warded", "summary": "Starts with a ward layer that must be cracked." },
+    { "id": "enraged", "summary": "Damage rises after taking repeated hits." },
+    { "id": "cursed", "summary": "Applies curse pressure through attacks or aura pulses." },
+    { "id": "regenerating", "summary": "Recovers health until burned, staggered, or interrupted." },
+    { "id": "summoner", "summary": "Calls weaker allies when left unchecked." },
+    { "id": "shielded", "summary": "Blocks frontal hits until flanked or exposed." },
+    { "id": "flying", "summary": "Ignores ground snares and prefers ranged harassment." },
+    { "id": "elite", "summary": "Rolls one elite modifier and improved loot." },
+    { "id": "boss", "summary": "Uses phase rules, unique drops, and codex weakness reveals." },
+    { "id": "city-bound", "summary": "Changes tactics based on city reputation and local terrain." }
+  ],
+  "buffs": [
+    { "id": "rage", "summary": "Adds might and attack speed for a short window." },
+    { "id": "guard", "summary": "Raises armor and ward until cracked." },
+    { "id": "haste", "summary": "Improves movement and telegraph cadence." },
+    { "id": "thorns", "summary": "Reflects a small amount of melee damage." },
+    { "id": "ward-bloom", "summary": "Restores ward and shields nearby allies." },
+    { "id": "pack-chant", "summary": "Stacks morale for packbound groups." },
+    { "id": "relic-fury", "summary": "Boss-only burst state tied to relic instability." }
+  ],
+  "debuffs": [
+    { "id": "bleed", "summary": "Physical damage over time; stronger against living beasts." },
+    { "id": "burn", "summary": "Ember damage over time; stops regeneration." },
+    { "id": "chill", "summary": "Slows movement and extends telegraphs." },
+    { "id": "poison", "summary": "Stacking damage over time and weaker healing." },
+    { "id": "silence", "summary": "Temporarily blocks casting or summoning." },
+    { "id": "exposed", "summary": "Lowers armor and increases crit chance." },
+    { "id": "staggered", "summary": "Interrupts current action and opens a punish window." },
+    { "id": "rooted", "summary": "Prevents movement while preserving attacks." },
+    { "id": "cursed", "summary": "Increases incoming void and curse damage." },
+    { "id": "fear", "summary": "Forces brief retreat from the threat source." },
+    { "id": "slow", "summary": "Reduces movement, patrol, and cooldown recovery." },
+    { "id": "cracked-armor", "summary": "Reduces armor until the next phase or recovery." },
+    { "id": "mana-drain", "summary": "Reduces focus or mana on hit." }
+  ],
+  "familyRules": [
+    { "id": "beasts", "traits": ["swift", "packbound"], "weaknesses": ["bleed", "poison"], "resistances": ["frost"], "tactic": "Circle, pounce, then retreat if staggered.", "lootTheme": "monster-part" },
+    { "id": "undead", "traits": ["cursed", "regenerating"], "weaknesses": ["holy", "ember"], "resistances": ["bleed", "poison"], "tactic": "Shamble into pressure zones and punish panic rolls.", "lootTheme": "relic-dust" },
+    { "id": "constructs", "traits": ["armored", "shielded"], "weaknesses": ["void", "cracked-armor"], "resistances": ["poison", "bleed"], "tactic": "Anchor lanes with shields and slow slam telegraphs.", "lootTheme": "upgrade-shard" },
+    { "id": "corrupted-pilgrims", "traits": ["cursed", "bloodied"], "weaknesses": ["holy", "exposed"], "resistances": ["curse"], "tactic": "Use prayers, curses, and desperate bloodied charges.", "lootTheme": "gold" },
+    { "id": "faction-soldiers", "traits": ["shielded", "city-bound"], "weaknesses": ["staggered", "void"], "resistances": ["physical"], "tactic": "Fight in ranks and punish repeated frontal attacks.", "lootTheme": "city-scrip" },
+    { "id": "ash-fiends", "traits": ["enraged", "burrowing"], "weaknesses": ["frost", "staggered"], "resistances": ["ember"], "tactic": "Burst from ash vents and chain burn pressure.", "lootTheme": "rare-catalyst" },
+    { "id": "glass-wraiths", "traits": ["spectral", "swift"], "weaknesses": ["void", "silence"], "resistances": ["physical"], "tactic": "Blink behind the player and fracture into mirrors.", "lootTheme": "relic-dust" },
+    { "id": "moss-horrors", "traits": ["regenerating", "rooted"], "weaknesses": ["ember", "burn"], "resistances": ["poison"], "tactic": "Root the arena and heal through unchecked spores.", "lootTheme": "monster-part" },
+    { "id": "drowned-nacrekin", "traits": ["warded", "packbound"], "weaknesses": ["frost", "cracked-armor"], "resistances": ["curse"], "tactic": "Use tide pulls and layered nacre wards.", "lootTheme": "city-scrip" },
+    { "id": "starfallen-cultists", "traits": ["summoner", "flying"], "weaknesses": ["silence", "holy"], "resistances": ["void"], "tactic": "Summon star motes and force ranged movement.", "lootTheme": "rare-catalyst" },
+    { "id": "hollow-sentries", "traits": ["armored", "warded"], "weaknesses": ["cracked-armor", "void"], "resistances": ["physical"], "tactic": "Hold doorways with guard stance and counter-slams.", "lootTheme": "upgrade-shard" },
+    { "id": "rune-husks", "traits": ["warded", "cursed"], "weaknesses": ["staggered", "holy"], "resistances": ["curse"], "tactic": "Wind up rune pulses that punish greed.", "lootTheme": "relic-dust" },
+    { "id": "oracle-echoes", "traits": ["spectral", "summoner"], "weaknesses": ["silence", "void"], "resistances": ["frost"], "tactic": "Project false tells and summon echo doubles.", "lootTheme": "relic-dust" },
+    { "id": "city-beasts", "traits": ["city-bound", "packbound"], "weaknesses": ["poison", "slow"], "resistances": ["physical"], "tactic": "Use local terrain and city hazards as cover.", "lootTheme": "monster-part" },
+    { "id": "wandering-champions", "traits": ["elite", "bloodied"], "weaknesses": ["exposed", "staggered"], "resistances": ["holy"], "tactic": "Duel with class-like moves and one unique modifier.", "lootTheme": "rare-catalyst" },
+    { "id": "world-bosses", "traits": ["boss", "elite"], "weaknesses": ["phase-break", "codex-reveal"], "resistances": ["physical", "curse"], "tactic": "Multi-phase arenas with codex-discovered weaknesses.", "lootTheme": "unique-relic" }
+  ],
+  "archetypeTemplates": [
+    { "id": "stalker", "traits": ["swift"], "role": "flanker", "telegraphMs": 540 },
+    { "id": "brute", "traits": ["armored"], "role": "frontline breaker", "telegraphMs": 920 },
+    { "id": "caster", "traits": ["summoner"], "role": "pressure mage", "telegraphMs": 760 },
+    { "id": "guardian", "traits": ["shielded"], "role": "lane holder", "telegraphMs": 860 },
+    { "id": "horror", "traits": ["cursed"], "role": "debuff spreader", "telegraphMs": 780 },
+    { "id": "champion", "traits": ["elite", "bloodied"], "role": "named duel", "telegraphMs": 700 }
+  ],
+  "actBosses": [
+    { "id": "brass-warden", "name": "The Brass Warden", "actId": "prologue", "familyId": "hollow-sentries", "phaseCount": 2, "uniqueDrop": "Warden's Key Fragment" },
+    { "id": "mara-false-notary", "name": "Mara Vey, the False Notary", "actId": "act-i", "familyId": "corrupted-pilgrims", "phaseCount": 2, "uniqueDrop": "Oathmarket Buckler" },
+    { "id": "backward-captain", "name": "The Backward Captain", "actId": "act-ii", "familyId": "glass-wraiths", "phaseCount": 2, "uniqueDrop": "Prism Dirk" },
+    { "id": "incorrect-librarian", "name": "The Incorrect Librarian", "actId": "act-iii", "familyId": "oracle-echoes", "phaseCount": 3, "uniqueDrop": "Meridian Staff" },
+    { "id": "cryptbloom-knight", "name": "Cryptbloom Knight", "actId": "act-iv", "familyId": "undead", "phaseCount": 3, "uniqueDrop": "Cryptbloom Plate" },
+    { "id": "nave-witness", "name": "The Nave Witness", "actId": "act-v", "familyId": "constructs", "phaseCount": 3, "uniqueDrop": "Gold Nave Mace" },
+    { "id": "hollow-regent", "name": "The Hollow Regent", "actId": "finale", "familyId": "world-bosses", "phaseCount": 4, "uniqueDrop": "Crownless Relic" }
+  ],
+  "finalBossForms": [
+    { "id": "hollow-regent-crowned-empty", "name": "The Hollow Regent, Crowned Empty", "mechanic": "Consumes city reputation flags to empower void echoes." },
+    { "id": "hollow-regent-world-scar", "name": "The Hollow Regent, World-Scarred", "mechanic": "Splits the arena into city memory lanes." },
+    { "id": "hollow-regent-last-oath", "name": "The Hollow Regent, Last Oath", "mechanic": "Weaknesses reveal only after companion loyalty checks." }
+  ],
+  "worldBosses": [
+    { "id": "saltback-elder", "name": "The Saltback Elder", "regionId": "sable-meridian", "familyId": "beasts", "uniqueDrop": "Elder Salt Spear" },
+    { "id": "choir-under-tide", "name": "Choir Under Tide", "regionId": "nacre-deep", "familyId": "drowned-nacrekin", "uniqueDrop": "Choir Pearl Focus" },
+    { "id": "thorn-crowned-widow", "name": "The Thorn-Crowned Widow", "regionId": "verdant-ossuary", "familyId": "moss-horrors", "uniqueDrop": "Widowbark Cloak" },
+    { "id": "star-that-walks", "name": "The Star That Walks", "regionId": "orrery-spire", "familyId": "starfallen-cultists", "uniqueDrop": "Walking Star Sigil" }
+  ],
+  "eliteModifiers": [
+    { "id": "ironhide", "traitIds": ["armored"], "buffIds": ["guard"], "rewardMultiplier": 1.15 },
+    { "id": "ashblood", "traitIds": ["bloodied"], "buffIds": ["rage"], "rewardMultiplier": 1.12 },
+    { "id": "echoing", "traitIds": ["spectral"], "buffIds": ["haste"], "rewardMultiplier": 1.1 },
+    { "id": "thorned", "traitIds": ["shielded"], "buffIds": ["thorns"], "rewardMultiplier": 1.08 }
+  ]
+}

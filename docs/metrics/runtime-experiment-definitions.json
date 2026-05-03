@@ -1,0 +1,15 @@
+[
+  {
+    "id": "rtx-1776918569561-lkp0q8",
+    "createdAt": "2026-04-23T04:29:29.561Z",
+    "title": "Runtime isolation proof",
+    "variantKind": "memory_context_policy_delta",
+    "changeSummary": "Keep only the sharpest approved memory slices in the variant context block.",
+    "hypothesis": "A tighter correction-memory pack should improve reliability without degrading safety.",
+    "targetCategories": [
+      "reliability",
+      "safety"
+    ],
+    "operatorNotes": "Verification-only run from the P0B rollout."
+  }
+]

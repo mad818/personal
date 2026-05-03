@@ -1,7 +1,7 @@
 {
-  "name": "Aegis Vector",
-  "short_name": "Aegis",
-  "description": "Aegis Vector — local-first command intelligence for markets, cyber, recon, and operator AI. Free-first, self-hosted, interactive.",
+  "name": "Homefront",
+  "short_name": "Homefront",
+  "description": "Homefront — local-first command intelligence for markets, cyber, recon, and operator AI. Free-first, self-hosted, interactive.",
   "start_url": "/hq",
   "scope": "/",
   "display": "standalone",

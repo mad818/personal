@@ -15,7 +15,8 @@ export type ResourceChamberHint =
   | "study"
   | "system"
   | "launch"
-  | "utilities";
+  | "utilities"
+  | "wins";
 
 export interface DeveloperResource {
   title: string;

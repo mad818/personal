@@ -8,9 +8,15 @@ import type { OfficeObjectId, OfficeObjectPos, PersonaMode, CouncilResult, Switc
 import { DEFAULT_LOCAL_MODEL } from '@/lib/aiModelRouting'
 import { normalizePreferredAIProvider, type PreferredAIProvider } from '@/lib/aiProviderPreference'
 import {
+  type CorrectionMemoryEntry,
+  approveCorrectionMemory as approveStoredCorrectionMemory,
+  archiveCorrectionMemory as archiveStoredCorrectionMemory,
+  markCorrectionMemoriesApplied,
+  rememberCorrectionMemory,
   type UnfinishedSessionCompletionState,
   type UnfinishedSessionMemory,
   rememberUnfinishedSession,
+  pruneCorrectionMemories,
   pruneUnfinishedSessions,
   touchUnfinishedSession,
 } from '@/lib/assistantSessionMemory'
@@ -27,6 +33,59 @@ import type { HQAssistantIntent, PreparedWorkspaceTarget } from '@/components/ho
 import type { ContextLoadReport } from '@/lib/contextPolicy'
 import type { ArticleReasoningIndex } from '@/lib/articleReasoning'
 import type { VoiceProfile, VoiceProject } from '@/lib/voiceLab'
+import {
+  advanceArpgStory as advanceArpgStoryState,
+  acceptArpgQuest as acceptArpgQuestState,
+  advanceArpgQuest as advanceArpgQuestState,
+  beginArpgTravel as beginArpgTravelState,
+  claimArpgCosmeticReward as claimArpgCosmeticRewardState,
+  claimArpgTreasureMap as claimArpgTreasureMapState,
+  collectArpgItem as collectArpgItemState,
+  completeArpgArenaChallenge as completeArpgArenaChallengeState,
+  completeArpgBossRematch as completeArpgBossRematchState,
+  completeArpgEndgameDungeon as completeArpgEndgameDungeonState,
+  completeArpgRelicTrial as completeArpgRelicTrialState,
+  completeArpgTreasureMap as completeArpgTreasureMapState,
+  createArpgCharacter as createArpgCharacterState,
+  createDefaultArpgSave,
+  craftArpgRecipe as craftArpgRecipeState,
+  dodgeArpgPlayer as dodgeArpgPlayerState,
+  equipArpgItem as equipArpgItemState,
+  recruitArpgCompanion as recruitArpgCompanionState,
+  recordArpgReputation as recordArpgReputationState,
+  respecArpgCharacter as respecArpgCharacterState,
+  resolveArpgTravelEvent as resolveArpgTravelEventState,
+  salvageArpgItem as salvageArpgItemState,
+  selectArpgEndgameDifficulty as selectArpgEndgameDifficultyState,
+  selectArpgRegion as selectArpgRegionState,
+  setArpgCharacterCosmetic as setArpgCharacterCosmeticState,
+  startArpgArenaChallenge as startArpgArenaChallengeState,
+  startArpgBossRematch as startArpgBossRematchState,
+  startArpgEndgameDungeon as startArpgEndgameDungeonState,
+  startArpgRelicTrial as startArpgRelicTrialState,
+  targetArpgEnemy as targetArpgEnemyState,
+  unlockArpgSkill as unlockArpgSkillState,
+  moveArpgPlayer as moveArpgPlayerState,
+  normalizeArpgSave,
+  resetArpgSave as resetArpgSaveState,
+  strikeArpgEnemy as strikeArpgEnemyState,
+  upgradeArpgItem as upgradeArpgItemState,
+  useArpgSkill as useArpgSkillState,
+  useArpgConsumable as useArpgConsumableState,
+  type ArpgMoveVector,
+  type ArpgRoomMode,
+  type ArpgSaveState,
+  type ArpgCharacterSelection,
+} from '@/lib/arpgGame'
+import {
+  ARPG_AUTOSAVE_SLOT_ID,
+  ARPG_MANUAL_SLOT_ID,
+  createArpgSaveSlotSet,
+  normalizeArpgSaveSlots,
+  syncArpgAutosaveSlot,
+  upsertArpgSaveSlot,
+  type ArpgSaveSlot,
+} from '@/lib/arpgSaveEnvelope'
 
 // ── Lessons engine types ──────────────────────────────────────────────────────
 export interface Lesson {
@@ -88,6 +147,49 @@ export interface ScheduledJobRecentExecution {
   cacheHit:        boolean
 }
 
+export type ScheduledJobType = 'prompt' | 'mission'
+export type ScheduledJobStatus = 'ok' | 'error' | 'queued'
+export type ScheduledJobOutputTarget =
+  | 'vault'
+  | 'notify'
+  | 'none'
+  | 'telegram'
+  | 'download'
+  | 'review'
+export type ScheduledJobApprovalPolicy =
+  | 'human_gate'
+  | 'approve_on_write'
+  | 'observe'
+export type ScheduledJobExecutionOrigin =
+  | 'single_run'
+  | 'internal_batch'
+  | 'provider_native_batch'
+export type ScheduledMissionReviewStatus =
+  | 'pending_review'
+  | 'expired'
+  | 'cleared'
+
+export interface ScheduledMissionReviewContract {
+  scope:          string
+  targetAgent:    string
+  outputTarget:   ScheduledJobOutputTarget
+  approvalPolicy: ScheduledJobApprovalPolicy
+  expiryHours:    number
+  reentrySummary: string
+  localOnly:      boolean
+  createdAt:      number
+  updatedAt:      number
+}
+
+export interface ScheduledMissionReviewState {
+  contract:        ScheduledMissionReviewContract
+  status?:         ScheduledMissionReviewStatus
+  lastQueuedAt?:   number
+  expiresAt?:      number
+  lastRunSummary?: string
+  lastClearedAt?:  number
+}
+
 export interface ScheduledJob {
   id:            string
   name:          string
@@ -95,7 +197,7 @@ export interface ScheduledJob {
   cron:          string     // 5-field cron expression (min hour dom mon dow)
   enabled:       boolean
   lastRunAt?:    number
-  lastStatus?:   'ok' | 'error' | 'queued'
+  lastStatus?:   ScheduledJobStatus
   lastSummary?:  string
   pendingBatchId?: string
   pendingBatchProvider?: 'anthropic'
@@ -107,16 +209,17 @@ export interface ScheduledJob {
   pendingBatchVolatilePromptChars?: number
   pendingBatchCacheStrategy?: ScheduledJobEfficiencySnapshot['cacheStrategy']
   // Mission-type jobs: agent runs a structured objective + saves output to Vault
-  type?:         'prompt' | 'mission'
-  outputTarget?: 'vault' | 'notify' | 'none' | 'telegram' | 'download' | 'review'
+  type?:         ScheduledJobType
+  outputTarget?: ScheduledJobOutputTarget
   missionAgent?: string                         // override agent selection
-  approvalPolicy?: 'human_gate' | 'approve_on_write' | 'observe'
+  approvalPolicy?: ScheduledJobApprovalPolicy
+  missionReview?: ScheduledMissionReviewState
   templateId?:   string
   lastEfficiency?: ScheduledJobEfficiencySnapshot
-  lastExecutionOrigin?: 'single_run' | 'internal_batch' | 'provider_native_batch'
+  lastExecutionOrigin?: ScheduledJobExecutionOrigin
   lastExecutionAt?: number
   recentExecutions?: ScheduledJobRecentExecution[]
-  lastArtifactOrigin?: 'single_run' | 'internal_batch' | 'provider_native_batch'
+  lastArtifactOrigin?: ScheduledJobExecutionOrigin
   lastArtifactTarget?: NonNullable<ScheduledJob['outputTarget']>
   lastArtifactAt?: number
 }
@@ -281,6 +384,29 @@ export interface ModeBriefing {
 }
 
 // ── Default settings (mirrors DEFAULT_CFG from nexus-final.html) ──────────────
+export type ArpgViewportSize = 'compact' | 'standard' | 'large' | 'focus'
+export type HqConsoleFocusMode = 'game' | 'chat'
+
+const ARPG_VIEWPORT_SIZE_IDS: ArpgViewportSize[] = [
+  'compact',
+  'standard',
+  'large',
+  'focus',
+]
+const HQ_CONSOLE_FOCUS_MODE_IDS: HqConsoleFocusMode[] = ['game', 'chat']
+
+function normalizeArpgViewportSize(value: unknown): ArpgViewportSize {
+  return ARPG_VIEWPORT_SIZE_IDS.includes(value as ArpgViewportSize)
+    ? (value as ArpgViewportSize)
+    : 'standard'
+}
+
+function normalizeHqConsoleFocusMode(value: unknown): HqConsoleFocusMode {
+  return HQ_CONSOLE_FOCUS_MODE_IDS.includes(value as HqConsoleFocusMode)
+    ? (value as HqConsoleFocusMode)
+    : 'game'
+}
+
 export const DEFAULT_SETTINGS = {
   // AI
   apiKey:            '',
@@ -330,6 +456,8 @@ export const DEFAULT_SETTINGS = {
   surfaceMotionProfile: 'flagship' as 'reduced' | 'standard' | 'flagship',
   officeMotion: 1,
   officeSplitHeightPx: 0,
+  arpgViewportSize: 'standard' as ArpgViewportSize,
+  hqConsoleFocusMode: 'game' as HqConsoleFocusMode,
   officeCameraPreset: 'cinematic' as 'cinematic' | 'closeOps' | 'wallReadability',
   officeOperationalMode: 'normal' as 'normal' | 'war' | 'nightOps',
   officeVfxQuality: 'low' as 'off' | 'low' | 'high',
@@ -348,6 +476,116 @@ export const DEFAULT_SETTINGS = {
 }
 
 export type Settings = typeof DEFAULT_SETTINGS
+
+function normalizeScheduledMissionReview(
+  value: unknown,
+): ScheduledMissionReviewState | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const raw = value as {
+    contract?: {
+      scope?: unknown
+      targetAgent?: unknown
+      outputTarget?: unknown
+      approvalPolicy?: unknown
+      expiryHours?: unknown
+      reentrySummary?: unknown
+      localOnly?: unknown
+      createdAt?: unknown
+      updatedAt?: unknown
+    }
+    status?: unknown
+    lastQueuedAt?: unknown
+    expiresAt?: unknown
+    lastRunSummary?: unknown
+    lastClearedAt?: unknown
+  }
+
+  const scope = typeof raw.contract?.scope === 'string' ? raw.contract.scope.trim() : ''
+  const targetAgent =
+    typeof raw.contract?.targetAgent === 'string'
+      ? raw.contract.targetAgent.trim()
+      : ''
+  const outputTarget =
+    raw.contract?.outputTarget === 'vault' ||
+    raw.contract?.outputTarget === 'notify' ||
+    raw.contract?.outputTarget === 'none' ||
+    raw.contract?.outputTarget === 'telegram' ||
+    raw.contract?.outputTarget === 'download' ||
+    raw.contract?.outputTarget === 'review'
+      ? raw.contract.outputTarget
+      : null
+  const approvalPolicy =
+    raw.contract?.approvalPolicy === 'human_gate' ||
+    raw.contract?.approvalPolicy === 'approve_on_write' ||
+    raw.contract?.approvalPolicy === 'observe'
+      ? raw.contract.approvalPolicy
+      : null
+  const reentrySummary =
+    typeof raw.contract?.reentrySummary === 'string'
+      ? raw.contract.reentrySummary.trim()
+      : ''
+  const expiryHours = Number(raw.contract?.expiryHours)
+  if (!scope || !targetAgent || !outputTarget || !approvalPolicy || !reentrySummary) {
+    return undefined
+  }
+
+  return {
+    contract: {
+      scope,
+      targetAgent,
+      outputTarget,
+      approvalPolicy,
+      expiryHours:
+        Number.isFinite(expiryHours) && expiryHours > 0
+          ? Math.round(expiryHours)
+          : 24,
+      reentrySummary,
+      localOnly: raw.contract?.localOnly !== false,
+      createdAt:
+        typeof raw.contract?.createdAt === 'number' && Number.isFinite(raw.contract.createdAt)
+          ? raw.contract.createdAt
+          : Date.now(),
+      updatedAt:
+        typeof raw.contract?.updatedAt === 'number' && Number.isFinite(raw.contract.updatedAt)
+          ? raw.contract.updatedAt
+          : Date.now(),
+    },
+    status:
+      raw.status === 'pending_review' ||
+      raw.status === 'expired' ||
+      raw.status === 'cleared'
+        ? raw.status
+        : undefined,
+    lastQueuedAt:
+      typeof raw.lastQueuedAt === 'number' && Number.isFinite(raw.lastQueuedAt)
+        ? raw.lastQueuedAt
+        : undefined,
+    expiresAt:
+      typeof raw.expiresAt === 'number' && Number.isFinite(raw.expiresAt)
+        ? raw.expiresAt
+        : undefined,
+    lastRunSummary:
+      typeof raw.lastRunSummary === 'string' && raw.lastRunSummary.trim()
+        ? raw.lastRunSummary.trim()
+        : undefined,
+    lastClearedAt:
+      typeof raw.lastClearedAt === 'number' && Number.isFinite(raw.lastClearedAt)
+        ? raw.lastClearedAt
+        : undefined,
+  }
+}
+
+function normalizeScheduledJobs(value: unknown): ScheduledJob[] {
+  if (!Array.isArray(value)) return []
+  return value.map((job) => {
+    if (!job || typeof job !== 'object') return job as ScheduledJob
+    const raw = job as ScheduledJob
+    return {
+      ...raw,
+      missionReview: normalizeScheduledMissionReview(raw.missionReview),
+    }
+  })
+}
 
 function normalizeSettingsPatch(patch: Partial<Settings>): Partial<Settings> {
   const nextPatch: Partial<Settings> = { ...patch }
@@ -369,6 +607,17 @@ function normalizeSettingsPatch(patch: Partial<Settings>): Partial<Settings> {
   if (Object.prototype.hasOwnProperty.call(nextPatch, 'vehicleConnectorProfile')) {
     nextPatch.vehicleConnectorProfile = normalizeVehicleConnectorProfile(
       nextPatch.vehicleConnectorProfile,
+    )
+  }
+  if (Object.prototype.hasOwnProperty.call(nextPatch, 'scheduledJobs')) {
+    nextPatch.scheduledJobs = normalizeScheduledJobs(nextPatch.scheduledJobs)
+  }
+  if (Object.prototype.hasOwnProperty.call(nextPatch, 'arpgViewportSize')) {
+    nextPatch.arpgViewportSize = normalizeArpgViewportSize(nextPatch.arpgViewportSize)
+  }
+  if (Object.prototype.hasOwnProperty.call(nextPatch, 'hqConsoleFocusMode')) {
+    nextPatch.hqConsoleFocusMode = normalizeHqConsoleFocusMode(
+      nextPatch.hqConsoleFocusMode,
     )
   }
   return nextPatch
@@ -469,6 +718,9 @@ export interface PrivacyShieldStatus {
   protectedKinds: string[]
   protectedCount: number
   summary: string
+  classCounts?: Record<string, number>
+  dispatchMode?: 'redacted' | 'blocked'
+  blockedReason?: string | null
   updatedAt: number
 }
 
@@ -512,7 +764,7 @@ interface NexusState {
   marketsView:   'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices' | 'charts'
   cyberView:     'triage' | 'matrix' | 'cves' | 'otx' | 'cisa' | 'drone' | 'vuln-review'
   skillsWorkbenchView: 'forge' | 'blacksite' | 'brain' | 'library'
-  resourcesWorkbenchView: 'finder' | 'manual' | 'study' | 'surfaces' | 'playbooks' | 'specs' | 'system' | 'impact' | 'registry' | 'kits' | 'voice-lab'
+  resourcesWorkbenchView: 'finder' | 'manual' | 'study' | 'surfaces' | 'playbooks' | 'specs' | 'system' | 'impact' | 'registry' | 'kits' | 'voice-lab' | 'wins'
   securityWorkbenchView: 'doctrine' | 'physical' | 'ai'
   prices:        Record<string, PriceData>
   sparklines:    Record<string, number[]>
@@ -590,6 +842,7 @@ interface NexusState {
   clearOfficeMessages: () => void
   preparedWorkspace:   PreparedWorkspaceSession | null
   unfinishedSessions:  UnfinishedSessionMemory[]
+  correctionMemories: CorrectionMemoryEntry[]
   setPreparedWorkspace: (
     target: PreparedWorkspaceTarget | null,
     meta?: {
@@ -614,6 +867,20 @@ interface NexusState {
     href: string,
     completionState?: UnfinishedSessionCompletionState
   ) => void
+  proposeCorrectionMemory: (meta: {
+    status?: import("@/lib/assistantSessionMemory").CorrectionMemoryStatus
+    scope?: Partial<import("@/lib/assistantSessionMemory").CorrectionMemoryScope>
+    content: import("@/lib/assistantSessionMemory").CorrectionMemoryContent
+    provenance: Pick<
+      import("@/lib/assistantSessionMemory").CorrectionMemoryProvenance,
+      'sourceQuery' | 'sourceRunId' | 'sourceSessionHref'
+    >
+    sensitivity?: import("@/lib/assistantSessionMemory").CorrectionMemorySensitivity
+    approvalStrength?: number
+  }) => CorrectionMemoryEntry | null
+  approveCorrectionMemory: (id: string) => void
+  archiveCorrectionMemory: (id: string) => void
+  markCorrectionMemoriesApplied: (ids: string[]) => void
 
   // HQ Prime layout editor (Drawbridge-style)
   officeEditMode:      boolean
@@ -622,6 +889,58 @@ interface NexusState {
   setOfficeLayout:     (layout: Record<OfficeObjectId, OfficeObjectPos>) => void
   setOfficeObjectPos:  (id: OfficeObjectId, pos: OfficeObjectPos) => void
   resetOfficeLayout:   () => void
+
+  // Aether Reliquary ARPG room
+  hqRoomMode:          ArpgRoomMode
+  setHqRoomMode:       (mode: ArpgRoomMode) => void
+  arpgSave:            ArpgSaveState
+  arpgSaveSlots:       ArpgSaveSlot[]
+  arpgActiveSaveSlotId: string
+  setArpgSave:         (
+    save: Partial<ArpgSaveState> | null | undefined,
+    slots?: ArpgSaveSlot[],
+    activeSlotId?: string
+  ) => void
+  resetArpgSave:       () => void
+  confirmResetArpgSave: () => void
+  saveArpgManualSlot:  () => void
+  saveArpgCheckpointSlot: () => void
+  loadArpgSaveSlot:    (slotId: string) => void
+  moveArpgPlayer:      (vector: ArpgMoveVector) => void
+  collectArpgItem:     (itemId: string, sourceId?: string) => void
+  equipArpgItem:       (itemId: string) => void
+  upgradeArpgItem:     (itemOrInstanceId?: string | null) => void
+  unlockArpgSkill:     (skillId: string) => void
+  createArpgCharacter: (selection: ArpgCharacterSelection) => void
+  respecArpgCharacter: (selection: ArpgCharacterSelection) => void
+  setArpgCharacterCosmetic: (selection: Pick<ArpgCharacterSelection, 'paletteId' | 'portraitId'>) => void
+  useArpgConsumable:   (itemId: string) => void
+  strikeArpgEnemy:     (enemyId: string) => void
+  targetArpgEnemy:     (enemyId: string | null) => void
+  useArpgSkill:        (skillId?: string | null, enemyId?: string | null) => void
+  dodgeArpgPlayer:     (vector?: ArpgMoveVector | null) => void
+  advanceArpgStory:    (storyFlag: string) => void
+  selectArpgRegion:    (cityId: string, subCityId?: string | null) => void
+  beginArpgTravel:     (routeId: string) => void
+  resolveArpgTravelEvent: (choiceId: string) => void
+  acceptArpgQuest:     (questId: string) => void
+  advanceArpgQuest:    (questId: string, storyFlag?: string) => void
+  recruitArpgCompanion:(companionId: string) => void
+  craftArpgRecipe:     (recipeId: string) => void
+  salvageArpgItem:     (itemOrInstanceId?: string | null) => void
+  recordArpgReputation:(factionOrCityId: string, delta: number) => void
+  selectArpgEndgameDifficulty: (difficultyTierId: string) => void
+  startArpgEndgameDungeon: (dungeonId: string) => void
+  completeArpgEndgameDungeon: (dungeonId?: string | null) => void
+  startArpgRelicTrial: (trialId: string) => void
+  completeArpgRelicTrial: (trialId?: string | null) => void
+  startArpgBossRematch: (rematchId: string) => void
+  completeArpgBossRematch: (rematchId?: string | null) => void
+  claimArpgTreasureMap: (mapId: string) => void
+  completeArpgTreasureMap: (mapId: string) => void
+  startArpgArenaChallenge: (challengeId: string) => void
+  completeArpgArenaChallenge: (challengeId?: string | null) => void
+  claimArpgCosmeticReward: (rewardId: string) => void
 
   // Activity log
   activityLog: LogEntry[]
@@ -751,6 +1070,110 @@ const DEFAULT_PM_CHECKLIST: PMChecklistItem[] = [
   { id: 'post-repro',     label: 'Root cause confirmed (not just symptom fixed)', category: 'post-incident', checked: false },
   { id: 'post-retest',    label: 'Regression path manually retested',             category: 'post-incident', checked: false },
 ]
+
+type ArpgStoreSavePatch = {
+  arpgSave: ArpgSaveState
+  arpgSaveSlots: ArpgSaveSlot[]
+  arpgActiveSaveSlotId: string
+}
+
+function createArpgStoreSavePatch(
+  saveInput: Partial<ArpgSaveState> | null | undefined,
+  slotsInput?: ArpgSaveSlot[] | null,
+  activeSlotId = ARPG_AUTOSAVE_SLOT_ID,
+  options: { syncAutosave?: boolean } = {},
+): ArpgStoreSavePatch {
+  const arpgSave = normalizeArpgSave(saveInput)
+  const arpgSaveSlots =
+    options.syncAutosave === false
+      ? normalizeArpgSaveSlots(slotsInput, arpgSave)
+      : syncArpgAutosaveSlot(arpgSave, slotsInput)
+  const slotIds = new Set(arpgSaveSlots.map((slot) => slot.id))
+
+  return {
+    arpgSave,
+    arpgSaveSlots,
+    arpgActiveSaveSlotId: slotIds.has(activeSlotId) ? activeSlotId : ARPG_AUTOSAVE_SLOT_ID,
+  }
+}
+
+function createDefaultArpgStoreSavePatch(): ArpgStoreSavePatch {
+  const arpgSave = createDefaultArpgSave()
+
+  return {
+    arpgSave,
+    arpgSaveSlots: createArpgSaveSlotSet(arpgSave),
+    arpgActiveSaveSlotId: ARPG_AUTOSAVE_SLOT_ID,
+  }
+}
+
+function stampArpgSaveEvent(save: ArpgSaveState, lastEvent: string): ArpgSaveState {
+  return {
+    ...normalizeArpgSave(save),
+    lastEvent,
+    lastSavedAt: Date.now(),
+  }
+}
+
+function normalizePersistedNexusState(persisted: unknown): Partial<NexusState> {
+  const next =
+    persisted && typeof persisted === 'object'
+      ? { ...(persisted as Partial<NexusState> & { dismissedRuleIds?: unknown }) }
+      : {}
+
+  next.settings = sanitizeClientSettingsForPersistence({
+    ...DEFAULT_SETTINGS,
+    ...(next.settings ?? {}),
+  })
+  next.settings.aiProvider = normalizePreferredAIProvider(next.settings.aiProvider)
+  next.settings.arpgViewportSize = normalizeArpgViewportSize(next.settings.arpgViewportSize)
+  next.settings.hqConsoleFocusMode = normalizeHqConsoleFocusMode(
+    next.settings.hqConsoleFocusMode,
+  )
+  if (!next.intelView) next.intelView = 'news'
+  if (!next.marketsView) next.marketsView = 'watchlist'
+  if (!next.cyberView) next.cyberView = 'triage'
+  if (!next.skillsWorkbenchView) next.skillsWorkbenchView = 'forge'
+  if (!next.resourcesWorkbenchView) next.resourcesWorkbenchView = 'manual'
+  if (!next.securityWorkbenchView) next.securityWorkbenchView = 'doctrine'
+  next.hqRoomMode = next.hqRoomMode === 'command-room' ? 'command-room' : 'arpg'
+  next.arpgSave = normalizeArpgSave(next.arpgSave)
+  next.arpgSaveSlots = syncArpgAutosaveSlot(next.arpgSave, next.arpgSaveSlots)
+  {
+    const slotIds = new Set(next.arpgSaveSlots.map((slot) => slot.id))
+    next.arpgActiveSaveSlotId =
+      typeof next.arpgActiveSaveSlotId === 'string' && slotIds.has(next.arpgActiveSaveSlotId)
+        ? next.arpgActiveSaveSlotId
+        : ARPG_AUTOSAVE_SLOT_ID
+  }
+  if (!Array.isArray(next.voiceProfiles)) next.voiceProfiles = []
+  if (!Array.isArray(next.voiceProjects)) next.voiceProjects = []
+  if (!next.activeVoiceProjectId) next.activeVoiceProjectId = null
+  if (next.preparedWorkspace) {
+    const normalizedPrepared = normalizePreparedWorkspaceTarget(next.preparedWorkspace)
+    next.preparedWorkspace = normalizedPrepared
+      ? {
+          ...next.preparedWorkspace,
+          ...normalizedPrepared,
+          preparedAt:
+            typeof next.preparedWorkspace.preparedAt === 'number'
+              ? next.preparedWorkspace.preparedAt
+              : Date.now(),
+          intent: next.preparedWorkspace.intent ?? 'conversation',
+          sourceQuery: next.preparedWorkspace.sourceQuery ?? '',
+        }
+      : null
+  }
+  next.unfinishedSessions = pruneUnfinishedSessions(next.unfinishedSessions)
+  next.correctionMemories = pruneCorrectionMemories(next.correctionMemories)
+  next.dismissedUIRuleKeys = Array.isArray(next.dismissedUIRuleKeys)
+    ? next.dismissedUIRuleKeys
+    : Array.isArray(next.dismissedRuleIds)
+      ? next.dismissedRuleIds
+      : []
+
+  return next
+}
 
 // ── Store ─────────────────────────────────────────────────────────────────────
 export const useStore = create<NexusState>()(
@@ -1011,6 +1434,7 @@ export const useStore = create<NexusState>()(
       clearOfficeMessages: () => set({ officeMessages: [] }),
       preparedWorkspace: null,
       unfinishedSessions: [],
+      correctionMemories: [],
       setPreparedWorkspace: (target, meta) =>
         set(() => {
           const normalized = normalizePreparedWorkspaceTarget(target)
@@ -1043,6 +1467,32 @@ export const useStore = create<NexusState>()(
             completionState,
           ),
         })),
+      proposeCorrectionMemory: (meta) => {
+        const proposal = rememberCorrectionMemory(useStore.getState().correctionMemories, meta)
+        set({ correctionMemories: proposal.entries })
+        return proposal.entry
+      },
+      approveCorrectionMemory: (id) =>
+        set((s) => ({
+          correctionMemories: approveStoredCorrectionMemory(
+            s.correctionMemories,
+            id,
+          ),
+        })),
+      archiveCorrectionMemory: (id) =>
+        set((s) => ({
+          correctionMemories: archiveStoredCorrectionMemory(
+            s.correctionMemories,
+            id,
+          ),
+        })),
+      markCorrectionMemoriesApplied: (ids) =>
+        set((s) => ({
+          correctionMemories: markCorrectionMemoriesApplied(
+            s.correctionMemories,
+            ids,
+          ),
+        })),
 
       // HQ Prime layout editor
       officeEditMode:    false,
@@ -1054,6 +1504,174 @@ export const useStore = create<NexusState>()(
           officeLayout: { ...s.officeLayout, [id]: { x: pos.x, y: pos.y, ax: pos.ax, ay: pos.ay } },
         })),
       resetOfficeLayout: () => set({ officeLayout: { ...OFFICE_OBJECT_DEFAULTS } }),
+
+      // Aether Reliquary ARPG room
+      hqRoomMode: 'arpg',
+      setHqRoomMode: (hqRoomMode) => set({ hqRoomMode }),
+      ...createDefaultArpgStoreSavePatch(),
+      setArpgSave: (arpgSave, arpgSaveSlots, arpgActiveSaveSlotId) =>
+        set((s) =>
+          createArpgStoreSavePatch(
+            arpgSave,
+            arpgSaveSlots ?? s.arpgSaveSlots,
+            arpgActiveSaveSlotId ?? s.arpgActiveSaveSlotId,
+            { syncAutosave: !arpgSaveSlots },
+          ),
+        ),
+      resetArpgSave: () => set(createArpgStoreSavePatch(resetArpgSaveState())),
+      confirmResetArpgSave: () => set(createArpgStoreSavePatch(resetArpgSaveState())),
+      saveArpgManualSlot: () =>
+        set((s) => {
+          const saved = stampArpgSaveEvent(s.arpgSave, 'Manual save recorded.')
+          const syncedSlots = syncArpgAutosaveSlot(saved, s.arpgSaveSlots)
+          return {
+            arpgSave: saved,
+            arpgSaveSlots: upsertArpgSaveSlot(syncedSlots, saved, 'manual', ARPG_MANUAL_SLOT_ID),
+            arpgActiveSaveSlotId: ARPG_MANUAL_SLOT_ID,
+          }
+        }),
+      saveArpgCheckpointSlot: () =>
+        set((s) => {
+          const saved = stampArpgSaveEvent(s.arpgSave, 'Checkpoint save recorded.')
+          const syncedSlots = syncArpgAutosaveSlot(saved, s.arpgSaveSlots)
+          const arpgSaveSlots = upsertArpgSaveSlot(syncedSlots, saved, 'checkpoint')
+          const checkpointSlot = arpgSaveSlots.find((slot) => slot.kind === 'checkpoint')
+          return {
+            arpgSave: saved,
+            arpgSaveSlots,
+            arpgActiveSaveSlotId: checkpointSlot?.id ?? s.arpgActiveSaveSlotId,
+          }
+        }),
+      loadArpgSaveSlot: (slotId) =>
+        set((s) => {
+          const arpgSaveSlots = normalizeArpgSaveSlots(s.arpgSaveSlots, s.arpgSave)
+          const slot = arpgSaveSlots.find((entry) => entry.id === slotId || entry.kind === slotId)
+          if (!slot) return { arpgSaveSlots }
+
+          return createArpgStoreSavePatch(
+            stampArpgSaveEvent(slot.save, `Loaded ${slot.label}.`),
+            arpgSaveSlots,
+            slot.id,
+          )
+        }),
+      moveArpgPlayer: (vector) =>
+        set((s) => createArpgStoreSavePatch(moveArpgPlayerState(s.arpgSave, vector), s.arpgSaveSlots)),
+      collectArpgItem: (itemId, sourceId) =>
+        set((s) =>
+          createArpgStoreSavePatch(collectArpgItemState(s.arpgSave, itemId, sourceId), s.arpgSaveSlots),
+        ),
+      equipArpgItem: (itemId) =>
+        set((s) => createArpgStoreSavePatch(equipArpgItemState(s.arpgSave, itemId), s.arpgSaveSlots)),
+      upgradeArpgItem: (itemOrInstanceId) =>
+        set((s) =>
+          createArpgStoreSavePatch(upgradeArpgItemState(s.arpgSave, itemOrInstanceId), s.arpgSaveSlots),
+        ),
+      unlockArpgSkill: (skillId) =>
+        set((s) => createArpgStoreSavePatch(unlockArpgSkillState(s.arpgSave, skillId), s.arpgSaveSlots)),
+      createArpgCharacter: (selection) =>
+        set((s) =>
+          createArpgStoreSavePatch(createArpgCharacterState(s.arpgSave, selection), s.arpgSaveSlots),
+        ),
+      respecArpgCharacter: (selection) =>
+        set((s) =>
+          createArpgStoreSavePatch(respecArpgCharacterState(s.arpgSave, selection), s.arpgSaveSlots),
+        ),
+      setArpgCharacterCosmetic: (selection) =>
+        set((s) =>
+          createArpgStoreSavePatch(setArpgCharacterCosmeticState(s.arpgSave, selection), s.arpgSaveSlots),
+        ),
+      useArpgConsumable: (itemId) =>
+        set((s) => createArpgStoreSavePatch(useArpgConsumableState(s.arpgSave, itemId), s.arpgSaveSlots)),
+      strikeArpgEnemy: (enemyId) =>
+        set((s) => createArpgStoreSavePatch(strikeArpgEnemyState(s.arpgSave, enemyId), s.arpgSaveSlots)),
+      targetArpgEnemy: (enemyId) =>
+        set((s) => createArpgStoreSavePatch(targetArpgEnemyState(s.arpgSave, enemyId), s.arpgSaveSlots)),
+      useArpgSkill: (skillId, enemyId) =>
+        set((s) =>
+          createArpgStoreSavePatch(useArpgSkillState(s.arpgSave, skillId, enemyId), s.arpgSaveSlots),
+        ),
+      dodgeArpgPlayer: (vector) =>
+        set((s) => createArpgStoreSavePatch(dodgeArpgPlayerState(s.arpgSave, vector), s.arpgSaveSlots)),
+      advanceArpgStory: (storyFlag) =>
+        set((s) => createArpgStoreSavePatch(advanceArpgStoryState(s.arpgSave, storyFlag), s.arpgSaveSlots)),
+      selectArpgRegion: (cityId, subCityId) =>
+        set((s) =>
+          createArpgStoreSavePatch(selectArpgRegionState(s.arpgSave, cityId, subCityId), s.arpgSaveSlots),
+        ),
+      beginArpgTravel: (routeId) =>
+        set((s) => createArpgStoreSavePatch(beginArpgTravelState(s.arpgSave, routeId), s.arpgSaveSlots)),
+      resolveArpgTravelEvent: (choiceId) =>
+        set((s) =>
+          createArpgStoreSavePatch(resolveArpgTravelEventState(s.arpgSave, choiceId), s.arpgSaveSlots),
+        ),
+      acceptArpgQuest: (questId) =>
+        set((s) => createArpgStoreSavePatch(acceptArpgQuestState(s.arpgSave, questId), s.arpgSaveSlots)),
+      advanceArpgQuest: (questId, storyFlag) =>
+        set((s) =>
+          createArpgStoreSavePatch(advanceArpgQuestState(s.arpgSave, questId, storyFlag), s.arpgSaveSlots),
+        ),
+      recruitArpgCompanion: (companionId) =>
+        set((s) =>
+          createArpgStoreSavePatch(recruitArpgCompanionState(s.arpgSave, companionId), s.arpgSaveSlots),
+        ),
+      craftArpgRecipe: (recipeId) =>
+        set((s) => createArpgStoreSavePatch(craftArpgRecipeState(s.arpgSave, recipeId), s.arpgSaveSlots)),
+      salvageArpgItem: (itemOrInstanceId) =>
+        set((s) =>
+          createArpgStoreSavePatch(salvageArpgItemState(s.arpgSave, itemOrInstanceId), s.arpgSaveSlots),
+        ),
+      recordArpgReputation: (factionOrCityId, delta) =>
+        set((s) =>
+          createArpgStoreSavePatch(recordArpgReputationState(s.arpgSave, factionOrCityId, delta), s.arpgSaveSlots),
+        ),
+      selectArpgEndgameDifficulty: (difficultyTierId) =>
+        set((s) =>
+          createArpgStoreSavePatch(selectArpgEndgameDifficultyState(s.arpgSave, difficultyTierId), s.arpgSaveSlots),
+        ),
+      startArpgEndgameDungeon: (dungeonId) =>
+        set((s) =>
+          createArpgStoreSavePatch(startArpgEndgameDungeonState(s.arpgSave, dungeonId), s.arpgSaveSlots),
+        ),
+      completeArpgEndgameDungeon: (dungeonId) =>
+        set((s) =>
+          createArpgStoreSavePatch(completeArpgEndgameDungeonState(s.arpgSave, dungeonId), s.arpgSaveSlots),
+        ),
+      startArpgRelicTrial: (trialId) =>
+        set((s) =>
+          createArpgStoreSavePatch(startArpgRelicTrialState(s.arpgSave, trialId), s.arpgSaveSlots),
+        ),
+      completeArpgRelicTrial: (trialId) =>
+        set((s) =>
+          createArpgStoreSavePatch(completeArpgRelicTrialState(s.arpgSave, trialId), s.arpgSaveSlots),
+        ),
+      startArpgBossRematch: (rematchId) =>
+        set((s) =>
+          createArpgStoreSavePatch(startArpgBossRematchState(s.arpgSave, rematchId), s.arpgSaveSlots),
+        ),
+      completeArpgBossRematch: (rematchId) =>
+        set((s) =>
+          createArpgStoreSavePatch(completeArpgBossRematchState(s.arpgSave, rematchId), s.arpgSaveSlots),
+        ),
+      claimArpgTreasureMap: (mapId) =>
+        set((s) =>
+          createArpgStoreSavePatch(claimArpgTreasureMapState(s.arpgSave, mapId), s.arpgSaveSlots),
+        ),
+      completeArpgTreasureMap: (mapId) =>
+        set((s) =>
+          createArpgStoreSavePatch(completeArpgTreasureMapState(s.arpgSave, mapId), s.arpgSaveSlots),
+        ),
+      startArpgArenaChallenge: (challengeId) =>
+        set((s) =>
+          createArpgStoreSavePatch(startArpgArenaChallengeState(s.arpgSave, challengeId), s.arpgSaveSlots),
+        ),
+      completeArpgArenaChallenge: (challengeId) =>
+        set((s) =>
+          createArpgStoreSavePatch(completeArpgArenaChallengeState(s.arpgSave, challengeId), s.arpgSaveSlots),
+        ),
+      claimArpgCosmeticReward: (rewardId) =>
+        set((s) =>
+          createArpgStoreSavePatch(claimArpgCosmeticRewardState(s.arpgSave, rewardId), s.arpgSaveSlots),
+        ),
 
       // Activity log defaults
       activityLog: [],
@@ -1328,6 +1946,10 @@ export const useStore = create<NexusState>()(
         pendingDrafts: s.pendingDrafts,
         aiMode:        s.aiMode,
         officeLayout:  s.officeLayout,
+        hqRoomMode:    s.hqRoomMode,
+        arpgSave:      s.arpgSave,
+        arpgSaveSlots: s.arpgSaveSlots,
+        arpgActiveSaveSlotId: s.arpgActiveSaveSlotId,
         intelView:     s.intelView,
         marketsView:   s.marketsView,
         cyberView:     s.cyberView,
@@ -1339,51 +1961,15 @@ export const useStore = create<NexusState>()(
         activeVoiceProjectId: s.activeVoiceProjectId,
         preparedWorkspace: s.preparedWorkspace,
         unfinishedSessions: s.unfinishedSessions,
+        correctionMemories: s.correctionMemories,
         dismissedUIRuleKeys: s.dismissedUIRuleKeys,
         activePersona:   s.activePersona,
       }),
-      migrate: (persisted: any) => {
-        // Ensure new persisted keys have safe defaults.
-        const next = { ...(persisted ?? {}) }
-        next.settings = sanitizeClientSettingsForPersistence({
-          ...DEFAULT_SETTINGS,
-          ...(next.settings ?? {}),
-        })
-        next.settings.aiProvider = normalizePreferredAIProvider(
-          next.settings.aiProvider,
-        )
-        if (!next.intelView) next.intelView = 'news'
-        if (!next.marketsView) next.marketsView = 'watchlist'
-        if (!next.cyberView) next.cyberView = 'triage'
-        if (!next.skillsWorkbenchView) next.skillsWorkbenchView = 'forge'
-        if (!next.resourcesWorkbenchView) next.resourcesWorkbenchView = 'manual'
-        if (!next.securityWorkbenchView) next.securityWorkbenchView = 'doctrine'
-        if (!Array.isArray(next.voiceProfiles)) next.voiceProfiles = []
-        if (!Array.isArray(next.voiceProjects)) next.voiceProjects = []
-        if (!next.activeVoiceProjectId) next.activeVoiceProjectId = null
-        if (next.preparedWorkspace) {
-          const normalizedPrepared = normalizePreparedWorkspaceTarget(next.preparedWorkspace)
-          next.preparedWorkspace = normalizedPrepared
-            ? {
-                ...next.preparedWorkspace,
-                ...normalizedPrepared,
-                preparedAt:
-                  typeof next.preparedWorkspace.preparedAt === 'number'
-                    ? next.preparedWorkspace.preparedAt
-                    : Date.now(),
-                intent: next.preparedWorkspace.intent ?? 'conversation',
-                sourceQuery: next.preparedWorkspace.sourceQuery ?? '',
-              }
-            : null
-        }
-        next.unfinishedSessions = pruneUnfinishedSessions(next.unfinishedSessions)
-        next.dismissedUIRuleKeys = Array.isArray(next.dismissedUIRuleKeys)
-          ? next.dismissedUIRuleKeys
-          : Array.isArray(next.dismissedRuleIds)
-            ? next.dismissedRuleIds
-            : []
-        return next
-      },
+      migrate: (persisted: any) => normalizePersistedNexusState(persisted),
+      merge: (persisted, current) => ({
+        ...current,
+        ...normalizePersistedNexusState(persisted),
+      }),
     }
   )
 )

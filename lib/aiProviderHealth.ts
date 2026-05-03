@@ -1,5 +1,5 @@
 // ── lib/aiProviderHealth ─────────────────────────────────────────────────────
-// Over-engineered provider health system for the Nexus AI proxy.
+// Over-engineered provider health system for the Homefront AI proxy.
 //
 // Responsibilities:
 //   1. Exponential backoff circuit breaker — per-provider, independent state

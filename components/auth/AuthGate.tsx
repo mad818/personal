@@ -459,7 +459,7 @@ export default function AuthGate({
                   >
                     <Image
                       src={src}
-                      alt="Aegis Vector surface schematic"
+                      alt="Homefront surface schematic"
                       width={108}
                       height={136}
                       sizes="(max-width: 900px) 25vw, 108px"

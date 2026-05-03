@@ -9,7 +9,7 @@ import { BRAND_NAME } from "@/lib/brand";
 export const metadata: Metadata = {
   title: `Field Manual | ${BRAND_NAME}`,
   description:
-    "Curated external resources plus a fast local finder, seeded working-context jumps, internal playbooks, spec-first starters, surface audits, architecture maps, impact analysis, and exact repair sessions inside the Aegis Vector field manual.",
+    "Curated external resources plus a fast local finder, seeded working-context jumps, internal playbooks, spec-first starters, surface audits, architecture maps, impact analysis, and exact repair sessions inside the Homefront field manual.",
 };
 
 export default function ResourcesPage() {

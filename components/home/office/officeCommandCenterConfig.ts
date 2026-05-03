@@ -13,7 +13,7 @@ export type DispatchBar = { from: AgentId; to: AgentId };
 export type OfficeCameraPreset = "cinematic" | "closeOps" | "wallReadability";
 
 export const OFFICE_HEIGHT_MIN_PX = 300;
-export const OFFICE_HEIGHT_MAX_PX = 700;
+export const OFFICE_HEIGHT_MAX_PX = 860;
 export const OFFICE_HEIGHT_DEFAULT_VH = 42;
 export const OFFICE_HEIGHT_STEP_PX = 20;
 export const SPLIT_LOCK_STORAGE_KEY = "nexus_hq_split_drag_locked";

@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-labelledby="title desc">
+  <title id="title">Aether Reliquary starter item icons</title>
+  <desc id="desc">Project-original warm pixel ARPG item source sheet. Sixteen 48 by 48 frames.</desc>
+  <defs>
+    <filter id="glow">
+      <feDropShadow dx="0" dy="1" stdDeviation="0.8" flood-color="#120906" flood-opacity="0.55"/>
+    </filter>
+    <style>.px{shape-rendering:crispEdges}</style>
+  </defs>
+
+  <!-- ember-knife -->
+  <g class="px" filter="url(#glow)" transform="translate(0 0)">
+    <rect x="20" y="28" width="7" height="14" fill="#5b341f"/>
+    <path d="M24 4l9 7-7 22-8-5z" fill="#f97316"/>
+    <path d="M25 9l4 4-5 14-4-2z" fill="#ffe08a"/>
+    <rect x="16" y="26" width="15" height="4" fill="#7c4a24"/>
+  </g>
+
+  <!-- pilgrim buckler -->
+  <g class="px" filter="url(#glow)" transform="translate(48 0)">
+    <path d="M24 5l17 7v11c0 11-6 17-17 21C13 40 7 34 7 23V12z" fill="#7a4b23"/>
+    <path d="M24 12l10 4v8c0 6-3 10-10 13-7-3-10-7-10-13v-8z" fill="#d8a85c"/>
+    <rect x="21" y="16" width="6" height="16" fill="#3a2414"/>
+  </g>
+
+  <!-- oath wrap armor -->
+  <g class="px" filter="url(#glow)" transform="translate(96 0)">
+    <path d="M14 8h20l7 12-5 23H12L7 20z" fill="#6b4d35"/>
+    <path d="M17 12h14l4 8-3 18H16l-3-18z" fill="#a06a3c"/>
+    <path d="M12 24h24M15 31h18" stroke="#f6d38b" stroke-width="2"/>
+  </g>
+
+  <!-- reliquary charm -->
+  <g class="px" filter="url(#glow)" transform="translate(144 0)">
+    <circle cx="24" cy="24" r="15" fill="#33251a"/>
+    <circle cx="24" cy="24" r="10" fill="#ffd166"/>
+    <path d="M24 10l5 14-5 14-5-14z" fill="#8ecae6"/>
+    <rect x="22" y="4" width="4" height="7" fill="#f4a261"/>
+  </g>
+
+  <!-- health vial -->
+  <g class="px" filter="url(#glow)" transform="translate(0 48)">
+    <rect x="18" y="7" width="12" height="6" fill="#d8a85c"/>
+    <path d="M14 14h20l-3 28H17z" fill="#ef4444"/>
+    <path d="M18 18h12l-2 18h-8z" fill="#fecaca"/>
+    <rect x="22" y="22" width="4" height="11" fill="#991b1b"/>
+    <rect x="18" y="26" width="12" height="4" fill="#991b1b"/>
+  </g>
+
+  <!-- focus draught -->
+  <g class="px" filter="url(#glow)" transform="translate(48 48)">
+    <rect x="18" y="7" width="12" height="6" fill="#d8a85c"/>
+    <path d="M14 14h20l-3 28H17z" fill="#2563eb"/>
+    <path d="M18 18h12l-2 18h-8z" fill="#bfdbfe"/>
+    <circle cx="24" cy="27" r="4" fill="#8ecae6"/>
+  </g>
+
+  <!-- upgrade shard -->
+  <g class="px" filter="url(#glow)" transform="translate(96 48)">
+    <path d="M24 4l14 16-6 24H17l-7-22z" fill="#fbbf24"/>
+    <path d="M24 11l7 10-4 15h-6l-4-14z" fill="#fff7ad"/>
+    <path d="M13 30h22" stroke="#92400e" stroke-width="3"/>
+  </g>
+
+  <!-- relic dust -->
+  <g class="px" filter="url(#glow)" transform="translate(144 48)">
+    <circle cx="15" cy="30" r="5" fill="#d946ef"/>
+    <circle cx="27" cy="20" r="6" fill="#8ecae6"/>
+    <circle cx="33" cy="32" r="4" fill="#ffd166"/>
+    <rect x="12" y="36" width="24" height="5" fill="#4c1d95"/>
+  </g>
+
+  <!-- gate key fragment -->
+  <g class="px" filter="url(#glow)" transform="translate(0 96)">
+    <path d="M9 24l17-16 13 7-17 17z" fill="#a5f3fc"/>
+    <path d="M22 31l8 8 5-5-8-8z" fill="#d8a85c"/>
+    <rect x="31" y="34" width="9" height="4" fill="#d8a85c"/>
+    <rect x="35" y="38" width="5" height="4" fill="#d8a85c"/>
+  </g>
+
+  <!-- loom-shard relic -->
+  <g class="px" filter="url(#glow)" transform="translate(48 96)">
+    <path d="M24 4l15 14-4 22-11 4-11-4-4-22z" fill="#8ecae6"/>
+    <path d="M24 11l8 9-3 14-5 3-5-3-3-14z" fill="#164e63"/>
+    <path d="M24 8v31M14 20h20" stroke="#ffd166" stroke-width="2"/>
+  </g>
+
+  <!-- bronze sword -->
+  <g class="px" filter="url(#glow)" transform="translate(96 96)">
+    <path d="M25 4l7 20-8 13-8-13z" fill="#d8a85c"/>
+    <rect x="21" y="31" width="6" height="12" fill="#5b341f"/>
+    <rect x="14" y="28" width="20" height="4" fill="#7a4b23"/>
+  </g>
+
+  <!-- ash bow -->
+  <g class="px" filter="url(#glow)" transform="translate(144 96)">
+    <path d="M14 5c18 8 18 30 0 38" fill="none" stroke="#7a4b23" stroke-width="5"/>
+    <path d="M16 7c14 8 14 26 0 34" fill="none" stroke="#f4a261" stroke-width="2"/>
+    <path d="M30 8v32" stroke="#ffe08a" stroke-width="2"/>
+    <path d="M21 24h18" stroke="#d8a85c" stroke-width="3"/>
+  </g>
+
+  <!-- ward hammer -->
+  <g class="px" filter="url(#glow)" transform="translate(0 144)">
+    <rect x="20" y="17" width="9" height="26" fill="#5b341f"/>
+    <rect x="12" y="7" width="25" height="14" rx="2" fill="#6b7280"/>
+    <rect x="16" y="10" width="17" height="7" fill="#d1d5db"/>
+    <circle cx="24" cy="28" r="4" fill="#ffd166"/>
+  </g>
+
+  <!-- moss staff -->
+  <g class="px" filter="url(#glow)" transform="translate(48 144)">
+    <rect x="22" y="13" width="5" height="30" fill="#5b341f"/>
+    <circle cx="24" cy="12" r="8" fill="#166534"/>
+    <circle cx="29" cy="15" r="5" fill="#84cc16"/>
+    <path d="M18 11h13" stroke="#f6d38b" stroke-width="2"/>
+  </g>
+
+  <!-- nacre ring -->
+  <g class="px" filter="url(#glow)" transform="translate(96 144)">
+    <circle cx="24" cy="26" r="14" fill="none" stroke="#f8fafc" stroke-width="6"/>
+    <circle cx="24" cy="26" r="9" fill="none" stroke="#8ecae6" stroke-width="3"/>
+    <path d="M21 9h6l3 7H18z" fill="#ffd166"/>
+  </g>
+
+  <!-- warden core unique -->
+  <g class="px" filter="url(#glow)" transform="translate(144 144)">
+    <rect x="12" y="12" width="24" height="24" rx="5" fill="#7a4b23"/>
+    <rect x="17" y="17" width="14" height="14" rx="3" fill="#2b1810"/>
+    <circle cx="24" cy="24" r="5" fill="#d946ef"/>
+    <path d="M24 4v9M24 35v9M4 24h9M35 24h9" stroke="#ffd166" stroke-width="3"/>
+  </g>
+</svg>

@@ -71,7 +71,8 @@ export type ResourcesWorkbenchView =
   | "registry"
   | "kits"
   | "impact"
-  | "voice-lab";
+  | "voice-lab"
+  | "wins";
 
 export interface ResourcesWorkbenchJobSpec {
   id: string;
@@ -627,6 +628,14 @@ export const SURFACE_REDESIGN_REGISTRY: Record<
         role: "continuity",
       },
       {
+        id: "massive-win-plans",
+        title: "Massive Win Plans",
+        detail: "Large fixes, improvements, and upgrades",
+        summary:
+          "Convert big requests into phase-gated, verified win lanes with design posture, route targets, and next safe actions.",
+        role: "guidance",
+      },
+      {
         id: "supporting-utilities",
         title: "Supporting utilities",
         detail: "Reference decks and reusable bundles",
@@ -653,6 +662,7 @@ export const SURFACE_REDESIGN_REGISTRY: Record<
       entry("System design", "merged", "understand-system", "Architecture mapping belongs in the same lane."),
       entry("Impact posture", "merged", "open-exact-session", "Impact is used to leave overview mode quickly."),
       entry("Project impact", "merged", "open-exact-session", "Impact belongs in exact-session staging."),
+      entry("Massive win planning", "primary", "massive-win-plans", "Big fix/improvement/upgrade plans become a native Resources lane instead of loose chat intent."),
       entry("Registry posture", "merged", "supporting-utilities", "Registry remains a supporting utility."),
       entry("Registry console", "merged", "supporting-utilities", "Registry remains available without equal visual weight."),
       entry("Registry kits", "merged", "supporting-utilities", "Kits stay in the supporting utilities lane."),
@@ -700,6 +710,14 @@ export const RESOURCES_WORKBENCH_JOBS: ResourcesWorkbenchJobSpec[] = [
     summary:
       "Use Impact and Finder to jump directly into the seeded working context instead of landing at a broad route top.",
     recommendedView: "impact",
+  },
+  {
+    id: "massive-win-plans",
+    title: "Plan massive wins",
+    detail: "Turn broad upgrade energy into verified slices",
+    summary:
+      "Use Massive Wins when the request is intentionally large and needs phases, design posture, route targets, and release gates before implementation spreads.",
+    recommendedView: "wins",
   },
 ];
 
@@ -814,6 +832,18 @@ export const RESOURCES_WORKBENCH_VIEW_SPECS: Record<
     panelDetail: "Profiles, projects, dictation, and local-runtime fallback",
     panelSummary:
       "Voice work should stay local-first and assistant-shaped: browser fallback by default, richer runtime rendering only when the local voice lane is reachable.",
+  },
+  wins: {
+    view: "wins",
+    jobId: "massive-win-plans",
+    introTitle: "Massive wins",
+    introDetail: "Big fixes, improvements, and upgrades",
+    introSummary:
+      "Use Massive Wins when the plan is supposed to carry multiple fixes, upgrades, design adaptations, and verification gates without losing focus.",
+    panelTitle: "Massive Win Console",
+    panelDetail: "Phase-gated plans with route targets and release checks",
+    panelSummary:
+      "Massive win plans should turn ambitious requests into bounded lanes that can be executed, measured, and shipped.",
   },
   registry: {
     view: "registry",

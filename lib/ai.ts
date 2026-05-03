@@ -26,6 +26,7 @@ import {
   resolveApiAIProvider,
 } from "@/lib/aiProviderPreference";
 import { NEXUS_AGENT_NO_BILLING_RULE } from "@/lib/productGuarantees";
+import { readPrivacyShieldStatusFromHeaders } from "@/lib/privacyShieldClient";
 import { getNavProductSurfaces, summarizeSurfaceTiers } from "@/lib/releaseMatrix";
 
 function getSettings(): Settings {
@@ -42,6 +43,16 @@ function getSettings(): Settings {
     };
   } catch {
     return DEFAULT_SETTINGS;
+  }
+}
+
+function syncPrivacyShieldStatus(response: Response) {
+  try {
+    useStore
+      .getState()
+      .setPrivacyShieldStatus(readPrivacyShieldStatusFromHeaders(response));
+  } catch {
+    // local posture only
   }
 }
 
@@ -186,7 +197,7 @@ function buildDirectCallProfileBlock(s: Settings): string {
 
 export function buildDirectCallSystemPrompt(s: Settings): string {
   const name = s.userName || "Mario";
-  return `You are Nexus AI — ${name}'s direct analysis and drafting lane.
+  return `You are Homefront AI — ${name}'s direct analysis and drafting lane.
 
 ${NEXUS_AGENT_NO_BILLING_RULE}
 
@@ -463,6 +474,7 @@ async function streamRequest(
         headers: { "Content-Type": "application/json", ...headers },
         body: JSON.stringify(body),
       });
+  syncPrivacyShieldStatus(res);
   if (!res.ok) throw new Error(`API ${res.status}`);
   // BUG-02 fix: guard against null body (204 No Content or empty response)
   // instead of crashing with the non-null assertion operator.
@@ -523,6 +535,7 @@ async function callLocalModel(
     const data = (await res.json().catch(() => null)) as
       | Record<string, unknown>
       | null;
+    syncPrivacyShieldStatus(res);
     if (!res.ok) {
       return "";
     }
@@ -582,6 +595,7 @@ async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
         ...(opts.task ? { task: opts.task } : {}),
       }),
     });
+    syncPrivacyShieldStatus(res);
     const data = await res.json();
     if (!res.ok) {
       if (s.localEndpoint && s.localModel) {
@@ -692,6 +706,7 @@ async function callNonInteractiveAIInternal(opts: {
           non_interactive: true,
         }),
       });
+      syncPrivacyShieldStatus(res);
       const data = await res.json();
       if (!res.ok) {
         if (s.localEndpoint && s.localModel) {
@@ -961,11 +976,11 @@ export function buildSystemPrompt(s: Settings, liveContext = ""): string {
   const profile = parts.length
     ? `\n\n== ${name.toUpperCase()}'S PROFILE ==\n${parts.join("\n")}\n== END PROFILE ==`
     : "";
-  return `You are Nexus AI — ${name}'s personal intelligence system, advisor, and developer agent. You are direct, sharp, and technical. You adapt to whatever ${name} needs: market analysis, research, trading signals, or coding and editing the Nexus Prime website itself.
+  return `You are Homefront AI — ${name}'s personal intelligence system, advisor, and developer agent. You are direct, sharp, and technical. You adapt to whatever ${name} needs: market analysis, research, trading signals, or coding and editing the Homefront website itself.
 
 ${NEXUS_AGENT_NO_BILLING_RULE}
 
-You have full access to the Nexus Prime project source code through these tools:
+You have full access to the Homefront project source code through these tools:
 - list_project_files(directory) — explore the project structure
 - read_project_file(path) — read any source file before editing
 - patch_project_file(path, old_string, new_string) — make targeted edits to components, pages, or library files

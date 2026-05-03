@@ -20,6 +20,7 @@
 import type { AgentStats } from "@/store/useStore";
 import { buildStackContextBlock } from "@/lib/projectContext";
 import { buildLearningsBlock } from "@/lib/agentLearnings";
+import type { CorrectionMemoryEntry } from "@/lib/assistantSessionMemory";
 import type { LearningEntry } from "@/lib/agentLearnings";
 import type { VaultSynthesis } from "@/components/home/office/types";
 
@@ -424,6 +425,31 @@ export function buildMemoryDiffBlock(lastSessionSummary: string): string {
   return `\n\n[MEMORY DIFF — since last session]\n${lastSessionSummary.trim()}\n[END MEMORY DIFF]\n`;
 }
 
+export function buildCorrectionMemoryPromptBlock(
+  entries: CorrectionMemoryEntry[],
+): string {
+  if (!entries.length) return "";
+  return (
+    `\n\n[CORRECTION MEMORY — approved operator guidance]\n` +
+    entries
+      .slice(0, 3)
+      .map((entry, index) => {
+        const scopeParts = [
+          entry.scope.routeSurface ? `route ${entry.scope.routeSurface}` : null,
+          entry.scope.agent ? `agent ${entry.scope.agent.toUpperCase()}` : null,
+          entry.scope.taskType ? `task ${entry.scope.taskType}` : null,
+          entry.scope.capability ? `capability ${entry.scope.capability}` : null,
+        ].filter(Boolean);
+        const scopeLabel = scopeParts.length
+          ? ` [${scopeParts.join(" · ")}]`
+          : "";
+        return `${index + 1}. ${entry.content.rule}${scopeLabel}\n   Preferred behavior: ${entry.content.preferredBehavior}`;
+      })
+      .join("\n") +
+    `\n[END CORRECTION MEMORY]\n`
+  );
+}
+
 // ── buildDeltaSweep ───────────────────────────────────────────────────────────
 // Compares two store snapshots and returns delta alerts for significant changes.
 // Call on every data refresh interval. Returns an empty array if nothing crossed
@@ -537,7 +563,7 @@ export function buildCapabilitiesBlock(agentId: string): string {
   const cap: Record<string, string> = {
     jansky: `You have live access to: market prices, Fear & Greed index, world risk score, CVE feed, and news signals. Use this data to give grounded, current answers — not generalizations. When you answer about markets, cite the live numbers. When you answer about threats, cite the CVE count.`,
 
-    orbit: `You have direct read/write access to the Nexus Prime codebase via file tools. Always read before editing. You also have the live dashboard data — use it to understand what features are active and what data is flowing.`,
+    orbit: `You have direct read/write access to the Homefront codebase via file tools. Always read before editing. You also have the live dashboard data — use it to understand what features are active and what data is flowing.`,
 
     nova: `You are a research engine with web_search, fetch_url, and a bounded deep_research tool for explicit deep dives. Operate like Perplexity for normal research: (1) search for the core question, (2) open the 2-3 most relevant sources, (3) synthesize into a grounded answer with citations. Use deep_research only when the operator clearly asks for a deep report or research brief. Never answer from memory alone when current data is available. You also see the dashboard's live news feed — cross-reference it.`,
 

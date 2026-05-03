@@ -31,6 +31,14 @@ import {
 } from "@/lib/security/rateLimit";
 import { applyProtectedActionHeaders } from "@/lib/security/protectedActionTelemetry";
 import { buildStepUpRequiredResponse } from "@/lib/security/stepUpAuth";
+import { runToolInIsolation } from "@/lib/security/toolIsolationRunner";
+import {
+  applyToolIsolationHeaders,
+} from "@/lib/security/toolIsolationTelemetry";
+import {
+  resolveToolIsolationDescriptor,
+  type ToolIsolationDescriptor,
+} from "@/lib/security/toolIsolationPolicy";
 import {
   getToolCapabilityClass,
   readProtectedActionContext,
@@ -44,12 +52,17 @@ import {
 import { formatRepoIntelToolResult } from "@/lib/repoIntel";
 import { getRepoIntelProfile, RepoIntelError } from "@/lib/serverRepoIntel";
 import { loadSavedRepoAssimilationBrief } from "@/lib/serverRepoCompare";
+import {
+  buildExternalToolResultEnvelope,
+  type ExternalToolResultEnvelope,
+} from "@/lib/externalToolBridge";
 
 const TOOL_USER_AGENT = `${getBrandServiceName()}/1.0`;
 
 interface ToolResponseMeta {
   cacheHit?: boolean;
   duplicateRead?: boolean;
+  externalTool?: ExternalToolResultEnvelope;
 }
 
 interface ToolResult {
@@ -87,6 +100,17 @@ function buildToolBlockedMessage(status: ProtectedActionStatus) {
       return "Tool blocked until the local session is re-established.";
     default:
       return "Tool blocked by protected-action policy.";
+  }
+}
+
+function buildToolIsolationBlockedMessage(meta: ToolIsolationDescriptor) {
+  switch (meta.status) {
+    case "unavailable":
+      return "Exec tool blocked because the isolation adapter is unavailable.";
+    case "blocked":
+      return "Exec tool blocked because it is not isolation-approved.";
+    default:
+      return "Exec tool blocked by tool-isolation policy.";
   }
 }
 
@@ -1090,42 +1114,31 @@ async function logLesson(agent: string, lesson: string): Promise<string> {
   }
 }
 
-// ── n8n workflow trigger ──────────────────────────────────────────────────────
-const N8N_BASE_URL = process.env.N8N_BASE_URL ?? "http://localhost:5678";
-const N8N_API_KEY = process.env.N8N_API_KEY ?? "";
-
 async function n8nRunWorkflow(
   workflowId: string,
   payload: Record<string, unknown>,
-): Promise<string> {
-  if (!workflowId) return "n8n_run_workflow: workflowId is required.";
-  if (!N8N_API_KEY) {
-    return (
-      "n8n is not configured. Add N8N_API_KEY and N8N_BASE_URL to your .env.local, " +
-      "then start n8n. See docs/deployment/n8n.md."
-    );
-  }
-  try {
-    // Prefer webhook execution (instant); fall back to API execution endpoint
-    const url = `${N8N_BASE_URL}/api/v1/workflows/${encodeURIComponent(workflowId)}/execute`;
-    const r = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-N8N-API-KEY": N8N_API_KEY,
-      },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(15_000),
+): Promise<ToolResult> {
+  if (!workflowId) {
+    const result = "n8n_run_workflow: workflowId is required.";
+    return withToolResult(result, {
+      externalTool: buildExternalToolResultEnvelope({
+        toolId: "n8n_run_workflow",
+        status: "error",
+        result,
+      }),
     });
-    if (!r.ok) {
-      return `n8n returned HTTP ${r.status}. Make sure n8n is running and the workflow ID is correct.`;
-    }
-    const d = await r.json();
-    const execId = d?.data?.executionId ?? d?.executionId ?? "unknown";
-    return `Workflow ${workflowId} triggered — execution ID: ${execId}`;
-  } catch {
-    return "Could not reach n8n. Make sure it is running (see docs/deployment/n8n.md).";
   }
+  const result = await runToolInIsolation("n8n_run_workflow", {
+    workflow_id: workflowId,
+    payload,
+  });
+  return withToolResult(result, {
+    externalTool: buildExternalToolResultEnvelope({
+      toolId: "n8n_run_workflow",
+      status: "ok",
+      result,
+    }),
+  });
 }
 
 // ── Route handler ─────────────────────────────────────────────────────────────
@@ -1151,6 +1164,7 @@ export async function POST(req: NextRequest) {
 
   let toolCapability: ReturnType<typeof getToolCapabilityClass> | null = null;
   let protectedActionMeta: ProtectedActionDescriptor | null = null;
+  let toolIsolationMeta: ToolIsolationDescriptor | null = null;
 
   try {
     const runId = req.headers.get("x-nexus-run-id") ?? "anon";
@@ -1161,6 +1175,7 @@ export async function POST(req: NextRequest) {
 
     const capability = getToolCapabilityClass(tool);
     toolCapability = capability;
+    toolIsolationMeta = resolveToolIsolationDescriptor(tool, capability);
 
     if (capability === "networked" || requiresToolStepUp(capability)) {
       const trustContext = await readProtectedActionContext(req);
@@ -1238,6 +1253,27 @@ export async function POST(req: NextRequest) {
           return response;
         }
       }
+    }
+
+    if (
+      toolIsolationMeta.requirement === "sandbox_required" &&
+      toolIsolationMeta.status !== "ready"
+    ) {
+      const response = NextResponse.json(
+        {
+          result: "Tool execution blocked.",
+          error: buildToolIsolationBlockedMessage(toolIsolationMeta),
+          ...(protectedActionMeta ? { protectedAction: protectedActionMeta } : {}),
+          toolIsolation: toolIsolationMeta,
+        },
+        { status: 403 },
+      );
+      if (protectedActionMeta) {
+        applyProtectedActionHeaders(response, protectedActionMeta);
+      }
+      applyToolIsolationHeaders(response, toolIsolationMeta);
+      applyRateLimitHeaders(response, rateLimitConfig);
+      return response;
     }
 
     let result = "";
@@ -1396,7 +1432,9 @@ export async function POST(req: NextRequest) {
         const payload = input.payload
           ? (JSON.parse(input.payload) as Record<string, unknown>)
           : {};
-        result = await n8nRunWorkflow(input.workflow_id ?? "", payload);
+        const toolResult = await n8nRunWorkflow(input.workflow_id ?? "", payload);
+        result = toolResult.result;
+        meta = toolResult.meta;
         break;
       }
       default:
@@ -1404,16 +1442,19 @@ export async function POST(req: NextRequest) {
     }
 
     const response = NextResponse.json(
-      protectedActionMeta
-        ? {
-            result,
-            protectedAction: protectedActionMeta,
-          }
-        : { result },
+      {
+        result,
+        ...(protectedActionMeta ? { protectedAction: protectedActionMeta } : {}),
+        ...(toolIsolationMeta ? { toolIsolation: toolIsolationMeta } : {}),
+        ...(meta.externalTool ? { externalTool: meta.externalTool } : {}),
+      },
     );
     response.headers.set("X-Tool-Capability", capability);
     if (protectedActionMeta) {
       applyProtectedActionHeaders(response, protectedActionMeta);
+    }
+    if (toolIsolationMeta) {
+      applyToolIsolationHeaders(response, toolIsolationMeta);
     }
     if (meta.cacheHit) response.headers.set("X-Tool-Cache", "hit");
     if (meta.duplicateRead) {
@@ -1436,6 +1477,7 @@ export async function POST(req: NextRequest) {
               },
             }
           : {}),
+        ...(toolIsolationMeta ? { toolIsolation: toolIsolationMeta } : {}),
       },
       { status: 500 },
     );
@@ -1449,6 +1491,9 @@ export async function POST(req: NextRequest) {
         status: "blocked_policy",
         blockedReason: "tool_error",
       });
+    }
+    if (toolIsolationMeta) {
+      applyToolIsolationHeaders(response, toolIsolationMeta);
     }
     applyRateLimitHeaders(response, rateLimitConfig);
     return response;

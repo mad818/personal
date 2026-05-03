@@ -64,7 +64,7 @@ async function dispatchToAgent(prompt: string): Promise<string> {
       },
     );
     if (!aiRes.ok)
-      return `Agent returned HTTP ${aiRes.status}. Check that Nexus Prime is running.`;
+      return `Agent returned HTTP ${aiRes.status}. Check that Homefront is running.`;
     const data = (await aiRes.json()) as {
       content?: string;
       text?: string;
@@ -74,7 +74,7 @@ async function dispatchToAgent(prompt: string): Promise<string> {
       data.content ?? data.text ?? data.result ?? "No response from agent."
     );
   } catch {
-    return "Could not reach the Nexus Prime agent. Make sure the server is running.";
+    return "Could not reach the Homefront agent. Make sure the server is running.";
   }
 }
 

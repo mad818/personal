@@ -29,6 +29,7 @@ import { CouncilResultsPanel } from "./CouncilResultsPanel";
 import { STRATEGIUM_PROMPTS } from "./officeCommandCenterConfig";
 import type { AgentId, ChatMessage, CouncilResult } from "./types";
 import type { AgentStep } from "@/lib/agent";
+import type { CorrectionMemoryEntry } from "@/lib/assistantSessionMemory";
 
 interface HQTerminalSectionProps {
   messages: ChatMessage[];
@@ -39,6 +40,7 @@ interface HQTerminalSectionProps {
     text: string;
     agent: string;
   } | null;
+  pendingCorrection: CorrectionMemoryEntry | null;
   input: string;
   surfaceMotionProfile: SurfaceMotionProfile;
   agentDebugMode: boolean;
@@ -56,6 +58,8 @@ interface HQTerminalSectionProps {
   onUseCouncilResult: (result: CouncilResult) => void;
   onLogLesson: () => void;
   onDismissLesson: () => void;
+  onApproveCorrection: () => void;
+  onArchiveCorrection: () => void;
 }
 
 export default function HQTerminalSection({
@@ -64,6 +68,7 @@ export default function HQTerminalSection({
   activeColor,
   liveSteps,
   pendingLesson,
+  pendingCorrection,
   input,
   surfaceMotionProfile,
   agentDebugMode,
@@ -81,6 +86,8 @@ export default function HQTerminalSection({
   onUseCouncilResult,
   onLogLesson,
   onDismissLesson,
+  onApproveCorrection,
+  onArchiveCorrection,
 }: HQTerminalSectionProps) {
   const chronicleMotion = resolveChronicleMotionPreset(surfaceMotionProfile);
   const debug = agentDebugMode && input.trim() ? detectAgentDebug(input) : null;
@@ -368,6 +375,41 @@ export default function HQTerminalSection({
               className="nexus-hq-composer__action"
             >
               Dismiss
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {pendingCorrection ? (
+        <div className="nexus-hq-lesson-bar">
+          <div className="nexus-hq-lesson-bar__copy">
+            <div className="nexus-hq-lesson-bar__eyebrow">
+              Correction proposal
+              <span className="nexus-hq-lesson-bar__agent">
+                {pendingCorrection.scope.agent?.toUpperCase() ?? "LOCAL"}
+              </span>
+            </div>
+            <div className="nexus-hq-lesson-bar__text">
+              {pendingCorrection.content.rule}
+            </div>
+            <div className="mt-1 text-[10px] text-[var(--text3)]">
+              {pendingCorrection.content.preferredBehavior}
+            </div>
+          </div>
+          <div className="nexus-hq-lesson-bar__actions">
+            <button
+              type="button"
+              onClick={onApproveCorrection}
+              className="nexus-hq-composer__action is-send"
+            >
+              Approve correction
+            </button>
+            <button
+              type="button"
+              onClick={onArchiveCorrection}
+              className="nexus-hq-composer__action"
+            >
+              Archive
             </button>
           </div>
         </div>

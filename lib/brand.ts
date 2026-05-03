@@ -1,10 +1,12 @@
-export const BRAND_NAME = "Nexus Prime";
-export const BRAND_SHORT_NAME = "Nexus";
+import { DESIGN_MD_SURFACE_ACCENTS } from "@/lib/generated/designMdRuntime";
+
+export const BRAND_NAME = "Homefront";
+export const BRAND_SHORT_NAME = "Homefront";
 export const BRAND_TAGLINE = "Local-first command intelligence";
 export const BRAND_DESCRIPTOR =
   "A local-first command room for markets, cyber, recon, and operator AI on web and desktop.";
 export const BRAND_GITHUB_DESCRIPTION =
-  "Nexus Prime is a local-first command room for markets, cyber, recon, and operator AI on web and desktop. Free-first, self-hosted, and interactive by design.";
+  "Homefront is a local-first command room for markets, cyber, recon, and operator AI on web and desktop. Free-first, self-hosted, and interactive by design.";
 
 export type BillingTier =
   | "free_local"
@@ -71,13 +73,13 @@ function isConfiguredSecretValue(value?: string | null) {
 
 export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
   default: {
-    visibleLabel: "Nexus",
+    visibleLabel: "Homefront",
     functionalLabel: "Home",
-    heroTitle: "Nexus Prime",
+    heroTitle: "Homefront",
     heroKicker: "Command room shell",
     surfaceArtKey: "nexus",
     accentPalette: ["#38d7ff", "#dcefff"],
-    ariaLabel: "Nexus Prime home surface",
+    ariaLabel: "Homefront home surface",
     note: "A local-first command shell designed as one operating picture instead of a decorative dashboard.",
   },
   hq: {
@@ -258,9 +260,26 @@ export const AI_PROVIDER_BRANDING: ProviderBranding[] = [
   },
 ];
 
+function getGeneratedAccentPalette(surfaceId: string): [string, string] | null {
+  const generated =
+    DESIGN_MD_SURFACE_ACCENTS[
+      surfaceId as keyof typeof DESIGN_MD_SURFACE_ACCENTS
+    ];
+  if (!generated) return null;
+  return [generated.accentA, generated.accentB];
+}
+
 export function getSurfaceBranding(surfaceId?: string | null): SurfaceBranding {
-  if (!surfaceId) return SURFACE_BRANDING.default;
-  return SURFACE_BRANDING[surfaceId] ?? SURFACE_BRANDING.default;
+  const resolvedSurfaceId =
+    surfaceId && SURFACE_BRANDING[surfaceId] ? surfaceId : "default";
+  const branding = SURFACE_BRANDING[resolvedSurfaceId] ?? SURFACE_BRANDING.default;
+  const accentPalette =
+    getGeneratedAccentPalette(resolvedSurfaceId) ?? branding.accentPalette;
+
+  return {
+    ...branding,
+    accentPalette,
+  };
 }
 
 export function getBrandServiceName() {

@@ -1,0 +1,1 @@
+{ "schemaVersion": "aether-reliquary-save-envelope-v1", "slots": [

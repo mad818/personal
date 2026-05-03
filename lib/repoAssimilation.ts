@@ -8,18 +8,20 @@ import type { RepoIntelProfile } from "@/lib/repoIntel";
 
 export const REPO_ASSIMILATION_SECTION_HEADINGS = [
   "Repo snapshot",
-  "Essence prompt",
-  "Nexus fit map",
-  "Safe adoption points",
+  "Local fit and why now",
+  "Implementation decision",
+  "Extension points and smallest slice",
   "Boundaries and risks",
   "ORBIT handoff",
 ] as const;
 
+export type RepoAssimilationDecision = "adopt" | "adapt" | "reject";
+
 export interface RepoAssimilationSections {
   repoSnapshot: string;
-  essencePrompt: string;
-  nexusFitMap: string;
-  safeAdoptionPoints: string;
+  localFitAndWhyNow: string;
+  implementationDecision: string;
+  extensionPointsAndSmallestSlice: string;
   boundariesAndRisks: string;
   orbitHandoff: string;
 }
@@ -43,6 +45,10 @@ const GITHUB_URL_RE =
 const OWNER_REPO_RE = /\b[A-Za-z0-9._-]{1,100}\/[A-Za-z0-9._-]{1,100}\b/;
 const REPO_ASSIMILATION_RE =
   /\b(?:assimilate|assimilation|adapt|adopt|fit|fit map|reference this repo|should we adopt this|should we use this|safe adoption)\b/i;
+const OFFENSIVE_REPO_SIGNAL_RE =
+  /\b(?:exploit|offensive|post-?exploitation|payload|keylogger|phishing|credential stuffing|ransomware|pentest|c2|command-and-control|dropper)\b/i;
+const DIRECT_SEAM_SIGNAL_RE =
+  /\b(?:privacy|redaction|anonymization|artifact|classification|repo|workflow|memory|archive|vault|osint|recon|intel|research|sandbox|tool isolation|evaluation|eval|prompt|routing)\b/i;
 
 function cleanInline(value: string, max = 220) {
   const normalized = value.replace(/\s+/g, " ").trim();
@@ -107,13 +113,39 @@ function repoSignalText(profile: RepoIntelProfile) {
     .toLowerCase();
 }
 
-function inferNexusFitLines(profile: RepoIntelProfile) {
+function chooseAssimilationDecision(
+  profile: RepoIntelProfile,
+): RepoAssimilationDecision {
+  const signal = repoSignalText(profile);
+  const metadataStrength =
+    (profile.readmeExcerpt.trim().length > 0 ? 2 : 0) +
+    (profile.description.trim().length > 0 ? 1 : 0) +
+    (profile.topics.length > 0 ? 1 : 0) +
+    (profile.inferredStack.length > 0 || profile.languageHints.length > 0 ? 1 : 0) +
+    (profile.topLevelTree.length > 0 ? 1 : 0);
+
+  if (OFFENSIVE_REPO_SIGNAL_RE.test(signal)) {
+    return "reject";
+  }
+
+  if (
+    DIRECT_SEAM_SIGNAL_RE.test(signal) &&
+    metadataStrength >= 5 &&
+    !/\b(media|video|audio|animation|recording|avatar|hyperframe)\b/i.test(signal)
+  ) {
+    return "adopt";
+  }
+
+  return "adapt";
+}
+
+function inferLocalFitLines(profile: RepoIntelProfile) {
   const signal = repoSignalText(profile);
   const lines: string[] = [];
 
   if (/\b(trad|market|portfolio|watchlist|signal|alpha)\b/i.test(signal)) {
     lines.push(
-      "- ALPHA / HQ: adapt thesis-review or decision-support patterns without turning Nexus into an execution or broker surface.",
+      "- Best landing zone: ALPHA / HQ thesis-review seams, where the pattern can improve operator decision support without turning Nexus into an execution surface.",
     );
   }
   if (
@@ -122,16 +154,16 @@ function inferNexusFitLines(profile: RepoIntelProfile) {
     )
   ) {
     lines.push(
-      "- RECON / CYBER: reuse passive-first assessment or evidence-shaping ideas, but keep tooling bounded to local trust rules.",
+      "- Best landing zone: RECON / CYBER passive-first assessment and evidence-filing seams, because Nexus already stages advisory-only review there.",
     );
   }
   if (
-    /\b(research|analysis|paper|knowledge|assistant|agent|ai|model|report)\b/i.test(
+    /\b(research|analysis|paper|knowledge|assistant|agent|ai|model|report|eval)\b/i.test(
       signal,
     )
   ) {
     lines.push(
-      "- INTEL / HQ: adapt synthesis, briefing, or research-flow ideas through existing NOVA and assistant-first seams.",
+      "- Best landing zone: HQ / INTEL runtime and briefing seams, where synthesis, evaluation, or workflow posture can be translated into existing assistant contracts.",
     );
   }
   if (
@@ -140,68 +172,134 @@ function inferNexusFitLines(profile: RepoIntelProfile) {
     )
   ) {
     lines.push(
-      "- VAULT: preserve durable memory, artifact continuity, or archive cues as native compiled-page behavior instead of mirroring the upstream product.",
+      "- Best landing zone: VAULT compiled-page and continuity seams, because Nexus already preserves durable recall and archive posture there.",
     );
   }
-  if (/\b(workflow|scheduler|automation|job|queue|ops)\b/i.test(signal)) {
+  if (
+    /\b(workflow|scheduler|automation|job|queue|ops|orchestration)\b/i.test(signal)
+  ) {
     lines.push(
-      "- HQ / COMMAND: borrow orchestration or queue posture only where the current governance and review gates already exist.",
+      "- Why now: Nexus already has workflow commands, post-run artifact filing, and exact reopen behavior, so the useful pattern can land as a bounded operator workflow instead of a new subsystem.",
     );
   }
-  if (/\b(vehicle|drone|radar|sensor|telemetry)\b/i.test(signal)) {
+  if (
+    /\b(repo|repository|codebase|compare|implementation|extension point|impact)\b/i.test(
+      signal,
+    )
+  ) {
     lines.push(
-      "- VEHICLE: absorb readiness or artifact ideas without widening into control authority, RF command, or new route families.",
+      "- Why now: RECON repo intel, repo compare, and Resources impact already exist, so this repo can translate into a stronger implementation brief instead of another broad ecosystem summary.",
     );
   }
 
   if (lines.length === 0) {
     lines.push(
-      "- HQ / RESOURCES: treat this repo as a reference pattern and move forward only if ORBIT can translate it into a small local slice without copying the upstream shape.",
+      "- Best landing zone: HQ / RESOURCES reference-pattern work, but only if the upstream idea can become one bounded local helper, panel, or playbook.",
     );
   }
 
   lines.push(
-    "- RECON repo intel stays the front door so assessment remains metadata-first before any local implementation planning starts.",
+    "- Keep repo assessment metadata-first in RECON and file the durable decision to VAULT before any implementation planning widens.",
   );
+  return uniqueStrings(lines).slice(0, 4);
+}
+
+function inferExtensionPointLines(profile: RepoIntelProfile) {
+  const signal = repoSignalText(profile);
+  const lines: string[] = [];
+
+  if (/\b(repo|compare|dependency|reference library|implementation brief)\b/i.test(signal)) {
+    lines.push(
+      "- RECON implementation brief seam: `components/recon/RepoIntelPanel.tsx`, `lib/repoAssimilation.ts`, and `lib/repoCompare.ts`.",
+    );
+  }
+  if (/\b(osint|intel|threat|cyber|security|metadata|evidence)\b/i.test(signal)) {
+    lines.push(
+      "- Evidence and advisory filing seam: `app/recon/page.tsx`, `app/cyber/page.tsx`, and `components/vault/CompiledMemoryPagesPanel.tsx`.",
+    );
+  }
+  if (/\b(memory|archive|vault|knowledge|recall|compiled)\b/i.test(signal)) {
+    lines.push(
+      "- Durable archive seam: `components/vault/CompiledMemoryPagesPanel.tsx`, `lib/memoryPagesStore.ts`, and `lib/artifactClassification.ts`.",
+    );
+  }
+  if (/\b(agent|assistant|workflow|queue|orchestration|handoff|brief)\b/i.test(signal)) {
+    lines.push(
+      "- HQ handoff seam: `components/home/office/workflowCommands.ts`, `components/home/office/officeCommandCenterPostRun.ts`, and `lib/liveContext.ts`.",
+    );
+  }
+  if (/\b(privacy|redaction|anonymization|provider|cloud-bound)\b/i.test(signal)) {
+    lines.push(
+      "- Provider-boundary seam: `app/api/ai/route.ts`, `lib/privacyShieldServer.ts`, and `components/ui/TrustPostureStrip.tsx`.",
+    );
+  }
+  if (/\b(sandbox|tool isolation|exec|runner|workflow run)\b/i.test(signal)) {
+    lines.push(
+      "- Tool-governance seam: `app/api/tools/route.ts`, `lib/security/toolIsolationPolicy.ts`, and `lib/security/toolIsolationRunner.ts`.",
+    );
+  }
+  if (/\b(file|artifact|classification|inspection|project|ownership|impact)\b/i.test(signal)) {
+    lines.push(
+      "- Project inspection seam: `components/resources/ProjectImpactConsole.tsx`, `lib/projectArchitecture.ts`, and `lib/artifactClassification.ts`.",
+    );
+  }
+
   lines.push(
-    "- VAULT is the durable landing zone for finished assimilation briefs so the fit decision can reopen exactly later.",
+    "- Smallest slice first: land one helper, parser, or route-local panel change before any shell-wide redesign or upstream code copy.",
   );
   return uniqueStrings(lines).slice(0, 5);
 }
 
-function inferSafeAdoptionLines(profile: RepoIntelProfile) {
-  const names = profile.topLevelTree.map((entry) => entry.name.toLowerCase());
-  const lines: string[] = [];
+function buildImplementationDecisionSection(profile: RepoIntelProfile) {
+  const decision = chooseAssimilationDecision(profile);
+  const decisionLabel = formatRepoAssimilationDecisionLabel(decision);
+  const lines = [`- Decision: ${decisionLabel.toLowerCase()}.`];
 
-  if (
-    names.includes("app") ||
-    names.includes("components") ||
-    names.includes("src")
-  ) {
+  if (decision === "reject") {
     lines.push(
-      "- Adapt route boundaries or component decomposition patterns locally instead of mirroring the upstream directory tree.",
+      "- Why: the visible repo signals drift into offensive, automation-heavy, or otherwise out-of-scope behavior for Nexus's advisory-only boundary.",
     );
+    lines.push(
+      "- Operator stance: keep this repo as reference-only context and look for a safer internal seam or defensive-only analogue instead of implementation.",
+    );
+    return lines.join("\n");
   }
-  if (names.includes("lib") || names.includes("packages") || names.includes("src")) {
+
+  if (decision === "adopt") {
     lines.push(
-      "- Reuse helper-layer ideas, typed contracts, or orchestration boundaries first before touching shell-wide UX.",
+      "- Why: the repo maps tightly to an existing Nexus seam with enough public metadata to justify a bounded local translation now.",
     );
-  }
-  if (names.includes("docs") || names.includes("readme.md")) {
     lines.push(
-      "- Borrow framing, vocabulary, or workflow language from the docs and README, but rewrite it in Nexus-native operator terms.",
+      "- Guardrail: adopt the operator pattern, contract, or workflow posture only; do not import upstream code, directory structure, or product framing wholesale.",
     );
-  }
-  if (profile.inferredStack.some((stack) => /next|react|typescript|node/i.test(stack))) {
-    lines.push(
-      "- Translate compatible web patterns through the existing Next.js and TypeScript stack only where Nexus already has matching seams.",
-    );
+    return lines.join("\n");
   }
 
   lines.push(
-    "- Keep any final outcome as a Nexus-local implementation plan, helper, or playbook rather than vendoring repo code or assets.",
+    "- Why: the fit is real, but the upstream product shape still needs translation into Nexus-native seams, language, and governance.",
   );
-  return uniqueStrings(lines).slice(0, 5);
+  lines.push(
+    "- Guardrail: use the repo as a design or workflow reference, then rewrite the implementation around the smallest justified local slice.",
+  );
+  return lines.join("\n");
+}
+
+function buildDecisionTag(decision: RepoAssimilationDecision) {
+  return `decision:${decision}`;
+}
+
+function parseDecisionFromText(value: string) {
+  const normalized = value.toLowerCase();
+  if (/\bdecision:\s*reject\b/.test(normalized) || /\breject\b/.test(normalized)) {
+    return "reject" as const;
+  }
+  if (/\bdecision:\s*adopt\b/.test(normalized) || /\badopt\b/.test(normalized)) {
+    return "adopt" as const;
+  }
+  if (/\bdecision:\s*adapt\b/.test(normalized) || /\badapt\b/.test(normalized)) {
+    return "adapt" as const;
+  }
+  return null;
 }
 
 function buildFallbackRepoAssimilationSections(
@@ -220,29 +318,26 @@ function buildFallbackRepoAssimilationSections(
   const metadataCoverage =
     profile.readmeExcerpt.trim().length > 0
       ? "README plus public GitHub metadata were available."
-      : "README signal was missing, so the fit map relies on public GitHub metadata only.";
+      : "README signal was missing, so the brief relies on public GitHub metadata only.";
 
   return {
     repoSnapshot: cleanInline(
       `${profile.displayName} is a public GitHub repo for ${profile.description || "an upstream pattern with sparse description"}. Likely stack: ${stackLabel}. Tree cues: ${treeLabel}. ${metadataCoverage}`,
       420,
     ),
-    essencePrompt: cleanInline(
-      `Treat ${profile.normalizedRepoId} as a reference pattern for ${profile.description || "its visible operator workflow"}, then re-express the useful behavior through existing Nexus routes and contracts instead of mirroring the upstream product or repo layout.`,
-      320,
-    ),
-    nexusFitMap: inferNexusFitLines(profile).join("\n"),
-    safeAdoptionPoints: inferSafeAdoptionLines(profile).join("\n"),
+    localFitAndWhyNow: inferLocalFitLines(profile).join("\n"),
+    implementationDecision: buildImplementationDecisionSection(profile),
+    extensionPointsAndSmallestSlice: inferExtensionPointLines(profile).join("\n"),
     boundariesAndRisks: uniqueStrings([
       "- Stay public-safe and metadata-grounded; do not fetch private repos, arbitrary source files, or background GitHub data.",
-      "- Do not import upstream code directly; translate only the smallest locally justified pattern.",
+      "- Do not import upstream code directly; keep the outcome as a Nexus-local helper, panel, parser, playbook, or route-side contract change.",
       profile.readmeExcerpt.trim().length === 0
-        ? "- README coverage is missing, so adoption confidence stays lower until the repo is reviewed more deeply."
+        ? "- README coverage is missing, so implementation confidence stays lower until the repo is reviewed more deeply."
         : null,
       warnings.length > 0 ? `- Degraded signals: ${warnings.join(" ")}` : null,
     ]).join("\n"),
     orbitHandoff:
-      "Ask ORBIT to turn this fit map into a smallest-first local implementation plan, keeping explicit non-goals and avoiding direct upstream code import.",
+      "- Ask ORBIT to preserve the recorded decision, propose the smallest local slice, name the actual Nexus files or seams to touch first, and keep explicit upstream boundaries intact.",
   };
 }
 
@@ -258,9 +353,14 @@ function parseRepoAssimilationJson(value: string): RepoAssimilationSections | nu
     const parsed = JSON.parse(payload) as Record<string, unknown>;
     return {
       repoSnapshot: toSectionString(parsed.repoSnapshot),
-      essencePrompt: toSectionString(parsed.essencePrompt),
-      nexusFitMap: toSectionString(parsed.nexusFitMap),
-      safeAdoptionPoints: toSectionString(parsed.safeAdoptionPoints),
+      localFitAndWhyNow:
+        toSectionString(parsed.localFitAndWhyNow) ||
+        toSectionString(parsed.nexusFitMap) ||
+        toSectionString(parsed.essencePrompt),
+      implementationDecision: toSectionString(parsed.implementationDecision),
+      extensionPointsAndSmallestSlice:
+        toSectionString(parsed.extensionPointsAndSmallestSlice) ||
+        toSectionString(parsed.safeAdoptionPoints),
       boundariesAndRisks: toSectionString(parsed.boundariesAndRisks),
       orbitHandoff: toSectionString(parsed.orbitHandoff),
     };
@@ -278,9 +378,9 @@ export function formatRepoAssimilationBrief(
 ) {
   const bodies = [
     sections.repoSnapshot,
-    sections.essencePrompt,
-    sections.nexusFitMap,
-    sections.safeAdoptionPoints,
+    sections.localFitAndWhyNow,
+    sections.implementationDecision,
+    sections.extensionPointsAndSmallestSlice,
     sections.boundariesAndRisks,
     sections.orbitHandoff,
   ];
@@ -295,14 +395,60 @@ export function parseRepoAssimilationMarkdown(
   content: string,
 ): RepoAssimilationSections {
   const sections = parseMarkdownSections(content);
+  const localFitAndWhyNow =
+    sections.get("local fit and why now") ??
+    sections.get("nexus fit map") ??
+    sections.get("essence prompt") ??
+    "";
+  const implementationDecisionText =
+    sections.get("implementation decision") ??
+    "";
+  const inferredDecision =
+    parseDecisionFromText(implementationDecisionText) ??
+    parseDecisionFromText(
+      [localFitAndWhyNow, sections.get("safe adoption points") ?? "", sections.get("orbit handoff") ?? ""].join(
+        "\n",
+      ),
+    ) ??
+    "adapt";
   return {
     repoSnapshot: sections.get("repo snapshot") ?? "",
-    essencePrompt: sections.get("essence prompt") ?? "",
-    nexusFitMap: sections.get("nexus fit map") ?? "",
-    safeAdoptionPoints: sections.get("safe adoption points") ?? "",
+    localFitAndWhyNow,
+    implementationDecision:
+      implementationDecisionText ||
+      `- Decision: ${formatRepoAssimilationDecisionLabel(inferredDecision).toLowerCase()}.`,
+    extensionPointsAndSmallestSlice:
+      sections.get("extension points and smallest slice") ??
+      sections.get("safe adoption points") ??
+      "",
     boundariesAndRisks: sections.get("boundaries and risks") ?? "",
     orbitHandoff: sections.get("orbit handoff") ?? "",
   };
+}
+
+export function getRepoAssimilationDecision(
+  sections: RepoAssimilationSections,
+): RepoAssimilationDecision {
+  return (
+    parseDecisionFromText(sections.implementationDecision) ??
+    parseDecisionFromText(sections.localFitAndWhyNow) ??
+    parseDecisionFromText(sections.orbitHandoff) ??
+    "adapt"
+  );
+}
+
+export function formatRepoAssimilationDecisionLabel(
+  decision: RepoAssimilationDecision,
+) {
+  switch (decision) {
+    case "adopt":
+      return "Adopt";
+    case "reject":
+      return "Reject";
+    case "adapt":
+    default:
+      return "Adapt";
+  }
 }
 
 export function buildRepoAssimilationTitle(profile: RepoIntelProfile) {
@@ -314,13 +460,19 @@ export function buildRepoAssimilationSummary(
   brief: string,
 ) {
   const sections = parseRepoAssimilationMarkdown(brief);
-  const fitLine = firstMeaningfulLine(sections.nexusFitMap);
-  const safeLine = firstMeaningfulLine(sections.safeAdoptionPoints);
+  const fitLine = firstMeaningfulLine(sections.localFitAndWhyNow);
+  const extensionLine = firstMeaningfulLine(
+    sections.extensionPointsAndSmallestSlice,
+  );
+  const decision = formatRepoAssimilationDecisionLabel(
+    getRepoAssimilationDecision(sections),
+  );
   return cleanInline(
     [
-      `${profile.normalizedRepoId} fit review.`,
+      `${profile.normalizedRepoId} implementation brief.`,
+      `Decision ${decision.toLowerCase()}.`,
       fitLine,
-      safeLine,
+      extensionLine,
     ]
       .filter(Boolean)
       .join(" "),
@@ -328,9 +480,17 @@ export function buildRepoAssimilationSummary(
   );
 }
 
-export function buildRepoAssimilationTags(profile: RepoIntelProfile) {
+export function buildRepoAssimilationTags(
+  profile: RepoIntelProfile,
+  brief?: string | null,
+) {
+  const parsedBrief = brief ? parseRepoAssimilationMarkdown(brief) : null;
+  const decisionTag = buildDecisionTag(
+    parsedBrief ? getRepoAssimilationDecision(parsedBrief) : chooseAssimilationDecision(profile),
+  );
   return uniqueStrings([
     "repo-assimilation",
+    decisionTag,
     `repo:${slugify(profile.normalizedRepoId)}`,
     ...profile.inferredStack.slice(0, 3).map((stack) => `stack:${slugify(stack)}`),
   ]);
@@ -406,26 +566,45 @@ export function buildRepoAssimilationPreparedWorkspace() {
     href,
     label: "Open RECON repo assimilation",
     detail:
-      "Prepared the repo-intel lane so a public-safe assimilation brief can be assessed, filed, and handed to ORBIT without widening into direct code import.",
+      "Prepared the repo-intel lane so a public-safe implementation brief can be assessed, filed, and handed to ORBIT without widening into direct code import.",
   };
 }
 
 export function buildRepoAssimilationOrbitPrompt(input: {
   normalizedRepoId: string;
   brief: string;
+  correctionConstraints?: string[];
 }) {
   const sections = parseRepoAssimilationMarkdown(input.brief);
-  return [
+  const decisionLabel = formatRepoAssimilationDecisionLabel(
+    getRepoAssimilationDecision(sections),
+  ).toLowerCase();
+  const lines = [
     `Use the saved repo assimilation brief for ${input.normalizedRepoId} as the planning constraint set for local Nexus work.`,
     `Repo snapshot: ${sections.repoSnapshot || "No snapshot recorded."}`,
-    `Essence prompt: ${sections.essencePrompt || "No essence prompt recorded."}`,
-    `Nexus fit map: ${sections.nexusFitMap || "No fit map recorded."}`,
-    `Safe adoption points: ${sections.safeAdoptionPoints || "No safe-adoption notes recorded."}`,
+    `Local fit and why now: ${sections.localFitAndWhyNow || "No local-fit notes recorded."}`,
+    `Implementation decision: ${sections.implementationDecision || `No decision recorded; default to ${decisionLabel}.`}`,
+    `Extension points and smallest slice: ${sections.extensionPointsAndSmallestSlice || "No extension points recorded."}`,
     `Boundaries and risks: ${sections.boundariesAndRisks || "No boundary notes recorded."}`,
     `ORBIT handoff: ${sections.orbitHandoff || "No ORBIT handoff recorded."}`,
-    "Respond with: 1. local fit, 2. safest first implementation slice, 3. explicit non-goals and boundaries to preserve.",
-    "Do not import or mirror upstream code directly.",
-  ].join("\n");
+  ];
+
+  if (input.correctionConstraints && input.correctionConstraints.length > 0) {
+    lines.push("Local correction-memory constraints:");
+    lines.push(
+      ...input.correctionConstraints.map((constraint) => `- ${constraint}`),
+    );
+  }
+
+  lines.push(
+    "Respond with: 1. confirm whether the recorded adopt/adapt/reject decision still holds, 2. identify the smallest local implementation slice, 3. name the exact Nexus files or seams to touch first, 4. list explicit non-goals and upstream boundaries to preserve.",
+  );
+  lines.push(
+    "If the recorded decision is reject, do not plan implementation; propose the nearest safer internal alternative instead.",
+  );
+  lines.push("Do not import or mirror upstream code directly.");
+
+  return lines.join("\n");
 }
 
 export function buildRepoAssimilationSynthesisPrompt(
@@ -441,16 +620,19 @@ export function buildRepoAssimilationSynthesisPrompt(
           )
           .join("\n")
       : "Top-level tree unavailable.";
+  const suggestedSeams = inferExtensionPointLines(profile)
+    .map((line) => line.replace(/^- /, ""))
+    .join("\n");
 
   return [
-    "You are Nexus Prime's repo-assimilation engine.",
+    "You are Homefront's repo-assimilation engine.",
     "Return JSON only.",
     "Use this exact shape:",
     "{",
     '  "repoSnapshot": "string",',
-    '  "essencePrompt": "string",',
-    '  "nexusFitMap": "string",',
-    '  "safeAdoptionPoints": "string",',
+    '  "localFitAndWhyNow": "string",',
+    '  "implementationDecision": "string",',
+    '  "extensionPointsAndSmallestSlice": "string",',
     '  "boundariesAndRisks": "string",',
     '  "orbitHandoff": "string"',
     "}",
@@ -459,8 +641,10 @@ export function buildRepoAssimilationSynthesisPrompt(
     "- Use only the supplied public GitHub metadata, README excerpt, stack hints, topics, and top-level tree.",
     "- Keep the writing compact, operator-grade, and explicitly public-safe.",
     "- Do not recommend direct code import, vendoring, GitHub write actions, or private-repo assumptions.",
-    "- In nexusFitMap and safeAdoptionPoints, use short bullet-style lines separated by newlines.",
-    "- In boundariesAndRisks, explicitly mention missing README or sparse metadata when relevant.",
+    "- localFitAndWhyNow, extensionPointsAndSmallestSlice, boundariesAndRisks, and orbitHandoff must use short bullet-style lines separated by newlines.",
+    '- implementationDecision must start with "- Decision: adopt.", "- Decision: adapt.", or "- Decision: reject." and then explain why in one or two more bullet lines.',
+    "- extensionPointsAndSmallestSlice must name actual Nexus seams or files where the idea should land, not generic product summaries or upstream directory mirroring.",
+    "- If metadata is sparse, or the repo drifts into offensive automation, say so and use reject or adapt instead of pretending certainty.",
     "",
     `REPO: ${profile.normalizedRepoId}`,
     `SOURCE URL: ${profile.sourceUrl}`,
@@ -477,6 +661,9 @@ export function buildRepoAssimilationSynthesisPrompt(
     "",
     "README EXCERPT:",
     profile.readmeExcerpt || "README excerpt unavailable.",
+    "",
+    "LIKELY NEXUS SEAMS:",
+    suggestedSeams || "No strong seam suggestions available.",
     "",
     "WARNINGS:",
     profile.warnings.length > 0 ? profile.warnings.join(" | ") : "None.",
@@ -509,17 +696,17 @@ export async function runRepoAssimilation(
             parsed.repoSnapshot,
             fallback.repoSnapshot,
           ),
-          essencePrompt: withFallbackSection(
-            parsed.essencePrompt,
-            fallback.essencePrompt,
+          localFitAndWhyNow: withFallbackSection(
+            parsed.localFitAndWhyNow,
+            fallback.localFitAndWhyNow,
           ),
-          nexusFitMap: withFallbackSection(
-            parsed.nexusFitMap,
-            fallback.nexusFitMap,
+          implementationDecision: withFallbackSection(
+            parsed.implementationDecision,
+            fallback.implementationDecision,
           ),
-          safeAdoptionPoints: withFallbackSection(
-            parsed.safeAdoptionPoints,
-            fallback.safeAdoptionPoints,
+          extensionPointsAndSmallestSlice: withFallbackSection(
+            parsed.extensionPointsAndSmallestSlice,
+            fallback.extensionPointsAndSmallestSlice,
           ),
           boundariesAndRisks: withFallbackSection(
             parsed.boundariesAndRisks,

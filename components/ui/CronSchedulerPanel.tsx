@@ -13,11 +13,14 @@ import CronSchedulerWorkflowTemplatesSection from "@/components/ui/CronScheduler
 import { readAnthropicNativeBatchPosture } from "@/lib/ai";
 import {
   areSchedulerAuditFiltersEqual,
+  buildScheduledMissionReviewState,
+  clearScheduledMissionReview,
   buildSchedulerAuditExport,
   buildSavedSchedulerAuditViewsExport,
   coerceSchedulerAuditFilters,
   coerceSavedSchedulerAuditViewsImport,
   coerceSavedSchedulerAuditViews,
+  DEFAULT_SCHEDULED_MISSION_REVIEW_EXPIRY_HOURS,
   DEFAULT_SCHEDULER_AUDIT_FILTERS,
   hasActiveSchedulerAuditFilters,
   MAX_SAVED_SCHEDULER_AUDIT_VIEWS,
@@ -65,6 +68,11 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
   const [approvalPolicy, setApprovalPolicy] =
     useState<NonNullable<ScheduledJob["approvalPolicy"]>>("human_gate");
   const [missionAgent, setMissionAgent] = useState("orbit");
+  const [missionScope, setMissionScope] = useState("");
+  const [missionReviewExpiryHours, setMissionReviewExpiryHours] = useState(
+    DEFAULT_SCHEDULED_MISSION_REVIEW_EXPIRY_HOURS,
+  );
+  const [missionReentrySummary, setMissionReentrySummary] = useState("");
   const [templateId, setTemplateId] = useState("");
   const [workflowTopic, setWorkflowTopic] = useState("");
   const [error, setError] = useState("");
@@ -187,6 +195,13 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
     setOutputTarget(draft.outputTarget);
     setApprovalPolicy(draft.approvalPolicy);
     setMissionAgent(draft.missionAgent);
+    setMissionScope(
+      `${draft.name} inside the existing ${draft.outputTarget} review lane.`,
+    );
+    setMissionReviewExpiryHours(DEFAULT_SCHEDULED_MISSION_REVIEW_EXPIRY_HOURS);
+    setMissionReentrySummary(
+      `Review ${draft.name}, decide approve/adapt/reject, and reopen the strongest next route before the next scheduled cycle overlaps it.`,
+    );
     setTemplateId(draft.templateId);
   };
 
@@ -203,8 +218,19 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
       setError('Cron format is invalid. Use 5 fields, e.g. "*/15 * * * *".');
       return;
     }
+    if (jobType === "mission") {
+      if (!missionScope.trim()) {
+        setError("Mission scope is required for reviewed mission jobs.");
+        return;
+      }
+      if (!missionReentrySummary.trim()) {
+        setError("Re-entry summary is required for reviewed mission jobs.");
+        return;
+      }
+    }
+    const createdAt = Date.now();
     const next: ScheduledJob = {
-      id: `job-${Date.now()}`,
+      id: `job-${createdAt}`,
       name: trimmedName,
       prompt: trimmedPrompt,
       cron: trimmedCron,
@@ -213,6 +239,18 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
       outputTarget,
       approvalPolicy,
       missionAgent,
+      missionReview:
+        jobType === "mission"
+          ? buildScheduledMissionReviewState({
+              scope: missionScope,
+              targetAgent: missionAgent,
+              outputTarget,
+              approvalPolicy,
+              expiryHours: missionReviewExpiryHours,
+              reentrySummary: missionReentrySummary,
+              createdAt,
+            })
+          : undefined,
       templateId: templateId || undefined,
     };
     saveJobs([next, ...jobs]);
@@ -223,6 +261,9 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
     setOutputTarget("vault");
     setApprovalPolicy("human_gate");
     setMissionAgent("orbit");
+    setMissionScope("");
+    setMissionReviewExpiryHours(DEFAULT_SCHEDULED_MISSION_REVIEW_EXPIRY_HOURS);
+    setMissionReentrySummary("");
     setTemplateId("");
     setWorkflowTopic("");
   };
@@ -234,6 +275,9 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
     setPrompt(template.prompt);
     setOutputTarget(template.outputTarget);
     setApprovalPolicy(template.approvalPolicy);
+    setMissionScope(template.scope);
+    setMissionReviewExpiryHours(template.expiryHours);
+    setMissionReentrySummary(template.reentrySummary);
     setTemplateId(template.id);
   };
 
@@ -264,6 +308,19 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
               pendingBatchStablePrefixChars: undefined,
               pendingBatchVolatilePromptChars: undefined,
               pendingBatchCacheStrategy: undefined,
+            }
+          : job,
+      ),
+    );
+  };
+
+  const clearMissionReview = (id: string) => {
+    saveJobs(
+      jobs.map((job) =>
+        job.id === id
+          ? {
+              ...job,
+              missionReview: clearScheduledMissionReview(job, Date.now()),
             }
           : job,
       ),
@@ -749,6 +806,9 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
               outputTarget={outputTarget}
               approvalPolicy={approvalPolicy}
               missionAgent={missionAgent}
+              missionScope={missionScope}
+              missionReviewExpiryHours={missionReviewExpiryHours}
+              missionReentrySummary={missionReentrySummary}
               workflowTopic={workflowTopic}
               error={error}
               automationCandidateWorkflows={automationCandidateWorkflows}
@@ -760,6 +820,9 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
               onOutputTargetChange={setOutputTarget}
               onApprovalPolicyChange={setApprovalPolicy}
               onMissionAgentChange={setMissionAgent}
+              onMissionScopeChange={setMissionScope}
+              onMissionReviewExpiryHoursChange={setMissionReviewExpiryHours}
+              onMissionReentrySummaryChange={setMissionReentrySummary}
               onWorkflowTopicChange={setWorkflowTopic}
               onAddJob={addJob}
               onApplyMissionTemplate={applyMissionTemplate}
@@ -838,6 +901,7 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
               onCopyJobAudit={copyJobAudit}
               onExportJobAudit={exportJobAudit}
               onClearQueuedJob={clearQueuedJob}
+              onClearMissionReview={clearMissionReview}
             />
           </div>
         </div>

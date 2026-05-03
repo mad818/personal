@@ -58,6 +58,10 @@ const LazyRepoIntelPanel = dynamic(
   () => import("@/components/recon/RepoIntelPanel"),
   { ssr: false },
 );
+const LazyAiExposureReviewCard = dynamic(
+  () => import("@/components/recon/AiExposureReviewCard"),
+  { ssr: false },
+);
 
 type View = "osint" | "pdns" | "headers" | "metadata" | "binary" | "opsec";
 
@@ -233,6 +237,14 @@ export default function ReconPage() {
                   detail="Connector posture, step-up state, and protected-action cues stay in the collection lane."
                   compact
                 />
+                <OpsField
+                  title="AI exposure packs"
+                  detail="Passive AI posture review"
+                  tone="muted"
+                  compact
+                >
+                  <LazyAiExposureReviewCard route="/recon" />
+                </OpsField>
               </OpsRail>
               <OpsField
                 id="recon-repo-intel"

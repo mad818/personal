@@ -8,6 +8,10 @@ import type {
   WorkflowNode,
   WorkflowRun,
 } from "@/lib/assimilation/types";
+import {
+  analyzeScheduledJobs,
+  getScheduledMissionReviewSummary,
+} from "@/lib/schedulerGovernance";
 
 const NODE_TONE: Record<WorkflowNode["type"], string> = {
   source: "#4fd1c5",
@@ -29,7 +33,13 @@ async function loadJson<T>(url: string): Promise<T> {
 }
 
 export default function WorkflowForge() {
-  const missionJobs = useStore((s) => s.settings.scheduledJobs ?? []);
+  const missionJobs = useStore((s) =>
+    (s.settings.scheduledJobs ?? []).filter((job) => (job.type ?? "mission") === "mission"),
+  );
+  const missionGovernance = useMemo(
+    () => analyzeScheduledJobs(missionJobs),
+    [missionJobs],
+  );
   const [workflows, setWorkflows] = useState<WorkflowDefinition[]>([]);
   const [runs, setRuns] = useState<WorkflowRun[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
@@ -429,8 +439,35 @@ export default function WorkflowForge() {
         <SectionLabel detail={`${missionJobs.length} scheduled missions`} >
           Mission Foundry
         </SectionLabel>
+        <div
+          style={{
+            marginTop: "10px",
+            padding: "10px 12px",
+            borderRadius: "12px",
+            border: "1px solid var(--border)",
+            background: "rgba(10, 15, 30, 0.62)",
+          }}
+        >
+          <div style={{ fontSize: "11px", fontWeight: 800, color: "var(--text)" }}>
+            Reviewed mission posture
+          </div>
+          <p
+            style={{
+              margin: "6px 0 0",
+              fontSize: "11px",
+              color: "var(--text2)",
+              lineHeight: 1.55,
+            }}
+          >
+            {missionGovernance.missionJobs
+              ? `${missionGovernance.missionReviewContractJobs}/${missionGovernance.missionJobs} mission jobs have a bounded review contract, ${missionGovernance.pendingMissionReviews} are waiting on operator review, and ${missionGovernance.expiredMissionReviews} have slipped past their review window.`
+              : "No reviewed mission jobs are active yet. Arm one through the scheduler before treating overnight work as a governed lane."}
+          </p>
+        </div>
         <div style={{ display: "grid", gap: "10px", marginTop: "10px" }}>
-          {missionJobs.slice(0, 4).map((job) => (
+          {missionJobs.slice(0, 4).map((job) => {
+            const missionReview = getScheduledMissionReviewSummary(job);
+            return (
             <div
               key={job.id}
               style={{
@@ -442,15 +479,39 @@ export default function WorkflowForge() {
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
                 <strong style={{ fontSize: "12px" }}>{job.name}</strong>
-                <ShellBadge tone={job.enabled ? "accent" : "muted"}>
-                  {job.outputTarget ?? "none"}
-                </ShellBadge>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <ShellBadge tone={job.enabled ? "accent" : "muted"}>
+                    {job.outputTarget ?? "none"}
+                  </ShellBadge>
+                  {missionReview.required ? (
+                    <ShellBadge
+                      tone={
+                        missionReview.status === "pending_review"
+                            ? "accent"
+                            : missionReview.status === "cleared"
+                              ? "success"
+                              : "muted"
+                      }
+                    >
+                      {missionReview.status.replace(/_/g, " ")}
+                    </ShellBadge>
+                  ) : null}
+                </div>
               </div>
               <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text2)", lineHeight: 1.5 }}>
                 {job.prompt}
               </p>
+              {missionReview.required ? (
+                <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text3)", lineHeight: 1.55 }}>
+                  {missionReview.scope ?? "Missing mission scope."}
+                  {missionReview.reentrySummary
+                    ? ` Re-entry: ${missionReview.reentrySummary}`
+                    : " Re-entry summary missing."}
+                </p>
+              ) : null}
             </div>
-          ))}
+            );
+          })}
           {!missionJobs.length && (
             <p style={{ margin: 0, color: "var(--text3)", fontSize: "12px", lineHeight: 1.6 }}>
               Scheduler recipes will appear here as Mission Foundry links once they are armed in Auto Orders.

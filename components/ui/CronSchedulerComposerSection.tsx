@@ -4,7 +4,11 @@ import type { ScheduledJob } from "@/store/useStore";
 import CompactOperatorNote from "@/components/ui/CompactOperatorNote";
 import CronSchedulerWorkflowTemplatesSection from "@/components/ui/CronSchedulerWorkflowTemplatesSection";
 import type { HQWorkflowCatalogItem, HQWorkflowCommandId } from "@/components/home/office/workflowCommands";
-import { MISSION_TEMPLATES, PRESET_CRONS } from "@/components/ui/cronSchedulerPanelUtils";
+import {
+  MISSION_REVIEW_EXPIRY_OPTIONS,
+  MISSION_TEMPLATES,
+  PRESET_CRONS,
+} from "@/components/ui/cronSchedulerPanelUtils";
 
 interface CronSchedulerComposerSectionProps {
   name: string;
@@ -14,6 +18,9 @@ interface CronSchedulerComposerSectionProps {
   outputTarget: NonNullable<ScheduledJob["outputTarget"]>;
   approvalPolicy: NonNullable<ScheduledJob["approvalPolicy"]>;
   missionAgent: string;
+  missionScope: string;
+  missionReviewExpiryHours: number;
+  missionReentrySummary: string;
   workflowTopic: string;
   error: string;
   automationCandidateWorkflows: HQWorkflowCatalogItem[];
@@ -29,6 +36,9 @@ interface CronSchedulerComposerSectionProps {
     value: NonNullable<ScheduledJob["approvalPolicy"]>,
   ) => void;
   onMissionAgentChange: (value: string) => void;
+  onMissionScopeChange: (value: string) => void;
+  onMissionReviewExpiryHoursChange: (value: number) => void;
+  onMissionReentrySummaryChange: (value: string) => void;
   onWorkflowTopicChange: (value: string) => void;
   onAddJob: () => void;
   onApplyMissionTemplate: (templateId: string) => void;
@@ -43,6 +53,9 @@ export default function CronSchedulerComposerSection({
   outputTarget,
   approvalPolicy,
   missionAgent,
+  missionScope,
+  missionReviewExpiryHours,
+  missionReentrySummary,
   workflowTopic,
   error,
   automationCandidateWorkflows,
@@ -54,6 +67,9 @@ export default function CronSchedulerComposerSection({
   onOutputTargetChange,
   onApprovalPolicyChange,
   onMissionAgentChange,
+  onMissionScopeChange,
+  onMissionReviewExpiryHoursChange,
+  onMissionReentrySummaryChange,
   onWorkflowTopicChange,
   onAddJob,
   onApplyMissionTemplate,
@@ -236,6 +252,94 @@ export default function CronSchedulerComposerSection({
         detail="Mission templates keep the drawer concise, while workflow templates promote proven HQ lanes into scheduled runs without making the operator retype everything."
         tone="info"
       />
+      {jobType === "mission" ? (
+        <div
+          style={{
+            display: "grid",
+            gap: 8,
+            padding: "10px 12px",
+            borderRadius: 10,
+            border: "1px solid rgba(79,110,247,.22)",
+            background: "rgba(10, 17, 32, 0.72)",
+          }}
+        >
+          <div style={{ color: "#9fb7ff", fontSize: 11, fontWeight: 800 }}>
+            REVIEW-FIRST MISSION CONTRACT
+          </div>
+          <input
+            value={missionScope}
+            onChange={(event) => onMissionScopeChange(event.target.value)}
+            placeholder="Mission scope (what the overnight work is allowed to do)"
+            style={{
+              background: "#080d18",
+              border: "1px solid #1A2040",
+              borderRadius: 6,
+              color: "#ccd6f6",
+              padding: "7px 10px",
+            }}
+          />
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 0.42fr) minmax(0, 0.58fr)",
+              gap: 8,
+            }}
+          >
+            <select
+              value={missionReviewExpiryHours}
+              onChange={(event) =>
+                onMissionReviewExpiryHoursChange(Number(event.target.value))
+              }
+              style={{
+                background: "#080d18",
+                border: "1px solid #1A2040",
+                borderRadius: 6,
+                color: "#ccd6f6",
+                padding: "7px 10px",
+              }}
+            >
+              {MISSION_REVIEW_EXPIRY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <div
+              style={{
+                borderRadius: 6,
+                border: "1px solid #1A2040",
+                background: "#080d18",
+                color: "#6875a0",
+                padding: "7px 10px",
+                fontSize: 10,
+                lineHeight: 1.45,
+              }}
+            >
+              Target {missionAgent.toUpperCase()} · {outputTarget} ·{" "}
+              {approvalPolicy.replace(/_/g, " ")}
+            </div>
+          </div>
+          <textarea
+            value={missionReentrySummary}
+            onChange={(event) => onMissionReentrySummaryChange(event.target.value)}
+            placeholder="Re-entry summary (how the operator should review and resume the mission)"
+            rows={3}
+            style={{
+              background: "#080d18",
+              border: "1px solid #1A2040",
+              borderRadius: 6,
+              color: "#ccd6f6",
+              padding: "7px 10px",
+              resize: "vertical",
+            }}
+          />
+          <div style={{ color: "#6875a0", fontSize: 10, lineHeight: 1.5 }}>
+            Mission jobs stay local-first in this tranche. They can queue work for review,
+            but they do not authorize silent expansion, route sprawl, or background
+            follow-on missions by themselves.
+          </div>
+        </div>
+      ) : null}
       <CronSchedulerWorkflowTemplatesSection
         workflowTopic={workflowTopic}
         onWorkflowTopicChange={onWorkflowTopicChange}

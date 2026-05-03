@@ -1,4 +1,4 @@
-# Nexus Prime — External Ideas Mapping (ALL 43 Links)
+# Nexus Prime — External Ideas Mapping (ALL 66 Links)
 
 This document maps each external link you provided to the **corresponding Nexus Prime folders/files**, and states whether it **makes sense to implement** (and what the safest implementation shape is).
 
@@ -201,6 +201,181 @@ Links:
 - **Link**: `https://github.com/Epistates/turbovault`
 - **Fits**: `components/vault/*`
 - **Implement?**: **LATER / only if** you want external vault integration; security-sensitive.
+
+---
+
+## GitHub batch intake — 2026-04-22 (23 links)
+
+This section is the full-triage intake for the latest GitHub batch. It is intentionally broader than [`assimilated-ecosystem.md`](./assimilated-ecosystem.md): everything lands here once, and only the strongest Nexus-fit items get promoted there.
+
+### OSINT / cyber / recon
+
+#### 1) `7WaySecurity/ai_osint`
+- **Link**: `https://github.com/7WaySecurity/ai_osint`
+- **What it is**: Curated AI-OSINT resources for exposed LLM endpoints, leaked keys, vector databases, MCP services, and related AI infrastructure reconnaissance.
+- **Likely Nexus mapping**: RECON/CYBER research taxonomy, `lib/vulnerabilityReview.ts`, `lib/developerResources.ts`, future passive query packs for `app/recon/*` and `app/cyber/*`.
+- **Disposition**: **Candidate later**
+- **Safest implementation shape**: Convert only the passive-first exposure taxonomy and query ideas into advisory checklists and review prompts; no offensive automation or active exploitation.
+
+#### 2) `mukul975/Anthropic-Cybersecurity-Skills`
+- **Link**: `https://github.com/mukul975/Anthropic-Cybersecurity-Skills`
+- **What it is**: Large structured cybersecurity skill pack for AI agents, mapped to common defensive and governance frameworks.
+- **Likely Nexus mapping**: CIPHER playbook references, `components/home/office/prompts.ts`, `lib/agent.ts`, future defensive skill docs.
+- **Disposition**: **Candidate later**
+- **Safest implementation shape**: Extract defensive control-taxonomy ideas and response structure only; do not import the skill library wholesale.
+
+#### 3) `aingram702/OSINT-Master-Tool`
+- **Link**: `https://github.com/aingram702/OSINT-Master-Tool`
+- **What it is**: Master-index style OSINT toolkit / reconnaissance bundle.
+- **Likely Nexus mapping**: RECON reference taxonomy, `app/recon/*`, `components/recon/*`, operator research notes.
+- **Disposition**: **Reference only**
+- **Safest implementation shape**: Use only as a comparison checklist for passive recon coverage; do not vendor tools or widen Nexus into an automation-heavy OSINT suite.
+
+#### 4) `Astrosp/Awesome-OSINT-For-Everything`
+- **Link**: `https://github.com/Astrosp/Awesome-OSINT-For-Everything`
+- **What it is**: Broad categorized list of OSINT resources across intelligence gathering, reverse searching, bug bounty, trust and safety, and related workflows.
+- **Likely Nexus mapping**: RECON category naming, future docs references, passive-source gap analysis.
+- **Disposition**: **Reference only**
+- **Safest implementation shape**: Mine only the taxonomy and category language for future RECON organization; keep the repo external.
+
+#### 5) `GH05TCREW/pentestagent`
+- **Link**: `https://github.com/GH05TCREW/pentestagent`
+- **What it is**: AI penetration-testing agent framework for black-box security testing and bug-bounty workflows.
+- **Likely Nexus mapping**: CYBER boundary definition, `lib/agent.ts`, `app/api/tools/route.ts`, `docs/SYSTEM_STATE.md` security posture.
+- **Disposition**: **Reference only**
+- **Safest implementation shape**: Treat it as a boundary and red-team reference for what Nexus should not automate; keep Nexus read-only and advisory.
+
+#### 6) `psyray/oasis`
+- **Link**: `https://github.com/psyray/oasis`
+- **What it is**: Ollama-powered security auditing scanner with multi-model analysis, orchestration, caching, and report generation.
+- **Likely Nexus mapping**: CYBER review workflows, `lib/vulnerabilityReview.ts`, future local-only code-review assist flows.
+- **Disposition**: **Defer / out of scope**
+- **Safest implementation shape**: Borrow only report-shaping or local triage ideas later; do not turn Nexus into an automated scanner.
+
+#### 7) `h0tak88r/AutoAR`
+- **Link**: `https://github.com/h0tak88r/AutoAR`
+- **What it is**: Automated reconnaissance / ASM tool and Discord bot for bug bounty and pentest workflows.
+- **Likely Nexus mapping**: RECON/CYBER boundary notes, later OPS/internal-monitoring comparisons.
+- **Disposition**: **Defer / out of scope**
+- **Safest implementation shape**: Keep it as an external reference for automation-heavy recon patterns that remain outside Nexus.
+
+#### 8) `trimstray/the-book-of-secret-knowledge`
+- **Link**: `https://github.com/trimstray/the-book-of-secret-knowledge`
+- **What it is**: Large curated collection of lists, manuals, cheatsheets, blogs, one-liners, and CLI/web tools.
+- **Likely Nexus mapping**: General operator reference, RECON/CYBER reading list, docs-only inspiration.
+- **Disposition**: **Reference only**
+- **Safest implementation shape**: Use only as a reference shelf for operator research; do not mirror or import its content into product UX.
+
+### Agent workflow / eval / memory
+
+#### 9) `rohitg00/pro-workflow`
+- **Link**: `https://github.com/rohitg00/pro-workflow`
+- **What it is**: Agent workflow system centered on correction memory, context engineering, parallel worktrees, and battle-tested skills.
+- **Likely Nexus mapping**: `docs/AGENT_HANDOFF.md`, `tasks/lessons.md`, worktree discipline, review-loop patterns, `lib/agent.ts`.
+- **Disposition**: **Candidate later**
+- **Safest implementation shape**: Absorb workflow discipline and memory patterns into repo process docs and agent prompts, not as a direct framework dependency.
+
+#### 10) `kunchenguid/gnhf`
+- **Link**: `https://github.com/kunchenguid/gnhf`
+- **What it is**: Overnight / “good night, have fun” agent-run pattern for continuing work after the operator steps away.
+- **Likely Nexus mapping**: Future scheduler/heartbeat ideas, `lib/agent.ts`, automation docs, local-only review flows.
+- **Disposition**: **Candidate later**
+- **Safest implementation shape**: Reuse only the idea of bounded, resumable background work after strong approval gates exist.
+
+#### 11) `algorithmicsuperintelligence/openevolve`
+- **Link**: `https://github.com/algorithmicsuperintelligence/openevolve`
+- **What it is**: Open-source implementation of AlphaEvolve-style search and improvement loops.
+- **Likely Nexus mapping**: `lib/agent.ts`, eval discipline, experiment archive ideas, `tasks/lessons.md`.
+- **Disposition**: **Candidate later**
+- **Safest implementation shape**: Use only as a methodology reference for benchmark-gated improvement loops; no autonomous self-modifying runtime.
+
+#### 12) `kyegomez/OpenMythos`
+- **Link**: `https://github.com/kyegomez/OpenMythos`
+- **What it is**: Theoretical reconstruction of Claude Mythos-style architecture from public research.
+- **Likely Nexus mapping**: Long-range agent architecture notes, prompt/system-design research, `lib/agent.ts`.
+- **Disposition**: **Reference only**
+- **Safest implementation shape**: Keep it as theory input for future architecture thinking, not a product roadmap driver.
+
+#### 13) `obra/superpowers`
+- **Link**: `https://github.com/obra/superpowers`
+- **What it is**: Agentic planning / TDD / review methodology for software development.
+- **Likely Nexus mapping**: ORBIT reasoning loop, agent execution discipline, review phases.
+- **Disposition**: **Already covered**
+- **Safest implementation shape**: Already tracked in [`assimilated-ecosystem.md`](./assimilated-ecosystem.md); continue using it as a prompt/process pattern only.
+
+### Privacy / sandbox / runtime hardening
+
+#### 14) `google/magika`
+- **Link**: `https://github.com/google/magika`
+- **What it is**: AI-powered file content-type detection for safer and more accurate artifact classification.
+- **Likely Nexus mapping**: VAULT/file inspection surfaces, future upload or local-project artifact triage, `app/api/project/route.ts`.
+- **Disposition**: **Candidate later**
+- **Safest implementation shape**: Add only as an optional local classification helper for artifacts and uploads; keep it off the critical runtime path.
+
+#### 15) `zeroc00I/LLM-anonymization`
+- **Link**: `https://github.com/zeroc00I/LLM-anonymization`
+- **What it is**: Reverse proxy that anonymizes sensitive security data before it reaches an external LLM provider.
+- **Likely Nexus mapping**: existing privacy-shield posture, `app/api/ai/route.ts`, `lib/developerResources.ts`, `lib/vulnerabilityReview.ts`.
+- **Disposition**: **Candidate later**
+- **Safest implementation shape**: Continue treating it as a pattern for pre-provider anonymization and operator-controlled redaction; keep it external and optional.
+
+#### 16) `TencentCloud/CubeSandbox`
+- **Link**: `https://github.com/TencentCloud/CubeSandbox`
+- **What it is**: Secure, lightweight sandbox for AI agents with strong isolation goals.
+- **Likely Nexus mapping**: future safe-execution path for `app/api/tools/route.ts`, Docker/self-hosted ops docs, local runtime hardening.
+- **Disposition**: **Candidate later**
+- **Safest implementation shape**: Treat as an external sandbox-service pattern for future isolated execution, not as bundled infrastructure inside Nexus.
+
+#### 17) `ruvnet/RuView`
+- **Link**: `https://github.com/ruvnet/RuView`
+- **What it is**: WiFi-sensing platform that infers presence, pose, and vital signs from radio signals instead of cameras.
+- **Likely Nexus mapping**: later OPS/VEHICLE/internal-monitoring concepts, room/telemetry experimentation, privacy-aware sensing references.
+- **Disposition**: **Defer / out of scope**
+- **Safest implementation shape**: Keep as inspiration for future sensing/telemetry explorations only; no current product integration.
+
+#### 18) `GyulyVGC/sniffnet`
+- **Link**: `https://github.com/GyulyVGC/sniffnet`
+- **What it is**: Desktop network-traffic monitoring application.
+- **Likely Nexus mapping**: later internal monitoring references for COMMAND/SECURITY, network-health UI inspiration.
+- **Disposition**: **Defer / out of scope**
+- **Safest implementation shape**: Use only as external inspiration for future internal observability panels; no packet-capture features in Nexus.
+
+### Design / media / interaction tooling
+
+#### 19) `heygen-com/hyperframes`
+- **Link**: `https://github.com/heygen-com/hyperframes`
+- **What it is**: Agent-friendly HTML-to-video rendering system.
+- **Likely Nexus mapping**: future demo/export tooling, motion studies, presentation capture.
+- **Disposition**: **Defer / out of scope**
+- **Safest implementation shape**: Keep as media-pipeline inspiration only; do not expand Nexus into a video-render product.
+
+#### 20) `webadderall/Recordly`
+- **Link**: `https://github.com/webadderall/Recordly`
+- **What it is**: Open-source polished screen-recording tool, positioned as an alternative to Screen Studio.
+- **Likely Nexus mapping**: demo capture workflow, operator docs, release/showcase media.
+- **Disposition**: **Defer / out of scope**
+- **Safest implementation shape**: Use externally for demos if useful; no in-app recording feature work from this repo.
+
+#### 21) `onlook-dev/onlook`
+- **Link**: `https://github.com/onlook-dev/onlook`
+- **What it is**: AI-first visual editor for React apps, aimed at design-to-code iteration.
+- **Likely Nexus mapping**: design-to-code workflow references, future visual editing experiments, `docs/NEXUS_TASTE_CONTRACT.md`.
+- **Disposition**: **Reference only**
+- **Safest implementation shape**: Treat as an external design tool pattern and comparison point for UI iteration; do not embed its editor into Nexus.
+
+#### 22) `Leonxlnx/taste-skill`
+- **Link**: `https://github.com/Leonxlnx/taste-skill`
+- **What it is**: High-agency frontend taste skill focused on avoiding generic, low-intent UI output.
+- **Likely Nexus mapping**: `lib/nexusTasteContract.ts`, `docs/NEXUS_TASTE_CONTRACT.md`, `docs/SYSTEM_STATE.md`.
+- **Disposition**: **Already covered**
+- **Safest implementation shape**: Already absorbed into the shipped taste/design contract and tracked in repo history; do not re-triage it as new work.
+
+#### 23) `Liquid4All/cookbook` `audio-car-cockpit`
+- **Link**: `https://github.com/Liquid4All/cookbook/tree/main/examples/audio-car-cockpit`
+- **What it is**: Audio-driven cockpit interaction example with strong vehicle / instrument-panel flavor.
+- **Likely Nexus mapping**: HQ/VEHICLE ambience, future audio-reactive cockpit inspiration, `components/home/office/*`.
+- **Disposition**: **Defer / out of scope**
+- **Safest implementation shape**: Keep as aesthetic inspiration for later spatial/audio experiments; no direct product adoption now.
 
 ---
 

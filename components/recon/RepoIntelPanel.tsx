@@ -6,6 +6,10 @@ import RepoComparePanel from "@/components/recon/RepoComparePanel";
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions";
 import { ShellBadge, ShellButton } from "@/components/ui/shell";
 import { apiFetch } from "@/lib/apiFetch";
+import {
+  findRelevantCorrectionMemories,
+  type CorrectionMemoryEntry,
+} from "@/lib/assistantSessionMemory";
 import { queueHQPrompt } from "@/lib/hqPromptQueue";
 import {
   buildRepoCompareOrbitPrompt,
@@ -19,6 +23,8 @@ import {
   buildRepoAssimilationSummary,
   buildRepoAssimilationTags,
   buildRepoAssimilationTitle,
+  formatRepoAssimilationDecisionLabel,
+  getRepoAssimilationDecision,
   parseRepoAssimilationMarkdown,
 } from "@/lib/repoAssimilation";
 import {
@@ -73,9 +79,17 @@ function truncateInline(text: string, max = 180) {
   return `${clean.slice(0, max - 1).trimEnd()}…`;
 }
 
+function formatCorrectionConstraint(entry: CorrectionMemoryEntry) {
+  return `${entry.content.rule} Preferred behavior: ${entry.content.preferredBehavior}`;
+}
+
 export default function RepoIntelPanel() {
   const router = useRouter();
   const setTab = useStore((state) => state.setTab);
+  const correctionMemories = useStore((state) => state.correctionMemories);
+  const markCorrectionMemoriesApplied = useStore(
+    (state) => state.markCorrectionMemoriesApplied,
+  );
   const [repoInput, setRepoInput] = useState("");
   const [status, setStatus] = useState<RepoIntelStatus>("idle");
   const [profile, setProfile] = useState<RepoIntelProfile | null>(null);
@@ -178,8 +192,45 @@ export default function RepoIntelPanel() {
       [...comparePages]
         .filter((page) => page.tags.includes(repoTag))
         .sort((left, right) => right.updatedAt - left.updatedAt)[0] ?? null
-    );
+      );
   }, [comparePages, profile]);
+
+  const latestAssimilationSections = useMemo(
+    () =>
+      latestAssimilation?.content
+        ? parseRepoAssimilationMarkdown(latestAssimilation.content)
+        : null,
+    [latestAssimilation?.content],
+  );
+
+  const repoBriefingCorrections = useMemo(() => {
+    if (!profile) return [];
+    return findRelevantCorrectionMemories(correctionMemories, {
+      input: [
+        profile.normalizedRepoId,
+        profile.description,
+        profile.implementationBrief,
+        latestAssimilation?.summary,
+        latestComparison?.summary,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      routeSurface: "/recon?view=osint&focus=recon-repo-intel",
+      taskType: "repo_work",
+      capability: "repo-engineering",
+      limit: 3,
+    });
+  }, [
+    correctionMemories,
+    latestAssimilation?.summary,
+    latestComparison?.summary,
+    profile,
+  ]);
+
+  const correctionConstraintLines = useMemo(
+    () => repoBriefingCorrections.map(formatCorrectionConstraint),
+    [repoBriefingCorrections],
+  );
 
   const loadRepoIntel = async () => {
     setStatus("loading");
@@ -227,6 +278,11 @@ export default function RepoIntelPanel() {
   };
 
   const routeToOrbit = (prompt: string) => {
+    if (repoBriefingCorrections.length > 0) {
+      markCorrectionMemoriesApplied(
+        repoBriefingCorrections.map((entry) => entry.id),
+      );
+    }
     queueHQPrompt(`@orbit: ${prompt}`);
     setTab("home");
     router.push("/hq?focus=hq-chronicle");
@@ -235,7 +291,12 @@ export default function RepoIntelPanel() {
   const briefOrbit = () => {
     if (!profile) return;
     if (latestComparison?.content) {
-      routeToOrbit(buildRepoCompareOrbitPrompt({ brief: latestComparison.content }));
+      routeToOrbit(
+        buildRepoCompareOrbitPrompt({
+          brief: latestComparison.content,
+          correctionConstraints: correctionConstraintLines,
+        }),
+      );
       return;
     }
     if (latestAssimilation?.content) {
@@ -243,12 +304,22 @@ export default function RepoIntelPanel() {
         buildRepoAssimilationOrbitPrompt({
           normalizedRepoId: profile.normalizedRepoId,
           brief: latestAssimilation.content,
+          correctionConstraints: correctionConstraintLines,
         }),
       );
       return;
     }
 
-    routeToOrbit(buildRepoIntelOrbitPrompt(profile));
+    const basePrompt = buildRepoIntelOrbitPrompt(profile);
+    routeToOrbit(
+      correctionConstraintLines.length > 0
+        ? [
+            basePrompt,
+            "Local correction-memory constraints:",
+            ...correctionConstraintLines.map((line) => `- ${line}`),
+          ].join("\n")
+        : basePrompt,
+    );
   };
 
   const openLatestAssimilation = () => {
@@ -304,7 +375,7 @@ export default function RepoIntelPanel() {
           requestedVisibility: "internal",
           workflowPackId: "research-workflow",
           repoMemoryBinding: profile.normalizedRepoId,
-          tags: buildRepoAssimilationTags(profile),
+          tags: buildRepoAssimilationTags(profile, brief),
           topic: profile.normalizedRepoId,
         }),
       });
@@ -426,6 +497,48 @@ export default function RepoIntelPanel() {
         </div>
       ) : null}
 
+      {repoBriefingCorrections.length > 0 ? (
+        <div
+          style={{
+            borderRadius: "12px",
+            border: "1px solid rgba(125, 211, 252, 0.16)",
+            background: "rgba(8, 18, 31, 0.5)",
+            padding: "10px 12px",
+            display: "grid",
+            gap: "8px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 700,
+              color: "#93c5fd",
+              textTransform: "uppercase",
+              letterSpacing: "0.6px",
+            }}
+          >
+            Local implementation constraints
+          </div>
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+            <ShellBadge tone="accent">
+              Approved corrections {repoBriefingCorrections.length}
+            </ShellBadge>
+            <ShellBadge tone="muted">Queued into ORBIT handoff</ShellBadge>
+          </div>
+          <div style={{ display: "grid", gap: "6px" }}>
+            {repoBriefingCorrections.map((entry) => (
+              <div
+                key={entry.id}
+                style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.45 }}
+              >
+                <strong style={{ color: "var(--text)" }}>{entry.content.rule}</strong>{" "}
+                {truncateInline(entry.content.preferredBehavior, 184)}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {latestAssimilation ? (
         <div
           style={{
@@ -454,6 +567,16 @@ export default function RepoIntelPanel() {
           <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}>
             {latestAssimilation.summary}
           </div>
+          {latestAssimilationSections ? (
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              <ShellBadge tone="accent">
+                {formatRepoAssimilationDecisionLabel(
+                  getRepoAssimilationDecision(latestAssimilationSections),
+                )}
+              </ShellBadge>
+              <ShellBadge tone="muted">Implementation brief</ShellBadge>
+            </div>
+          ) : null}
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <button
               type="button"
@@ -509,6 +632,8 @@ export default function RepoIntelPanel() {
         <RepoComparePanel
           currentProfile={profile}
           latestAssimilation={latestAssimilation}
+          correctionConstraintLines={correctionConstraintLines}
+          correctionMemoryIds={repoBriefingCorrections.map((entry) => entry.id)}
         />
       </div>
 
@@ -631,9 +756,9 @@ export default function RepoIntelPanel() {
               }}
             >
               {(() => {
-                const parsed = parseRepoAssimilationMarkdown(
-                  latestAssimilation.content ?? "",
-                );
+                const parsed =
+                  latestAssimilationSections ??
+                  parseRepoAssimilationMarkdown(latestAssimilation.content ?? "");
                 return (
                   <>
                     <div
@@ -647,9 +772,28 @@ export default function RepoIntelPanel() {
                     >
                       Assimilation cue
                     </div>
+                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                      <ShellBadge tone="accent">
+                        {formatRepoAssimilationDecisionLabel(
+                          getRepoAssimilationDecision(parsed),
+                        )}
+                      </ShellBadge>
+                      <ShellBadge tone="muted">ORBIT-ready</ShellBadge>
+                    </div>
                     <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.45 }}>
-                      <strong style={{ color: "var(--text)" }}>Fit map:</strong>{" "}
-                      {truncateInline(parsed.nexusFitMap || "No fit map recorded yet.", 180)}
+                      <strong style={{ color: "var(--text)" }}>Local fit:</strong>{" "}
+                      {truncateInline(
+                        parsed.localFitAndWhyNow || "No fit map recorded yet.",
+                        180,
+                      )}
+                    </div>
+                    <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.45 }}>
+                      <strong style={{ color: "var(--text)" }}>Smallest slice:</strong>{" "}
+                      {truncateInline(
+                        parsed.extensionPointsAndSmallestSlice ||
+                          "No extension cues recorded yet.",
+                        180,
+                      )}
                     </div>
                     <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.45 }}>
                       <strong style={{ color: "var(--text)" }}>Boundary:</strong>{" "}

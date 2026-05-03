@@ -1,6 +1,7 @@
 import type {
   ScheduledJob,
   ScheduledJobEfficiencySnapshot,
+  ScheduledMissionReviewState,
 } from "@/store/useStore";
 
 export interface SchedulerAuditExport {
@@ -40,6 +41,7 @@ export interface SchedulerAuditExport {
     lastArtifactAt?: number;
     lastEfficiency?: ScheduledJob["lastEfficiency"];
     recentExecutions?: ScheduledJob["recentExecutions"];
+    missionReview?: ScheduledMissionReviewSummary;
   }>;
 }
 
@@ -81,6 +83,192 @@ export const DEFAULT_SCHEDULER_AUDIT_FILTERS: SchedulerAuditFilters = {
   status: "all",
   window: "all",
 };
+
+export const DEFAULT_SCHEDULED_MISSION_REVIEW_EXPIRY_HOURS = 24;
+
+export type ScheduledMissionReviewComputedStatus =
+  | "not_required"
+  | "missing_contract"
+  | "ready"
+  | "pending_review"
+  | "expired"
+  | "cleared";
+
+export interface ScheduledMissionReviewSummary {
+  required: boolean;
+  status: ScheduledMissionReviewComputedStatus;
+  scope: string | null;
+  targetAgent: string | null;
+  outputTarget: ScheduledJob["outputTarget"] | null;
+  approvalPolicy: ScheduledJob["approvalPolicy"] | null;
+  expiryHours: number | null;
+  reentrySummary: string | null;
+  localOnly: boolean;
+  lastQueuedAt: number | null;
+  expiresAt: number | null;
+  lastRunSummary: string | null;
+  lastClearedAt: number | null;
+}
+
+function sanitizeMissionReviewText(value: string | null | undefined) {
+  return value?.trim().replace(/\s+/g, " ").slice(0, 220) ?? "";
+}
+
+export function buildScheduledMissionReviewState(args: {
+  scope: string;
+  targetAgent: string;
+  outputTarget: NonNullable<ScheduledJob["outputTarget"]>;
+  approvalPolicy: NonNullable<ScheduledJob["approvalPolicy"]>;
+  expiryHours?: number;
+  reentrySummary: string;
+  createdAt?: number;
+}): ScheduledMissionReviewState {
+  const createdAt = args.createdAt ?? Date.now();
+  return {
+    contract: {
+      scope: sanitizeMissionReviewText(args.scope),
+      targetAgent: sanitizeMissionReviewText(args.targetAgent) || "orbit",
+      outputTarget: args.outputTarget,
+      approvalPolicy: args.approvalPolicy,
+      expiryHours:
+        Number.isFinite(args.expiryHours) && Number(args.expiryHours) > 0
+          ? Math.round(Number(args.expiryHours))
+          : DEFAULT_SCHEDULED_MISSION_REVIEW_EXPIRY_HOURS,
+      reentrySummary: sanitizeMissionReviewText(args.reentrySummary),
+      localOnly: true,
+      createdAt,
+      updatedAt: createdAt,
+    },
+  };
+}
+
+export function registerScheduledMissionReviewRun(args: {
+  job: ScheduledJob;
+  runAt: number;
+  status: ScheduledJob["lastStatus"];
+  summary: string;
+}): ScheduledMissionReviewState | undefined {
+  if (args.job.type !== "mission" || !args.job.missionReview?.contract) {
+    return args.job.missionReview;
+  }
+  const contract = {
+    ...args.job.missionReview.contract,
+    targetAgent:
+      sanitizeMissionReviewText(args.job.missionAgent) ||
+      args.job.missionReview.contract.targetAgent ||
+      "orbit",
+    outputTarget:
+      args.job.outputTarget ?? args.job.missionReview.contract.outputTarget,
+    approvalPolicy:
+      args.job.approvalPolicy ?? args.job.missionReview.contract.approvalPolicy,
+    updatedAt: args.runAt,
+  };
+  if (args.status !== "ok") {
+    return {
+      ...args.job.missionReview,
+      contract,
+      lastRunSummary: sanitizeMissionReviewText(args.summary) || undefined,
+    };
+  }
+  const expiresAt = args.runAt + contract.expiryHours * 60 * 60 * 1000;
+  return {
+    ...args.job.missionReview,
+    contract,
+    status: "pending_review",
+    lastQueuedAt: args.runAt,
+    expiresAt,
+    lastRunSummary: sanitizeMissionReviewText(args.summary) || undefined,
+  };
+}
+
+export function clearScheduledMissionReview(
+  job: ScheduledJob,
+  clearedAt = Date.now(),
+): ScheduledMissionReviewState | undefined {
+  if (!job.missionReview?.contract) return job.missionReview;
+  return {
+    ...job.missionReview,
+    contract: {
+      ...job.missionReview.contract,
+      updatedAt: clearedAt,
+    },
+    status: "cleared",
+    lastClearedAt: clearedAt,
+  };
+}
+
+export function getScheduledMissionReviewSummary(
+  job: ScheduledJob,
+  now = Date.now(),
+): ScheduledMissionReviewSummary {
+  if (job.type !== "mission") {
+    return {
+      required: false,
+      status: "not_required",
+      scope: null,
+      targetAgent: null,
+      outputTarget: null,
+      approvalPolicy: null,
+      expiryHours: null,
+      reentrySummary: null,
+      localOnly: true,
+      lastQueuedAt: null,
+      expiresAt: null,
+      lastRunSummary: null,
+      lastClearedAt: null,
+    };
+  }
+
+  const contract = job.missionReview?.contract;
+  if (!contract) {
+    return {
+      required: true,
+      status: "missing_contract",
+      scope: null,
+      targetAgent: sanitizeMissionReviewText(job.missionAgent) || null,
+      outputTarget: job.outputTarget ?? null,
+      approvalPolicy: job.approvalPolicy ?? null,
+      expiryHours: null,
+      reentrySummary: null,
+      localOnly: true,
+      lastQueuedAt: null,
+      expiresAt: null,
+      lastRunSummary: null,
+      lastClearedAt: null,
+    };
+  }
+
+  const lastQueuedAt = job.missionReview?.lastQueuedAt ?? null;
+  const expiresAt =
+    job.missionReview?.expiresAt ??
+    (lastQueuedAt
+      ? lastQueuedAt + contract.expiryHours * 60 * 60 * 1000
+      : null);
+  const pendingStatus =
+    lastQueuedAt && expiresAt && expiresAt <= now ? "expired" : "pending_review";
+  const status: ScheduledMissionReviewComputedStatus =
+    job.missionReview?.status === "cleared"
+      ? "cleared"
+      : lastQueuedAt
+        ? pendingStatus
+        : "ready";
+
+  return {
+    required: true,
+    status,
+    scope: contract.scope,
+    targetAgent: contract.targetAgent,
+    outputTarget: contract.outputTarget,
+    approvalPolicy: contract.approvalPolicy,
+    expiryHours: contract.expiryHours,
+    reentrySummary: contract.reentrySummary,
+    localOnly: contract.localOnly !== false,
+    lastQueuedAt,
+    expiresAt,
+    lastRunSummary: job.missionReview?.lastRunSummary ?? null,
+    lastClearedAt: job.missionReview?.lastClearedAt ?? null,
+  };
+}
 
 export const MAX_SAVED_SCHEDULER_AUDIT_VIEWS = 6;
 
@@ -285,6 +473,12 @@ export interface SchedulerGovernanceSnapshot {
   cacheWarmRuns: number;
   cacheObservedCoverage: number;
   cacheHitCoverage: number;
+  missionJobs: number;
+  missionReviewContractJobs: number;
+  missingMissionReviewJobs: number;
+  pendingMissionReviews: number;
+  expiredMissionReviews: number;
+  clearedMissionReviews: number;
   recommendations: SchedulerGovernanceRecommendation[];
 }
 
@@ -373,6 +567,9 @@ export function analyzeScheduledJobs(
   jobs: ScheduledJob[],
 ): SchedulerGovernanceSnapshot {
   const activeJobs = jobs.filter((job) => job.enabled);
+  const missionReviewStates = activeJobs
+    .map((job) => getScheduledMissionReviewSummary(job))
+    .filter((review) => review.required);
   const queuedJobs = activeJobs.filter((job) => job.lastStatus === "queued").length;
   const queuedFailureJobs = activeJobs.filter(
     (job) => job.lastStatus === "queued" && (job.pendingBatchPollFailures ?? 0) > 0,
@@ -460,8 +657,44 @@ export function analyzeScheduledJobs(
     0,
     activeJobs.length - completedEfficiencySnapshots,
   );
+  const missionJobs = missionReviewStates.length;
+  const missionReviewContractJobs = missionReviewStates.filter(
+    (review) => review.status !== "missing_contract",
+  ).length;
+  const missingMissionReviewJobs = missionReviewStates.filter(
+    (review) => review.status === "missing_contract",
+  ).length;
+  const pendingMissionReviews = missionReviewStates.filter(
+    (review) => review.status === "pending_review",
+  ).length;
+  const expiredMissionReviews = missionReviewStates.filter(
+    (review) => review.status === "expired",
+  ).length;
+  const clearedMissionReviews = missionReviewStates.filter(
+    (review) => review.status === "cleared",
+  ).length;
 
   const recommendations: SchedulerGovernanceRecommendation[] = [];
+
+  if (missingMissionReviewJobs > 0) {
+    recommendations.push({
+      id: "missing-mission-review-contract",
+      tone: "warning",
+      title: "Some mission jobs still lack a review contract",
+      detail:
+        "At least one scheduled mission is missing an explicit scope, expiry window, and re-entry summary. Add the bounded review contract before widening overnight work.",
+    });
+  }
+
+  if (expiredMissionReviews > 0) {
+    recommendations.push({
+      id: "expired-mission-reviews",
+      tone: "warning",
+      title: "Some overnight mission reviews have expired",
+      detail:
+        "At least one bounded mission passed its review window without operator follow-through. Clear or refresh the review before treating that lane as healthy automation.",
+    });
+  }
 
   if (
     activeJobs.some(
@@ -630,6 +863,12 @@ export function analyzeScheduledJobs(
     cacheWarmRuns,
     cacheObservedCoverage,
     cacheHitCoverage,
+    missionJobs,
+    missionReviewContractJobs,
+    missingMissionReviewJobs,
+    pendingMissionReviews,
+    expiredMissionReviews,
+    clearedMissionReviews,
     recommendations,
   };
 }
@@ -765,6 +1004,7 @@ export function buildSchedulerAuditExport(
       lastArtifactAt: job.lastArtifactAt,
       lastEfficiency: job.lastEfficiency,
       recentExecutions: filterScheduledJobRecentExecutions(job, filters),
+      missionReview: getScheduledMissionReviewSummary(job),
     })),
   };
 }

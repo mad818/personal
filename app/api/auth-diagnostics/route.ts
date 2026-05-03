@@ -7,7 +7,9 @@ import {
 import { getDefaultEntrypoint, RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
 import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
 import { protectedJson } from "@/lib/protectedApi";
+import { readExternalToolBridgeSummary } from "@/lib/externalToolBridge";
 import { readLocalDataPolicySummary } from "@/lib/security/localDataPolicy";
+import { readToolIsolationSummary } from "@/lib/security/toolIsolationPolicy";
 import {
   readProtectedActionContext,
   resolveProtectedActionDescriptor,
@@ -21,6 +23,8 @@ export async function GET(req: NextRequest) {
   const authEnabled = isNexusAuthEnabled();
   const trustContext = await readProtectedActionContext(req);
   const localData = readLocalDataPolicySummary();
+  const toolIsolation = readToolIsolationSummary();
+  const externalTools = readExternalToolBridgeSummary();
 
   const response = protectedJson({
     ok: true,
@@ -51,6 +55,8 @@ export async function GET(req: NextRequest) {
         enabled: trustContext.connectorEnabled,
         total: trustContext.connectorTotal,
       },
+      toolIsolation,
+      externalTools,
       protectedActions: {
         settingsWrites: resolveProtectedActionDescriptor(
           "settings_writes",

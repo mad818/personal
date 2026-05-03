@@ -1,6 +1,10 @@
 import { execFileSync } from "child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "fs";
 import { dirname, join, relative } from "path";
+import {
+  classifyProjectArtifact,
+  type ArtifactClassification,
+} from "@/lib/artifactClassification";
 
 const SOURCE_ROOTS = ["app", "components", "hooks", "lib", "store"] as const;
 const SOURCE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"] as const;
@@ -18,6 +22,7 @@ export interface ProjectGraphNode {
   directImports: number;
   importers: number;
   coupling: number;
+  artifactClassification: ArtifactClassification;
 }
 
 export interface ProjectGraphEdge {
@@ -47,6 +52,7 @@ export interface ProjectOwnershipEntry {
   lastTouchedAt: string | null;
   changeCount: number;
   coupling: number;
+  artifactClassification: ArtifactClassification;
 }
 
 export interface ProjectOwnershipResult {
@@ -61,6 +67,7 @@ export interface ProjectHotspotEntry {
   coupling: number;
   hotspotScore: number;
   lastTouchedAt: string | null;
+  artifactClassification: ArtifactClassification;
 }
 
 export interface ProjectHotspotResult {
@@ -82,6 +89,7 @@ export interface ProjectSecurityFinding {
   label: string;
   path: string;
   detail: string;
+  artifactClassification: ArtifactClassification;
 }
 
 export interface ProjectSecurityResult {
@@ -189,6 +197,17 @@ function safeRead(root: string, path: string) {
   } catch {
     return "";
   }
+}
+
+function buildProjectArtifactClassificationMap(
+  root: string,
+  paths: readonly string[],
+) {
+  const classifications = new Map<string, ArtifactClassification>();
+  for (const path of paths) {
+    classifications.set(path, classifyProjectArtifact(path, safeRead(root, path)));
+  }
+  return classifications;
 }
 
 function extractImportSpecifiers(source: string) {
@@ -339,12 +358,17 @@ function detectHighCouplingFiles(index: ProjectImportIndex) {
     .slice(0, 12);
 }
 
-function buildGraphNodes(index: ProjectImportIndex) {
+function buildGraphNodes(
+  index: ProjectImportIndex,
+  classifications: ReadonlyMap<string, ArtifactClassification>,
+) {
   return index.sourceFiles.map((path) => ({
     path,
     directImports: index.outgoing.get(path)?.length ?? 0,
     importers: index.incoming.get(path)?.size ?? 0,
     coupling: couplingForPath(index, path),
+    artifactClassification:
+      classifications.get(path) ?? classifyProjectArtifact(path),
   }));
 }
 
@@ -486,11 +510,12 @@ const SECURITY_PATTERNS: Array<{
 
 export function getProjectGraph(root: string, file?: string | null): ProjectGraphResult {
   const index = buildProjectImportIndex(root);
+  const classifications = buildProjectArtifactClassificationMap(root, index.sourceFiles);
   const target = file ? resolveRequestedFile(file, index.fileSet) : null;
   const circularDependencies = detectCircularDependencies(index);
   const isolatedFiles = detectIsolatedFiles(index);
   const highCouplingFiles = detectHighCouplingFiles(index);
-  const nodes = buildGraphNodes(index)
+  const nodes = buildGraphNodes(index, classifications)
     .sort((left, right) => right.coupling - left.coupling || left.path.localeCompare(right.path))
     .slice(0, 80);
   const edges = buildGraphEdges(index);
@@ -514,6 +539,7 @@ export function getProjectGraph(root: string, file?: string | null): ProjectGrap
 
 export function getProjectOwnership(root: string, file?: string | null): ProjectOwnershipResult {
   const index = buildProjectImportIndex(root);
+  const classifications = buildProjectArtifactClassificationMap(root, index.sourceFiles);
   const target = file ? resolveRequestedFile(file, index.fileSet) : null;
   const reviewPack = buildReviewPack(index, target);
   const activity = buildGitActivity(root, index.sourceFiles);
@@ -527,6 +553,8 @@ export function getProjectOwnership(root: string, file?: string | null): Project
         lastTouchedAt: details?.lastTouchedAt ?? null,
         changeCount: details?.changeCount ?? 0,
         coupling: couplingForPath(index, path),
+        artifactClassification:
+          classifications.get(path) ?? classifyProjectArtifact(path),
       };
     })
     .sort((left, right) => right.changeCount - left.changeCount || right.coupling - left.coupling);
@@ -546,6 +574,7 @@ export function getProjectOwnership(root: string, file?: string | null): Project
 
 export function getProjectHotspots(root: string, file?: string | null): ProjectHotspotResult {
   const index = buildProjectImportIndex(root);
+  const classifications = buildProjectArtifactClassificationMap(root, index.sourceFiles);
   const activity = buildGitActivity(root, index.sourceFiles);
   const target = file ? resolveRequestedFile(file, index.fileSet) : null;
   const preferred = new Set(buildReviewPack(index, target));
@@ -562,6 +591,8 @@ export function getProjectHotspots(root: string, file?: string | null): ProjectH
         coupling,
         hotspotScore,
         lastTouchedAt: details?.lastTouchedAt ?? null,
+        artifactClassification:
+          classifications.get(path) ?? classifyProjectArtifact(path),
       };
     })
     .sort((left, right) => right.hotspotScore - left.hotspotScore || left.path.localeCompare(right.path))
@@ -576,6 +607,7 @@ export function getProjectHotspots(root: string, file?: string | null): ProjectH
 
 export function getProjectSecurity(root: string, file?: string | null): ProjectSecurityResult {
   const index = buildProjectImportIndex(root);
+  const classifications = buildProjectArtifactClassificationMap(root, index.sourceFiles);
   const target = file ? resolveRequestedFile(file, index.fileSet) : null;
   const reviewPack = new Set(buildReviewPack(index, target));
   const highCouplingFiles = detectHighCouplingFiles(index);
@@ -594,6 +626,8 @@ export function getProjectSecurity(root: string, file?: string | null): ProjectS
         label: pattern.label,
         path,
         detail: pattern.detail,
+        artifactClassification:
+          classifications.get(path) ?? classifyProjectArtifact(path, source),
       });
     }
   }

@@ -8,8 +8,12 @@ export interface ProclamationZoneProps {
 
 export default function ProclamationZone({
   ctaHref,
-  ctaLabel = "Launch Nexus",
+  ctaLabel = "Launch Homefront",
 }: ProclamationZoneProps) {
+  const ctaAriaLabel = `${ctaLabel}, ${
+    ctaHref.startsWith("#") ? "go to access form" : "go to HQ"
+  }`;
+
   return (
     <section
       id="nexus-landing-proclamation"
@@ -33,7 +37,7 @@ export default function ProclamationZone({
           </div>
 
           <p className="nexus-landing-proclamation__eyebrow nexus-landing-enter">
-            Nexus Prime
+            Homefront
           </p>
 
           <h1
@@ -52,7 +56,7 @@ export default function ProclamationZone({
             <a
               href={ctaHref}
               className="nexus-landing-proclamation__primary"
-              aria-label={`${ctaLabel}, go to HQ`}
+              aria-label={ctaAriaLabel}
               data-testid="landing-hero-cta"
             >
               {ctaLabel}

@@ -27,7 +27,7 @@ export default function AIBriefing() {
       .slice(0, 8)
       .map((a, i) => `${i + 1}. ${a.title}`)
       .join("\n");
-    const prompt = `You are Nexus AI — ${settings.userName || "Mario"}'s intelligence system.
+    const prompt = `You are Homefront AI — ${settings.userName || "Mario"}'s intelligence system.
 
 LIVE DATA:
 - BTC: ${btc ? `$${btc.price?.toLocaleString()} (${btc.chg >= 0 ? "+" : ""}${btc.chg?.toFixed(2)}%)` : "No data"}

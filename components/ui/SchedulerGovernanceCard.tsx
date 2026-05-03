@@ -156,6 +156,58 @@ export default function SchedulerGovernanceCard({
             {snapshot.approveOnWriteJobs}
           </div>
         </div>
+        <div
+          style={{
+            borderRadius: 8,
+            border: "1px solid #1A2040",
+            background: "#0a1120",
+            padding: "8px 10px",
+          }}
+        >
+          <div style={{ color: "#6875a0", fontSize: 10 }}>Mission jobs</div>
+          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+            {snapshot.missionJobs}
+          </div>
+        </div>
+        <div
+          style={{
+            borderRadius: 8,
+            border: "1px solid #1A2040",
+            background: "#0a1120",
+            padding: "8px 10px",
+          }}
+        >
+          <div style={{ color: "#6875a0", fontSize: 10 }}>Review contracts</div>
+          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+            {snapshot.missionReviewContractJobs}
+          </div>
+        </div>
+        <div
+          style={{
+            borderRadius: 8,
+            border: "1px solid #1A2040",
+            background: "#0a1120",
+            padding: "8px 10px",
+          }}
+        >
+          <div style={{ color: "#6875a0", fontSize: 10 }}>Pending review</div>
+          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+            {snapshot.pendingMissionReviews}
+          </div>
+        </div>
+        <div
+          style={{
+            borderRadius: 8,
+            border: "1px solid #1A2040",
+            background: "#0a1120",
+            padding: "8px 10px",
+          }}
+        >
+          <div style={{ color: "#6875a0", fontSize: 10 }}>Expired review</div>
+          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+            {snapshot.expiredMissionReviews}
+          </div>
+        </div>
       </div>
 
       {snapshot.recommendations.length > 1 ? (
@@ -182,6 +234,23 @@ export default function SchedulerGovernanceCard({
       ) : null}
 
       <div style={{ display: "grid", gap: 8 }}>
+        <div
+          style={{
+            borderRadius: 8,
+            border: "1px solid #1A2040",
+            background: "#0a1120",
+            padding: "8px 10px",
+          }}
+        >
+          <div style={{ color: "#cbd5e1", fontSize: 11, fontWeight: 700 }}>
+            Reviewed mission posture
+          </div>
+          <div style={{ color: "#6875a0", fontSize: 10, marginTop: 4, lineHeight: 1.5 }}>
+            {snapshot.missionJobs > 0
+              ? `${snapshot.missionReviewContractJobs}/${snapshot.missionJobs} active mission jobs carry a bounded review contract, ${snapshot.pendingMissionReviews} are waiting on operator review, and ${snapshot.expiredMissionReviews} have passed their review window.`
+              : "No mission jobs are active yet, so overnight review posture is still defined by manual dispatch."}
+          </div>
+        </div>
         <div style={{ color: "#f59e0b", fontWeight: 800, fontSize: 11 }}>
           WORKFLOW AUTOMATION POSTURE
         </div>

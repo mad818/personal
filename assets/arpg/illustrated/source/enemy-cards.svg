@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="448" viewBox="0 0 1280 448">
+  <defs>
+    <radialGradient id="enemyBg" cx="50%" cy="28%" r="72%"><stop offset="0" stop-color="#89532d"/><stop offset=".6" stop-color="#1c120e"/><stop offset="1" stop-color="#050505"/></radialGradient>
+    <filter id="flare" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <g>
+    <rect width="320" height="448" fill="url(#enemyBg)"/><rect x="20" y="20" width="280" height="408" rx="24" fill="#090807" opacity=".28" stroke="#ffd89a" stroke-opacity=".24"/>
+    <path d="M101 339V141l59-54 59 54v198z" fill="#6d4428" stroke="#ffe0a4" stroke-opacity=".35" stroke-width="4"/><path d="M113 181h94M113 247h94" stroke="#ffd166" stroke-opacity=".3" stroke-width="6"/><circle cx="160" cy="158" r="26" fill="#ffd166" filter="url(#flare)"/><path d="M87 359c45 26 100 26 146 0" stroke="#0a0908" stroke-width="20" opacity=".5"/>
+  </g>
+  <g transform="translate(320)">
+    <rect width="320" height="448" fill="#1c100b"/><rect x="20" y="20" width="280" height="408" rx="24" fill="#160d09" stroke="#ffd89a" stroke-opacity=".22"/>
+    <path d="M158 81c47 78 69 158 18 295-67-51-75-130-38-233z" fill="#c06332" filter="url(#flare)"/><path d="M100 348c41-22 79-21 119 0" stroke="#3b1e12" stroke-width="22"/><path d="M132 180c24 24 50 24 75 0" stroke="#ffcf8a" stroke-width="8" opacity=".7"/>
+  </g>
+  <g transform="translate(640)">
+    <rect width="320" height="448" fill="#11100d"/><rect x="20" y="20" width="280" height="408" rx="24" fill="#0b0a08" stroke="#d7c3ff" stroke-opacity=".25"/>
+    <path d="M160 78 231 173 203 347H117L89 173z" fill="#4d4268" stroke="#d7c3ff" stroke-opacity=".35" stroke-width="4"/><path d="M160 116 196 177 181 312h-42l-15-135z" fill="#d7c3ff" opacity=".65" filter="url(#flare)"/><path d="M95 356h130" stroke="#060606" stroke-width="20" opacity=".45"/>
+  </g>
+  <g transform="translate(960)">
+    <rect width="320" height="448" fill="#170f0c"/><rect x="20" y="20" width="280" height="408" rx="24" fill="#0d0908" stroke="#ffd89a" stroke-opacity=".25"/>
+    <path d="M92 353V139l68-74 68 74v214z" fill="#7a5031" stroke="#ffe2a8" stroke-opacity=".38" stroke-width="5"/><path d="M102 214h116M102 280h116" stroke="#160d09" stroke-width="16" opacity=".38"/><path d="M160 101 198 163 160 226 122 163z" fill="#ffd166" filter="url(#flare)"/><path d="M79 371c48 32 114 32 162 0" stroke="#090807" stroke-width="24" opacity=".55"/>
+  </g>
+</svg>

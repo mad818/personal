@@ -78,7 +78,7 @@ async function runExternalCheck(rawUrl: string) {
     method: "GET",
     headers: {
       Accept: "text/plain,application/json,*/*",
-      "User-Agent": "Aegis-Vector NetworkHealth/1.0",
+      "User-Agent": "Homefront NetworkHealth/1.0",
     },
     cache: "no-store",
     redirect: "follow",

@@ -506,9 +506,12 @@ export function buildRepoComparePreparedWorkspace() {
   };
 }
 
-export function buildRepoCompareOrbitPrompt(input: { brief: string }) {
+export function buildRepoCompareOrbitPrompt(input: {
+  brief: string;
+  correctionConstraints?: string[];
+}) {
   const sections = parseRepoCompareMarkdown(input.brief);
-  return [
+  const lines = [
     "Use the saved repo-compare brief as the planning constraint set for local Nexus work.",
     `Candidates: ${sections.candidates || "No candidates recorded."}`,
     `Shared fit: ${sections.sharedFit || "No shared fit recorded."}`,
@@ -516,9 +519,20 @@ export function buildRepoCompareOrbitPrompt(input: { brief: string }) {
     `Recommended pick: ${sections.recommendedPick || "No recommendation recorded."}`,
     `Boundaries and risks: ${sections.boundariesAndRisks || "No boundaries recorded."}`,
     `ORBIT handoff: ${sections.orbitHandoff || "No ORBIT handoff recorded."}`,
-    "Respond with: 1. local fit, 2. safest first implementation slice, 3. explicit non-goals and upstream boundaries to preserve.",
-    "Do not import or mirror upstream code directly.",
-  ].join("\n");
+  ];
+
+  if (input.correctionConstraints && input.correctionConstraints.length > 0) {
+    lines.push("Local correction-memory constraints:");
+    lines.push(
+      ...input.correctionConstraints.map((constraint) => `- ${constraint}`),
+    );
+  }
+
+  lines.push(
+    "Respond with: 1. confirm the recommended local reference, 2. safest first implementation slice, 3. exact Nexus files or seams to touch first, 4. explicit non-goals and upstream boundaries to preserve.",
+  );
+  lines.push("Do not import or mirror upstream code directly.");
+  return lines.join("\n");
 }
 
 export function buildRepoCompareSynthesisPrompt(
@@ -555,7 +569,7 @@ export function buildRepoCompareSynthesisPrompt(
     .join("\n\n");
 
   return [
-    "You are Nexus Prime's public-safe repo-compare engine.",
+    "You are Homefront's public-safe repo-compare engine.",
     "Return JSON only.",
     "Use this exact shape:",
     "{",

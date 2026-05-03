@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="576" height="96" viewBox="0 0 576 96">
+  <defs>
+    <radialGradient id="icon-glow" cx="50%" cy="46%" r="62%">
+      <stop offset="0" stop-color="#fff0b0" stop-opacity="0.92"/>
+      <stop offset="0.42" stop-color="#f6a63c" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="blue-glow" cx="50%" cy="46%" r="62%">
+      <stop offset="0" stop-color="#d5fbff" stop-opacity="0.9"/>
+      <stop offset="0.42" stop-color="#58c6df" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="small-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#000000" flood-opacity="0.42"/>
+    </filter>
+    <filter id="small-soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g id="descent-ledger">
+    <rect x="0" y="0" width="96" height="96" rx="18" fill="#211307"/>
+    <circle cx="48" cy="48" r="42" fill="url(#icon-glow)"/>
+    <g filter="url(#small-shadow)">
+      <path d="M23 31 C31 20 59 20 73 31 L69 71 C55 63 39 63 26 71 Z" fill="#7b4c21" stroke="#ffd37a" stroke-opacity="0.5" stroke-width="3"/>
+      <path d="M28 34 C39 29 52 29 67 34 L64 61 C50 56 39 57 30 62 Z" fill="#d08a36"/>
+      <path d="M30 42 C41 37 52 37 63 42" fill="none" stroke="#3c2413" stroke-opacity="0.7" stroke-width="2"/>
+      <path d="M31 50 C42 46 52 46 62 51" fill="none" stroke="#3c2413" stroke-opacity="0.55" stroke-width="2"/>
+      <path d="M48 24 C43 12 38 7 31 4" fill="none" stroke="#7c5528" stroke-width="4" stroke-linecap="round"/>
+      <path d="M48 24 C54 12 60 8 68 6" fill="none" stroke="#7c5528" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="48" cy="49" r="8" fill="#ffe29a"/>
+      <path d="M44 50 L48 42 L52 50 L48 58 Z" fill="#7b4c21"/>
+    </g>
+  </g>
+
+  <g id="oath-lamp" transform="translate(96 0)">
+    <rect x="0" y="0" width="96" height="96" rx="18" fill="#1b1008"/>
+    <circle cx="48" cy="49" r="42" fill="url(#icon-glow)"/>
+    <g filter="url(#small-shadow)">
+      <path d="M31 67 L37 33 L48 20 L59 33 L65 67 Z" fill="#bd7629" stroke="#ffd37a" stroke-opacity="0.5" stroke-width="3"/>
+      <path d="M41 41 L48 27 L55 41 L53 58 L43 58 Z" fill="#fff0a8"/>
+      <rect x="28" y="66" width="40" height="7" rx="3" fill="#4b2d17"/>
+      <path d="M33 76 L63 76" stroke="#ffd37a" stroke-opacity="0.45" stroke-width="3" stroke-linecap="round"/>
+      <path d="M24 49 C15 43 15 33 23 27" fill="none" stroke="#81501f" stroke-width="4" stroke-linecap="round"/>
+      <path d="M72 49 C81 43 81 33 73 27" fill="none" stroke="#81501f" stroke-width="4" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <g id="oracle-cradle" transform="translate(192 0)">
+    <rect x="0" y="0" width="96" height="96" rx="18" fill="#0b1722"/>
+    <circle cx="48" cy="48" r="42" fill="url(#blue-glow)"/>
+    <g filter="url(#small-shadow)">
+      <path d="M22 59 C26 38 37 27 48 26 C59 27 70 38 74 59 L65 75 L31 75 Z" fill="#163e54" stroke="#aef5ff" stroke-opacity="0.5" stroke-width="3"/>
+      <path d="M34 58 C36 43 41 36 48 34 C55 36 60 43 62 58 C59 67 54 70 48 70 C42 70 37 67 34 58 Z" fill="#77d7ea"/>
+      <path d="M26 48 C14 42 10 31 17 22 C30 27 38 38 39 53 Z" fill="#225f73" stroke="#7fd6ed" stroke-opacity="0.45" stroke-width="3"/>
+      <path d="M70 48 C82 42 86 31 79 22 C66 27 58 38 57 53 Z" fill="#225f73" stroke="#7fd6ed" stroke-opacity="0.45" stroke-width="3"/>
+      <circle cx="43" cy="54" r="3" fill="#fff8ce"/>
+      <circle cx="53" cy="54" r="3" fill="#fff8ce"/>
+      <path d="M41 63 C46 67 50 67 55 63" fill="none" stroke="#ffe29a" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <g id="gate-monolith" transform="translate(288 0)">
+    <rect x="0" y="0" width="96" height="96" rx="18" fill="#0c1014"/>
+    <circle cx="48" cy="48" r="42" fill="url(#blue-glow)" opacity="0.75"/>
+    <g filter="url(#small-shadow)">
+      <path d="M31 77 L27 31 L39 16 L58 16 L69 31 L65 77 Z" fill="#10171c" stroke="#8bdff5" stroke-opacity="0.45" stroke-width="3"/>
+      <path d="M37 32 L47 22 L58 32 L54 66 L41 66 Z" fill="#1b2d36"/>
+      <path d="M43 39 L53 39" stroke="#ffd37a" stroke-opacity="0.65" stroke-width="3" stroke-linecap="round"/>
+      <path d="M40 49 L56 49" stroke="#ffd37a" stroke-opacity="0.4" stroke-width="3" stroke-linecap="round"/>
+      <path d="M43 59 L53 59" stroke="#ffd37a" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="48" cy="76" r="7" fill="#ffe29a"/>
+    </g>
+  </g>
+
+  <g id="loom-shard" transform="translate(384 0)">
+    <rect x="0" y="0" width="96" height="96" rx="18" fill="#191106"/>
+    <circle cx="48" cy="48" r="42" fill="url(#icon-glow)"/>
+    <g filter="url(#small-soft)">
+      <path d="M48 14 L66 42 L56 78 L38 78 L30 42 Z" fill="#fff3b8" stroke="#ffd37a" stroke-width="4"/>
+      <path d="M48 22 L56 44 L50 68 L42 68 L38 44 Z" fill="#f8b74d"/>
+      <path d="M25 46 C34 38 62 38 72 46" fill="none" stroke="#78d8f0" stroke-opacity="0.5" stroke-width="4" stroke-linecap="round"/>
+      <path d="M28 58 C37 66 59 66 68 58" fill="none" stroke="#78d8f0" stroke-opacity="0.38" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <g id="quiet-forge" transform="translate(480 0)">
+    <rect x="0" y="0" width="96" height="96" rx="18" fill="#1a1008"/>
+    <circle cx="48" cy="48" r="42" fill="url(#icon-glow)"/>
+    <g filter="url(#small-shadow)">
+      <path d="M22 67 L32 35 L64 35 L74 67 L66 78 L30 78 Z" fill="#4e2f19" stroke="#d89b4e" stroke-opacity="0.55" stroke-width="3"/>
+      <path d="M35 38 L48 22 L61 38 L57 62 L39 62 Z" fill="#d0802d"/>
+      <path d="M42 44 L48 31 L54 44 L52 56 L44 56 Z" fill="#fff1a8"/>
+      <rect x="30" y="67" width="36" height="6" rx="3" fill="#1c120d"/>
+      <path d="M25 28 C37 20 59 20 71 28" fill="none" stroke="#7fd6ed" stroke-opacity="0.3" stroke-width="3" stroke-linecap="round"/>
+      <path d="M24 80 L72 80" stroke="#ffd37a" stroke-opacity="0.4" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

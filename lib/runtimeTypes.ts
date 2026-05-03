@@ -35,6 +35,24 @@ const RuntimeEvalRunnerSchema = z.object({
   nextEligibleAt: z.string().optional(),
 });
 
+const RuntimeExperimentSummarySchema = z.object({
+  id: z.string().optional(),
+  createdAt: z.string().optional(),
+  title: z.string().optional(),
+  variantKind: z
+    .enum([
+      "prompt_delta",
+      "routing_preset_delta",
+      "memory_context_policy_delta",
+      "tool_selection_policy_delta",
+    ])
+    .optional(),
+  recommendation: z.enum(["reject", "review", "candidate_win"]).optional(),
+  verdict: z.enum(["regressed", "neutral", "improved"]).optional(),
+  scoreDelta: z.number().optional(),
+  summary: z.string().optional(),
+});
+
 const ForecastProviderStatusSchema = z.object({
   id: z.string().optional(),
   label: z.string().optional(),
@@ -223,6 +241,13 @@ export const RuntimeEvalPayloadSchema = z.object({
   latest: EvalPointSchema.nullable().optional(),
   history: z.array(EvalPointSchema).optional(),
   points: z.number().optional(),
+  experiments: z
+    .object({
+      latest: RuntimeExperimentSummarySchema.nullable().optional(),
+      points: z.number().optional(),
+      definitions: z.number().optional(),
+    })
+    .optional(),
   schedulerEfficiency: SchedulerEfficiencyEvalPayloadSchema.optional(),
   forecastEval: ForecastEvalPayloadSchema.optional(),
   freshness: z
@@ -267,6 +292,16 @@ export const StatusPayloadSchema = z.object({
   generatedAt: z.string().optional(),
   readiness: z
     .object({
+      experiments: z
+        .object({
+          runtimeVariants: z
+            .object({
+              baselineOnly: z.boolean().optional(),
+              latest: RuntimeExperimentSummarySchema.nullable().optional(),
+            })
+            .optional(),
+        })
+        .optional(),
       evalPolicy: z
         .object({
           rollup: z
@@ -276,6 +311,15 @@ export const StatusPayloadSchema = z.object({
               degradedReasons: z.array(z.string()).optional(),
             })
             .optional(),
+        })
+        .optional(),
+      toolIsolation: z
+        .object({
+          adapterReady: z.boolean().optional(),
+          requiredExecTools: z.number().optional(),
+          approvedExecTools: z.number().optional(),
+          status: z.enum(["not_required", "ready", "unavailable", "blocked"]).optional(),
+          reason: z.string().nullable().optional(),
         })
         .optional(),
     })

@@ -1,6 +1,12 @@
 "use client";
 
 import { apiFetch } from "@/lib/apiFetch";
+import type {
+  CorrectionMemoryContent,
+  CorrectionMemoryScope,
+  CorrectionMemorySensitivity,
+} from "@/lib/assistantSessionMemory";
+import type { AssistantCapabilityId } from "@/lib/assistantCapabilityRegistry";
 import { inferWorkflowPackIdFromText } from "@/lib/workflowPacks";
 import type { AgentStep } from "@/lib/agent";
 import {
@@ -27,6 +33,7 @@ import type {
 } from "@/lib/researchSources";
 import { inferEvidenceStrength } from "@/lib/researchSources";
 import type { MemoryCompartment } from "@/lib/memoryMining";
+import type { HQAssistantIntent, PreparedWorkspaceTarget } from "./types";
 
 interface OfficeRunArgs {
   target: AgentId;
@@ -50,6 +57,19 @@ interface OfficeWorkflowArtifactArgs extends OfficeRunArgs {
     evidenceStrength?: EvidenceStrength;
     extraTags?: string[];
   };
+}
+
+interface OfficeCorrectionProposalArgs extends OfficeRunArgs {
+  assistantIntent: HQAssistantIntent;
+  capabilityId: AssistantCapabilityId;
+  routeHint?: string | null;
+  preparedWorkspace?: PreparedWorkspaceTarget | null;
+}
+
+export interface OfficeCorrectionProposalDraft {
+  scope: Partial<CorrectionMemoryScope>;
+  content: CorrectionMemoryContent;
+  sensitivity: CorrectionMemorySensitivity;
 }
 
 function getToolCallNames(steps: AgentStep[]) {
@@ -320,4 +340,117 @@ export function buildOfficeRunLessonProposal({
   if (toolCallCount < 2 || result.length < 150) return null;
   const firstLine = getFirstSubstantiveLine(result);
   return `When handling "${query.slice(0, 60).trim()}…" style queries, ${target.toUpperCase()} used ${toolCallCount} tool calls. Key pattern: ${firstLine.trim().slice(0, 120)}`;
+}
+
+function extractRepoFilePath(query: string) {
+  return (
+    query.match(
+      /\b(?:app|components|lib|store|hooks|scripts|tests|docs)\/[A-Za-z0-9._/-]+\.(?:[cm]?tsx?|md|mjs|json)\b/,
+    )?.[0] ?? null
+  );
+}
+
+export function buildOfficeRunCorrectionProposal({
+  query,
+  result,
+  steps,
+  target,
+  assistantIntent,
+  capabilityId,
+  routeHint,
+  preparedWorkspace,
+}: OfficeCorrectionProposalArgs): OfficeCorrectionProposalDraft | null {
+  const normalizedQuery = query.trim();
+  const toolCallCount = steps.filter((step) => step.type === "tool_call").length;
+  const firstLine = getFirstSubstantiveLine(result).trim();
+  if (!normalizedQuery || (!firstLine && toolCallCount === 0)) {
+    return null;
+  }
+
+  const filePath = extractRepoFilePath(normalizedQuery);
+  const routeSurface = routeHint ?? preparedWorkspace?.href ?? null;
+  const scope: Partial<CorrectionMemoryScope> = {
+    routeSurface,
+    agent: target,
+    filePathPrefixes: filePath ? [filePath] : [],
+    taskType: assistantIntent,
+    capability: capabilityId,
+  };
+  const lower = `${normalizedQuery}\n${firstLine}`.toLowerCase();
+
+  if (
+    assistantIntent === "repo_work" ||
+    Boolean(filePath)
+  ) {
+    return {
+      scope,
+      sensitivity: "internal",
+      content: {
+        rule:
+          filePath
+            ? `For repo-work turns touching ${filePath}, keep the run anchored to the named file or lane before widening scope.`
+            : "For repo-work turns, ground the run in the named file, surface, or implementation lane before widening scope.",
+        preferredBehavior:
+          "Read the referenced code path first, keep edits bounded to the named lane, and only widen into adjacent files when the operator or the evidence clearly requires it.",
+      },
+    };
+  }
+
+  if (
+    assistantIntent === "research" ||
+    assistantIntent === "memory_recall" ||
+    assistantIntent === "live_current" ||
+    /\b(source|sources|citation|cite|evidence|verify|retriev|research)\b/i.test(
+      lower,
+    )
+  ) {
+    return {
+      scope,
+      sensitivity: "safe",
+      content: {
+        rule:
+          "For evidence-heavy research turns, keep observed facts and inferred reasoning separated instead of blending them into one confidence lane.",
+        preferredBehavior:
+          "Lead with the verified answer, cite the strongest retrieved evidence, and keep verify-next actions compact instead of burying them in the body.",
+      },
+    };
+  }
+
+  if (
+    /\b(local|isolated|offline|privacy|shield|redact|mask|inside the network|no cloud)\b/i.test(
+      lower,
+    )
+  ) {
+    return {
+      scope,
+      sensitivity: "restricted",
+      content: {
+        rule:
+          "For privacy-sensitive turns, keep cloud dispatch constrained and protect local identifiers before anything leaves the box.",
+        preferredBehavior:
+          "Prefer local inference when available, redact local hosts and protected paths on cloud-bound turns, and fail closed when the payload still carries sensitive evidence.",
+      },
+    };
+  }
+
+  if (
+    preparedWorkspace ||
+    assistantIntent === "archive_continuity" ||
+    /\b(continue|resume|pick up|handoff|exact session|same lane|continuity)\b/i.test(
+      lower,
+    )
+  ) {
+    return {
+      scope,
+      sensitivity: "internal",
+      content: {
+        rule:
+          "For continuity turns, preserve the active lane and the prepared workspace instead of resetting the operator back to a broad route.",
+        preferredBehavior:
+          "Keep the answer tied to the prepared session, state the next move clearly, and only widen into other surfaces when the operator explicitly asks for it.",
+      },
+    };
+  }
+
+  return null;
 }

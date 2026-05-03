@@ -200,7 +200,7 @@ function buildIndexFile(
   const lines = [
     `# Second Brain — ${label}`,
     ``,
-    `> Exported from Nexus Prime · Mode: **${label}**`,
+    `> Exported from Homefront · Mode: **${label}**`,
     `> Date: ${new Date().toISOString().slice(0, 10)}`,
     ``,
     `## Navigation`,

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "mw6-endgame-foundation-v1",
+  "defaultDifficultyTierId": "oathbound",
+  "postgameUnlockFlags": ["final:hollow-regent-defeated", "postgame:relic-trials-unlocked"],
+  "previewUnlockFlags": ["defeated:brass-warden", "loot:gate-key-fragment"],
+  "difficultyTiers": [
+    { "id": "story", "label": "Story", "enemyScale": 0.85, "rewardScale": 0.75, "summary": "Gentle repeatable runs for lore, collections, and recovery." },
+    { "id": "oathbound", "label": "Oathbound", "enemyScale": 1, "rewardScale": 1, "summary": "Baseline postgame difficulty for local-first endgame progress." },
+    { "id": "ascendant", "label": "Ascendant", "enemyScale": 1.22, "rewardScale": 1.25, "summary": "Sharper elite packs and better relic dust rewards." },
+    { "id": "mythic", "label": "Mythic", "enemyScale": 1.5, "rewardScale": 1.6, "summary": "Boss rematches gain extra phase pressure and rare catalysts." },
+    { "id": "crownless", "label": "Crownless", "enemyScale": 1.85, "rewardScale": 2.1, "summary": "Final local challenge tier for perfected builds and cosmetic hunting." }
+  ],
+  "dungeonArchetypes": [
+    { "id": "reliquary-vault", "name": "Reliquary Vault", "objective": "Recover a relic heart before the vault vents awaken.", "roomCount": 5, "rewardTrackId": "relic-trial-cache" },
+    { "id": "echo-catacomb", "name": "Echo Catacomb", "objective": "Silence three memory bells while undead pressure rises.", "roomCount": 6, "rewardTrackId": "codex-cache" },
+    { "id": "forge-gauntlet", "name": "Forge Gauntlet", "objective": "Survive heat waves and temper the final anvil.", "roomCount": 5, "rewardTrackId": "crafting-cache" },
+    { "id": "roadbreaker-nest", "name": "Roadbreaker Nest", "objective": "Clear elite packs that block fast-travel routes.", "roomCount": 4, "rewardTrackId": "travel-cache" },
+    { "id": "mirror-labyrinth", "name": "Mirror Labyrinth", "objective": "Find the true door while clones copy the hero.", "roomCount": 7, "rewardTrackId": "cosmetic-cache" },
+    { "id": "citadel-breach", "name": "Citadel Breach", "objective": "Push through storm wards and defeat the breach captain.", "roomCount": 6, "rewardTrackId": "boss-cache" }
+  ],
+  "eliteAffixRotations": [
+    { "id": "iron-vow", "label": "Iron Vow", "traitIds": ["armored", "shielded"], "buffIds": ["guard"], "debuffIds": ["cracked-armor"], "rewardMultiplier": 1.08 },
+    { "id": "ash-blood", "label": "Ash Blood", "traitIds": ["bloodied", "enraged"], "buffIds": ["rage"], "debuffIds": ["burn"], "rewardMultiplier": 1.1 },
+    { "id": "glass-echo", "label": "Glass Echo", "traitIds": ["spectral", "swift"], "buffIds": ["haste"], "debuffIds": ["exposed"], "rewardMultiplier": 1.1 },
+    { "id": "moss-thorns", "label": "Moss Thorns", "traitIds": ["regenerating", "city-bound"], "buffIds": ["thorns"], "debuffIds": ["poison"], "rewardMultiplier": 1.12 },
+    { "id": "nacre-ward", "label": "Nacre Ward", "traitIds": ["warded", "packbound"], "buffIds": ["ward-bloom"], "debuffIds": ["slow"], "rewardMultiplier": 1.14 },
+    { "id": "star-chant", "label": "Star Chant", "traitIds": ["summoner", "flying"], "buffIds": ["pack-chant"], "debuffIds": ["silence"], "rewardMultiplier": 1.16 },
+    { "id": "gloam-curse", "label": "Gloam Curse", "traitIds": ["cursed", "burrowing"], "buffIds": ["haste"], "debuffIds": ["cursed", "fear"], "rewardMultiplier": 1.18 },
+    { "id": "crownless-fury", "label": "Crownless Fury", "traitIds": ["elite", "boss"], "buffIds": ["relic-fury"], "debuffIds": ["mana-drain"], "rewardMultiplier": 1.25 }
+  ],
+  "relicTrialRules": [
+    { "id": "oath-trial", "label": "Oath Trial", "statFocus": "ward", "damageType": "physical", "mechanic": "Hold a shrine circle while shielded enemies close in." },
+    { "id": "ember-trial", "label": "Ember Trial", "statFocus": "might", "damageType": "ember", "mechanic": "Break burning pylons before the arena overheats." },
+    { "id": "mirror-trial", "label": "Mirror Trial", "statFocus": "crit", "damageType": "void", "mechanic": "Identify the true target among reflected enemies." },
+    { "id": "root-trial", "label": "Root Trial", "statFocus": "resonance", "damageType": "poison", "mechanic": "Cleanse roots without letting the altar regenerate." },
+    { "id": "star-trial", "label": "Star Trial", "statFocus": "focus", "damageType": "holy", "mechanic": "Interrupt summons under moving constellations." },
+    { "id": "road-trial", "label": "Road Trial", "statFocus": "speed", "damageType": "bleed", "mechanic": "Dash between safe camps before ambush packs converge." }
+  ],
+  "bossRematchRules": [
+    { "id": "phase-memory", "summary": "Boss starts at phase two with codex weakness already visible.", "rewardTrackId": "boss-cache" },
+    { "id": "elite-witness", "summary": "Boss gains one rotating elite affix and drops rare catalysts.", "rewardTrackId": "crafting-cache" },
+    { "id": "companion-oath", "summary": "Companion loyalty widens the phase-break window.", "rewardTrackId": "cosmetic-cache" },
+    { "id": "crownless-echo", "summary": "Post-finale rematch echoes Hollow Regent mechanics.", "rewardTrackId": "relic-trial-cache" }
+  ],
+  "treasureMapRules": [
+    { "id": "shrine-cache", "label": "Shrine Cache", "requiredClueCount": 1, "rewardTrackId": "codex-cache" },
+    { "id": "hidden-room", "label": "Hidden Room", "requiredClueCount": 2, "rewardTrackId": "travel-cache" },
+    { "id": "sealed-chest", "label": "Sealed Chest", "requiredClueCount": 2, "rewardTrackId": "crafting-cache" },
+    { "id": "old-boss-hoard", "label": "Old Boss Hoard", "requiredClueCount": 3, "rewardTrackId": "boss-cache" }
+  ],
+  "arenaChallenges": [
+    { "id": "wardbreaker-arena", "classId": "wardbreaker", "label": "Gatebreaker Arena", "objective": "Stagger three shielded elites before time expires." },
+    { "id": "relicweaver-arena", "classId": "relicweaver", "label": "Loomcaller Arena", "objective": "Chain relic pulses through summoned echoes." },
+    { "id": "ashrunner-arena", "classId": "ashrunner", "label": "Roadflame Arena", "objective": "Defeat scouts while staying inside moving route circles." },
+    { "id": "oathblade-arena", "classId": "oathblade", "label": "Kept Promise Arena", "objective": "Win a duel without breaking the vow circle." },
+    { "id": "thornwarden-arena", "classId": "thornwarden", "label": "Green Bulwark Arena", "objective": "Root packs and protect a living ward." },
+    { "id": "gravechanter-arena", "classId": "gravechanter", "label": "Quiet Chorus Arena", "objective": "Silence undead waves with timed chants." },
+    { "id": "ember-monk-arena", "classId": "ember-monk", "label": "Furnace Palm Arena", "objective": "Maintain heat rhythm through elite pressure." },
+    { "id": "wayfarer-arena", "classId": "wayfarer", "label": "Safe Camp Arena", "objective": "Use traps, range, and campfire resets to clear the road." }
+  ],
+  "collectionGoals": [
+    { "id": "city-reputation-completion", "label": "City Reputation Completion", "target": 12, "summary": "Reach trusted or better in every major city." },
+    { "id": "postgame-codex-completion", "label": "Postgame Codex Completion", "target": 16, "summary": "Reveal every enemy family and boss weakness." },
+    { "id": "subcity-secret-completion", "label": "Sub-City Secret Completion", "target": 48, "summary": "Clear every timed side room and treasure route." },
+    { "id": "trial-master", "label": "Trial Master", "target": 12, "summary": "Complete one relic trial in every city." },
+    { "id": "boss-memory-cycle", "label": "Boss Memory Cycle", "target": 19, "summary": "Complete city, act, and world-boss rematches." },
+    { "id": "arena-build-proving", "label": "Arena Build Proving", "target": 8, "summary": "Clear every class arena challenge." },
+    { "id": "cosmetic-vault", "label": "Cosmetic Vault", "target": 8, "summary": "Claim the major postgame cosmetic reward set." }
+  ],
+  "cosmeticRewards": [
+    { "id": "hearthcloak", "label": "Hearthcloak", "sourceGoalId": "city-reputation-completion", "paletteAccent": "#f4a261" },
+    { "id": "glass-circlet", "label": "Glass Circlet", "sourceGoalId": "postgame-codex-completion", "paletteAccent": "#8ecae6" },
+    { "id": "mossmantle", "label": "Mossmantle", "sourceGoalId": "subcity-secret-completion", "paletteAccent": "#90be6d" },
+    { "id": "star-sash", "label": "Star Sash", "sourceGoalId": "trial-master", "paletteAccent": "#facc15" },
+    { "id": "crownless-ink", "label": "Crownless Ink", "sourceGoalId": "boss-memory-cycle", "paletteAccent": "#c084fc" },
+    { "id": "arena-brand", "label": "Arena Brand", "sourceGoalId": "arena-build-proving", "paletteAccent": "#fb7185" },
+    { "id": "reliquary-gold", "label": "Reliquary Gold", "sourceGoalId": "cosmetic-vault", "paletteAccent": "#ffd166" },
+    { "id": "quiet-oracle-pip", "label": "Quiet Oracle Pip", "sourceGoalId": "postgame-codex-completion", "paletteAccent": "#f8fafc" }
+  ],
+  "rewardTracks": [
+    { "id": "relic-trial-cache", "currencyId": "relic-dust", "quantity": 2, "summary": "Relic dust, trial flags, and cosmetic fragments." },
+    { "id": "crafting-cache", "currencyId": "upgrade-shard", "quantity": 3, "summary": "Upgrade shards and rare crafting pressure." },
+    { "id": "boss-cache", "currencyId": "rare-catalyst", "quantity": 1, "summary": "Rare catalyst plus boss codex credit." },
+    { "id": "codex-cache", "currencyId": "gold", "quantity": 35, "summary": "Gold and lore completion credit." },
+    { "id": "travel-cache", "currencyId": "city-scrip", "quantity": 2, "summary": "City scrip and route safety credit." },
+    { "id": "cosmetic-cache", "currencyId": "relic-dust", "quantity": 1, "summary": "Cosmetic unlock pressure and light relic dust." }
+  ]
+}

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import DeveloperFieldManual from "@/components/resources/DeveloperFieldManual";
+import MassiveWinConsole from "@/components/resources/MassiveWinConsole";
 import PlaybooksConsole from "@/components/resources/PlaybooksConsole";
 import ProjectImpactConsole from "@/components/resources/ProjectImpactConsole";
 import RegistryConsole from "@/components/resources/RegistryConsole";
@@ -50,7 +51,8 @@ type View =
   | "registry"
   | "kits"
   | "impact"
-  | "voice-lab";
+  | "voice-lab"
+  | "wins";
 
 const CHAMBERS: Array<{ id: ResourcesChamberId; label: string }> = [
   { id: "finder", label: "Find lane" },
@@ -59,6 +61,7 @@ const CHAMBERS: Array<{ id: ResourcesChamberId; label: string }> = [
   { id: "system", label: "System" },
   { id: "launch", label: "Open session" },
   { id: "utilities", label: "Utilities" },
+  { id: "wins", label: "Massive wins" },
 ];
 
 const START_VIEWS: Array<{ id: Extract<View, "manual" | "playbooks" | "specs">; label: string }> = [
@@ -104,6 +107,8 @@ function resolvePanelModuleId(view: View) {
     case "finder":
     case "impact":
       return "open-exact-session";
+    case "wins":
+      return "massive-win-plans";
     case "playbooks":
     case "specs":
     case "study":
@@ -156,6 +161,8 @@ function renderPanelContent(
       );
     case "voice-lab":
       return <VoiceLabConsole projectId={opts?.projectId} />;
+    case "wins":
+      return <MassiveWinConsole />;
     default:
       return null;
   }
@@ -197,7 +204,8 @@ export default function ResourcesWorkbench() {
       value === "registry" ||
       value === "kits" ||
       value === "impact" ||
-      value === "voice-lab"
+      value === "voice-lab" ||
+      value === "wins"
     )
       ? value
       : null;
@@ -272,43 +280,19 @@ export default function ResourcesWorkbench() {
     "Curated repos that sharpen this chamber without widening the shell.",
     "guidance",
   );
+  const activeChamberLabel =
+    CHAMBERS.find((entry) => entry.id === chamber)?.label ?? activeViewSpec.introTitle;
+  const stackCountLabel = `${chamberIntegrationHighlights.length} fit${
+    chamberIntegrationHighlights.length === 1 ? "" : "s"
+  }`;
+  const categorySignals = CATEGORY_ORDER.map((category) => ({
+    category,
+    label: DEVELOPER_RESOURCE_CATEGORIES[category],
+    count: counts[category],
+  }));
 
   return (
     <ShellStack>
-      {howThisHelpsSpec ? (
-        <details className="nexus-surface-disclosure">
-          <summary>How This Helps</summary>
-          <div className="nexus-surface-disclosure__body">
-            <OpsField title={howThisHelpsSpec.title} detail={howThisHelpsSpec.detail} tone="muted" compact>
-              <div className="nexus-shell-copy nexus-shell-copy--compact">
-                <p>
-                  The field manual now condenses around six chambers: find the
-                  lane, start safely, study, understand the system, open the
-                  exact session, and reach the supporting utilities only when
-                  they actually help the turn.
-                </p>
-              </div>
-              <div className="nexus-shell-stat-grid">
-                {CATEGORY_ORDER.map((category) => (
-                  <div
-                    key={category}
-                    className="nexus-shell-stat-card"
-                    data-tone={category}
-                  >
-                    <span className="nexus-shell-stat-card__value">
-                      {counts[category]}
-                    </span>
-                    <span className="nexus-shell-stat-card__label">
-                      {DEVELOPER_RESOURCE_CATEGORIES[category]}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </OpsField>
-          </div>
-        </details>
-      ) : null}
-
       <ShellSegmentedTabs
         items={CHAMBERS}
         active={chamber}
@@ -317,21 +301,65 @@ export default function ResourcesWorkbench() {
         className="nexus-shell-segmented--compactLane"
       />
 
+      <div className="nexus-resources-mission-strip" aria-label="Resources chamber orientation">
+        <div className="nexus-resources-mission-strip__lead">
+          <span className="nexus-resources-mission-strip__eyebrow">
+            Active chamber
+          </span>
+          <strong>{activeChamberLabel}</strong>
+          <p>{activeViewSpec.introSummary}</p>
+        </div>
+        <div className="nexus-resources-mission-strip__signals" aria-label="Resources quick status">
+          <span>
+            <span>View</span>
+            <strong>{activeViewSpec.introTitle}</strong>
+          </span>
+          <span>
+            <span>Support</span>
+            <strong>{activeViewSpec.introDetail}</strong>
+          </span>
+          <span>
+            <span>Stack</span>
+            <strong>{stackCountLabel}</strong>
+          </span>
+        </div>
+        {howThisHelpsSpec ? (
+          <details className="nexus-resources-mission-strip__detail">
+            <summary>{howThisHelpsSpec.title}</summary>
+            <div className="nexus-resources-mission-strip__detailBody">
+              <p>{howThisHelpsSpec.summary}</p>
+              <div className="nexus-resources-mission-strip__coverage">
+                {categorySignals.map((signal) => (
+                  <span key={signal.category}>
+                    <strong>{signal.count}</strong>
+                    <span>{signal.label}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </details>
+        ) : null}
+      </div>
+
       <div className="nexus-surface-chamber-shell">
         <div className="nexus-surface-chamber-shell__body">
           <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${resourcesLayout.railClass}`}>
-            <OpsField title={introSpec.title} detail={introSpec.detail} tone="muted" compact>
-              <div className="nexus-shell-copy nexus-shell-copy--compact">
+            <OpsField title={introSpec.title} detail={introSpec.detail} tone="muted" compact className="nexus-resources-support-field">
+              <div className="nexus-resources-support-summary">
                 <p>{activeViewSpec.introSummary}</p>
-              </div>
-              <div className="nexus-shell-actions">
-                <ShellBadge tone="accent">{activeViewSpec.introTitle}</ShellBadge>
-                <ShellBadge tone="muted">{activeViewSpec.introDetail}</ShellBadge>
+                <div className="nexus-shell-actions">
+                  <ShellBadge tone="accent">{activeViewSpec.introTitle}</ShellBadge>
+                  <ShellBadge tone="muted">{activeViewSpec.introDetail}</ShellBadge>
+                </div>
               </div>
             </OpsField>
 
             {chamberIntegrationHighlights.length ? (
               <OpsField title={stackSpec.title} detail={stackSpec.detail} tone="muted" compact>
+                <div className="nexus-resources-rail-preview" aria-label="External stack preview">
+                  <span>{stackCountLabel}</span>
+                  <span>{activeChamberLabel}</span>
+                </div>
                 <details
                   className="nexus-surface-disclosure"
                   open={stackExpanded}
@@ -346,7 +374,7 @@ export default function ResourcesWorkbench() {
                         without breaking the Satellite Ops workplane.
                       </p>
                     </div>
-                    <div style={{ display: "grid", gap: "10px" }}>
+                    <div className="nexus-resources-external-stack">
                       {chamberIntegrationHighlights.map((resource) => (
                         <a
                           key={resource.href}
@@ -391,6 +419,11 @@ export default function ResourcesWorkbench() {
               tone="muted"
               compact
             >
+              <div className="nexus-resources-rail-preview" aria-label="Operator readiness preview">
+                <span>Secrets local</span>
+                <span>Governed</span>
+                <span>Browser-aware</span>
+              </div>
               <details
                 className="nexus-surface-disclosure"
                 open={readinessExpanded}

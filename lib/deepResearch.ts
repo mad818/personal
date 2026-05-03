@@ -188,7 +188,7 @@ export function buildDeepResearchSynthesisPrompt(
       : "No source pages were fetched successfully.";
 
   return [
-    "You are NOVA's deep-research synthesis engine for Nexus Prime.",
+    "You are NOVA's deep-research synthesis engine for Homefront.",
     "Return JSON only.",
     "Use this exact shape:",
     "{",

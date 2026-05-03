@@ -3,6 +3,11 @@ import "server-only";
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import {
+  classifyMemoryArtifact,
+  type ArtifactClassification,
+  type ArtifactSensitivity,
+} from "@/lib/artifactClassification";
+import {
   detectMemoryVisibility,
   guessMemoryDomain,
   materializeMemorySpineItem,
@@ -64,6 +69,7 @@ export interface CompiledMemoryPage {
   continuity: ArtifactContinuityMetadata;
   researchSignals: CompiledMemoryResearchSignals;
   documentMetadata?: CompiledMemoryDocumentMetadata;
+  artifactClassification: ArtifactClassification;
   createdAt: number;
   updatedAt: number;
 }
@@ -112,6 +118,14 @@ function sanitizeDocumentPageCount(value?: number) {
   if (!Number.isFinite(value)) return undefined;
   const pageCount = Math.floor(Number(value));
   return pageCount > 0 && pageCount <= 5000 ? pageCount : undefined;
+}
+
+function toArtifactSensitivity(visibility: MemoryVisibility): ArtifactSensitivity {
+  return visibility === "restricted"
+    ? "restricted"
+    : visibility === "internal"
+      ? "internal"
+      : "safe";
 }
 
 const DOCUMENT_HINTS: Array<{ label: string; pattern: RegExp }> = [
@@ -281,10 +295,22 @@ function normalizeCompiledMemoryPage(
   const tags = continuity.continuityTag
     ? uniqueTags([...page.tags, continuity.continuityTag])
     : uniqueTags(page.tags);
+  const visibility = page.visibility;
+  const artifactClassification = classifyMemoryArtifact({
+    workflowId: page.workflowId,
+    route: page.route,
+    visibility: toArtifactSensitivity(visibility),
+    tags,
+    content: page.content ?? "",
+    documentMetadata,
+    researchSignals: page.researchSignals,
+    continuity,
+  });
   return {
     ...page,
     tags,
     continuity,
+    artifactClassification,
     contentPreview:
       typeof page.contentPreview === "string" && page.contentPreview.trim().length > 0
         ? page.contentPreview
@@ -517,12 +543,30 @@ export async function createCompiledMemoryPage(input: {
     }),
     researchSignals,
     documentMetadata,
+    artifactClassification: {
+      artifactType: "compiled_memory_page",
+      confidence: 0.64,
+      parserHint: "markdown",
+      sensitive: false,
+      sensitivity: "safe",
+      reasons: [],
+    },
     createdAt: now,
     updatedAt: now,
   };
   page.tags = page.continuity.continuityTag
     ? uniqueTags([...page.tags, page.continuity.continuityTag])
     : uniqueTags(page.tags);
+  page.artifactClassification = classifyMemoryArtifact({
+    workflowId: page.workflowId,
+    route: page.route,
+    visibility: toArtifactSensitivity(page.visibility),
+    tags: page.tags,
+    content: page.content,
+    documentMetadata: page.documentMetadata,
+    researchSignals: page.researchSignals,
+    continuity: page.continuity,
+  });
 
   const pages = await readPages();
   const next = [page, ...pages].slice(0, 160);

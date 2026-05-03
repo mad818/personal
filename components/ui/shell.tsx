@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import type {
   CSSProperties,
   PointerEvent as ReactPointerEvent,
   ReactNode,
 } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import PageTransition from "@/components/ui/PageTransition";
 import SpatialCommandStrip from "@/components/ui/SpatialCommandStrip";
@@ -22,6 +24,20 @@ import {
 type ShellWidth = "standard" | "wide" | "full";
 type ShellSurface = SurfaceMotionSurface;
 type ShellHeroDensity = "standard" | "compact";
+type HomefrontLiveState = {
+  runtimeStatus: "checking" | "online" | "degraded";
+  runtimeAgeLabel: string;
+  evalGrade: string;
+  evalPosture: string;
+  networkMode: string;
+  lastCheckedLabel: string;
+};
+type HomefrontRouteState = {
+  pathname: string | null;
+  focus: string | null;
+  view: string | null;
+};
+type HomefrontLiveSignalState = HomefrontLiveState["runtimeStatus"];
 
 const SURFACE_ART: Record<
   ShellSurface,
@@ -345,6 +361,118 @@ function resolveHomefrontThreshold(
   );
 }
 
+function humanizeRouteToken(rawValue?: string | null) {
+  const value = rawValue?.trim();
+  if (!value) return "Route root";
+  return value
+    .replace(/^\/+/, "")
+    .replace(/^hq-/, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatRuntimeAge(ageSeconds?: number | null) {
+  if (typeof ageSeconds !== "number" || !Number.isFinite(ageSeconds)) {
+    return "Checking";
+  }
+  if (ageSeconds < 60) return `${Math.max(0, Math.round(ageSeconds))}s`;
+  const ageMinutes = Math.floor(ageSeconds / 60);
+  if (ageMinutes < 60) return `${ageMinutes}m`;
+  return `${Math.floor(ageMinutes / 60)}h`;
+}
+
+function readStatusString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+const initialHomefrontLiveState: HomefrontLiveState = {
+  runtimeStatus: "checking",
+  runtimeAgeLabel: "Checking",
+  evalGrade: "Checking",
+  evalPosture: "Readiness pending",
+  networkMode: "Local",
+  lastCheckedLabel: "Mounting",
+};
+
+const homefrontLiveMetaStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "7px",
+  width: "fit-content",
+  minHeight: "24px",
+  marginTop: "3px",
+  border: "1px solid rgba(255, 255, 255, 0.1)",
+  borderRadius: "999px",
+  padding: "0 9px",
+  color: "rgba(232, 244, 255, 0.64)",
+  fontSize: "10px",
+  fontWeight: 800,
+  lineHeight: 1,
+  whiteSpace: "nowrap",
+};
+
+const homefrontLiveDotBaseStyle: CSSProperties = {
+  width: "7px",
+  height: "7px",
+  borderRadius: "999px",
+  background: "rgba(255, 255, 255, 0.45)",
+  boxShadow: "0 0 0 4px rgba(255, 255, 255, 0.04)",
+};
+
+const homefrontSignalIndexBaseStyle: CSSProperties = {
+  display: "inline-flex",
+  width: "fit-content",
+  minWidth: "20px",
+  minHeight: "18px",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: "999px",
+};
+
+const homefrontSignalDegradedStyle: CSSProperties = {
+  borderColor: "rgba(255, 184, 107, 0.2)",
+};
+
+function getHomefrontStateAccentStyle(
+  state: HomefrontLiveSignalState,
+): CSSProperties {
+  if (state === "online") {
+    return {
+      background: "rgba(106, 255, 204, 0.86)",
+      boxShadow: "0 0 0 4px rgba(106, 255, 204, 0.08)",
+      color: "rgba(2, 10, 12, 0.88)",
+    };
+  }
+  if (state === "degraded") {
+    return {
+      background: "rgba(255, 184, 107, 0.9)",
+      boxShadow: "0 0 0 4px rgba(255, 184, 107, 0.08)",
+      color: "rgba(2, 10, 12, 0.88)",
+    };
+  }
+  return {};
+}
+
+function getHomefrontLiveDotStyle(
+  state: HomefrontLiveSignalState,
+): CSSProperties {
+  return {
+    ...homefrontLiveDotBaseStyle,
+    ...getHomefrontStateAccentStyle(state),
+  };
+}
+
+function getHomefrontSignalIndexStyle(
+  state: HomefrontLiveSignalState,
+): CSSProperties {
+  return {
+    ...homefrontSignalIndexBaseStyle,
+    ...getHomefrontStateAccentStyle(state),
+  };
+}
+
 function setStagePointerVars(target: HTMLElement, x: number, y: number) {
   const px = Math.min(Math.max(x, 0), 1);
   const py = Math.min(Math.max(y, 0), 1);
@@ -473,12 +601,179 @@ function HomefrontCommandThreshold({
   branding: ReturnType<typeof getSurfaceBranding>;
 }) {
   const spec = resolveHomefrontThreshold(surface, art, branding);
+  const pathname = usePathname();
+  const [routeState, setRouteState] = useState<HomefrontRouteState>({
+    pathname: null,
+    focus: null,
+    view: null,
+  });
+  const [liveState, setLiveState] = useState<HomefrontLiveState>(
+    initialHomefrontLiveState,
+  );
+  const focusLabel = useMemo(() => {
+    const focus = routeState.focus ?? routeState.view ?? pathname ?? surface;
+    return humanizeRouteToken(focus);
+  }, [pathname, routeState.focus, routeState.view, surface]);
+  const routeLabel = useMemo(
+    () => humanizeRouteToken(routeState.pathname ?? pathname ?? `/${surface}`),
+    [pathname, routeState.pathname, surface],
+  );
+  const liveSignals = useMemo<
+    Array<{ label: string; value: string; state: HomefrontLiveSignalState }>
+  >(
+    () => [
+      {
+        label: "Runtime",
+        value:
+          liveState.runtimeStatus === "online"
+            ? liveState.runtimeAgeLabel
+            : liveState.runtimeStatus === "degraded"
+              ? "Degraded"
+              : "Checking",
+        state: liveState.runtimeStatus,
+      },
+      {
+        label: "Focus",
+        value: focusLabel,
+        state: "online",
+      },
+      {
+        label: "Readiness",
+        value: liveState.evalGrade,
+        state:
+          liveState.evalGrade === "Checking" || liveState.evalGrade === "Stale"
+            ? "checking"
+            : "online",
+      },
+    ],
+    [
+      focusLabel,
+      liveState.evalGrade,
+      liveState.runtimeAgeLabel,
+      liveState.runtimeStatus,
+    ],
+  );
+  const proofChips = useMemo(
+    () => [
+      NEXUS_FREE_USE_LABEL,
+      "Session active",
+      `Route ${routeLabel}`,
+      `Mode ${liveState.networkMode}`,
+      liveState.evalPosture,
+      ...spec.proof.slice(1, 2),
+    ],
+    [liveState.evalPosture, liveState.networkMode, routeLabel, spec.proof],
+  );
+
+  useEffect(() => {
+    function syncRouteState() {
+      const params = new URLSearchParams(window.location.search);
+      setRouteState({
+        pathname: window.location.pathname || null,
+        focus: params.get("focus"),
+        view: params.get("view"),
+      });
+    }
+
+    syncRouteState();
+    window.addEventListener("popstate", syncRouteState);
+    window.addEventListener("hashchange", syncRouteState);
+    return () => {
+      window.removeEventListener("popstate", syncRouteState);
+      window.removeEventListener("hashchange", syncRouteState);
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshLiveState() {
+      const nextState: HomefrontLiveState = {
+        ...initialHomefrontLiveState,
+        lastCheckedLabel: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+
+      try {
+        const healthResponse = await fetch("/api/health", {
+          cache: "no-store",
+        });
+        if (healthResponse.ok) {
+          const health = (await healthResponse.json()) as {
+            status?: string;
+            runtime?: { ageSeconds?: number | null };
+          };
+          nextState.runtimeStatus =
+            health.status === "ok" ? "online" : "degraded";
+          nextState.runtimeAgeLabel = formatRuntimeAge(
+            health.runtime?.ageSeconds,
+          );
+        } else {
+          nextState.runtimeStatus = "degraded";
+          nextState.runtimeAgeLabel = "No reply";
+        }
+      } catch {
+        nextState.runtimeStatus = "degraded";
+        nextState.runtimeAgeLabel = "No reply";
+      }
+
+      try {
+        const statusResponse = await fetch("/api/status", {
+          cache: "no-store",
+        });
+        if (statusResponse.ok) {
+          const status = (await statusResponse.json()) as {
+            summary?: { networkMode?: unknown };
+            readiness?: {
+              evalPolicy?: {
+                rollup?: {
+                  grade?: unknown;
+                  stale?: unknown;
+                  degradedReasons?: unknown;
+                };
+              };
+            };
+          };
+          nextState.networkMode =
+            readStatusString(status.summary?.networkMode) ?? "Local";
+          const rollup = status.readiness?.evalPolicy?.rollup;
+          const grade = readStatusString(rollup?.grade);
+          nextState.evalGrade = grade ?? "Unknown";
+          const degradedReasons = Array.isArray(rollup?.degradedReasons)
+            ? rollup.degradedReasons.length
+            : 0;
+          nextState.evalPosture =
+            rollup?.stale === true
+              ? "Readiness stale"
+              : degradedReasons > 0
+                ? `${degradedReasons} readiness notes`
+                : "Readiness current";
+        }
+      } catch {
+        // Silent fallback keeps the shell usable when protected diagnostics are unavailable.
+      }
+
+      if (!cancelled) {
+        setLiveState(nextState);
+      }
+    }
+
+    refreshLiveState();
+    const intervalId = window.setInterval(refreshLiveState, 60_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   return (
     <section
       className="nexus-shell-commandThreshold"
       data-testid="homefront-command-threshold"
       data-surface={surface}
+      data-live-state={liveState.runtimeStatus}
       aria-label={`${branding.visibleLabel} Homefront threshold`}
     >
       <div className="nexus-shell-commandThreshold__header">
@@ -489,17 +784,38 @@ function HomefrontCommandThreshold({
           {spec.title}
         </strong>
         <span className="nexus-shell-commandThreshold__body">{spec.body}</span>
+        <span
+          className="nexus-shell-commandThreshold__liveMeta"
+          style={homefrontLiveMetaStyle}
+        >
+          <span
+            className="nexus-shell-commandThreshold__liveDot"
+            data-state={liveState.runtimeStatus}
+            style={getHomefrontLiveDotStyle(liveState.runtimeStatus)}
+            aria-hidden="true"
+          />
+          Live shell proof / checked {liveState.lastCheckedLabel}
+        </span>
       </div>
       <div
         className="nexus-shell-commandThreshold__grid"
         aria-label="Surface signals"
       >
-        {spec.signals.map((signal, index) => (
+        {liveSignals.map((signal, index) => (
           <div
             key={`${surface}-${signal.label}-${signal.value}`}
             className="nexus-shell-commandThreshold__signal"
+            data-state={signal.state}
+            style={
+              signal.state === "degraded"
+                ? homefrontSignalDegradedStyle
+                : undefined
+            }
           >
-            <span className="nexus-shell-commandThreshold__signalTop">
+            <span
+              className="nexus-shell-commandThreshold__signalTop"
+              style={getHomefrontSignalIndexStyle(signal.state)}
+            >
               0{index + 1}
             </span>
             <span className="nexus-shell-commandThreshold__signalLabel">
@@ -515,7 +831,7 @@ function HomefrontCommandThreshold({
         className="nexus-shell-commandThreshold__proof"
         aria-label="Route proof"
       >
-        {spec.proof.map((item) => (
+        {proofChips.map((item) => (
           <span key={`${surface}-${item}`}>{item}</span>
         ))}
       </div>

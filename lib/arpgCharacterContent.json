@@ -1,0 +1,420 @@
+{
+  "schemaVersion": "mw6-character-foundation-v1",
+  "defaults": {
+    "characterName": "Reliquary Heir",
+    "raceId": "veyr-human",
+    "originId": "wardbound",
+    "classPathId": "wardbreaker",
+    "subclassId": "wardbreaker-shieldcleaver",
+    "portraitId": "portrait-veyr-human-01",
+    "paletteId": "palette-veyr-hearth"
+  },
+  "palettes": [
+    {
+      "id": "palette-ashborn-cinder",
+      "label": "Cinder Ashborn",
+      "lineageId": "ashborn",
+      "primary": "#f97316",
+      "secondary": "#431407",
+      "accent": "#fed7aa"
+    },
+    {
+      "id": "palette-veyr-hearth",
+      "label": "Veyr Hearth",
+      "lineageId": "veyr-human",
+      "primary": "#f4a261",
+      "secondary": "#5f3f24",
+      "accent": "#ffd166"
+    },
+    {
+      "id": "palette-glasskin-prism",
+      "label": "Prism Glasskin",
+      "lineageId": "glasskin",
+      "primary": "#8ecae6",
+      "secondary": "#164e63",
+      "accent": "#d9f99d"
+    },
+    {
+      "id": "palette-mossbound-verdant",
+      "label": "Verdant Mossbound",
+      "lineageId": "mossbound",
+      "primary": "#84cc16",
+      "secondary": "#1f3d16",
+      "accent": "#bef264"
+    },
+    {
+      "id": "palette-iron-oath-bronze",
+      "label": "Bronze Iron Oath",
+      "lineageId": "iron-oath",
+      "primary": "#c9a46a",
+      "secondary": "#292524",
+      "accent": "#fef3c7"
+    },
+    {
+      "id": "palette-nacre-tide",
+      "label": "Tide Nacre",
+      "lineageId": "nacre-touched",
+      "primary": "#67e8f9",
+      "secondary": "#0f172a",
+      "accent": "#e0f2fe"
+    },
+    {
+      "id": "palette-starward-aurora",
+      "label": "Aurora Starward",
+      "lineageId": "starward",
+      "primary": "#a78bfa",
+      "secondary": "#1e1b4b",
+      "accent": "#fde68a"
+    },
+    {
+      "id": "palette-gloammarked-moon",
+      "label": "Moon Gloammarked",
+      "lineageId": "gloammarked",
+      "primary": "#c084fc",
+      "secondary": "#111827",
+      "accent": "#f5d0fe"
+    }
+  ],
+  "portraits": [
+    {
+      "id": "portrait-ashborn-01",
+      "label": "Ashborn Ember-Seer",
+      "lineageId": "ashborn",
+      "paletteId": "palette-ashborn-cinder"
+    },
+    {
+      "id": "portrait-veyr-human-01",
+      "label": "Veyr Oath Heir",
+      "lineageId": "veyr-human",
+      "paletteId": "palette-veyr-hearth"
+    },
+    {
+      "id": "portrait-glasskin-01",
+      "label": "Glasskin Mirror-Walker",
+      "lineageId": "glasskin",
+      "paletteId": "palette-glasskin-prism"
+    },
+    {
+      "id": "portrait-mossbound-01",
+      "label": "Mossbound Root-Keeper",
+      "lineageId": "mossbound",
+      "paletteId": "palette-mossbound-verdant"
+    },
+    {
+      "id": "portrait-iron-oath-01",
+      "label": "Iron Oath Bannerling",
+      "lineageId": "iron-oath",
+      "paletteId": "palette-iron-oath-bronze"
+    },
+    {
+      "id": "portrait-nacre-touched-01",
+      "label": "Nacre-Touched Diver",
+      "lineageId": "nacre-touched",
+      "paletteId": "palette-nacre-tide"
+    },
+    {
+      "id": "portrait-starward-01",
+      "label": "Starward Road-Scribe",
+      "lineageId": "starward",
+      "paletteId": "palette-starward-aurora"
+    },
+    {
+      "id": "portrait-gloammarked-01",
+      "label": "Gloammarked Veil Scout",
+      "lineageId": "gloammarked",
+      "paletteId": "palette-gloammarked-moon"
+    }
+  ],
+  "lineages": [
+    {
+      "id": "ashborn",
+      "name": "Ashborn",
+      "summary": "Heat-scarred pilgrims born near living cinders, built for bold strikes and ember resistance.",
+      "baseStats": { "might": 10, "ward": 8, "focus": 8, "speed": 8, "crit": 4, "cooldown": 2, "resonance": 5 },
+      "passive": {
+        "id": "ashborn-cinder-heart",
+        "name": "Cinder Heart",
+        "summary": "Burning rooms and ember foes are easier to endure.",
+        "statBonus": { "might": 1, "ward": 1, "focus": 0, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 1 }
+      },
+      "cityReputationHooks": [
+        { "cityId": "cinderfall", "delta": 2, "summary": "Forge crews greet Ashborn as kin of the furnace." }
+      ],
+      "spritePaletteNotes": "Hot orange cloak marks, charcoal shadows, small ember eye glow.",
+      "originText": "You woke near a dead kiln that still knew your name.",
+      "questHook": "An Ashborn flame-rite in Cinderfall asks whether old furnaces deserve mercy.",
+      "dialogueTags": ["ash", "forge", "ember"],
+      "paletteIds": ["palette-ashborn-cinder"]
+    },
+    {
+      "id": "veyr-human",
+      "name": "Veyr Human",
+      "summary": "Oath-city heirs with balanced instincts, strong civic ties, and reliable shieldcraft.",
+      "baseStats": { "might": 8, "ward": 10, "focus": 9, "speed": 8, "crit": 3, "cooldown": 2, "resonance": 5 },
+      "passive": {
+        "id": "veyr-civic-oath",
+        "name": "Civic Oath",
+        "summary": "Veyrhold vendors and wardens trust your spoken promises sooner.",
+        "statBonus": { "might": 0, "ward": 2, "focus": 0, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 0 }
+      },
+      "cityReputationHooks": [
+        { "cityId": "veyrhold", "delta": 3, "summary": "Veyrhold opens militia and hearth doors earlier." }
+      ],
+      "spritePaletteNotes": "Warm bronze cloth, hearth-gold trim, steady readable silhouette.",
+      "originText": "Your first oath was written on a bellroot leaf and sealed by candle wax.",
+      "questHook": "A forged oath in Oathmarket can be solved through lineage testimony.",
+      "dialogueTags": ["veyr", "oath", "hearth"],
+      "paletteIds": ["palette-veyr-hearth"]
+    },
+    {
+      "id": "glasskin",
+      "name": "Glasskin",
+      "summary": "Reflection-touched wanderers whose bodies catch light and lies with equal ease.",
+      "baseStats": { "might": 6, "ward": 7, "focus": 12, "speed": 9, "crit": 5, "cooldown": 3, "resonance": 7 },
+      "passive": {
+        "id": "glasskin-prism-sense",
+        "name": "Prism Sense",
+        "summary": "Illusions and mirror-doors reveal their edges faster.",
+        "statBonus": { "might": 0, "ward": 0, "focus": 2, "speed": 0, "crit": 1, "cooldown": 0, "resonance": 1 }
+      },
+      "cityReputationHooks": [
+        { "cityId": "mirrorglass-haven", "delta": 3, "summary": "The Lens Court treats your reflection as legal evidence." }
+      ],
+      "spritePaletteNotes": "Sea-glass highlights, pale cyan rim, bright reflection shards.",
+      "originText": "You learned your true name from a mirror that refused to flatter you.",
+      "questHook": "A Glasskin can cross-examine their own reflection in Lenswright Court.",
+      "dialogueTags": ["glass", "mirror", "identity"],
+      "paletteIds": ["palette-glasskin-prism"]
+    },
+    {
+      "id": "mossbound",
+      "name": "Mossbound",
+      "summary": "Green-blooded survivors of bone gardens, patient healers with stubborn wards.",
+      "baseStats": { "might": 7, "ward": 11, "focus": 9, "speed": 7, "crit": 2, "cooldown": 2, "resonance": 6 },
+      "passive": {
+        "id": "mossbound-root-memory",
+        "name": "Root Memory",
+        "summary": "Shrines and healing groves restore a little more resolve.",
+        "statBonus": { "might": 0, "ward": 2, "focus": 1, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 1 }
+      },
+      "cityReputationHooks": [
+        { "cityId": "verdant-ossuary", "delta": 3, "summary": "Bone gardeners recognize old root-cant in your voice." }
+      ],
+      "spritePaletteNotes": "Moss cloak edge, bark-brown boots, soft green glow on hands.",
+      "originText": "You were found asleep under a rib-bough that kept blooming in winter.",
+      "questHook": "The Green Crypts offer a Mossbound-only choice between burial and rebirth.",
+      "dialogueTags": ["moss", "bone", "healer"],
+      "paletteIds": ["palette-mossbound-verdant"]
+    },
+    {
+      "id": "iron-oath",
+      "name": "Iron Oath",
+      "summary": "Vow-forged bodies raised by bastion rites, slow to bend and hard to break.",
+      "baseStats": { "might": 9, "ward": 13, "focus": 6, "speed": 5, "crit": 2, "cooldown": 1, "resonance": 4 },
+      "passive": {
+        "id": "iron-oath-steadfast",
+        "name": "Steadfast Frame",
+        "summary": "Heavy armor costs less speed and stagger checks favor you.",
+        "statBonus": { "might": 1, "ward": 3, "focus": 0, "speed": -1, "crit": 0, "cooldown": 0, "resonance": 0 }
+      },
+      "cityReputationHooks": [
+        { "cityId": "ironbloom-bastion", "delta": 3, "summary": "Bastion quartermasters recognize the stamp of your oath-frame." }
+      ],
+      "spritePaletteNotes": "Bronze plates, iron cloak pin, compact heavy silhouette.",
+      "originText": "Your first memory is a hammer striking a vow into a cooling chestplate.",
+      "questHook": "Bannerhouse veterans challenge Iron Oath heroes to prove the vow still means defense.",
+      "dialogueTags": ["iron", "bastion", "oath"],
+      "paletteIds": ["palette-iron-oath-bronze"]
+    },
+    {
+      "id": "nacre-touched",
+      "name": "Nacre-Touched",
+      "summary": "Pearl-lit descendants of drowned archives, tuned to tide memory and hidden doors.",
+      "baseStats": { "might": 6, "ward": 8, "focus": 11, "speed": 8, "crit": 4, "cooldown": 3, "resonance": 8 },
+      "passive": {
+        "id": "nacre-tide-memory",
+        "name": "Tide Memory",
+        "summary": "Water ruins and archive locks answer your relic pulse sooner.",
+        "statBonus": { "might": 0, "ward": 1, "focus": 1, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 2 }
+      },
+      "cityReputationHooks": [
+        { "cityId": "nacre-deep", "delta": 3, "summary": "Shell Court records treat your pulse as a family seal." }
+      ],
+      "spritePaletteNotes": "Pearl-blue trims, deep navy cloth, soft tide shimmer.",
+      "originText": "The sea returned you with a pearl under your tongue and no fear of deep halls.",
+      "questHook": "A Nacre-Touched can read a Drowned Archive witness no one else can hear.",
+      "dialogueTags": ["nacre", "tide", "archive"],
+      "paletteIds": ["palette-nacre-tide"]
+    },
+    {
+      "id": "starward",
+      "name": "Starward",
+      "summary": "Pilgrims marked by false-star dreams, gifted with focus and dangerous curiosity.",
+      "baseStats": { "might": 6, "ward": 7, "focus": 13, "speed": 8, "crit": 5, "cooldown": 4, "resonance": 7 },
+      "passive": {
+        "id": "starward-orbit-read",
+        "name": "Orbit Read",
+        "summary": "Orrery puzzles and star machines reveal safer paths.",
+        "statBonus": { "might": 0, "ward": 0, "focus": 3, "speed": 0, "crit": 0, "cooldown": 1, "resonance": 1 }
+      },
+      "cityReputationHooks": [
+        { "cityId": "orrery-spire", "delta": 3, "summary": "Orrery scribes fear and need the pattern in your dreams." }
+      ],
+      "spritePaletteNotes": "Violet cloak interior, gold star pins, pale arcane eye accent.",
+      "originText": "A star you never saw has been giving you directions since childhood.",
+      "questHook": "The High Astrolabe can show a Starward hero one avoidable tragedy.",
+      "dialogueTags": ["star", "orrery", "omen"],
+      "paletteIds": ["palette-starward-aurora"]
+    },
+    {
+      "id": "gloammarked",
+      "name": "Gloammarked",
+      "summary": "Twilight-border scouts whose shadows remember roads their feet never walked.",
+      "baseStats": { "might": 7, "ward": 7, "focus": 9, "speed": 12, "crit": 6, "cooldown": 3, "resonance": 5 },
+      "passive": {
+        "id": "gloammarked-veil-step",
+        "name": "Veil Step",
+        "summary": "Travel events and stealth checks lean in your favor.",
+        "statBonus": { "might": 0, "ward": 0, "focus": 0, "speed": 3, "crit": 1, "cooldown": 0, "resonance": 0 }
+      },
+      "cityReputationHooks": [
+        { "cityId": "gloamreach", "delta": 3, "summary": "Veilwatch scouts accept you as someone the border already knows." }
+      ],
+      "spritePaletteNotes": "Moonlit violet cloak, black boots, small moth-silver accent.",
+      "originText": "Your shadow arrived in Gloamreach three days before you did.",
+      "questHook": "A Gloammarked hero can choose which cursed shadow keeps following the caravan.",
+      "dialogueTags": ["gloam", "road", "veil"],
+      "paletteIds": ["palette-gloammarked-moon"]
+    }
+  ],
+  "classTrees": [
+    {
+      "id": "wardbreaker",
+      "name": "Wardbreaker",
+      "resource": "stamina",
+      "role": "Shielded front-line breaker with readable cleaves and guard windows.",
+      "accent": "#f4a261",
+      "subclasses": [
+        { "id": "wardbreaker-shieldcleaver", "name": "Shieldcleaver", "summary": "Break enemy guard and turn upgrades into pressure.", "starterSkillId": "wardbreaker-cleave", "perk": "Upgraded weapons add extra might.", "statusEffect": "exposed", "statBonus": { "might": 2, "ward": 1, "focus": 0, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 0 } },
+        { "id": "wardbreaker-oathguard", "name": "Oathguard", "summary": "Stand ground and protect the route forward.", "starterSkillId": "wardbreaker-guard", "perk": "Shields and armor grant extra ward.", "statusEffect": "guard", "statBonus": { "might": 0, "ward": 3, "focus": 0, "speed": -1, "crit": 0, "cooldown": 0, "resonance": 0 } }
+      ],
+      "starterBuild": { "name": "Hearth Vanguard", "subclassId": "wardbreaker-shieldcleaver", "activeSkillId": "wardbreaker-cleave", "passiveSkillId": "wardbreaker-guard", "hotbarSkillIds": ["wardbreaker-cleave"] },
+      "skillNodes": [
+        { "id": "wardbreaker-cleave", "pathId": "wardbreaker", "name": "Cinder Cleave", "kind": "active", "tier": 1, "rankMax": 3, "unlockLevel": 1, "prerequisiteIds": [], "summary": "A reliable arc strike that adds might scaling to the next attack.", "statBonus": { "might": 2, "ward": 0, "focus": 0, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 0 }, "cooldownMs": 1600, "resourceCost": 8, "statusEffects": ["exposed"], "comboHook": "Deals more damage after equipping upgraded gear.", "accent": "#f4a261" },
+        { "id": "wardbreaker-guard", "pathId": "wardbreaker", "name": "Bronze Guard", "kind": "passive", "tier": 1, "rankMax": 3, "unlockLevel": 2, "prerequisiteIds": ["wardbreaker-cleave"], "summary": "Upgraded armor and shields grant extra ward.", "statBonus": { "might": 0, "ward": 4, "focus": 0, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 0 }, "cooldownMs": 0, "resourceCost": 0, "statusEffects": ["guard"], "comboHook": "Guard stacks with shield equipment.", "accent": "#c9a46a" }
+      ]
+    },
+    {
+      "id": "relicweaver",
+      "name": "Relicweaver",
+      "resource": "mana",
+      "role": "Machine-mystic controller built around resonance, focus, and relic puzzles.",
+      "accent": "#8ecae6",
+      "subclasses": [
+        { "id": "relicweaver-loomcaller", "name": "Loomcaller", "summary": "Pulse relic energy through constructs.", "starterSkillId": "relicweaver-surge", "perk": "Relic foci add resonance.", "statusEffect": "mana-drain", "statBonus": { "might": 0, "ward": 0, "focus": 2, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 2 } },
+        { "id": "relicweaver-ward-scribe", "name": "Ward-Scribe", "summary": "Write safer wards into gear and gates.", "starterSkillId": "relicweaver-tuning", "perk": "Upgrade interactions cost less focus later.", "statusEffect": "ward-bloom", "statBonus": { "might": 0, "ward": 1, "focus": 2, "speed": 0, "crit": 0, "cooldown": 1, "resonance": 1 } }
+      ],
+      "starterBuild": { "name": "Loom Initiate", "subclassId": "relicweaver-loomcaller", "activeSkillId": "relicweaver-surge", "passiveSkillId": "relicweaver-tuning", "hotbarSkillIds": ["relicweaver-surge"] },
+      "skillNodes": [
+        { "id": "relicweaver-surge", "pathId": "relicweaver", "name": "Loom Surge", "kind": "active", "tier": 1, "rankMax": 3, "unlockLevel": 1, "prerequisiteIds": [], "summary": "Spend focus to pulse relic energy through nearby constructs.", "statBonus": { "might": 0, "ward": 0, "focus": 2, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 2 }, "cooldownMs": 1800, "resourceCost": 10, "statusEffects": ["mana-drain"], "comboHook": "Extra pressure against constructs and oracle echoes.", "accent": "#8ecae6" },
+        { "id": "relicweaver-tuning", "pathId": "relicweaver", "name": "Fine Tuning", "kind": "passive", "tier": 1, "rankMax": 3, "unlockLevel": 2, "prerequisiteIds": ["relicweaver-surge"], "summary": "Relics and charms gain extra resonance after upgrades.", "statBonus": { "might": 0, "ward": 0, "focus": 3, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 3 }, "cooldownMs": 0, "resourceCost": 0, "statusEffects": ["ward-bloom"], "comboHook": "Resonance improves relic foci and charm gear.", "accent": "#7dd3fc" }
+      ]
+    },
+    {
+      "id": "ashrunner",
+      "name": "Ashrunner",
+      "resource": "stamina",
+      "role": "Fast skirmisher with crit pressure, road tricks, and repositioning.",
+      "accent": "#90be6d",
+      "subclasses": [
+        { "id": "ashrunner-sootknife", "name": "Sootknife", "summary": "Quick blades and exposed targets.", "starterSkillId": "ashrunner-dash", "perk": "Speed adds crit pressure.", "statusEffect": "bleed", "statBonus": { "might": 0, "ward": 0, "focus": 0, "speed": 3, "crit": 1, "cooldown": 0, "resonance": 0 } },
+        { "id": "ashrunner-roadflame", "name": "Roadflame", "summary": "Travel faster and turn campfire tricks into combat tempo.", "starterSkillId": "ashrunner-footwork", "perk": "Road events reveal extra route choices.", "statusEffect": "haste", "statBonus": { "might": 0, "ward": 0, "focus": 1, "speed": 2, "crit": 1, "cooldown": 1, "resonance": 0 } }
+      ],
+      "starterBuild": { "name": "Sootknife Scout", "subclassId": "ashrunner-sootknife", "activeSkillId": "ashrunner-dash", "passiveSkillId": "ashrunner-footwork", "hotbarSkillIds": ["ashrunner-dash"] },
+      "skillNodes": [
+        { "id": "ashrunner-dash", "pathId": "ashrunner", "name": "Ash Step", "kind": "active", "tier": 1, "rankMax": 3, "unlockLevel": 1, "prerequisiteIds": [], "summary": "A short repositioning burst that keeps combat readable and quick.", "statBonus": { "might": 0, "ward": 0, "focus": 0, "speed": 2, "crit": 0, "cooldown": 0, "resonance": 0 }, "cooldownMs": 1400, "resourceCost": 7, "statusEffects": ["haste"], "comboHook": "Next strike gains crit when used near an enemy.", "accent": "#90be6d" },
+        { "id": "ashrunner-footwork", "pathId": "ashrunner", "name": "Soot Footwork", "kind": "passive", "tier": 1, "rankMax": 3, "unlockLevel": 2, "prerequisiteIds": ["ashrunner-dash"], "summary": "Movement speed adds a little crit pressure.", "statBonus": { "might": 0, "ward": 0, "focus": 0, "speed": 2, "crit": 2, "cooldown": 0, "resonance": 0 }, "cooldownMs": 0, "resourceCost": 0, "statusEffects": ["haste"], "comboHook": "Speed and crit scale together.", "accent": "#a7f3d0" }
+      ]
+    },
+    {
+      "id": "oathblade",
+      "name": "Oathblade",
+      "resource": "stamina",
+      "role": "Heroic duelist whose vows turn precise hits into party-safe momentum.",
+      "accent": "#ffd166",
+      "subclasses": [
+        { "id": "oathblade-dawn-vow", "name": "Dawn Vow", "summary": "Bright duels and brave openings.", "starterSkillId": "oathblade-vowstrike", "perk": "First strike in each fight hits harder.", "statusEffect": "holy", "statBonus": { "might": 2, "ward": 1, "focus": 0, "speed": 0, "crit": 1, "cooldown": 0, "resonance": 0 } },
+        { "id": "oathblade-iron-vow", "name": "Iron Vow", "summary": "Defensive vows and counter-pressure.", "starterSkillId": "oathblade-standard", "perk": "Ward rises after taking damage.", "statusEffect": "guard", "statBonus": { "might": 1, "ward": 2, "focus": 0, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 0 } }
+      ],
+      "starterBuild": { "name": "Dawn Duelist", "subclassId": "oathblade-dawn-vow", "activeSkillId": "oathblade-vowstrike", "passiveSkillId": "oathblade-standard", "hotbarSkillIds": ["oathblade-vowstrike"] },
+      "skillNodes": [
+        { "id": "oathblade-vowstrike", "pathId": "oathblade", "name": "Vowstrike", "kind": "active", "tier": 1, "rankMax": 3, "unlockLevel": 1, "prerequisiteIds": [], "summary": "A clean sword oath that marks the target as exposed.", "statBonus": { "might": 2, "ward": 0, "focus": 0, "speed": 0, "crit": 1, "cooldown": 0, "resonance": 0 }, "cooldownMs": 1550, "resourceCost": 8, "statusEffects": ["exposed"], "comboHook": "Bonus if the hero has not been hit recently.", "accent": "#ffd166" },
+        { "id": "oathblade-standard", "pathId": "oathblade", "name": "Raised Standard", "kind": "passive", "tier": 1, "rankMax": 3, "unlockLevel": 2, "prerequisiteIds": ["oathblade-vowstrike"], "summary": "Oath dialogue and guard windows improve after civic choices.", "statBonus": { "might": 0, "ward": 3, "focus": 0, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 0 }, "cooldownMs": 0, "resourceCost": 0, "statusEffects": ["guard"], "comboHook": "Pairs with shields and Veyr reputation.", "accent": "#fef3c7" }
+      ]
+    },
+    {
+      "id": "thornwarden",
+      "name": "Thornwarden",
+      "resource": "focus",
+      "role": "Nature/death defender who roots enemies and keeps the hero standing.",
+      "accent": "#84cc16",
+      "subclasses": [
+        { "id": "thornwarden-briarkeeper", "name": "Briarkeeper", "summary": "Root enemies and punish movement.", "starterSkillId": "thornwarden-briarbind", "perk": "Rooted foes take more basic damage.", "statusEffect": "rooted", "statBonus": { "might": 0, "ward": 2, "focus": 1, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 1 } },
+        { "id": "thornwarden-green-bulwark", "name": "Green Bulwark", "summary": "Layer living defenses over armor.", "starterSkillId": "thornwarden-living-bark", "perk": "Health vials restore a little more.", "statusEffect": "ward-bloom", "statBonus": { "might": 0, "ward": 3, "focus": 1, "speed": -1, "crit": 0, "cooldown": 0, "resonance": 1 } }
+      ],
+      "starterBuild": { "name": "Root Shield", "subclassId": "thornwarden-briarkeeper", "activeSkillId": "thornwarden-briarbind", "passiveSkillId": "thornwarden-living-bark", "hotbarSkillIds": ["thornwarden-briarbind"] },
+      "skillNodes": [
+        { "id": "thornwarden-briarbind", "pathId": "thornwarden", "name": "Briarbind", "kind": "active", "tier": 1, "rankMax": 3, "unlockLevel": 1, "prerequisiteIds": [], "summary": "Bind a nearby foe with thorn roots.", "statBonus": { "might": 0, "ward": 1, "focus": 1, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 1 }, "cooldownMs": 1850, "resourceCost": 9, "statusEffects": ["rooted"], "comboHook": "Rooted foes are safer to flank.", "accent": "#84cc16" },
+        { "id": "thornwarden-living-bark", "pathId": "thornwarden", "name": "Living Bark", "kind": "passive", "tier": 1, "rankMax": 3, "unlockLevel": 2, "prerequisiteIds": ["thornwarden-briarbind"], "summary": "A living guard layer improves ward and healing.", "statBonus": { "might": 0, "ward": 3, "focus": 1, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 0 }, "cooldownMs": 0, "resourceCost": 0, "statusEffects": ["ward-bloom"], "comboHook": "Pairs with Mossbound lineage and healer companions.", "accent": "#bef264" }
+      ]
+    },
+    {
+      "id": "gravechanter",
+      "name": "Gravechanter",
+      "resource": "mana",
+      "role": "Bone-song caster who weakens undead and turns sorrow into control.",
+      "accent": "#d6a85f",
+      "subclasses": [
+        { "id": "gravechanter-bone-cantor", "name": "Bone Cantor", "summary": "Sing old bones awake without making them cruel.", "starterSkillId": "gravechanter-bonecoda", "perk": "Undead reveal weaknesses sooner.", "statusEffect": "fear", "statBonus": { "might": 0, "ward": 1, "focus": 2, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 1 } },
+        { "id": "gravechanter-mercy-bell", "name": "Mercy Bell", "summary": "Quiet curses and protect companions.", "starterSkillId": "gravechanter-bellward", "perk": "Curse effects are weaker.", "statusEffect": "silence", "statBonus": { "might": 0, "ward": 2, "focus": 2, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 0 } }
+      ],
+      "starterBuild": { "name": "Bone Hymn", "subclassId": "gravechanter-bone-cantor", "activeSkillId": "gravechanter-bonecoda", "passiveSkillId": "gravechanter-bellward", "hotbarSkillIds": ["gravechanter-bonecoda"] },
+      "skillNodes": [
+        { "id": "gravechanter-bonecoda", "pathId": "gravechanter", "name": "Bone Coda", "kind": "active", "tier": 1, "rankMax": 3, "unlockLevel": 1, "prerequisiteIds": [], "summary": "A ringing chant that frightens fragile enemies.", "statBonus": { "might": 0, "ward": 0, "focus": 2, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 1 }, "cooldownMs": 1900, "resourceCost": 10, "statusEffects": ["fear"], "comboHook": "Fear gives space to heal or reposition.", "accent": "#d6a85f" },
+        { "id": "gravechanter-bellward", "pathId": "gravechanter", "name": "Bellward", "kind": "passive", "tier": 1, "rankMax": 3, "unlockLevel": 2, "prerequisiteIds": ["gravechanter-bonecoda"], "summary": "Curses and silence effects lose bite around your song.", "statBonus": { "might": 0, "ward": 2, "focus": 2, "speed": 0, "crit": 0, "cooldown": 0, "resonance": 0 }, "cooldownMs": 0, "resourceCost": 0, "statusEffects": ["silence"], "comboHook": "Pairs with Verdant Ossuary story choices.", "accent": "#fde68a" }
+      ]
+    },
+    {
+      "id": "ember-monk",
+      "name": "Ember Monk",
+      "resource": "stamina",
+      "role": "Close-range fist fighter whose calm breath turns heat into tempo.",
+      "accent": "#fb7185",
+      "subclasses": [
+        { "id": "ember-monk-furnace-palm", "name": "Furnace Palm", "summary": "Fist strikes that burn armor open.", "starterSkillId": "ember-monk-furnace-palm", "perk": "Bare-hand and fist-wrap weapons gain might.", "statusEffect": "burn", "statBonus": { "might": 2, "ward": 0, "focus": 0, "speed": 1, "crit": 1, "cooldown": 0, "resonance": 0 } },
+        { "id": "ember-monk-ash-breath", "name": "Ash Breath", "summary": "Patient breath lowers cooldown pressure.", "starterSkillId": "ember-monk-breath-count", "perk": "Cooldown stat improves after perfect movement.", "statusEffect": "chill", "statBonus": { "might": 0, "ward": 1, "focus": 1, "speed": 1, "crit": 0, "cooldown": 2, "resonance": 0 } }
+      ],
+      "starterBuild": { "name": "Furnace Palm", "subclassId": "ember-monk-furnace-palm", "activeSkillId": "ember-monk-furnace-palm", "passiveSkillId": "ember-monk-breath-count", "hotbarSkillIds": ["ember-monk-furnace-palm"] },
+      "skillNodes": [
+        { "id": "ember-monk-furnace-palm", "pathId": "ember-monk", "name": "Furnace Palm", "kind": "active", "tier": 1, "rankMax": 3, "unlockLevel": 1, "prerequisiteIds": [], "summary": "A palm strike that leaves a small burn on armored foes.", "statBonus": { "might": 2, "ward": 0, "focus": 0, "speed": 1, "crit": 0, "cooldown": 0, "resonance": 0 }, "cooldownMs": 1450, "resourceCost": 7, "statusEffects": ["burn"], "comboHook": "Burn improves if used after a dodge movement.", "accent": "#fb7185" },
+        { "id": "ember-monk-breath-count", "pathId": "ember-monk", "name": "Breath Count", "kind": "passive", "tier": 1, "rankMax": 3, "unlockLevel": 2, "prerequisiteIds": ["ember-monk-furnace-palm"], "summary": "Calm breath improves cooldown recovery and focus.", "statBonus": { "might": 0, "ward": 0, "focus": 1, "speed": 0, "crit": 0, "cooldown": 3, "resonance": 0 }, "cooldownMs": 0, "resourceCost": 0, "statusEffects": ["haste"], "comboHook": "Shortens tempo between basic attacks.", "accent": "#fecdd3" }
+      ]
+    },
+    {
+      "id": "wayfarer",
+      "name": "Wayfarer",
+      "resource": "focus",
+      "role": "Road-smart archer and survivalist built for exploration and route events.",
+      "accent": "#38bdf8",
+      "subclasses": [
+        { "id": "wayfarer-roadsign-archer", "name": "Roadsign Archer", "summary": "Mark foes from safe lanes.", "starterSkillId": "wayfarer-marked-shot", "perk": "Bows and crossbows gain crit.", "statusEffect": "exposed", "statBonus": { "might": 1, "ward": 0, "focus": 1, "speed": 1, "crit": 2, "cooldown": 0, "resonance": 0 } },
+        { "id": "wayfarer-campfire-trickster", "name": "Campfire Trickster", "summary": "Route tricks, thrown blades, and better travel events.", "starterSkillId": "wayfarer-camp-trick", "perk": "Travel encounters reveal one safer choice.", "statusEffect": "slow", "statBonus": { "might": 0, "ward": 0, "focus": 2, "speed": 2, "crit": 1, "cooldown": 0, "resonance": 0 } }
+      ],
+      "starterBuild": { "name": "Roadsign Scout", "subclassId": "wayfarer-roadsign-archer", "activeSkillId": "wayfarer-marked-shot", "passiveSkillId": "wayfarer-camp-trick", "hotbarSkillIds": ["wayfarer-marked-shot"] },
+      "skillNodes": [
+        { "id": "wayfarer-marked-shot", "pathId": "wayfarer", "name": "Marked Shot", "kind": "active", "tier": 1, "rankMax": 3, "unlockLevel": 1, "prerequisiteIds": [], "summary": "Mark a visible enemy for a cleaner follow-up strike.", "statBonus": { "might": 1, "ward": 0, "focus": 1, "speed": 0, "crit": 2, "cooldown": 0, "resonance": 0 }, "cooldownMs": 1650, "resourceCost": 8, "statusEffects": ["exposed"], "comboHook": "Crit improves with bows, thrown knives, and distance.", "accent": "#38bdf8" },
+        { "id": "wayfarer-camp-trick", "pathId": "wayfarer", "name": "Camp Trick", "kind": "passive", "tier": 1, "rankMax": 3, "unlockLevel": 2, "prerequisiteIds": ["wayfarer-marked-shot"], "summary": "Travel and campfire choices reveal safer rewards.", "statBonus": { "might": 0, "ward": 0, "focus": 2, "speed": 1, "crit": 0, "cooldown": 0, "resonance": 0 }, "cooldownMs": 0, "resourceCost": 0, "statusEffects": ["slow"], "comboHook": "Pairs with route events and caravan choices.", "accent": "#bae6fd" }
+      ]
+    }
+  ]
+}

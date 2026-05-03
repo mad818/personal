@@ -1,7 +1,13 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import {
+  motion,
+  useInView,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+} from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
 const HERO_VIDEO_URL =
   "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4";
@@ -11,80 +17,197 @@ const STATS_VIDEO_URL =
   "https://stream.mux.com/NcU3HlHeF7CUL86azTTzpy3Tlb00d6iF3BmCdFslMJYM.m3u8";
 const CTA_VIDEO_URL =
   "https://stream.mux.com/8wrHPCX2dC3msyYU9ObwqNdm00u3ViXvOSHUMRYSEe5Q.m3u8";
-const FEATURE_ONE_GIF =
-  "https://motionsites.ai/assets/hero-finlytic-preview-CV9g0FHP.gif";
-const FEATURE_TWO_GIF =
-  "https://motionsites.ai/assets/hero-wealth-preview-B70idl_u.gif";
 const POSTER_IMAGE_URL = "/office/la-skyline.jpg";
 
-const NAV_LINKS = ["Home", "Services", "Work", "Process", "Pricing"];
-const PARTNERS = ["Stripe", "Vercel", "Linear", "Notion", "Figma"];
+const NAV_LINKS = [
+  { href: "#home", label: "Home" },
+  { href: "#doctrine", label: "Doctrine" },
+  { href: "#lanes", label: "Lanes" },
+  { href: "#posture", label: "Posture" },
+  { href: "#access", label: "Access" },
+] as const;
 
-const FEATURE_ROWS = [
+type LandingSectionId =
+  (typeof NAV_LINKS)[number]["href"] extends `#${infer Id}` ? Id : never;
+
+const LANDING_SECTION_IDS = NAV_LINKS.map((link) =>
+  link.href.slice(1),
+) as LandingSectionId[];
+const OPERATING_LANES = ["HQ", "COMMAND", "INTEL", "CYBER", "RECON", "VAULT"];
+
+const LIVE_COMMAND_ROWS = [
   {
-    title: "Designed to convert. Built to perform.",
-    body: "Every pixel is intentional. Our AI studies what works across thousands of top sites, then builds yours to outperform them all.",
-    button: "Learn more",
-    gif: FEATURE_ONE_GIF,
-    reverse: false,
+    lane: "Markets",
+    status: "watching",
+    detail: "price, macro, volatility, and liquidity context",
+    pulse: "13 feeds",
   },
   {
-    title: "It gets smarter. Automatically.",
-    body: "Your site evolves on its own. AI monitors every click, scroll, and conversion, then optimizes in real time. No manual updates. Ever.",
-    button: "See how it works",
-    gif: FEATURE_TWO_GIF,
-    reverse: true,
+    lane: "Cyber",
+    status: "triage",
+    detail: "CVE pressure, provider health, and route safety",
+    pulse: "4 queues",
   },
+  {
+    lane: "Recon",
+    status: "collecting",
+    detail: "repo, open-source, and external signal intake",
+    pulse: "9 sweeps",
+  },
+  {
+    lane: "Vault",
+    status: "remembering",
+    detail: "handoffs, artifacts, saved pages, and state mirrors",
+    pulse: "local",
+  },
+];
+
+const SURFACE_SHOWCASE = [
+  {
+    id: "command",
+    label: "COMMAND",
+    title: "Mission Queue",
+    body: "Agent tasking, operator intent, review gates, and verification status stay in one working lane.",
+    href: "/command",
+    readouts: [
+      ["Risk", "review-gated"],
+      ["Mode", "operator led"],
+      ["Proof", "run trace"],
+    ],
+    lines: [
+      "Queue next action",
+      "Route to the right agent",
+      "Capture outcome proof",
+    ],
+  },
+  {
+    id: "intel",
+    label: "INTEL",
+    title: "World Picture",
+    body: "Signals are organized for judgment: market pressure, global events, and live context without making noise the interface.",
+    href: "/intel",
+    readouts: [
+      ["Sweep", "fresh"],
+      ["Context", "filtered"],
+      ["Noise", "reduced"],
+    ],
+    lines: ["Signal sweep", "Context bundle", "Operator brief"],
+  },
+  {
+    id: "cyber",
+    label: "CYBER",
+    title: "Threat Posture",
+    body: "Security work gets treated like a live control surface: posture, CVEs, isolation policy, and review discipline.",
+    href: "/cyber",
+    readouts: [
+      ["Policy", "strict"],
+      ["Routes", "guarded"],
+      ["Tools", "isolated"],
+    ],
+    lines: ["Review exposure", "Map vulnerable paths", "Stage safe action"],
+  },
+  {
+    id: "vault",
+    label: "VAULT",
+    title: "Memory Spine",
+    body: "The project remembers what happened: handoffs, decisions, saved artifacts, and compiled memory stay retrievable.",
+    href: "/vault",
+    readouts: [
+      ["State", "recoverable"],
+      ["Docs", "mirrored"],
+      ["Search", "operator"],
+    ],
+    lines: ["Write handoff", "Archive artifact", "Recover context"],
+  },
+  {
+    id: "resources",
+    label: "RESOURCES",
+    title: "Proof Plane",
+    body: "Readiness, system state, and project proof live where they can be inspected instead of buried in a release note.",
+    href: "/resources",
+    readouts: [
+      ["Health", "visible"],
+      ["Queue", "tracked"],
+      ["Build", "verified"],
+    ],
+    lines: ["Open system state", "Check route health", "Inspect impact"],
+  },
+];
+
+const PROOF_WALL = [
+  {
+    value: "MIT",
+    label: "Free posture",
+    detail:
+      "No in-app charges, no subscription layer, and BYOK when outside keys are useful.",
+  },
+  {
+    value: "Local",
+    label: "Primary runtime",
+    detail:
+      "The useful path starts on this machine and degrades calmly when external services are quiet.",
+  },
+  {
+    value: "Token",
+    label: "Protected ingress",
+    detail:
+      "The public page is a threshold; protected rooms open only after the local token validates.",
+  },
+  {
+    value: "Proof",
+    label: "Verification culture",
+    detail:
+      "Build, route health, handoff sync, and risk-gated actions are part of the product surface.",
+  },
+];
+
+const ACCESS_SEQUENCE = [
+  "Public threshold stays calm",
+  "Token validates locally",
+  "HQ opens without a second landing",
 ];
 
 const WHY_US = [
   {
     icon: ZapIcon,
-    title: "Days, Not Months",
-    body: "Concept to launch at a pace that redefines fast. Because waiting isn't a strategy.",
+    title: "Local First",
+    body: "The useful path starts on this machine. Ollama is the default lane, cloud keys are optional, and the system should keep its shape without a billing dependency.",
   },
   {
     icon: PaletteIcon,
-    title: "Obsessively Crafted",
-    body: "Every detail considered. Every element refined. Design so precise, it feels inevitable.",
+    title: "Command Room",
+    body: "HQ, COMMAND, INTEL, ALPHA, CYBER, RECON, and VAULT are meant to feel like one operating picture instead of a folder of unrelated screens.",
   },
   {
     icon: BarChartIcon,
-    title: "Built to Convert",
-    body: "Layouts informed by data. Decisions backed by performance. Results you can measure.",
+    title: "Memory Spine",
+    body: "Saved artifacts, handoffs, compiled pages, and project state are treated as recoverable working memory, not decorative documentation.",
   },
   {
     icon: ShieldIcon,
-    title: "Secure by Default",
-    body: "Enterprise-grade protection comes standard. SSL, DDoS mitigation, compliance. All included.",
+    title: "Protected Tools",
+    body: "Risky actions stay review-gated, protected routes respect token access, and verification proof matters more than promising a finished myth too early.",
   },
-];
-
-const STATS = [
-  ["200+", "Sites launched"],
-  ["98%", "Client satisfaction"],
-  ["3.2x", "More conversions"],
-  ["5 days", "Average delivery"],
 ];
 
 const TESTIMONIALS = [
   {
     quote:
-      "A complete rebuild in five days. The result outperformed everything we'd spent months building before.",
-    name: "Sarah Chen",
-    role: "CEO, Luminary",
+      "Local-first means the room can keep working when the network gets quiet, and every outside key remains an operator choice.",
+    name: "Free-first doctrine",
+    role: "No in-app billing layer",
   },
   {
     quote:
-      "Conversions up 4x. That's not a typo. The design just works differently when it's built on real data.",
-    name: "Marcus Webb",
-    role: "Head of Growth, Arcline",
+      "A route should earn its place in the first viewport. The shell is for action, continuity, and proof, not decorative sprawl.",
+    name: "Command-room rule",
+    role: "One lead chamber, clear support rails",
   },
   {
     quote:
-      "They didn't just design our site. They defined our brand. World-class doesn't begin to cover it.",
-    name: "Elena Voss",
-    role: "Brand Director, Helix",
+      "Private work can live inside the room without becoming the headline. When it needs its own house, it should be easy to move.",
+    name: "Private-lane boundary",
+    role: "Personal work stays separate",
   },
 ];
 
@@ -97,6 +220,7 @@ export interface LandingPageProps {
   authEnabled: boolean;
   authError?: "invalid" | "server" | null;
   isAuthenticated: boolean;
+  nextPath?: string;
 }
 
 type HlsConstructor = {
@@ -199,9 +323,7 @@ function BlurText({
         <motion.span
           key={`${word}-${index}`}
           animate={
-            inView
-              ? { filter: "blur(0px)", opacity: 1, y: 0 }
-              : undefined
+            inView ? { filter: "blur(0px)", opacity: 1, y: 0 } : undefined
           }
           className="inline-block"
           initial={
@@ -247,7 +369,7 @@ function ArrowButton({
       data-testid={dataTestId}
     >
       {children}
-      <ArrowUpRightIcon className="h-4 w-4" />
+      <ArrowUpRightIcon className="size-4" />
     </a>
   );
 }
@@ -255,126 +377,121 @@ function ArrowButton({
 function LogoMark() {
   return (
     <div
-      className="liquid-glass flex h-12 w-12 items-center justify-center rounded-full"
-      aria-label="Studio logo"
+      className="liquid-glass flex size-12 items-center justify-center rounded-full"
+      aria-label="Homefront logo"
     >
       <span className="font-heading text-2xl italic leading-none text-white">
-        S
+        H
       </span>
     </div>
   );
 }
 
-function LandingVisualSystem() {
-  return (
-    <style>{`
-      @import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap");
+function getSectionIdFromHash(hash: string): LandingSectionId | null {
+  const candidate = hash.replace("#", "");
+  return LANDING_SECTION_IDS.includes(candidate as LandingSectionId)
+    ? (candidate as LandingSectionId)
+    : null;
+}
 
-      .agency-landing {
-        --background: 213 45% 67%;
-        --foreground: 0 0% 100%;
-        --card: 213 45% 62%;
-        --card-foreground: 0 0% 100%;
-        --primary: 0 0% 100%;
-        --primary-foreground: 213 45% 67%;
-        --secondary: 213 45% 72%;
-        --secondary-foreground: 0 0% 100%;
-        --muted: 213 35% 60%;
-        --muted-foreground: 0 0% 100% / 0.7;
-        --accent: 213 45% 72%;
-        --accent-foreground: 0 0% 100%;
-        --destructive: 0 84.2% 60.2%;
-        --border: 0 0% 100% / 0.2;
-        --input: 0 0% 100% / 0.2;
-        --ring: 0 0% 100% / 0.3;
-        --radius: 9999px;
-        --glass-bg: rgba(255, 255, 255, 0.12);
-        --glass-border: rgba(255, 255, 255, 0.25);
-        --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
-        --glass-blur: 16px;
+function useActiveLandingSection() {
+  const [activeSection, setActiveSection] = useState<LandingSectionId>("home");
+
+  useEffect(() => {
+    let frame = 0;
+
+    const updateActiveSection = () => {
+      frame = 0;
+      const markerY = window.scrollY + window.innerHeight * 0.36;
+      let nextSection: LandingSectionId = "home";
+
+      for (const sectionId of LANDING_SECTION_IDS) {
+        const section = document.getElementById(sectionId);
+        if (!section) continue;
+        const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+        if (sectionTop <= markerY) {
+          nextSection = sectionId;
+        }
       }
 
-      .liquid-glass,
-      .liquid-glass-strong {
-        background: rgba(255, 255, 255, 0.01);
-        background-blend-mode: luminosity;
-        border: none;
-        position: relative;
-        overflow: hidden;
-      }
+      const nearPageEnd =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 8;
 
-      .liquid-glass {
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
-      }
+      setActiveSection(nearPageEnd ? "access" : nextSection);
+    };
 
-      .liquid-glass-strong {
-        backdrop-filter: blur(50px);
-        -webkit-backdrop-filter: blur(50px);
-        box-shadow:
-          4px 4px 4px rgba(0, 0, 0, 0.05),
-          inset 0 1px 1px rgba(255, 255, 255, 0.15);
-      }
+    const requestUpdate = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateActiveSection);
+    };
 
-      .liquid-glass::before,
-      .liquid-glass-strong::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        padding: 1.4px;
-        -webkit-mask:
-          linear-gradient(#fff 0 0) content-box,
-          linear-gradient(#fff 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        pointer-events: none;
-      }
+    const syncHash = () => {
+      const sectionFromHash = getSectionIdFromHash(window.location.hash);
+      if (sectionFromHash) setActiveSection(sectionFromHash);
+      requestUpdate();
+    };
 
-      .liquid-glass::before {
-        background: linear-gradient(
-          180deg,
-          rgba(255, 255, 255, 0.45) 0%,
-          rgba(255, 255, 255, 0.15) 20%,
-          rgba(255, 255, 255, 0) 40%,
-          rgba(255, 255, 255, 0) 60%,
-          rgba(255, 255, 255, 0.15) 80%,
-          rgba(255, 255, 255, 0.45) 100%
-        );
-      }
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    window.addEventListener("resize", requestUpdate);
+    window.addEventListener("scroll", requestUpdate, { passive: true });
 
-      .liquid-glass-strong::before {
-        background: linear-gradient(
-          180deg,
-          rgba(255, 255, 255, 0.5) 0%,
-          rgba(255, 255, 255, 0.2) 20%,
-          rgba(255, 255, 255, 0) 40%,
-          rgba(255, 255, 255, 0) 60%,
-          rgba(255, 255, 255, 0.2) 80%,
-          rgba(255, 255, 255, 0.5) 100%
-        );
-      }
-    `}</style>
-  );
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("hashchange", syncHash);
+      window.removeEventListener("resize", requestUpdate);
+      window.removeEventListener("scroll", requestUpdate);
+    };
+  }, []);
+
+  return activeSection;
 }
 
 function Navbar({ accessHref }: { accessHref: string }) {
+  const activeSection = useActiveLandingSection();
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+  const progressScale = useSpring(scrollYProgress, {
+    damping: 28,
+    mass: 0.2,
+    stiffness: 160,
+  });
+
   return (
-    <nav className="fixed left-0 right-0 top-4 z-50 px-8 py-3 lg:px-16">
+    <nav className="fixed inset-x-0 top-4 z-50 px-8 py-3 lg:px-16">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <LogoMark />
         <div
-          className="liquid-glass hidden items-center gap-1 rounded-full px-1.5 py-1 md:flex"
+          className="liquid-glass relative hidden items-center gap-1 rounded-full px-1.5 py-1 md:flex"
           data-testid="landing-header"
         >
           {NAV_LINKS.map((link) => (
             <a
-              key={link}
-              href={link === "Home" ? "#home" : `#${link.toLowerCase()}`}
-              className="rounded-full px-3 py-2 text-sm font-medium text-white/90 font-body transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
+              key={link.href}
+              aria-current={
+                activeSection === link.href.slice(1) ? "page" : undefined
+              }
+              data-testid={`landing-nav-link-${link.href.slice(1)}`}
+              href={link.href}
+              className={`relative isolate rounded-full px-3 py-2 text-sm font-medium font-body transition duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 ${
+                activeSection === link.href.slice(1)
+                  ? "text-black"
+                  : "text-white/90 hover:bg-white/10 hover:text-white"
+              }`}
             >
-              {link}
+              {activeSection === link.href.slice(1) ? (
+                <motion.span
+                  layoutId="landing-active-nav-pill"
+                  className="absolute inset-0 -z-10 rounded-full bg-white shadow-[0_0_24px_rgba(255,255,255,0.22)]"
+                  transition={
+                    reduceMotion
+                      ? { duration: 0 }
+                      : { type: "spring", stiffness: 360, damping: 34 }
+                  }
+                />
+              ) : null}
+              <span className="relative z-10">{link.label}</span>
             </a>
           ))}
           <a
@@ -382,9 +499,15 @@ function Navbar({ accessHref }: { accessHref: string }) {
             className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-sm font-medium text-black font-body focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
             data-testid="landing-header-cta"
           >
-            Get Started
-            <ArrowUpRightIcon className="h-3.5 w-3.5" />
+            Enter HQ
+            <ArrowUpRightIcon className="size-3.5" />
           </a>
+          <motion.span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-5 bottom-1 h-px origin-left rounded-full bg-white/50 shadow-[0_0_16px_rgba(255,255,255,0.5)]"
+            data-testid="landing-nav-progress"
+            style={{ scaleX: progressScale }}
+          />
         </div>
       </div>
     </nav>
@@ -415,26 +538,26 @@ function Hero({ accessHref }: { accessHref: string }) {
       </video>
       <div className="absolute inset-0 z-0 bg-black/5" />
       <div
-        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] h-[300px]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[300px]"
         style={{
           background: "linear-gradient(to bottom, transparent, black)",
         }}
       />
 
       <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col items-center px-6 pt-[150px] text-center">
-        <div className="liquid-glass mb-8 inline-flex items-center gap-3 rounded-full px-1 py-1">
+        <div className="liquid-glass mb-8 inline-flex items-center gap-3 rounded-full p-1">
           <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-black font-body">
-            New
+            Local first
           </span>
           <span className="pr-3 text-xs font-light text-white/80 font-body">
-            Introducing AI-powered web design.
+            Homefront command intelligence.
           </span>
         </div>
 
         <BlurText
           delay={100}
-          text="The Website Your Brand Deserves"
-          className="max-w-2xl text-6xl font-heading italic leading-[0.8] tracking-[-4px] text-white md:text-7xl lg:text-[5.5rem]"
+          text="Homefront Holds The Line"
+          className="max-w-2xl text-6xl font-heading italic leading-[0.8] text-white md:text-7xl lg:text-[5.5rem]"
         />
 
         <motion.p
@@ -443,8 +566,9 @@ function Hero({ accessHref }: { accessHref: string }) {
           initial={{ filter: "blur(10px)", opacity: 0, y: 20 }}
           transition={{ delay: 0.8, duration: 0.6 }}
         >
-          Stunning design. Blazing performance. Built by AI, refined by
-          experts. This is web design, wildly reimagined.
+          A local-first command room for markets, cyber, recon, vault memory,
+          operator AI, and protected tools. No sales funnel, no billing layer,
+          just the room opening when the token is yours.
         </motion.p>
 
         <motion.div
@@ -454,30 +578,30 @@ function Hero({ accessHref }: { accessHref: string }) {
           transition={{ delay: 1.1, duration: 0.6 }}
         >
           <ArrowButton dataTestId="landing-hero-cta" href={accessHref}>
-            Get Started
+            Enter HQ
           </ArrowButton>
           <a
-            href="#process"
+            href="#doctrine"
             className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-white font-body transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
           >
-            <PlayIcon className="h-4 w-4 fill-white" />
-            Watch the Film
+            <PlayIcon className="size-4 fill-white" />
+            Read the Spine
           </a>
         </motion.div>
 
         <div className="mt-auto w-full pb-8 pt-16">
           <div className="mb-8 flex justify-center">
             <span className="liquid-glass rounded-full px-4 py-1.5 text-xs font-light text-white/75 font-body">
-              Trusted by the teams behind
+              Current operating lanes
             </span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-12 md:gap-16">
-            {PARTNERS.map((partner) => (
+            {OPERATING_LANES.map((lane) => (
               <span
-                key={partner}
+                key={lane}
                 className="text-2xl font-heading italic text-white md:text-3xl"
               >
-                {partner}
+                {lane}
               </span>
             ))}
           </div>
@@ -503,14 +627,14 @@ function VideoSection({
       <HlsVideo
         src={src}
         desaturated={desaturated}
-        className="agency-video-bg absolute inset-0 h-full w-full object-cover"
+        className="homefront-video-bg absolute inset-0 size-full object-cover"
       />
       <div
-        className="pointer-events-none absolute left-0 right-0 top-0 z-[1] h-[200px]"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-[200px]"
         style={{ background: "linear-gradient(to bottom, black, transparent)" }}
       />
       <div
-        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] h-[200px]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[200px]"
         style={{ background: "linear-gradient(to top, black, transparent)" }}
       />
       <div className="relative z-10">{children}</div>
@@ -518,72 +642,241 @@ function VideoSection({
   );
 }
 
+function LiveCommandPreview() {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <div
+      className="liquid-glass mt-14 w-full max-w-5xl rounded-3xl p-5 text-left md:p-6"
+      data-testid="landing-live-command-preview"
+    >
+      <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-5 md:flex-row md:items-end">
+        <div>
+          <div className="text-xs font-medium uppercase text-white/45 font-body">
+            Live command preview
+          </div>
+          <h3 className="mt-3 text-3xl font-heading italic leading-[0.95] text-white md:text-4xl">
+            The room is already listening.
+          </h3>
+        </div>
+        <div className="flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/60 font-body">
+          <span className="size-2 rounded-full bg-white shadow-[0_0_16px_rgba(255,255,255,0.7)]" />
+          Read-only public signal
+        </div>
+      </div>
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
+        {LIVE_COMMAND_ROWS.map((row, index) => (
+          <motion.div
+            key={row.lane}
+            animate={reduceMotion ? undefined : { opacity: [0.72, 1, 0.72] }}
+            className="rounded-2xl border border-white/10 bg-black/25 p-4"
+            transition={{
+              delay: index * 0.18,
+              duration: 3.4,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-lg font-heading italic text-white">
+                {row.lane}
+              </div>
+              <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] uppercase text-white/65 font-body">
+                {row.status}
+              </span>
+            </div>
+            <p className="mt-3 text-sm font-light leading-relaxed text-white/60 font-body">
+              {row.detail}
+            </p>
+            <div className="mt-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-gradient-to-r from-white/50 via-white/10 to-transparent" />
+              <span className="text-xs text-white/45 font-body">
+                {row.pulse}
+              </span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StartSection({ accessHref }: { accessHref: string }) {
   return (
-    <VideoSection src={START_VIDEO_URL}>
+    <VideoSection src={START_VIDEO_URL} minHeight="min-h-[760px]">
       <div
-        id="process"
-        className="mx-auto flex min-h-[500px] max-w-4xl flex-col items-center justify-center px-6 py-28 text-center"
+        id="doctrine"
+        className="mx-auto flex min-h-[760px] max-w-6xl flex-col items-center justify-center px-6 py-28 text-center"
       >
-        <SectionBadge>How It Works</SectionBadge>
-        <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] tracking-tight text-white md:text-5xl lg:text-6xl">
-          You dream it. We ship it.
+        <SectionBadge>Doctrine</SectionBadge>
+        <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+          One shell. Many operating lanes.
         </h2>
         <p className="mt-5 max-w-2xl text-sm font-light text-white/60 font-body md:text-base">
-          Share your vision. Our AI handles the rest: wireframes, design, code,
-          launch. All in days, not quarters.
+          Homefront is being shaped as an operating room: live signals, saved
+          artifacts, local model lanes, protected commands, and private work
+          held behind the same route-stable threshold.
         </p>
         <div className="mt-8">
-          <ArrowButton href={accessHref}>Get Started</ArrowButton>
+          <ArrowButton href={accessHref}>Enter HQ</ArrowButton>
         </div>
+        <LiveCommandPreview />
       </div>
     </VideoSection>
   );
 }
 
 function FeaturesChess({ accessHref }: { accessHref: string }) {
+  const reduceMotion = useReducedMotion();
+  const [activeSurfaceId, setActiveSurfaceId] = useState(
+    SURFACE_SHOWCASE[0].id,
+  );
+  const activeSurface =
+    SURFACE_SHOWCASE.find((surface) => surface.id === activeSurfaceId) ??
+    SURFACE_SHOWCASE[0];
+
+  useEffect(() => {
+    if (reduceMotion) return undefined;
+    const interval = window.setInterval(() => {
+      setActiveSurfaceId((current) => {
+        const currentIndex = SURFACE_SHOWCASE.findIndex(
+          (surface) => surface.id === current,
+        );
+        return SURFACE_SHOWCASE[(currentIndex + 1) % SURFACE_SHOWCASE.length]
+          .id;
+      });
+    }, 5200);
+
+    return () => window.clearInterval(interval);
+  }, [reduceMotion]);
+
   return (
-    <section id="services" className="bg-black px-6 py-28">
+    <section id="lanes" className="bg-black px-6 py-28">
       <div className="mx-auto max-w-7xl">
-        <div className="mx-auto mb-16 max-w-3xl text-center">
-          <SectionBadge>Capabilities</SectionBadge>
-          <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] tracking-tight text-white md:text-5xl lg:text-6xl">
-            Pro features. Zero complexity.
+        <div className="mx-auto mb-16 max-w-4xl text-center">
+          <SectionBadge>Lanes</SectionBadge>
+          <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+            Walk the real surfaces before you enter.
           </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
+            This is a public, read-only preview of the rooms that matter:
+            command, intelligence, security, memory, and proof. Private lanes
+            stay out of the story.
+          </p>
         </div>
 
-        <div className="flex flex-col gap-16">
-          {FEATURE_ROWS.map((feature) => (
-            <div
-              key={feature.title}
-              className={`flex flex-col items-center gap-10 ${
-                feature.reverse ? "lg:flex-row-reverse" : "lg:flex-row"
-              }`}
-            >
-              <div className="flex-1">
-                <h3 className="max-w-xl text-4xl font-heading italic leading-[0.95] tracking-tight text-white md:text-5xl">
-                  {feature.title}
-                </h3>
-                <p className="mt-5 max-w-lg text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
-                  {feature.body}
-                </p>
-                <div className="mt-8">
-                  <ArrowButton href={accessHref}>{feature.button}</ArrowButton>
+        <div
+          className="grid gap-8 lg:grid-cols-[0.72fr_1fr]"
+          data-testid="landing-surface-showcase"
+        >
+          <div className="flex flex-col gap-3">
+            {SURFACE_SHOWCASE.map((surface) => {
+              const isActive = activeSurface.id === surface.id;
+              return (
+                <button
+                  key={surface.id}
+                  className={`liquid-glass rounded-2xl p-5 text-left transition duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 ${
+                    isActive ? "bg-white/10" : "hover:bg-white/5"
+                  }`}
+                  data-testid={`landing-surface-tab-${surface.id}`}
+                  onClick={() => setActiveSurfaceId(surface.id)}
+                  type="button"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <span
+                      className={`text-sm font-medium font-body ${
+                        isActive ? "text-white" : "text-white/55"
+                      }`}
+                    >
+                      {surface.label}
+                    </span>
+                    <span className="text-xs text-white/35 font-body">
+                      {isActive ? "active" : "preview"}
+                    </span>
+                  </div>
+                  <div className="mt-3 text-2xl font-heading italic leading-none text-white">
+                    {surface.title}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <motion.div
+            key={activeSurface.id}
+            animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+            className="liquid-glass min-h-[560px] rounded-3xl p-6 md:p-8"
+            data-testid="landing-surface-panel"
+            initial={
+              reduceMotion ? false : { filter: "blur(10px)", opacity: 0, y: 20 }
+            }
+            transition={{ duration: 0.45 }}
+          >
+            <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
+              <div>
+                <div className="text-xs font-medium uppercase text-white/45 font-body">
+                  {activeSurface.label}
                 </div>
+                <h3 className="mt-4 max-w-2xl text-4xl font-heading italic leading-[0.9] text-white md:text-5xl">
+                  {activeSurface.title}
+                </h3>
+                <p className="mt-5 max-w-2xl text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
+                  {activeSurface.body}
+                </p>
               </div>
-              <div className="liquid-glass flex-1 overflow-hidden rounded-2xl p-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  alt=""
-                  className="aspect-[16/10] w-full rounded-[1rem] object-cover"
-                  decoding="async"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                  src={feature.gif}
-                />
+              <ArrowButton href={activeSurface.href}>Open</ArrowButton>
+            </div>
+
+            <div className="mt-10 grid gap-4 md:grid-cols-3">
+              {activeSurface.readouts.map(([value, label]) => (
+                <div
+                  key={label}
+                  className="rounded-2xl border border-white/10 p-4"
+                >
+                  <div className="text-3xl font-heading italic text-white">
+                    {value}
+                  </div>
+                  <div className="mt-1 text-xs font-light text-white/45 font-body">
+                    {label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-10 rounded-2xl border border-white/10 bg-black/25 p-5">
+              <div className="mb-4 flex items-center justify-between text-xs uppercase text-white/38 font-body">
+                <span>Room activity</span>
+                <span>read-only</span>
+              </div>
+              <div className="space-y-3">
+                {activeSurface.lines.map((line, index) => (
+                  <div key={line} className="flex items-center gap-3">
+                    <motion.span
+                      animate={
+                        reduceMotion ? undefined : { scale: [1, 1.28, 1] }
+                      }
+                      className="size-2 rounded-full bg-white/75"
+                      transition={{
+                        delay: index * 0.22,
+                        duration: 2.2,
+                        repeat: Infinity,
+                      }}
+                    />
+                    <span className="text-sm font-light text-white/70 font-body">
+                      {line}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <ArrowButton href={accessHref}>Enter HQ</ArrowButton>
+              <span className="text-sm font-light text-white/45 font-body">
+                Same threshold, deeper room.
+              </span>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>
@@ -592,19 +885,19 @@ function FeaturesChess({ accessHref }: { accessHref: string }) {
 
 function FeaturesGrid() {
   return (
-    <section id="work" className="bg-black px-6 py-28">
+    <section id="posture" className="bg-black px-6 py-28">
       <div className="mx-auto max-w-7xl">
         <div className="mx-auto mb-14 max-w-3xl text-center">
-          <SectionBadge>Why Us</SectionBadge>
-          <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] tracking-tight text-white md:text-5xl lg:text-6xl">
-            The difference is everything.
+          <SectionBadge>Operating Posture</SectionBadge>
+          <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+            Free, local, deliberate.
           </h2>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {WHY_US.map((item) => (
             <div key={item.title} className="liquid-glass rounded-2xl p-6">
-              <div className="liquid-glass-strong mb-8 flex h-10 w-10 items-center justify-center rounded-full text-white">
-                <item.icon className="h-5 w-5" />
+              <div className="liquid-glass-strong mb-8 flex size-10 items-center justify-center rounded-full text-white">
+                <item.icon className="size-5" />
               </div>
               <h3 className="text-xl font-heading italic text-white">
                 {item.title}
@@ -623,19 +916,56 @@ function FeaturesGrid() {
 function StatsSection() {
   return (
     <VideoSection src={STATS_VIDEO_URL} desaturated minHeight="min-h-[620px]">
-      <div className="mx-auto flex min-h-[620px] max-w-7xl items-center px-6 py-28">
-        <div className="liquid-glass w-full rounded-3xl p-12 md:p-16">
-          <div className="grid grid-cols-1 gap-10 text-center md:grid-cols-4">
-            {STATS.map(([value, label]) => (
-              <div key={label}>
-                <div className="text-4xl font-heading italic text-white md:text-5xl lg:text-6xl">
-                  {value}
+      <div
+        className="mx-auto flex min-h-[620px] max-w-7xl flex-col justify-center px-6 py-28"
+        data-testid="landing-proof-wall"
+      >
+        <div className="mb-12 grid gap-8 lg:grid-cols-[0.72fr_1fr] lg:items-end">
+          <div>
+            <SectionBadge>Proof Wall</SectionBadge>
+            <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+              Measured by readiness, not revenue.
+            </h2>
+          </div>
+          <p className="max-w-2xl text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
+            The page should show what is true about the project right now: free
+            posture, local-first runtime, guarded access, and verification
+            proof. No invented customer logos. No sales theater.
+          </p>
+        </div>
+
+        <div className="liquid-glass w-full rounded-3xl p-6 md:p-8">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {PROOF_WALL.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-white/10 bg-black/20 p-5"
+              >
+                <div className="text-4xl font-heading italic text-white md:text-5xl">
+                  {item.value}
                 </div>
-                <div className="mt-3 text-sm font-light text-white/60 font-body">
-                  {label}
+                <div className="mt-3 text-sm font-medium text-white font-body">
+                  {item.label}
                 </div>
+                <p className="mt-3 text-sm font-light leading-relaxed text-white/55 font-body">
+                  {item.detail}
+                </p>
               </div>
             ))}
+          </div>
+          <div className="mt-8 grid gap-3 border-t border-white/10 pt-6 md:grid-cols-3">
+            {["Build proof", "Route health", "Handoff sync"].map(
+              (proof, index) => (
+                <div key={proof} className="flex items-center gap-3">
+                  <span className="flex size-8 items-center justify-center rounded-full border border-white/15 text-xs text-white/60 font-body">
+                    0{index + 1}
+                  </span>
+                  <span className="text-sm font-light text-white/60 font-body">
+                    {proof}
+                  </span>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </div>
@@ -648,14 +978,17 @@ function Testimonials() {
     <section className="bg-black px-6 py-28">
       <div className="mx-auto max-w-7xl">
         <div className="mx-auto mb-14 max-w-3xl text-center">
-          <SectionBadge>What They Say</SectionBadge>
-          <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] tracking-tight text-white md:text-5xl lg:text-6xl">
-            Don&apos;t take our word for it.
+          <SectionBadge>Field Notes</SectionBadge>
+          <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+            What the room believes.
           </h2>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {TESTIMONIALS.map((testimonial) => (
-            <figure key={testimonial.name} className="liquid-glass rounded-2xl p-8">
+            <figure
+              key={testimonial.name}
+              className="liquid-glass rounded-2xl p-8"
+            >
               <blockquote className="text-sm font-light italic leading-relaxed text-white/80 font-body">
                 &ldquo;{testimonial.quote}&rdquo;
               </blockquote>
@@ -677,26 +1010,54 @@ function Testimonials() {
 
 function AccessForm({
   authError,
+  failurePath,
+  nextPath,
   show,
 }: {
   authError?: "invalid" | "server" | null;
+  failurePath: string;
+  nextPath: string;
   show: boolean;
 }) {
+  const [hasTokenInput, setHasTokenInput] = useState(false);
+
   if (!show) return null;
   const status = authError
     ? AUTH_ERROR_COPY[authError]
-    : "Local operator access uses your NEXUS_TOKEN and opens HQ after validation.";
+    : hasTokenInput
+      ? "Token staged locally. Submit when you are ready to open HQ."
+      : "Local operator access uses your NEXUS_TOKEN and opens the requested room after validation.";
 
   return (
     <form
       id="agency-access"
       action="/auth/connect"
-      className="liquid-glass mx-auto mt-10 flex max-w-2xl flex-col gap-3 rounded-[2rem] p-3 text-left"
+      className="liquid-glass mx-auto mt-10 flex max-w-3xl flex-col gap-4 rounded-[2rem] p-4 text-left md:p-5"
       data-testid="landing-auth-form"
       method="POST"
     >
-      <input type="hidden" name="next" value="/hq" />
-      <input type="hidden" name="failureNext" value="/#agency-access" />
+      <div
+        className="grid gap-3 md:grid-cols-3"
+        data-testid="landing-access-ceremony"
+      >
+        {ACCESS_SEQUENCE.map((step, index) => (
+          <div
+            key={step}
+            className={`rounded-2xl border p-3 ${
+              index === 1 && hasTokenInput
+                ? "border-white/35 bg-white/10"
+                : "border-white/10 bg-black/20"
+            }`}
+          >
+            <div className="text-xs text-white/35 font-body">0{index + 1}</div>
+            <div className="mt-2 text-sm font-light leading-tight text-white/70 font-body">
+              {step}
+            </div>
+          </div>
+        ))}
+      </div>
+      <input type="hidden" name="next" value={nextPath} />
+      <input type="hidden" name="failureNext" value={failurePath} />
       <label
         className="px-2 text-xs font-medium text-white/70 font-body"
         htmlFor="agency-access-token"
@@ -709,6 +1070,9 @@ function AccessForm({
           className="rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm text-white outline-none font-body placeholder:text-white/35 focus:border-white/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
           data-testid="landing-auth-token-input"
           name="token"
+          onChange={(event) =>
+            setHasTokenInput(event.currentTarget.value.length > 0)
+          }
           placeholder="Paste NEXUS_TOKEN"
           required
           type="password"
@@ -719,7 +1083,7 @@ function AccessForm({
           type="submit"
         >
           Unlock HQ
-          <ArrowUpRightIcon className="h-4 w-4" />
+          <ArrowUpRightIcon className="size-4" />
         </button>
       </div>
       <p
@@ -739,32 +1103,38 @@ function CtaFooter({
   authEnabled,
   authError,
   isAuthenticated,
+  nextPath = "/hq",
 }: LandingPageProps & { accessHref: string }) {
+  const failurePath = buildLandingFailurePath(nextPath);
+
   return (
     <VideoSection src={CTA_VIDEO_URL} minHeight="min-h-[760px]">
       <div
-        id="pricing"
+        id="access"
         className="mx-auto flex min-h-[760px] max-w-7xl flex-col justify-center px-6 py-28 text-center"
       >
         <div className="mx-auto max-w-3xl">
-          <h2 className="text-5xl font-heading italic leading-[0.85] tracking-tight text-white md:text-6xl lg:text-7xl">
-            Your next website starts here.
+          <h2 className="text-5xl font-heading italic leading-[0.85] text-white md:text-6xl lg:text-7xl">
+            Enter when you have the token.
           </h2>
           <p className="mx-auto mt-6 max-w-2xl text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
-            Book a free strategy call. See what AI-powered design can do. No
-            commitment, no pressure. Just possibilities.
+            This is not a sales funnel. The landing is a threshold for a
+            local-first MIT project: password in, HQ opens, authenticated
+            operators continue directly.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <ArrowButton href={accessHref}>Book a Call</ArrowButton>
+            <ArrowButton href={accessHref}>Enter HQ</ArrowButton>
             <a
-              href="#pricing"
+              href="/resources"
               className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-medium text-black font-body focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
             >
-              View Pricing
+              Open Resources
             </a>
           </div>
           <AccessForm
             authError={authError}
+            failurePath={failurePath}
+            nextPath={nextPath}
             show={authEnabled && !isAuthenticated}
           />
         </div>
@@ -772,16 +1142,20 @@ function CtaFooter({
         <footer className="mt-32 border-t border-white/10 pt-8">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <p className="text-xs font-light text-white/40 font-body">
-              (c) 2026 Studio. All rights reserved.
+              (c) 2026 Homefront. MIT local-first project.
             </p>
             <div className="flex items-center gap-6">
-              {["Privacy", "Terms", "Contact"].map((link) => (
+              {[
+                { href: "/resources?view=impact", label: "System State" },
+                { href: "/hq", label: "HQ" },
+                { href: "/vault", label: "Vault" },
+              ].map((link) => (
                 <a
-                  key={link}
-                  href="#home"
+                  key={link.href}
+                  href={link.href}
                   className="text-xs font-light text-white/40 font-body transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
                 >
-                  {link}
+                  {link.label}
                 </a>
               ))}
             </div>
@@ -796,17 +1170,17 @@ export default function LandingPage({
   authEnabled,
   authError = null,
   isAuthenticated,
+  nextPath = "/hq",
 }: LandingPageProps) {
   const needsAccessForm = authEnabled && !isAuthenticated;
-  const accessHref = needsAccessForm ? "#agency-access" : "/hq";
+  const accessHref = needsAccessForm ? "#agency-access" : nextPath;
 
   return (
     <main
-      className="agency-landing min-h-screen bg-black text-white"
-      aria-label="AI-powered web design agency landing"
+      className="homefront-landing min-h-screen bg-black text-white"
+      aria-label="Homefront local-first command intelligence landing"
       data-testid="landing-page"
     >
-      <LandingVisualSystem />
       <Navbar accessHref={accessHref} />
       <Hero accessHref={accessHref} />
       <div className="relative z-10 bg-black">
@@ -820,10 +1194,17 @@ export default function LandingPage({
           authEnabled={authEnabled}
           authError={authError}
           isAuthenticated={isAuthenticated}
+          nextPath={nextPath}
         />
       </div>
     </main>
   );
+}
+
+function buildLandingFailurePath(nextPath: string) {
+  if (!nextPath || nextPath === "/hq") return "/#agency-access";
+  const params = new URLSearchParams({ next: nextPath });
+  return `/?${params.toString()}#agency-access`;
 }
 
 function ArrowUpRightIcon({ className }: IconProps) {

@@ -7,7 +7,7 @@ import {
 const BOOT_RECOVERY_ATTR = "data-nexus-shell-boot";
 const BOOT_RECOVERY_ID = "nexus-shell-bootstrap-recovery";
 const MAX_BOOT_AUTO_RELOADS = 1;
-const BOOT_CHECK_DELAYS_MS = [1600, 3400];
+const BOOT_CHECK_DELAYS_MS = [2400, 9000];
 
 export function getCriticalShellCss() {
   return `
@@ -226,6 +226,13 @@ export function buildShellBootstrapGuardScript() {
         var CHECK_DELAYS = ${delays};
         var TARGETED_VIEW_STORAGE_KEYS = ${storageKeys};
         var isPublicLanding = window.location.pathname === "/";
+        var hasBootReloadMarker = false;
+
+        try {
+          hasBootReloadMarker = new URL(window.location.href).searchParams.has("__shellHeal");
+        } catch (_error) {
+          hasBootReloadMarker = window.location.search.indexOf("__shellHeal") !== -1;
+        }
 
         if (isPublicLanding) {
           document.documentElement.removeAttribute(RECOVERY_ATTR);
@@ -471,7 +478,7 @@ export function buildShellBootstrapGuardScript() {
           if (!isFinalAttempt) return;
 
           var attempts = readAttemptCount(storageKey);
-          if (attempts < MAX_AUTO_RELOADS) {
+          if (!hasBootReloadMarker && attempts < MAX_AUTO_RELOADS) {
             writeAttemptCount(storageKey, attempts + 1);
             window.location.assign(buildReloadUrl());
             return;

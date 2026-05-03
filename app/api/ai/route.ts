@@ -12,6 +12,10 @@ import {
   applyRateLimitHeaders,
   checkRateLimit,
 } from "@/lib/security/rateLimit";
+import {
+  applyPrivacyShieldHeaders,
+  protectCloudBoundPayload,
+} from "@/lib/privacyShieldServer";
 import { readProtectedActionContext } from "@/lib/security/toolCapabilityPolicy";
 
 /**
@@ -373,13 +377,38 @@ export async function POST(req: NextRequest) {
           : providerName === chain[0]
             ? resolvedModel
             : undefined;
+      const protectedPayload = protectCloudBoundPayload({
+        providerName,
+        messages,
+        system,
+      });
+      if (protectedPayload.status?.dispatchMode === "blocked") {
+        const response = NextResponse.json(
+          {
+            error: {
+              message:
+                protectedPayload.status.blockedReason ??
+                "Cloud dispatch was blocked because the request still carried sensitive evidence after privacy review.",
+            },
+          },
+          { status: 403 },
+        );
+        response.headers.set("X-Provider", providerName);
+        response.headers.set(
+          "X-Model",
+          effectiveModel ?? PROVIDERS[providerName].model,
+        );
+        applyPrivacyShieldHeaders(response, protectedPayload.status);
+        applyRateLimitHeaders(response, rateLimitConfig);
+        return response;
+      }
 
       const r = await callProvider(
         providerName,
-        messages,
+        protectedPayload.messages,
         effectiveModel,
         safeMaxTokens,
-        system,
+        protectedPayload.system,
         stream,
         tools,
         tool_choice,
@@ -395,6 +424,7 @@ export async function POST(req: NextRequest) {
             "X-Model": usedModel,
           },
         });
+        applyPrivacyShieldHeaders(response, protectedPayload.status);
         applyRateLimitHeaders(response, rateLimitConfig);
         return response;
       }

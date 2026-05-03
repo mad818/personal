@@ -6,6 +6,10 @@ import ActionSessionCluster from "@/components/ui/ActionSessionCluster";
 import type { Article } from "@/store/useStore";
 import type { VaultGraphData } from "@/components/home/office/types";
 import { apiFetch } from "@/lib/apiFetch";
+import {
+  formatArtifactParserHintLabel,
+  formatArtifactTypeLabel,
+} from "@/lib/artifactClassification";
 import { ShellBadge } from "@/components/ui/shell";
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions";
 import { SurfaceEmpty, SurfaceSkeletonRows } from "@/components/ui/surfacePrimitives";
@@ -556,6 +560,20 @@ export default function VaultGraphFocusPanel({
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+        <ShellBadge
+          tone={
+            page.artifactClassification.sensitivity === "restricted"
+              ? "accent"
+              : page.artifactClassification.sensitivity === "internal"
+                ? "muted"
+                : "success"
+          }
+        >
+          {formatArtifactTypeLabel(page.artifactClassification.artifactType)}
+        </ShellBadge>
+        <ShellBadge tone="muted">
+          {formatArtifactParserHintLabel(page.artifactClassification.parserHint)}
+        </ShellBadge>
         <ShellBadge tone="muted">{page.researchSignals.structure}</ShellBadge>
         {page.researchSignals.sourceCount > 0 ? (
           <ShellBadge tone="muted">sources {page.researchSignals.sourceCount}</ShellBadge>

@@ -85,6 +85,10 @@ const LazyOsintCasefileCard = dynamic(
   () => import("@/components/recon/OsintCasefileCard"),
   { ssr: false },
 );
+const LazyAiExposureReviewCard = dynamic(
+  () => import("@/components/recon/AiExposureReviewCard"),
+  { ssr: false },
+);
 
 export default function CyberPage() {
   const router = useRouter();
@@ -390,6 +394,13 @@ export default function CyberPage() {
                       tone="muted"
                     >
                       <LazyCyberArticleHeatmap />
+                    </OpsField>
+                    <OpsField
+                      title="AI exposure packs"
+                      detail="Passive AI posture review"
+                      tone="muted"
+                    >
+                      <LazyAiExposureReviewCard route="/cyber" />
                     </OpsField>
                     <OpsField
                       title="Caseflow loop"

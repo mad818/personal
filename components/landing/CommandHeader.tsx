@@ -33,8 +33,12 @@ function scrollToZone(event: MouseEvent<HTMLButtonElement>, zoneId: string) {
 
 export default function CommandHeader({
   ctaHref,
-  ctaLabel = "Enter Nexus",
+  ctaLabel = "Enter Homefront",
 }: CommandHeaderProps) {
+  const ctaAriaLabel = `${ctaLabel}, ${
+    ctaHref.startsWith("#") ? "go to access form" : "go to HQ"
+  }`;
+
   return (
     <header
       className="nexus-landing-header"
@@ -55,7 +59,7 @@ export default function CommandHeader({
             />
           </svg>
           <div className="nexus-landing-header__brandCopy">
-            <span className="nexus-landing-header__wordmark">Nexus</span>
+            <span className="nexus-landing-header__wordmark">Homefront</span>
             <span className="nexus-landing-header__designation">
               Local command shell
             </span>
@@ -81,7 +85,7 @@ export default function CommandHeader({
         <a
           href={ctaHref}
           className="nexus-landing-header__cta"
-          aria-label={`${ctaLabel}, go to HQ`}
+          aria-label={ctaAriaLabel}
           data-testid="landing-header-cta"
         >
           {ctaLabel}

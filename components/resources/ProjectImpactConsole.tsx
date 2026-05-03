@@ -6,6 +6,11 @@ import ActionSessionCluster from "@/components/ui/ActionSessionCluster";
 import { SectionLabel, ShellBadge, ShellSegmentedTabs } from "@/components/ui/shell";
 import { SurfaceCallout, SurfaceEmpty } from "@/components/ui/surfacePrimitives";
 import { apiFetch } from "@/lib/apiFetch";
+import {
+  formatArtifactParserHintLabel,
+  formatArtifactTypeLabel,
+  type ArtifactClassification,
+} from "@/lib/artifactClassification";
 import { getImpactRepairSession } from "@/lib/impactRepairSessions";
 import type {
   ProjectGraphResult,
@@ -83,6 +88,28 @@ function formatIsoTime(value: string | null | undefined) {
   } catch {
     return value;
   }
+}
+
+function renderArtifactBadges(classification: ArtifactClassification) {
+  return (
+    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+      <ShellBadge
+        tone={
+          classification.sensitivity === "restricted"
+            ? "accent"
+            : classification.sensitivity === "internal"
+              ? "muted"
+              : "success"
+        }
+      >
+        {formatArtifactTypeLabel(classification.artifactType)}
+      </ShellBadge>
+      <ShellBadge tone="muted">
+        {formatArtifactParserHintLabel(classification.parserHint)}
+      </ShellBadge>
+      <ShellBadge tone="muted">{classification.sensitivity}</ShellBadge>
+    </div>
+  );
 }
 
 export default function ProjectImpactConsole({
@@ -479,8 +506,11 @@ export default function ProjectImpactConsole({
               <SectionLabel detail={`${graph.nodes.length} ranked nodes`}>High-coupling files</SectionLabel>
               {graph.nodes.slice(0, 10).map((node) => (
                 <div key={node.path} style={{ fontSize: "12px", color: "var(--text2)" }}>
-                  {node.path}
-                  <span style={{ color: "var(--text3)" }}> · coupling {node.coupling}</span>
+                  <div>
+                    {node.path}
+                    <span style={{ color: "var(--text3)" }}> · coupling {node.coupling}</span>
+                  </div>
+                  {renderArtifactBadges(node.artifactClassification)}
                 </div>
               ))}
             </div>
@@ -531,6 +561,7 @@ export default function ProjectImpactConsole({
                   <div style={{ fontSize: "10px", color: "var(--text3)" }}>
                     {entry.lastAuthor} · {formatIsoTime(entry.lastTouchedAt)} · {entry.changeCount} changes
                   </div>
+                  {renderArtifactBadges(entry.artifactClassification)}
                 </div>
               ))}
             </div>
@@ -561,6 +592,7 @@ export default function ProjectImpactConsole({
                 <div style={{ fontSize: "10px", color: "var(--text3)" }}>
                   score {entry.hotspotScore} · coupling {entry.coupling} · {entry.changeCount} changes · {formatIsoTime(entry.lastTouchedAt)}
                 </div>
+                {renderArtifactBadges(entry.artifactClassification)}
               </div>
             ))}
           </div>
@@ -589,6 +621,7 @@ export default function ProjectImpactConsole({
                         <span style={{ color: "var(--text3)" }}> · {finding.severity}</span>
                       </div>
                       <div style={{ fontSize: "10px", color: "var(--text3)" }}>{finding.path}</div>
+                      {renderArtifactBadges(finding.artifactClassification)}
                       <div style={{ fontSize: "11px", color: "var(--text2)" }}>{finding.detail}</div>
                     </div>
                   ))

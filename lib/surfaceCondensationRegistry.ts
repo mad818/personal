@@ -33,7 +33,8 @@ export type ResourcesChamberId =
   | "study"
   | "system"
   | "launch"
-  | "utilities";
+  | "utilities"
+  | "wins";
 
 export const SURFACE_CONDENSATION_REGISTRY: Record<
   AssistantFirstSurfaceId,
@@ -150,6 +151,7 @@ export const SURFACE_CONDENSATION_REGISTRY: Record<
       "understand-system",
       "open-exact-session",
       "supporting-utilities",
+      "massive-win-plans",
     ],
     groupedViewAliases: {
       manual: "start",
@@ -161,6 +163,7 @@ export const SURFACE_CONDENSATION_REGISTRY: Record<
       "voice-lab": "launch",
       registry: "utilities",
       kits: "utilities",
+      wins: "wins",
     },
   },
 };
@@ -240,6 +243,9 @@ export function resolveResourcesChamber(view?: string | null): ResourcesChamberI
   if (view === "registry" || view === "kits") {
     return "utilities";
   }
+  if (view === "wins") {
+    return "wins";
+  }
   return "finder";
 }
 
@@ -249,6 +255,7 @@ export function resolveResourcesViewForChamber(
 ) {
   if (chamber === "finder") return "finder" as const;
   if (chamber === "study") return "study" as const;
+  if (chamber === "wins") return "wins" as const;
   if (chamber === "launch") {
     if (currentView === "voice-lab") return "voice-lab" as const;
     return "impact" as const;

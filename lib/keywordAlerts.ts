@@ -1,7 +1,7 @@
 "use client";
 
 // ── lib/keywordAlerts.ts ───────────────────────────────────────────────────────
-// Keyword alert engine for Nexus Prime.
+// Keyword alert engine for Homefront.
 //
 // Scans loaded articles against a comma-separated list of user-defined keywords
 // from Settings. Returns matches without duplicates — callers are responsible

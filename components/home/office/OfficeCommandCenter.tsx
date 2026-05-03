@@ -21,6 +21,7 @@ import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
 import { runAgent, type AgentStep } from "@/lib/agent";
+import { mergeAssistantGuidance } from "@/lib/assistantGuidance";
 import { buildSystemPrompt } from "@/lib/ai";
 import { apiFetch } from "@/lib/apiFetch";
 import { fetchJsonCached } from "@/lib/apiCache";
@@ -61,6 +62,7 @@ import {
 } from "@/lib/personaEngine";
 import { useStore } from "@/store/useStore";
 import {
+  buildCorrectionMemoryPromptBlock,
   buildCapabilitiesBlock,
   buildFilteredLiveContextBundle,
   buildMemoryDiffBlock,
@@ -151,13 +153,17 @@ import {
   findLatestChronicle,
 } from "./officeCommandCenterStrategium";
 import {
+  buildOfficeRunCorrectionProposal,
   buildOfficeRunLessonProposal,
   buildOfficeRunSessionSummary,
   queueOfficeRunSideEffects,
 } from "./officeCommandCenterPostRun";
 import { runHQMetaCommand } from "./officeCommandCenterMeta";
 import { useOfficeConsoleShellControls } from "./useOfficeConsoleShellControls";
-import type { UnfinishedSessionArtifactClass } from "@/lib/assistantSessionMemory";
+import {
+  findRelevantCorrectionMemories,
+  type UnfinishedSessionArtifactClass,
+} from "@/lib/assistantSessionMemory";
 
 function classifyUnfinishedArtifactClass(input: {
   intent: HQAssistantIntent;
@@ -355,7 +361,12 @@ export default function OfficeCommandCenter() {
   const setSwitchOperatorStatus = useStore((s) => s.setSwitchOperatorStatus);
   const patchSwitchOperatorStatus = useStore((s) => s.patchSwitchOperatorStatus);
   const unfinishedSessions = useStore((s) => s.unfinishedSessions);
+  const correctionMemories = useStore((s) => s.correctionMemories);
   const rememberUnfinishedSession = useStore((s) => s.rememberUnfinishedSession);
+  const proposeCorrectionMemory = useStore((s) => s.proposeCorrectionMemory);
+  const approveCorrectionMemory = useStore((s) => s.approveCorrectionMemory);
+  const archiveCorrectionMemory = useStore((s) => s.archiveCorrectionMemory);
+  const markCorrectionMemoriesApplied = useStore((s) => s.markCorrectionMemoriesApplied);
   const officeEditMode = useStore((s) => s.officeEditMode);
   const setOfficeEditMode = useStore((s) => s.setOfficeEditMode);
   const resetOfficeLayout = useStore((s) => s.resetOfficeLayout);
@@ -369,6 +380,7 @@ export default function OfficeCommandCenter() {
   const officeCameraPreset = (settings.officeCameraPreset ??
     "cinematic") as OfficeCameraPreset;
   const officeSplitHeightPx = settings.officeSplitHeightPx ?? 0;
+  const hqConsoleFocusMode = settings.hqConsoleFocusMode ?? "game";
   const officeOperationalMode = settings.officeOperationalMode ?? "normal";
   const officeVfxQuality = (settings.officeVfxQuality ?? "low") as
     | "off"
@@ -425,6 +437,9 @@ export default function OfficeCommandCenter() {
     text: string;
     agent: string;
   } | null>(null);
+  const [pendingCorrectionId, setPendingCorrectionId] = useState<string | null>(
+    null,
+  );
   const searchParamFocus = searchParams.get("focus");
   const [focus, setFocus] = useState<string | null>(searchParamFocus);
   const schedulerFocus =
@@ -462,6 +477,16 @@ export default function OfficeCommandCenter() {
   const chronicleScrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const prevEvalGradeRef = useRef<"A" | "B" | "C" | "unknown">("unknown");
+  const pendingCorrection = useMemo(
+    () =>
+      pendingCorrectionId
+        ? correctionMemories.find(
+            (entry) =>
+              entry.id === pendingCorrectionId && entry.status === "proposed",
+          ) ?? null
+        : null,
+    [correctionMemories, pendingCorrectionId],
+  );
 
   useEffect(() => {
     if (activeAgent || input.trim().length > 0) return;
@@ -504,7 +529,7 @@ export default function OfficeCommandCenter() {
       (window.innerHeight * OFFICE_HEIGHT_DEFAULT_VH) / 100,
     );
     const initial = fromSettings > 0 ? fromSettings : fallback;
-    const maxByViewport = Math.round(window.innerHeight * 0.62);
+    const maxByViewport = Math.round(window.innerHeight * 0.76);
     const maxAllowed = Math.max(
       OFFICE_HEIGHT_MIN_PX,
       Math.min(OFFICE_HEIGHT_MAX_PX, maxByViewport),
@@ -961,6 +986,10 @@ export default function OfficeCommandCenter() {
       learningMission: assistantContext.learningMission,
       query: agentInput,
     });
+    const referencedFilePath =
+      agentInput.match(
+        /\b(?:app|components|lib|store|hooks|scripts|tests|docs)\/[A-Za-z0-9._/-]+\.(?:[cm]?tsx?|md|mjs|json)\b/,
+      )?.[0] ?? null;
     const lessonTree = getLessonTree();
 
     const buildPromptForAgent = async (
@@ -973,10 +1002,7 @@ export default function OfficeCommandCenter() {
         assistantIntent: assistantContext.intent,
         capabilityId: assistantContext.capabilityId,
         routeHint: routeFromPrompt,
-        filePath:
-          agentInput.match(
-            /\b(?:app|components|lib|store|hooks|scripts|tests|docs)\/[A-Za-z0-9._/-]+\.(?:[cm]?tsx?|md|mjs|json)\b/,
-          )?.[0] ?? null,
+        filePath: referencedFilePath,
         learningMission: assistantContext.learningMission,
         workflowPackId,
         verifiedRetrievalRequired: answerStylePlan.verifiedRetrievalRequired,
@@ -1029,6 +1055,21 @@ export default function OfficeCommandCenter() {
           ? getTopLessonsForAgent(lessonTree, agentInput, agentId, 3)
           : lessons.slice(0, 3)
         : [];
+      const matchedCorrections = findRelevantCorrectionMemories(
+        useStore.getState().correctionMemories,
+        {
+          input: agentInput,
+          routeSurface: routeFromPrompt ?? assistantContext.preparedWorkspace?.href,
+          agent: agentId,
+          filePath: referencedFilePath,
+          taskType: assistantContext.intent,
+          capability: assistantContext.capabilityId,
+          limit: 3,
+        },
+      );
+      const correctionBlock = buildCorrectionMemoryPromptBlock(
+        matchedCorrections,
+      );
       const lessonsBlock = buildLessonsPromptBlock(agentId, topLessons);
       const contentByAsset: Partial<Record<ContextAssetId, string>> = {};
       for (const asset of manifest.assets) {
@@ -1045,7 +1086,9 @@ export default function OfficeCommandCenter() {
       contentByAsset.retrieval_docs = liveRetrievalBlock || ragBlock;
       contentByAsset.mined_memory = minedMemoryBlock;
       contentByAsset.assistant_context =
-        assistantContext.promptBlock + buildCapabilitiesBlock(agentId);
+        assistantContext.promptBlock +
+        buildCapabilitiesBlock(agentId) +
+        correctionBlock;
       contentByAsset.continuation = assistantContext.continuationBlock;
       contentByAsset.prepared_workspace = assistantContext.preparedWorkspaceBlock;
       contentByAsset.lessons = lessonsBlock;
@@ -1065,6 +1108,7 @@ export default function OfficeCommandCenter() {
         ragChars: ragBlock.length,
         lessonsChars: lessonsBlock.length,
         lessonIds: topLessons.map((lesson) => lesson.id),
+        matchedCorrections,
       };
     };
 
@@ -1423,6 +1467,24 @@ export default function OfficeCommandCenter() {
         preparedWorkspace,
         suppress: workflow?.outputTarget === "compiled_memory_page",
       });
+      const latestArtifact = useStore.getState().agentRunHistory[0];
+      const correctionGuidance = promptBuild.matchedCorrections.length
+        ? {
+            kind: "learning" as const,
+            tone: "info" as const,
+            title: "Correction memory applied",
+            detail:
+              promptBuild.matchedCorrections.length === 1
+                ? `1 approved correction shaped this run: ${promptBuild.matchedCorrections[0]?.content.rule}`
+                : `${promptBuild.matchedCorrections.length} approved corrections shaped this run before wider lessons were loaded.`,
+          }
+        : null;
+
+      if (promptBuild.matchedCorrections.length) {
+        markCorrectionMemoriesApplied(
+          promptBuild.matchedCorrections.map((entry) => entry.id),
+        );
+      }
 
       // Finalize UI: agent reply + tool trace.
       setMessages((prev) => [
@@ -1438,7 +1500,10 @@ export default function OfficeCommandCenter() {
           showEvidencePosture: answerStylePlan.showEvidencePosture,
           assistantIntent: assistantContext.intent,
           preparedWorkspace,
-          assistantGuidance: assistantContext.assistantGuidance,
+          assistantGuidance: mergeAssistantGuidance(
+            assistantContext.assistantGuidance,
+            correctionGuidance,
+          ),
           vaultCaptureSuggestion,
         },
       ]);
@@ -1454,7 +1519,6 @@ export default function OfficeCommandCenter() {
       });
 
       if (operatorPlan) {
-        const latestArtifact = useStore.getState().agentRunHistory[0];
         patchSwitchOperatorStatus({
           mode: "completed",
           providerUsed: latestArtifact?.providerUsed,
@@ -1486,6 +1550,32 @@ export default function OfficeCommandCenter() {
       });
       if (proposedLesson) {
         setPendingLesson({ text: proposedLesson, agent: target });
+      }
+      const proposedCorrection = buildOfficeRunCorrectionProposal({
+        query: value,
+        result: chronicleText,
+        steps,
+        target,
+        assistantIntent: assistantContext.intent,
+        capabilityId: assistantContext.capabilityId,
+        routeHint: routeFromPrompt,
+        preparedWorkspace,
+      });
+      if (proposedCorrection) {
+        const storedProposal = proposeCorrectionMemory({
+          status: "proposed",
+          scope: proposedCorrection.scope,
+          content: proposedCorrection.content,
+          provenance: {
+            sourceQuery: value,
+            sourceRunId: latestArtifact?.runId,
+            sourceSessionHref: preparedWorkspace?.href ?? null,
+          },
+          sensitivity: proposedCorrection.sensitivity,
+        });
+        setPendingCorrectionId(storedProposal?.id ?? null);
+      } else {
+        setPendingCorrectionId(null);
       }
     } catch (err) {
       if (operatorPlan) {
@@ -1539,6 +1629,8 @@ export default function OfficeCommandCenter() {
     setSwitchOperatorStatus,
     setPrivacyShieldStatus,
     patchSwitchOperatorStatus,
+    proposeCorrectionMemory,
+    markCorrectionMemoriesApplied,
     rememberUnfinishedSession,
     unfinishedSessions,
   ]);
@@ -1825,10 +1917,8 @@ export default function OfficeCommandCenter() {
     [router, setTab],
   );
   const {
+    applySplitHeight,
     openBriefingTab,
-    startResize,
-    resetSplit,
-    handleSplitterKey,
     toggleSplitLock,
   } = useOfficeConsoleShellControls({
     router,
@@ -1845,6 +1935,13 @@ export default function OfficeCommandCenter() {
     setSplitNotice,
     setSplitDragLocked,
   });
+  const setHqConsoleFocusMode = useCallback(
+    (mode: "game" | "chat") => {
+      updateSettings({ hqConsoleFocusMode: mode });
+      setShowSplitMore(false);
+    },
+    [setShowSplitMore, updateSettings],
+  );
 
   return (
     <PageTransition>
@@ -1891,7 +1988,10 @@ export default function OfficeCommandCenter() {
           />
         ) : null}
 
-        <div className="nexus-hq-commandTable">
+        <div
+          className="nexus-hq-commandTable"
+          data-hq-focus-mode={hqConsoleFocusMode}
+        >
           <div className="nexus-hq-commandTable__workspace">
             <div className="nexus-hq-console">
               <div
@@ -1908,6 +2008,7 @@ export default function OfficeCommandCenter() {
                   runtimeStatusLabel={runtimeStatusLabel}
                   runtimePhaseLabel={runtimePhaseLabel}
                   clockLabel={clockLabel}
+                  consoleFocusMode={hqConsoleFocusMode}
                   officeHeightPx={officeHeightPx}
                   compactSplitControls={compactSplitControls}
                   viewportHeight={viewportHeight}
@@ -1944,9 +2045,8 @@ export default function OfficeCommandCenter() {
                     updateSettings({ officeVfxQuality: quality })
                   }
                   onOpenBriefingTab={openBriefingTab}
-                  onStartResize={startResize}
-                  onResetSplit={resetSplit}
-                  onHandleSplitterKey={handleSplitterKey}
+                  onSetConsoleFocusMode={setHqConsoleFocusMode}
+                  onApplyStageHeight={applySplitHeight}
                   onToggleSplitLock={toggleSplitLock}
                   onSetShowSplitMore={setShowSplitMore}
                 />
@@ -1959,68 +2059,83 @@ export default function OfficeCommandCenter() {
                 onClose={() => setSchedulerOpen(false)}
               />
 
-              <div
-                id="hq-chronicle"
-                style={{
-                  scrollMarginTop: "120px",
-                  display: "flex",
-                  flex: "1 1 auto",
-                  minHeight: 0,
-                }}
-              >
-                <HQTerminalSection
-                  messages={messages}
-                  activeAgent={activeAgent}
-                  activeColor={activeColor}
-                  liveSteps={liveSteps}
-                  pendingLesson={pendingLesson}
-                  input={input}
-                  surfaceMotionProfile={surfaceMotionProfile}
-                  agentDebugMode={settings.agentDebugMode}
-                  canClear={messages.length > 0 || officeMessages.length > 0}
-                  inputRef={inputRef}
-                  scrollViewportRef={chronicleScrollRef}
-                  onPrimePrompt={primePrompt}
-                  onInputChange={setInput}
-                  onDictationAppend={(transcript) =>
-                    setInput((current) =>
-                      [current.trim(), transcript.trim()]
-                        .filter(Boolean)
-                        .join(current.trim() ? " " : ""),
-                    )
-                  }
-                  onInputKeyDown={handleKeyDown}
-                  onAskMemory={openMemoryLane}
-                  onSend={send}
-                  onClear={handleClear}
-                  onMergeCouncil={(results) =>
-                    setInput(buildCouncilMergeDraft(results))
-                  }
-                  onUseCouncilResult={(result) =>
-                    setInput(buildCouncilAdoptDraft(result))
-                  }
-                  onLogLesson={() => {
-                    if (!pendingLesson) return;
-                    apiFetch("/api/tools", {
-                      method: "POST",
-                      body: JSON.stringify({
-                        tool: "log_lesson",
-                        input: {
-                          agent: pendingLesson.agent,
-                          lesson: pendingLesson.text,
-                        },
-                      }),
-                    }).catch(() => {
-                      /* non-fatal */
-                    });
-                    setPendingLesson(null);
+              {hqConsoleFocusMode === "chat" ? (
+                <div
+                  id="hq-chronicle"
+                  data-testid="hq-chat-panel"
+                  style={{
+                    scrollMarginTop: "120px",
+                    display: "flex",
+                    flex: "1 1 auto",
+                    minHeight: 0,
                   }}
-                  onDismissLesson={() => setPendingLesson(null)}
-                />
-              </div>
+                >
+                  <HQTerminalSection
+                    messages={messages}
+                    activeAgent={activeAgent}
+                    activeColor={activeColor}
+                    liveSteps={liveSteps}
+                    pendingLesson={pendingLesson}
+                    pendingCorrection={pendingCorrection}
+                    input={input}
+                    surfaceMotionProfile={surfaceMotionProfile}
+                    agentDebugMode={settings.agentDebugMode}
+                    canClear={messages.length > 0 || officeMessages.length > 0}
+                    inputRef={inputRef}
+                    scrollViewportRef={chronicleScrollRef}
+                    onPrimePrompt={primePrompt}
+                    onInputChange={setInput}
+                    onDictationAppend={(transcript) =>
+                      setInput((current) =>
+                        [current.trim(), transcript.trim()]
+                          .filter(Boolean)
+                          .join(current.trim() ? " " : ""),
+                      )
+                    }
+                    onInputKeyDown={handleKeyDown}
+                    onAskMemory={openMemoryLane}
+                    onSend={send}
+                    onClear={handleClear}
+                    onMergeCouncil={(results) =>
+                      setInput(buildCouncilMergeDraft(results))
+                    }
+                    onUseCouncilResult={(result) =>
+                      setInput(buildCouncilAdoptDraft(result))
+                    }
+                    onLogLesson={() => {
+                      if (!pendingLesson) return;
+                      apiFetch("/api/tools", {
+                        method: "POST",
+                        body: JSON.stringify({
+                          tool: "log_lesson",
+                          input: {
+                            agent: pendingLesson.agent,
+                            lesson: pendingLesson.text,
+                          },
+                        }),
+                      }).catch(() => {
+                        /* non-fatal */
+                      });
+                      setPendingLesson(null);
+                    }}
+                    onDismissLesson={() => setPendingLesson(null)}
+                    onApproveCorrection={() => {
+                      if (!pendingCorrection) return;
+                      approveCorrectionMemory(pendingCorrection.id);
+                      setPendingCorrectionId(null);
+                    }}
+                    onArchiveCorrection={() => {
+                      if (!pendingCorrection) return;
+                      archiveCorrectionMemory(pendingCorrection.id);
+                      setPendingCorrectionId(null);
+                    }}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
 
+        {hqConsoleFocusMode === "chat" ? (
         <HQPreludePostureSection
             eyebrow="Sector rail"
             title="Live sector."
@@ -2075,8 +2190,10 @@ export default function OfficeCommandCenter() {
             onOpenScheduler={() => setSchedulerOpen(true)}
             onOpenFieldManual={() => openSurface("resources")}
           />
+        ) : null}
         </div>
 
+        {hqConsoleFocusMode === "chat" ? (
         <div id="hq-strategium" style={{ scrollMarginTop: "120px" }}>
           <HQStrategiumDeck
             operationalMode={officeOperationalMode}
@@ -2106,6 +2223,7 @@ export default function OfficeCommandCenter() {
             onOpenScheduler={() => setSchedulerOpen(true)}
           />
         </div>
+        ) : null}
       </div>
     </PageTransition>
   );

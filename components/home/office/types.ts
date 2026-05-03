@@ -1,5 +1,5 @@
 // ── types.ts ──────────────────────────────────────────────────────────────────
-// All shared TypeScript types for the Nexus Prime agent office.
+// All shared TypeScript types for the Homefront agent office.
 // Import from here — never re-declare these in other office/ files.
 // No React or store imports — pure type definitions only.
 

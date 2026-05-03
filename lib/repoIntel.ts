@@ -284,7 +284,7 @@ export function buildRepoIntelOrbitPrompt(profile: RepoIntelProfile) {
       : "Warnings: none.";
 
   return [
-    `Assess the public GitHub repo ${profile.normalizedRepoId} as a read-only reference for Nexus Prime.`,
+    `Assess the public GitHub repo ${profile.normalizedRepoId} as a read-only reference for Homefront.`,
     `Source URL: ${profile.sourceUrl}`,
     `Description: ${profile.description || "No GitHub description was available."}`,
     `Likely stack: ${stack}`,

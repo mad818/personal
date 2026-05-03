@@ -47,9 +47,21 @@ export default function ProviderResilienceCallout() {
           ))}
           {privacyShieldStatus?.active ? (
             <ShellBadge tone="accent">
-              Privacy shield · {privacyShieldStatus.protectedCount}
+              {privacyShieldStatus.dispatchMode === "blocked"
+                ? `Privacy shield blocked · ${privacyShieldStatus.protectedCount}`
+                : `Privacy shield · ${privacyShieldStatus.protectedCount}`}
             </ShellBadge>
           ) : null}
+          {privacyShieldStatus?.active
+            ? Object.entries(privacyShieldStatus.classCounts ?? {})
+                .filter(([, count]) => count > 0)
+                .slice(0, 2)
+                .map(([kind, count]) => (
+                  <ShellBadge key={kind} tone="muted">
+                    {kind.replace(/_/g, " ")} {count}
+                  </ShellBadge>
+                ))
+            : null}
         </div>
         {privacyShieldStatus?.active ? (
           <div className="mt-2 text-[10px] leading-5 text-[var(--text3)]">

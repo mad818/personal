@@ -1,0 +1,230 @@
+{
+  "schemaVersion": "mw6-production-readiness-v1",
+  "title": "MW6 production readiness gates",
+  "assetPipeline": {
+    "acceptedLicenses": ["project-original", "CC0-1.0", "CC-BY-4.0", "commercial-license"],
+    "disallowedSources": [
+      "ripped",
+      "franchise-derived",
+      "unknown-license",
+      "marketplace-preview",
+      "forced-paid-ai",
+      "personal-use-only"
+    ],
+    "requiredMetadata": [
+      "id",
+      "label",
+      "kind",
+      "role",
+      "localPath",
+      "sourceUrl",
+      "licenseProofUrl",
+      "author",
+      "license",
+      "attribution",
+      "optimized",
+      "tags"
+    ],
+    "commercialProofRule": "Commercial-license assets require a redacted proof record under assets/arpg/intake/approved/ before manifest intake.",
+    "generatorRule": "Illustrated 2D is the primary game-art production path. GPT Image 2 and Seedance 2.0 are optional operator-approved tools only; generated runtime outputs require prompt records, rights review, normalization, and no forced paid dependency."
+  },
+  "menuSurface": {
+    "compactModeRule": "Persistent HUD stays chip-first and playfield-dominant; text-heavy RPG systems live in drawers or modal-depth panels.",
+    "requiredPanels": [
+      { "id": "start", "label": "Start / Continue", "surface": "Room drawer", "drawerTarget": "settings", "testId": "arpg-production-menu-panel-start", "coverage": "continue, manual save, reset confirmation, tutorial recovery", "emptyState": "No manual slot yet; continue from autosave and create a manual save.", "keyboardSafe": true, "reducedMotion": "Drawer entrance respects reduced motion; save actions have no autoplay animation." },
+      { "id": "character-sheet", "label": "Character sheet", "surface": "Hero drawer", "drawerTarget": "hero", "testId": "arpg-production-menu-panel-character-sheet", "coverage": "race, class, subclass, origin, palette, stats, identity tags", "emptyState": "Default Veyr Human Wardbreaker identity is shown until the player edits creation choices.", "keyboardSafe": true, "reducedMotion": "Palette and identity changes update instantly without camera motion." },
+      { "id": "inventory-grid", "label": "Inventory grid", "surface": "Kit drawer", "drawerTarget": "inventory", "testId": "arpg-production-menu-panel-inventory-grid", "coverage": "items, stack counts, consumables, quest items, icon provenance", "emptyState": "Starter inventory and discovered loot are shown; empty categories collapse to compact rows.", "keyboardSafe": true, "reducedMotion": "Item rows use static icon feedback when reduced motion is active." },
+      { "id": "armory-comparison", "label": "Armory comparison", "surface": "Armory drawer", "drawerTarget": "armory", "testId": "arpg-production-menu-panel-armory-comparison", "coverage": "gear slots, item quality, upgrade rank, salvage, craft comparison", "emptyState": "Selected gear falls back to currently equipped starter gear for comparison.", "keyboardSafe": true, "reducedMotion": "Upgrade, craft, and salvage feedback avoids flashes in reduced motion." },
+      { "id": "skill-tree", "label": "Skill tree", "surface": "Skills drawer", "drawerTarget": "skills", "testId": "arpg-production-menu-panel-skill-tree", "coverage": "active/passive unlocks, hotbar equip, prerequisites, cooldowns", "emptyState": "Class starter skills stay visible even before optional nodes unlock.", "keyboardSafe": true, "reducedMotion": "Skill unlock state changes use text and chip updates instead of pulse motion." },
+      { "id": "quest-journal", "label": "Quest journal", "surface": "Journal drawer", "drawerTarget": "journal", "testId": "arpg-production-menu-panel-quest-journal", "coverage": "main quest, city arcs, side arcs, faction flags", "emptyState": "The active reliquary quest remains pinned until city arcs are accepted.", "keyboardSafe": true, "reducedMotion": "Quest transitions are summarized as static log rows." },
+      { "id": "codex", "label": "Codex", "surface": "Journal drawer", "drawerTarget": "journal", "testId": "arpg-production-menu-panel-codex", "coverage": "enemy, lore, relic, city, boss discovery", "emptyState": "Undiscovered lore is represented by compact locked rows, not empty panels.", "keyboardSafe": true, "reducedMotion": "Codex discovery relies on chips and text labels when motion is reduced." },
+      { "id": "world-map", "label": "World map", "surface": "Map drawer", "drawerTarget": "map", "testId": "arpg-production-menu-panel-world-map", "coverage": "12 cities, routes, travel events, unlock posture", "emptyState": "Locked cities stay visible as route objectives until discovered.", "keyboardSafe": true, "reducedMotion": "Route selection avoids animated map sweeps in reduced motion." },
+      { "id": "city-map", "label": "City map", "surface": "Map drawer", "drawerTarget": "map", "testId": "arpg-production-menu-panel-city-map", "coverage": "48 sub-cities, local conflicts, vendors, champions, tutorial prompts", "emptyState": "Sub-cities show compact locked, known, or selected states by city.", "keyboardSafe": true, "reducedMotion": "District changes use static selection state only." },
+      { "id": "reputation", "label": "Reputation", "surface": "People drawer", "drawerTarget": "people", "testId": "arpg-production-menu-panel-reputation", "coverage": "city/faction deltas, discounts, companion reactions", "emptyState": "Neutral reputations remain listed so city consequences are visible early.", "keyboardSafe": true, "reducedMotion": "Reputation deltas are shown as text chips instead of animated counters." },
+      { "id": "companions", "label": "Companions", "surface": "People drawer", "drawerTarget": "people", "testId": "arpg-production-menu-panel-companions", "coverage": "recruitment, perk, loyalty quest, travel banter posture", "emptyState": "Recruitable companions show locked, available, or traveling state.", "keyboardSafe": true, "reducedMotion": "Companion state changes avoid ambient pulse loops." },
+      { "id": "settings-controls", "label": "Settings / controls", "surface": "Room drawer", "drawerTarget": "settings", "testId": "arpg-production-menu-panel-settings-controls", "coverage": "size, reduced motion, command-room fallback, keyboard hints", "emptyState": "Default controls remain visible even before customization exists.", "keyboardSafe": true, "reducedMotion": "Controls and room toggles never trigger nonessential motion." },
+      { "id": "credits", "label": "Credits", "surface": "Assets drawer", "drawerTarget": "credits", "testId": "arpg-production-menu-panel-credits", "coverage": "license, author, source URL, visible credit, blocked real-pack state", "emptyState": "Real asset preview stays blocked until approved packs are imported.", "keyboardSafe": true, "reducedMotion": "Asset provenance panels are static by default." },
+      { "id": "save-recovery", "label": "Save recovery", "surface": "Room + Production drawers", "drawerTarget": "settings", "testId": "arpg-production-menu-panel-save-recovery", "coverage": "envelope export/import, corrupted JSON block, checkpoint restoration", "emptyState": "Recovery starts from autosave until manual and checkpoint slots exist.", "keyboardSafe": true, "reducedMotion": "Import/export and reset confirmation are text-first safety states." }
+    ]
+  },
+  "saveHardening": {
+    "envelopeVersion": "aether-reliquary-save-envelope-v1",
+    "activeSaveVersion": 3,
+    "slotKinds": ["autosave", "manual", "checkpoint"],
+    "slotPolicies": [
+      { "kind": "autosave", "cadence": "after movement, combat, travel, quest, craft, companion, or settings changes", "recoveryUse": "default resume path" },
+      { "kind": "manual", "cadence": "operator-triggered save/export point", "recoveryUse": "safe rollback before experiments" },
+      { "kind": "checkpoint", "cadence": "zone gate, boss gate, city unlock, and postgame trial entry", "recoveryUse": "respawn and corrupted-save fallback" }
+    ],
+    "migrationSources": ["mw5-v2", "mw6-v3-raw-save", "mw6-envelope-v1"],
+    "recoveryScenarios": [
+      "valid-envelope-import",
+      "raw-v3-import",
+      "legacy-v2-import",
+      "corrupted-json-blocked",
+      "checkpoint-recovery"
+    ],
+    "fixturePaths": {
+      "legacyV2": "docs/game/aether-reliquary/save-fixtures/legacy-mw5-v2-save.json",
+      "rawV3": "docs/game/aether-reliquary/save-fixtures/raw-mw6-v3-save.json",
+      "envelopeV1": "docs/game/aether-reliquary/save-fixtures/envelope-v1-save.json",
+      "corrupted": "docs/game/aether-reliquary/save-fixtures/corrupted-save.txt"
+    },
+    "exportFormat": "JSON envelope with active slot and normalized v3 save payload"
+  },
+  "contentTooling": {
+    "fixtureGroups": [
+      "cities",
+      "sub-cities",
+      "quests",
+      "enemies",
+      "bosses",
+      "items",
+      "vendors",
+      "recipes",
+      "companions",
+      "flags"
+    ],
+    "validationScripts": [
+      "arpg:content:check",
+      "arpg:asset-candidates:check",
+      "arpg:assets:check",
+      "arpg:production:check",
+      "arpg:illustrated:generate",
+      "arpg:tools:check",
+      "arpg:save:check",
+      "arpg:balance:check",
+      "arpg:release:check"
+    ],
+    "developerTools": [
+      "static registry validation",
+      "save fixture validation",
+      "balance snapshot validation",
+      "dev-only debug overlay contract"
+    ]
+  },
+  "balanceTargets": {
+    "sessionLengthMinutes": {
+      "prologue": [10, 18],
+      "cityArc": [18, 35],
+      "dungeon": [8, 16],
+      "bossAttempt": [3, 7]
+    },
+    "levelCap": 50,
+    "xpCurve": [
+      { "level": 1, "totalXp": 0 },
+      { "level": 2, "totalXp": 40 },
+      { "level": 3, "totalXp": 95 },
+      { "level": 10, "totalXp": 1800 },
+      { "level": 25, "totalXp": 19000 },
+      { "level": 50, "totalXp": 115000 }
+    ],
+    "fixtureSuites": [
+      { "id": "xp-curve", "target": "Level 1-50 progression is monotonic and supports prologue, city, finale, and postgame pacing." },
+      { "id": "loot-cadence", "target": "Normal enemies, elites, bosses, chests, vendors, crafting, and relic trials all have deterministic reward expectations." },
+      { "id": "boss-time-to-kill", "target": "Mini-boss, city boss, act boss, final boss, and world boss attempts have target duration ranges." },
+      { "id": "potion-pressure", "target": "Boss attempts consume enough consumables to matter without forcing grind loops." },
+      { "id": "class-viability", "target": "All eight class paths have at least one durable beginner build and one late-game build target." },
+      { "id": "upgrade-economy", "target": "Upgrade shards, relic dust, catalysts, salvage, and city currencies have anti-grind caps." },
+      { "id": "browser-performance", "target": "Drawers, combat input, first interaction, and playfield FPS have budgeted browser targets." },
+      { "id": "city-playtest", "target": "Every major city and sub-city arc receives a documented playtest checkpoint before MW6 closure." }
+    ],
+    "classViabilityTargets": [
+      "Wardbreaker",
+      "Relicweaver",
+      "Ashrunner",
+      "Oathblade",
+      "Thornwarden",
+      "Gravechanter",
+      "Ember Monk",
+      "Wayfarer"
+    ],
+    "combatBudgets": {
+      "normalEnemyTimeToKillSeconds": [6, 14],
+      "eliteEnemyTimeToKillSeconds": [18, 38],
+      "cityBossTimeToKillSeconds": [90, 210],
+      "finalBossTimeToKillSeconds": [240, 420],
+      "potionPressurePerBoss": [1, 4]
+    },
+    "browserBudgets": {
+      "initialHqInteractiveMs": 3500,
+      "drawerOpenMs": 250,
+      "combatInputLatencyMs": 90,
+      "playfieldFpsFloor": 45
+    }
+  },
+  "cityPlaytestMatrix": [
+    "veyrhold",
+    "thalos-gate",
+    "mirrorglass-haven",
+    "cinderfall",
+    "orrery-spire",
+    "verdant-ossuary",
+    "sable-meridian",
+    "ironbloom-bastion",
+    "nacre-deep",
+    "gloamreach",
+    "auric-reliquary",
+    "ebonwake-citadel"
+  ],
+  "releaseGates": {
+    "requiredScripts": [
+      "arpg:content:check",
+      "arpg:asset-candidates:check",
+      "arpg:assets:check",
+      "arpg:production:check",
+      "arpg:illustrated:generate",
+      "arpg:tools:check",
+      "arpg:save:check",
+      "arpg:balance:check",
+      "arpg:release:check",
+      "type-check",
+      "hq:e2e",
+      "route:e2e",
+      "tabs:e2e",
+      "build",
+      "verify",
+      "handoff:write",
+      "handoff:check"
+    ],
+    "staticGates": [
+      "asset provenance",
+      "content registry integrity",
+      "save fixture compatibility",
+      "balance snapshot integrity",
+      "release flow coverage"
+    ],
+    "e2eFlows": [
+      "start-continue-reset",
+      "movement",
+      "combat",
+      "loot",
+      "equip",
+      "upgrade",
+      "craft",
+      "salvage",
+      "vendor",
+      "quest",
+      "map-travel",
+      "city-unlock",
+      "companion",
+      "reputation",
+      "codex",
+      "save-migration",
+      "reduced-motion",
+      "command-input",
+      "command-room-fallback"
+    ],
+    "browserRoutes": [
+      "/hq",
+      "/hq?focus=hq-chronicle",
+      "/resources?view=impact&impactMode=graph"
+    ],
+    "closureRules": [
+      "All MW6U-AA tracks are done or intentionally blocked with documented operator action.",
+      "The first viewport reads as a game and command input remains usable.",
+      "No unverified or franchise-derived assets are shipped.",
+      "Resources and handoff docs match the verified state."
+    ]
+  }
+}

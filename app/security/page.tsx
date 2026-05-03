@@ -47,6 +47,9 @@ export default function SecurityPage() {
   const view = useStore((s) => s.securityWorkbenchView);
   const setView = useStore((s) => s.setSecurityWorkbenchView);
   const [physicalSweepExpanded, setPhysicalSweepExpanded] = useState(false);
+  const [threatExpanded, setThreatExpanded] = useState(
+    () => focus === "security-physical",
+  );
 
   const urlView = useMemo(() => {
     const value = (normalizedParams.get("view") ?? "").toLowerCase();
@@ -68,6 +71,12 @@ export default function SecurityPage() {
     setView(nextView);
   }, [focusView, setView, urlView]);
 
+  useEffect(() => {
+    if (focus === "security-physical") {
+      setThreatExpanded(true);
+    }
+  }, [focus]);
+
   const handleViewChange = (nextView: View) => {
     setView(nextView);
     const params = new URLSearchParams(normalizedParams.toString());
@@ -86,6 +95,36 @@ export default function SecurityPage() {
 
   useSurfaceFocusScroll(focusTargetId);
   const securityLayout = getOpsLayoutDescriptor("security");
+  const activeMode =
+    view === "physical"
+      ? {
+          label: "Physical ops",
+          title: "Camera coverage first",
+          detail:
+            "Live monitoring leads while sweep, drone, and incident continuity stay one deliberate open away.",
+          lead: "Monitoring",
+          support: "Threat",
+          continuity: "Incidents",
+        }
+      : view === "ai"
+        ? {
+            label: "AI surface",
+            title: "Prompt and tool boundary",
+            detail:
+              "AI-specific hardening stays next to protected-action posture without burying the matrix.",
+            lead: "Matrix",
+            support: "Boundary",
+            continuity: "Coverage",
+          }
+        : {
+            label: "Controls",
+            title: "Route and auth posture",
+            detail:
+              "Policy, protected actions, and AI-surface coverage stay compact around the controls matrix.",
+            lead: "Controls",
+            support: "Trust",
+            continuity: "Policy",
+          };
 
   return (
     <ShellPage
@@ -141,6 +180,33 @@ export default function SecurityPage() {
           className="nexus-shell-segmented--compactLane"
         />
 
+        <OpsStrip className="nexus-security-mission-strip">
+          <div className="nexus-security-mission-strip__lead">
+            <span className="nexus-security-mission-strip__eyebrow">
+              Active security desk / {activeMode.label}
+            </span>
+            <strong>{activeMode.title}</strong>
+            <p>{activeMode.detail}</p>
+          </div>
+          <div className="nexus-security-mission-strip__signals" aria-label="Security mode preview">
+            <span>
+              <span>Workplane</span>
+              <strong>{activeMode.lead}</strong>
+              <em>first viewport</em>
+            </span>
+            <span>
+              <span>Support</span>
+              <strong>{activeMode.support}</strong>
+              <em>summary rail</em>
+            </span>
+            <span>
+              <span>Continuity</span>
+              <strong>{activeMode.continuity}</strong>
+              <em>disclosure led</em>
+            </span>
+          </div>
+        </OpsStrip>
+
         {view === "doctrine" && (
           <div id="security-doctrine" style={{ scrollMarginTop: "120px" }}>
             <div className="nexus-surface-chamber-shell">
@@ -153,8 +219,19 @@ export default function SecurityPage() {
                       tone="muted"
                       compact
                     >
-                      <div className="nexus-shell-copy nexus-shell-copy--compact">
-                        Route policy, prompt boundary, protected actions, and hardening stay on one surface.
+                      <div className="nexus-security-rail-preview" aria-label="Control fascia preview">
+                        <span>
+                          <strong>Route</strong>
+                          <em>Policy pinned</em>
+                        </span>
+                        <span>
+                          <strong>Auth</strong>
+                          <em>Protected</em>
+                        </span>
+                        <span>
+                          <strong>AI</strong>
+                          <em>Covered</em>
+                        </span>
                       </div>
                     </OpsField>
                     <TrustOperationsRail
@@ -184,11 +261,21 @@ export default function SecurityPage() {
                 <div className="nexus-surface-chamber-shell__body">
                   <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${securityLayout.railClass}`}>
                     <ShellStack gap="12px">
-                    <OpsField title="AI boundary note" detail="Prompt, tool, retrieval, and persistence posture" tone="muted" compact>
-                      <div className="nexus-shell-copy nexus-shell-copy--compact">
-                        The AI matrix stays beside the control plane.
-                        Injection, tool misuse, unsafe retrieval, approval bypass, and persistence poisoning stay explicit.
-                      </div>
+                      <OpsField title="AI boundary note" detail="Prompt, tool, retrieval, and persistence posture" tone="muted" compact>
+                        <div className="nexus-security-rail-preview" aria-label="AI boundary preview">
+                          <span>
+                            <strong>Prompt</strong>
+                            <em>Injection</em>
+                          </span>
+                          <span>
+                            <strong>Tools</strong>
+                            <em>Misuse</em>
+                          </span>
+                          <span>
+                            <strong>Memory</strong>
+                            <em>Poisoning</em>
+                          </span>
+                        </div>
                       </OpsField>
                       <TrustOperationsRail
                         title={securityLayout.trustLabel}
@@ -258,7 +345,32 @@ export default function SecurityPage() {
                         detail="Current physical risk and escalation posture"
                         compact
                       >
-                        <ThreatLevelIndicator />
+                        <div className="nexus-security-rail-preview" aria-label="Physical support preview">
+                          <span>
+                            <strong>Threat</strong>
+                            <em>Escalation read</em>
+                          </span>
+                          <span>
+                            <strong>Drone</strong>
+                            <em>Continuity</em>
+                          </span>
+                          <span>
+                            <strong>Trust</strong>
+                            <em>Inline</em>
+                          </span>
+                        </div>
+                        <details
+                          className="nexus-surface-disclosure"
+                          open={threatExpanded}
+                          onToggle={(event) =>
+                            setThreatExpanded(event.currentTarget.open)
+                          }
+                        >
+                          <summary>Open threat posture</summary>
+                          <div className="nexus-surface-disclosure__body">
+                            <ThreatLevelIndicator />
+                          </div>
+                        </details>
                       </OpsField>
                       <OpsField
                         title="Control note"
@@ -266,9 +378,19 @@ export default function SecurityPage() {
                         tone="muted"
                         compact
                       >
-                        <div className="nexus-shell-copy nexus-shell-copy--compact">
-                          Physical operations stay control-led.
-                          Camera and perimeter lanes stay primary while alerts and protected posture stay embedded.
+                        <div className="nexus-security-rail-preview" aria-label="Physical control note preview">
+                          <span>
+                            <strong>Camera</strong>
+                            <em>Primary</em>
+                          </span>
+                          <span>
+                            <strong>Sweep</strong>
+                            <em>On demand</em>
+                          </span>
+                          <span>
+                            <strong>Alerts</strong>
+                            <em>Embedded</em>
+                          </span>
                         </div>
                       </OpsField>
                       <TrustOperationsRail

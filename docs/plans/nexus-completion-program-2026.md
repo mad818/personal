@@ -110,6 +110,14 @@ Use [../regression-memory-checklist.md](../regression-memory-checklist.md) as th
 
 ## B. P1 — Whole-app cinematic IA completion
 
+**Status 2026-04-25:** Complete in the protected shell. The `cinematic-ia-v1`
+contract now stamps root chrome, route stages, lead/support/continuity zones,
+and shared empty/loading state primitives across HQ plus every GA surface.
+`npm run type-check`, `npm run build`, `npm run hq:e2e`, `npm run verify`, and
+`NEXUS_RELEASE_BASE_URL=http://127.0.0.1:3100 npm run route:integrity` passed;
+later Playwright reruns were blocked by local Windows `spawn EPERM`, not by a
+reported route failure.
+
 ### B1. Shared shell rollout
 - Extend the cinematic shell, backgrounds, and panel hierarchy across HQ and every GA tab.
 - Standardize section headers, viewport framing, spacing rhythm, and motion timing.

@@ -1,10 +1,7 @@
+import { DESIGN_MD_TASTE_PROFILE } from "@/lib/generated/designMdRuntime";
 import type { SurfaceMotionSurface } from "@/lib/surfaceMotion";
 
-export const NEXUS_TASTE_PROFILE = {
-  designVariance: 7,
-  motionIntensity: 6,
-  visualDensity: 7,
-} as const;
+export const NEXUS_TASTE_PROFILE = DESIGN_MD_TASTE_PROFILE;
 
 export type NexusTasteSurfaceContract = {
   surface: SurfaceMotionSurface;

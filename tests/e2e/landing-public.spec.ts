@@ -14,14 +14,22 @@ test("public root stays outside protected shell chrome and hands off to /hq", as
   expect(response?.status()).toBe(200);
   await expect(page.getByTestId("landing-page")).toBeVisible();
   await expect(page.getByTestId("landing-header")).toBeVisible();
-  await expect(page.getByTestId("landing-hero-cta")).toContainText(
-    "Get Started",
+  await expect(page.getByTestId("landing-hero-cta")).toContainText("Enter HQ");
+  await expect(page.getByTestId("landing-live-command-preview")).toBeVisible();
+  await expect(page.getByTestId("landing-surface-showcase")).toBeVisible();
+  await expect(page.getByTestId("landing-proof-wall")).toBeVisible();
+  await expect(page.getByTestId("landing-surface-panel")).toContainText(
+    /Mission Queue|World Picture|Threat Posture|Memory Spine|Proof Plane/,
   );
+  await expect(
+    page.getByText(/Aether Reliquary|RPG production lane|RPG world/),
+  ).toHaveCount(0);
   await expect(page.getByTestId("auth-gate")).toHaveCount(0);
   await expect(page.getByTestId("toprail-brand")).toHaveCount(0);
 
   if (authEnabled) {
     await expect(page.getByTestId("landing-auth-form")).toBeVisible();
+    await expect(page.getByTestId("landing-access-ceremony")).toBeVisible();
     await expect(page.getByTestId("landing-auth-token-input")).toBeVisible();
     await page.getByTestId("landing-hero-cta").click();
     await expect(page).toHaveURL(/\/#agency-access$/);
@@ -38,7 +46,10 @@ test("public root stays outside protected shell chrome and hands off to /hq", as
 test("landing token failure returns to the merged ingress form", async ({
   page,
 }) => {
-  test.skip(!authEnabled, "NEXUS_TOKEN is required for landing auth failure coverage");
+  test.skip(
+    !authEnabled,
+    "NEXUS_TOKEN is required for landing auth failure coverage",
+  );
 
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
@@ -54,6 +65,23 @@ test("landing token failure returns to the merged ingress form", async ({
   await expect(page.getByTestId("auth-gate")).toHaveCount(0);
 });
 
+test("protected routes hand unauthenticated operators to the premium landing", async ({
+  page,
+}) => {
+  test.skip(
+    !authEnabled,
+    "NEXUS_TOKEN is required for protected-route handoff coverage",
+  );
+
+  const response = await page.goto("/hq", { waitUntil: "domcontentloaded" });
+
+  expect(response?.status()).toBe(200);
+  await expect(page).toHaveURL(/\/\?next=%2Fhq#agency-access$/);
+  await expect(page.getByTestId("landing-page")).toBeVisible();
+  await expect(page.getByTestId("landing-auth-form")).toBeVisible();
+  await expect(page.getByTestId("auth-gate")).toHaveCount(0);
+});
+
 test("authenticated operators keep the public landing and get a direct HQ continuation", async ({
   page,
 }, testInfo) => {
@@ -63,11 +91,9 @@ test("authenticated operators keep the public landing and get a direct HQ contin
 
   expect(response?.status()).toBe(200);
   await expect(page.getByTestId("landing-page")).toBeVisible();
-  await expect(page.getByTestId("landing-hero-cta")).toContainText(
-    "Get Started",
-  );
+  await expect(page.getByTestId("landing-hero-cta")).toContainText("Enter HQ");
   await expect(page.getByTestId("landing-header-cta")).toContainText(
-    "Get Started",
+    "Enter HQ",
   );
   await expect(page.getByTestId("auth-gate")).toHaveCount(0);
   await expect(page.getByTestId("toprail-brand")).toHaveCount(0);
@@ -77,6 +103,46 @@ test("authenticated operators keep the public landing and get a direct HQ contin
     anchorTestId: "hq-command-input",
   });
   await expect(page).toHaveURL(/\/hq(?:\?.*)?$/);
+});
+
+test("landing navigation highlights the active scroll section", async ({
+  page,
+}) => {
+  const response = await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  expect(response?.status()).toBe(200);
+  await expect(page.getByTestId("landing-header")).toBeVisible();
+  await expect(page.getByTestId("landing-nav-progress")).toBeVisible();
+  await expect(page.getByTestId("landing-nav-link-home")).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+
+  for (const section of ["doctrine", "lanes", "posture", "access"]) {
+    await page.evaluate((sectionId) => {
+      document
+        .getElementById(sectionId)
+        ?.scrollIntoView({ block: "start", behavior: "instant" });
+    }, section);
+    await expect(
+      page.getByTestId(`landing-nav-link-${section}`),
+    ).toHaveAttribute("aria-current", "page");
+  }
+});
+
+test("landing surface showcase changes preview panels", async ({ page }) => {
+  const response = await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  expect(response?.status()).toBe(200);
+  await expect(page.getByTestId("landing-surface-showcase")).toBeVisible();
+  await page.getByTestId("landing-surface-tab-cyber").click();
+  await expect(page.getByTestId("landing-surface-panel")).toContainText(
+    "Threat Posture",
+  );
+  await page.getByTestId("landing-surface-tab-vault").click();
+  await expect(page.getByTestId("landing-surface-panel")).toContainText(
+    "Memory Spine",
+  );
 });
 
 test("landing honors reduced motion and stays inside common viewport widths", async ({
@@ -93,7 +159,7 @@ test("landing honors reduced motion and stays inside common viewport widths", as
 
     const posture = await page.evaluate(() => {
       const videos = document.querySelectorAll<HTMLVideoElement>(
-        ".agency-video-bg, [data-testid='landing-hero'] video",
+        ".homefront-video-bg, [data-testid='landing-hero'] video",
       );
       const root = document.documentElement;
       return {

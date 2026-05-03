@@ -206,10 +206,10 @@ export const AGENT_TOOLS = [
       required: ["repo_refs"],
     },
   },
-  {
-    name: "assimilate_repo",
-    description:
-      "Build a public-safe repo-assimilation brief for a public GitHub repo using existing metadata-only repo intel. Use this for explicit adopt/adapt/fit questions when the user wants a Nexus-local implementation brief, not raw code ingestion. Returns a deterministic six-section assimilation brief and never fetches arbitrary source files.",
+    {
+      name: "assimilate_repo",
+      description:
+        "Build a public-safe repo-assimilation implementation brief for a public GitHub repo using existing metadata-only repo intel. Use this for explicit adopt/adapt/reject questions when the user wants a Nexus-local implementation decision, extension-point brief, and ORBIT-ready handoff instead of raw code ingestion. Returns a deterministic six-section brief and never fetches arbitrary source files.",
     input_schema: {
       type: "object",
       properties: {
@@ -320,7 +320,7 @@ export const AGENT_TOOLS = [
   {
     name: "read_project_file",
     description:
-      'Read a source file from the Nexus Prime project. Use this to understand the codebase before making changes — always read a file before editing it. Examples: "app/home/page.tsx", "components/home/HomeChat.tsx", "lib/agent.ts", "store/useStore.ts".',
+      'Read a source file from the Homefront project. Use this to understand the codebase before making changes — always read a file before editing it. Examples: "app/home/page.tsx", "components/home/HomeChat.tsx", "lib/agent.ts", "store/useStore.ts".',
     input_schema: {
       type: "object",
       properties: {

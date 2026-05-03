@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="384" viewBox="0 0 2048 384">
+  <defs>
+    <linearGradient id="cardBg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#5a3217"/>
+      <stop offset="0.55" stop-color="#17100b"/>
+      <stop offset="1" stop-color="#0b1c22"/>
+    </linearGradient>
+    <radialGradient id="aura" cx="50%" cy="34%" r="62%">
+      <stop offset="0" stop-color="currentColor" stop-opacity=".62"/>
+      <stop offset=".58" stop-color="currentColor" stop-opacity=".14"/>
+      <stop offset="1" stop-color="currentColor" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="steel" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff4dc"/>
+      <stop offset=".45" stop-color="#b9c2b4"/>
+      <stop offset="1" stop-color="#545b55"/>
+    </linearGradient>
+    <linearGradient id="brass" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffe1a6"/>
+      <stop offset=".55" stop-color="#c98532"/>
+      <stop offset="1" stop-color="#533114"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <symbol id="card" viewBox="0 0 256 384">
+      <rect x="12" y="12" width="232" height="360" rx="28" fill="url(#cardBg)" stroke="currentColor" stroke-width="3"/>
+      <rect x="25" y="26" width="206" height="332" rx="22" fill="none" stroke="#fff0d6" stroke-opacity=".08" stroke-width="2"/>
+      <circle cx="128" cy="150" r="112" fill="url(#aura)"/>
+      <path d="M52 315 C92 345 164 345 204 315" fill="none" stroke="#000" stroke-opacity=".32" stroke-width="18"/>
+    </symbol>
+    <symbol id="longBlade" viewBox="0 0 256 384">
+      <path d="M128 48 L151 212 L128 300 L105 212 Z" fill="url(#steel)" stroke="#fff0c6" stroke-width="4"/>
+      <path d="M128 64 V286" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>
+      <rect x="84" y="265" width="88" height="18" rx="9" fill="url(#brass)"/>
+      <rect x="116" y="280" width="24" height="62" rx="10" fill="#3b2415" stroke="#d19943" stroke-width="3"/>
+    </symbol>
+    <symbol id="spear" viewBox="0 0 256 384">
+      <path d="M132 44 V334" stroke="#6b3e1f" stroke-width="16" stroke-linecap="round"/>
+      <path d="M132 32 L166 108 L132 146 L98 108 Z" fill="url(#steel)" stroke="#ffe1a6" stroke-width="4"/>
+      <path d="M88 206 H176" stroke="url(#brass)" stroke-width="14" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="dagger" viewBox="0 0 256 384">
+      <path d="M132 64 L154 190 L132 258 L110 190 Z" fill="url(#steel)" stroke="#fff0c6" stroke-width="4"/>
+      <path d="M90 245 H174" stroke="url(#brass)" stroke-width="16" stroke-linecap="round"/>
+      <rect x="118" y="252" width="28" height="60" rx="12" fill="#3b2415" stroke="#d19943" stroke-width="3"/>
+      <path d="M78 112 C115 82 152 82 190 112" fill="none" stroke="#8ecae6" stroke-opacity=".42" stroke-width="5"/>
+    </symbol>
+    <symbol id="staff" viewBox="0 0 256 384">
+      <path d="M137 78 L112 326" stroke="#7a4a22" stroke-width="18" stroke-linecap="round"/>
+      <circle cx="140" cy="78" r="37" fill="#101820" stroke="#ffe1a6" stroke-width="6"/>
+      <path d="M140 42 L160 78 L140 114 L120 78 Z" fill="#8ecae6" filter="url(#glow)"/>
+    </symbol>
+    <symbol id="scythe" viewBox="0 0 256 384">
+      <path d="M92 332 L146 52" stroke="#6b3e1f" stroke-width="17" stroke-linecap="round"/>
+      <path d="M142 45 C208 52 230 100 205 154 C178 121 147 104 102 106 Z" fill="url(#steel)" stroke="#ffe1a6" stroke-width="4"/>
+      <path d="M96 314 C146 342 184 322 215 292" fill="none" stroke="#fb7185" stroke-opacity=".55" stroke-width="8"/>
+    </symbol>
+    <symbol id="flail" viewBox="0 0 256 384">
+      <path d="M82 72 L152 248" stroke="#6b3e1f" stroke-width="17" stroke-linecap="round"/>
+      <circle cx="168" cy="282" r="42" fill="url(#steel)" stroke="#ffe1a6" stroke-width="4"/>
+      <path d="M145 244 C156 254 166 263 175 281" fill="none" stroke="#c98532" stroke-width="8"/>
+      <path d="M138 281 H198 M168 251 V313" stroke="#3b2415" stroke-opacity=".45" stroke-width="5"/>
+    </symbol>
+  </defs>
+  <g color="#c9a46a" transform="translate(0 0)"><use href="#card"/><use href="#spear"/></g>
+  <g color="#ffd166" transform="translate(256 0)"><use href="#card"/><use href="#spear"/><circle cx="128" cy="236" r="54" fill="none" stroke="#ffd166" stroke-opacity=".35" stroke-width="8"/></g>
+  <g color="#d946ef" transform="translate(512 0)"><use href="#card"/><use href="#dagger"/><path d="M56 174 C104 116 152 116 200 174" fill="none" stroke="#d946ef" stroke-opacity=".6" stroke-width="7" filter="url(#glow)"/></g>
+  <g color="#8ecae6" transform="translate(768 0)"><use href="#card"/><use href="#spear"/><path d="M76 106 C112 76 144 76 180 106" fill="none" stroke="#8ecae6" stroke-opacity=".65" stroke-width="8" filter="url(#glow)"/></g>
+  <g color="#f59e0b" transform="translate(1024 0)"><use href="#card"/><use href="#staff"/><circle cx="140" cy="78" r="62" fill="none" stroke="#f59e0b" stroke-opacity=".55" stroke-width="8" filter="url(#glow)"/></g>
+  <g color="#fb7185" transform="translate(1280 0)"><use href="#card"/><use href="#scythe"/><circle cx="128" cy="198" r="100" fill="none" stroke="#fb7185" stroke-opacity=".4" stroke-width="7" filter="url(#glow)"/></g>
+  <g color="#d946ef" transform="translate(1536 0)"><use href="#card"/><use href="#flail"/></g>
+  <g color="#ffd166" transform="translate(1792 0)"><use href="#card"/><use href="#longBlade"/><path d="M70 128 C105 92 151 92 186 128" fill="none" stroke="#ffd166" stroke-opacity=".45" stroke-width="7"/></g>
+</svg>

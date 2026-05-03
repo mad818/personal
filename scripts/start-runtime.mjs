@@ -13,6 +13,8 @@ const root = process.cwd();
 const nextDistDir = process.env.NEXUS_NEXT_DIST_DIR ?? ".next";
 const standaloneServer = join(root, nextDistDir, "standalone", "server.js");
 const standaloneRoot = join(root, nextDistDir, "standalone");
+const nextCli = join(root, "node_modules", "next", "dist", "bin", "next");
+const buildIdPath = join(root, nextDistDir, "BUILD_ID");
 const runtimeIdentityPath = join(root, ".nexus-runtime-identity.json");
 
 function syncRuntimeAsset(relativeSource, relativeTarget = relativeSource) {
@@ -28,21 +30,9 @@ function syncRuntimeAsset(relativeSource, relativeTarget = relativeSource) {
   cpSync(source, target, { recursive: true, force: true });
 }
 
-if (!existsSync(standaloneServer)) {
-  console.error(
-    "[runtime] Missing .next/standalone/server.js. Run `npm run build` first.",
-  );
-  process.exit(1);
-}
-
 if (existsSync(runtimeIdentityPath)) {
   rmSync(runtimeIdentityPath, { force: true });
 }
-
-// Next standalone output excludes static and public assets, so mirror them
-// into the runtime folder before booting the local production server.
-syncRuntimeAsset("public");
-syncRuntimeAsset(join(nextDistDir, "static"), join(".next", "static"));
 
 const env = {
   ...process.env,
@@ -54,15 +44,37 @@ const env = {
     process.env.NEXUS_RUNTIME_IDENTITY_PATH ?? runtimeIdentityPath,
 };
 
+const useStandalone = existsSync(standaloneServer);
+const fallbackMode = existsSync(buildIdPath) ? "start" : "dev";
+if (useStandalone) {
+  // Next standalone output excludes static and public assets, so mirror them
+  // into the runtime folder before booting the local production server.
+  syncRuntimeAsset("public");
+  syncRuntimeAsset(join(nextDistDir, "static"), join(".next", "static"));
+} else if (!existsSync(nextCli)) {
+  console.error(
+    "[runtime] Missing .next/standalone/server.js and local Next CLI. Run `npm install` and `npm run build` first.",
+  );
+  process.exit(1);
+}
+
 console.log(
-  `[runtime] starting standalone server on http://${env.HOSTNAME}:${env.PORT}`,
+  useStandalone
+    ? `[runtime] starting standalone server on http://${env.HOSTNAME}:${env.PORT}`
+    : `[runtime] standalone server missing; falling back to next ${fallbackMode} on http://${env.HOSTNAME}:${env.PORT}`,
 );
 
-const child = spawn(process.execPath, [standaloneServer], {
-  cwd: standaloneRoot,
-  env,
-  stdio: "inherit",
-});
+const child = spawn(
+  process.execPath,
+  useStandalone
+    ? [standaloneServer]
+    : [nextCli, fallbackMode, "-H", env.HOSTNAME, "-p", env.PORT],
+  {
+    cwd: useStandalone ? standaloneRoot : root,
+    env,
+    stdio: "inherit",
+  },
+);
 
 child.on("exit", (code, signal) => {
   if (signal) {

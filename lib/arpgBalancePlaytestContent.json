@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "mw6-balance-playtest-v1",
+  "title": "MW6 Aether Reliquary balance and playtest fixtures",
+  "purpose": "Convert full-game balance into static, testable targets before final release E2E expands across every city, act, boss, class, and endgame loop.",
+  "sessionTargets": [
+    { "id": "prologue", "label": "Prologue onboarding", "minutes": [10, 18], "playerPromise": "Learn movement, one fight, one loot pickup, one lore beat, and one save action without menu sprawl." },
+    { "id": "city-arc", "label": "Major city arc", "minutes": [18, 35], "playerPromise": "Resolve one civic conflict, visit one vendor/forge surface, and unlock one route or faction consequence." },
+    { "id": "sub-city-arc", "label": "Sub-city story", "minutes": [8, 18], "playerPromise": "Finish a district conflict, mini-boss, secret, or local NPC choice in a compact browser-game sitting." },
+    { "id": "travel-route", "label": "Road event route", "minutes": [3, 9], "playerPromise": "Make a route choice, resolve danger or reward, and see reputation, companion, or material impact immediately." },
+    { "id": "dungeon", "label": "Challenge dungeon", "minutes": [8, 16], "playerPromise": "Clear one readable enemy pack chain, one optional room, and one reward chest without requiring grind." },
+    { "id": "boss-attempt", "label": "Boss attempt", "minutes": [3, 7], "playerPromise": "Read telegraphs, spend one to four consumables, and understand a failure before retry." },
+    { "id": "endgame-trial", "label": "Relic trial", "minutes": [10, 22], "playerPromise": "Test a build against rotating affixes, claim a deterministic reward, and leave with a next target." }
+  ],
+  "xpCurveAnchors": [
+    { "level": 1, "totalXp": 0, "phase": "First Reliquary start" },
+    { "level": 2, "totalXp": 40, "phase": "First combat plus loot loop" },
+    { "level": 3, "totalXp": 95, "phase": "Brass Warden and Veyrhold route unlock" },
+    { "level": 5, "totalXp": 320, "phase": "Veyrhold civic hub" },
+    { "level": 10, "totalXp": 1800, "phase": "Thalos Gate route network" },
+    { "level": 20, "totalXp": 8200, "phase": "Mirrorglass and Cinderfall midpoint" },
+    { "level": 35, "totalXp": 43000, "phase": "Orrery, Verdant, Sable, and Ironbloom pressure" },
+    { "level": 45, "totalXp": 85000, "phase": "Nacre, Gloamreach, and Auric breach prep" },
+    { "level": 50, "totalXp": 115000, "phase": "Ebonwake finale and postgame entry" }
+  ],
+  "levelBands": [
+    { "id": "prologue", "label": "The First Reliquary", "levels": [1, 3], "requiredRegions": ["first-reliquary"], "balanceIntent": "Fast tutorial growth with no farming." },
+    { "id": "act-i", "label": "Act I Awakening", "levels": [3, 10], "requiredRegions": ["veyrhold", "thalos-gate"], "balanceIntent": "Starter builds and first upgraded item become meaningful." },
+    { "id": "act-ii", "label": "Act II City Pilgrimage", "levels": [10, 25], "requiredRegions": ["mirrorglass-haven", "cinderfall", "orrery-spire"], "balanceIntent": "Class tools widen without forcing perfect gear." },
+    { "id": "act-iii", "label": "Act III Faction War", "levels": [25, 38], "requiredRegions": ["verdant-ossuary", "sable-meridian", "ironbloom-bastion"], "balanceIntent": "Faction choices and companion perks offset harder packs." },
+    { "id": "act-iv", "label": "Act IV Citadel Breach", "levels": [38, 46], "requiredRegions": ["nacre-deep", "gloamreach", "auric-reliquary"], "balanceIntent": "Boss chains require readable resistances and consumable pressure." },
+    { "id": "act-v", "label": "Act V World-Scar Restoration", "levels": [46, 50], "requiredRegions": ["ebonwake-citadel"], "balanceIntent": "Final forms test mastery, not raw grind." },
+    { "id": "postgame", "label": "Relic Trials", "levels": [50, 50], "requiredRegions": ["auric-reliquary", "ebonwake-citadel"], "balanceIntent": "Repeatable trials reward build experiments and collection goals." }
+  ],
+  "lootCadence": [
+    { "id": "normal-enemy", "label": "Normal enemy pack", "expectedDrops": [0, 2], "qualityTargets": ["common", "uncommon"], "sourceRule": "Materials or low gear should appear often enough to make every short fight readable." },
+    { "id": "elite-enemy", "label": "Elite or champion", "expectedDrops": [1, 3], "qualityTargets": ["uncommon", "rare"], "sourceRule": "At least one useful material or comparison item per elite." },
+    { "id": "sub-city-chest", "label": "Sub-city chest", "expectedDrops": [2, 4], "qualityTargets": ["uncommon", "rare", "epic"], "sourceRule": "District chests seed local gear identity." },
+    { "id": "city-boss", "label": "City boss", "expectedDrops": [3, 5], "qualityTargets": ["rare", "epic", "relic"], "sourceRule": "City boss reward must include a deterministic city-set or relic component." },
+    { "id": "act-boss", "label": "Act boss", "expectedDrops": [4, 6], "qualityTargets": ["epic", "relic"], "sourceRule": "Act bosses move the build forward with a clear gear or skill unlock." },
+    { "id": "final-boss", "label": "Hollow Regent finale", "expectedDrops": [5, 8], "qualityTargets": ["relic", "ancient", "mythic"], "sourceRule": "Finale rewards include postgame unlocks plus at least one memorable unique." },
+    { "id": "relic-trial", "label": "Postgame relic trial", "expectedDrops": [2, 5], "qualityTargets": ["epic", "relic", "ancient"], "sourceRule": "Trials are deterministic enough to respect offline/local-first play." }
+  ],
+  "bossTargets": [
+    { "id": "brass-warden", "label": "The Brass Warden", "tier": "mini-boss", "timeToKillSeconds": [25, 55], "potionUse": [0, 2], "phaseCount": 2, "telegraphRule": "Every slam has a visible windup and a safe dodge lane." },
+    { "id": "city-boss-veyrhold", "label": "Veyrhold city boss", "tier": "city-boss", "timeToKillSeconds": [90, 150], "potionUse": [1, 3], "phaseCount": 2, "telegraphRule": "Shield enemies preview guard-break timing before the boss." },
+    { "id": "city-boss-cinderfall", "label": "Cinderfall city boss", "tier": "city-boss", "timeToKillSeconds": [100, 180], "potionUse": [1, 4], "phaseCount": 2, "telegraphRule": "Ember hazards use low-flash warning zones." },
+    { "id": "act-boss-bannerless-admiral", "label": "The Bannerless Admiral", "tier": "act-boss", "timeToKillSeconds": [150, 260], "potionUse": [2, 4], "phaseCount": 3, "telegraphRule": "Adds introduce faction pressure without obscuring the boss." },
+    { "id": "act-boss-sunken-choir", "label": "The Sunken Choir", "tier": "act-boss", "timeToKillSeconds": [170, 300], "potionUse": [2, 4], "phaseCount": 3, "telegraphRule": "Choral waves remain legible in reduced motion." },
+    { "id": "hollow-regent-form-one", "label": "The Hollow Regent - Mercy Mask", "tier": "final-boss", "timeToKillSeconds": [90, 150], "potionUse": [1, 2], "phaseCount": 1, "telegraphRule": "Dialogue choice and first form teach the painless-ending bargain." },
+    { "id": "hollow-regent-form-two", "label": "The Hollow Regent - Crownless War", "tier": "final-boss", "timeToKillSeconds": [110, 180], "potionUse": [1, 3], "phaseCount": 2, "telegraphRule": "City choices alter support cues but not core fairness." },
+    { "id": "the-hollow-regent-final", "label": "The Hollow Regent - World-Scar Heart", "tier": "final-boss", "timeToKillSeconds": [240, 420], "potionUse": [2, 4], "phaseCount": 3, "telegraphRule": "Final patterns demand mastery while preserving clear retry learning." },
+    { "id": "postgame-crownless-echo", "label": "The Crownless Echo", "tier": "world-boss", "timeToKillSeconds": [300, 540], "potionUse": [2, 5], "phaseCount": 4, "telegraphRule": "Elite affix rotation is announced before the arena locks." }
+  ],
+  "classViability": [
+    { "classId": "wardbreaker", "beginnerBuild": "Hearth Vanguard", "lateGameBuild": "Ancient Shieldcleaver", "subclassCoverage": ["wardbreaker-shieldcleaver", "wardbreaker-oathguard"], "survivability": [8, 10], "damage": [6, 8], "mobility": [3, 5], "control": [6, 8] },
+    { "classId": "relicweaver", "beginnerBuild": "Loom Initiate", "lateGameBuild": "Mythic Ward-Scribe", "subclassCoverage": ["relicweaver-loomcaller", "relicweaver-ward-scribe"], "survivability": [5, 7], "damage": [7, 9], "mobility": [4, 6], "control": [8, 10] },
+    { "classId": "ashrunner", "beginnerBuild": "Roadflame Scout", "lateGameBuild": "Relic Sootknife", "subclassCoverage": ["ashrunner-sootknife", "ashrunner-roadflame"], "survivability": [4, 6], "damage": [7, 10], "mobility": [9, 10], "control": [4, 6] },
+    { "classId": "oathblade", "beginnerBuild": "Dawn Vow Duelist", "lateGameBuild": "Ancient Iron Vow", "subclassCoverage": ["oathblade-dawn-vow", "oathblade-iron-vow"], "survivability": [6, 8], "damage": [7, 9], "mobility": [6, 8], "control": [5, 7] },
+    { "classId": "thornwarden", "beginnerBuild": "Root Shield", "lateGameBuild": "Mythic Green Bulwark", "subclassCoverage": ["thornwarden-briarkeeper", "thornwarden-green-bulwark"], "survivability": [8, 10], "damage": [5, 7], "mobility": [3, 5], "control": [8, 10] },
+    { "classId": "gravechanter", "beginnerBuild": "Bone Hymn", "lateGameBuild": "Relic Mercy Bell", "subclassCoverage": ["gravechanter-bone-cantor", "gravechanter-mercy-bell"], "survivability": [5, 8], "damage": [6, 8], "mobility": [4, 6], "control": [8, 10] },
+    { "classId": "ember-monk", "beginnerBuild": "Furnace Palm", "lateGameBuild": "Ancient Ash Breath", "subclassCoverage": ["ember-monk-furnace-palm", "ember-monk-ash-breath"], "survivability": [5, 7], "damage": [7, 9], "mobility": [7, 10], "control": [4, 6] },
+    { "classId": "wayfarer", "beginnerBuild": "Roadsign Scout", "lateGameBuild": "Mythic Campfire Trickster", "subclassCoverage": ["wayfarer-roadsign-archer", "wayfarer-campfire-trickster"], "survivability": [5, 7], "damage": [6, 8], "mobility": [8, 10], "control": [6, 8] }
+  ],
+  "lineageViability": [
+    { "lineageId": "ashborn", "varianceBudgetPercent": [0, 8], "hook": "Ember resistance helps Cinderfall without trivializing frost or curse zones." },
+    { "lineageId": "veyr-human", "varianceBudgetPercent": [0, 6], "hook": "Reputation bonus speeds civic access but does not skip city boss gates." },
+    { "lineageId": "glasskin", "varianceBudgetPercent": [0, 8], "hook": "Illusion reveal improves Mirrorglass routes while keeping combat stats fair." },
+    { "lineageId": "mossbound", "varianceBudgetPercent": [0, 8], "hook": "Healing pressure improves safety but potion scarcity still matters." },
+    { "lineageId": "iron-oath", "varianceBudgetPercent": [0, 7], "hook": "Armor economy is cheaper, but movement penalties keep positioning relevant." },
+    { "lineageId": "nacre-touched", "varianceBudgetPercent": [0, 8], "hook": "Archive rewards increase lore and material discovery without doubling gear drops." },
+    { "lineageId": "starward", "varianceBudgetPercent": [0, 8], "hook": "Cooldown tempo rewards opener planning without invalidating other casters." },
+    { "lineageId": "gloammarked", "varianceBudgetPercent": [0, 8], "hook": "Dodge and travel advantages support skilled play without free boss clears." }
+  ],
+  "upgradeEconomy": [
+    { "rank": 1, "materials": [{ "id": "upgrade-shard", "quantity": 1 }], "gold": 10, "antiGrindRule": "Available by the first forge pedestal." },
+    { "rank": 2, "materials": [{ "id": "upgrade-shard", "quantity": 2 }, { "id": "relic-dust", "quantity": 1 }], "gold": 25, "antiGrindRule": "One city arc should fund at least one +2 item." },
+    { "rank": 3, "materials": [{ "id": "upgrade-shard", "quantity": 4 }, { "id": "relic-dust", "quantity": 3 }], "gold": 60, "antiGrindRule": "Sub-city champions and salvage cover normal experimentation." },
+    { "rank": 4, "materials": [{ "id": "rare-catalyst", "quantity": 1 }, { "id": "relic-dust", "quantity": 6 }], "gold": 130, "antiGrindRule": "Reserved for act-boss prep and meaningful gear commitment." },
+    { "rank": 5, "materials": [{ "id": "rare-catalyst", "quantity": 2 }, { "id": "relic-dust", "quantity": 12 }, { "id": "city-scrip", "quantity": 1 }], "gold": 260, "antiGrindRule": "One +5 item is expected before the finale, not a full +5 set." }
+  ],
+  "browserPerformanceBudgets": {
+    "initialInteractiveMs": 3500,
+    "drawerOpenMs": 250,
+    "combatInputLatencyMs": 90,
+    "playfieldFpsFloor": 45,
+    "smallViewportPlayfieldPercent": 58,
+    "reducedMotionFlashBudget": 0
+  },
+  "inputFeelChecks": [
+    { "id": "keyboard-primary", "label": "Keyboard primary", "requiredInputs": ["WASD", "Arrow keys", "Space", "E", "Shift", "1", "2"], "acceptance": "Inputs never type into the command box unless the box is focused." },
+    { "id": "pointer-cards", "label": "Pointer card RPG", "requiredInputs": ["Travel", "Fight", "Loot", "Story"], "acceptance": "Click-card actions update state for limited browser windows." },
+    { "id": "small-viewport", "label": "Small viewport", "requiredInputs": ["S", "M", "L", "XL"], "acceptance": "Size controls preserve a dominant playfield in the Codex browser." },
+    { "id": "reduced-motion", "label": "Reduced motion", "requiredInputs": ["system preference"], "acceptance": "Telegraphs remain readable while shake, flash, and ambient motion calm down." }
+  ],
+  "playtestChecklist": [
+    { "id": "prologue-first-reliquary", "type": "prologue", "label": "The First Reliquary", "regionId": "first-reliquary", "assertions": ["movement changes position", "first enemy can be damaged", "loot and lore are discoverable"] },
+    { "id": "act-i-awakening", "type": "act", "label": "Act I Awakening", "regionId": "veyrhold", "assertions": ["starter build survives", "first upgraded item matters", "city route unlocks"] },
+    { "id": "act-ii-city-pilgrimage", "type": "act", "label": "Act II City Pilgrimage", "regionId": "mirrorglass-haven", "assertions": ["three city hubs are reachable", "enemy weaknesses are readable", "crafting does not require grind"] },
+    { "id": "act-iii-faction-war", "type": "act", "label": "Act III Faction War", "regionId": "sable-meridian", "assertions": ["faction choice changes reputation", "companion perk is visible", "elite packs remain fair"] },
+    { "id": "act-iv-citadel-breach", "type": "act", "label": "Act IV Citadel Breach", "regionId": "auric-reliquary", "assertions": ["loyalty flags matter", "route pressure is clear", "act boss has readable phases"] },
+    { "id": "act-v-world-scar", "type": "act", "label": "Act V World-Scar", "regionId": "ebonwake-citadel", "assertions": ["final route is unlocked", "consumable pressure is meaningful", "world-scar choice is recorded"] },
+    { "id": "final-hollow-regent", "type": "finale", "label": "The Hollow Regent", "regionId": "ebonwake-citadel", "assertions": ["three forms are documented", "city choices surface as support", "postgame unlock flag is set"] },
+    { "id": "postgame-relic-trials", "type": "endgame", "label": "Relic Trials", "regionId": "auric-reliquary", "assertions": ["trial can start", "elite affix is visible", "reward advances collection"] },
+    { "id": "city-veyrhold", "type": "city-hub", "label": "Veyrhold", "regionId": "veyrhold", "assertions": ["oath politics visible", "shield enemies readable", "vendor/forge loop works"] },
+    { "id": "city-thalos-gate", "type": "city-hub", "label": "Thalos Gate", "regionId": "thalos-gate", "assertions": ["caravan route works", "road event resolves", "bandit conflict updates faction"] },
+    { "id": "city-mirrorglass-haven", "type": "city-hub", "label": "Mirrorglass Haven", "regionId": "mirrorglass-haven", "assertions": ["illusion cue appears", "glass enemies show weakness", "identity choice is logged"] },
+    { "id": "city-cinderfall", "type": "city-hub", "label": "Cinderfall", "regionId": "cinderfall", "assertions": ["forge recipes work", "ember hazards are low-flash", "fire boss pressure is fair"] },
+    { "id": "city-orrery-spire", "type": "city-hub", "label": "Orrery Spire", "regionId": "orrery-spire", "assertions": ["cosmology reveal appears", "star cult enemies readable", "cooldown builds stay viable"] },
+    { "id": "city-verdant-ossuary", "type": "city-hub", "label": "Verdant Ossuary", "regionId": "verdant-ossuary", "assertions": ["healer companion can matter", "moss horror control is fair", "death/nature choice is saved"] },
+    { "id": "city-sable-meridian", "type": "city-hub", "label": "Sable Meridian", "regionId": "sable-meridian", "assertions": ["bazaar economy is readable", "merchant event works", "thief pressure is fair"] },
+    { "id": "city-ironbloom-bastion", "type": "city-hub", "label": "Ironbloom Bastion", "regionId": "ironbloom-bastion", "assertions": ["armor set path visible", "soldier packs use telegraphs", "reputation affects discount"] },
+    { "id": "city-nacre-deep", "type": "city-hub", "label": "Nacre Deep", "regionId": "nacre-deep", "assertions": ["archive route unlocks", "drowned enemies readable", "material drops are useful"] },
+    { "id": "city-gloamreach", "type": "city-hub", "label": "Gloamreach", "regionId": "gloamreach", "assertions": ["curse rules visible", "stealth/travel choice matters", "loyalty arc advances"] },
+    { "id": "city-auric-reliquary", "type": "city-hub", "label": "Auric Reliquary", "regionId": "auric-reliquary", "assertions": ["relic trial preview works", "moral chain is logged", "final knowledge gate opens"] },
+    { "id": "city-ebonwake-citadel", "type": "city-hub", "label": "Ebonwake Citadel", "regionId": "ebonwake-citadel", "assertions": ["breach state is visible", "final boss prep is clear", "postgame unlock remains local"] }
+  ],
+  "acceptanceGates": [
+    "npm run arpg:balance:check",
+    "npm run hq:e2e",
+    "browser review of /hq",
+    "browser review of /resources?view=impact&impactMode=graph"
+  ]
+}

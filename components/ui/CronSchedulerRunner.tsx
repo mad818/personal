@@ -10,6 +10,7 @@ import {
   type AutoModeJob,
 } from "@/lib/autoOpsJobs";
 import { apiFetch } from "@/lib/apiFetch";
+import { registerScheduledMissionReviewRun } from "@/lib/schedulerGovernance";
 
 function fieldMatches(expr: string, value: number): boolean {
   const part = expr.trim();
@@ -237,6 +238,17 @@ export default function CronSchedulerRunner() {
                   lastRunAt: runAt,
                   lastStatus: status,
                   lastSummary: summary,
+                  missionReview: registerScheduledMissionReviewRun({
+                    job: {
+                      ...j,
+                      outputTarget: j.outputTarget ?? job.outputTarget,
+                      approvalPolicy: j.approvalPolicy ?? job.approvalPolicy,
+                      missionAgent: j.missionAgent ?? job.missionAgent,
+                    },
+                    runAt,
+                    status,
+                    summary,
+                  }),
                 }
               : j,
           );

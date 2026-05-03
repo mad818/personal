@@ -1,4 +1,4 @@
-// ── AEGIS VECTOR Chart Theme ─────────────────────────────────────────────────
+// ── HOMEFRONT Chart Theme ────────────────────────────────────────────────────
 // Command-shell palette — steel, cyan, amber, and signal tones
 // Shared constants for all Recharts + custom SVG visualizations
 

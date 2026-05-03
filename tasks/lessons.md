@@ -1,6 +1,7 @@
 # Nexus Prime — Lessons Learned
 
 ## How to use this file
+
 - After ANY correction from Mario, add the pattern here
 - Write a rule that prevents the same mistake
 - Review this file at the start of each session
@@ -70,20 +71,31 @@
 58. When installing a pre-commit hook on Windows, write via Desktop Commander (not Bash sandbox) because the sandbox may have a stale `.git/index.lock`. Use `git config core.hooksPath .git/hooks` to confirm the hook path is active.
 59. Static reference cards (AlphaEarth, geodep) with zero API cost belong in `components/ops/` as standalone exported components and mount inside an existing `CollapsibleSection` — no new routes needed, no API keys required.
 60. Agent Reach companion service follows the n8n/geodep pattern: standalone Python script + Next.js proxy (`/api/agent-reach`) + deployment doc in `docs/deployment/`. The proxy always degrades gracefully (503 + setup hint) when the service is not running.
+61. Generated handoff docs should stay Codex-first and compact: keep `docs/AGENT_HANDOFF.md` / `docs/CODEX_HANDOFF.md` useful, but keep Claude/Cursor mirrors as short compatibility pointers unless Mario explicitly asks to revive those workflows.
+62. For Aether Reliquary production art, do not promote flat vector/glyph sheets, dashboard-style icons, or minimal symbolic cards as game-facing assets. If Mario rejects a visual style, mark the batch rejected/reference-only, remove it from runtime previews, and require higher-fidelity painted/rendered 2D or approved-pack art before shipping.
+63. Viewport-derived game-window values rendered in Next client components must be hydration-gated or suppressed until mount, and Phaser resize hooks must guard scene camera readiness before calling `cameras.main`.
+64. Repo helper scripts that read task state must scope to canonical sections first (for example `## Next Up`) and only fall back to whole-file scans when the section is absent, so old backlog items do not outrank current work.
+65. In sandboxed Windows shells, orchestration scripts should delegate verification to npm scripts instead of nesting child-process health gates that can fail with `spawn EPERM`.
+66. Do not make unauthenticated operators pass through a public landing and then a second protected auth landing before password entry; the landing CTA should either continue directly when authenticated or collect the token on the same landing surface.
+67. The RPG world is Mario's personal/private lane and will move elsewhere later; do not frame Aether Reliquary or RPG production as public Nexus/Homefront positioning, landing copy, or shared shell doctrine.
+68. Shell self-heal reloads must be one-shot by both session state and URL marker; if `__shellHeal` is already present, show recovery or wait for hydration instead of writing a new timestamp and creating an infinite reload loop.
 
 ---
 
 ## Session Log
 
 ### 2026-03-14
+
 - ECONNRESET errors caused by large file edits and heavy context — keep edits smaller
 - User rejected Gemini image generation — skip this feature entirely
 - Stop command must be obeyed instantly with zero tool calls
 
 ### 2026-03-27
+
 - Stale TaskPlanPanel came from non-finalized run paths and missing auto-clear; always close run lifecycle and clear terminal plans.
 
 ### 2026-03-28
+
 - Git index.lock in the container overlay blocks sandbox Bash git commands. Always route git operations through Desktop Commander (cmd shell) using `git commit -F commit_msg.txt` pattern.
 - When adding a new layer type to a Leaflet component (like geodep), follow the established pattern: dedicated fetch fn → dedicated `useCallback` → dedicated `useEffect` (not bolted onto the shared activeLayers effect). This keeps each layer isolated and avoids dependency array sprawl.
 - Companion services (GeoDeep, n8n) belong in `docs/deployment/` docs, not bundled into the Next.js app. Document like Coolify: setup, env vars, integration points, notes.
@@ -131,6 +143,7 @@
 - Added top-bar Eval Grade badge, force-run override in Settings, and explicit degraded reason lists so operators can move from signal -> diagnosis -> action quickly.
 - Added grade-drop notification signals plus copy/export diagnostics and recent-grade breadcrumb context to accelerate incident triage and reporting.
 - Added Open Status deep-link and compact severity iconography, plus reason-enriched drop alerts, to close the loop from detection to investigation.
+
 57. Route live context through agent-specific filters (`buildFilteredLiveContext`) rather than dumping all signals to every agent; irrelevant signals waste tokens and dilute focus.
 58. Vault/saved-article UX needs search + tag filter + sort to be useful at scale; bookmarking without retrieval is a dead end.
 59. Delta sweeps (price, CVE, world-risk) should compare two snapshots and fire typed alerts with severity — don't log every tick, only threshold crossings.

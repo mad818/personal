@@ -11,6 +11,8 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   // local control plane
   { prefix: "/api/health/providers", routeClass: "local_only", public: false },
   { prefix: "/api/health/usage", routeClass: "local_only", public: false },
+  { prefix: "/api/metrics/runtime-experiments/run", routeClass: "local_only", public: false },
+  { prefix: "/api/metrics/runtime-experiments", routeClass: "local_only", public: false },
   { prefix: "/api/metrics/runtime-eval/forecast/run", routeClass: "local_only", public: false },
   { prefix: "/api/metrics/runtime-eval/forecast", routeClass: "local_only", public: false },
   { prefix: "/api/metrics/runtime-eval/scheduler-efficiency/run", routeClass: "local_only", public: false },

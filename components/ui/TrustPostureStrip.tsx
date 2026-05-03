@@ -18,6 +18,8 @@ const SUMMARY_LABELS: Record<string, string> = {
   Network: "Net",
   Connectors: "Conn",
   "High-risk": "Risk",
+  Isolation: "Iso",
+  "External tools": "Tools",
   Privacy: "Shield",
   Providers: "Lane",
 };
@@ -87,7 +89,9 @@ export default function TrustPostureStrip() {
         (row) =>
           row.label === "Session" ||
           row.label === "Step-up" ||
-          row.label === "High-risk",
+          row.label === "High-risk" ||
+          row.label === "External tools" ||
+          row.label === "Privacy",
       ),
     [trustRows],
   );

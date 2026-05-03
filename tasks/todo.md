@@ -6,19 +6,8 @@
 
 See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion-program-2026.md) and [docs/regression-memory-checklist.md](../docs/regression-memory-checklist.md).
 
-### P0 — Must close before GA
-- [x] CP0.1 — Browser-level auth E2E suite: valid login, invalid login, stale session recovery, hard refresh, logout/reset
-- [x] CP0.2 — Regression-memory sweep for stale runtime, stale bundle, hydration mismatch, overlay click traps, and route alias drift
-- [x] CP0.3 — Fresh-runtime release smoke discipline: validate on clean runtime, not only hot dev sessions (`npm run runtime:fresh-proof`)
-- [x] CP0.4 — Canonical route contract proof: `/`, `/home`, beta aliases, internal aliases, and GA nav all resolve correctly
-
-### P1 — Whole-app cinematic IA completion
-- [ ] CP1.1 — Apply cinematic shell/background/panel hierarchy consistently across HQ and all GA tabs
-- [ ] CP1.2 — Standardize nav, overlays, buttons, segmented controls, empty states, and loading states across GA surfaces
-- [ ] CP1.3 — HQ visual integrity pass: no overlap, clipping, hydration mismatch, or shell drift versus login
-- [ ] CP1.4 — Surface-by-surface hardening for COMMAND, INTEL, ALPHA, CYBER, RECON, VAULT with free-first graceful degradation
-
 ### Future vehicle / drone lane
+
 - [ ] V0.1 — Simulated telemetry generator and replay mode for `/internal/vehicle`
 - [ ] V0.2 — Standardize future flight telemetry schema (heartbeat, mode, GPS, battery, link quality, failsafes, mission status)
 - [ ] V0.3 — Archive flight-log / incident artifacts into VAULT conventions
@@ -26,204 +15,93 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 - [ ] V1.2 — Passive telemetry bridge from flight stack into Nexus without making Nexus flight-critical
 
 ### P2 — Release engineering closure
+
 - [ ] CP2.1 — Web release rehearsal: Docker + target deployment + diagnostics snapshot + rollback proof
 - [ ] CP2.2 — Desktop isolation validation: secure runtime, no-outbound proof in isolated mode, capability lockdown evidence
 - [ ] CP2.3 — Desktop trust chain: checksum verification, signing status record, SBOM status record
 - [ ] CP2.4 — Final launch gate: `type-check`, `lint`, `verify`, `route:integrity`, `eval:agent-runtime:ci`, `release:smoke`, auth E2E
 
-## Completed
-- [x] Phase 1–4: Full React/Next.js migration, all 8 tabs
-- [x] Settings panel (slide-over, all API keys + personal profile)
-- [x] Data hooks: usePrices, useArticles, useCVEs
-- [x] DataLoader components wired into all pages
-- [x] HOME page: PricesLoader + FearGreedLoader + ArticlesLoader
-- [x] COMMAND: BTC KPI + Fear & Greed live
-- [x] ALPHA: live prices + 7-day SVG sparklines
-- [x] SIGNALS: live articles + bias tags (bullish/bearish/neutral) + bookmark button
-- [x] CYBER: live CVEs sorted by severity (CRITICAL → LOW)
-- [x] VAULT: saved articles persisted across sessions
-- [x] Business Builder — 5-stage pipeline, checklist, MRR tracker, AI action plan
-- [x] Leaflet quake map (OPS tab, USGS M2.5+, dark tiles)
-- [x] Strategy frameworks: Porter 5, VRIO, BCG, JTBD, SaaS tracker (INTEL tab)
-- [x] AI Job Risk Analyzer — Karpathy rubric, 23 benchmarks, personalised action plan
-- [x] Agent loop (lib/agent.ts): full ReAct tool-use for Claude + Ollama
-- [x] Ollama wired: qwen3:14b default, full function-calling loop
-- [x] Tool executor API (/api/tools): web_search, fetch_url, write_file, read_file, list_files, calculate
-- [x] HomeChat: live tool-call display, collapsible badges
-- [x] Type check: passing in current branch (tsc --noEmit)
-- [x] Map all 43 external links to Nexus modules with ROI/safety notes (`docs/ideas/external-links-mapping.md`)
-- [x] Fix wiring: CameraGrid uses `eventBus` `camera:alert` (not `window` listener)
-- [x] Fix wiring: SecurityAlerts prefers `store.securityAlerts` with demo fallback
-- [x] Fix wiring: SystemStatusFooter refresh trigger now drives GlobalDataLoader refresh completion event
-- [x] HQ Prime Drawbridge mode: edit layout toggle + save/reset + persisted object positions
-- [x] HQ Prime renderer toggle: 2D/3D switch with persisted renderer preference
-- [x] HQ Prime 3D phase 1.5: animated lighting/window particles + simplified furniture meshes
-- [x] Proposed edits quality-of-life: auto-apply office edits option to reduce manual approvals
-- [x] Home HQ: MemoryPanel toggle + lazy-load 3D room to reduce initial bundle cost
-- [x] Resolve stale TaskPlanPanel states so interrupted/error runs don't leave partial plans onscreen
-- [x] Cron scheduler UI: create/toggle/delete recurring jobs with persisted settings + runner
-- [x] OTX threat feed: fetch via server-side key path (`/api/threat-intel`) with graceful fallback UX
-- [x] Momentum scanner (ALPHA tab: ranked score + buy/neutral/sell labels)
-- [x] Prime HQ phase 2: 3D furniture drag handles + no-overlap guardrails
-- [x] Prime HQ phase 2: manual Scene Mode controls (Morning/Afternoon/Night + motion intensity)
-- [x] Prime HQ phase 2: layout presets (Focus / War Room / Night Ops)
-- [x] Prime HQ phase 3: convert remaining office visuals/agent representations to native 3D markers
-- [x] Final QA pass across Home 3D + CYBER OTX + scheduler flows
-- [x] HQ migration: achieve full 2D -> 3D parity for office visuals/behaviors, make 3D-only renderer, then remove legacy 2D office components
-- [x] Chat capability routing: whenever chat invokes a skill/tool/module, auto-open the matching tab/page across Home + HQ flows (and keep mapping centralized for future features)
-- [x] Operational profiles: make War Room and Night Ops drive behavior (routing, scheduler cadence, alert policy), not just visuals
-- [x] Operational profiles phase 2: mode-specific auto jobs with opt-in toggles + strict cooldown/rate limiting
-- [x] Operational profiles phase 3: auto-jobs preview with Run now/Force controls + compact modernized roster/status card UI polish
-- [x] Design-token normalization pass: shared spacing/radius/type/elevation tokens + compact dashboard container alignment
-- [x] HQ phase 4: mode briefing panel + Night Ops handoff file writeback + responsive office/chat split ratio
-- [x] HQ UX: add draggable splitter so office/chat panes are user-resizable
-- [x] Persist HQ splitter height in settings across reloads
-- [x] HQ UX: add visible Reset Layout chip for office/chat splitter
-- [x] HQ UX: splitter accessibility + keyboard resize + inline resize feedback
-- [x] HQ UX: add Lock Split toggle to prevent accidental drag resizing
-- [x] Fix HQ splitter clipping/overdraw by moving controls to dedicated divider row
-- [x] HQ UX: compact splitter controls with More menu on narrow widths
-- [x] Wall pass: mount SYS + agent roster overlays in office scene and remove overlapping/duplicate chat roster
-- [x] Wall overlay polish: reduce roster/SYS footprint, prevent overlap, remove leftover chat note
-- [x] UX pass: move status cards to office wall area + convert agent roster to compact non-scroll grid
-- [x] Convert wall HUD to true in-scene mounted 3D wall objects (SYS + roster), remove screen-space overlays
-- [x] Improve in-scene wall board readability (larger text + better scaling)
-- [x] Wall readability pass 2: relocate boards to side walls near agents and enlarge in-scene text scale
-- [x] Wall fine-tune: resolve left board overlap and increase right SYS font size
-- [x] Wall boards polish: remove cabinet overlap, raise/right-scale SYS text, add interactive hover behavior
-- [x] Camera framing pass: zoom in so office fills viewport while keeping wall/window readable
-- [x] Add HQ camera presets (Cinematic + Close Ops) with quick toggle controls
-- [x] Add future-proof camera profile system + third preset (Wall Readability)
-- [x] AI connection pass: inject capabilities block in active HQ prompt pipeline
-- [x] AI connection pass: add missing `/api/health` route + fix `/api/project?section=tree` path fidelity
-- [x] AI connection pass: align model/provider maps + refresh stale `.claude` rules docs
-- [x] Add path-collision guardrail script + CI workflow
-- [x] Publish comprehensive project improvement plan map (interactive roadmap)
-- [x] Add release summary doc for secure push batches (`docs/releases/2026-03-27-secure-push-summary.md`)
-- [x] Phase 1 execution: unify AI task-model routing into shared module (client/server/store aligned)
-- [x] Phase 1 execution: add secure `/api/status` diagnostics endpoint (sanitized readiness/health)
-- [x] Phase 1 execution: add CI quality gates workflow (`type-check`, `lint`, `path safety`) + docs/env sync
-- [x] Research and codify best-practice patterns from major AI agent ecosystems (NVIDIA, Claude, Codex, Cursor, OpenClaw/OpenHands)
-- [x] Translate those patterns into a Nexus execution blueprint with phased implementation backlog
-- [x] Batch 2 ideas assimilation — Phase A (security scanner + pre-commit hook + CIPHER self-audit), Phase B (NOVA research modes + source credibility + lesson logger), Phase C (RACI model + 5-state machine + handoff template), Phase D (AlphaEarth reference card in INTEL/world), Phase E (Agent Reach Python service + proxy + tools)
-- [x] Phase A execution: add tool risk tiering and default high-risk write approval guard in `lib/agent.ts`
-- [x] Phase A execution: expose risk metadata in tool-call traces for operator visibility
-- [x] Phase A execution: extend `/api/status` with policy + AI routing diagnostics
-- [x] Phase A execution: add explicit Settings checkbox for high-risk write approval policy
-- [x] Phase B execution: add verification adapter endpoint (`/api/verify`) for type-check, lint, and route smoke
-- [x] Phase B execution: integrate mandatory verification pass for permissive write-capable runs and mark degraded when checks fail
-- [x] Phase B execution: add run diagnostics schema in store (run id, status, phase timing, failure cause, verification)
-- [x] Phase C execution: add context budget bundle + compaction report primitive in `lib/liveContext.ts`
-- [x] Phase C execution: wire budgeted live context into HQ send pipeline
-- [x] Phase D execution: add reproducible runtime eval harness (`scripts/eval-agent-runtime.js`) and CI gate step
-- [x] Phase D execution: add eval threshold policy (`--min-score`) and wire CI to enforce it
-- [x] Phase D execution: persist runtime eval artifacts (`docs/metrics/agent-runtime-latest.json`, history jsonl)
-- [x] Phase D execution: expose runtime eval policy in `/api/status` readiness diagnostics
-- [x] Phase D execution: add weighted eval categories (safety/reliability/ux/observability) with weighted score output
-- [x] Phase D execution: expose runtime eval metrics via `/api/metrics/runtime-eval`
-- [x] Phase D execution: add in-app Runtime Eval Trend panel in Settings
-- [x] Phase D execution: enforce category-level eval thresholds in CI (`safety/reliability/ux/observability`)
-- [x] Phase D execution: add HQ Telemetry EVAL chip sourced from runtime metrics API
-- [x] Phase D execution: improve eval failure diagnostics output (failed checks + category threshold failures)
-- [x] Phase D execution: expand route smoke adapter to include protected endpoint reachability checks (`/api/tools`, `/api/ai`)
-- [x] Phase D execution: include latest runtime eval snapshot in `/api/status` diagnostics
-- [x] Phase D execution: add per-category breakdown bars in Settings runtime eval trend panel
-- [x] Phase D execution: add eval freshness/staleness signal to metrics API and Settings trend panel
-- [x] Phase D execution: add one-click runtime eval trigger route (`POST /api/metrics/runtime-eval/run`) and wire button in Settings
-- [x] Phase D execution: expose eval category thresholds in `/api/status` readiness payload + `.env.example`
-- [x] Phase D execution: add cooldown-managed revalidation runner state for runtime eval trigger route
-- [x] Phase D execution: add status rollup grade/degraded reasons in `/api/status` eval diagnostics
-- [x] Phase D execution: add HQ “why degraded” hints in EVAL chip (stale/failure count) and auto-refresh cadence
-- [x] Phase D execution: add header-level Eval Grade badge in HQ top bar sourced from `/api/status`
-- [x] Phase D execution: add Force Run action to runtime eval panel (cooldown override)
-- [x] Phase D execution: add explicit degraded reason list (failed checks/category thresholds) in Settings eval panel
-- [x] Phase D execution: add copy/export diagnostics actions in runtime eval panel
-- [x] Phase D execution: add grade-drop alert signal via store notifications
-- [x] Phase D execution: add recent grade breadcrumb tooltip on HQ header eval badge
-- [x] Phase D execution: add Open Status deep-link action in runtime eval panel
-- [x] Phase D execution: enrich grade-drop notifications with degraded-reason snapshot context
-- [x] Phase D execution: add compact header severity icon before eval grade (fresh/failing/stale)
-- [x] Phase D execution: replace raw status JSON jump with in-app status diagnostics drawer
-- [x] Phase D execution: persist runtime grade-drop incidents into activity timeline log
-- [x] Phase D execution: add cooldown-aware backoff policy for repeated runtime eval runner failures
-- [x] Phase D execution: expose runtime eval runner backoff state in `/api/status` rollup diagnostics
-- [x] Phase D execution: show eval retry-pressure (`BACKOFF`) chip in HQ telemetry HUD
-- [x] Phase D optimization: remove stale-closure polling in runtime eval trend auto-revalidate loop
-- [x] Phase D optimization: skip telemetry eval polling while tab is hidden and refresh on visibility restore
-- [x] Phase D optimization: dedupe `/api/metrics/runtime-eval` reads across HUD, HQ header, and settings via shared short-TTL cache keys
-- [x] Phase D optimization: pause HQ header/status polling while tab is hidden and refresh on visibility restore
-- [x] Phase D optimization: pause runtime eval panel polling while tab is hidden and refresh on visibility restore
-- [x] Phase D optimization: centralize eval grade visual mapping (color/icon) for consistent HQ and telemetry badges
-- [x] Phase O2: centralize runtime polling/TTL cadence in `lib/runtimeConfig.ts` and stagger first reads
-- [x] Phase O3: memoize heavy 3D office (`OfficeRoom3D`) to reduce re-render churn on polling updates
-- [x] Phase O3: memoize `TelemetryHUD` to prevent parent-driven re-renders on eval header polling
-- [x] Phase O4: store/state hardening via shallow selectors and derived settings fields
-- [x] Phase O5: add shared runtime API schemas/parsers and enforce validated payloads across HQ runtime consumers
-- [x] Phase O6: UX reliability polish (consistent “last updated” hints + microstate tightening for runtime surfaces)
-- [x] Add Claude Desktop + Cursor workflow doc + `npm run verify` command
-- [x] Stranger Things “Beyond Tier” 3D agents: EL dual outer-ring + floating orbs + Hopper beam sweep at quality=high
-- [x] Intel/Markets/Cyber: real sub-tabs (URL + persisted Zustand state) + lazy-load all heavy views
-- [x] Intel/Markets/Cyber: unified sub-tab UX (shared switcher style, consistent section headers, no debug timestamps)
-- [x] Intel: PolymarketFeed UX — sort controls (% hi/lo, volume, closing), summary bar, bracket labels, search, end-date cues
-- [x] Markets: clarity pass — section headers, PriceSparklines wired into watchlist view, sizer label added
-- [x] Cyber: triage-first view — TriageView correlated CVE/OTX/CISA, priority+source filters, summary strip, TriageCard with left-border priority
-- [x] News feeds: extra free RSS sources + GDELT server fallback when thin; client GDELT backup + stable article IDs (`app/api/news`, `hooks/useArticles`)
-
 ## Next Up
 
-- [x] MAIN-PUBLISH — Root `main` now owns a repo-native `3100` review lane through `npm run runtime:launch:3100` / `npm run runtime:stop:3100`, local pid/log artifacts are ignored, and the original `C:\Users\mario\Desktop\personal` checkout is back to being the normal published runtime lane.
-- [x] MAIN-RESTORE — The original `C:\Users\mario\Desktop\personal` checkout is back on `main`, the previous dirty root state is preserved on `codex/root-preserve-before-main-restore-2026-04-21`, the dedicated `main` worktree is archived on `codex/mainline-runtime-archive-2026-04-21`, and root-main verification plus `npm run runtime:fresh-proof` are green.
-- [ ] UXA3b — Compact COMMAND's deep-scroll behavior on merged `main` by making the support rail sticky/capped on wide viewports and moving heavyweight secondary modules behind disclosure-first shells unless the active focus/session needs them open.
-- [ ] UXA3c — Continue merged-main route compaction across `SECURITY`, `VAULT`, and `RESOURCES` by bounding support rails, hiding heavyweight secondary modules behind disclosures, and trimming the remaining pre-workplane chrome.
-- [ ] UXA3d — Continue merged-main first-viewport compaction by measuring remaining workplane offsets on `COMMAND`, `SECURITY`, `VAULT`, and `RESOURCES`, then trim whichever layer still dominates the fold: route strips, segmented-tab density, or tall workbench modules.
-- [ ] UXA3e — Follow the shared chrome pass by compacting the still-tall module stacks on merged `main`, especially nested segmented clusters and oversized workbench modules inside `COMMAND` and `SECURITY`, before doing another first-viewport measurement sweep.
-- [x] UXA3f — After flattening the `COMMAND` and `SECURITY` module stacks, compact the next remaining depth drivers on merged `main`: continuity bundles in `COMMAND`, residual physical-ops continuity in `SECURITY`, and any still-tall archive/support bundles in `VAULT` or `RESOURCES`.
-- [ ] UXA3g — Validate the new summary-first continuity surfaces on merged `main`, then only widen into `VAULT` / `RESOURCES` archive-support compaction if those routes still keep the primary workplane materially below the fold on live `3100`.
-- [ ] UXA3 — Review `/hq?focus=hq-chronicle`, `/command`, `/security`, `/vault`, and `/resources` on the merged `main` runtime at `http://localhost:3100` and confirm the shell/layout density, HQ room, lockdown posture, and Next 15 runtime lane feel right together.
+- [ ] MW6-ARPG-FULL-GAME-PRODUCTION — Expand `Aether Reliquary` from the MW5 Phaser vertical slice into a complete browser RPG inside `/hq`, not a single chapter: target one playable protagonist with race/class/subclass customization, 12 major cities with 4 sub-cities each, a massive multi-act storyline, low-tech hand-weapon combat, deep gear/armory progression, companion/NPC relationships, enemy families with traits/buffs/debuffs, final boss arcs, and repeatable endgame while preserving the HQ shell, command input, route stability, local-first saves, legal asset policy, reduced-motion support, and Resources massive-win tracking.
+- [ ] MW6U-ARPG-ASSET-PIPELINE — Build the production asset lane: source CC0-first sprite/tile/icon/audio packs, allow CC-BY only with complete attribution and visible credits, allow cheap operator-approved commercial packs only with redacted proof records, normalize frame sizes and bottom-center anchors, create sprite atlas conventions, optimize tilesets, extend `lib/arpgAssetManifest.ts` for imported assets, maintain `docs/assets/arpg-asset-ledger.md`, and keep `npm run arpg:assets:check` plus `npm run arpg:production:check` as gates.
+- [ ] MW6V-REAL-ASSET-INTAKE — Keep real 3D/pack intake available as an optional reference and preview lane behind the illustrated 2D primary path: download/source CC0-first or operator-approved clean-license character bases, outfits, animation clips, props, weapons, and materials through the validated intake lane; optimize selected assets into runtime GLB/PNG/WebP files; add manifest/credit records; and wire the first imported character or outfit preview into `/hq` without paid AI, forced-paid dependencies, franchise-derived assets, or unverified licenses.
+- [ ] MW6V-ARPG-ART-AUDIO-VFX — Replace placeholder feel with production presentation: city tilesets, sub-city district props, character/enemy sprites, attack animations, hit sparks, loot beams, UI icons, ambient particles, screen shake tuning, city music, dungeon music, combat stingers, UI sounds, accessibility volume toggles, and calm reduced-motion/low-flash alternatives.
+  - Current pass: add a typed Bellroot/Veyrhold presentation cue layer using only approved existing runtime art and metadata for ambient copy, VFX/audio intent, and reduced-motion alternatives; surface it in `/hq` Adventure, Map, and Production without promoting rejected prologue art or requiring external asset packs.
+  - Progress: shipped the first-town presentation cue layer with six validated Bellroot/Veyrhold cues, approved runtime asset references, VFX/audio intent, reduced-motion alternatives, `/hq` Adventure/Map/Production surfacing, and rejected-prologue-art validation. `npm run arpg:presentation:check`, `npm run arpg:content:check`, `npm run type-check`, `npm run verify`, `npm run build`, and live `3100` route checks passed; `npm run hq:e2e` remains locally blocked by Windows Playwright worker `spawn EPERM`.
+- [ ] MW6AA-ARPG-TESTING-RELEASE-GATES — Add release-grade coverage for the full game: `npm run arpg:assets:check`, static content validation, save migration tests, deterministic combat/item/enemy formula tests, city/sub-city registry checks, quest dependency checks, `npm run hq:e2e` flows for movement/combat/loot/equip/upgrade/skills/story/map/quest/codex/companions/cities, route checks for `/hq` and `/hq?focus=hq-chronicle`, build/verify, and browser acceptance that proves the first viewport reads as a game while HQ command input still works.
 - [ ] UXA3 — After acceptance on merged `main`, retire the older replay worktree queue only once we no longer need side-by-side rollback or visual-reference inspection.
-- [x] M2 — Replay the shared shell, taste contract, route plates, and public landing/root-route contract onto the clean `main`-based branch `codex/m2-shell-taste-replay`.
-- [x] M3 — Replay the accepted HQ flagship and first-view COMMAND / SECURITY / SKILLS / VEHICLE / RESOURCES / VAULT interiors onto `codex/m3-hq-route-replay`, with `npm run type-check`, `npm run route:e2e`, `npm run hq:e2e`, and `npm run tabs:e2e` green there.
-- [x] M4 — Replay the trust/auth/protected-action substrate onto `codex/m4-trust-substrate-replay`, with `npm run type-check` and `npm run auth:e2e` green on the clean main-based worktree.
 - [ ] Retire the older M2/M3/M4 review queue only after UXA3 is accepted on merged `main` and there is no remaining need for replay-era rollback/reference worktrees.
-- [x] Keep local `main` untouched until the replay branches are reviewed; no direct merge from `codex/preserve-main-2026-04-11`.
 - [ ] FD2 remains blocked on the real staged Coolify hostname in repo-root `.env.local`, so release-proof work still stays out of this replay stack.
 
-## Batch 3–7 Assimilation (completed 2026-03-28)
-- [x] Batch 3A/3D — Filtered live context per agent (`buildFilteredLiveContext`) + memory diff block
-- [x] Batch 4A — WCAG 2.1 AA `:focus-visible` global rule + `var(--t)` transition fixes
-- [x] Batch 4B/4C — CyberArticleHeatmap transition + drawer slide unified to `var(--t)`
-- [x] Batch 4D — Vault tags: `updateArticleTags` store action + SavedArticles tag input/filter/search rebuild
-- [x] Batch 5A — `buildDeltaSweep()` in `lib/liveContext.ts`: price/CVE/world-risk delta alerts
-- [x] Batch 5B — `hf_papers_search` tool (HuggingFace daily papers, no key)
-- [x] Batch 5C — Session-scoped 60 s read cache + cache eviction on patch in `/api/tools`
-- [x] Batch 5D — `open_meteo_weather` + `sec_edgar_search` tools added to `/api/tools`
-- [x] Batch 6A — `lib/ragRouter.ts`: keyword-first RAG router with 9 domain routes + `buildRagContextBlock`
-- [x] Batch 6B — Memento-Skills: post-run lesson proposal UI in OfficeCommandCenter (approve → `log_lesson`)
-- [x] Batch 6C — `ScheduledJob` extended with `type`, `outputTarget`, `missionAgent` fields
-- [x] Batch 7B — ORBIT TDD discipline added to prompts.ts (ASSERT comment before fn, verify after)
-- [x] Batch 7C — `scripts/orbit.js` (`npm run orbit:next`) + `scripts/audit.js` (`npm run audit:full`)
-- [x] Batch 7D — NOVA deep research workflow added to prompts.ts (5-tool pipeline → Feynman brief → Vault)
-
-## Completed (2026-03-29 — HQ Graphics Enhancement)
-- [x] G1A — Per-desk colored point lights (5 agents + ceiling boosted)
-- [x] G1B — CityWindow nightFactor wired: emissiveIntensity + city spill pointLight
-- [x] G1C — Ceiling plane + ceiling trim band + AO contact shadow discs
-- [x] G1D — Animated wall clock (LiveClock component, real-time hands)
-- [x] G2A — TOOL_POSE_MAP + AGENT_WORK_POSE in constants.ts
-- [x] G2B — Per-agent work poses (type/read/search/wait/compute) in AgentFloorShadows
-- [x] G2C — Rim highlight (BackSide outline mesh, agent-color glow on active agent)
-- [x] G2D — Speech bubbles (Html overlay above head, shows active tool name)
-- [x] G3A — MatrixOverlay component (canvas-texture column cascade, green rain spawn effect)
-- [x] G4A — Bloom post-processing (@react-three/postprocessing v2, vfxQuality gated)
-- [x] G4C — Procedural floor tile canvas texture (tile seams + grain, replaces line-segment grid)
-- [x] Pixel-agents assimilation plan map (docs/plans/pixel-agents-assimilation-plan.md)
-
-## RECON Tab — OSINT & Privacy (2026-03-29)
-- [x] RECON tab: nav button, HTML panel, switchTab registration
-- [x] RECON API keys: hibpKey, vtKey, shodanKey in DEFAULT_CFG + settings
-- [x] RECON lookups: RDAP/WHOIS, DNS, crt.sh, IP geo, HIBP, VirusTotal, Shodan
-- [x] RECON local tools: WebRTC leak probe, fingerprint entropy, OPSEC score
-- [x] RECON CSS (rc- prefix) + CLAUDE.md tab map update
-
 ## In Progress
-_(none)_
+
+- [x] LOGGED-IN-HOMEFRONT-THRESHOLD — Carry the premium Homefront landing concept into authenticated non-RPG shell surfaces as a route-aware operating threshold: compact live-surface signals, local-first proof, and surface-specific work context while leaving `/hq` and the RPG World lane separate.
+  - Current pass: add the shared shell component, style it with the existing dark glass command-room language, update tab-surface coverage, and verify with type/verify/build plus live authenticated route checks.
+  - Progress: added the shared `homefront-command-threshold` to authenticated non-HQ shell tabs with surface-specific signals and proof chips, extended tab-surface assertions, and verified `npm run type-check`, `npm run verify`, `npm run build`, live `3100` health, authenticated COMMAND/INTEL/ALPHA/CYBER/RECON/VAULT/RESOURCES/SECURITY/SKILLS route HTML, and the `/hq?focus=hq-chronicle` exclusion boundary. `npm run runtime:launch:3100` still times out in the known Windows wrapper way after starting a healthy runtime.
+- [x] AUTH-SHELL-RELOAD-LOOP-FIX — Stop the authenticated shell from entering an infinite `__shellHeal` reload loop after landing login, then outline the Homefront visual-language path for logged-in non-RPG surfaces.
+  - Current pass: find the root cause of the changing `__shellHeal` query param, make shell recovery one-shot instead of loop-prone, preserve the private RPG boundary, and verify with type/build/live route checks.
+  - Progress: fixed the bootstrap shell guard so it waits longer for heavy authenticated hydration and refuses to auto-reload again when `__shellHeal` is already present. `npm run type-check`, `npm run verify`, `npm run build`, live `3100` health, authenticated `/hq?focus=hq-chronicle&__shellHeal=123`, and authenticated `/command` checks passed.
+- [x] LANDING-LIVE-COMMAND-THRESHOLD — Implement the one-step massive Homefront landing upgrade: live command preview, interactive real-surface showcase, proof wall, and access ceremony while preserving the current premium layout, active nav, no-sales posture, and private `/hq` RPG boundary.
+  - Current pass: add substantial liveness and product depth to the public landing in one implementation pass; avoid public RPG positioning; verify with type/verify/build and live `3100` route checks.
+  - Progress: shipped the one-step landing upgrade with a read-only live command preview, rotating/clickable surface showcase for COMMAND/INTEL/CYBER/VAULT/RESOURCES, a readiness proof wall, and a staged access ceremony. Added focused landing E2E assertions. `npm run type-check`, `npm run verify`, `npm run build`, live `3100` health, and public `/` HTTP checks passed; local Playwright worker launch remains blocked by Windows `spawn EPERM`.
+- [x] LANDING-NAV-LIVENESS — Make the premium Homefront landing navigation feel alive without changing the approved layout: section-aware active highlighting, subtle scroll progress, focused hover states, and regression coverage that keeps the public positioning separate from the private `/hq` RPG lane.
+  - Current pass: keep the floating pill nav shape, add section tracking for Home/Doctrine/Lanes/Posture/Access, add restrained motion/progress feedback, and verify the public page on the live `3100` runtime.
+  - Progress: added hydrated section tracking for the landing nav, a spring-driven active pill, a subtle scroll progress glint, and focused E2E assertions for section highlighting. `npm run type-check`, `npm run verify`, `npm run build`, live `3100` health, and public `/` HTTP checks passed; local Playwright/browser automation still fails on Windows `spawn EPERM`, so interactive browser proof remains manual in the in-app browser.
+- [x] LANDING-VISUAL-CONTINUITY — Continue the premium Homefront landing pass by finishing project-specific landing copy, metadata, live proof, and carrying the same local-first command-room visual language into shared tab/shell surfaces where it improves orientation without pulling the private `/hq` RPG lane into public positioning.
+  - Current pass: audit landing remnants, shared shell chrome, and route metadata; apply concise Homefront visual language to appropriate tabs and shared components; keep product surfaces operational rather than salesy; verify with type/build and live `3100` route checks.
+  - Progress: completed the project-specific Homefront landing cleanup, removed the leftover agency visual hooks from the public page, aligned the auth redirect stub, and added a compact Homefront continuity strip to shared protected shell tabs while keeping `/hq` private and separate. `npm run type-check`, `npm run verify`, `npm run build`, live `3100` health, public `/`, authenticated protected tab checks, and authenticated `/hq` boundary proof passed; `npm run runtime:launch:3100` still reports the known wrapper timeout even though the runtime is healthy.
+  - Correction: Mario clarified that the RPG world is personal/private and will move elsewhere later, so the public landing/metadata/handoff language should focus on Homefront/Nexus command intelligence instead of presenting Aether Reliquary as product identity.
+- [x] MW6FR8-HQ-RUNTIME-OVERLAY-FIX — Fix the live `/hq` runtime blockers seen in the in-app browser: remove the game-size hydration mismatch from viewport-derived text, guard Phaser camera resize until the main camera exists, then rebuild/relaunch so the game screen is visible again.
+  - Current pass: patch the shell height readouts and Phaser viewport sync path only; do not widen into new game content, assets, route changes, or layout redesign.
+  - Guardrail: keep the fix local-first and route-stable, preserve the current game window controls, and verify with type/build plus live `3100` route health.
+  - Progress: closed in the blocker pass. The viewport-derived game-size readouts are mount-gated, Phaser viewport sync guards `cameras.main`, `npm run build`, `npm run audit:full`, and live `3100` checks for `/api/health`, `/hq`, `/hq?focus=hq-chronicle`, and `/resources?view=impact&impactMode=graph` passed; `npm run hq:e2e` remains blocked locally by Windows `spawn EPERM`, so the accepted proof lane is build/verify plus live route health until a fresh shell can run browser workers.
+- [ ] MW6FR7-ARPG-BELLROOT-COMMONS-ALCHEMY-MYSTERY-RUNTIME — Push the next first-town update by making Bellroot Commons interactive: add safe alchemy brews, Ilo-led oath-lamp readings, recovery/mystery rewards, validation, and compact `/hq` Map/Kit/Journal proof so the first town has a softer support/story loop alongside Oathmarket economy and Warden's Steps armor.
+  - Current pass: extend the Veyrhold town content with Bellroot Commons brew recipes and lamp mystery readings; validate item/NPC/service/reward/story references; surface the loop through existing local-first inventory/story/reputation actions.
+  - Guardrail: keep this as first-town alchemy and city-mystery depth, not a full potion economy, final prologue-art replacement, cloud save, multiplayer, paid asset lane, or new `/game` route.
+  - Progress: added three Bellroot Commons safe brews and three Ilo oath-lamp readings with item rewards, condition tags, mystery hooks, story flags, and reputation deltas; surfaced the loop in `/hq` Map, Kit, and Journal. `npm run arpg:content:check`, `npm run arpg:production:check`, `npm run arpg:release:check`, `npm run type-check`, `npm run build`, and `npm run verify` passed; `npm run hq:e2e` timed out locally waiting for the Playwright web server, while `3100` health and target route HTTP checks returned 200.
+- [ ] MW6FR6-ARPG-WARDENS-STEPS-FORGE-ARMOR-RUNTIME — Push the next first-town update by making Warden's Steps interactive: add forge armor fittings for helm, armor, gloves, and boots, add a civic oath-board choice, surface quality/upgrade identity in `/hq` Map and Armory, validate all references, and keep Veyrhold as the focused first release town rather than opening the broader 12-city game at once.
+  - Current pass: extend the Veyrhold town content with Warden's Steps armor fitting orders and a first civic oath contract; validate starter gear, NPC, service, reward, quality path, and story-flag references; surface the forge path through existing local-first inventory/reputation/story actions.
+  - Guardrail: keep this as first-town armor progression and job clarity, not a full blacksmith engine, final bespoke armor art pass, cloud save, multiplayer, paid asset lane, or new `/game` route.
+  - Progress: added four Warden's Steps armor fittings for helm, armor, gloves, and boots plus three civic oath contracts with rewards, reputation deltas, story flags, quality-path copy, and starter item links; surfaced the forge/contracts in `/hq` Map and mirrored fittings in `/hq` Armory. `npm run arpg:content:check`, `npm run arpg:production:check`, `npm run arpg:release:check`, `npm run type-check`, `npm run build`, and `npm run verify` passed; `npm run hq:e2e` timed out locally waiting for the Playwright web server, while `3100` health and target route HTTP checks returned 200.
+- [ ] MW6FR5-ARPG-OATHMARKET-VENDOR-JOB-RUNTIME — Push the first deeper Veyrhold district loop by making Oathmarket interactive: add starter vendor wares, a ledger-choice job, reward/comparison hints, validation, and compact `/hq` Map/Kit proof so the first town has a small playable economy beat instead of only district visit cards.
+  - Current pass: extend the Veyrhold town content with Oathmarket vendor wares and choice outcomes; validate references; surface the wares and choice flow through existing local-first inventory/reputation actions.
+  - Guardrail: keep this as the first district economy/job loop, not a full vendor engine, auction house, paid asset lane, cloud save, multiplayer, or a new `/game` route.
+  - Progress: added four Oathmarket starter wares, city-scrip pricing, accessory comparison copy, and three ledger-choice outcomes with rewards/reputation flags; surfaced the exchange in `/hq` Map and starter wares in Kit/Inventory. `npm run arpg:content:check`, `npm run arpg:production:check`, `npm run arpg:release:check`, `npm run type-check`, `npm run build`, and `npm run verify` passed; `npm run hq:e2e` timed out locally with Playwright `EPIPE`, while `3100` health and target route HTTP checks returned 200.
+- [ ] MW6FR4-ARPG-VEYRHOLD-DISTRICT-HUB-RUNTIME — Push the next first-town update by turning Veyrhold into a clearer visitable town hub: add four district map nodes with NPC/service/job/reward links, district visit actions, validation, and compact `/hq` Map proof so the town feels like the first playable location rather than separate service/job lists.
+  - Current pass: extend `lib/arpgTownServicesContent.json/.ts` with district hub nodes, validate node references, and surface the nodes in the existing Map drawer with local-first visit/reward actions.
+  - Guardrail: keep this as first-town runtime clarity, not bespoke city tilemaps, final NPC portrait art, audio, cloud saves, accounts, multiplayer, or a new `/game` route.
+  - Progress: added four validated Veyrhold district hub nodes tied to NPCs, services, mini-quests, reward items, and visit flags; `/hq` Map now renders a Town hub board with visit actions that select the district, record local-first progress, and grant first rewards once. `npm run arpg:content:check`, `npm run arpg:production:check`, `npm run arpg:release:check`, `npm run type-check`, `npm run build`, and `npm run verify` passed; `npm run hq:e2e` timed out locally, while `3100` health and target route HTTP checks returned 200.
+- [ ] MW6FR3-ARPG-VEYRHOLD-NPCS-MINIQUESTS — Push the next unimplemented first-town update: add named Veyrhold NPCs, district mini-quests, service outcome cards, early town rewards, and compact `/hq` People/Journal/Map proof so the first release town has people, jobs, and reward clarity instead of only service buttons.
+  - Current pass: extend the Veyrhold town-services content with NPCs, mini-quests, and service outcomes; validate references; surface them through existing local-first drawers without adding `/game`, cloud saves, multiplayer, or unapproved art.
+  - Guardrail: keep this as town-depth content and UI proof, not a final bespoke map/audio/art pass.
+  - Progress: added five named Veyrhold locals, four district mini-quests, and five service outcome cards to `lib/arpgTownServicesContent.json/.ts`; extended validation for NPC/service/quest/reward references; surfaced town jobs in `/hq` Map, service outcomes in Journal, and locals in People; updated completion/Resources tracking and focused E2E assertions. `npm run arpg:content:check`, `npm run arpg:production:check`, `npm run arpg:release:check`, `npm run type-check`, `npm run build`, and `npm run verify` passed; `npm run hq:e2e` timed out locally, while `3100` health and target route HTTP checks returned 200.
+- [ ] MW6FR2-ARPG-VEYRHOLD-TOWN-SERVICES — Deepen the first open town into a release-grade playable hub: add Veyrhold town services, district hooks, starter armor/accessory progression, blacksmithing/alchemy/market/inn/oath-board affordances, and compact `/hq` proof while preserving the first-release scope, local-first saves, legal asset posture, reduced motion, and no `/game` route.
+  - Current pass: author typed Veyrhold service content, expose the services in the Map/Armory flow, make gear progression show helmet/armor/gloves/boots plus necklace/ring acquisition paths, and keep broad city expansion locked for later MW6 slices.
+  - Guardrail: do not pretend Veyrhold has final bespoke maps/art/audio yet; this pass is hub mechanics and release clarity using existing approved illustrated assets and content contracts.
+  - Progress: added `lib/arpgTownServicesContent.json/.ts`, validated Veyrhold's five services and four district hooks, expanded the core equipment model with gloves, two ring slots, and amulet starter items, surfaced town services and starter armor/accessory paths in `/hq` Map plus Armory, and added focused E2E assertions. `npm run arpg:content:check`, `npm run arpg:production:check`, `npm run arpg:release:check`, `npm run type-check`, `npm run build`, and `npm run verify` passed; `npm run hq:e2e` still times out locally, while `3100` health and target route HTTP checks returned 200.
+- [ ] MW6FR1-ARPG-FIRST-TOWN-RELEASE-SLICE — Shape the first release of `Aether Reliquary` around one intentional open town instead of exposing the full 12-city plan too early: complete the Bellroot intro into the north-gate route, open Veyrhold as the first town, show its four districts as playable town cards, keep other cities locked as future-act previews, and preserve `/hq`, command input, local-first saves, legal asset posture, reduced motion, and no `/game` route.
+  - Current pass: gate `/hq` Map/Adventure travel around Bellroot -> Veyrhold, make Veyrhold's four sub-cities feel like the first release town map, and convert the remaining world content into locked preview copy until future MW6 city slices open it.
+  - Guardrail: do not claim all 12 cities are playable yet, do not add fake art, do not widen into cloud/account/multiplayer systems, and do not remove the broader MW6 production registry that future slices will use.
+  - Progress: implemented the `/hq` Map first-release town card, locked/route-ready/town-open states, Veyrhold-only town map, four district cards, locked future-city previews, Resources completion tracking, and focused E2E assertions. `npm run arpg:content:check`, `npm run arpg:production:check`, `npm run arpg:release:check`, `npm run type-check`, `npm run build`, and `npm run verify` passed; `npm run hq:e2e` timed out and the focused map retry hit local Windows Playwright `spawn EPERM`, while `3100` health and `/hq` route HTTP checks returned 200.
+- [ ] MW6V-ENEMY-BOSS-HIFI-STORY-INTRO — Promote the `enemy-boss-hifi-cards` brief into an approved high-fidelity illustrated 2D runtime batch for Hollow Sentry, Ashling Scout, Rune Husk, The Brass Warden, Glass Gnawer, Ember Mote, Veyrhold Champion, and The Hollow Regent seed, then make the Bellroot opening play as a non-combat story sequence before the Warden's Antechamber unlocks fighting.
+  - Current pass: add prompt/provenance records, normalize the generated source sheet into runtime PNG output, prefer the approved enemy/boss cards in `/hq` Adventure/Target/Journal/Assets surfaces, and preserve player-created identity with no forced name, gender, or "Main" label.
+  - Guardrail: no flat vector/glyph replacement, no pixel-art pivot, no untracked generated placeholder, no `/game` route, no cloud/account behavior, and no combat-first opening before the Bellroot intro flow is complete.
+  - Progress: generated and normalized the high-fidelity enemy/boss card sheet, added manifest/bench/provenance records, wired `/hq` enemy/codex surfaces to the approved sheet, added Bellroot intro progression before combat unlock, and recorded the armor/accessory tier expansion on the arsenal lane. `npm run arpg:illustrated:generate`, visual/content/asset/production/release gates, `npm run type-check`, `npm run build`, and `npm run verify` passed; `npm run hq:e2e` remains blocked locally by Windows `spawn EPERM`, while `3100` health and target route HTTP checks returned 200.
+- [ ] MW6V-ARPG-PROLOGUE-VISUAL-ASSETS — Create and wire the next high-quality illustrated 2D prologue asset batch for `Aether Reliquary`: Bellroot Vestibule location art, Warden's Antechamber card, Ilo/keeper portraits, Descent Ledger, oath-lamp, oracle cradle, Gate Monolith, Loom-Shard, and Quiet Forge icons, all through the existing asset bench with prompt/provenance records, manifest entries, runtime PNG output, and `/hq` Adventure/Journal/People visibility.
+  - Current pass: keep the chosen art direction as illustrated 2D PNG/WebP sheets for browser-game cards/icons, not pixel art and not 3D-first; extend the existing `sharp` normalization pipeline and avoid untracked/generated placeholders.
+  - Correction: Mario rejected the flat vector/glyph-style prologue sheets as not appropriate game art. Demote those sheets to rejected/reference-only, remove their runtime preview usage, add art-direction guardrails against similar assets, and keep the next art pass focused on higher-fidelity painted/rendered browser RPG imagery.
+  - Progress: guardrail implemented and verified with `npm run arpg:illustrated:generate`, asset/content/production/release checks, `npm run type-check`, `npm run build`, and `npm run verify`; `hq:e2e` still times out locally, so the replacement-art task stays open until high-fidelity prologue visuals are created and browser proof is clean.
+- [ ] MW6V/W-ARPG-ARSENAL-VISUAL-ITEMIZATION — Make the Aether Reliquary weapon system feel like a real RPG loop by adding illustrated 2D weapon-family assets, quality overlays, named weapon cards, drop/upgrade VFX cues, deterministic weapon templates, quality attributes, comparison/equip/upgrade/salvage behavior, and `/hq` runtime surfaces while preserving the Phaser playfield, command input, local-first saves, legal asset validation, and no `/game` route.
+  - Current pass: extend the existing armory/economy registry rather than creating a parallel system; add an illustrated arsenal asset bench batch; wire weapon-quality visuals into loadout, Kit, Armory, loot, and upgrade flows; add validation/test coverage and keep generator/provenance records intact.
+  - Expansion requirement: grow the same quality/tier logic across armor and accessories, including helmet, armor, gloves, boots, necklaces, and rings; low-tier gear should read bland and practical, while unique, relic, ancient, mythic, and ultimate-grade items get visibly distinct silhouettes/materials plus dungeon, quest, blacksmithing, and alchemy acquisition paths.
+  - Progress: added the arsenal registry, 21 weapon-family templates, 7 quality budgets, named weapon samples, deterministic comparison/drop/upgrade helpers, project-original arsenal source sheets, generated runtime PNG sheets, manifest/bench records, `/hq` Kit/Armory/loadout visuals, and E2E assertions. `npm run arpg:illustrated:generate`, asset/content/production/release gates, `npm run type-check`, `npm run build`, and `npm run verify` passed; `npm run hq:e2e` is still not accepted because the local Playwright run hangs/timeouts and focused browser launch currently hits Windows `spawn EPERM`, so keep this item open until browser proof is clean.
+- [ ] MW6V-REAL-ASSET-INTAKE — Optional/reference import bridge, validation support, and `/hq` Assets drawer readiness are verified; keep this open until official CC0/approved pack files are placed in `assets/arpg/intake/raw/`, imported from `assets/arpg/intake/work/<candidate-id>/`, manifest-tracked, and visible as a real model or model-derived preview.
+- [ ] MW6V-ILLUSTRATED-PLAYFIELD-CONSISTENCY — Bring the live `/hq` Aether Reliquary playfield into the same illustrated 2D art direction as the approved Hero Kit character/outfit/gear assets: reduce or replace procedural-looking markers, make enemy/player/loot cues use matching illustrated treatments where approved art exists, keep Phaser gameplay intact, and preserve command input, local-first saves, route stability, reduced-motion support, and compact game-first layout.
+  - Current pass: diagnose the mixed visual-language issue Mario flagged in-browser, then implement a targeted art-consistency bridge rather than adding new unapproved assets or fake replacement art.
+  - Progress: Phaser now loads the approved illustrated Hero Kit outfit, enemy-card, item, and location sheets directly into the live playfield, while keeping procedural fallbacks for missing assets; `npm run build`, `npm run verify`, and live `3100` health/browser checks passed.
+- [ ] MW6V-HQ-GAME-FOCUS-LAYOUT — Repair the `/hq` Aether Reliquary spacing issue by adding an explicit Game/Chat focus switch, making reset/lock split controls functional and obvious, and removing non-game chrome from the active game sizing lane while preserving command input, Phaser gameplay, route stability, and local-first preferences.
+  - Progress: implemented explicit Game/Chat focus mode, game-only layout controls, restored `/api/health` on `3100`, and browser-checked Game/Chat separation plus reset/lock behavior. Keep open until Playwright/build proof is unblocked from local `spawn EPERM`/runtime-build collision.
+  - Current pass: collapsed dashboard-sized HUD chrome into a playfield-first Game mode, moved layout lock/reset into the top game dock, removed the non-game footer rail from the active play surface, added responsive Phaser resize/camera framing, and verified with `npm run verify` plus in-app browser proof.
+  - Progress: added a lock-aware manual game-window resize handle with persisted custom height, keyboard resizing, pixel readout, custom-size chip, and reset-to-XL behavior. `npm run type-check` and `npm run build` passed; `npm run hq:e2e` timed out and the focused Playwright rerun hit local Windows `spawn EPERM`, but live `3100` health and in-app browser DOM proof showed the new separator/readout on `/hq?focus=hq-chronicle`.
+  - Current fix: made the manual game-window sizing path intuitive by preventing silent no-op drags when size is locked, lifting the custom height cap well above the constrained browser viewport, adding always-visible top-dock drag/readout controls plus a normal Size slider and Less/More fallbacks, and fixing the root layout bug where the stage only set `flex-basis` instead of real `height`. Rebuilt and proved in the live in-app browser that the Size slider plus top drag-chip keyboard controls change `/hq` height from `700PX` to `756PX` and the playfield now expands into the resized stage instead of leaving a blank band. Added focused E2E coverage for the slider path; Playwright remains locally blocked by Windows `spawn EPERM`.

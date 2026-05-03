@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300" width="1000" height="300" role="img" aria-labelledby="title desc">
-  <title id="title">Aegis features at a glance</title>
+  <title id="title">Homefront features at a glance</title>
   <desc id="desc">Six pillars: Intel, Markets, Cyber + OSINT, AI agent, Privacy, License</desc>
   <defs>
     <linearGradient id="bgf" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -12,7 +12,7 @@
     </linearGradient>
   </defs>
   <rect width="1000" height="300" rx="14" fill="url(#bgf)" stroke="#22d3ee" stroke-opacity="0.25" stroke-width="1"/>
-  <text x="500" y="36" text-anchor="middle" fill="#e0f2fe" font-family="system-ui,Segoe UI,sans-serif" font-size="11" font-weight="700" letter-spacing="0.35em">AEGIS | AT A GLANCE</text>
+  <text x="500" y="36" text-anchor="middle" fill="#e0f2fe" font-family="system-ui,Segoe UI,sans-serif" font-size="11" font-weight="700" letter-spacing="0.35em">HOMEFRONT | AT A GLANCE</text>
   <line x1="80" y1="48" x2="920" y2="48" stroke="url(#accentf)" stroke-width="1" stroke-opacity="0.5"/>
 
   <g font-family="system-ui,Segoe UI,sans-serif">

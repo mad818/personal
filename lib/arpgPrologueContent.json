@@ -1,0 +1,222 @@
+{
+  "schemaVersion": "mw6-prologue-story-v1",
+  "title": "Aether Reliquary Prologue Story Foundation",
+  "protagonistIdentity": {
+    "policyId": "player-created-reliquary-bearer",
+    "noCanonicalName": true,
+    "noForcedGender": true,
+    "playerCreatedName": true,
+    "defaultRuntimeTitle": "Reliquary Bearer",
+    "summary": "The player creates the hero's name, body presentation, lineage, class, subclass, and palette. The story never treats a placeholder label as the hero's true name.",
+    "runtimeCopyRules": [
+      "Use the saved character name when available.",
+      "Use Reliquary Bearer, bearer, hero, or protagonist when a neutral title is needed.",
+      "Never turn a planning placeholder into a character name or title.",
+      "Avoid fixed pronouns in authored canon until player pronoun support exists."
+    ]
+  },
+  "openingChapter": {
+    "id": "prologue-bellroot-rang",
+    "title": "The Day the Bellroot Rang",
+    "actId": "prologue",
+    "summary": "Veyrhold's buried oath-bells ring for the first time in a generation. The player-created hero is sent below as a witness, lamp-runner, and ledger-bearer before any blade is drawn.",
+    "openingPremise": "The hero was raised on the edge of Veyrhold's Bellroot Commons, where civic records are grown into living root-brass and every oath is supposed to leave a clean mark. Their own record is damaged: not erased, not cursed, simply unfinished. When the lower bells wake and call for a living witness, the city chooses the one person whose name-thread the reliquary cannot file away.",
+    "firstLocationId": "bellroot-vestibule",
+    "startingQuestId": "awaken-the-reliquary"
+  },
+  "firstLocation": {
+    "id": "bellroot-vestibule",
+    "name": "The Bellroot Vestibule",
+    "parentZoneId": "first-reliquary",
+    "cityId": "veyrhold",
+    "visualSummary": "A warm underground civic chamber below Veyrhold: bronze root-bells hang from living stone, amber oath-lamps line the floor, glass memory panes show half-restored city records, and the locked north road waits behind a black-stone gate.",
+    "palette": ["hearth amber", "old bronze", "root brown", "deep teal glass", "soft ash gray"],
+    "setPieces": [
+      "The Descent Ledger, a brass-root desk that records the player's chosen identity.",
+      "The Oath-Lamp Arcade, a curved row of dim lamps that teaches movement and inspection.",
+      "Ilo's Oracle Cradle, a blue-glass perch where the little oracle wakes and begins tracking the hero.",
+      "The Gate Monolith, a black-stone memory machine that explains why the reliquary opened.",
+      "The Quiet Forge Pedestal, a safe crafting altar that introduces upgrades after the intro.",
+      "The Warden's Antechamber, the first place where danger becomes combat."
+    ],
+    "sensoryDetails": [
+      "Dust hangs in warm shafts of light like slow sparks.",
+      "The bells are huge, but their ringing is felt in the ribs before it is heard.",
+      "Glass memory panes blink with names, route maps, and debts too old to collect.",
+      "The floor hums politely when the hero walks where a witness is expected.",
+      "Every lamp that wakes throws a small gold reflection across the north gate."
+    ],
+    "openingSafetyRule": "The first minutes are exploration, identity, and wonder. Combat begins only after the player understands the room, meets Ilo, studies the gate, and claims the first relic hook."
+  },
+  "openingFlow": [
+    {
+      "id": "descent-ledger",
+      "title": "Sign the Descent Ledger",
+      "mechanic": "character-creation",
+      "storyFlag": "lore:descent-ledger",
+      "summary": "The hero touches the brass-root ledger and the player confirms name, lineage, class, subclass, palette, and the first visible identity choices."
+    },
+    {
+      "id": "oath-lamp-arcade",
+      "title": "Relight the Oath-Lamps",
+      "mechanic": "exploration",
+      "storyFlag": "lore:oath-lamp-arcade",
+      "summary": "The player learns movement and inspection by waking three lamps that reveal murals of Veyrhold's first promise."
+    },
+    {
+      "id": "oracle-cradle",
+      "title": "Wake Ilo",
+      "mechanic": "companion-introduction",
+      "storyFlag": "npc:oracle-met",
+      "summary": "A small oracle named Ilo wakes in a blue-glass cradle, jokes about counting the quiet, and becomes the player's guide without taking control away."
+    },
+    {
+      "id": "gate-monolith",
+      "title": "Study the Gate Monolith",
+      "mechanic": "lore-interaction",
+      "storyFlag": "lore:gate-monolith",
+      "summary": "The monolith recognizes the hero as a living witness and reveals that the reliquary network is not dead; it is waiting for someone who can carry unfinished vows."
+    },
+    {
+      "id": "loomshard-pedestal",
+      "title": "Claim the Loom-Shard Charm",
+      "mechanic": "relic-reward",
+      "storyFlag": "loot:loomshard-charm",
+      "summary": "The first relic is not a weapon. It is a memory charm that lets old doors and future companions recognize the hero's chosen path."
+    },
+    {
+      "id": "quiet-forge",
+      "title": "Hear the Quiet Forge",
+      "mechanic": "crafting-preview",
+      "storyFlag": "lore:forge-echo",
+      "summary": "The forge explains that upgrades are oathwork: shard, pressure, heat, and a choice the item can remember."
+    },
+    {
+      "id": "warden-antechamber",
+      "title": "Enter the Warden's Antechamber",
+      "mechanic": "combat-onset",
+      "storyFlag": "combat:first-ward",
+      "summary": "Only after the opening lessons does the room reveal broken sentries and the first safe combat trial."
+    }
+  ],
+  "keyCharacters": [
+    {
+      "id": "player-protagonist",
+      "namePolicy": "player-created",
+      "role": "The reliquary bearer",
+      "summary": "A Veyrhold-raised hero whose civic name-thread was never fully restored. The missing record is not a destiny label; it is space for the player's identity and choices."
+    },
+    {
+      "id": "ilo-little-oracle",
+      "name": "Ilo",
+      "role": "Little Oracle companion",
+      "summary": "A palm-sized oracle with blue-glass wings, a brave mouth, and a habit of turning danger into useful instructions."
+    },
+    {
+      "id": "keeper-elian",
+      "name": "Keeper Elian",
+      "role": "Bellroot keeper",
+      "summary": "The civic caretaker who opens the descent stairs. Elian believes the reliquary chose a witness, not a weapon."
+    },
+    {
+      "id": "the-first-reliquary",
+      "name": "The First Reliquary",
+      "role": "Living civic machine",
+      "summary": "An old oath-machine that stores Veyrhold's earliest routes, names, promises, and repairs. It speaks through bells, lamps, and recorded fragments."
+    }
+  ],
+  "dialogueSamples": [
+    {
+      "speaker": "Keeper Elian",
+      "line": "No blades unless the lower doors open. You are going below as a witness, not a soldier."
+    },
+    {
+      "speaker": "Ilo",
+      "line": "I was counting the quiet. Then you arrived and ruined it. Good."
+    },
+    {
+      "speaker": "Gate Monolith",
+      "line": "Name: player-kept. Oath: unbroken. Road: listening."
+    },
+    {
+      "speaker": "The First Reliquary",
+      "line": "Veyrhold asked for a lock. The road asked for a person."
+    }
+  ],
+  "firstQuest": {
+    "id": "awaken-the-reliquary",
+    "title": "Light the Bellroot Below",
+    "summary": "Enter the Bellroot Vestibule, restore the oath-lamps, meet Ilo, and learn why The First Reliquary opened before the first fight begins.",
+    "steps": [
+      "Sign the Descent Ledger.",
+      "Relight the oath-lamps.",
+      "Wake Ilo, the Little Oracle.",
+      "Study the Gate Monolith.",
+      "Claim the Loom-Shard Charm.",
+      "Equip the charm when the chamber recognizes you."
+    ],
+    "requiredFlags": [
+      "lore:descent-ledger",
+      "lore:oath-lamp-arcade",
+      "npc:oracle-met",
+      "lore:gate-monolith",
+      "loot:loomshard-charm",
+      "equipped:loomshard-charm"
+    ]
+  },
+  "codexEntries": [
+    {
+      "id": "codex:bellroot-vestibule",
+      "title": "The Bellroot Vestibule",
+      "summary": "The civic threshold below Veyrhold where names, routes, lamps, and witness-oaths are recorded before a reliquary road opens."
+    },
+    {
+      "id": "codex:living-witness",
+      "title": "Living Witness",
+      "summary": "A person trusted by a reliquary to carry unfinished civic memory without being reduced to a stored record."
+    },
+    {
+      "id": "codex:ilo",
+      "title": "Ilo, Little Oracle",
+      "summary": "A small companion oracle who marks danger, remembers choices, and speaks as if fear is just another puzzle with bad manners."
+    }
+  ],
+  "visualAssetPrompts": [
+    {
+      "id": "location-bellroot-vestibule",
+      "role": "location-card",
+      "promptBrief": "Warm ancient techno-fantasy underground civic chamber, bronze root-bells, amber oath lamps, glass memory panels, black stone gate, painterly high-detail 2D browser RPG card, no text, no logos."
+    },
+    {
+      "id": "npc-ilo-little-oracle",
+      "role": "companion-portrait",
+      "promptBrief": "Tiny blue-glass oracle companion with brass filigree wings and bright personality, warm heroic adventure fantasy, high-detail illustrated 2D portrait, no text, no franchise references."
+    },
+    {
+      "id": "prop-descent-ledger",
+      "role": "prop-icon",
+      "promptBrief": "Brass-root civic ledger with living roots and glowing name threads, ancient techno-fantasy item art, transparent background, no text."
+    }
+  ],
+  "contentHooks": {
+    "loreNodeIds": ["descent-ledger", "oath-lamp-arcade", "oracle-companion", "gate-monolith", "forge-echo"],
+    "storyFlags": [
+      "lore:descent-ledger",
+      "lore:oath-lamp-arcade",
+      "npc:oracle-met",
+      "lore:gate-monolith",
+      "loot:loomshard-charm",
+      "equipped:loomshard-charm",
+      "lore:forge-echo"
+    ],
+    "questIds": ["awaken-the-reliquary", "temper-a-relic", "quiet-the-warden"],
+    "uiSurfaces": ["Adventure", "Journal", "Hero", "Map", "Assets"],
+    "futureRuntimeHooks": [
+      "Intro character creation panel",
+      "Opening cinematic card stack",
+      "Non-combat tutorial objective chain",
+      "Ilo companion banter",
+      "Bellroot location art prompt batch"
+    ]
+  }
+}

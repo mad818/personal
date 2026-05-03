@@ -303,7 +303,7 @@ export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
   },
   {
     id: "reg-aegis-brief-kit",
-    title: "Aegis Brief Artifact Schema",
+    title: "Homefront Brief Artifact Schema",
     type: "evidence_pack",
     summary: "Internal evidence pack format for vault-bound sweeps, briefs, and sanction-ready reports.",
     owner: "Nexus Core",

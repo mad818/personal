@@ -1,4 +1,5 @@
 import type { PrivacyShieldStatus } from "@/store/useStore";
+import type { ExternalToolBridgeSummary } from "@/lib/externalToolBridge";
 
 export type TrustDiagnosticsPayload = {
   runtime?: {
@@ -17,6 +18,14 @@ export type TrustDiagnosticsPayload = {
       enabled?: number;
       total?: number;
     };
+    toolIsolation?: {
+      status?: "not_required" | "ready" | "unavailable" | "blocked";
+      adapterReady?: boolean;
+      requiredExecTools?: number;
+      approvedExecTools?: number;
+      reason?: string | null;
+    };
+    externalTools?: ExternalToolBridgeSummary;
     protectedActions?: {
       settingsWrites?: string | { status?: string; blockedReason?: string };
       verification?: string | { status?: string; blockedReason?: string };
@@ -82,6 +91,54 @@ function formatProtectedActionStatus(
   }
 }
 
+function formatToolIsolationStatus(
+  isolation?: TrustDiagnosticsPayload["trust"] extends infer Trust
+    ? Trust extends { toolIsolation?: infer ToolIsolation }
+      ? ToolIsolation
+      : never
+    : never,
+) {
+  const status = isolation?.status ?? "not_required";
+  const requiredExecTools = isolation?.requiredExecTools ?? 0;
+  const approvedExecTools = isolation?.approvedExecTools ?? 0;
+
+  switch (status) {
+    case "ready":
+      return requiredExecTools > 0
+        ? `${approvedExecTools}/${requiredExecTools} exec sandboxed`
+        : "exec sandboxed";
+    case "blocked":
+      return isolation?.reason ? `blocked · ${isolation.reason}` : "blocked";
+    case "unavailable":
+      return isolation?.reason
+        ? `adapter offline · ${isolation.reason}`
+        : "adapter offline";
+    case "not_required":
+    default:
+      return requiredExecTools > 0 ? "sandbox pending" : "not required";
+  }
+}
+
+function formatExternalToolBridgeStatus(summary?: ExternalToolBridgeSummary) {
+  if (!summary) return "unknown";
+  const { counts } = summary;
+  switch (summary.status) {
+    case "ready":
+      return counts.contractOnly > 0
+        ? `${counts.ready}/${counts.total} ready · contract`
+        : `${counts.ready}/${counts.total} ready`;
+    case "oauth-required":
+      return "oauth required";
+    case "blocked":
+      return counts.blocked > 0 ? `${counts.blocked} blocked` : "blocked";
+    case "adapter-offline":
+      return "adapter offline";
+    case "contract-only":
+    default:
+      return "contract-only";
+  }
+}
+
 export function formatTrustRemaining(seconds?: number | null) {
   if (typeof seconds !== "number" || seconds <= 0) return "expired";
   if (seconds >= 3600) return `${Math.ceil(seconds / 3600)}h`;
@@ -120,9 +177,19 @@ export function buildTrustPostureRows(input: {
       value: input.diagnostics?.trust?.highRiskEnabled ? "enabled" : "blocked",
     },
     {
+      label: "Isolation",
+      value: formatToolIsolationStatus(input.diagnostics?.trust?.toolIsolation),
+    },
+    {
+      label: "External tools",
+      value: formatExternalToolBridgeStatus(input.diagnostics?.trust?.externalTools),
+    },
+    {
       label: "Privacy",
       value: input.privacyShieldStatus?.active
-        ? `${input.privacyShieldStatus.protectedCount} shielded`
+        ? input.privacyShieldStatus.dispatchMode === "blocked"
+          ? `blocked · ${input.privacyShieldStatus.protectedCount}`
+          : `${input.privacyShieldStatus.protectedCount} shielded · ${Object.keys(input.privacyShieldStatus.classCounts ?? {}).length} classes`
         : "idle",
     },
     { label: "Providers", value: providerState },
@@ -132,6 +199,8 @@ export function buildTrustPostureRows(input: {
 export function buildTrustActionRows(input: {
   diagnostics: TrustDiagnosticsPayload | null;
 }): TrustPostureRow[] {
+  const isolation = input.diagnostics?.trust?.toolIsolation;
+  const externalTools = input.diagnostics?.trust?.externalTools;
   const actions = input.diagnostics?.trust?.protectedActions;
   return [
     {
@@ -149,6 +218,19 @@ export function buildTrustActionRows(input: {
     {
       label: "Networked tools",
       value: formatProtectedActionStatus(actions?.networkedTools),
+    },
+    {
+      label: "Exec isolation",
+      value:
+        isolation?.status === "ready"
+          ? formatToolIsolationStatus(isolation)
+          : isolation?.reason
+            ? `${isolation.status ?? "unavailable"} · ${isolation.reason}`
+            : formatToolIsolationStatus(isolation),
+    },
+    {
+      label: "MCP bridge",
+      value: formatExternalToolBridgeStatus(externalTools),
     },
   ];
 }

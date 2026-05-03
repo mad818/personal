@@ -1,3 +1,5 @@
+import { DESIGN_MD_MOTION } from "@/lib/generated/designMdRuntime";
+
 export type SurfaceMotionProfile = "reduced" | "standard" | "flagship";
 
 export type SurfaceMotionSurface =
@@ -1028,8 +1030,12 @@ function buildTransitionPreset(
     exit,
     transition: {
       duration,
-      ease: [0.22, 1, 0.36, 1],
-      opacity: { duration: Math.max(0.16, duration - 0.06) },
+      ease: [
+        ...DESIGN_MD_MOTION.ease.emphasis,
+      ] as [number, number, number, number],
+      opacity: {
+        duration: Math.max(DESIGN_MD_MOTION.durations.fastSec, duration - 0.06),
+      },
     },
   };
 }
@@ -1117,7 +1123,7 @@ export function resolveSurfaceTransitionPreset(
     return buildTransitionPreset(
       { opacity: 0 },
       { opacity: 0 },
-      0.18,
+      DESIGN_MD_MOTION.durations.fastSec,
     );
   }
 

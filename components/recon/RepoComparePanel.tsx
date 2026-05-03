@@ -46,6 +46,8 @@ interface RepoComparePanelProps {
         content?: string;
       }
     | null;
+  correctionConstraintLines: string[];
+  correctionMemoryIds: string[];
 }
 
 function inputStyle() {
@@ -84,9 +86,14 @@ function findMatchingComparisonPage(
 export default function RepoComparePanel({
   currentProfile,
   latestAssimilation,
+  correctionConstraintLines,
+  correctionMemoryIds,
 }: RepoComparePanelProps) {
   const router = useRouter();
   const setTab = useStore((state) => state.setTab);
+  const markCorrectionMemoriesApplied = useStore(
+    (state) => state.markCorrectionMemoriesApplied,
+  );
   const [compareInput, setCompareInput] = useState("");
   const [compareRefs, setCompareRefs] = useState<string[]>([]);
   const [compareStatus, setCompareStatus] = useState<CompareStatus>("idle");
@@ -265,17 +272,37 @@ export default function RepoComparePanel({
   };
 
   const briefOrbit = () => {
+    if (correctionMemoryIds.length > 0) {
+      markCorrectionMemoriesApplied(correctionMemoryIds);
+    }
     if (latestComparison?.content) {
-      queueHQPrompt(`@orbit: ${buildRepoCompareOrbitPrompt({ brief: latestComparison.content })}`);
+      queueHQPrompt(
+        `@orbit: ${buildRepoCompareOrbitPrompt({
+          brief: latestComparison.content,
+          correctionConstraints: correctionConstraintLines,
+        })}`,
+      );
     } else if (currentProfile && latestAssimilation?.content) {
       queueHQPrompt(
         `@orbit: ${buildRepoAssimilationOrbitPrompt({
           normalizedRepoId: currentProfile.normalizedRepoId,
           brief: latestAssimilation.content,
+          correctionConstraints: correctionConstraintLines,
         })}`,
       );
     } else if (currentProfile) {
-      queueHQPrompt(`@orbit: ${buildRepoIntelOrbitPrompt(currentProfile)}`);
+      const basePrompt = buildRepoIntelOrbitPrompt(currentProfile);
+      queueHQPrompt(
+        `@orbit: ${
+          correctionConstraintLines.length > 0
+            ? [
+                basePrompt,
+                "Local correction-memory constraints:",
+                ...correctionConstraintLines.map((line) => `- ${line}`),
+              ].join("\n")
+            : basePrompt
+        }`,
+      );
     } else {
       return;
     }
@@ -403,6 +430,20 @@ export default function RepoComparePanel({
               184,
             )}
           </div>
+          {correctionConstraintLines.length > 0 ? (
+            <div
+              style={{
+                fontSize: "11px",
+                color: "var(--text3)",
+                lineHeight: 1.45,
+                borderTop: "1px solid rgba(191, 219, 254, 0.12)",
+                paddingTop: "8px",
+              }}
+            >
+              <strong style={{ color: "var(--text)" }}>Local constraints:</strong>{" "}
+              {truncateInline(correctionConstraintLines.join(" · "), 220)}
+            </div>
+          ) : null}
         </div>
       ) : null}
 

@@ -8,10 +8,13 @@ import {
 } from "@/lib/brand";
 import { readTimesfmSpikeStatus } from "@/lib/experiments";
 import { gradeFromEvalScore } from "@/lib/helpers";
+import { readLatestRuntimeExperimentSummary } from "@/lib/runtimeExperimentLedger";
+import { resolveRuntimeProjectRoot } from "@/lib/serverEnvRuntime";
 import { summarizeSkillGovernance } from "@/lib/skillMetadata";
 import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
 import { readLocalDataPolicySummary } from "@/lib/security/localDataPolicy";
+import { readToolIsolationSummary } from "@/lib/security/toolIsolationPolicy";
 import {
   getDefaultEntrypoint,
   listSurfaceAliases,
@@ -24,11 +27,13 @@ import {
   summarizeSurfaceTiers,
 } from "@/lib/releaseMatrix";
 import { protectedJson } from "@/lib/protectedApi";
+import { readExternalToolBridgeSummary } from "@/lib/externalToolBridge";
 import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
 export const dynamic = "force-dynamic";
+const PROJECT_ROOT = resolveRuntimeProjectRoot();
 
 function present(v: string | undefined) {
   return Boolean(v && v.trim().length > 0);
@@ -36,7 +41,7 @@ function present(v: string | undefined) {
 
 function readLatestEval() {
   const latestPath = join(
-    process.cwd(),
+    PROJECT_ROOT,
     "docs",
     "metrics",
     "agent-runtime-latest.json",
@@ -69,7 +74,7 @@ function readLatestEval() {
 
 function readRunnerState() {
   const runnerPath = join(
-    process.cwd(),
+    PROJECT_ROOT,
     "docs",
     "metrics",
     "agent-runtime-runner.json",
@@ -306,8 +311,15 @@ export async function GET() {
     },
   };
   const skillGovernance = summarizeSkillGovernance();
+  const latestRuntimeVariant = readLatestRuntimeExperimentSummary();
+  const toolIsolation = readToolIsolationSummary();
+  const externalTools = readExternalToolBridgeSummary();
   const experiments = {
     timesfmSpike: readTimesfmSpikeStatus(),
+    runtimeVariants: {
+      baselineOnly: !latestRuntimeVariant,
+      latest: latestRuntimeVariant,
+    },
   };
   const localData = readLocalDataPolicySummary();
 
@@ -353,6 +365,8 @@ export async function GET() {
       queue,
       evalPolicy,
       skillGovernance,
+      toolIsolation,
+      externalTools,
       experiments,
     },
   });

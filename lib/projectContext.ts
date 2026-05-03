@@ -15,7 +15,7 @@ export interface ProjectContext {
   generatedAt: number;
 }
 
-// ── Static Nexus Prime doctrine ───────────────────────────────────────────────
+// ── Static Homefront doctrine ─────────────────────────────────────────────────
 // This is intentionally hardcoded for now. When runtime detection is added,
 // the UI copy and function naming can be tightened again.
 const NEXUS_CONTEXT: ProjectContext = {
@@ -60,7 +60,7 @@ const NEXUS_CONTEXT: ProjectContext = {
 };
 
 // ── detectProjectContextSync ──────────────────────────────────────────────────
-// Synchronous, client-safe. Returns the current hardcoded Nexus Prime doctrine.
+// Synchronous, client-safe. Returns the current hardcoded Homefront doctrine.
 export function detectProjectContextSync(): ProjectContext {
   return NEXUS_CONTEXT;
 }

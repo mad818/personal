@@ -5,6 +5,7 @@ import type {
   VaultGraphData,
   VaultItemMetadata,
 } from "@/components/home/office/types";
+import type { ArtifactClassification } from "@/lib/artifactClassification";
 import type { ArtifactContinuityMetadata } from "@/lib/artifactContinuity";
 
 export interface CompiledMemoryPageSummary {
@@ -39,6 +40,7 @@ export interface CompiledMemoryPageSummary {
   visibility: "safe" | "internal" | "restricted";
   tags: string[];
   continuity: ArtifactContinuityMetadata;
+  artifactClassification: ArtifactClassification;
   createdAt: number;
   updatedAt: number;
   content?: string;
@@ -238,6 +240,9 @@ export function buildCompiledPageGraphText(page: CompiledMemoryPageSummary) {
     page.topic ?? "",
     page.workflowLabel ?? "",
     page.sourceLabel,
+    page.artifactClassification.artifactType,
+    page.artifactClassification.parserHint,
+    page.artifactClassification.sensitivity,
     page.documentMetadata?.metadataWithheld ? "" : page.documentMetadata?.originLabel ?? "",
     page.documentMetadata?.metadataWithheld ? "" : page.documentMetadata?.mimeType ?? "",
     page.documentMetadata?.metadataWithheld || !page.documentMetadata?.pageCount

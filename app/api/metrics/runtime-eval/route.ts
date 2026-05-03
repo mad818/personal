@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { existsSync, mkdirSync, readFileSync } from "fs";
 import { join } from "path";
+import { readRuntimeExperimentPayload } from "@/lib/runtimeExperimentLedger";
+import { resolveRuntimeProjectRoot } from "@/lib/serverEnvRuntime";
 
 type EvalReport = {
   ts: string;
@@ -22,7 +24,7 @@ type RunnerState = {
   failureStreak?: number;
 };
 
-const ROOT = process.cwd();
+const ROOT = resolveRuntimeProjectRoot();
 const METRICS_DIR = join(ROOT, "docs", "metrics");
 const LATEST_FILE = join(METRICS_DIR, "agent-runtime-latest.json");
 const HISTORY_FILE = join(METRICS_DIR, "agent-runtime-history.jsonl");
@@ -83,6 +85,7 @@ export async function GET(req: Request) {
   );
   const latest = readLatest();
   const history = readHistory(limit);
+  const experiments = readRuntimeExperimentPayload(6);
   const runner = readRunnerState();
   const freshnessWindowMin = Math.max(
     5,
@@ -115,6 +118,11 @@ export async function GET(req: Request) {
     latest,
     history,
     points: history.length,
+    experiments: {
+      latest: experiments.summary,
+      points: experiments.points,
+      definitions: experiments.definitions.length,
+    },
     freshness: {
       freshnessWindowMin,
       ageMinutes,

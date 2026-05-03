@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="64" viewBox="0 0 384 64" role="img" aria-labelledby="title desc">
+  <title id="title">Aether Reliquary first-zone enemy sprites</title>
+  <desc id="desc">Project-original warm pixel ARPG enemy source sheet. Six 64 by 64 frames.</desc>
+  <defs>
+    <filter id="soft">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.1" flood-color="#120906" flood-opacity="0.45"/>
+    </filter>
+    <style>
+      .px{shape-rendering:crispEdges}
+      .line{fill:none;stroke-linecap:square;stroke-linejoin:miter}
+    </style>
+  </defs>
+
+  <!-- Hollow Sentry -->
+  <g class="px" filter="url(#soft)" transform="translate(0 0)">
+    <ellipse cx="32" cy="53" rx="18" ry="5" fill="#1a100b" opacity=".72"/>
+    <rect x="20" y="18" width="24" height="30" rx="4" fill="#3d3029"/>
+    <rect x="24" y="10" width="16" height="11" rx="2" fill="#5a4538"/>
+    <rect x="23" y="26" width="18" height="8" fill="#211714"/>
+    <rect x="28" y="13" width="8" height="4" fill="#f05252"/>
+    <path d="M15 30h9v6h-9zM40 30h9v6h-9z" fill="#6b5b4e"/>
+    <path class="line" d="M22 42h20M25 48h14" stroke="#d8a85c" stroke-width="2"/>
+  </g>
+
+  <!-- Ashling Scout -->
+  <g class="px" filter="url(#soft)" transform="translate(64 0)">
+    <ellipse cx="32" cy="53" rx="17" ry="5" fill="#1a100b" opacity=".72"/>
+    <path d="M30 8l12 19-6 20H24l-7-18z" fill="#8a341d"/>
+    <path d="M29 15l8 12-5 13h-8l-5-12z" fill="#f97316"/>
+    <path d="M19 30l-9 9h12zM41 29l10 10H39z" fill="#b45309"/>
+    <rect x="27" y="43" width="10" height="7" fill="#2c1811"/>
+    <circle cx="31" cy="25" r="3" fill="#ffe08a"/>
+  </g>
+
+  <!-- Rune Husk -->
+  <g class="px" filter="url(#soft)" transform="translate(128 0)">
+    <ellipse cx="32" cy="53" rx="19" ry="5" fill="#1a100b" opacity=".72"/>
+    <rect x="17" y="14" width="30" height="36" rx="7" fill="#233043"/>
+    <rect x="21" y="19" width="22" height="24" rx="5" fill="#36485f"/>
+    <path class="line" d="M26 24h12M24 31h16M28 38h8" stroke="#8ecae6" stroke-width="2"/>
+    <circle cx="32" cy="31" r="4" fill="#8ecae6" opacity=".74"/>
+    <path d="M13 34h9v5h-9zM42 34h9v5h-9z" fill="#16202c"/>
+  </g>
+
+  <!-- Brass Warden -->
+  <g class="px" filter="url(#soft)" transform="translate(192 0)">
+    <ellipse cx="32" cy="55" rx="23" ry="5" fill="#1a100b" opacity=".78"/>
+    <rect x="13" y="15" width="38" height="35" rx="6" fill="#7a4b23"/>
+    <rect x="18" y="9" width="28" height="12" rx="3" fill="#b47a32"/>
+    <rect x="22" y="24" width="20" height="14" fill="#2b1810"/>
+    <circle cx="32" cy="31" r="7" fill="#ffd166"/>
+    <path class="line" d="M9 27h11M44 27h11M20 46h24" stroke="#f4a261" stroke-width="3"/>
+    <path class="line" d="M31 10v-6M25 11l-4-5M39 11l4-5" stroke="#d946ef" stroke-width="2"/>
+  </g>
+
+  <!-- Ember Mote -->
+  <g class="px" filter="url(#soft)" transform="translate(256 0)">
+    <ellipse cx="32" cy="53" rx="12" ry="4" fill="#1a100b" opacity=".66"/>
+    <path d="M32 9l10 16-4 18-6 7-8-7-3-18z" fill="#fb923c"/>
+    <path d="M32 17l5 11-3 12-3 4-5-5-1-11z" fill="#ffe08a"/>
+    <path d="M22 31l-11 7 12 3zM42 31l11 7-12 3z" fill="#c2410c"/>
+    <circle cx="32" cy="29" r="3" fill="#7f1d1d"/>
+  </g>
+
+  <!-- Glass Gnawer -->
+  <g class="px" filter="url(#soft)" transform="translate(320 0)">
+    <ellipse cx="32" cy="54" rx="18" ry="5" fill="#1a100b" opacity=".68"/>
+    <path d="M15 34l13-18 18 7 6 21-17 7-18-6z" fill="#6ee7f9" opacity=".88"/>
+    <path d="M22 35l10-12 12 6 1 13-12 5z" fill="#164e63"/>
+    <path d="M18 43l-7 7h12zM45 42l8 8H40z" fill="#a5f3fc"/>
+    <path class="line" d="M25 31h15M27 38h12" stroke="#f8fafc" stroke-width="2"/>
+    <circle cx="31" cy="34" r="2" fill="#f43f5e"/>
+  </g>
+</svg>

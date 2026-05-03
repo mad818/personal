@@ -80,6 +80,23 @@ Long-context inference is often **memory-bound**, not compute-bound. The importa
 - When local providers/runtimes expose this class of optimization, benchmark it against real Nexus missions before enabling or advertising it.
 - Do not claim paper-level gains (for example, 6x memory or 8x speed) unless measured on the actual models and runtimes Nexus uses.
 
+## Thread 6 — 2026-04-22 GitHub Ecosystem Batch
+**Status:** Consolidated into the canonical master backlog in [`../plans/nexus-ideas-assimilation-master-backlog.md`](../plans/nexus-ideas-assimilation-master-backlog.md).
+
+### Core takeaway
+The strongest value in the latest GitHub batch is not a new tab or a flashy feature. It is a tighter **agent platform**:
+- correction memory with provenance
+- eval-first improvement loops
+- stronger privacy shielding for cloud-bound requests
+- isolated execution for higher-risk tool classes
+- safer artifact and repo intelligence
+
+### Product translation
+- Prioritize platform seams before widening visible surfaces.
+- Keep the current UXA3 merged-main queue separate from this ecosystem roadmap.
+- Treat the new GitHub batch as raw intake in `docs/ideas/external-links-mapping.md`, curated fits in `docs/ideas/assimilated-ecosystem.md`, and execution order in the master backlog.
+- Keep offensive or automation-heavy security repos out of implementation scope.
+
 ## Existing idea links retained for final synthesis
 - https://github.com/motiful/cc-gateway
 - https://github.com/banteg/bn

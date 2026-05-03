@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { spawn } from "child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
+import { resolveRuntimeProjectRoot } from "@/lib/serverEnvRuntime";
 
 type RunnerState = {
   lastRunAt?: string;
@@ -13,7 +14,8 @@ type RunnerState = {
   failureStreak?: number;
 };
 
-const METRICS_DIR = join(process.cwd(), "docs", "metrics");
+const PROJECT_ROOT = resolveRuntimeProjectRoot();
+const METRICS_DIR = join(PROJECT_ROOT, "docs", "metrics");
 const RUNNER_STATE_FILE = join(METRICS_DIR, "agent-runtime-runner.json");
 
 function runCommand(
@@ -22,7 +24,11 @@ function runCommand(
   timeoutMs: number,
 ): Promise<{ ok: boolean; output: string }> {
   return new Promise((resolve) => {
-    const child = spawn(cmd, args, { shell: true, windowsHide: true });
+    const child = spawn(cmd, args, {
+      cwd: PROJECT_ROOT,
+      shell: true,
+      windowsHide: true,
+    });
     let out = "";
     const timer = setTimeout(() => {
       child.kill();

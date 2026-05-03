@@ -137,6 +137,45 @@ const ARCHIVE_LANE_VIEWS: Array<{ id: ArchiveLaneView; label: string }> = [
   { id: "ask", label: "Ask memory" },
 ];
 
+const VAULT_CHAMBER_POSTURE: Record<
+  VaultChamberId,
+  {
+    title: string;
+    summary: string;
+    detail: string;
+    primarySignal: string;
+    supportSignal: string;
+  }
+> = {
+  archive: {
+    title: "Archive workbench",
+    summary:
+      "Bring new local material into the archive while memory lanes stay close, but not taller than the active intake surface.",
+    detail:
+      "Use archive mode when the next move is intake, saved-clip review, or a local memory question.",
+    primarySignal: "Intake first",
+    supportSignal: "Memory gated",
+  },
+  relations: {
+    title: "Relations topology",
+    summary:
+      "Keep graph review primary while stewardship, trust posture, and librarian synthesis stay one rail away.",
+    detail:
+      "Use relations when archive health depends on links, orphan repair, cluster context, or selected-node focus.",
+    primarySignal: "Graph first",
+    supportSignal: "Librarian gated",
+  },
+  publish: {
+    title: "Durable publishing",
+    summary:
+      "Promote, repair, bundle, and export durable notes without letting export outrun archive health.",
+    detail:
+      "Use publish mode when compiled pages, export bundles, or second-brain continuity are the immediate job.",
+    primarySignal: "Pages first",
+    supportSignal: "Export guarded",
+  },
+};
+
 function toSavedArticleNode(article: Article): VaultItemMetadata {
   return {
     id: article.id,
@@ -260,8 +299,12 @@ export default function VaultPage() {
   useEffect(() => {
     if (focusToMemoryView(focus)) {
       setArchiveMemoryExpanded(true);
+      return;
     }
-  }, [focus]);
+    if (!focus && chamber === "archive") {
+      setArchiveMemoryExpanded(false);
+    }
+  }, [chamber, focus]);
 
   const refreshCompiledPages = useCallback(async () => {
     setCompiledLoading(true);
@@ -496,6 +539,27 @@ export default function VaultPage() {
     return null;
   }
 
+  const activeChamberLabel =
+    CHAMBERS.find((entry) => entry.id === chamber)?.label ?? chamber;
+  const chamberPosture = VAULT_CHAMBER_POSTURE[chamber];
+  const vaultMissionSignals = [
+    {
+      label: "Archive load",
+      value: String(archiveCount),
+      note: "clips + pages",
+    },
+    {
+      label: "Graph",
+      value: `${filteredGraph.nodes.length} nodes`,
+      note: `${filteredGraph.edges.length} links`,
+    },
+    {
+      label: "Compiled",
+      value: compiledLoading ? "Refreshing" : String(compiledPages.length),
+      note: "durable pages",
+    },
+  ];
+
   return (
     <ShellPage
       width="wide"
@@ -511,47 +575,6 @@ export default function VaultPage() {
       }
     >
       <ShellStack>
-        <OpsStrip className="nexus-surface-route-strip">
-          <div className="nexus-surface-route-strip__grid">
-            <div className="nexus-surface-route-strip__cell">
-              <span className="nexus-surface-route-strip__cellLabel">Archive load</span>
-              <strong className="nexus-surface-route-strip__cellValue">
-                {archiveCount}
-              </strong>
-              <span className="nexus-surface-route-strip__cellNote">
-                Saved clips and compiled memory stay on one spine.
-              </span>
-            </div>
-            <div className="nexus-surface-route-strip__cell">
-              <span className="nexus-surface-route-strip__cellLabel">Active chamber</span>
-              <strong className="nexus-surface-route-strip__cellValue">
-                {chamber}
-              </strong>
-              <span className="nexus-surface-route-strip__cellNote">
-                One chamber in front of one rail.
-              </span>
-            </div>
-            <div className="nexus-surface-route-strip__cell">
-              <span className="nexus-surface-route-strip__cellLabel">Graph nodes</span>
-              <strong className="nexus-surface-route-strip__cellValue">
-                {filteredGraph.nodes.length}
-              </strong>
-              <span className="nexus-surface-route-strip__cellNote">
-                Relation mode keeps topology primary.
-              </span>
-            </div>
-            <div className="nexus-surface-route-strip__cell">
-              <span className="nexus-surface-route-strip__cellLabel">Compiled pages</span>
-              <strong className="nexus-surface-route-strip__cellValue">
-                {compiledLoading ? "…" : compiledPages.length}
-              </strong>
-              <span className="nexus-surface-route-strip__cellNote">
-                Durable artifacts stay one chamber away.
-              </span>
-            </div>
-          </div>
-        </OpsStrip>
-
         {mission || from || source ? (
           <MissionHandoffStrip
             surface="vault"
@@ -624,13 +647,6 @@ export default function VaultPage() {
           />
         ) : null}
 
-        <details className="nexus-surface-disclosure">
-          <summary>Open chamber briefing</summary>
-          <div className="nexus-surface-disclosure__body">
-            <VaultModeOrientationSection mode={chamber} />
-          </div>
-        </details>
-
         <ShellSegmentedTabs
           items={CHAMBERS}
           active={chamber}
@@ -638,6 +654,33 @@ export default function VaultPage() {
           minButtonWidth={132}
           className="nexus-shell-segmented--compactLane"
         />
+
+        <div className="nexus-vault-mission-strip" aria-label="Vault chamber orientation">
+          <div className="nexus-vault-mission-strip__lead">
+            <span className="nexus-vault-mission-strip__eyebrow">
+              Active chamber
+            </span>
+            <strong>{activeChamberLabel}</strong>
+            <p>{chamberPosture.summary}</p>
+          </div>
+          <div className="nexus-vault-mission-strip__signals" aria-label="Vault quick status">
+            {vaultMissionSignals.map((signal) => (
+              <span key={signal.label}>
+                <span>{signal.label}</span>
+                <strong>{signal.value}</strong>
+                <em>{signal.note}</em>
+              </span>
+            ))}
+          </div>
+          <details className="nexus-vault-mission-strip__detail">
+            <summary>Chamber briefing</summary>
+            <div className="nexus-vault-mission-strip__detailBody">
+              <p>{chamberPosture.detail}</p>
+              <VaultModeOrientationSection mode={chamber} />
+            </div>
+          </details>
+        </div>
+
         {chamber === "archive" ? (
           <div id="vault-archive" style={{ scrollMarginTop: "120px" }}>
             <div className="nexus-surface-chamber-shell">
@@ -645,6 +688,11 @@ export default function VaultPage() {
                 <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.railClass}`}>
                   <div id="vault-memory-brief" style={{ scrollMarginTop: "120px" }}>
                     <OpsField title={memoryBriefSpec.title} detail={memoryBriefSpec.detail} tone="muted" compact>
+                      <div className="nexus-vault-rail-preview" aria-label="Memory brief preview">
+                        <span>{chamberPosture.supportSignal}</span>
+                        <span>{memoryView}</span>
+                        <span>{compiledLoading ? "Refreshing" : "Ready"}</span>
+                      </div>
                       <details
                         className="nexus-surface-disclosure"
                         open={archiveMemoryExpanded}
@@ -754,6 +802,11 @@ export default function VaultPage() {
                     >
                       <div className="nexus-shell-copy nexus-shell-copy--compact">
                         Relation mode keeps the graph primary. Stewardship, trust posture, and durable archive continuity stay one rail away instead of competing with the topology view.
+                      </div>
+                      <div className="nexus-vault-rail-preview" aria-label="Relations rail preview">
+                        <span>{chamberPosture.primarySignal}</span>
+                        <span>{filteredGraph.nodes.length} nodes</span>
+                        <span>{filteredGraph.orphans.length} orphans</span>
                       </div>
                       <div className="nexus-shell-actions">
                         <ShellBadge tone="accent">
@@ -916,6 +969,11 @@ export default function VaultPage() {
                     >
                       <div className="nexus-shell-copy nexus-shell-copy--compact">
                         Publish mode is where durable notes get promoted, repaired, bundled, and exported. Stewardship and trust posture stay visible here so export does not outrun archive health.
+                      </div>
+                      <div className="nexus-vault-rail-preview" aria-label="Publish rail preview">
+                        <span>{chamberPosture.primarySignal}</span>
+                        <span>{compiledPages.length} pages</span>
+                        <span>{savedArticles.length} clips</span>
                       </div>
                       <div className="nexus-shell-actions">
                         <ShellBadge tone="accent">{compiledPages.length} pages</ShellBadge>

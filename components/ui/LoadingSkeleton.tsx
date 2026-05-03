@@ -1,9 +1,9 @@
 "use client";
 
 // ── components/ui/LoadingSkeleton.tsx ─────────────────────────────────────────
-// Reusable skeleton loading component with shimmer animation
+// Reusable skeleton loading component with shared cinematic shell shimmer.
 
-import { CHART } from "@/lib/chartTheme";
+import { cn } from "@/lib/cn";
 import React from "react";
 
 export interface LoadingSkeletonProps {
@@ -12,21 +12,6 @@ export interface LoadingSkeletonProps {
   variant?: "card" | "chart" | "text" | "circle";
   style?: React.CSSProperties;
 }
-
-const SHIMMER_KEYFRAMES = `
-@keyframes skeleton-shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
-}
-`;
-
-const SHIMMER_GRADIENT = `linear-gradient(
-  90deg,
-  ${CHART.surf2} 0%,
-  ${CHART.surf3} 40%,
-  ${CHART.surf2} 80%,
-  ${CHART.surf2} 100%
-)`;
 
 function getVariantStyle(
   variant: LoadingSkeletonProps["variant"],
@@ -53,25 +38,17 @@ export function LoadingSkeleton({
   const variantStyle = getVariantStyle(variant);
 
   return (
-    <>
-      <style
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: SHIMMER_KEYFRAMES }}
-      />
-      <div
-        style={{
-          width,
-          height,
-          background: SHIMMER_GRADIENT,
-          backgroundSize: "200% 100%",
-          animation: "skeleton-shimmer 1.8s ease-in-out infinite",
-          border: `1px solid ${CHART.border}`,
-          ...variantStyle,
-          ...style,
-        }}
-        aria-hidden="true"
-      />
-    </>
+    <div
+      className={cn("nexus-loading-skeleton", `nexus-loading-skeleton--${variant}`)}
+      style={{
+        width,
+        height,
+        ...variantStyle,
+        ...style,
+      }}
+      data-cinematic-state="loading"
+      aria-hidden="true"
+    />
   );
 }
 
@@ -85,11 +62,8 @@ export function ChartSkeleton({
 }) {
   return (
     <div
+      className="nexus-chart-skeleton"
       style={{
-        background: CHART.surf2,
-        border: `1px solid ${CHART.border}`,
-        borderRadius: "12px",
-        padding: "20px",
         ...style,
       }}
     >

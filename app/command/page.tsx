@@ -144,11 +144,21 @@ export default function CommandPage() {
     () => focus === "runtime-efficiency",
   );
   const [programRiskExpanded, setProgramRiskExpanded] = useState(false);
+  const [providerExpanded, setProviderExpanded] = useState(
+    () => focus === "provider-health",
+  );
   const [readinessExpanded, setReadinessExpanded] = useState(
     () => focus === "provider-health",
   );
   const [agentHealthExpanded, setAgentHealthExpanded] = useState(
     () => focus === "agent-health",
+  );
+  const [projectStackExpanded, setProjectStackExpanded] = useState(false);
+  const [runtimeExpanded, setRuntimeExpanded] = useState(
+    () => focus === "runtime-efficiency",
+  );
+  const [memorySpineExpanded, setMemorySpineExpanded] = useState(
+    () => focus === "memory-spine",
   );
   const [memoryExpanded, setMemoryExpanded] = useState(
     () => Boolean(initialMemoryAsk.trim()) || focus === "memory-spine",
@@ -169,6 +179,7 @@ export default function CommandPage() {
 
   useEffect(() => {
     if (focus === "provider-health") {
+      setProviderExpanded(true);
       setReadinessExpanded(true);
     }
     if (focus === "agent-health") {
@@ -177,11 +188,13 @@ export default function CommandPage() {
     if (focus === "runtime-efficiency") {
       setDispatchView("dispatch");
       setDispatchEfficiencyExpanded(true);
+      setRuntimeExpanded(true);
     }
   }, [focus]);
 
   useEffect(() => {
     if (focus === "memory-spine" || initialMemoryAsk.trim()) {
+      setMemorySpineExpanded(true);
       setMemoryExpanded(true);
     }
   }, [focus, initialMemoryAsk]);
@@ -301,7 +314,7 @@ export default function CommandPage() {
 
           {commandGuidance.length ? <AssistantGuidanceStack items={commandGuidance} /> : null}
 
-          <OpsStrip className="nexus-surface-route-strip">
+          <OpsStrip className="nexus-surface-route-strip nexus-command-mission-strip">
             <div className="nexus-surface-route-strip__grid">
               <div className="nexus-surface-route-strip__cell">
                 <span className="nexus-surface-route-strip__cellLabel">Snapshot</span>
@@ -538,6 +551,16 @@ export default function CommandPage() {
                         compact
                         className="nexus-command-gridSpan"
                       >
+                        <div className="nexus-command-rail-preview" aria-label="Operator readiness preview">
+                          <span>
+                            <strong>Guarded</strong>
+                            <em>Policies inline</em>
+                          </span>
+                          <span>
+                            <strong>Native</strong>
+                            <em>Queue visible</em>
+                          </span>
+                        </div>
                         <details
                           className="nexus-surface-disclosure"
                           open={readinessExpanded}
@@ -560,7 +583,28 @@ export default function CommandPage() {
                         detail="Server-scored chain posture plus true local runtime reachability"
                         compact
                       >
-                        <LazyProviderHealthStrip surface="command" />
+                        <div className="nexus-command-rail-preview" aria-label="Provider health preview">
+                          <span>
+                            <strong>Chain</strong>
+                            <em>Server scored</em>
+                          </span>
+                          <span>
+                            <strong>Local</strong>
+                            <em>Runtime reach</em>
+                          </span>
+                        </div>
+                        <details
+                          className="nexus-surface-disclosure"
+                          open={providerExpanded}
+                          onToggle={(event) =>
+                            setProviderExpanded(event.currentTarget.open)
+                          }
+                        >
+                          <summary>Open provider chain</summary>
+                          <div className="nexus-surface-disclosure__body">
+                            <LazyProviderHealthStrip surface="command" />
+                          </div>
+                        </details>
                       </OpsField>
                       <OpsField
                         title="Operator mode"
@@ -574,7 +618,28 @@ export default function CommandPage() {
                         detail="Static stack context injected into agent prompts"
                         compact
                       >
-                        <LazyProjectStackCard />
+                        <div className="nexus-command-rail-preview" aria-label="Project stack preview">
+                          <span>
+                            <strong>Stack</strong>
+                            <em>Prompt ready</em>
+                          </span>
+                          <span>
+                            <strong>Scope</strong>
+                            <em>Local first</em>
+                          </span>
+                        </div>
+                        <details
+                          className="nexus-surface-disclosure"
+                          open={projectStackExpanded}
+                          onToggle={(event) =>
+                            setProjectStackExpanded(event.currentTarget.open)
+                          }
+                        >
+                          <summary>Open stack context</summary>
+                          <div className="nexus-surface-disclosure__body">
+                            <LazyProjectStackCard />
+                          </div>
+                        </details>
                       </OpsField>
                       <OpsField
                         id="command-memory-spine"
@@ -582,7 +647,28 @@ export default function CommandPage() {
                         detail="Local-only operator memory with free-first posture"
                         compact
                       >
-                        <LazyMemorySpineStatusCard />
+                        <div className="nexus-command-rail-preview" aria-label="Memory spine preview">
+                          <span>
+                            <strong>Local</strong>
+                            <em>Operator memory</em>
+                          </span>
+                          <span>
+                            <strong>Recall</strong>
+                            <em>Citation first</em>
+                          </span>
+                        </div>
+                        <details
+                          className="nexus-surface-disclosure"
+                          open={memorySpineExpanded}
+                          onToggle={(event) =>
+                            setMemorySpineExpanded(event.currentTarget.open)
+                          }
+                        >
+                          <summary>Open memory spine</summary>
+                          <div className="nexus-surface-disclosure__body">
+                            <LazyMemorySpineStatusCard />
+                          </div>
+                        </details>
                       </OpsField>
                       <OpsField
                         title="Ask memory"
@@ -591,6 +677,20 @@ export default function CommandPage() {
                         compact
                         className="nexus-command-gridSpan"
                       >
+                        <div className="nexus-command-rail-preview nexus-command-rail-preview--wide" aria-label="Memory ask preview">
+                          <span>
+                            <strong>Ask</strong>
+                            <em>Native recall</em>
+                          </span>
+                          <span>
+                            <strong>Compare</strong>
+                            <em>Prior work</em>
+                          </span>
+                          <span>
+                            <strong>Evidence</strong>
+                            <em>Citations kept</em>
+                          </span>
+                        </div>
                         <details
                           className="nexus-surface-disclosure"
                           open={memoryExpanded}
@@ -647,9 +747,34 @@ export default function CommandPage() {
                   detail="Waste, tool-pack posture, and cache pressure without another tall continuity desk"
                   compact
                 >
-                  <LazyRuntimeEfficiencyCard
-                    initialExpanded={focus === "runtime-efficiency"}
-                  />
+                  <div className="nexus-command-rail-preview nexus-command-rail-preview--wide" aria-label="Runtime efficiency preview">
+                    <span>
+                      <strong>Waste</strong>
+                      <em>Prompt pressure</em>
+                    </span>
+                    <span>
+                      <strong>Tools</strong>
+                      <em>Pack posture</em>
+                    </span>
+                    <span>
+                      <strong>Cache</strong>
+                      <em>Reuse signal</em>
+                    </span>
+                  </div>
+                  <details
+                    className="nexus-surface-disclosure"
+                    open={runtimeExpanded}
+                    onToggle={(event) =>
+                      setRuntimeExpanded(event.currentTarget.open)
+                    }
+                  >
+                    <summary>Open runtime efficiency</summary>
+                    <div className="nexus-surface-disclosure__body">
+                      <LazyRuntimeEfficiencyCard
+                        initialExpanded={focus === "runtime-efficiency"}
+                      />
+                    </div>
+                  </details>
                 </OpsField>
               </div>
             </OpsStrip>

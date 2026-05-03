@@ -25,6 +25,7 @@ import {
 import { getArpgProductionReadinessSummary } from "@/lib/arpgProductionReadiness";
 import { getArpgVisualAssetBriefSummary } from "@/lib/arpgVisualAssetBriefs";
 import { getArpgVisualDirectionSummary } from "@/lib/arpgVisualDirectionContent";
+import { getArpgVisualReplacementSummary } from "@/lib/arpgVisualReplacementContent";
 import {
   ARPG_FIRST_TOWN_PRESENTATION_CUES,
   getArpgFirstTownPresentationCue,
@@ -758,6 +759,7 @@ export default function ArpgHud({
   const illustratedBench = getArpgIllustratedAssetBenchSummary();
   const visualDirection = getArpgVisualDirectionSummary();
   const visualBriefs = getArpgVisualAssetBriefSummary();
+  const visualReplacements = getArpgVisualReplacementSummary();
   const approvedIllustratedBatches = illustratedBench.approvedBatches;
   const rejectedIllustratedBatches = illustratedBench.rejectedBatches;
   const heroKitClassFrame = HERO_KIT_CLASS_FRAME_BY_ID[profile.classTree.id] ?? 0;
@@ -4182,6 +4184,42 @@ export default function ArpgHud({
                     {firstTownPresentation.summary}
                   </p>
                 </div>
+                <div
+                  data-testid="arpg-visual-replacement-readiness"
+                  style={{
+                    border: "1px solid rgba(255, 209, 102, 0.18)",
+                    borderRadius: 12,
+                    background: "rgba(255, 209, 102, 0.045)",
+                    display: "grid",
+                    gap: 7,
+                    padding: 8,
+                  }}
+                >
+                  <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    <strong style={{ color: "#ffe1a6", fontSize: 11 }}>
+                      Visual replacement lane
+                    </strong>
+                    <span style={{ ...chipStyle, marginLeft: "auto" }}>
+                      {visualReplacements.targetCount} queued
+                    </span>
+                    <span style={chipStyle}>
+                      Retired {visualReplacements.retiredAssetCount}
+                    </span>
+                    <span style={chipStyle}>
+                      Fallbacks {visualReplacements.fallbackAssetCount}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, color: "rgba(255,240,214,.62)", fontSize: 10, lineHeight: 1.35 }}>
+                    {visualReplacements.summary}
+                  </p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {visualReplacements.targets.slice(0, 4).map((target) => (
+                      <span key={target.id} data-testid={`arpg-visual-replacement-${target.id}`} style={chipStyle}>
+                        {target.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div data-testid="arpg-production-large-chunk" style={{ display: "grid", gap: 6 }}>
                   <ArpgProductionMenuIndex
                     panels={productionMenuPanels}
@@ -4495,6 +4533,38 @@ export default function ArpgHud({
                     </p>
                   </div>
                 ) : null}
+                <div
+                  data-testid="arpg-visual-replacement-queue"
+                  style={{
+                    border: "1px solid rgba(255, 209, 102, 0.18)",
+                    borderRadius: 12,
+                    background: "rgba(255, 209, 102, 0.045)",
+                    display: "grid",
+                    gap: 6,
+                    padding: 7,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <strong style={{ color: "#ffe1a6", fontSize: 11 }}>
+                      Replacement queue
+                    </strong>
+                    <span style={{ ...chipStyle, marginLeft: "auto" }}>
+                      {visualReplacements.replacementBatchId}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, color: "rgba(255,240,214,.64)", fontSize: 10, lineHeight: 1.35 }}>
+                    {visualReplacements.retiredAssetCount} rejected prologue sheets are retired from production display.
+                    The next approved pass replaces them with {visualReplacements.targetCount} high-fidelity location,
+                    character, and prop targets.
+                  </p>
+                  <div style={{ display: "grid", gap: 5 }}>
+                    {visualReplacements.targets.slice(0, 5).map((target) => (
+                      <span key={target.id} style={chipStyle}>
+                        {target.kind.replace(/-/g, " ")}: {target.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <span style={chipStyle}>Runtime {illustratedBench.runtimePath}</span>
                 <span style={chipStyle}>Record {illustratedBench.promptRecordPath}</span>
               </div>

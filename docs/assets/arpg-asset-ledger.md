@@ -50,6 +50,8 @@ The first validated seed batch includes character portraits, enemy cards, locati
 
 `MW6V-ARPG-PROLOGUE-VISUAL-ASSETS` attempted the first prologue-specific story art batch: 2 Bellroot location cards, 2 companion portraits, and 6 intro prop icons for the Descent Ledger, oath-lamps, Ilo's cradle, Gate Monolith, Loom-Shard, and Quiet Forge. Mario rejected this flat SVG/glyph style on 2026-04-28 as not appropriate for production game art, so the files remain provenance-only and must be replaced by high-fidelity painted/rendered 2D or approved clean-license assets before they lead `/hq` visuals.
 
+`PREMIUM-LIVE-RPG-VISUAL-EXPANSION` adds the first explicit replacement contract for those retired prologue sheets. `lib/arpgVisualReplacementContent.json` maps `prologue-location-cards`, `prologue-companion-portraits`, and `prologue-story-prop-icons` to the queued `prologue-hifi-story-pack` targets, lists approved fallback sheets, and is validated by `npm run arpg:visual-replacements:check` so rejected/reference-only art cannot quietly become leading runtime imagery again.
+
 `MW6V-ARPG-HERO-KIT-STYLE-LOCK` records the approved visual target: Hero Kit character portraits, class outfits, weapons/items, and armor/equipment are the quality reference for the next asset batches. The contract is `lib/arpgVisualDirectionContent.json`, and `npm run arpg:visual:check` verifies that approved target assets are not rejected/reference-only.
 
 Every illustrated batch must keep a prompt/provenance record under `docs/game/aether-reliquary/generation-records/`, a manifest entry in `lib/arpgAssetManifestData.json`, runtime output dimensions that match the bench contract, and a cost posture that is not a forced paid dependency.

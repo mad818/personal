@@ -83,6 +83,15 @@ async function expectCinematicIA(page: Page, surface: string) {
       threshold.getByText("Session active", { exact: true }),
     ).toBeVisible();
     await expect(threshold.getByText("Focus", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("homefront-live-vision-strip")).toBeVisible();
+    await expect(
+      page.getByTestId("homefront-live-vision-strip").getByText("Image plane"),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByTestId("homefront-live-vision-strip")
+        .getByText("RPG separate"),
+    ).toBeVisible();
   }
 }
 

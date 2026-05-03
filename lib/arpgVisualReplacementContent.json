@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "mw6-arpg-visual-replacements-v1",
+  "title": "Aether Reliquary visual replacement lane",
+  "summary": "Retires rejected Bellroot prologue SVG/glyph sheets from production display and queues high-fidelity painted/rendered replacements while approved fallback art keeps /hq readable.",
+  "replacementBatchId": "prologue-hifi-story-pack",
+  "targetStyleAssetIds": [
+    "hero-kit-character-portraits",
+    "hero-kit-class-outfits",
+    "hero-kit-weapons-items",
+    "hero-kit-armor-equipment",
+    "enemy-boss-hifi-cards"
+  ],
+  "retiredAssetIds": [
+    "prologue-location-cards",
+    "prologue-companion-portraits",
+    "prologue-story-prop-icons"
+  ],
+  "approvedFallbackAssetIds": [
+    "illustrated-location-card-seeds",
+    "hero-kit-character-portraits",
+    "hero-kit-weapons-items",
+    "hero-kit-armor-equipment",
+    "enemy-boss-hifi-cards",
+    "arsenal-vfx-drops"
+  ],
+  "policies": [
+    "Rejected/reference-only prologue sheets may remain in provenance records but must not lead runtime /hq visuals.",
+    "Replacement targets must point at the prologue-hifi-story-pack brief until approved runtime output exists.",
+    "Fallbacks must be approved manifest assets without style-rejected or reference-only tags.",
+    "Any new replacement runtime sheet needs prompt/provenance records, manifest metadata, frame dimensions, and visual validation.",
+    "The private RPG world stays in /hq and does not become public Homefront product positioning."
+  ],
+  "targets": [
+    {
+      "id": "bellroot-vestibule",
+      "label": "Bellroot Vestibule",
+      "kind": "location-card",
+      "replacesAssetIds": ["prologue-location-cards"],
+      "briefItemId": "bellroot-vestibule",
+      "fallbackAssetIds": ["illustrated-location-card-seeds"],
+      "surfaceTargets": ["Adventure", "Map", "Journal"],
+      "acceptance": "Reads as a real first location with architecture, depth, amber oath lamps, and warm danger.",
+      "priority": 1
+    },
+    {
+      "id": "wardens-antechamber",
+      "label": "Warden's Antechamber",
+      "kind": "location-card",
+      "replacesAssetIds": ["prologue-location-cards"],
+      "briefItemId": "wardens-antechamber",
+      "fallbackAssetIds": ["illustrated-location-card-seeds", "enemy-boss-hifi-cards"],
+      "surfaceTargets": ["Adventure", "Map", "Journal"],
+      "acceptance": "Reads as the safe-before-combat threshold, not a symbolic dashboard panel.",
+      "priority": 2
+    },
+    {
+      "id": "ilo-oracle",
+      "label": "Ilo, the Little Oracle",
+      "kind": "character-portrait",
+      "replacesAssetIds": ["prologue-companion-portraits"],
+      "briefItemId": "ilo-oracle",
+      "fallbackAssetIds": ["hero-kit-character-portraits"],
+      "surfaceTargets": ["People", "Journal", "Adventure"],
+      "acceptance": "Ilo feels like a companion character with a face, expression, glass, brass, and soft inner light.",
+      "priority": 3
+    },
+    {
+      "id": "keeper-elian",
+      "label": "Keeper Elian",
+      "kind": "character-portrait",
+      "replacesAssetIds": ["prologue-companion-portraits"],
+      "briefItemId": "keeper-elian",
+      "fallbackAssetIds": ["hero-kit-character-portraits"],
+      "surfaceTargets": ["People", "Journal", "Map"],
+      "acceptance": "Reads as a memorable Bellroot caretaker with role, age, and emotion.",
+      "priority": 4
+    },
+    {
+      "id": "descent-ledger",
+      "label": "Descent Ledger",
+      "kind": "gear-icon",
+      "replacesAssetIds": ["prologue-story-prop-icons"],
+      "briefItemId": "descent-ledger",
+      "fallbackAssetIds": ["hero-kit-weapons-items"],
+      "surfaceTargets": ["Adventure", "Inventory", "Journal"],
+      "acceptance": "Looks like a tangible quest item with root-leather, brass corners, and a glowing name-thread.",
+      "priority": 5
+    },
+    {
+      "id": "oath-lamp",
+      "label": "Oath Lamp",
+      "kind": "gear-icon",
+      "replacesAssetIds": ["prologue-story-prop-icons"],
+      "briefItemId": "oath-lamp",
+      "fallbackAssetIds": ["hero-kit-weapons-items", "arsenal-vfx-drops"],
+      "surfaceTargets": ["Adventure", "Map", "Journal"],
+      "acceptance": "Reads as a usable hand-held story lamp with brass, root-wire, and warm ember glow.",
+      "priority": 6
+    },
+    {
+      "id": "oracle-cradle",
+      "label": "Oracle Cradle",
+      "kind": "gear-icon",
+      "replacesAssetIds": ["prologue-story-prop-icons"],
+      "briefItemId": "oracle-cradle",
+      "fallbackAssetIds": ["hero-kit-armor-equipment"],
+      "surfaceTargets": ["People", "Adventure", "Journal"],
+      "acceptance": "Reads as a crafted reliquary nest tied to Ilo's awakening, not a generic UI symbol.",
+      "priority": 7
+    },
+    {
+      "id": "gate-monolith",
+      "label": "Gate Monolith",
+      "kind": "gear-icon",
+      "replacesAssetIds": ["prologue-story-prop-icons"],
+      "briefItemId": "gate-monolith",
+      "fallbackAssetIds": ["illustrated-location-card-seeds"],
+      "surfaceTargets": ["Adventure", "Map", "Journal"],
+      "acceptance": "Feels heavy and ancient with black stone, brass inlays, and a readable gate identity.",
+      "priority": 8
+    },
+    {
+      "id": "loom-shard",
+      "label": "Loom-Shard Charm",
+      "kind": "gear-icon",
+      "replacesAssetIds": ["prologue-story-prop-icons"],
+      "briefItemId": "loom-shard",
+      "fallbackAssetIds": ["hero-kit-armor-equipment", "hero-kit-weapons-items"],
+      "surfaceTargets": ["Inventory", "Adventure", "Journal"],
+      "acceptance": "Reads as a wearable relic reward with amber glass, brass claw setting, and rarity potential.",
+      "priority": 9
+    },
+    {
+      "id": "quiet-forge",
+      "label": "Quiet Forge",
+      "kind": "location-card",
+      "replacesAssetIds": ["prologue-story-prop-icons"],
+      "briefItemId": "quiet-forge",
+      "fallbackAssetIds": ["illustrated-location-card-seeds", "arsenal-vfx-drops"],
+      "surfaceTargets": ["Map", "Armory", "Journal"],
+      "acceptance": "Reads as a dormant crafting place with ash, tools, anvil chamber depth, and story atmosphere.",
+      "priority": 10
+    }
+  ]
+}

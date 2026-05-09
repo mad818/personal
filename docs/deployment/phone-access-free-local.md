@@ -49,8 +49,8 @@ NEXUS_PHONE_LAN_ENABLED=true
 ```
 
 ```text
-http://192.168.1.25:3100
-http://192.168.1.25:3100/hq?focus=hq-chronicle
+http://<LAN-IP>:3100
+http://<LAN-IP>:3100/hq?focus=hq-chronicle
 ```
 
 If Windows asks for firewall permission, allow Node/Next on the private network only.

@@ -273,7 +273,7 @@ Web Speech API is built into Chrome and most modern browsers — no library need
 
 Replace the placeholder device cards with real WebSocket connections. The architecture:
 
-- Dashboard opens a WebSocket to a user-provided address (e.g., `ws://192.168.1.100:8080`)
+- Dashboard opens a WebSocket to a user-provided address (e.g., `ws://<LAN-IP>:8080`)
 - The remote endpoint (a Raspberry Pi, a server, a smart home hub) sends JSON telemetry
 - Dashboard renders it in real time
 

@@ -1,7 +1,7 @@
 # Branch Cleanup Audit - 2026-05-03
 
 This audit explains why the repo has many branches and what can be cleaned up.
-It is based on local refs in `C:\Users\mario\Desktop\personal` on 2026-05-03.
+It is based on local refs in `<repo-root>` on 2026-05-03.
 Run `git fetch --prune` from a working Git shell before deleting remote refs so
 the list reflects GitHub's current state.
 

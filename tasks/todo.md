@@ -25,7 +25,7 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 
 Active open-ready queue:
 
-- [ ] FREE-LOCAL-PHONE-ACCEPTANCE — Desktop LAN runtime proof is captured: `npm run phone:lan:start` printed `http://192.168.68.74:3100` and `http://192.168.68.74:3100/hq?focus=hq-chronicle`, while raw desktop checks returned 200 for `/api/health`, `/hq?focus=hq-chronicle`, and `/command`. Remaining manual acceptance from the phone: open one printed LAN URL or copy the direct HQ URL from Free Local Readiness, log in with `NEXUS_TOKEN`, send `ping`, ask one local Ollama prompt, and install the PWA from the browser home-screen flow.
+- [ ] FREE-LOCAL-PHONE-ACCEPTANCE — Desktop LAN runtime proof is captured with publish-safe placeholders: `npm run phone:lan:start` printed `http://<LAN-IP>:3100` and `http://<LAN-IP>:3100/hq?focus=hq-chronicle`, while raw desktop checks returned 200 for `/api/health`, `/hq?focus=hq-chronicle`, and `/command`. Remaining manual acceptance from the phone: open one printed LAN URL or copy the direct HQ URL from Free Local Readiness, log in with `NEXUS_TOKEN`, send `ping`, ask one local Ollama prompt, and install the PWA from the browser home-screen flow.
 - [ ] LOCAL-AI-OFFLINE-OPERATIONS — Authenticated runtime proof is captured from the local desktop session: Free Local Readiness returned `ready`, `isolated`, paid APIs `blocked`, Ollama `reachable`, resolved model `gemma4:latest`, agent health `100%`, authenticated session, review-gated tools, and phone LAN `enabled`; `/api/ai` answered through `provider=ollama` with `model=gemma4:latest`, and a non-destructive bad-local-endpoint probe returned structured `ollama_unavailable` recovery copy. Remaining manual acceptance: confirm the same proof in the browser panel/phone receipt and optionally perform a real Ollama stop/restore from a separate shell.
 - [ ] DEPENDABOT-SECURITY-AUDIT — Triage the GitHub push warning that reported 75 Dependabot alerts on the default branch; keep this as a separate dependency-security audit so it does not derail phone/local AI acceptance unless a vulnerable dependency blocks verification.
 
@@ -46,6 +46,11 @@ Blocked or manual watchlist, not the active queue:
 - [ ] FD2 remains blocked on the real staged Coolify hostname in repo-root `.env.local`, so release-proof work still stays out of this replay stack.
 
 ## In Progress
+
+- [x] PUBLICATION-SAFETY-LOCKDOWN — Stop publishing vital local information by scrubbing committed machine-specific proof values and adding a tracked-file publication guard.
+  - Current pass: replace real LAN IP/home-path evidence with placeholders, add `scripts/validate-publication-safety.mjs`, wire `npm run publication:safety:check` into `npm run verify` and `.husky/pre-push`, and keep future runtime evidence placeholder-only.
+  - Guardrail: do not read or print `.env.local`, raw tokens, cookies, auth headers, receipts, payment/order/account details, raw asset intake, private key material, or real local network addresses.
+  - Progress: publication safety is now a first-class gate ahead of phone/PWA acceptance and the separate Dependabot security audit.
 
 - [x] GIT-PERMISSION-RECOVERY — Make git pull/fetch/staging/push reliable again after the confirmed `.git` DENY ACL blocker.
   - Current pass: preserve `scripts/git-with-acl-repair.ps1` and `npm run git:safe` as the Windows-safe Git command path, and route `npm run handoff:pull` through that wrapper so it removes the known explicit `.git` DENY ACL inside the same process before running Git.

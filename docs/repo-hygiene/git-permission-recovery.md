@@ -21,7 +21,7 @@ Do not delete branches, remove worktrees, or push while this blocker is active.
 Run from a normal PowerShell in the repo root:
 
 ```powershell
-cd C:\Users\mario\Desktop\personal
+cd <repo-root>
 npm run repo:sync:health
 icacls .git | Select-String "DENY"
 Get-Process git -ErrorAction SilentlyContinue
@@ -36,7 +36,7 @@ Use the SID printed by `icacls .git | Select-String "DENY"`. The SID below is
 the one observed on this machine during the blocker audit.
 
 ```powershell
-cd C:\Users\mario\Desktop\personal
+cd <repo-root>
 $denySid = "S-1-5-21-779443000-71960511-1366699174-2556294504"
 $currentUser = "$env:USERDOMAIN\$env:USERNAME"
 icacls .git /inheritance:e
@@ -56,7 +56,7 @@ work.
 Only remove lock files if `Get-Process git` returns nothing.
 
 ```powershell
-cd C:\Users\mario\Desktop\personal
+cd <repo-root>
 Get-Process git -ErrorAction SilentlyContinue
 Remove-Item .git\HEAD.lock,.git\gc.pid.lock,.git\index.lock -Force -ErrorAction SilentlyContinue
 ```
@@ -67,7 +67,7 @@ process is active can corrupt repository state.
 ## 4. Prove Recovery
 
 ```powershell
-cd C:\Users\mario\Desktop\personal
+cd <repo-root>
 npm run repo:sync:health
 npm run handoff:pull
 npm run git:safe -- fetch --all --prune

@@ -32,7 +32,7 @@ Only after the browser session/runtime is ready:
 
 ```powershell
 $env:NEXUS_RELEASE_BASE_URL='http://127.0.0.1:3100'
-$env:NEXUS_TOKEN='<same local token used by the app, if auth is enabled>'
+$env:NEXUS_TOKEN='<redacted-local-token>'
 node scripts/vehicle-bridge-stub.mjs --post
 ```
 

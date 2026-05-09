@@ -23,7 +23,7 @@ const CAMERAS: Camera[] = [
     name: "Front Gate",
     status: "online",
     type: "Normal",
-    rtsp: "rtsp://192.168.1.10:554/stream1",
+    rtsp: "rtsp://<LAN-IP>:554/stream1",
     location: "North perimeter",
   },
   {
@@ -31,7 +31,7 @@ const CAMERAS: Camera[] = [
     name: "Side Entrance",
     status: "online",
     type: "NV",
-    rtsp: "rtsp://192.168.1.11:554/stream1",
+    rtsp: "rtsp://<LAN-IP>:554/stream1",
     location: "East wall",
   },
   {
@@ -39,7 +39,7 @@ const CAMERAS: Camera[] = [
     name: "Rear Compound",
     status: "online",
     type: "Thermal",
-    rtsp: "rtsp://192.168.1.12:554/stream1",
+    rtsp: "rtsp://<LAN-IP>:554/stream1",
     location: "South perimeter",
   },
   {
@@ -47,7 +47,7 @@ const CAMERAS: Camera[] = [
     name: "Roof Overwatch",
     status: "offline",
     type: "LiDAR",
-    rtsp: "rtsp://192.168.1.13:554/stream1",
+    rtsp: "rtsp://<LAN-IP>:554/stream1",
     location: "Roof mount",
   },
 ];

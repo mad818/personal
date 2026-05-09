@@ -40,6 +40,8 @@
     "route:integrity": "node scripts/route-integrity.mjs",
     "release:smoke": "node scripts/release-smoke.mjs",
     "release:diagnostics:capture": "node scripts/release-diagnostics-capture.mjs",
+    "readiness:rollup": "node scripts/readiness-rollup.mjs",
+    "dependabot:audit:classify": "node scripts/dependabot-security-audit.mjs",
     "auth:regression": "node scripts/auth-regression.mjs",
     "auth:e2e": "playwright test -c playwright.auth.config.ts",
     "hq:e2e": "playwright test -c playwright.auth.config.ts tests/e2e/hq-shell.spec.ts",

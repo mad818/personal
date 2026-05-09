@@ -60,6 +60,7 @@ If Windows asks for firewall permission, allow Node/Next on the private network 
 1. Keep the desktop on and Ollama running.
 2. Put the phone on the same Wi-Fi, or connect through Tailscale if LAN is unavailable.
 3. Open one printed LAN URL, or copy the direct HQ URL from the **Free Local Readiness** panel.
+   Use **Copy acceptance steps** when you want the phone URL, prompts, proof target, and placeholder-only evidence note in one local clipboard brief.
 4. Log in with `NEXUS_TOKEN`.
 5. Open `/hq?focus=hq-chronicle`.
 6. Send `ping`; it should answer quickly.
@@ -80,6 +81,7 @@ Inside the app, open COMMAND or HQ and check **Free Local Readiness**:
 - Session: authenticated
 - Phone LAN: enabled with LAN URL
 - Phone handoff: copyable phone home URL and direct HQ URL
+- Acceptance brief: copyable phone URL, HQ URL, ping prompt, local AI prompt, PWA step, and placeholder-only evidence reminder
 - Tool posture: high-risk blocked / review-gated
 
 ## Boundaries

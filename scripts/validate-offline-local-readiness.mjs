@@ -75,6 +75,7 @@ assertIncludes(routePolicy, '"/api/free-local-readiness"', "route policy");
 assertIncludes(readinessTypes, "FreeLocalReadinessSnapshot", "readiness types");
 assertIncludes(readinessTypes, "PhoneLanReadinessSnapshot", "readiness types");
 assertIncludes(operationsTypes, "PhoneAcceptanceChecklist", "free local operations");
+assertIncludes(operationsTypes, "buildPhoneAcceptanceBrief", "free local operations");
 assertIncludes(operationsTypes, "LocalAiProofSnapshot", "free local operations");
 assertIncludes(operationsTypes, "AssistantTurnProof", "free local operations");
 assertIncludes(operationsTypes, "RepoSyncHealthReport", "free local operations");
@@ -97,6 +98,7 @@ assertIncludes(readinessPanel, 'data-testid="free-local-major-updates"', "readin
 assertIncludes(readinessPanel, 'data-testid="free-local-repo-sync-report"', "readiness panel");
 assertIncludes(readinessPanel, "repoSync.recoverySteps", "readiness panel");
 assertIncludes(readinessPanel, "Copy HQ URL", "readiness panel");
+assertIncludes(readinessPanel, "Copy acceptance steps", "readiness panel");
 assertIncludes(commandPage, "LazyFreeLocalReadinessPanel", "COMMAND route");
 assertIncludes(hqTerminal, "FreeLocalReadinessPanel", "HQ chronicle");
 assertIncludes(hqTerminal, 'data-testid="hq-check-local-ai"', "HQ local AI chip");

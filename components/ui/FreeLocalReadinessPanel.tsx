@@ -10,6 +10,7 @@ import type {
 import { formatFreeLocalStatusLabel } from "@/lib/freeLocalReadiness";
 import {
   FREE_LOCAL_MAJOR_UPDATES,
+  buildPhoneAcceptanceBrief,
   buildLocalAiProofSnapshot,
   buildPhoneAcceptanceChecklist,
   buildRepoSyncHealthReport,
@@ -219,6 +220,10 @@ export default function FreeLocalReadinessPanel({
     () => buildPhoneAcceptanceChecklist(snapshot),
     [snapshot],
   );
+  const phoneAcceptanceBrief = useMemo(
+    () => buildPhoneAcceptanceBrief(snapshot),
+    [snapshot],
+  );
   const localAiProof = useMemo(
     () => buildLocalAiProofSnapshot(snapshot),
     [snapshot],
@@ -320,9 +325,20 @@ export default function FreeLocalReadinessPanel({
                     : "this local runtime is not requiring a token."}
                 </p>
               </div>
-              <ShellBadge tone={phoneLanReady ? "success" : "muted"}>
-                {snapshot.phoneLan.enabled ? "LAN enabled" : "LAN disabled"}
-              </ShellBadge>
+              <div className="flex flex-wrap items-center gap-2">
+                <ShellBadge tone={phoneLanReady ? "success" : "muted"}>
+                  {snapshot.phoneLan.enabled ? "LAN enabled" : "LAN disabled"}
+                </ShellBadge>
+                <ShellButton
+                  onClick={() =>
+                    void copyToClipboard("Acceptance steps", phoneAcceptanceBrief)
+                  }
+                >
+                  {copiedTarget === "Acceptance steps"
+                    ? "Steps copied"
+                    : "Copy acceptance steps"}
+                </ShellButton>
+              </div>
             </div>
 
             {phoneLanReady ? (

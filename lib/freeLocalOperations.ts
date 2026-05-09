@@ -114,6 +114,30 @@ export const FREE_LOCAL_MAJOR_UPDATES: FreeLocalMajorUpdate[] = [
   },
 ];
 
+export function buildPhoneAcceptanceBrief(
+  snapshot: FreeLocalReadinessSnapshot | null,
+) {
+  const phoneHome =
+    snapshot?.phoneLan.preferredLanUrl ??
+    "Run npm run phone:lan:start, then use the printed phone URL.";
+  const directHq =
+    snapshot?.phoneLan.preferredHqLanUrl ??
+    "Run npm run phone:lan:start, then use the printed /hq?focus=hq-chronicle URL.";
+
+  return [
+    "Homefront phone acceptance",
+    `Phone home: ${phoneHome}`,
+    `Direct HQ: ${directHq}`,
+    "Keep the desktop runtime and Ollama running.",
+    "Log in with NEXUS_TOKEN on the phone; never paste token values into chat, docs, or screenshots.",
+    `HQ fast-path prompt: ${FREE_LOCAL_ASSISTANT_TURN_PROOF.localFastPathPrompt}`,
+    `Local AI prompt: ${FREE_LOCAL_ASSISTANT_TURN_PROOF.localModelPrompt}`,
+    `Expected receipt: ${FREE_LOCAL_ASSISTANT_TURN_PROOF.expectedProof}`,
+    "Install the PWA from the phone browser home-screen flow.",
+    "Record evidence with placeholders only, for example http://<LAN-IP>:3100.",
+  ].join("\n");
+}
+
 function stepStatusTone(status: OperationStepStatus): FreeLocalReadinessStatus {
   if (status === "done") return "ready";
   if (status === "blocked") return "blocked";

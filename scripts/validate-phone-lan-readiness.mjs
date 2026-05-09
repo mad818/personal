@@ -28,6 +28,11 @@ const phoneLanDoc = readProjectFile("docs", "deployment", "phone-access-free-loc
 const coolifyDoc = readProjectFile("docs", "deployment", "phone-access-coolify.md");
 const deploymentReadme = readProjectFile("docs", "deployment", "README.md");
 const lanStartScript = readProjectFile("scripts", "phone-lan-start.mjs");
+const readinessPanel = readProjectFile(
+  "components",
+  "ui",
+  "FreeLocalReadinessPanel.tsx",
+);
 const readinessRoute = readProjectFile(
   "app",
   "api",
@@ -50,6 +55,7 @@ assertIncludes(lanStartScript, "NEXUS_PHONE_LAN_ENABLED", "LAN launcher");
 assertIncludes(lanStartScript, "0.0.0.0", "LAN launcher");
 assertIncludes(lanStartScript, "HQ phone URLs", "LAN launcher");
 assertIncludes(lanStartScript, "/hq?focus=hq-chronicle", "LAN launcher");
+assertIncludes(readinessPanel, "Copy acceptance steps", "readiness panel");
 assertIncludes(readinessRoute, "phoneLan", "readiness route");
 assertIncludes(readinessRoute, "preferredHqLanUrl", "readiness route");
 

@@ -1,0 +1,64 @@
+{
+  "capturedAt": "2026-05-09T12:40:50.374Z",
+  "baseUrl": "http://127.0.0.1:3100",
+  "routes": [
+    {
+      "route": "/api/health",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 33,
+      "error": "fetch failed"
+    },
+    {
+      "route": "/hq?focus=hq-chronicle",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 1,
+      "error": "fetch failed"
+    },
+    {
+      "route": "/command",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 0,
+      "error": "fetch failed"
+    },
+    {
+      "route": "/api/free-local-readiness",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 1,
+      "error": "fetch failed"
+    }
+  ],
+  "readinessSummary": null,
+  "manualPhoneProof": {
+    "phoneOpened": false,
+    "phoneLogin": false,
+    "pingReceipt": false,
+    "localAiReceipt": false,
+    "pwaInstalled": false
+  },
+  "blocked": [
+    "Route /api/health did not pass acceptance capture (ERR).",
+    "Route /hq?focus=hq-chronicle did not pass acceptance capture (ERR).",
+    "Route /command did not pass acceptance capture (ERR).",
+    "Route /api/free-local-readiness did not pass acceptance capture (ERR).",
+    "Free Local Readiness capture did not return 200 (ERR).",
+    "Free Local Readiness is not fully local/free for phone acceptance.",
+    "Manual phone proof missing: phone opened LAN URL.",
+    "Manual phone proof missing: phone logged in with NEXUS_TOKEN.",
+    "Manual phone proof missing: HQ ping receipt.",
+    "Manual phone proof missing: local AI receipt.",
+    "Manual phone proof missing: PWA install."
+  ],
+  "acceptanceReady": false
+}

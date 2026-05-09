@@ -69,6 +69,16 @@ If Windows asks for firewall permission, allow Node/Next on the private network 
    - iPhone: Safari -> Share -> Add to Home Screen
    - Android: Chrome -> Install app / Add to Home screen
 
+## Publish-safe acceptance capture
+
+After the phone flow is complete, capture a sanitized local artifact:
+
+```powershell
+npm run phone:acceptance:capture -- --phone-opened --phone-login --ping-receipt --local-ai-receipt --pwa-installed
+```
+
+The capture writes `docs/metrics/phone-local-acceptance-*.json` with route status, Free Local Readiness posture, and manual acknowledgement flags only. It must never store token values, cookies, auth headers, screenshots, real LAN IPs, local account paths, or account/payment proof. If any manual phone step is missing, the artifact records the blocker and leaves acceptance open.
+
 ## Readiness proof
 
 Inside the app, open COMMAND or HQ and check **Free Local Readiness**:

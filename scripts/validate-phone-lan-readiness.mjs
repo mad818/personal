@@ -28,6 +28,10 @@ const phoneLanDoc = readProjectFile("docs", "deployment", "phone-access-free-loc
 const coolifyDoc = readProjectFile("docs", "deployment", "phone-access-coolify.md");
 const deploymentReadme = readProjectFile("docs", "deployment", "README.md");
 const lanStartScript = readProjectFile("scripts", "phone-lan-start.mjs");
+const phoneAcceptanceCaptureScript = readProjectFile(
+  "scripts",
+  "phone-acceptance-capture.mjs",
+);
 const readinessPanel = readProjectFile(
   "components",
   "ui",
@@ -55,6 +59,11 @@ assertIncludes(lanStartScript, "NEXUS_PHONE_LAN_ENABLED", "LAN launcher");
 assertIncludes(lanStartScript, "0.0.0.0", "LAN launcher");
 assertIncludes(lanStartScript, "HQ phone URLs", "LAN launcher");
 assertIncludes(lanStartScript, "/hq?focus=hq-chronicle", "LAN launcher");
+assertIncludes(phoneAcceptanceCaptureScript, "phone-local-acceptance-", "phone acceptance capture");
+assertIncludes(phoneAcceptanceCaptureScript, "manualPhoneProof", "phone acceptance capture");
+assertIncludes(phoneAcceptanceCaptureScript, "acceptanceReady", "phone acceptance capture");
+assertIncludes(phoneAcceptanceCaptureScript, "x-nexus-internal-auth", "phone acceptance capture");
+assertIncludes(phoneAcceptanceCaptureScript, "<LAN-IP>", "phone acceptance capture");
 assertIncludes(readinessPanel, "Copy acceptance steps", "readiness panel");
 assertIncludes(readinessRoute, "phoneLan", "readiness route");
 assertIncludes(readinessRoute, "preferredHqLanUrl", "readiness route");
@@ -64,6 +73,9 @@ if (!packageJson.scripts?.["phone:lan:start"]) {
 }
 if (!packageJson.scripts?.["phone:lan:check"]) {
   fail("package.json is missing phone:lan:check");
+}
+if (!packageJson.scripts?.["phone:acceptance:capture"]) {
+  fail("package.json is missing phone:acceptance:capture");
 }
 
 console.log(

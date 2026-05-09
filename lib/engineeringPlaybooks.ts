@@ -724,6 +724,50 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
     ],
   },
   {
+    id: "runtime-finalize-loop",
+    title: "Runtime Finalize Loop",
+    objective:
+      "Close a visual or shell update by actively looking for route, console, media, hydration, and handoff failures before calling the work done.",
+    whenToUse:
+      "Premium visual changes, shell/auth route work, CSP/media updates, or any local update where the page can look healthy while the browser is still logging errors",
+    startSurface: "Resources → Playbooks",
+    steps: [
+      "Run type-check first and fix every TypeScript error before trusting browser behavior.",
+      "Run verify so design, ARPG content, lint, path safety, security, and Tauri posture are checked together.",
+      "Stop the live dev runtime before a production build so `.next` is not being mutated by two processes.",
+      "Run build, then restart the direct `3100` runtime and confirm `/api/health` returns 200.",
+      "Check the affected routes with HTTP status probes, including the public landing and any protected redirect path.",
+      "Run a browser probe that records console errors, page errors, request failures, and unhandled rejections.",
+      "Fix any blocked resource, hydration, route, or runtime issue found by the probes, then rerun the focused checks.",
+      "Update `docs/SYSTEM_STATE.md`, `tasks/todo.md`, and handoff only after the live surface is proven.",
+    ],
+    verification: [
+      "`npm run type-check` exits cleanly.",
+      "`npm run verify` exits cleanly, with only known non-blocking warnings if any.",
+      "`npm run build` exits cleanly after the dev runtime is stopped.",
+      "Fresh `3100` runtime returns 200 for `/api/health` and the affected routes.",
+      "Browser probe reports zero console errors, page errors, request failures, and unhandled rejections.",
+      "`npm run handoff:write` and `npm run handoff:check` pass after state notes change.",
+    ],
+    followOnActions: [
+      {
+        href: "/command?focus=agent-health",
+        label: "Open agent health",
+        detail: "Start from the runtime health lane before trusting higher-level shell signals.",
+      },
+      {
+        href: "/resources?view=impact",
+        label: "Open Impact",
+        detail: "Seed the local blast-radius workbench for the files touched by the update.",
+      },
+      {
+        href: "/resources?view=playbooks&playbook=feature-ship",
+        label: "Open feature ship",
+        detail: "Move from local proof into commit/PR readiness after the runtime checks are quiet.",
+      },
+    ],
+  },
+  {
     id: "api-wire",
     title: "API Wire",
     objective:

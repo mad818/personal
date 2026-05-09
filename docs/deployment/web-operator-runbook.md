@@ -13,12 +13,13 @@ Recommended defaults for production web self-hosting:
 
 ```env
 NEXUS_DEPLOYMENT_PROFILE=web-self-hosted
-NEXUS_NETWORK_MODE=connected
+NEXUS_NETWORK_MODE=internal
 NEXUS_ENABLE_HIGH_RISK_TOOLS=false
+NEXUS_HIGH_RISK_WRITES_REQUIRE_APPROVAL=true
 NEXUS_ALLOW_PAID_APIS=false
 ```
 
-Only opt in to high-risk routes or paid providers when the use case is explicit and approved.
+Only opt in to high-risk routes or paid providers when the use case is explicit and approved. For phone access while the desktop is off, use [`phone-access-coolify.md`](./phone-access-coolify.md).
 
 ## 2) Build and run
 
@@ -33,6 +34,7 @@ docker run --rm -p 3000:3000 --env-file .env.local nexus-prime
 
 Follow:
 - [`coolify.md`](./coolify.md)
+- [`fd2-release-runbook.md`](./fd2-release-runbook.md)
 
 Use the repo-root `Dockerfile` and expose port `3000`.
 
@@ -46,7 +48,7 @@ NEXUS_DEPLOYMENT_PROFILE=web-self-hosted
 ```
 
 Optional:
-- AI provider keys
+- one free/BYOK AI provider key for phone use while desktop Ollama is off
 - data connector keys
 - connector policy JSON
 
@@ -57,10 +59,11 @@ Source of truth:
 
 Run against the deployed host:
 
-```bash
-NEXUS_RELEASE_BASE_URL=https://your-host.example \
-NEXUS_TOKEN=your-token \
+```powershell
+$env:NEXUS_RELEASE_BASE_URL="https://your-host.example"
+$env:NEXUS_TOKEN="your-token"
 npm run release:smoke
+npm run release:diagnostics:capture
 ```
 
 Then manually verify:
@@ -85,7 +88,7 @@ NEXUS_CONNECTOR_POLICY_JSON={"news":true,"flights":false}
 
 If the deployment degrades:
 
-1. Capture `/api/diagnostics`
+1. Capture `npm run release:diagnostics:capture`
 2. Revert env profile to the last known-good config
 3. Redeploy the previous known-good image or commit
 4. Re-run `npm run release:smoke`

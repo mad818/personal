@@ -236,33 +236,38 @@ export const MASSIVE_WIN_PLANS: MassiveWinPlan[] = [
       },
       {
         label: "MW6 Veyrhold town services",
-        status: "current",
+        status: "done",
         detail: "Make Veyrhold feel like the first real town by adding blacksmith, alchemy, market, inn, oath-board services, four district hooks, and starter armor/accessory progression for helm, armor, gloves, boots, rings, and amulet.",
       },
       {
         label: "MW6 Veyrhold NPCs + mini-quests",
-        status: "current",
+        status: "done",
         detail: "Add named Veyrhold locals, four district mini-quests, and service outcome cards so Map, People, and Journal prove the first town has people, jobs, and reward clarity before broader city slices open.",
       },
       {
         label: "MW6 Veyrhold district hub",
-        status: "current",
+        status: "done",
         detail: "Make Veyrhold behave like a first playable town map by adding four visitable district nodes that link NPCs, services, mini-quests, rewards, and local-first visit flags inside the /hq Map drawer.",
       },
       {
         label: "MW6 Oathmarket vendor + job loop",
-        status: "current",
+        status: "done",
         detail: "Make the first Veyrhold district more playable with starter wares, city-scrip pricing, accessory comparison copy, and a choice-driven ledger job surfaced through /hq Map and Kit drawers.",
       },
       {
         label: "MW6 Warden's Steps forge + armor loop",
-        status: "current",
+        status: "done",
         detail: "Make the armor district playable with helm, armor, gloves, and boots fitting orders plus civic oath contracts surfaced through /hq Map and Armory drawers.",
       },
       {
         label: "MW6 Bellroot Commons alchemy + mystery loop",
-        status: "current",
+        status: "done",
         detail: "Make the soft support district playable with safe alchemy brews, Ilo-led oath-lamp readings, recovery rewards, and city-mystery flags surfaced through /hq Map, Kit, and Journal drawers.",
+      },
+      {
+        label: "MW6 Pilgrim Rows rest + road loop",
+        status: "current",
+        detail: "Make the inn district playable with rest/checkpoint options, road rumors, recovery rewards, route-prep flags, and compact Map, Kit, and Journal proof.",
       },
       {
         label: "MW6V/W arsenal visuals + itemization",

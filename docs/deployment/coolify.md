@@ -25,10 +25,16 @@ You can deploy in two ways:
    - **Nixpacks**: leave default; runs `npm run build` then `npm start` (full `next start`, not standalone — both listen on **3000**).
 4. **Port**: expose **3000**.
 5. **Environment variables**: copy names from [`.env.example`](../../.env.example) into Coolify’s secret env UI. Minimum for a working agent:
-   - `ANTHROPIC_API_KEY` (or rely on other providers you configure)
    - `NEXUS_TOKEN` (random string; protects `/api/*` per `middleware.ts`)
    - `NEXUS_DEPLOYMENT_PROFILE=web-self-hosted`
+   - `NEXUS_NETWORK_MODE=internal`
+   - `NEXUS_ENABLE_HIGH_RISK_TOOLS=false`
+   - `NEXUS_HIGH_RISK_WRITES_REQUIRE_APPROVAL=true`
+   - `NEXUS_ALLOW_PAID_APIS=false`
+   - one free/BYOK AI key such as `GROQ_API_KEY`, `GOOGLE_AI_KEY`, or `OPENROUTER_API_KEY`
 6. **Domain**: assign a hostname and TLS in Coolify; enable health checks if offered.
+
+For fully free phone use while the desktop stays on, follow [`phone-access-free-local.md`](./phone-access-free-local.md). For optional hosted phone use while the desktop is off, follow [`phone-access-coolify.md`](./phone-access-coolify.md).
 
 ## After deploy
 
@@ -41,7 +47,16 @@ NEXUS_TOKEN=your-token \
 npm run release:smoke
 ```
 
+- Capture the staged-host diagnostics artifact:
+
+```bash
+NEXUS_RELEASE_BASE_URL=https://your-host.example \
+NEXUS_TOKEN=your-token \
+npm run release:diagnostics:capture
+```
+
 - Rotate `NEXUS_TOKEN` if the UI was ever exposed without TLS.
+- For phone/PWA acceptance, open `/hq?focus=hq-chronicle`, send `ping`, check `/command?focus=provider-health`, then install from the phone browser home-screen flow.
 
 ## Related
 

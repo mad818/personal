@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(echo \"$CLAUDE_TOOL_INPUT\" | tr '[:upper:]' '[:lower:]'); if echo \"$input\" | grep -qE '(rm -rf|rm -r /|rmdir /|del /f|format c:|drop table|drop database|truncate table|delete from .+ where 1|:.*\\(\\).*\\{.*:|curl.*\\|.*bash|wget.*\\|.*bash)'; then echo 'BLOCKED: destructive command detected. Confirm with Mario before running this.'; exit 2; fi; exit 0"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx prettier --write \"$CLAUDE_FILE_PATH\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'End-of-turn checklist: (1) If you touched .ts/.tsx — did you run npx tsc --noEmit and confirm zero errors? (2) Did you re-read the patched section to confirm the edit landed correctly? (3) If this was a bug fix — did you add a row to tasks/lessons.md? (4) Is tasks/todo.md current? Do not mark done until all four are yes.'"
+          }
+        ]
+      }
+    ]
+  }
+}

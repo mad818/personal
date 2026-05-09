@@ -4,11 +4,11 @@ This is how to **run** Nexus (and any parallel AI tooling) as a small org: **you
 
 ## Roles
 
-| Role | Who | Job |
-|------|-----|-----|
-| **Product manager** | You (Max) | Priorities, scope, acceptance, unblock, say no, merge direction |
-| **Engineering squad** | In-app specialists (MAX / EL / DUSTIN / …) + IDE agents (Cursor, Claude Code, etc.) | Execute: code, research, review, ops |
-| **Quality / SRE** | CI (Quality Gates), `npm run verify`, runtime eval | Objective “is the factory green?” |
+| Role                  | Who                                                                 | Job                                                             |
+| --------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **Product manager**   | You (Max)                                                           | Priorities, scope, acceptance, unblock, say no, merge direction |
+| **Engineering squad** | In-app specialists (MAX / EL / DUSTIN / …) + Codex-first IDE agents | Execute: code, research, review, ops                            |
+| **Quality / SRE**     | CI (Quality Gates), `npm run verify`, runtime eval                  | Objective “is the factory green?”                               |
 
 ## What “keep them running at all times” means
 
@@ -22,14 +22,14 @@ It is **not** “every model is always streaming.” It **is**:
 
 ## Map to Nexus Prime
 
-| PM habit | In this repo |
-|----------|----------------|
-| Roadmap | `tasks/todo.md`, `tasks/vision-roadmap.md`, `specs/features/` |
-| Spec before build | `specs/features/*.md` before large features |
-| Code + review | HQ **EL (orbit)** for edits; MAX for synthesis |
-| Health check | **Settings** diagnostics, `/api/status`, **Quality Gates** workflow |
-| Lessons | `tasks/lessons.md` after any correction |
-| Handoff between sessions | `docs/AGENT_HANDOFF.md` + `npm run handoff:write` |
+| PM habit                 | In this repo                                                        |
+| ------------------------ | ------------------------------------------------------------------- |
+| Roadmap                  | `tasks/todo.md`, `tasks/vision-roadmap.md`, `specs/features/`       |
+| Spec before build        | `specs/features/*.md` before large features                         |
+| Code + review            | HQ **EL (orbit)** for edits; MAX for synthesis                      |
+| Health check             | **Settings** diagnostics, `/api/status`, **Quality Gates** workflow |
+| Lessons                  | `tasks/lessons.md` after any correction                             |
+| Handoff between sessions | `docs/AGENT_HANDOFF.md` + `npm run handoff:write`                   |
 
 ## In-app fiction vs real life
 
@@ -38,16 +38,16 @@ It is **not** “every model is always streaming.” It **is**:
 
 ## RACI — who owns what
 
-| Activity | Orchestrator (Mario) | Builder (agents) | Reviewer (JANSKY + Mario) | Ops (JANSKY) |
-|----------|---------------------|-----------------|--------------------------|--------------|
-| Prioritise backlog | **R/A** | I | C | I |
-| Write spec | C | **R** | A | I |
-| Implement code | I | **R/A** | C | I |
-| Code review | A | C | **R** | I |
-| Run verify / CI | I | **R** | A | **R** |
-| Merge to main | **A** | I | C | I |
-| Update handoff | I | **R** | C | **R** |
-| Escalate blocker | C | **R** | A | I |
+| Activity           | Orchestrator (Mario) | Builder (agents) | Reviewer (JANSKY + Mario) | Ops (JANSKY) |
+| ------------------ | -------------------- | ---------------- | ------------------------- | ------------ |
+| Prioritise backlog | **R/A**              | I                | C                         | I            |
+| Write spec         | C                    | **R**            | A                         | I            |
+| Implement code     | I                    | **R/A**          | C                         | I            |
+| Code review        | A                    | C                | **R**                     | I            |
+| Run verify / CI    | I                    | **R**            | A                         | **R**        |
+| Merge to main      | **A**                | I                | C                         | I            |
+| Update handoff     | I                    | **R**            | C                         | **R**        |
+| Escalate blocker   | C                    | **R**            | A                         | I            |
 
 R = Responsible, A = Accountable, C = Consulted, I = Informed.
 
@@ -58,14 +58,14 @@ pending → assigned → in_progress → review → done
                                  ↘ blocked → (unblock) → in_progress
 ```
 
-| State | Meaning | Who moves it |
-|-------|---------|--------------|
-| `pending` | In backlog, not started | Mario (during grooming) |
-| `assigned` | Claimed by an agent | Agent at session start |
-| `in_progress` | Active work underway | Agent on first tool call |
-| `review` | Done, awaiting human sign-off | Agent after verify passes |
-| `done` | Accepted, merged, handoff updated | Mario after review |
-| `blocked` | Waiting on spec, key, or external | Agent — escalate in one sentence |
+| State         | Meaning                           | Who moves it                     |
+| ------------- | --------------------------------- | -------------------------------- |
+| `pending`     | In backlog, not started           | Mario (during grooming)          |
+| `assigned`    | Claimed by an agent               | Agent at session start           |
+| `in_progress` | Active work underway              | Agent on first tool call         |
+| `review`      | Done, awaiting human sign-off     | Agent after verify passes        |
+| `done`        | Accepted, merged, handoff updated | Mario after review               |
+| `blocked`     | Waiting on spec, key, or external | Agent — escalate in one sentence |
 
 Tasks stay in `tasks/todo.md`. State transitions are written as comments:
 `- [ ] [assigned:EL] Fix price sparkline null guard`
@@ -78,4 +78,4 @@ Tasks stay in `tasks/todo.md`. State transitions are written as comments:
 
 ---
 
-*Keep this doc aligned with `.claude/rules/agents.md` and `components/home/office/prompts.ts`.*
+_Keep this doc aligned with `.claude/rules/agents.md` and `components/home/office/prompts.ts`._

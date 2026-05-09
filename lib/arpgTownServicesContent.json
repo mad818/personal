@@ -529,6 +529,82 @@
       "outcomeCopy": "The strongest early mystery clue: it rewards patience and hints that alchemy, city roots, and relic doors are connected."
     }
   ],
+  "pilgrimRowsRestOptions": [
+    {
+      "id": "pilgrim-rest-lamp-checkpoint",
+      "label": "Lamp Checkpoint",
+      "serviceId": "pilgrim-rest",
+      "npcId": "sister-vael-pilgrim",
+      "restRole": "checkpoint",
+      "rewardItemIds": ["health-vial", "pilgrim-tin-ring"],
+      "roadPrepTags": ["checkpoint", "safe-rest", "road-prep"],
+      "summary": "Sister Vael ties a warm lamp to the hero's travel kit so the next road has a believable recovery anchor.",
+      "storyFlag": "veyrhold:pilgrim-rows:rest:lamp-checkpoint",
+      "outcomeCopy": "Sets the first town checkpoint as a story action instead of a bare reset button."
+    },
+    {
+      "id": "pilgrim-rest-boot-mending",
+      "label": "Boot Mending",
+      "serviceId": "pilgrim-rest",
+      "npcId": "sister-vael-pilgrim",
+      "restRole": "travel repair",
+      "rewardItemIds": ["health-vial", "city-scrip"],
+      "roadPrepTags": ["mobility", "repair", "low-tier-gear"],
+      "summary": "The hero learns why plain boots, dry socks, and a careful sole check matter before Warden roads become dangerous.",
+      "storyFlag": "veyrhold:pilgrim-rows:rest:boot-mending",
+      "outcomeCopy": "Reinforces low-tier gear identity and points back to the roadwarden boot path."
+    },
+    {
+      "id": "pilgrim-rest-dawn-meal",
+      "label": "Dawn Meal",
+      "serviceId": "pilgrim-rest",
+      "npcId": "sister-vael-pilgrim",
+      "restRole": "recovery meal",
+      "rewardItemIds": ["focus-draught", "health-vial"],
+      "roadPrepTags": ["focus", "recovery", "quiet-scene"],
+      "summary": "A quiet meal gives the first town a humane pause between civic errands and the next route card.",
+      "storyFlag": "veyrhold:pilgrim-rows:rest:dawn-meal",
+      "outcomeCopy": "Adds a soft recovery beat for caster and melee starts without creating a full food system yet."
+    }
+  ],
+  "pilgrimRowsRoadRumors": [
+    {
+      "id": "pilgrim-rumor-lantern-caravan",
+      "label": "Lantern Caravan",
+      "npcId": "sister-vael-pilgrim",
+      "districtId": "veyrhold-pilgrim-rows",
+      "rumorHook": "A caravan with no horses passed the north stones before dawn, every lantern covered in blue cloth.",
+      "routeHint": "Watch for road events that ask for observation before combat.",
+      "rewardItemIds": ["city-scrip"],
+      "reputationDelta": 1,
+      "storyFlag": "veyrhold:pilgrim-rows:rumor:lantern-caravan",
+      "outcomeCopy": "Turns rumors into route-readiness proof and warns that not every road event should start with fighting."
+    },
+    {
+      "id": "pilgrim-rumor-salt-road-widow",
+      "label": "Salt-Road Widow",
+      "npcId": "sister-vael-pilgrim",
+      "districtId": "veyrhold-pilgrim-rows",
+      "rumorHook": "A widow says the salt road remembers boots, not names, and that the wrong footprint can wake old tolls.",
+      "routeHint": "Future road checks can use boots, rings, and reputation as soft gates.",
+      "rewardItemIds": ["pilgrim-tin-ring"],
+      "reputationDelta": 2,
+      "storyFlag": "veyrhold:pilgrim-rows:rumor:salt-road-widow",
+      "outcomeCopy": "Connects the Pilgrim Tin Ring to travel identity and makes accessory choices feel useful outside combat."
+    },
+    {
+      "id": "pilgrim-rumor-north-gate-blink",
+      "label": "North Gate Blink",
+      "npcId": "sister-vael-pilgrim",
+      "districtId": "veyrhold-pilgrim-rows",
+      "rumorHook": "A child saw the north gate blink after it opened, like something beyond it was waking one eye at a time.",
+      "routeHint": "The next route should carry mystery pressure from Veyrhold instead of feeling like a generic travel menu.",
+      "rewardItemIds": ["relic-dust", "focus-draught"],
+      "reputationDelta": 2,
+      "storyFlag": "veyrhold:pilgrim-rows:rumor:north-gate-blink",
+      "outcomeCopy": "The strongest road clue: it ties Veyrhold's checkpoint, Bellroot mystery, and future gate routes together."
+    }
+  ],
   "districtHooks": [
     {
       "id": "veyrhold-oathmarket-release-hook",

@@ -6,12 +6,28 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
+import AssistantOperatorWorkflowPanel from "@/components/assistant/AssistantOperatorWorkflowPanel";
+import AssistantTurnReceipt from "@/components/assistant/AssistantTurnReceipt";
 import { buildSystemPrompt } from "@/lib/ai";
 import { runAgent, type AgentStep } from "@/lib/agent";
 import {
-  detectRouteFromPrompt,
-  detectRouteFromTool,
-} from "@/lib/chatCapabilityRouting";
+  buildAssistantChatActionModel,
+  normalizeAssistantFailureMessage,
+  resolveAssistantDispatch,
+  resolveAssistantFailure,
+} from "@/lib/assistantDispatch";
+import {
+  mergeAssistantRuntimeReceipt,
+  type AssistantChatActionModel,
+} from "@/lib/assistantChatActions";
+import {
+  shouldShowAssistantOperatorWorkflow,
+  type AssistantOperatorWorkflowFocus,
+  type AssistantOperatorWorkflowState,
+} from "@/lib/assistantOperatorWorkflow";
+import { loadAssistantRuntimeReceipt } from "@/lib/assistantRuntimeReceipt";
+import { detectRouteFromTool } from "@/lib/chatCapabilityRouting";
+import { getTabFromHref } from "@/lib/missionHandoff";
 import HomeAmbient from "./HomeAmbient";
 
 const QUICK_CHIPS = [
@@ -51,6 +67,9 @@ interface AiMsg {
   type: "ai";
   text: string;
   steps?: AgentStep[];
+  sourceText?: string;
+  actionModel?: AssistantChatActionModel | null;
+  operatorWorkflow?: AssistantOperatorWorkflowState | null;
 }
 type ChatMsg = UserMsg | AiMsg;
 
@@ -434,6 +453,9 @@ export default function HomeChat() {
   const pendingDrafts = useStore((s) => s.pendingDrafts);
 
   const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [workflowFocusByMessage, setWorkflowFocusByMessage] = useState<
+    Record<number, AssistantOperatorWorkflowFocus>
+  >({});
   const [liveSteps, setLiveSteps] = useState<AgentStep[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -458,17 +480,96 @@ export default function HomeChat() {
   }, [messages, liveSteps]);
 
   const send = useCallback(
-    async (text: string) => {
+    async (
+      text: string,
+      options: { forceAnswerHere?: boolean; forceRouteAction?: boolean } = {},
+    ) => {
       if (!text.trim() || loading) return;
-      const routeFromPrompt = detectRouteFromPrompt(text);
+      const dispatchPlan = resolveAssistantDispatch(text, options);
+
+      if (dispatchPlan.operatorChoiceNeeded && dispatchPlan.preparedWorkspace) {
+        const choiceText = `I can answer here, or open ${dispatchPlan.preparedWorkspace.label.replace(/^Open\s+/i, "")} so the workspace is in front. Which is better for this move?`;
+        setInput("");
+        setLiveSteps([]);
+        setMessages((m) => [
+          ...m,
+          { type: "user", text } as UserMsg,
+          {
+            type: "ai",
+            text: choiceText,
+            steps: [],
+            sourceText: text,
+            actionModel: dispatchPlan.actionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          } as AiMsg,
+        ]);
+        addMsg({ role: "user", content: text });
+        addMsg({ role: "assistant", content: choiceText });
+        return;
+      }
+
+      if (
+        dispatchPlan.answerMode === "route_action" &&
+        dispatchPlan.routeHref &&
+        dispatchPlan.routeHref !== pathname &&
+        lastRoutedRef.current !== dispatchPlan.routeHref
+      ) {
+        const targetLabel =
+          dispatchPlan.preparedWorkspace?.label.replace(/^Open\s+/i, "") ??
+          dispatchPlan.routeHref;
+        const routeText = `Opening ${targetLabel}. I staged the right workspace so the next step is visible instead of buried in chat.`;
+        lastRoutedRef.current = dispatchPlan.routeHref;
+        setTab(getTabFromHref(dispatchPlan.routeHref));
+        router.push(dispatchPlan.routeHref);
+        setInput("");
+        setLiveSteps([]);
+        setMessages((m) => [
+          ...m,
+          { type: "user", text } as UserMsg,
+          {
+            type: "ai",
+            text: routeText,
+            steps: [],
+            sourceText: text,
+            actionModel: dispatchPlan.actionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          } as AiMsg,
+        ]);
+        addMsg({ role: "user", content: text });
+        addMsg({ role: "assistant", content: routeText });
+        return;
+      }
+
+      const routeFromPrompt =
+        dispatchPlan.answerMode === "route_action" ? dispatchPlan.routeHref : null;
       if (
         routeFromPrompt &&
         routeFromPrompt !== pathname &&
         lastRoutedRef.current !== routeFromPrompt
       ) {
         lastRoutedRef.current = routeFromPrompt;
-        setTab(routeFromPrompt.slice(1) || "home");
+        setTab(getTabFromHref(routeFromPrompt));
         router.push(routeFromPrompt);
+      }
+
+      if (dispatchPlan.localReply) {
+        setInput("");
+        setLiveSteps([]);
+        setMessages((m) => [
+          ...m,
+          { type: "user", text } as UserMsg,
+          {
+            type: "ai",
+            text: dispatchPlan.localReply,
+            steps: [],
+            sourceText: text,
+            actionModel: dispatchPlan.actionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          } as AiMsg,
+        ]);
+        addMsg({ role: "user", content: text });
+        addMsg({ role: "assistant", content: dispatchPlan.localReply });
+        return;
       }
 
       setInput("");
@@ -477,7 +578,17 @@ export default function HomeChat() {
       setMessages((m) => [...m, { type: "user", text } as UserMsg]);
       addMsg({ role: "user", content: text });
       setLoading(true);
-      setMessages((m) => [...m, { type: "ai", text: "", steps: [] } as AiMsg]);
+      setMessages((m) => [
+        ...m,
+        {
+          type: "ai",
+          text: "",
+          steps: [],
+          sourceText: text,
+          actionModel: dispatchPlan.actionModel,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
+        } as AiMsg,
+      ]);
 
       const steps: AgentStep[] = [];
 
@@ -489,7 +600,9 @@ export default function HomeChat() {
 
         const answer = await runAgent({
           settings,
-          systemPrompt: buildSystemPrompt(settings),
+          agentId: dispatchPlan.agent,
+          toolCatalog: dispatchPlan.toolCatalog,
+          systemPrompt: buildSystemPrompt(settings) + dispatchPlan.contextBlock,
           messages: history,
           onStep: (step) => {
             steps.push(step);
@@ -501,7 +614,7 @@ export default function HomeChat() {
                 lastRoutedRef.current !== routeFromTool
               ) {
                 lastRoutedRef.current = routeFromTool;
-                setTab(routeFromTool.slice(1) || "home");
+                setTab(getTabFromHref(routeFromTool));
                 router.push(routeFromTool);
               }
             }
@@ -521,6 +634,16 @@ export default function HomeChat() {
           },
         });
 
+        const latestArtifact = useStore.getState().agentRunHistory[0];
+        const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
+          provider: latestArtifact?.providerUsed,
+          filesChanged: false,
+        });
+        const actionModel = mergeAssistantRuntimeReceipt(
+          dispatchPlan.actionModel,
+          runtimeReceipt,
+        );
+
         setMessages((m) => {
           const updated = [...m];
           const last = updated[updated.length - 1] as AiMsg;
@@ -529,20 +652,42 @@ export default function HomeChat() {
               type: "ai",
               text: answer,
               steps: [...steps],
+              sourceText: text,
+              actionModel,
+              operatorWorkflow: dispatchPlan.operatorWorkflow,
             };
           }
           return updated;
         });
         addMsg({ role: "assistant", content: answer });
-      } catch {
+      } catch (err) {
+        const failure = resolveAssistantFailure(err);
+        const recoveryText = normalizeAssistantFailureMessage(err);
+        const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
+          recoveryCode: failure.recoveryCode,
+          filesChanged: false,
+        });
+        const recoveryActionModel = buildAssistantChatActionModel({
+          answerMode: "direct",
+          routeHref: null,
+          preparedWorkspace: null,
+          sourceText: text,
+          recoveryAction: failure.recoveryAction,
+          diagnostic: failure.diagnostic,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
+          runtimeReceipt,
+        });
         setMessages((m) => {
           const updated = [...m];
           const last = updated[updated.length - 1] as AiMsg;
           if (last?.type === "ai") {
             updated[updated.length - 1] = {
               type: "ai",
-              text: "Something went wrong. Check your API key in Settings or make sure Ollama is running (ollama serve).",
+              text: recoveryText,
               steps,
+              sourceText: text,
+              actionModel: recoveryActionModel,
+              operatorWorkflow: dispatchPlan.operatorWorkflow,
             };
           }
           return updated;
@@ -553,6 +698,38 @@ export default function HomeChat() {
       }
     },
     [loading, settings, chatHistory, addMsg, pathname, router, setTab],
+  );
+
+  const handleChatAction = useCallback(
+    (
+      message: AiMsg,
+      action: AssistantChatActionModel["actions"][number],
+      messageIndex: number,
+    ) => {
+      if (action.workflowFocus) {
+        const workflowFocus = action.workflowFocus;
+        setWorkflowFocusByMessage((current) => ({
+          ...current,
+          [messageIndex]: workflowFocus,
+        }));
+        return;
+      }
+      if (action.kind === "answer_here") {
+        void send(action.prompt ?? message.sourceText ?? "", {
+          forceAnswerHere: true,
+        });
+        return;
+      }
+      if (action.kind === "retry_local") {
+        void send(message.sourceText ?? "", { forceAnswerHere: true });
+        return;
+      }
+      if (action.href) {
+        setTab(getTabFromHref(action.href));
+        router.push(action.href);
+      }
+    },
+    [router, send, setTab],
   );
 
   return (
@@ -757,6 +934,51 @@ export default function HomeChat() {
                     {m.text || <span style={{ opacity: 0.4 }}>●●●</span>}
                   </div>
                 )}
+                {m.actionModel?.actions.length ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "6px",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {m.actionModel.actions.map((action) => (
+                      <button
+                        key={`${action.kind}-${action.href ?? action.label}`}
+                        type="button"
+                        onClick={() => handleChatAction(m, action, i)}
+                        style={{
+                          minHeight: "28px",
+                          padding: "0 10px",
+                          borderRadius: "999px",
+                          border: "1px solid var(--border2)",
+                          background: "rgba(255,255,255,0.035)",
+                          color: "var(--text2)",
+                          fontSize: "11px",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                        title={action.detail}
+                      >
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                <AssistantTurnReceipt actionModel={m.actionModel} compact />
+                {shouldShowAssistantOperatorWorkflow(
+                  m.actionModel?.operatorWorkflow ?? m.operatorWorkflow,
+                ) ? (
+                  <AssistantOperatorWorkflowPanel
+                    workflow={
+                      (m.actionModel?.operatorWorkflow ??
+                        m.operatorWorkflow) as AssistantOperatorWorkflowState
+                    }
+                    focus={workflowFocusByMessage[i]}
+                    compact
+                  />
+                ) : null}
               </div>
             )}
           </div>

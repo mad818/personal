@@ -36,6 +36,8 @@ import {
   ARPG_BELLROOT_LAMP_READINGS,
   ARPG_OATHMARKET_LEDGER_CHOICES,
   ARPG_OATHMARKET_VENDOR_WARES,
+  ARPG_PILGRIM_ROWS_REST_OPTIONS,
+  ARPG_PILGRIM_ROWS_ROAD_RUMORS,
   ARPG_VEYR_DISTRICT_HOOKS,
   ARPG_VEYR_DISTRICT_MAP_NODES,
   ARPG_VEYR_HUB_SERVICES,
@@ -848,6 +850,12 @@ export default function ArpgHud({
   const bellrootLampReadingCount = ARPG_BELLROOT_LAMP_READINGS.filter((reading) =>
     save.storyFlags.includes(reading.storyFlag),
   ).length;
+  const pilgrimRowsVisited = save.storyFlags.includes("veyrhold:visited:pilgrim-rows");
+  const pilgrimRowsSelected = save.journey?.selectedSubCityId === "veyrhold-pilgrim-rows";
+  const pilgrimRowsUnlocked = firstReleaseTownOpen && (pilgrimRowsVisited || pilgrimRowsSelected);
+  const pilgrimRowsRoadRumorCount = ARPG_PILGRIM_ROWS_ROAD_RUMORS.filter((rumor) =>
+    save.storyFlags.includes(rumor.storyFlag),
+  ).length;
   const adventureEnemyId = combat.targetId ?? "hollow-sentry";
   const adventureEnemyName =
     combat.targetDefinition?.name ?? ARPG_ENEMIES[adventureEnemyId]?.name ?? "Hollow Sentry";
@@ -1191,6 +1199,38 @@ export default function ArpgHud({
         collectArpgItem(rewardItemId, `veyrhold-bellroot-reading:${reading.id}:${rewardItemId}`);
       }
       recordArpgReputation("veyrhold", reading.reputationDelta);
+    }
+    setDrawer("journal");
+  };
+
+  const handlePilgrimRowsRestOption = (rest: (typeof ARPG_PILGRIM_ROWS_REST_OPTIONS)[number]) => {
+    if (!firstReleaseTownOpen) {
+      setDrawer("map");
+      return;
+    }
+
+    if (!save.storyFlags.includes(rest.storyFlag)) {
+      advanceArpgStory(rest.storyFlag);
+      for (const rewardItemId of rest.rewardItemIds) {
+        collectArpgItem(rewardItemId, `veyrhold-pilgrim-rest:${rest.id}:${rewardItemId}`);
+      }
+      recordArpgReputation("veyrhold", 1);
+    }
+    setDrawer("inventory");
+  };
+
+  const handlePilgrimRowsRoadRumor = (rumor: (typeof ARPG_PILGRIM_ROWS_ROAD_RUMORS)[number]) => {
+    if (!firstReleaseTownOpen) {
+      setDrawer("map");
+      return;
+    }
+
+    if (!save.storyFlags.includes(rumor.storyFlag)) {
+      advanceArpgStory(rumor.storyFlag);
+      for (const rewardItemId of rumor.rewardItemIds) {
+        collectArpgItem(rewardItemId, `veyrhold-pilgrim-rumor:${rumor.id}:${rewardItemId}`);
+      }
+      recordArpgReputation("veyrhold", rumor.reputationDelta);
     }
     setDrawer("journal");
   };
@@ -2206,6 +2246,42 @@ export default function ArpgHud({
                 </div>
               </div>
               <div
+                data-testid="arpg-pilgrim-kit-rest"
+                style={{
+                  border: "1px solid rgba(180, 210, 255, 0.14)",
+                  borderRadius: 12,
+                  display: "grid",
+                  gap: 7,
+                  padding: 8,
+                }}
+              >
+                <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  <span style={chipStyle}>Pilgrim Rows rest</span>
+                  <span style={chipStyle}>{pilgrimRowsUnlocked ? "checkpoint open" : "visit rows"}</span>
+                  <span style={chipStyle}>road prep + recovery</span>
+                </div>
+                <div style={{ display: "grid", gap: 5 }}>
+                  {ARPG_PILGRIM_ROWS_REST_OPTIONS.map((rest) => (
+                    <button
+                      key={rest.id}
+                      data-testid={`arpg-pilgrim-kit-rest-${rest.id}`}
+                      type="button"
+                      disabled={!pilgrimRowsUnlocked}
+                      onClick={() => handlePilgrimRowsRestOption(rest)}
+                      style={{
+                        ...ghostButtonStyle,
+                        cursor: pilgrimRowsUnlocked ? "pointer" : "not-allowed",
+                        opacity: pilgrimRowsUnlocked ? 1 : 0.52,
+                        textAlign: "left",
+                        whiteSpace: "normal",
+                      }}
+                    >
+                      {rest.label} - {rest.restRole} - {rest.roadPrepTags.join(" / ")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div
                 data-testid="arpg-arsenal-grid"
                 style={{
                   border: "1px solid rgba(255, 214, 150, 0.16)",
@@ -3049,6 +3125,88 @@ export default function ArpgHud({
                 </div>
               </div>
               <div
+                data-testid="arpg-pilgrim-rows-runtime"
+                style={{
+                  border: "1px solid rgba(180, 210, 255, 0.16)",
+                  borderRadius: 14,
+                  background:
+                    "linear-gradient(135deg, rgba(35,48,72,.34), rgba(12,12,18,.52))",
+                  display: "grid",
+                  gap: 8,
+                  padding: 8,
+                }}
+              >
+                <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  <span style={chipStyle}>Pilgrim Rows</span>
+                  <span style={chipStyle}>{townServices.pilgrimRowsRestOptionCount} rest options</span>
+                  <span style={chipStyle}>road rumors {pilgrimRowsRoadRumorCount}/{townServices.pilgrimRowsRoadRumorCount}</span>
+                  <span style={{ ...chipStyle, marginLeft: "auto" }}>
+                    {pilgrimRowsUnlocked ? "checkpoint open" : "visit Rows"}
+                  </span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 6 }}>
+                  {ARPG_PILGRIM_ROWS_REST_OPTIONS.map((rest) => {
+                    const rested = save.storyFlags.includes(rest.storyFlag);
+                    return (
+                      <button
+                        key={rest.id}
+                        data-testid={`arpg-pilgrim-rest-${rest.id}`}
+                        type="button"
+                        disabled={!pilgrimRowsUnlocked}
+                        onClick={() => handlePilgrimRowsRestOption(rest)}
+                        style={{
+                          ...(rested ? buttonStyle : ghostButtonStyle),
+                          cursor: pilgrimRowsUnlocked ? "pointer" : "not-allowed",
+                          opacity: pilgrimRowsUnlocked ? 1 : 0.52,
+                          textAlign: "left",
+                          whiteSpace: "normal",
+                        }}
+                      >
+                        <span style={{ display: "grid", gap: 3 }}>
+                          <span style={{ color: "#ffe1a6", fontSize: 9 }}>
+                            {rested ? "Bound" : "Rest"} - {rest.label}
+                          </span>
+                          <span style={{ color: "rgba(255,240,214,.58)", fontSize: 8, lineHeight: 1.25 }}>
+                            {rest.restRole} - {rest.rewardItemIds.join(" / ")}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ display: "grid", gap: 6 }}>
+                  <span style={chipStyle}>Road rumors</span>
+                  {ARPG_PILGRIM_ROWS_ROAD_RUMORS.map((rumor) => {
+                    const recorded = save.storyFlags.includes(rumor.storyFlag);
+                    return (
+                      <button
+                        key={rumor.id}
+                        data-testid={`arpg-pilgrim-rumor-${rumor.id}`}
+                        type="button"
+                        disabled={!pilgrimRowsUnlocked}
+                        onClick={() => handlePilgrimRowsRoadRumor(rumor)}
+                        style={{
+                          ...(recorded ? buttonStyle : ghostButtonStyle),
+                          cursor: pilgrimRowsUnlocked ? "pointer" : "not-allowed",
+                          opacity: pilgrimRowsUnlocked ? 1 : 0.52,
+                          textAlign: "left",
+                          whiteSpace: "normal",
+                        }}
+                      >
+                        <span style={{ display: "grid", gap: 3 }}>
+                          <span style={{ color: "#ffe1a6", fontSize: 9 }}>
+                            {recorded ? "Heard" : "Hear"} - {rumor.label}
+                          </span>
+                          <span style={{ color: "rgba(255,240,214,.58)", fontSize: 8, lineHeight: 1.25 }}>
+                            {rumor.rewardItemIds.join(" / ")} - {rumor.routeHint}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div
                 data-testid="arpg-veyrhold-town-services"
                 style={{
                   border: "1px solid rgba(255, 214, 150, 0.16)",
@@ -3707,6 +3865,52 @@ export default function ArpgHud({
                   );
                 })}
               </div>
+              <div
+                data-testid="arpg-pilgrim-road-rumors"
+                style={{
+                  border: "1px solid rgba(180,210,255,.12)",
+                  borderRadius: 12,
+                  display: "grid",
+                  gap: 6,
+                  padding: 8,
+                }}
+              >
+                <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  <span style={chipStyle}>Pilgrim road rumors</span>
+                  <span style={chipStyle}>{pilgrimRowsRoadRumorCount}/{townServices.pilgrimRowsRoadRumorCount} heard</span>
+                  <span style={{ ...chipStyle, marginLeft: "auto" }}>
+                    {pilgrimRowsUnlocked ? "rows open" : "visit Rows"}
+                  </span>
+                </div>
+                {ARPG_PILGRIM_ROWS_ROAD_RUMORS.map((rumor) => {
+                  const recorded = save.storyFlags.includes(rumor.storyFlag);
+                  return (
+                    <button
+                      key={rumor.id}
+                      data-testid={`arpg-journal-pilgrim-rumor-${rumor.id}`}
+                      type="button"
+                      disabled={!pilgrimRowsUnlocked}
+                      onClick={() => handlePilgrimRowsRoadRumor(rumor)}
+                      style={{
+                        ...(recorded ? buttonStyle : ghostButtonStyle),
+                        cursor: pilgrimRowsUnlocked ? "pointer" : "not-allowed",
+                        opacity: pilgrimRowsUnlocked ? 1 : 0.55,
+                        textAlign: "left",
+                        whiteSpace: "normal",
+                      }}
+                    >
+                      <span style={{ display: "grid", gap: 3 }}>
+                        <span style={{ color: "#ffe1a6", fontSize: 9 }}>
+                          {recorded ? "Heard" : "Hear"} - {rumor.label}
+                        </span>
+                        <span style={{ color: "rgba(255,240,214,.58)", fontSize: 8, lineHeight: 1.25 }}>
+                          {rumor.rumorHook}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
               <div style={{ display: "grid", gap: 6 }}>
                 {Object.values(ARPG_LORE_NODES).map((node, index) => (
                   <button
@@ -4157,10 +4361,36 @@ export default function ArpgHud({
                   <span style={chipStyle}>
                     Release flows {productionReadiness.releaseFlowCount}
                   </span>
+                  <span style={chipStyle}>
+                    Fallback proof {productionReadiness.fallbackProofCount}
+                  </span>
                 </div>
                 <p style={{ margin: 0, color: "rgba(255,240,214,.62)", fontSize: 10, lineHeight: 1.35 }}>
                   {productionReadiness.assetPipeline.commercialProofRule}
                 </p>
+                <div
+                  data-testid="arpg-fallback-proof-matrix"
+                  style={{
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    borderRadius: 12,
+                    background: "rgba(255, 255, 255, 0.04)",
+                    display: "grid",
+                    gap: 6,
+                    padding: 8,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <strong style={{ color: "#f8f0df", fontSize: 11 }}>Fallback proof matrix</strong>
+                    <span style={{ ...chipStyle, marginLeft: "auto" }}>Windows-safe</span>
+                  </div>
+                  <div style={{ display: "grid", gap: 5 }}>
+                    {productionReadiness.releaseGates.fallbackProofMatrix.map((row) => (
+                      <span key={row.id} data-testid={`arpg-fallback-proof-${row.id}`} style={chipStyle}>
+                        {row.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div
                   data-testid="arpg-presentation-readiness"
                   style={{

@@ -205,6 +205,23 @@ export interface VehicleTelemetryFrame {
   recentEvents: VehicleHealthEvent[]
 }
 
+export interface VehicleReplayScenario {
+  id: string
+  label: string
+  posture: "simulation_only"
+  summary: string
+  frames: VehicleTelemetryFrame[]
+  vaultPackage: {
+    title: string
+    tags: string[]
+    incidentType:
+      | "routine_patrol"
+      | "link_degradation"
+      | "battery_return"
+      | "operator_review"
+  }
+}
+
 export interface VehicleControlPosture {
   surfaceAuthority: VehicleAuthorityClass
   commandAuthority: VehicleAuthorityClass

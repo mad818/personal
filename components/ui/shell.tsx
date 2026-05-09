@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type {
   CSSProperties,
   PointerEvent as ReactPointerEvent,
@@ -13,8 +13,14 @@ import PageTransition from "@/components/ui/PageTransition";
 import SpatialCommandStrip from "@/components/ui/SpatialCommandStrip";
 import { getSurfaceBranding } from "@/lib/brand";
 import { CINEMATIC_IA_VERSION, getCinematicIASurface } from "@/lib/cinematicIA";
+import { HOMEFRONT_SOURCE_INTAKE } from "@/lib/homefrontSourceIntelligence";
+import {
+  resolveHomefrontVisualSurfaceSpec,
+  type HomefrontVisualSurfaceSpec,
+} from "@/lib/homefrontVisualParity";
 import { getNexusTasteContract } from "@/lib/nexusTasteContract";
 import { NEXUS_FREE_USE_LABEL } from "@/lib/productGuarantees";
+import { getSurfaceCapability } from "@/lib/surfaceCapabilities";
 import {
   resolveSurfaceAtmosphereSpec,
   resolveSurfaceSequencePreset,
@@ -38,6 +44,14 @@ type HomefrontRouteState = {
   view: string | null;
 };
 type HomefrontLiveSignalState = HomefrontLiveState["runtimeStatus"];
+type RouteSearchParams = {
+  toString(): string;
+  get(name: string): string | null;
+};
+
+const HOMEFRONT_GUARDIAN_HERO_IMAGE = "/images/homefront-guardian-hero.webp";
+const HOMEFRONT_DRONE_IMAGE = "/images/homefront-drone-patrol.webp";
+const HOMEFRONT_CAPABILITY_VIDEO = "/videos/homefront-capability-reel.webm";
 
 const SURFACE_ART: Record<
   ShellSurface,
@@ -50,10 +64,10 @@ const SURFACE_ART: Record<
   }
 > = {
   default: {
-    plateSrc: "/theme/satops-command-plate.svg",
+    plateSrc: HOMEFRONT_GUARDIAN_HERO_IMAGE,
     platePosition: "50% 50%",
-    strap: "Command picture",
-    caption: "One live command plate.",
+    strap: "Home perimeter",
+    caption: "Live homefront perimeter plane.",
     readouts: [
       { label: "Window", value: "Live" },
       { label: "Posture", value: "Locked" },
@@ -61,10 +75,10 @@ const SURFACE_ART: Record<
     ],
   },
   hq: {
-    plateSrc: "/theme/satops-hq-plate.svg",
+    plateSrc: HOMEFRONT_GUARDIAN_HERO_IMAGE,
     platePosition: "50% 50%",
-    strap: "Mission plate",
-    caption: "Chronicle-first command plate.",
+    strap: "Home perimeter",
+    caption: "Chronicle-first perimeter plane.",
     readouts: [
       { label: "Station", value: "JANSKY" },
       { label: "Track", value: "Command" },
@@ -148,6 +162,17 @@ const SURFACE_ART: Record<
       { label: "Mission", value: "Prep" },
     ],
   },
+  iot: {
+    plateSrc: HOMEFRONT_GUARDIAN_HERO_IMAGE,
+    platePosition: "50% 50%",
+    strap: "Sensor desk",
+    caption: "Sensor posture and automation review on one desk.",
+    readouts: [
+      { label: "MQTT", value: "Watched" },
+      { label: "Devices", value: "Mapped" },
+      { label: "Rules", value: "Review" },
+    ],
+  },
   resources: {
     plateSrc: "/theme/satops-resources-plate.svg",
     platePosition: "50% 50%",
@@ -220,6 +245,10 @@ const SURFACE_LAYOUT: Record<
     canvasClass: "nexus-ops-canvas--vehicle",
     stripLabel: "Launch board",
   },
+  iot: {
+    canvasClass: "nexus-ops-canvas--iot",
+    stripLabel: "Sensor desk",
+  },
   resources: {
     canvasClass: "nexus-ops-canvas--resources",
     stripLabel: "Reference lattice",
@@ -251,7 +280,6 @@ type HomefrontVisionItem = {
   value: string;
   detail: string;
 };
-
 const HOMEFRONT_THRESHOLD: Partial<
   Record<ShellSurface, HomefrontThresholdSpec>
 > = {
@@ -657,6 +685,35 @@ function ShellStageBackdrop({
           priority={surface === "hq"}
         />
       </div>
+      {art.plateSrc === HOMEFRONT_GUARDIAN_HERO_IMAGE ? (
+        <>
+          <video
+            autoPlay
+            className="nexus-shell-stage__capabilityVideo"
+            data-testid="homefront-shell-capability-video"
+            loop
+            muted
+            playsInline
+            poster={HOMEFRONT_GUARDIAN_HERO_IMAGE}
+            preload="metadata"
+          >
+            <source src={HOMEFRONT_CAPABILITY_VIDEO} type="video/webm" />
+          </video>
+          <div
+            className="nexus-shell-stage__guardianDrone"
+            data-testid="homefront-shell-drone"
+          >
+            <Image
+              src={HOMEFRONT_DRONE_IMAGE}
+              alt=""
+              width={220}
+              height={220}
+              className="nexus-shell-stage__guardianDroneImage"
+              priority={surface === "hq"}
+            />
+          </div>
+        </>
+      ) : null}
       <div className="nexus-shell-stage__cartography" />
       <div className="nexus-shell-stage__trace" />
       <div className="nexus-shell-stage__rings" />
@@ -683,6 +740,368 @@ function buildSequenceDelays(
   const support = Math.max(sequence.supportDelayMs, primary + 120);
   const continuity = Math.max(sequence.continuityDelayMs, support + 120);
   return { hero, primary, support, continuity };
+}
+
+function compactHomefrontCopy(value: string, maxLength = 108) {
+  if (value.length <= maxLength) return value;
+  const truncated = value.slice(0, maxLength - 3).replace(/\s+\S*$/, "").trim();
+  return `${truncated || value.slice(0, maxLength - 3).trim()}...`;
+}
+
+function buildCurrentRouteHref(
+  pathname: string | null,
+  searchParams: RouteSearchParams,
+) {
+  const search = searchParams.toString();
+  return `${pathname ?? ""}${search ? `?${search}` : ""}`;
+}
+
+function isRouteHrefActive(
+  href: string | undefined,
+  pathname: string | null,
+  searchParams: RouteSearchParams,
+) {
+  if (!href || !pathname) return false;
+  try {
+    const target = new URL(href, "http://nexus.local");
+    if (target.pathname !== pathname) return false;
+    const targetParams = Array.from(target.searchParams.entries());
+    if (targetParams.length === 0) return true;
+    return targetParams.every(([key, value]) => searchParams.get(key) === value);
+  } catch {
+    return false;
+  }
+}
+
+function HomefrontSurfaceModule({
+  surface,
+  spec,
+  children,
+}: {
+  surface: ShellSurface;
+  spec: HomefrontVisualSurfaceSpec;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className="nexus-homefront-surfaceModule"
+      data-testid="homefront-surface-module"
+      data-surface={surface}
+      data-visual-role={spec.visualRole}
+      data-interior-polish={spec.interiorPolish ? "true" : "false"}
+      data-support-density={spec.interiorPolish?.supportDensity ?? "standard"}
+    >
+      {children}
+    </div>
+  );
+}
+
+function HomefrontDataRail({
+  surface,
+  items,
+}: {
+  surface: ShellSurface;
+  items: Array<{ label: string; value: string }>;
+}) {
+  return (
+    <div
+      className="nexus-homefront-dataRail"
+      data-testid="homefront-data-rail"
+      data-surface={surface}
+      aria-label="Homefront live surface readouts"
+    >
+      {items.map((item) => (
+        <span key={`${surface}-${item.label}-${item.value}`}>
+          <em>{item.label}</em>
+          <strong>{item.value}</strong>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function HomefrontMediaPanel({
+  surface,
+  art,
+  branding,
+  spec,
+}: {
+  surface: ShellSurface;
+  art: (typeof SURFACE_ART)[ShellSurface];
+  branding: ReturnType<typeof getSurfaceBranding>;
+  spec: HomefrontVisualSurfaceSpec;
+}) {
+  const usesGuardianMedia =
+    spec.mediaMode === "guardian-image" || spec.mediaMode === "guardian-video";
+  const mediaSrc = usesGuardianMedia ? HOMEFRONT_GUARDIAN_HERO_IMAGE : art.plateSrc;
+  const showDrone = usesGuardianMedia || surface === "vehicle" || surface === "iot";
+  const polish = spec.interiorPolish;
+
+  return (
+    <div
+      className="nexus-homefront-mediaPanel"
+      data-testid="homefront-media-panel"
+      data-surface={surface}
+      data-media-mode={spec.mediaMode}
+      data-media-moment={polish?.mediaMoment ?? ""}
+      aria-label={`${branding.visibleLabel} visual proof panel`}
+    >
+      <div className="nexus-homefront-mediaPanel__visual" aria-hidden="true">
+        <Image
+          src={mediaSrc}
+          alt=""
+          fill
+          sizes="(max-width: 980px) 100vw, 460px"
+          className="nexus-homefront-mediaPanel__image"
+          style={{ objectPosition: usesGuardianMedia ? "50% 50%" : art.platePosition }}
+        />
+        {spec.mediaMode === "guardian-video" ? (
+          <video
+            autoPlay
+            className="nexus-homefront-mediaPanel__video"
+            loop
+            muted
+            playsInline
+            poster={HOMEFRONT_GUARDIAN_HERO_IMAGE}
+            preload="metadata"
+          >
+            <source src={HOMEFRONT_CAPABILITY_VIDEO} type="video/webm" />
+          </video>
+        ) : null}
+        {showDrone ? (
+          <Image
+            src={HOMEFRONT_DRONE_IMAGE}
+            alt=""
+            width={180}
+            height={180}
+            className="nexus-homefront-mediaPanel__drone"
+          />
+        ) : null}
+        <div className="nexus-homefront-mediaPanel__grid" />
+        <div className="nexus-homefront-mediaPanel__sweep" />
+      </div>
+      <div className="nexus-homefront-mediaPanel__readouts">
+        <span>{art.strap}</span>
+        <strong>{art.caption}</strong>
+        {polish ? (
+          <p className="nexus-homefront-mediaPanel__moment">
+            {compactHomefrontCopy(polish.mediaMoment, 96)}
+          </p>
+        ) : null}
+        <div>
+          {art.readouts.map((readout) => (
+            <em key={`${surface}-${readout.label}`}>
+              {readout.label}: {readout.value}
+            </em>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HomefrontActionDock({
+  surface,
+  spec,
+}: {
+  surface: ShellSurface;
+  spec: HomefrontVisualSurfaceSpec;
+}) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const capability = getSurfaceCapability(surface);
+  const actions = capability.jumpActions.slice(0, 3);
+  const polish = spec.interiorPolish;
+
+  return (
+    <div
+      className="nexus-homefront-actionDock"
+      data-testid="homefront-action-dock"
+      data-surface={surface}
+      data-active-label={polish?.activeStateLabel ?? ""}
+      aria-label={`${capability.title} route actions`}
+    >
+      <span className="nexus-homefront-actionDock__primary">
+        {spec.primaryActionLabel}
+        {polish ? (
+          <em className="nexus-homefront-actionDock__activeLabel">
+            {polish.activeStateLabel}
+          </em>
+        ) : null}
+      </span>
+      <div>
+        {actions.map((action, index) => {
+          const active =
+            isRouteHrefActive(action.href, pathname, searchParams) ||
+            (index === 0 &&
+              buildCurrentRouteHref(pathname, searchParams) === capability.route);
+          return (
+            <a
+              key={`${surface}-${action.href}-${action.label}`}
+              href={action.href}
+              data-active={active ? "true" : "false"}
+            >
+              {action.label}
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function HomefrontRouteTabs({
+  surface,
+}: {
+  surface: ShellSurface;
+}) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const spec = resolveHomefrontVisualSurfaceSpec(surface);
+  const capability = getSurfaceCapability(surface);
+  const sections = capability.subsections.slice(0, 5);
+  const activeIndex = sections.findIndex((section) =>
+    isRouteHrefActive(section.href ?? capability.route, pathname, searchParams),
+  );
+
+  return (
+    <nav
+      className="nexus-homefront-routeTabs"
+      data-testid="homefront-route-tabs"
+      data-surface={surface}
+      data-active-label={spec.interiorPolish?.activeStateLabel ?? ""}
+      aria-label={`${capability.title} active sections`}
+    >
+      {sections.map((section, index) => {
+        const href = section.href ?? capability.route;
+        const active = activeIndex >= 0 ? index === activeIndex : index === 0;
+        return (
+          <a
+            key={`${surface}-${section.label}`}
+            href={href}
+            data-active={active ? "true" : "false"}
+            aria-current={active ? "page" : undefined}
+          >
+            <span>{section.label}</span>
+            <em>{compactHomefrontCopy(section.detail, 54)}</em>
+          </a>
+        );
+      })}
+    </nav>
+  );
+}
+
+function HomefrontVisualParityBand({
+  surface,
+  art,
+  branding,
+  variant = "route",
+}: {
+  surface: ShellSurface;
+  art: (typeof SURFACE_ART)[ShellSurface];
+  branding: ReturnType<typeof getSurfaceBranding>;
+  variant?: "route" | "chrome";
+}) {
+  const spec = resolveHomefrontVisualSurfaceSpec(surface);
+  const capability = getSurfaceCapability(surface);
+  const polish = spec.interiorPolish;
+  const roleLabel = humanizeRouteToken(spec.visualRole);
+  const dataItems = [
+    { label: "Role", value: roleLabel },
+    {
+      label: "Active",
+      value: polish?.activeStateLabel ?? humanizeRouteToken(spec.mediaMode),
+    },
+    {
+      label: "Support",
+      value: polish ? humanizeRouteToken(polish.supportDensity) : spec.proofChips[0] ?? capability.category,
+    },
+  ];
+
+  return (
+    <section
+      className={cn(
+        "nexus-homefront-visualParity",
+        variant === "chrome" && "nexus-homefront-visualParity--chrome",
+      )}
+      data-testid="homefront-visual-parity"
+      data-surface={surface}
+      data-visual-role={spec.visualRole}
+      data-interior-polish={polish ? "true" : "false"}
+      data-support-density={polish?.supportDensity ?? "standard"}
+      data-excluded-selectors={spec.excludedSelectors.join(",")}
+      aria-label={`${branding.visibleLabel} Homefront visual parity layer`}
+    >
+      <HomefrontSurfaceModule surface={surface} spec={spec}>
+        <div className="nexus-homefront-visualParity__copy">
+          <span className="nexus-homefront-visualParity__kicker">
+            {polish?.activeStateLabel ?? "Visual contract"}
+          </span>
+          <strong>{polish?.leadIntent ?? capability.tagline}</strong>
+          <p>
+            {compactHomefrontCopy(
+              polish?.staleInfoPolicy ?? capability.mission,
+              variant === "chrome" ? 118 : 168,
+            )}
+          </p>
+          <div className="nexus-homefront-visualParity__proof">
+            {spec.proofChips.map((chip) => (
+              <span key={`${surface}-${chip}`}>{chip}</span>
+            ))}
+          </div>
+        </div>
+        <HomefrontDataRail surface={surface} items={dataItems} />
+        <HomefrontRouteTabs surface={surface} />
+        <HomefrontActionDock surface={surface} spec={spec} />
+        <HomefrontMediaPanel
+          surface={surface}
+          art={art}
+          branding={branding}
+          spec={spec}
+        />
+      </HomefrontSurfaceModule>
+    </section>
+  );
+}
+
+function HomefrontWorkplaneSummary({
+  surface,
+}: {
+  surface: ShellSurface;
+}) {
+  const spec = resolveHomefrontVisualSurfaceSpec(surface);
+  const summary = spec.workplaneSummary;
+  const polish = spec.interiorPolish;
+
+  if (!summary) return null;
+
+  return (
+    <section
+      className="nexus-homefront-workplaneSummary nexus-motion-enter nexus-motion-enter--primary"
+      data-testid="homefront-workplane-summary"
+      data-surface={surface}
+      data-interior-polish={polish ? "true" : "false"}
+      data-support-density={polish?.supportDensity ?? "standard"}
+      aria-label={`${humanizeRouteToken(surface)} workplane summary`}
+    >
+      <div className="nexus-homefront-workplaneSummary__copy">
+        <span>Workplane question</span>
+        <strong>{summary.primaryQuestion}</strong>
+        {polish ? <em>{compactHomefrontCopy(polish.leadIntent, 96)}</em> : null}
+      </div>
+      <div className="nexus-homefront-workplaneSummary__action">
+        <span>{summary.nextBestAction}</span>
+        <a href={summary.actionHref}>{summary.actionLabel}</a>
+      </div>
+      <div className="nexus-homefront-workplaneSummary__proof">
+        <span>Proof</span>
+        <strong>{summary.proofLine}</strong>
+        {polish ? (
+          <em>{compactHomefrontCopy(polish.staleInfoPolicy, 108)}</em>
+        ) : null}
+      </div>
+    </section>
+  );
 }
 
 function HomefrontDoctrineRail({
@@ -760,6 +1179,114 @@ function HomefrontOperatingContractRail({
           <em>Next</em>
           <strong>{contract.next}</strong>
         </span>
+      </div>
+    </section>
+  );
+}
+
+function HomefrontActionControlRail({
+  surface,
+  branding,
+}: {
+  surface: ShellSurface;
+  branding: ReturnType<typeof getSurfaceBranding>;
+}) {
+  const capability = getSurfaceCapability(surface);
+  const routeActions = capability.jumpActions.slice(0, 3);
+  const routeSections = capability.subsections.slice(0, 4);
+  const bestFor = capability.bestFor;
+  const priority = capability.upgradePriorities[0] ?? capability.tagline;
+
+  return (
+    <section
+      className="nexus-shell-actionControl"
+      data-testid="homefront-action-control"
+      data-surface={surface}
+      aria-label={`${branding.visibleLabel} purpose and route actions`}
+    >
+      <div className="nexus-shell-actionControl__lead">
+        <span className="nexus-shell-actionControl__kicker">
+          Purpose + actions
+        </span>
+        <strong>{capability.tagline}</strong>
+        <p>{compactHomefrontCopy(capability.mission, 148)}</p>
+      </div>
+      <div
+        className="nexus-shell-actionControl__matrix"
+        aria-label={`${branding.visibleLabel} route management signals`}
+      >
+        <span>
+          <em>Belongs here</em>
+          <strong>{compactHomefrontCopy(bestFor[0] ?? capability.title)}</strong>
+        </span>
+        <span>
+          <em>Use next</em>
+          <strong>{compactHomefrontCopy(bestFor[1] ?? priority)}</strong>
+        </span>
+        <span>
+          <em>Watch</em>
+          <strong>{compactHomefrontCopy(capability.offlinePosture)}</strong>
+        </span>
+      </div>
+      <div
+        className="nexus-shell-actionControl__actions"
+        aria-label={`${branding.visibleLabel} strongest actions`}
+      >
+        {routeActions.map((action) => (
+          <a
+            key={`${surface}-${action.href}-${action.label}`}
+            href={action.href}
+            className="nexus-shell-actionControl__action"
+          >
+            <span>{action.label}</span>
+            <em>{compactHomefrontCopy(action.detail, 72)}</em>
+          </a>
+        ))}
+      </div>
+      <div
+        className="nexus-shell-actionControl__subsections"
+        aria-label={`${branding.visibleLabel} route sections`}
+      >
+        {routeSections.map((section) => (
+          <a
+            key={`${surface}-${section.label}`}
+            href={section.href ?? capability.route}
+          >
+            <span>{section.label}</span>
+            <em>{compactHomefrontCopy(section.detail, 64)}</em>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function HomefrontSourceIntakeRail({
+  surface,
+  branding,
+}: {
+  surface: ShellSurface;
+  branding: ReturnType<typeof getSurfaceBranding>;
+}) {
+  return (
+    <section
+      className="nexus-shell-sourceIntake"
+      data-testid="homefront-source-intake"
+      data-surface={surface}
+      aria-label={`${branding.visibleLabel} source intake posture`}
+    >
+      <div className="nexus-shell-sourceIntake__head">
+        <span>Source intake</span>
+        <strong>{branding.functionalLabel} studies before it absorbs.</strong>
+      </div>
+      <div className="nexus-shell-sourceIntake__grid">
+        {HOMEFRONT_SOURCE_INTAKE.map((item) => (
+          <span key={item.value} className="nexus-shell-sourceIntake__item">
+            <em>{item.label}</em>
+            <strong>{item.value}</strong>
+            <span>{item.detail}</span>
+          </span>
+        ))}
       </div>
     </section>
   );
@@ -1072,6 +1599,8 @@ export function ShellPage({
   const sequence = resolveSurfaceSequencePreset(surface);
   const delays = buildSequenceDelays(sequence);
   const cinematicIA = getCinematicIASurface(surface);
+  const visualSpec =
+    surface !== "default" ? resolveHomefrontVisualSurfaceSpec(surface) : null;
   const resolvedHeroDensity: ShellHeroDensity =
     heroDensity ??
     (surface === "hq" || surface === "default" ? "standard" : "compact");
@@ -1088,6 +1617,8 @@ export function ShellPage({
         data-chamber-tone={atmosphere.chamberTone}
         data-focus-bias={atmosphere.focusBias}
         data-ingress={sequence.ingress.kind}
+        data-interior-polish={visualSpec?.interiorPolish ? "true" : "false"}
+        data-support-density={visualSpec?.interiorPolish?.supportDensity ?? "standard"}
         onPointerMove={handleStagePointerMove}
         onPointerLeave={handleStagePointerLeave}
         style={
@@ -1161,6 +1692,9 @@ export function ShellPage({
                 ))}
               </div>
             </OpsStrip>
+            {surface !== "default" && surface !== "hq" ? (
+              <HomefrontWorkplaneSummary surface={surface} />
+            ) : null}
             {children}
           </OpsCanvas>
         </div>
@@ -1211,27 +1745,36 @@ export function OpsHeader({
       }
     >
       <div className="nexus-shell-opsHead__manifest">
-        <div className="nexus-shell-opsHead__heading">
-          {eyebrow ? (
-            <div className="nexus-shell-eyebrow">{eyebrow}</div>
-          ) : null}
-          <div className="nexus-shell-opsHead__identity">
-            <div className="nexus-shell-opsHead__identityCopy">
-              <span className="nexus-shell-opsHead__identityLabel">
-                {branding.visibleLabel}
-              </span>
-              <span className="nexus-shell-opsHead__identityNote">
-                {taste.headerNote}
-              </span>
+        <div className="nexus-shell-opsHead__copyBlock">
+          <div className="nexus-shell-opsHead__heading">
+            {eyebrow ? (
+              <div className="nexus-shell-eyebrow">{eyebrow}</div>
+            ) : null}
+            <div className="nexus-shell-opsHead__identity">
+              <div className="nexus-shell-opsHead__identityCopy">
+                <span className="nexus-shell-opsHead__identityLabel">
+                  {branding.visibleLabel}
+                </span>
+                <span className="nexus-shell-opsHead__identityNote">
+                  {taste.headerNote}
+                </span>
+              </div>
             </div>
           </div>
+          <h1 className="nexus-shell-title">{title}</h1>
+          {description ? (
+            <p className="nexus-shell-description">{description}</p>
+          ) : null}
         </div>
-        <h1 className="nexus-shell-title">{title}</h1>
-        {description ? (
-          <p className="nexus-shell-description">{description}</p>
-        ) : null}
         {surface !== "default" ? (
           <HomefrontDoctrineRail surface={surface} branding={branding} />
+        ) : null}
+        {surface !== "default" && surface !== "hq" ? (
+          <HomefrontVisualParityBand
+            surface={surface}
+            art={art}
+            branding={branding}
+          />
         ) : null}
         {surface !== "default" && surface !== "hq" ? (
           <HomefrontOperatingContractRail
@@ -1239,6 +1782,12 @@ export function OpsHeader({
             art={art}
             branding={branding}
           />
+        ) : null}
+        {surface !== "default" && surface !== "hq" ? (
+          <HomefrontActionControlRail surface={surface} branding={branding} />
+        ) : null}
+        {surface !== "default" && surface !== "hq" ? (
+          <HomefrontSourceIntakeRail surface={surface} branding={branding} />
         ) : null}
         {surface !== "default" && surface !== "hq" ? (
           <HomefrontCommandThreshold
@@ -1305,6 +1854,8 @@ export function ShellStage({
   const sequence = resolveSurfaceSequencePreset(surface);
   const delays = buildSequenceDelays(sequence);
   const cinematicIA = getCinematicIASurface(surface);
+  const visualSpec =
+    surface !== "default" ? resolveHomefrontVisualSurfaceSpec(surface) : null;
   return (
     <div
       className={cn("nexus-shell-stage", `nexus-shell-stage--${surface}`)}
@@ -1315,6 +1866,8 @@ export function ShellStage({
       data-chamber-tone={atmosphere.chamberTone}
       data-focus-bias={atmosphere.focusBias}
       data-ingress={sequence.ingress.kind}
+      data-interior-polish={visualSpec?.interiorPolish ? "true" : "false"}
+      data-support-density={visualSpec?.interiorPolish?.supportDensity ?? "standard"}
       onPointerMove={handleStagePointerMove}
       onPointerLeave={handleStagePointerLeave}
       style={
@@ -1337,6 +1890,14 @@ export function ShellStage({
       <ShellStageBackdrop surface={surface} art={art} branding={branding} />
       <div className="nexus-shell-stage__veil" aria-hidden="true" />
       <div className="nexus-shell-stage__focus" aria-hidden="true" />
+      {surface === "hq" ? (
+        <HomefrontVisualParityBand
+          surface={surface}
+          art={art}
+          branding={branding}
+          variant="chrome"
+        />
+      ) : null}
       {children}
     </div>
   );

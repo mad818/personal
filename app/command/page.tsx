@@ -102,6 +102,10 @@ const LazyOfflineReadinessCallout = dynamic(
   () => import("@/components/ui/OfflineReadinessCallout"),
   { ssr: false },
 );
+const LazyFreeLocalReadinessPanel = dynamic(
+  () => import("@/components/ui/FreeLocalReadinessPanel"),
+  { ssr: false },
+);
 const LazyProviderHealthStrip = dynamic(
   () => import("@/components/ui/ProviderHealthStrip"),
   { ssr: false },
@@ -724,6 +728,7 @@ export default function CommandPage() {
                   compact
                 >
                   <ShellStack gap="12px">
+                    <LazyFreeLocalReadinessPanel surface="command" />
                     <LazyOfflineReadinessCallout surface="command" />
                     <LazyNetworkHealth />
                     <details

@@ -9,7 +9,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-06b6d4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Claude AI](https://img.shields.io/badge/Claude-Anthropic-d97706?style=for-the-badge)](https://anthropic.com)
+[![Codex](https://img.shields.io/badge/Codex-OpenAI-111827?style=for-the-badge)](https://openai.com/codex)
 [![MiniMax](https://img.shields.io/badge/MiniMax-API-1a1a2e?style=for-the-badge)](https://platform.minimax.io)
 [![Ollama](https://img.shields.io/badge/Ollama-Local_AI-10b981?style=for-the-badge)](https://ollama.ai)
 [![Tauri](https://img.shields.io/badge/Tauri-Desktop-24c8d8?style=for-the-badge&logo=tauri&logoColor=white)](desktop/README.md)
@@ -48,27 +48,34 @@ One unified React app — seven tabs, single nav bar, one URL.
 <td width="50%" valign="top">
 
 ### CITADEL
+
 5-agent AI office (JANSKY, ORBIT, NOVA, CIPHER, FLUX). 3D workspace with live briefings and a full ReAct reasoning loop. Streams tool calls live.
 
 ### VECTOR
+
 Mission control — KPI cards, Fear & Greed index, live BTC price, AI daily briefing, event radar, threat heatmap, world event map, business intelligence, job risk analyser.
 
 ### SPECTRA
+
 Live news (RSS + GDELT fallback; optional Guardian key). Bias tagging, story threads, article clusters. Geopolitical heatmap, conflict feed, Polymarket prediction odds, strategy frameworks.
 
 ### QUANT
+
 Momentum scanner with RSI/BB/EMA scoring, Buy Bot signals, 7-day sparklines, position sizing calculator, watchlist manager.
 
 </td>
 <td width="50%" valign="top">
 
 ### BASTION
+
 Live CVEs (CRITICAL → LOW), OTX threat intel feed, CISA KEV advisories, attack vector charts, triage view, cyber heatmap.
 
 ### PARALLAX
+
 OSINT toolkit: RDAP/WHOIS, DNS records, crt.sh cert transparency, IP geolocation — all free, no key required. HIBP breach check, VirusTotal, Shodan (BYOK, optional). Local WebRTC leak probe, fingerprint entropy analyser, OPSEC score — all client-side only.
 
 ### ARCHIVE
+
 Bookmarked articles. Full-text search, folder organisation by category, JSON export. Persisted across sessions.
 
 </td>
@@ -116,14 +123,15 @@ flowchart TD
     end
 
     subgraph Server
-        API_AI["/api/ai<br/>Anthropic proxy"]
+        API_AI["/api/ai<br/>Provider proxy"]
         API_TOOLS["/api/tools<br/>web_search, fetch_url, calculate"]
         API_SEARCH["/api/search<br/>GDELT, Guardian"]
         MIDDLEWARE["middleware.ts<br/>Bearer auth"]
     end
 
     subgraph AI
-        CLAUDE["Claude API<br/>Anthropic"]
+        OPENAI["OpenAI-compatible<br/>BYOK lane"]
+        BYOK["Other optional<br/>provider lanes"]
         OLLAMA["Ollama<br/>Local LLM"]
     end
 
@@ -141,7 +149,8 @@ flowchart TD
     TABS --> API_TOOLS
     API_AI --> MIDDLEWARE
     API_TOOLS --> MIDDLEWARE
-    API_AI --> CLAUDE
+    API_AI --> OPENAI
+    API_AI --> BYOK
     API_AI --> OLLAMA
     HOOKS --> CG
     HOOKS --> USGS
@@ -174,7 +183,7 @@ The graphic is the cheat sheet; in one line: **Next.js 14 App Router + TypeScrip
 
 <div align="center">
 
-<img src="./public/github-section-quickstart.svg" width="100%" alt="Quickstart: clone your internal repo, npm install, cp .env.example, NEXUS_TOKEN and ANTHROPIC example, npm run dev, localhost PWA, npm run verify" />
+<img src="./public/github-section-quickstart.svg" width="100%" alt="Quickstart: clone your internal repo, npm install, cp .env.example, NEXUS_TOKEN and optional OpenAI-compatible provider key, npm run dev, localhost PWA, npm run verify" />
 
 </div>
 
@@ -190,12 +199,12 @@ npm install
 
 ```env
 NEXUS_TOKEN=your-long-random-secret
-ANTHROPIC_API_KEY=sk-ant-...
+GROQ_API_KEY=your-free-or-byok-provider-key
 ```
 
 (Use [Local AI](#local-ai-fully-offline) instead of cloud keys if you want fully offline LLM.)
 
-3. **Run** — `npm run dev` → [http://localhost:3000](http://localhost:3000). Missing *data* keys only quiet that feed.
+3. **Run** — `npm run dev` → [http://localhost:3000](http://localhost:3000). Missing _data_ keys only quiet that feed.
 
 4. **Verify** (before PRs) — `npm run verify` (typecheck, lint, path safety).
 
@@ -212,7 +221,7 @@ ANTHROPIC_API_KEY=sk-ant-...
 </div>
 
 - **`NEXUS_TOKEN`** — Required for the browser to call `/api/*` (Bearer token). Pick any strong random string.
-- **AI providers** — `ANTHROPIC_API_KEY`, `MINIMAX_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, `GOOGLE_AI_KEY`, etc. The server tries configured providers in order and skips missing keys.
+- **AI providers** — `OPENAI_API_KEY`, `MINIMAX_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, `GOOGLE_AI_KEY`, `ANTHROPIC_API_KEY`, etc. The server tries configured providers in order and skips missing keys.
 - **Data / intel** — CoinGecko, Finnhub, Guardian, FRED, OTX, NVD, Firecrawl, Brave, AISstream, FIRMS, … all **optional**; the UI degrades gracefully.
 - **Network mode controls** — `NEXUS_NETWORK_MODE=isolated|internal|connected` and `NEXUS_ENABLE_HIGH_RISK_TOOLS=true|false` gate which `/api/*` classes are allowed at runtime (default is safest: `isolated` + high-risk off).
 - **Free-use safeguard** — paid AI providers are blocked by default; set `NEXUS_ALLOW_PAID_APIS=true` only when you explicitly choose to use paid APIs.
@@ -248,6 +257,7 @@ In the app: **Settings** → **Provider: Local** → endpoint `http://localhost:
 </div>
 
 - **Coolify / VPS** — Full walkthrough: [`docs/deployment/coolify.md`](docs/deployment/coolify.md) (Git deploy, Dockerfile or Nixpacks, port **3000**, same env vars as local).
+- **Phone while desktop is off** — Use [`docs/deployment/phone-access-coolify.md`](docs/deployment/phone-access-coolify.md): deploy to a VPS, set `NEXUS_NETWORK_MODE=internal`, keep high-risk tools off, add one free/BYOK cloud AI key, then install the HTTPS site as a phone PWA.
 - **Docker smoke test**
 
 ```bash
@@ -304,4 +314,4 @@ NEXUS_ENABLE_HIGH_RISK_TOOLS=false
 
 </div>
 
-- **`app/`** — App Router routes (`command`, `signals`, `intel`, …) plus **`app/api/*`** 
+- **`app/`** — App Router routes (`command`, `signals`, `intel`, …) plus **`app/api/*`**

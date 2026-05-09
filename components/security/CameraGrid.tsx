@@ -258,42 +258,68 @@ export default function CameraGrid() {
                 </span>
               </div>
 
-              {/* Feed placeholder */}
+              {/* Passive feed tile */}
               <div
                 style={{
                   position: "relative",
                   height: "120px",
-                  background: "#060405",
+                  background:
+                    "linear-gradient(135deg, rgba(6,10,14,0.98), rgba(10,22,27,0.92))",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "6px",
+                  overflow: "hidden",
                 }}
               >
                 <CameraOverlay type={cam.type} />
                 {isConnected && isOnline ? (
                   <>
+                    <div
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        inset: "14px 18px",
+                        border: "1px solid rgba(126,227,184,.18)",
+                        borderRadius: "12px",
+                        background:
+                          "linear-gradient(90deg, rgba(126,227,184,.08), transparent 35%, rgba(255,209,102,.08))",
+                      }}
+                    />
+                    <div
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backgroundImage:
+                          "repeating-linear-gradient(0deg, transparent, transparent 9px, rgba(255,255,255,.035) 10px)",
+                        opacity: 0.65,
+                      }}
+                    />
                     <span
                       style={{
-                        fontSize: "28px",
-                        opacity: 0.3,
+                        fontSize: "10px",
+                        color: "var(--text)",
+                        fontFamily: "monospace",
+                        fontWeight: 800,
+                        letterSpacing: "1px",
                         position: "relative",
                         zIndex: 1,
                       }}
                     >
-                      📹
+                      PASSIVE PREVIEW
                     </span>
                     <span
                       style={{
-                        fontSize: "9px",
-                        color: "var(--text3)",
+                        fontSize: "8px",
+                        color: "rgba(126,227,184,.8)",
                         fontFamily: "monospace",
                         position: "relative",
                         zIndex: 1,
                       }}
                     >
-                      {cam.rtsp}
+                      RTSP/ONVIF READY
                     </span>
                     <span
                       style={{
@@ -303,7 +329,7 @@ export default function CameraGrid() {
                         zIndex: 1,
                       }}
                     >
-                      {cam.location}
+                      {cam.location} - {cam.rtsp}
                     </span>
                     {isRec && (
                       <motion.span

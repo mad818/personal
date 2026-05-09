@@ -764,7 +764,7 @@ interface NexusState {
   marketsView:   'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices' | 'charts'
   cyberView:     'triage' | 'matrix' | 'cves' | 'otx' | 'cisa' | 'drone' | 'vuln-review'
   skillsWorkbenchView: 'forge' | 'blacksite' | 'brain' | 'library'
-  resourcesWorkbenchView: 'finder' | 'manual' | 'study' | 'surfaces' | 'playbooks' | 'specs' | 'system' | 'impact' | 'registry' | 'kits' | 'voice-lab' | 'wins'
+  resourcesWorkbenchView: 'finder' | 'manual' | 'sources' | 'study' | 'surfaces' | 'playbooks' | 'specs' | 'system' | 'impact' | 'registry' | 'kits' | 'voice-lab' | 'wins'
   securityWorkbenchView: 'doctrine' | 'physical' | 'ai'
   prices:        Record<string, PriceData>
   sparklines:    Record<string, number[]>

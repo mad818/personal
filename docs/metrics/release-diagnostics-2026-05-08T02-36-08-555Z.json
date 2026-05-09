@@ -1,0 +1,1404 @@
+{
+  "capturedAt": "2026-05-08T02:36:08.555Z",
+  "baseUrl": "http://127.0.0.1:3100",
+  "baseUrlSource": "local-fallback",
+  "routes": [
+    {
+      "route": "/api/health",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "application/json",
+      "durationMs": 30,
+      "body": {
+        "status": "ok",
+        "service": "homefront",
+        "ts": "2026-05-08T02:36:08.580Z",
+        "runtime": {
+          "bootId": "8a294f1a-f0ee-4ce2-a007-79650ec1a355",
+          "startedAt": "2026-05-08T02:32:35.335Z",
+          "ageSeconds": 213
+        }
+      }
+    },
+    {
+      "route": "/",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "text/html; charset=utf-8",
+      "durationMs": 192,
+      "body": {
+        "preview": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/8074201df0133e7a.css\" data-precedence=\"next\"/><link rel=\"stylesh"
+      }
+    },
+    {
+      "route": "/hq?focus=hq-chronicle",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "text/html; charset=utf-8",
+      "durationMs": 24,
+      "body": {
+        "preview": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/8074201df0133e7a.css\" data-precedence=\"next\"/><link rel=\"stylesh"
+      }
+    },
+    {
+      "route": "/command",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "text/html; charset=utf-8",
+      "durationMs": 16,
+      "body": {
+        "preview": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/8074201df0133e7a.css\" data-precedence=\"next\"/><link rel=\"stylesh"
+      }
+    },
+    {
+      "route": "/resources",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "text/html; charset=utf-8",
+      "durationMs": 16,
+      "body": {
+        "preview": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/8074201df0133e7a.css\" data-precedence=\"next\"/><link rel=\"stylesh"
+      }
+    },
+    {
+      "route": "/vehicle",
+      "ok": false,
+      "status": 307,
+      "redirected": true,
+      "contentType": "",
+      "durationMs": 2,
+      "body": {
+        "preview": "/internal/vehicle"
+      }
+    },
+    {
+      "route": "/internal/vehicle",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "text/html; charset=utf-8",
+      "durationMs": 18,
+      "body": {
+        "preview": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/8074201df0133e7a.css\" data-precedence=\"next\"/><link rel=\"stylesh"
+      }
+    },
+    {
+      "route": "/api/status",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "application/json",
+      "durationMs": 16,
+      "body": {
+        "status": "ok",
+        "service": "homefront",
+        "brand": {
+          "name": "Homefront",
+          "tagline": "Local-first command intelligence",
+          "descriptor": "A local-first command room for markets, cyber, recon, and operator AI on web and desktop."
+        },
+        "generatedAt": "2026-05-08T02:36:08.868Z",
+        "startedAt": "2026-05-08T02:32:35.335Z",
+        "summary": {
+          "networkMode": "internal",
+          "highRiskRoutesEnabled": false,
+          "allowPaidApis": false,
+          "tokenConfigured": true,
+          "localData": {
+            "canonicalContext": {
+              "agents": false,
+              "standards": false,
+              "state": false,
+              "bible": false
+            },
+            "legacyContext": {
+              "claude": false,
+              "tasks": false,
+              "lessons": false
+            },
+            "blockedRoots": [
+              ".claude",
+              ".git",
+              ".next",
+              ".next-build",
+              ".next-e2e",
+              ".next-fresh-runtime",
+              ".nexus",
+              ".turbo",
+              "archive",
+              "dist",
+              "node_modules",
+              "out"
+            ]
+          },
+          "release": {
+            "buildChannel": "dev",
+            "deploymentProfile": "local-dev",
+            "defaultEntrypoint": "/hq",
+            "uiShellVersion": "aegis-vector-v1"
+          }
+        },
+        "runtime": {
+          "bootId": "8a294f1a-f0ee-4ce2-a007-79650ec1a355",
+          "startedAt": "2026-05-08T02:32:35.335Z",
+          "ageSeconds": 213,
+          "pid": 18720,
+          "node": "v24.14.0",
+          "platform": "win32",
+          "arch": "x64"
+        },
+        "readiness": {
+          "aiProviders": {
+            "anthropic": false,
+            "openai": false,
+            "minimax": false,
+            "groq": true,
+            "openrouter": false,
+            "google": false,
+            "ollamaEndpoint": "http://localhost:11434/v1/chat/completions",
+            "posture": {
+              "paidApisEnabled": false,
+              "counts": {
+                "total": 7,
+                "configured": 2,
+                "ready": 2,
+                "availableIfConfigured": 1,
+                "hiddenByDefault": 4,
+                "primary": 3,
+                "advanced": 4,
+                "freeLocal": 1,
+                "freePublic": 0,
+                "freeTierOptional": 2,
+                "paidOptionalHidden": 4
+              },
+              "items": [
+                {
+                  "id": "ollama",
+                  "label": "Ollama",
+                  "envKey": false,
+                  "billingTier": "free_local",
+                  "surface": "primary",
+                  "recommended": true,
+                  "description": "Primary local lane for free-first operation and offline control.",
+                  "configured": true,
+                  "enabledByPolicy": true,
+                  "tierLabel": "Free local",
+                  "status": "ready"
+                },
+                {
+                  "id": "groq",
+                  "label": "Groq",
+                  "envKey": true,
+                  "billingTier": "free_tier_optional",
+                  "surface": "primary",
+                  "recommended": true,
+                  "description": "Fast inference lane with a usable free tier for normal operator workflows.",
+                  "configured": true,
+                  "enabledByPolicy": true,
+                  "tierLabel": "Free tier optional",
+                  "status": "ready"
+                },
+                {
+                  "id": "google",
+                  "label": "Google AI",
+                  "envKey": true,
+                  "billingTier": "free_tier_optional",
+                  "surface": "primary",
+                  "recommended": false,
+                  "description": "Optional Gemini lane for teams that want another free-tier cloud option.",
+                  "configured": false,
+                  "enabledByPolicy": true,
+                  "tierLabel": "Free tier optional",
+                  "status": "available_if_configured"
+                },
+                {
+                  "id": "anthropic",
+                  "label": "Anthropic",
+                  "envKey": true,
+                  "billingTier": "paid_optional_hidden",
+                  "surface": "advanced",
+                  "recommended": false,
+                  "description": "Advanced BYOK lane kept out of the primary free-first story.",
+                  "configured": false,
+                  "enabledByPolicy": false,
+                  "tierLabel": "Advanced BYOK",
+                  "status": "hidden_by_default"
+                },
+                {
+                  "id": "openai",
+                  "label": "OpenAI",
+                  "envKey": true,
+                  "billingTier": "paid_optional_hidden",
+                  "surface": "advanced",
+                  "recommended": false,
+                  "description": "Advanced BYOK lane for teams that explicitly opt into paid providers.",
+                  "configured": false,
+                  "enabledByPolicy": false,
+                  "tierLabel": "Advanced BYOK",
+                  "status": "hidden_by_default"
+                },
+                {
+                  "id": "openrouter",
+                  "label": "OpenRouter",
+                  "envKey": true,
+                  "billingTier": "paid_optional_hidden",
+                  "surface": "advanced",
+                  "recommended": false,
+                  "description": "Advanced routing gateway; intentionally not part of the default product posture.",
+                  "configured": false,
+                  "enabledByPolicy": false,
+                  "tierLabel": "Advanced BYOK",
+                  "status": "hidden_by_default"
+                },
+                {
+                  "id": "minimax",
+                  "label": "MiniMax",
+                  "envKey": true,
+                  "billingTier": "paid_optional_hidden",
+                  "surface": "advanced",
+                  "recommended": false,
+                  "description": "Advanced compatible lane retained for explicit BYOK opt-in only.",
+                  "configured": false,
+                  "enabledByPolicy": false,
+                  "tierLabel": "Advanced BYOK",
+                  "status": "hidden_by_default"
+                }
+              ]
+            }
+          },
+          "dataSources": {
+            "coingecko": false,
+            "finnhub": false,
+            "nvd": false,
+            "guardian": false,
+            "fred": false,
+            "otx": false,
+            "aisstream": false,
+            "firms": false,
+            "firecrawl": false,
+            "brave": false
+          },
+          "auth": {
+            "nexusTokenConfigured": true,
+            "maxTokens": true
+          },
+          "policies": {
+            "toolPolicyMode": "strict",
+            "highRiskWritesRequireApproval": true,
+            "networkMode": "internal",
+            "highRiskRoutesEnabled": false,
+            "allowPaidApis": false,
+            "connectorPolicy": {
+              "news": true,
+              "gdelt": true,
+              "conflict": true,
+              "cisaKev": true,
+              "cves": true,
+              "threatIntel": true,
+              "secFilings": true,
+              "prices": true,
+              "metals": true,
+              "commodities": true,
+              "fx": true,
+              "fearGreed": true,
+              "defi": true,
+              "polymarket": true,
+              "weather": true,
+              "earthquakes": true,
+              "fires": true,
+              "flights": true,
+              "maritime": true,
+              "geoScan": true,
+              "hackerNews": true,
+              "headers": true
+            }
+          },
+          "release": {
+            "service": "homefront",
+            "brand": {
+              "name": "Homefront",
+              "tagline": "Local-first command intelligence",
+              "descriptor": "A local-first command room for markets, cyber, recon, and operator AI on web and desktop."
+            },
+            "channel": "dev",
+            "version": "local-dev",
+            "deploymentProfile": "local-dev",
+            "canonicalDeploymentLane": "dual-track",
+            "supportedSurfacePolicy": "ga-only",
+            "defaultEntrypoint": "/hq",
+            "uiShellVersion": "aegis-vector-v1",
+            "surfaces": {
+              "counts": {
+                "total": 15,
+                "ga": 8,
+                "beta": 3,
+                "internal": 4,
+                "gaNav": 7
+              },
+              "ga": [
+                {
+                  "href": "/hq",
+                  "aliases": [
+                    "/home"
+                  ]
+                },
+                {
+                  "href": "/command",
+                  "aliases": []
+                },
+                {
+                  "href": "/intel",
+                  "aliases": []
+                },
+                {
+                  "href": "/alpha",
+                  "aliases": []
+                },
+                {
+                  "href": "/cyber",
+                  "aliases": []
+                },
+                {
+                  "href": "/recon",
+                  "aliases": []
+                },
+                {
+                  "href": "/vault",
+                  "aliases": []
+                },
+                {
+                  "href": "/resources",
+                  "aliases": []
+                }
+              ],
+              "beta": [
+                {
+                  "href": "/labs/signals",
+                  "aliases": [
+                    "/signals"
+                  ]
+                },
+                {
+                  "href": "/labs/ops",
+                  "aliases": [
+                    "/ops"
+                  ]
+                },
+                {
+                  "href": "/labs/security",
+                  "aliases": [
+                    "/security"
+                  ]
+                }
+              ],
+              "internal": [
+                {
+                  "href": "/internal/iot",
+                  "aliases": [
+                    "/iot"
+                  ]
+                },
+                {
+                  "href": "/internal/vehicle",
+                  "aliases": [
+                    "/vehicle"
+                  ]
+                },
+                {
+                  "href": "/internal/skills",
+                  "aliases": [
+                    "/skills"
+                  ]
+                },
+                {
+                  "href": "/internal/reset",
+                  "aliases": [
+                    "/reset"
+                  ]
+                }
+              ],
+              "nav": [
+                "/hq",
+                "/command",
+                "/intel",
+                "/alpha",
+                "/cyber",
+                "/recon",
+                "/vault"
+              ],
+              "aliases": [
+                {
+                  "alias": "/home",
+                  "canonicalHref": "/hq",
+                  "id": "hq"
+                },
+                {
+                  "alias": "/signals",
+                  "canonicalHref": "/labs/signals",
+                  "id": "signals"
+                },
+                {
+                  "alias": "/ops",
+                  "canonicalHref": "/labs/ops",
+                  "id": "ops"
+                },
+                {
+                  "alias": "/security",
+                  "canonicalHref": "/labs/security",
+                  "id": "security"
+                },
+                {
+                  "alias": "/iot",
+                  "canonicalHref": "/internal/iot",
+                  "id": "iot"
+                },
+                {
+                  "alias": "/vehicle",
+                  "canonicalHref": "/internal/vehicle",
+                  "id": "vehicle"
+                },
+                {
+                  "alias": "/skills",
+                  "canonicalHref": "/internal/skills",
+                  "id": "skills"
+                },
+                {
+                  "alias": "/reset",
+                  "canonicalHref": "/internal/reset",
+                  "id": "reset"
+                }
+              ]
+            },
+            "connectorReadiness": {
+              "counts": {
+                "total": 22,
+                "ready": 19,
+                "readyLimited": 3,
+                "disabledByPolicy": 0,
+                "blockedByMode": 0,
+                "needsKey": false,
+                "freePublic": 19,
+                "freeTierOptional": 3,
+                "paidOptionalHidden": 0
+              },
+              "items": [
+                {
+                  "key": true,
+                  "primarySurface": "intel",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "RSS and news aggregation."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "intel",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "GDELT event feed."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "intel",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "World conflict feed."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "cyber",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "CISA KEV feed."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "cyber",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "CVE and vulnerability feeds."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "cyber",
+                  "access": "free_tier_optional",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready_limited",
+                  "description": "Threat intelligence with optional OTX key."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "alpha",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "SEC filings and filings search."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "alpha",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "Market prices and quotes."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "alpha",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "Metals pricing."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "alpha",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "Commodity pricing."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "alpha",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "FX rates."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "alpha",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "Fear and Greed index."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "alpha",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "DeFi market data."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "intel",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "Prediction market data."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "command",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "Weather data."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "command",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "Earthquake feed."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "command",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "Fire hotspot feed."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "command",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "Flight tracking with optional provider upgrades."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "command",
+                  "access": "free_tier_optional",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready_limited",
+                  "description": "Maritime tracking with optional AISStream key."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "command",
+                  "access": "free_tier_optional",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready_limited",
+                  "description": "GeoDeep and geospatial scan adapters."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "intel",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "Hacker News ingestion."
+                },
+                {
+                  "key": true,
+                  "primarySurface": "recon",
+                  "access": "free_public",
+                  "enabledByPolicy": true,
+                  "allowedInMode": true,
+                  "keyConfigured": false,
+                  "status": "ready",
+                  "description": "HTTP header and security audit helper."
+                }
+              ]
+            }
+          },
+          "aiRouting": {
+            "defaultLocalModel": "qwen3:8b",
+            "taskModels": {
+              "chat": "qwen3:8b",
+              "code": "qwen2.5-coder:14b",
+              "vision": "gemma3:12b",
+              "reasoning": "deepseek-r1:14b",
+              "fast": "qwen3:8b",
+              "embed": "nomic-embed-text",
+              "meta": "deepseek-r1:14b",
+              "research": "qwen3:8b"
+            }
+          },
+          "queue": {
+            "runQueueMode": "single-flight",
+            "verifyEndpoint": "/api/verify",
+            "adapters": [
+              "typecheck",
+              "lint",
+              "route_smoke",
+              "route_integrity",
+              "release_smoke"
+            ]
+          },
+          "evalPolicy": {
+            "runtimeEvalMinScore": 85,
+            "runtimeEvalCommand": "npm run eval:agent-runtime -- --min-score <score>",
+            "categoryThresholds": {
+              "safety": 80,
+              "reliability": 80,
+              "ux": 70,
+              "observability": 70
+            },
+            "freshnessWindowMin": 240,
+            "runner": {
+              "lastRunAt": null,
+              "lastOk": null,
+              "lastSummary": null,
+              "cooldownMin": null,
+              "effectiveCooldownMin": null,
+              "failureStreak": 0,
+              "nextEligibleAt": null
+            },
+            "latest": {
+              "ts": "2026-04-01T15:45:01.853Z",
+              "score": 100,
+              "minScore": 85,
+              "ok": true,
+              "categories": {
+                "safety": {
+                  "passedWeight": 3,
+                  "totalWeight": 3,
+                  "score": 100
+                },
+                "reliability": {
+                  "passedWeight": 3,
+                  "totalWeight": 3,
+                  "score": 100
+                },
+                "ux": {
+                  "passedWeight": 2,
+                  "totalWeight": 2,
+                  "score": 100
+                },
+                "observability": {
+                  "passedWeight": 2,
+                  "totalWeight": 2,
+                  "score": 100
+                }
+              },
+              "categoryThresholds": {
+                "safety": 80,
+                "reliability": 80,
+                "ux": 70,
+                "observability": 70
+              },
+              "checks": [
+                {
+                  "name": "tool risk tiers",
+                  "pass": true,
+                  "detail": "Agent runtime declares risk tier policy map",
+                  "category": "safety",
+                  "weight": 3
+                },
+                {
+                  "name": "verification adapters",
+                  "pass": true,
+                  "detail": "Verification flow wired to typecheck/lint/route smoke/route integrity",
+                  "category": "reliability",
+                  "weight": 3
+                },
+                {
+                  "name": "runtime status chip",
+                  "pass": true,
+                  "detail": "Telemetry HUD surfaces run status",
+                  "category": "ux",
+                  "weight": 2
+                },
+                {
+                  "name": "status diagnostics queue",
+                  "pass": true,
+                  "detail": "Status endpoint includes queue and verification diagnostics",
+                  "category": "observability",
+                  "weight": 2
+                }
+              ]
+            },
+            "rollup": {
+              "grade": "C",
+              "stale": true,
+              "ageMinutes": 52491,
+              "degradedReasons": [
+                "stale-eval"
+              ]
+            }
+          },
+          "skillGovernance": {
+            "total": 5,
+            "approvalRequired": 4,
+            "byRisk": {
+              "tier0": 1,
+              "tier1": 3,
+              "tier2": 1
+            },
+            "skills": [
+              {
+                "id": "add-api",
+                "label": "Add API",
+                "domainTags": [
+                  "runtime",
+                  "connectors",
+                  "deployment"
+                ],
+                "riskTier": "tier1",
+                "approvalRequired": true,
+                "description": "Adds or modifies external data-source integrations."
+              },
+              {
+                "id": "add-feature",
+                "label": "Add Feature",
+                "domainTags": [
+                  "product",
+                  "ui",
+                  "runtime"
+                ],
+                "riskTier": "tier1",
+                "approvalRequired": true,
+                "description": "Implements a new feature or feature slice in the app."
+              },
+              {
+                "id": "add-tab",
+                "label": "Add Tab",
+                "domainTags": [
+                  "product",
+                  "navigation",
+                  "release-scope"
+                ],
+                "riskTier": "tier2",
+                "approvalRequired": true,
+                "description": "Adds or promotes a top-level app surface."
+              },
+              {
+                "id": "analyze-new-repo",
+                "label": "Analyze New Repo",
+                "domainTags": [
+                  "research",
+                  "architecture"
+                ],
+                "riskTier": "tier0",
+                "approvalRequired": false,
+                "description": "Explores and summarizes a new codebase or repo."
+              },
+              {
+                "id": "fix-bug",
+                "label": "Fix Bug",
+                "domainTags": [
+                  "runtime",
+                  "quality",
+                  "release-hardening"
+                ],
+                "riskTier": "tier1",
+                "approvalRequired": true,
+                "description": "Investigates and patches a bug in the active app."
+              }
+            ]
+          },
+          "toolIsolation": {
+            "status": "ready",
+            "adapterReady": true,
+            "adapter": {
+              "id": "node_subprocess_v1",
+              "label": "Node subprocess boundary"
+            },
+            "requiredExecTools": 1,
+            "approvedExecTools": 1,
+            "supportedExecTools": [
+              "n8n_run_workflow"
+            ],
+            "reason": null
+          },
+          "externalTools": {
+            "version": "external-tool-bridge.v1",
+            "status": "adapter-offline",
+            "genericExecution": false,
+            "publicRoute": false,
+            "descriptors": [
+              {
+                "id": "local_mcp_gateway",
+                "label": "Local MCP gateway",
+                "kind": "mcp_gateway",
+                "capability": "exec",
+                "status": "contract-only",
+                "execution": "descriptor_only",
+                "auth": {
+                  "mode": "oauth",
+                  "required": true,
+                  "configured": false,
+                  "tokenLocation": true,
+                  "status": "oauth-required",
+                  "scopes": [
+                    "mcp:tools:read",
+                    "mcp:tools:call"
+                  ]
+                },
+                "policy": {
+                  "publicRoute": false,
+                  "genericExecution": false,
+                  "allowlisted": false,
+                  "isolationRequired": true,
+                  "secretsRedacted": true
+                },
+                "adapter": {
+                  "id": "local_mcp_gateway_v1",
+                  "label": "Descriptor-only MCP gateway contract",
+                  "configured": false,
+                  "available": false,
+                  "reason": "contract_only"
+                }
+              },
+              {
+                "id": "n8n_run_workflow",
+                "label": "n8n workflow runner",
+                "kind": "workflow_adapter",
+                "capability": "exec",
+                "status": "adapter-offline",
+                "execution": "isolation_exec",
+                "auth": {
+                  "mode": "api_key",
+                  "required": false,
+                  "configured": false,
+                  "tokenLocation": true,
+                  "status": "not-required"
+                },
+                "policy": {
+                  "publicRoute": false,
+                  "genericExecution": false,
+                  "allowlisted": true,
+                  "isolationRequired": true,
+                  "secretsRedacted": true
+                },
+                "adapter": {
+                  "id": "node_subprocess_v1",
+                  "label": "Node subprocess boundary",
+                  "configured": false,
+                  "available": false,
+                  "reason": "n8n_base_url_missing"
+                }
+              }
+            ],
+            "counts": {
+              "total": 2,
+              "ready": 0,
+              "contractOnly": 1,
+              "blocked": 0,
+              "adapterOffline": 1,
+              "oauthRequired": 0
+            }
+          },
+          "experiments": {
+            "timesfmSpike": {
+              "id": "timesfm-spike",
+              "enabled": false,
+              "defaultEnabled": false,
+              "summary": "Forecasting adapter experiment stays behind an explicit non-default flag until decision-lift is measured."
+            },
+            "runtimeVariants": {
+              "baselineOnly": false,
+              "latest": {
+                "id": "rtx-run-1776918569597",
+                "createdAt": "2026-04-23T04:29:29.597Z",
+                "title": "Runtime isolation proof",
+                "variantKind": "memory_context_policy_delta",
+                "recommendation": "review",
+                "verdict": "neutral",
+                "scoreDelta": 0,
+                "summary": "Variant needs review: score delta +0 with 0 new threshold failures."
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "route": "/api/diagnostics",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "application/json",
+      "durationMs": 10,
+      "body": {
+        "generatedAt": "2026-05-08T02:36:08.877Z",
+        "summary": {
+          "networkMode": "internal",
+          "highRiskRoutesEnabled": false,
+          "allowPaidApis": false,
+          "tokenConfigured": true,
+          "localData": {
+            "canonicalContext": {
+              "agents": false,
+              "standards": false,
+              "state": false,
+              "bible": false
+            },
+            "legacyContext": {
+              "claude": false,
+              "tasks": false,
+              "lessons": false
+            },
+            "blockedRoots": [
+              ".claude",
+              ".git",
+              ".next",
+              ".next-build",
+              ".next-e2e",
+              ".next-fresh-runtime",
+              ".nexus",
+              ".turbo",
+              "archive",
+              "dist",
+              "node_modules",
+              "out"
+            ]
+          }
+        },
+        "release": {
+          "service": "homefront",
+          "brand": {
+            "name": "Homefront",
+            "tagline": "Local-first command intelligence",
+            "descriptor": "A local-first command room for markets, cyber, recon, and operator AI on web and desktop."
+          },
+          "channel": "dev",
+          "version": "local-dev",
+          "deploymentProfile": "local-dev",
+          "canonicalDeploymentLane": "dual-track",
+          "supportedSurfacePolicy": "ga-only",
+          "defaultEntrypoint": "/hq",
+          "uiShellVersion": "aegis-vector-v1",
+          "surfaceCounts": {
+            "total": 15,
+            "ga": 8,
+            "beta": 3,
+            "internal": 4,
+            "gaNav": 7
+          },
+          "surfaceAliases": [
+            {
+              "alias": "/home",
+              "canonicalHref": "/hq",
+              "id": "hq"
+            },
+            {
+              "alias": "/signals",
+              "canonicalHref": "/labs/signals",
+              "id": "signals"
+            },
+            {
+              "alias": "/ops",
+              "canonicalHref": "/labs/ops",
+              "id": "ops"
+            },
+            {
+              "alias": "/security",
+              "canonicalHref": "/labs/security",
+              "id": "security"
+            },
+            {
+              "alias": "/iot",
+              "canonicalHref": "/internal/iot",
+              "id": "iot"
+            },
+            {
+              "alias": "/vehicle",
+              "canonicalHref": "/internal/vehicle",
+              "id": "vehicle"
+            },
+            {
+              "alias": "/skills",
+              "canonicalHref": "/internal/skills",
+              "id": "skills"
+            },
+            {
+              "alias": "/reset",
+              "canonicalHref": "/internal/reset",
+              "id": "reset"
+            }
+          ],
+          "connectorReadiness": {
+            "total": 22,
+            "ready": 19,
+            "readyLimited": 3,
+            "disabledByPolicy": 0,
+            "blockedByMode": 0,
+            "needsKey": false,
+            "freePublic": 19,
+            "freeTierOptional": 3,
+            "paidOptionalHidden": 0
+          },
+          "rollbackHints": []
+        },
+        "runtime": {
+          "bootId": "8a294f1a-f0ee-4ce2-a007-79650ec1a355",
+          "startedAt": "2026-05-08T02:32:35.335Z",
+          "ageSeconds": 213,
+          "pid": 18720,
+          "node": "v24.14.0",
+          "platform": "win32",
+          "arch": "x64"
+        },
+        "security": {
+          "networkMode": "internal",
+          "highRiskRoutesEnabled": false,
+          "allowPaidApis": false,
+          "connectorPolicy": {
+            "news": true,
+            "gdelt": true,
+            "conflict": true,
+            "cisaKev": true,
+            "cves": true,
+            "threatIntel": true,
+            "secFilings": true,
+            "prices": true,
+            "metals": true,
+            "commodities": true,
+            "fx": true,
+            "fearGreed": true,
+            "defi": true,
+            "polymarket": true,
+            "weather": true,
+            "earthquakes": true,
+            "fires": true,
+            "flights": true,
+            "maritime": true,
+            "geoScan": true,
+            "hackerNews": true,
+            "headers": true
+          },
+          "tokenConfigured": true
+        },
+        "providers": {
+          "local": {
+            "ollamaEndpoint": "http://localhost:11434/v1/chat/completions"
+          },
+          "configured": {
+            "anthropic": false,
+            "openai": false,
+            "minimax": false,
+            "groq": true,
+            "openrouter": false,
+            "google": false
+          },
+          "posture": {
+            "paidApisEnabled": false,
+            "counts": {
+              "total": 7,
+              "configured": 2,
+              "ready": 2,
+              "availableIfConfigured": 1,
+              "hiddenByDefault": 4,
+              "primary": 3,
+              "advanced": 4,
+              "freeLocal": 1,
+              "freePublic": 0,
+              "freeTierOptional": 2,
+              "paidOptionalHidden": 4
+            },
+            "items": [
+              {
+                "id": "ollama",
+                "label": "Ollama",
+                "envKey": false,
+                "billingTier": "free_local",
+                "surface": "primary",
+                "recommended": true,
+                "description": "Primary local lane for free-first operation and offline control.",
+                "configured": true,
+                "enabledByPolicy": true,
+                "tierLabel": "Free local",
+                "status": "ready"
+              },
+              {
+                "id": "groq",
+                "label": "Groq",
+                "envKey": true,
+                "billingTier": "free_tier_optional",
+                "surface": "primary",
+                "recommended": true,
+                "description": "Fast inference lane with a usable free tier for normal operator workflows.",
+                "configured": true,
+                "enabledByPolicy": true,
+                "tierLabel": "Free tier optional",
+                "status": "ready"
+              },
+              {
+                "id": "google",
+                "label": "Google AI",
+                "envKey": true,
+                "billingTier": "free_tier_optional",
+                "surface": "primary",
+                "recommended": false,
+                "description": "Optional Gemini lane for teams that want another free-tier cloud option.",
+                "configured": false,
+                "enabledByPolicy": true,
+                "tierLabel": "Free tier optional",
+                "status": "available_if_configured"
+              },
+              {
+                "id": "anthropic",
+                "label": "Anthropic",
+                "envKey": true,
+                "billingTier": "paid_optional_hidden",
+                "surface": "advanced",
+                "recommended": false,
+                "description": "Advanced BYOK lane kept out of the primary free-first story.",
+                "configured": false,
+                "enabledByPolicy": false,
+                "tierLabel": "Advanced BYOK",
+                "status": "hidden_by_default"
+              },
+              {
+                "id": "openai",
+                "label": "OpenAI",
+                "envKey": true,
+                "billingTier": "paid_optional_hidden",
+                "surface": "advanced",
+                "recommended": false,
+                "description": "Advanced BYOK lane for teams that explicitly opt into paid providers.",
+                "configured": false,
+                "enabledByPolicy": false,
+                "tierLabel": "Advanced BYOK",
+                "status": "hidden_by_default"
+              },
+              {
+                "id": "openrouter",
+                "label": "OpenRouter",
+                "envKey": true,
+                "billingTier": "paid_optional_hidden",
+                "surface": "advanced",
+                "recommended": false,
+                "description": "Advanced routing gateway; intentionally not part of the default product posture.",
+                "configured": false,
+                "enabledByPolicy": false,
+                "tierLabel": "Advanced BYOK",
+                "status": "hidden_by_default"
+              },
+              {
+                "id": "minimax",
+                "label": "MiniMax",
+                "envKey": true,
+                "billingTier": "paid_optional_hidden",
+                "surface": "advanced",
+                "recommended": false,
+                "description": "Advanced compatible lane retained for explicit BYOK opt-in only.",
+                "configured": false,
+                "enabledByPolicy": false,
+                "tierLabel": "Advanced BYOK",
+                "status": "hidden_by_default"
+              }
+            ]
+          }
+        },
+        "dataSources": {
+          "coingecko": false,
+          "finnhub": false,
+          "nvd": false,
+          "guardian": false,
+          "fred": false,
+          "otx": false,
+          "aisstream": false,
+          "firms": false,
+          "firecrawl": false,
+          "brave": false
+        },
+        "skillGovernance": {
+          "total": 5,
+          "approvalRequired": 4,
+          "byRisk": {
+            "tier0": 1,
+            "tier1": 3,
+            "tier2": 1
+          },
+          "skills": [
+            {
+              "id": "add-api",
+              "label": "Add API",
+              "domainTags": [
+                "runtime",
+                "connectors",
+                "deployment"
+              ],
+              "riskTier": "tier1",
+              "approvalRequired": true,
+              "description": "Adds or modifies external data-source integrations."
+            },
+            {
+              "id": "add-feature",
+              "label": "Add Feature",
+              "domainTags": [
+                "product",
+                "ui",
+                "runtime"
+              ],
+              "riskTier": "tier1",
+              "approvalRequired": true,
+              "description": "Implements a new feature or feature slice in the app."
+            },
+            {
+              "id": "add-tab",
+              "label": "Add Tab",
+              "domainTags": [
+                "product",
+                "navigation",
+                "release-scope"
+              ],
+              "riskTier": "tier2",
+              "approvalRequired": true,
+              "description": "Adds or promotes a top-level app surface."
+            },
+            {
+              "id": "analyze-new-repo",
+              "label": "Analyze New Repo",
+              "domainTags": [
+                "research",
+                "architecture"
+              ],
+              "riskTier": "tier0",
+              "approvalRequired": false,
+              "description": "Explores and summarizes a new codebase or repo."
+            },
+            {
+              "id": "fix-bug",
+              "label": "Fix Bug",
+              "domainTags": [
+                "runtime",
+                "quality",
+                "release-hardening"
+              ],
+              "riskTier": "tier1",
+              "approvalRequired": true,
+              "description": "Investigates and patches a bug in the active app."
+            }
+          ]
+        },
+        "experiments": {
+          "timesfmSpike": {
+            "id": "timesfm-spike",
+            "enabled": false,
+            "defaultEnabled": false,
+            "summary": "Forecasting adapter experiment stays behind an explicit non-default flag until decision-lift is measured."
+          }
+        },
+        "notes": [
+          "All values are redacted to booleans/metadata only.",
+          "Use this payload for secured-network diagnostics exports."
+        ]
+      }
+    }
+  ],
+  "environment": {
+    "hasReleaseBaseUrl": false,
+    "hasToken": true,
+    "dockerExpected": true,
+    "dockerAvailable": false,
+    "node": "v24.14.0",
+    "platform": "win32"
+  },
+  "blocked": [
+    "NEXUS_RELEASE_BASE_URL is missing; capture used local fallback.",
+    "Docker CLI is unavailable; local container proof remains blocked."
+  ],
+  "releaseProofReady": false
+}

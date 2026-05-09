@@ -197,6 +197,22 @@ const CINEMATIC_IA_SURFACES: Record<
     visualGuardrail:
       "Never imply flight-critical authority or autonomous vehicle control.",
   },
+  iot: {
+    surface: "iot",
+    posture: "supported",
+    routePrefixes: ["/iot", "/internal/iot"],
+    hierarchy: "lead-support-continuity",
+    shellContract:
+      "IOT inherits the Homefront shell as an internal sensor and automation workbench.",
+    controlContract:
+      "Sensor, MQTT, device, and automation controls use shared shell affordances.",
+    stateContract:
+      "Live device states stay compact, proof-led, and review-gated.",
+    gracefulDegradation:
+      "Retained local device state and configuration remain readable when live adapters are offline.",
+    visualGuardrail:
+      "Automation posture should stay operator-owned and never imply autonomous physical escalation.",
+  },
   security: {
     surface: "security",
     posture: "supported",

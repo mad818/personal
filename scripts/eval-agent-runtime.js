@@ -61,12 +61,29 @@ function main() {
   const hud = read('components/ui/TelemetryHUD.tsx')
   const statusRoute = read('app/api/status/route.ts')
   const toolsRoute = read('app/api/tools/route.ts')
+  const routePolicy = read('lib/security/routePolicy.ts')
+  const assistantDispatch = read('lib/assistantDispatch.ts')
+  const assistantChatActions = read('lib/assistantChatActions.ts')
+  const assistantTurnReceipt = read('components/assistant/AssistantTurnReceipt.tsx')
+  const assistantOperatorWorkflow = read('lib/assistantOperatorWorkflow.ts')
+  const assistantOperatorWorkflowPanel = read('components/assistant/AssistantOperatorWorkflowPanel.tsx')
+  const homeChat = read('components/home/HomeChat.tsx')
+  const commandBar = read('components/ui/CommandBar.tsx')
+  const officeCommandCenter = read('components/home/office/OfficeCommandCenter.tsx')
+  const hqTerminalSection = read('components/home/office/HQTerminalSection.tsx')
+  const shell = read('components/ui/shell.tsx')
+  const homefrontVisualParity = read('lib/homefrontVisualParity.ts')
+  const homefrontSourceIntelligence = read('lib/homefrontSourceIntelligence.ts')
+  const sourceIntelligenceConsole = read('components/resources/SourceIntelligenceConsole.tsx')
+  const branchCleanupLedger = read('docs/repo-hygiene/branch-cleanup-decision-ledger-2026-05-08.md')
   const authDiagnosticsRoute = read('app/api/auth-diagnostics/route.ts')
   const externalBridge = read('lib/externalToolBridge.ts')
   const trustPosture = read('lib/trustPostureDescriptor.ts')
   const hasGenericMcpRoute =
     fs.existsSync(path.join(ROOT, 'app', 'api', 'mcp')) ||
     fs.existsSync(path.join(ROOT, 'app', 'api', 'external-tools'))
+  const hasAgentHealthRoute = fs.existsSync(path.join(ROOT, 'app', 'api', 'agent-health', 'route.ts'))
+  const hasOllamaCatalogRoute = fs.existsSync(path.join(ROOT, 'app', 'api', 'ollama', 'catalog', 'route.ts'))
 
   const checks = [
     check(
@@ -125,6 +142,257 @@ function main() {
       'no generic mcp route',
       !hasGenericMcpRoute,
       'No /api/mcp or /api/external-tools route exists; bridge stays behind existing tool APIs',
+      'safety',
+      2,
+    ),
+    check(
+      'assistant dispatch planner',
+      /resolveAssistantDispatch/.test(assistantDispatch) &&
+        /answerMode/.test(assistantDispatch) &&
+        /operatorChoiceNeeded/.test(assistantDispatch) &&
+        /toolCatalog/.test(assistantDispatch) &&
+        /actionModel/.test(assistantDispatch) &&
+        /localReply/.test(assistantDispatch) &&
+        /ASSISTANT_DISPATCH_CHECKS/.test(assistantDispatch),
+      'Shared assistant planner returns route, mode, capability, agent, context, tool catalog, action model, and local fast reply posture',
+      'reliability',
+      3,
+    ),
+    check(
+      'assistant dispatch assertion cases',
+      /expectedMode: "direct"/.test(assistantDispatch) &&
+        /expectedMode: "route_action"/.test(assistantDispatch) &&
+        /expectedMode: "ask_route_choice"/.test(assistantDispatch) &&
+        /expectedMode: "direct_with_route"/.test(assistantDispatch) &&
+        /expectedLocalReply: true/.test(assistantDispatch) &&
+        /Ping/.test(assistantDispatch) &&
+        /Thanks/.test(assistantDispatch) &&
+        /Research latest CVEs/.test(assistantDispatch) &&
+        /Fix this component/.test(assistantDispatch),
+      'Planner coverage includes direct, route action, route choice, direct-with-route, local fast replies, live-current, and engineering prompts',
+      'reliability',
+      2,
+    ),
+    check(
+      'assistant action model',
+      /AssistantChatActionModel/.test(assistantChatActions) &&
+        /preparedWorkspace/.test(assistantChatActions) &&
+        /routeHref/.test(assistantChatActions) &&
+        /answerMode/.test(assistantChatActions) &&
+        /recoveryAction/.test(assistantChatActions) &&
+        /diagnostic/.test(assistantChatActions) &&
+        /Answer here/.test(assistantChatActions) &&
+        /Open workspace/.test(assistantChatActions),
+      'Shared chat action contract includes workspace, route, answer mode, recovery, diagnostic, and visible action labels',
+      'ux',
+      3,
+    ),
+    check(
+      'chat surfaces share dispatch',
+      /resolveAssistantDispatch/.test(homeChat) &&
+        /resolveAssistantDispatch/.test(commandBar) &&
+        /resolveAssistantDispatch/.test(officeCommandCenter) &&
+        /localReply/.test(homeChat) &&
+        /localReply/.test(commandBar) &&
+        /localReply/.test(officeCommandCenter) &&
+        /normalizeAssistantFailureMessage/.test(homeChat) &&
+        /normalizeAssistantFailureMessage/.test(commandBar) &&
+        /normalizeAssistantFailureMessage/.test(officeCommandCenter),
+      'Home chat, CommandBar, and HQ chronicle use the same dispatch, local fast reply, and recovery layer',
+      'ux',
+      3,
+    ),
+    check(
+      'chat action affordances',
+      /actionModel/.test(homeChat) &&
+        /handleChatAction/.test(homeChat) &&
+        /actionModel/.test(commandBar) &&
+        /handleChatAction/.test(commandBar) &&
+        /actionModel/.test(officeCommandCenter) &&
+        /onAssistantAction/.test(hqTerminalSection) &&
+        /nexus-hq-chronicle__assistantAction/.test(hqTerminalSection),
+      'Home chat, CommandBar, and HQ chronicle render shared route/recovery action buttons',
+      'ux',
+      3,
+    ),
+    check(
+      'command route store sync',
+      /setTab\(getTabFromHref\(dispatchPlan\.routeHref\)\)/.test(commandBar) &&
+        /setTab\(getTabFromHref\(action\.href\)\)/.test(commandBar),
+      'CommandBar route actions update the shell tab store before navigation',
+      'reliability',
+      2,
+    ),
+    check(
+      'assistant readiness strip',
+      /nexus-hq-assistant-readiness/.test(hqTerminalSection) &&
+        /resolveAssistantDispatch/.test(hqTerminalSection) &&
+        /\/api\/ollama\/catalog/.test(hqTerminalSection) &&
+        /\/api\/agent-health/.test(hqTerminalSection) &&
+        /\/api\/auth-diagnostics/.test(hqTerminalSection) &&
+        /session required/.test(hqTerminalSection),
+      'HQ chronicle merges planner readiness with provider, model, auth, network, and agent-health diagnostics',
+      'observability',
+      3,
+    ),
+    check(
+      'assistant live execution watchdog',
+      /hq-live-execution-watchdog/.test(hqTerminalSection) &&
+        /agentRuntime\.startedAt/.test(hqTerminalSection) &&
+        /local model\|ollama\|runtime model/i.test(hqTerminalSection) &&
+        /provider-health/.test(hqTerminalSection),
+      'HQ chronicle surfaces a slow local-runtime watchdog with a provider-health recovery lane',
+      'observability',
+      2,
+    ),
+    check(
+      'structured assistant recovery',
+      /resolveAssistantFailure/.test(assistantChatActions) &&
+        /Session required/.test(assistantChatActions) &&
+        /Ollama is not reachable/.test(assistantChatActions) &&
+        /Open provider health/.test(assistantChatActions) &&
+        /Retry local/.test(assistantChatActions) &&
+        /Reset session/.test(assistantChatActions),
+      'Assistant failures map to session, Ollama, provider-health, retry, and reset recovery actions',
+      'observability',
+      2,
+    ),
+    check(
+      'local AI and tool route policy',
+      /\{ prefix: "\/api\/ai", routeClass: "local_only"/.test(routePolicy) &&
+        /\{ prefix: "\/api\/tools", routeClass: "local_only"/.test(routePolicy),
+      '/api/ai and /api/tools reach local handlers before handler-level provider/tool safety gates',
+      'safety',
+      3,
+    ),
+    check(
+      'assistant diagnostics routes',
+      hasAgentHealthRoute && hasOllamaCatalogRoute,
+      '/api/agent-health and /api/ollama/catalog diagnostics routes exist',
+      'observability',
+      2,
+    ),
+    check(
+      'assistant operator workflow model',
+      /AssistantOperatorWorkflowState/.test(assistantOperatorWorkflow) &&
+        /buildAssistantOperatorWorkflowState/.test(assistantOperatorWorkflow) &&
+        /reviewRequired/.test(assistantOperatorWorkflow) &&
+        /proposedEdits/.test(assistantOperatorWorkflow) &&
+        /skillInvocations/.test(assistantOperatorWorkflow),
+      'Shared operator workflow model exposes phase, review gate, proposed edits, task plan, change log, and skill/tool visibility',
+      'reliability',
+      3,
+    ),
+    check(
+      'assistant workflow dispatch coverage',
+      /operatorWorkflow/.test(assistantDispatch) &&
+        /buildAssistantOperatorWorkflowState/.test(assistantDispatch) &&
+        /expectedWorkflowPhase: "answer"/.test(assistantDispatch) &&
+        /expectedWorkflowPhase: "review"/.test(assistantDispatch) &&
+        /\[OPERATOR WORKFLOW\]/.test(assistantDispatch),
+      'Dispatch attaches operator workflow state, injects workflow context, and asserts answer/review phases',
+      'reliability',
+      3,
+    ),
+    check(
+      'assistant workflow action affordances',
+      /operatorWorkflow/.test(assistantChatActions) &&
+        /view_task_plan/.test(assistantChatActions) &&
+        /review_proposed_edits/.test(assistantChatActions) &&
+        /view_change_log/.test(assistantChatActions) &&
+        /view_skill_invocations/.test(assistantChatActions),
+      'Shared action model includes local-only workflow focus actions without navigation or mutation authority',
+      'ux',
+      2,
+    ),
+    check(
+      'assistant workflow shared renderer',
+      /assistant-operator-workflow/.test(assistantOperatorWorkflowPanel) &&
+        /assistant-workflow-phase/.test(assistantOperatorWorkflowPanel) &&
+        /assistant-workflow-task-plan/.test(assistantOperatorWorkflowPanel) &&
+        /assistant-workflow-proposed-edits/.test(assistantOperatorWorkflowPanel) &&
+        /assistant-workflow-skill-invocations/.test(assistantOperatorWorkflowPanel),
+      'Shared workflow panel renders phase strip, task plan, proposed edit posture, and skills/tools sections',
+      'ux',
+      3,
+    ),
+    check(
+      'assistant workflow surfaces',
+      /AssistantOperatorWorkflowPanel/.test(homeChat) &&
+        /operatorWorkflow/.test(homeChat) &&
+        /AssistantOperatorWorkflowPanel/.test(commandBar) &&
+        /operatorWorkflow/.test(commandBar) &&
+        /AssistantOperatorWorkflowPanel/.test(hqTerminalSection) &&
+        /operatorWorkflow/.test(hqTerminalSection),
+      'Home chat, CommandBar, and HQ chronicle render the shared operator workflow panel',
+      'ux',
+      3,
+    ),
+    check(
+      'homefront workplane summary contract',
+      /workplaneSummary/.test(homefrontVisualParity) &&
+        /primaryQuestion/.test(homefrontVisualParity) &&
+        /nextBestAction/.test(homefrontVisualParity) &&
+        /\/command\?focus=provider-health/.test(homefrontVisualParity) &&
+        /\/intel\?focus=intel-world/.test(homefrontVisualParity) &&
+        /\/resources\?view=sources/.test(homefrontVisualParity) &&
+        /homefront-workplane-summary/.test(shell),
+      'Core route specs expose compact purpose/action/proof summaries rendered by the authenticated shell',
+      'ux',
+      3,
+    ),
+    check(
+      'homefront authenticated shell polish contract',
+      /interiorPolish/.test(homefrontVisualParity) &&
+        /leadIntent/.test(homefrontVisualParity) &&
+        /staleInfoPolicy/.test(homefrontVisualParity) &&
+        /mediaMoment/.test(homefrontVisualParity) &&
+        /activeStateLabel/.test(homefrontVisualParity) &&
+        /supportDensity/.test(homefrontVisualParity) &&
+        /data-interior-polish/.test(shell) &&
+        /data-support-density/.test(shell) &&
+        /data-active-label/.test(shell) &&
+        /data-media-moment/.test(shell),
+      'Authenticated non-HQ routes carry interior polish metadata through shell primitives without adding a new layout framework',
+      'ux',
+      3,
+    ),
+    check(
+      'assistant turn receipt surfaces',
+      /receiptTitle/.test(assistantChatActions) &&
+        /receiptItems/.test(assistantChatActions) &&
+        /changedFiles/.test(assistantChatActions) &&
+        /assistant-turn-receipt/.test(assistantTurnReceipt) &&
+        /AssistantTurnReceipt/.test(homeChat) &&
+        /AssistantTurnReceipt/.test(commandBar) &&
+        /AssistantTurnReceipt/.test(hqTerminalSection),
+      'Home chat, CommandBar, and HQ chronicle render shared turn receipts with mode, tools, recovery, and file-change posture',
+      'observability',
+      3,
+    ),
+    check(
+      'source intelligence governed ledger',
+      /HOMEFRONT_SOURCE_LEDGER/.test(homefrontSourceIntelligence) &&
+        /mapped/.test(homefrontSourceIntelligence) &&
+        /candidate/.test(homefrontSourceIntelligence) &&
+        /blocked/.test(homefrontSourceIntelligence) &&
+        /rejected/.test(homefrontSourceIntelligence) &&
+        /private-lane/.test(homefrontSourceIntelligence) &&
+        /resources-source-ledger/.test(sourceIntelligenceConsole) &&
+        /File to VAULT/.test(sourceIntelligenceConsole),
+      'External GitHub/X resources are classified into governed source statuses and shown in RESOURCES with VAULT filing actions',
+      'safety',
+      3,
+    ),
+    check(
+      'branch cleanup decision ledger',
+      /No automatic branch deletion/.test(branchCleanupLedger) &&
+        /Delete Local After Worktree Removal/.test(branchCleanupLedger) &&
+        /Delete Remote After PR Check/.test(branchCleanupLedger) &&
+        /Archive Tag Candidates/.test(branchCleanupLedger) &&
+        /Do Not Touch Yet/.test(branchCleanupLedger) &&
+        /Do not run this whole block blindly/.test(branchCleanupLedger),
+      'Repo hygiene cleanup is documented as a review-gated decision ledger with exact commands but no automatic deletion',
       'safety',
       2,
     ),

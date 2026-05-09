@@ -488,7 +488,7 @@ export const AGENT_TOOLS = [
 
 type AgentToolDefinition = (typeof AGENT_TOOLS)[number];
 
-interface AgentToolCatalog {
+export interface AgentToolCatalog {
   id: string;
   tools: AgentToolDefinition[];
 }

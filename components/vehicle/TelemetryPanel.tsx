@@ -6,6 +6,11 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import {
+  DEFAULT_VEHICLE_REPLAY_SCENARIO,
+  VEHICLE_REPLAY_SCENARIOS,
+} from "@/lib/vehicle/flightReplayScenarios";
+import type { VehicleTelemetryFrame } from "@/lib/vehicle/types";
 
 interface Telemetry {
   speed: number;
@@ -54,12 +59,44 @@ function headingToLabel(h: number): string {
   return "NW";
 }
 
+function motorStatusFromFrame(frame: VehicleTelemetryFrame, motorId: "FL" | "FR" | "RL" | "RR") {
+  const health = frame.motors.find((motor) => motor.id === motorId)?.health ?? "warning";
+  return health === "ok" ? "OK" : health === "offline" ? "OFF" : "WARN";
+}
+
+function frameToTelemetry(frame: VehicleTelemetryFrame): Telemetry {
+  return {
+    speed: frame.position.groundSpeedMps * 3.6,
+    heading: frame.position.headingDeg,
+    lat: frame.position.lat,
+    lng: frame.position.lon,
+    battery: frame.battery.percent,
+    motorFL: motorStatusFromFrame(frame, "FL"),
+    motorFR: motorStatusFromFrame(frame, "FR"),
+    motorRL: motorStatusFromFrame(frame, "RL"),
+    motorRR: motorStatusFromFrame(frame, "RR"),
+    cpuTemp: frame.companion.cpuTempC,
+    gpuTemp: frame.companion.gpuTempC,
+    aiModel: frame.companion.aiModel,
+    inferenceMs: frame.companion.inferenceMs,
+    obstacleCount: frame.detections.obstacles,
+    signalStrength: frame.link.qualityPercent,
+  };
+}
+
 export default function TelemetryPanel() {
-  const [t, setT] = useState<Telemetry>(INITIAL);
+  const [liveTelemetry, setLiveTelemetry] = useState<Telemetry>(INITIAL);
+  const [activeScenarioId, setActiveScenarioId] = useState(
+    DEFAULT_VEHICLE_REPLAY_SCENARIO.id,
+  );
+  const [scenarioFrameIndex, setScenarioFrameIndex] = useState(0);
+  const activeScenario =
+    VEHICLE_REPLAY_SCENARIOS.find((scenario) => scenario.id === activeScenarioId) ??
+    DEFAULT_VEHICLE_REPLAY_SCENARIO;
 
   useEffect(() => {
     const id = setInterval(() => {
-      setT((prev) => ({
+      setLiveTelemetry((prev) => ({
         ...prev,
         speed: Math.max(
           0,
@@ -97,6 +134,25 @@ export default function TelemetryPanel() {
     }, 600);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    setScenarioFrameIndex(0);
+  }, [activeScenarioId]);
+
+  useEffect(() => {
+    const frameCount = activeScenario.frames.length;
+    if (frameCount <= 1) return undefined;
+
+    const id = setInterval(() => {
+      setScenarioFrameIndex((index) => (index + 1) % frameCount);
+    }, 1200);
+
+    return () => clearInterval(id);
+  }, [activeScenario.id, activeScenario.frames.length]);
+
+  const scenarioFrame =
+    activeScenario.frames[scenarioFrameIndex % Math.max(1, activeScenario.frames.length)];
+  const t = scenarioFrame ? frameToTelemetry(scenarioFrame) : liveTelemetry;
 
   const batteryColor =
     t.battery > 50 ? "#10b981" : t.battery > 20 ? "#f59e0b" : "#ef4444";
@@ -185,6 +241,95 @@ export default function TelemetryPanel() {
       >
         Vehicle Telemetry
       </div>
+
+      <section
+        data-testid="vehicle-replay-scenarios"
+        style={{
+          background: "rgba(59,130,246,0.08)",
+          border: "1px solid rgba(59,130,246,0.22)",
+          borderRadius: "var(--rs)",
+          padding: "10px 12px",
+          marginBottom: "10px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "8px",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: "9px",
+                color: "#93c5fd",
+                textTransform: "uppercase",
+                letterSpacing: "0.8px",
+                fontWeight: 800,
+              }}
+            >
+              Scenario replay
+            </div>
+            <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "3px" }}>
+              Simulation only. Nexus does not arm, steer, or mode-switch an aircraft.
+            </div>
+          </div>
+          <span
+            style={{
+              fontSize: "9px",
+              color: "#bfdbfe",
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: "0.6px",
+            }}
+          >
+            Frame {scenarioFrameIndex + 1}/{activeScenario.frames.length}
+          </span>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+            gap: "6px",
+            marginBottom: "8px",
+          }}
+        >
+          {VEHICLE_REPLAY_SCENARIOS.map((scenario) => {
+            const active = scenario.id === activeScenario.id;
+            return (
+              <button
+                key={scenario.id}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setActiveScenarioId(scenario.id)}
+                style={{
+                  border: active ? "1px solid rgba(147,197,253,0.56)" : "1px solid var(--border)",
+                  background: active ? "rgba(147,197,253,0.16)" : "rgba(255,255,255,0.03)",
+                  color: active ? "#dbeafe" : "var(--text2)",
+                  borderRadius: "999px",
+                  padding: "7px 9px",
+                  fontSize: "9px",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  cursor: "pointer",
+                }}
+              >
+                {scenario.label}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}>
+          {activeScenario.summary}
+          {scenarioFrame?.recentEvents[0]?.message ? (
+            <span style={{ color: "#bfdbfe" }}> Current: {scenarioFrame.recentEvents[0].message}</span>
+          ) : null}
+        </div>
+      </section>
 
       {/* GPS row */}
       <div

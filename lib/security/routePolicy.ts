@@ -22,6 +22,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/metrics/runtime-eval", routeClass: "local_only", public: false },
   { prefix: "/api/agent-health", routeClass: "local_only", public: false },
   { prefix: "/api/agent-learnings", routeClass: "local_only", public: false },
+  { prefix: "/api/free-local-readiness", routeClass: "local_only", public: false },
   { prefix: "/api/token", routeClass: "local_only", public: true },
   { prefix: "/api/health", routeClass: "local_only", public: true },
   { prefix: "/api/auth-diagnostics", routeClass: "local_only", public: true },
@@ -85,8 +86,8 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/vault-synthesis", routeClass: "high_risk", public: false },
   { prefix: "/api/ai/batches/[batchId]", routeClass: "high_risk", public: false },
   { prefix: "/api/ai/batches", routeClass: "high_risk", public: false },
-  { prefix: "/api/ai", routeClass: "connector_opt_in", public: false },
-  { prefix: "/api/tools", routeClass: "high_risk", public: false },
+  { prefix: "/api/ai", routeClass: "local_only", public: false },
+  { prefix: "/api/tools", routeClass: "local_only", public: false },
   { prefix: "/api/mqtt", routeClass: "high_risk", public: false },
   { prefix: "/api/telegram", routeClass: "high_risk", public: false },
   { prefix: "/api/agent-reach", routeClass: "high_risk", public: false },
@@ -114,6 +115,7 @@ export function readNetworkMode(): NetworkMode {
   const raw = (
     process.env.NEXUS_NETWORK_MODE ?? getDefaultNetworkMode()
   ).toLowerCase();
+  if (raw === "isolated") return raw;
   if (raw === "internal" || raw === "connected") return raw;
   return getDefaultNetworkMode();
 }

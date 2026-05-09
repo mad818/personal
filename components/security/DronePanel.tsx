@@ -316,11 +316,12 @@ export default function DronePanel() {
           </span>
         </div>
 
-        {/* Map placeholder */}
+        {/* Passive position plot */}
         <div
           style={{
             height: "90px",
-            background: "#060405",
+            background:
+              "linear-gradient(135deg, rgba(6,10,14,0.98), rgba(13,22,28,0.94))",
             borderRadius: "var(--rs)",
             border: "1px solid var(--border)",
             display: "flex",
@@ -336,8 +337,19 @@ export default function DronePanel() {
               position: "absolute",
               inset: 0,
               backgroundImage:
-                "radial-gradient(circle, rgba(196,72,90,0.05) 1px, transparent 1px)",
-              backgroundSize: "16px 16px",
+                "linear-gradient(rgba(126,227,184,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(126,227,184,.06) 1px, transparent 1px)",
+              backgroundSize: "18px 18px",
+            }}
+          />
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: "18%",
+              right: "16%",
+              top: "52%",
+              borderTop: "1px dashed rgba(255,209,102,.35)",
+              transform: "rotate(-8deg)",
             }}
           />
           <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
@@ -348,7 +360,7 @@ export default function DronePanel() {
                 marginBottom: "4px",
               }}
             >
-              GPS POSITION
+              PASSIVE GPS POSITION
             </div>
             <div
               style={{
@@ -359,6 +371,17 @@ export default function DronePanel() {
               }}
             >
               {telem.lat.toFixed(5)}°N {Math.abs(telem.lng).toFixed(5)}°W
+            </div>
+            <div
+              style={{
+                color: "rgba(255,240,214,.55)",
+                fontFamily: "monospace",
+                fontSize: "8px",
+                marginTop: "3px",
+                textTransform: "uppercase",
+              }}
+            >
+              Simulation only - no arm/steer/mode switch
             </div>
             {launched && (
               <motion.div

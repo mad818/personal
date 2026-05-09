@@ -11,6 +11,7 @@ Use this checklist for both deployment lanes before promoting a release.
 - [ ] `npm run security:tauri`
 - [ ] `npm run eval:agent-runtime:ci`
 - [ ] `npm run release:smoke` against the target runtime
+- [ ] `npm run release:diagnostics:capture` records route status and prerequisite posture
 - [ ] `npm run runtime:consistency` reports one coherent runtime boot identity
 - [ ] `npm run runtime:fresh-proof` passes on an isolated clean runtime
 - [ ] Build, Playwright, and fresh-runtime lanes are run serially when they share the same local `.next` workspace
@@ -52,6 +53,7 @@ Use this checklist for both deployment lanes before promoting a release.
 
 ## Web lane
 
+- [ ] [`fd2-release-runbook.md`](./fd2-release-runbook.md) has been followed for local proof, staged proof, and rollback prep
 - [ ] Docker build succeeds
 - [ ] Coolify/VPS deploy succeeds
 - [ ] TLS is enabled
@@ -72,4 +74,5 @@ Use this checklist for both deployment lanes before promoting a release.
 
 - [ ] previous known-good artifact or image tag is available
 - [ ] diagnostics snapshot captured before promotion
+- [ ] timestamped `docs/metrics/release-diagnostics-*.json` artifact is attached to the release record
 - [ ] rollback steps tested and documented for the target lane

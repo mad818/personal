@@ -62,7 +62,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "input=$(echo \"$CLAUDE_TOOL_INPUT\" | tr '[:upper:]' '[:lower:]'); if echo \"$input\" | grep -qE '(rm -rf|rm -r /|rmdir /|del /f|format c:|drop table|drop database|truncate table|delete from .+ where 1|:.*\\(\\).*\\{.*:|curl.*\\|.*bash|wget.*\\|.*bash)'; then echo 'BLOCKED: destructive command detected. Confirm with Mario before running this.'; exit 2; fi; exit 0"
+            "command": "node .claude/hooks/pre-tool-use.mjs"
           }
         ]
       }

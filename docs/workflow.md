@@ -1,42 +1,54 @@
-## Claude Desktop + Cursor workflow (Nexus Prime)
+## Codex-first workflow (Nexus Prime)
 
-### Roles (most effective split)
+### Roles
 
-- **Claude Desktop = brain**: planning, root-cause analysis, reviews, edge cases, step-by-step patch plans.
-- **Cursor = hands**: navigation, edits, applying patches, running checks, fixing TypeScript/runtime errors.
+- **Codex = execution partner**: planning, code edits, review, verification, docs, and handoff updates.
+- **Cursor / local editor = optional manual surface**: quick inspection, manual Git commands, and file transfer prep when needed.
+- **Mario = operator**: priorities, acceptance, secrets, protected GitHub actions, and final merge direction.
 
-This keeps one tool authoritative for editing (Cursor) and avoids “two writers” corrupting context.
+This repo no longer presents Claude as the active working contributor. Legacy
+Claude/Cursor mirrors may remain as compatibility pointers, but Codex is the
+primary agent workflow.
 
-### Daily loop (fast + reliable)
+### Daily loop
 
-1. **Run the app**
+1. **Sync and read state**
+
+```bash
+npm run handoff:pull
+```
+
+Then read:
+
+- `docs/AGENT_HANDOFF.md`
+- `tasks/todo.md`
+- `tasks/lessons.md`
+
+2. **Run the app**
 
 ```bash
 npm run dev
 ```
 
-2. **When you hit a bug**
+3. **When you hit a bug**
 
-- Capture **console errors** + a screenshot (or short description).
-- If clickability is broken, read the in-app **CLICK DEBUG** overlay:
-  - `target: …`
-  - `top: …`
+- Capture console errors and a screenshot or short description.
+- Include the affected route and recent changes.
+- Let Codex inspect the code, patch locally, and verify.
 
-3. **Ask Claude Desktop**
-
-Paste the template below (copy/paste) so Claude can reason precisely.
-
-4. **Implement in Cursor**
-
-Apply changes in Cursor (not in Claude Desktop), then run:
+4. **Verify before calling work done**
 
 ```bash
 npm run verify
 ```
 
-### Debug paste template (for Claude Desktop)
+If formatting is part of the acceptance gate:
 
-Paste this block and fill in the blanks:
+```bash
+npm run verify:full
+```
+
+### Debug paste template
 
 ```text
 Goal:
@@ -44,34 +56,19 @@ Expected:
 Actual:
 
 Repro steps:
-1)
-2)
+1.
+2.
 
-Console errors (top 20 lines):
+Console errors:
 ...
-
-CLICK DEBUG (if relevant):
-target: ...
-top: ...
 
 Affected page/route:
 
 Recent changes:
 ```
 
-### Repo checks (single command)
+### Git note
 
-Use this after any meaningful change:
-
-```bash
-npm run verify
-```
-
-It runs: TypeScript, lint, and path-collision guardrails.
-
-If you want to also enforce formatting (Prettier), use:
-
-```bash
-npm run verify:full
-```
-
+GitHub branch protection and local Windows permissions can require Mario to run
+final Git commands manually. Local implementation should still leave files
+clean, verified, and easy to transfer.

@@ -59,7 +59,7 @@ export default async function RootLayout({
     !isNexusAuthEnabled() || (await hasAuthenticatedNexusSession(sessionCookie));
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         <style
           id="nexus-critical-shell-css"

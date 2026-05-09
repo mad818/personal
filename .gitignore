@@ -2,10 +2,13 @@ node_modules/
 .npm-cache/
 .next/
 .next-build/
+.next-build-proof/
+.next-dev-3101/
 .next-e2e/
 .next-fresh-runtime/
 .next-landing-proof/
 .git-push-*/
+tmp-codex-runtime/
 .turbo/
 out/
 dist/
@@ -14,6 +17,8 @@ dist/
 .nexus-runtime.pid
 .nexus-runtime.out
 .nexus-runtime.err
+.nexus-dev*.out
+.nexus-dev*.err
 .nexus-release-boundary.json
 .nexus/
 .env.*.local

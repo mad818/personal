@@ -7,17 +7,21 @@ import {
   useScroll,
   useSpring,
 } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import type { PointerEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  HOMEFRONT_SOURCE_ACTIVE_QUEUE,
+  HOMEFRONT_SOURCE_GOVERNANCE_STEPS,
+  HOMEFRONT_SOURCE_INTELLIGENCE_LANES,
+} from "@/lib/homefrontSourceIntelligence";
 
-const HERO_VIDEO_URL =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4";
 const START_VIDEO_URL =
   "https://stream.mux.com/9JXDljEVWYwWu01PUkAemafDugK89o01BR6zqJ3aS9u00A.m3u8";
 const STATS_VIDEO_URL =
   "https://stream.mux.com/NcU3HlHeF7CUL86azTTzpy3Tlb00d6iF3BmCdFslMJYM.m3u8";
 const CTA_VIDEO_URL =
   "https://stream.mux.com/8wrHPCX2dC3msyYU9ObwqNdm00u3ViXvOSHUMRYSEe5Q.m3u8";
-const POSTER_IMAGE_URL = "/office/la-skyline.jpg";
 
 const NAV_LINKS = [
   { href: "#home", label: "Home" },
@@ -33,7 +37,127 @@ type LandingSectionId =
 const LANDING_SECTION_IDS = NAV_LINKS.map((link) =>
   link.href.slice(1),
 ) as LandingSectionId[];
+const GUARDIAN_HERO_IMAGE = "/images/homefront-guardian-hero.webp";
+const GUARDIAN_DRONE_IMAGE = "/images/homefront-drone-patrol.webp";
+const GUARDIAN_CAPABILITY_VIDEO = "/videos/homefront-capability-reel.webm";
 const OPERATING_LANES = ["HQ", "COMMAND", "INTEL", "CYBER", "RECON", "VAULT"];
+
+type DroneSignal = {
+  id: number;
+  x: number;
+  y: number;
+};
+
+const GUARDIAN_PROTOCOL_FEEDS = [
+  {
+    label: "Front porch",
+    signal: "Animal / rodent trigger",
+    posture: "cleared",
+    detail: "Classified as a false alarm. Record-only.",
+  },
+  {
+    label: "Driveway",
+    signal: "Unknown approach",
+    posture: "review",
+    detail: "Held for operator context.",
+  },
+  {
+    label: "Side gate",
+    signal: "Latch movement",
+    posture: "notify",
+    detail: "Escalate with quiet evidence.",
+  },
+] as const;
+
+const GUARDIAN_PROTOCOL_TIMELINE = [
+  ["00:04", "Motion enters the porch zone."],
+  ["00:07", "Local model clears the animal or rodent trigger."],
+  ["00:13", "Unknown approach is held for review."],
+  ["00:21", "Operator approves spotlight and voice prompt only."],
+  ["00:28", "Incident clip and decision trail move to memory."],
+] as const;
+
+const HOMEFRONT_CAPABILITY_SPINE = [
+  {
+    id: "perimeter",
+    label: "Perimeter",
+    title: "Existing cameras become a calm review loop.",
+    body: "RTSP and ONVIF feeds can be treated as local evidence: motion comes in, animal or rodent false alarms get cleared, perimeter breach is held, and the operator chooses the next move.",
+    watch: ["perimeter alarm", "animal / rodent trigger", "gate breach"],
+    reasons: ["false-alarm posture", "zone history", "motion direction"],
+    recommends: ["quiet notify", "hold for review", "spotlight prompt"],
+    records: ["event clip", "operator choice", "decision trail"],
+    readout: "review before response",
+  },
+  {
+    id: "command",
+    label: "Command",
+    title: "Every action gets a lane before it leaves your hands.",
+    body: "The command room keeps intent, risk, proof, and fallback visible so agent work starts with a scoped instruction instead of a loose prompt.",
+    watch: ["mission queue", "route focus", "runtime health"],
+    reasons: ["operator intent", "risk tier", "available proof"],
+    recommends: ["stage task", "ask for scope", "route agent"],
+    records: ["run artifact", "handoff state", "completion proof"],
+    readout: "dispatch with scope",
+  },
+  {
+    id: "intel",
+    label: "Intel",
+    title: "Signals are filtered into a usable operating picture.",
+    body: "Markets, news, and outside events stay useful when they are bundled into context, freshness, and decision value instead of another noisy feed.",
+    watch: ["market pressure", "news changes", "macro context"],
+    reasons: ["freshness", "source posture", "decision impact"],
+    recommends: ["brief operator", "mark uncertainty", "save source"],
+    records: ["source link", "brief note", "follow-up cue"],
+    readout: "signal to context",
+  },
+  {
+    id: "cyber",
+    label: "Cyber",
+    title: "Risk is made visible before a tool becomes powerful.",
+    body: "Cyber work stays bounded around posture, CVE pressure, route safety, and explicit approval before anything risky is allowed to follow through.",
+    watch: ["CVE pressure", "route exposure", "tool posture"],
+    reasons: ["blast radius", "credential risk", "network posture"],
+    recommends: ["isolate", "review first", "repair safely"],
+    records: ["risk gate", "fix proof", "audit note"],
+    readout: "bounded by default",
+  },
+  {
+    id: "recon",
+    label: "Recon",
+    title: "Outside ideas are studied before they enter the room.",
+    body: "Repos, docs, OSINT patterns, and research links can be compared, adapted, or rejected without becoming hidden dependencies.",
+    watch: ["public repos", "OSINT sources", "reference docs"],
+    reasons: ["fit", "license posture", "maintenance signal"],
+    recommends: ["adapt pattern", "reject unsafe", "save source"],
+    records: ["source memo", "fit call", "scope note"],
+    readout: "passive-first intake",
+  },
+  {
+    id: "vault",
+    label: "Vault",
+    title: "Proof survives the session.",
+    body: "The system is only useful if the next session can recover why a choice happened. Vault keeps handoffs, artifacts, source notes, and operating memory close.",
+    watch: ["handoff drift", "saved artifacts", "decision history"],
+    reasons: ["continuity", "reopen value", "proof quality"],
+    recommends: ["save artifact", "write handoff", "link memory"],
+    records: ["compiled page", "state note", "artifact trail"],
+    readout: "remembered work",
+  },
+] as const;
+
+type HomefrontCapability = (typeof HOMEFRONT_CAPABILITY_SPINE)[number];
+type HomefrontCapabilityId = HomefrontCapability["id"];
+
+const HOMEFRONT_THINKING_CHAIN = [
+  ["01", "Observe", "Bring local feeds and route context into view."],
+  ["02", "Filter", "Remove noise before it turns into a command."],
+  ["03", "Classify", "Name the event without overclaiming certainty."],
+  ["04", "Context", "Compare against lane history and current posture."],
+  ["05", "Recommend", "Offer the safest useful next step."],
+  ["06", "Approve", "Wait for the operator before action."],
+  ["07", "Record", "Save the clip, choice, and proof trail."],
+] as const;
 
 const LIVE_COMMAND_ROWS = [
   {
@@ -406,6 +530,33 @@ type IconProps = {
   className?: string;
 };
 
+function getReducedMotionSnapshot() {
+  if (typeof window === "undefined") return false;
+
+  return (
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+    document.documentElement.dataset.nexusMotionProfile === "reduced"
+  );
+}
+
+function subscribeReducedMotion(onStoreChange: () => void) {
+  const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+  query.addEventListener("change", onStoreChange);
+
+  return () => query.removeEventListener("change", onStoreChange);
+}
+
+function useLandingReducedMotion() {
+  const framerReducedMotion = useReducedMotion();
+  const mediaReducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotionSnapshot,
+    () => false,
+  );
+
+  return Boolean(framerReducedMotion || mediaReducedMotion);
+}
+
 function HlsVideo({
   className,
   desaturated = false,
@@ -473,10 +624,12 @@ function HlsVideo({
 
 function BlurText({
   className,
+  dataTestId,
   delay = 100,
   text,
 }: {
   className?: string;
+  dataTestId?: string;
   delay?: number;
   text: string;
 }) {
@@ -486,7 +639,7 @@ function BlurText({
   const words = text.split(" ");
 
   return (
-    <h1 ref={ref} className={className}>
+    <h1 ref={ref} className={className} data-testid={dataTestId}>
       {words.map((word, index) => (
         <motion.span
           key={`${word}-${index}`}
@@ -683,28 +836,15 @@ function Navbar({ accessHref }: { accessHref: string }) {
 }
 
 function Hero({ accessHref }: { accessHref: string }) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useLandingReducedMotion();
 
   return (
     <section
       id="home"
-      className="relative h-[1000px] overflow-visible bg-black"
+      className="relative h-svh min-h-[820px] overflow-hidden bg-black"
       data-testid="landing-hero"
     >
-      <video
-        aria-hidden="true"
-        autoPlay={!reduceMotion}
-        className="absolute left-0 z-0 h-auto w-full object-contain"
-        loop
-        muted
-        playsInline
-        poster={POSTER_IMAGE_URL}
-        preload="metadata"
-        style={{ top: "20%" }}
-      >
-        <source src={HERO_VIDEO_URL} type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 z-0 bg-black/5" />
+      <HomefrontCommandBackdrop reduceMotion={Boolean(reduceMotion)} />
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[300px]"
         style={{
@@ -712,36 +852,39 @@ function Hero({ accessHref }: { accessHref: string }) {
         }}
       />
 
-      <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col items-center px-6 pt-[150px] text-center">
+      <div className="pointer-events-none relative z-10 mx-auto flex h-full max-w-7xl flex-col items-start px-6 pt-[160px] text-left md:pt-[170px]">
         <div className="liquid-glass mb-8 inline-flex items-center gap-3 rounded-full p-1">
           <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-black font-body">
-            Local first
+            Guardian layer
           </span>
           <span className="pr-3 text-xs font-light text-white/80 font-body">
-            Homefront command intelligence.
+            Existing cameras. Future patrols. Operator control.
           </span>
         </div>
 
         <BlurText
+          dataTestId="landing-hero-headline"
           delay={100}
-          text="Homefront Holds The Line"
-          className="max-w-2xl text-6xl font-heading italic leading-[0.8] text-white md:text-7xl lg:text-[5.5rem]"
+          text="Homefront Guards The Perimeter"
+          className="max-w-3xl text-5xl font-heading italic leading-[0.82] text-white md:text-7xl lg:text-[5.35rem]"
         />
 
         <motion.p
           animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
-          className="mt-8 max-w-xl text-sm font-light leading-tight text-white font-body md:text-base"
+          className="mt-8 max-w-2xl text-sm font-light leading-relaxed text-white/86 font-body md:text-base"
           initial={{ filter: "blur(10px)", opacity: 0, y: 20 }}
           transition={{ delay: 0.8, duration: 0.6 }}
         >
-          A local-first command room for markets, cyber, recon, vault memory,
-          operator AI, and protected tools. No sales funnel, no billing layer,
-          just the room opening when the token is yours.
+          Existing cameras, future patrol drones, and local AI work together to
+          classify perimeter motion, clear animal or rodent false alarms, and
+          escalate only when the operator approves the next move. Warning
+          scripts can deter an intruder, but Homefront does not place emergency
+          calls automatically.
         </motion.p>
 
         <motion.div
           animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
-          className="mt-8 flex flex-wrap items-center justify-center gap-4"
+          className="pointer-events-auto mt-8 flex flex-wrap items-center justify-start gap-4"
           initial={{ filter: "blur(10px)", opacity: 0, y: 20 }}
           transition={{ delay: 1.1, duration: 0.6 }}
         >
@@ -753,17 +896,17 @@ function Hero({ accessHref }: { accessHref: string }) {
             className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-white font-body transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
           >
             <PlayIcon className="size-4 fill-white" />
-            Read the Spine
+            Read the Protocol
           </a>
         </motion.div>
 
-        <div className="mt-auto w-full pb-8 pt-16">
-          <div className="mb-8 flex justify-center">
+        <div className="mt-auto hidden w-full pb-8 pt-16">
+          <div className="mb-8 flex justify-start">
             <span className="liquid-glass rounded-full px-4 py-1.5 text-xs font-light text-white/75 font-body">
               Current operating lanes
             </span>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-12 md:gap-16">
+          <div className="flex flex-wrap items-center justify-start gap-8 md:gap-12">
             {OPERATING_LANES.map((lane) => (
               <span
                 key={lane}
@@ -772,6 +915,731 @@ function Hero({ accessHref }: { accessHref: string }) {
                 {lane}
               </span>
             ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HomefrontCommandBackdrop({
+  reduceMotion,
+}: {
+  reduceMotion: boolean;
+}) {
+  const patrolTransition = reduceMotion
+    ? { duration: 0 }
+    : {
+        duration: 22,
+        ease: "easeInOut" as const,
+        repeat: Infinity,
+        repeatType: "mirror" as const,
+      };
+  const [droneSignal, setDroneSignal] = useState<DroneSignal | null>(null);
+  const signalTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleBackdropPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+
+    const target = event.target as HTMLElement | null;
+    if (target?.closest("a,button")) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+    if (signalTimeoutRef.current) {
+      clearTimeout(signalTimeoutRef.current);
+    }
+
+    setDroneSignal({ id: Date.now(), x, y });
+    signalTimeoutRef.current = setTimeout(() => {
+      setDroneSignal(null);
+      signalTimeoutRef.current = null;
+    }, reduceMotion ? 520 : 950);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (signalTimeoutRef.current) {
+        clearTimeout(signalTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      aria-label="Interactive Homefront perimeter drone background"
+      className="absolute inset-0 z-0 overflow-hidden bg-[#020407]"
+      data-testid="landing-command-backdrop"
+      onPointerDown={handleBackdropPointerDown}
+    >
+      <Image
+        alt=""
+        className="absolute inset-0 size-full object-cover opacity-95"
+        data-testid="landing-guardian-hero-image"
+        draggable={false}
+        fill
+        priority
+        sizes="100vw"
+        src={GUARDIAN_HERO_IMAGE}
+      />
+      <motion.div
+        animate={
+          reduceMotion
+            ? undefined
+            : {
+                rotate: [-8, 12, -7],
+                x: [-44, 18, 56, -18],
+                y: [0, -28, 18, 8],
+              }
+        }
+        className="absolute right-[5%] top-[12%] h-28 w-48 md:right-[10%] md:top-[15%] md:h-44 md:w-72 lg:right-[12%] lg:h-52 lg:w-[340px]"
+        transition={patrolTransition}
+      >
+        <motion.img
+          alt=""
+          aria-hidden="true"
+          animate={
+            droneSignal
+              ? {
+                  filter: reduceMotion
+                    ? "brightness(1.18)"
+                    : "brightness(1.28) drop-shadow(0 0 22px rgba(190,244,255,0.38))",
+                  opacity: 1,
+                  scale: reduceMotion ? 1 : 1.055,
+                }
+              : { filter: "brightness(1)", opacity: 0.9, scale: 1 }
+          }
+          className="size-full object-contain opacity-90"
+          data-testid="landing-guardian-drone"
+          data-signal-state={droneSignal ? "acknowledged" : "idle"}
+          decoding="async"
+          draggable={false}
+          src={GUARDIAN_DRONE_IMAGE}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        />
+      </motion.div>
+      {droneSignal ? (
+        <motion.div
+          key={droneSignal.id}
+          aria-hidden="true"
+          className="pointer-events-none absolute size-14 rounded-full border border-cyan-100/45 bg-cyan-100/[0.08] shadow-[0_0_28px_rgba(125,231,255,0.18)]"
+          data-testid="landing-drone-signal-pulse"
+          initial={{ opacity: 0.72, scale: 0.28 }}
+          animate={{
+            opacity: reduceMotion ? [0.5, 0] : [0.72, 0.26, 0],
+            scale: reduceMotion ? [0.75, 1.05] : [0.28, 1.12, 1.62],
+          }}
+          style={{
+            left: `${droneSignal.x}%`,
+            marginLeft: "-1.75rem",
+            marginTop: "-1.75rem",
+            top: `${droneSignal.y}%`,
+          }}
+          transition={{ duration: reduceMotion ? 0.45 : 0.86, ease: "easeOut" }}
+        />
+      ) : null}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_68%_42%,rgba(0,0,0,0.02),rgba(0,0,0,0.52)_78%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-black via-black/70 to-transparent" />
+    </div>
+  );
+}
+
+function GuardianProtocolSection() {
+  const reduceMotion = useLandingReducedMotion();
+
+  return (
+    <section
+      className="relative overflow-hidden bg-black px-6 py-28"
+      data-testid="landing-guardian-protocol"
+    >
+      <motion.img
+        alt=""
+        aria-hidden="true"
+        animate={
+          reduceMotion
+            ? undefined
+            : {
+                opacity: [0.16, 0.24, 0.18],
+                scale: [1.04, 1.08, 1.05],
+                x: ["-1%", "1.5%", "-0.5%"],
+              }
+        }
+        className="absolute inset-0 size-full object-cover"
+        src={GUARDIAN_HERO_IMAGE}
+        transition={{
+          duration: 24,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatType: "mirror",
+        }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_38%,rgba(103,232,249,0.16),transparent_28%),linear-gradient(180deg,black_0%,rgba(0,0,0,0.76)_44%,black_100%)]" />
+      <motion.div
+        aria-hidden="true"
+        animate={
+          reduceMotion
+            ? undefined
+            : { opacity: [0.1, 0.44, 0.14], rotate: [9, 15, 8] }
+        }
+        className="absolute right-[10%] top-[4%] h-[92%] w-[30%] origin-top bg-gradient-to-b from-cyan-100/28 via-cyan-200/10 to-transparent blur-2xl"
+        style={{
+          clipPath: "polygon(42% 0%, 100% 100%, 0% 100%)",
+          mixBlendMode: "screen",
+        }}
+        transition={{
+          duration: 18,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatType: "mirror",
+        }}
+      />
+
+      <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.72fr_1.18fr] lg:items-center">
+        <div>
+          <SectionBadge>Guardian Protocol</SectionBadge>
+          <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+            First observe. Then slow the moment down.
+          </h2>
+          <p className="mt-6 max-w-xl text-sm font-light leading-relaxed text-white/64 font-body md:text-base">
+            The perimeter layer is not a panic button. It turns cameras and
+            future patrol drones into a local review chain: classify motion,
+            separate animal or rodent false alarms from unwanted perimeter
+            breach, ask the operator before action, and leave the proof behind.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            {["local inference", "false-alarm posture", "approval gate"].map(
+              (item) => (
+                <span
+                  key={item}
+                  className="rounded-full border border-white/12 bg-white/[0.04] px-3 py-1.5 text-xs uppercase tracking-[0.16em] text-white/58 font-body"
+                >
+                  {item}
+                </span>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div className="liquid-glass relative min-h-[620px] overflow-hidden rounded-[2rem] p-5 md:p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_62%_35%,rgba(124,231,255,0.16),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.05),transparent_42%)]" />
+          <div className="relative mb-4 h-[300px] overflow-hidden rounded-3xl border border-white/10 bg-black/40">
+            {!reduceMotion ? (
+              <video
+                aria-hidden="true"
+                autoPlay
+                className="absolute inset-0 size-full object-cover opacity-90"
+                data-testid="landing-capability-reel-video"
+                loop
+                muted
+                playsInline
+                poster={GUARDIAN_HERO_IMAGE}
+                preload="metadata"
+              >
+                <source src={GUARDIAN_CAPABILITY_VIDEO} type="video/webm" />
+              </video>
+            ) : (
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 size-full object-cover opacity-80"
+                fill
+                sizes="(min-width: 1024px) 720px, 100vw"
+                src={GUARDIAN_HERO_IMAGE}
+              />
+            )}
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.72),rgba(0,0,0,0.22)_58%,rgba(0,0,0,0.68))]" />
+            <div className="relative flex h-full flex-col justify-between p-5 md:p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="rounded-full border border-cyan-100/18 bg-cyan-100/[0.055] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-100/70 font-body">
+                  capability reel
+                </span>
+                <span className="rounded-full border border-white/12 bg-black/36 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/56 font-body">
+                  local media / no remote stream
+                </span>
+              </div>
+              <div className="max-w-md">
+                <h3 className="text-4xl font-heading italic leading-[0.88] text-white md:text-5xl">
+                  The background demonstrates the loop.
+                </h3>
+                <p className="mt-4 text-sm font-light leading-relaxed text-white/64 font-body">
+                  Patrol footage, camera intake, false-alarm classification,
+                  breach review posture, and incident memory stay visible before
+                  the operator takes action.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="relative grid h-full gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="flex min-h-[560px] flex-col justify-between rounded-3xl border border-white/10 bg-black/34 p-4">
+              <div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs uppercase tracking-[0.26em] text-white/38 font-body">
+                    Live perimeter
+                  </span>
+                  <motion.span
+                    animate={
+                      reduceMotion
+                        ? undefined
+                        : { opacity: [0.5, 1, 0.58], scale: [1, 1.15, 1] }
+                    }
+                    className="size-2 rounded-full bg-cyan-100 shadow-[0_0_18px_rgba(125,231,255,0.8)]"
+                    transition={{
+                      duration: 2.4,
+                      ease: "easeInOut",
+                      repeat: Infinity,
+                    }}
+                  />
+                </div>
+                <div className="mt-8 grid gap-3">
+                  {GUARDIAN_PROTOCOL_FEEDS.map((feed, index) => (
+                    <motion.article
+                      key={feed.label}
+                      animate={
+                        reduceMotion
+                          ? undefined
+                          : {
+                              borderColor: [
+                                "rgba(255,255,255,0.1)",
+                                index === 1
+                                  ? "rgba(251,191,36,0.36)"
+                                  : "rgba(125,231,255,0.26)",
+                                "rgba(255,255,255,0.1)",
+                              ],
+                            }
+                      }
+                      className="rounded-2xl border border-white/10 bg-white/[0.035] p-4"
+                      transition={{
+                        delay: index * 0.45,
+                        duration: 4.8,
+                        ease: "easeInOut",
+                        repeat: Infinity,
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-[11px] uppercase tracking-[0.18em] text-white/38 font-body">
+                            {feed.label}
+                          </div>
+                          <h3 className="mt-2 text-2xl font-heading italic leading-none text-white">
+                            {feed.signal}
+                          </h3>
+                        </div>
+                        <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-white/58 font-body">
+                          {feed.posture}
+                        </span>
+                      </div>
+                      <p className="mt-4 text-sm font-light leading-relaxed text-white/54 font-body">
+                        {feed.detail}
+                      </p>
+                    </motion.article>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-cyan-100/15 bg-cyan-100/[0.045] p-4">
+                <div className="text-xs uppercase tracking-[0.22em] text-cyan-100/48 font-body">
+                  Model posture
+                </div>
+                <p className="mt-3 text-sm font-light leading-relaxed text-white/64 font-body">
+                  Edge inference may recommend a response, but the operator owns
+                  the next step.
+                </p>
+              </div>
+            </div>
+
+            <div className="relative min-h-[560px] overflow-hidden rounded-3xl border border-white/10 bg-black/28 p-5">
+              <div className="absolute inset-x-0 top-1/3 h-px bg-gradient-to-r from-transparent via-white/24 to-transparent" />
+              <motion.div
+                aria-hidden="true"
+                animate={
+                  reduceMotion
+                    ? undefined
+                    : { y: ["-12%", "105%"], opacity: [0, 0.45, 0] }
+                }
+                className="absolute left-0 top-0 h-24 w-full bg-gradient-to-b from-transparent via-cyan-100/18 to-transparent"
+                transition={{
+                  duration: 5.6,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                }}
+              />
+              <div className="relative">
+                <div className="text-xs uppercase tracking-[0.26em] text-white/38 font-body">
+                  Decision trail
+                </div>
+                <h3 className="mt-4 text-4xl font-heading italic leading-[0.9] text-white">
+                  Review before response.
+                </h3>
+                <div className="mt-9 space-y-4">
+                  {GUARDIAN_PROTOCOL_TIMELINE.map(([time, event], index) => (
+                    <div key={event} className="grid grid-cols-[64px_1fr] gap-4">
+                      <div className="text-xs text-white/38 font-body">
+                        {time}
+                      </div>
+                      <div className="relative border-l border-white/12 pl-5">
+                        <motion.span
+                          animate={
+                            reduceMotion
+                              ? undefined
+                              : {
+                                  opacity: [0.48, 1, 0.58],
+                                  scale: [1, 1.2, 1],
+                                }
+                          }
+                          className="absolute left-[-5px] top-1 size-2 rounded-full bg-white/80 shadow-[0_0_18px_rgba(255,255,255,0.55)]"
+                          transition={{
+                            delay: index * 0.32,
+                            duration: 3,
+                            ease: "easeInOut",
+                            repeat: Infinity,
+                          }}
+                        />
+                        <p className="text-sm font-light leading-relaxed text-white/68 font-body">
+                          {event}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-10 grid grid-cols-3 gap-2">
+                  {["observe", "approve", "record"].map((item, index) => (
+                    <motion.div
+                      key={item}
+                      animate={
+                        reduceMotion
+                          ? undefined
+                          : { opacity: [0.58, 1, 0.7] }
+                      }
+                      className="rounded-full border border-white/10 px-3 py-2 text-center text-[10px] uppercase tracking-[0.16em] text-white/58 font-body"
+                      transition={{
+                        delay: index * 0.4,
+                        duration: 3.4,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      {item}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CapabilitySpineSection() {
+  const reduceMotion = useLandingReducedMotion();
+  const [activeCapabilityId, setActiveCapabilityId] =
+    useState<HomefrontCapabilityId>("perimeter");
+  const activeCapability =
+    HOMEFRONT_CAPABILITY_SPINE.find(
+      (capability) => capability.id === activeCapabilityId,
+    ) ?? HOMEFRONT_CAPABILITY_SPINE[0];
+  const activeCapabilityGroups = [
+    { label: "Watches", items: activeCapability.watch },
+    { label: "Reasons", items: activeCapability.reasons },
+    { label: "Recommends", items: activeCapability.recommends },
+    { label: "Records", items: activeCapability.records },
+  ] as const;
+
+  return (
+    <section
+      className="relative overflow-hidden bg-black px-6 py-28"
+      data-testid="landing-capability-spine"
+    >
+      <motion.img
+        alt=""
+        aria-hidden="true"
+        animate={
+          reduceMotion
+            ? undefined
+            : {
+                opacity: [0.16, 0.26, 0.18],
+                scale: [1.08, 1.13, 1.09],
+                x: ["1%", "-1.5%", "0.8%"],
+              }
+        }
+        className="absolute inset-0 size-full object-cover"
+        src={GUARDIAN_HERO_IMAGE}
+        transition={{
+          duration: 26,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatType: "mirror",
+        }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_28%,rgba(125,231,255,0.16),transparent_30%),radial-gradient(circle_at_78%_70%,rgba(251,191,36,0.08),transparent_34%),linear-gradient(180deg,black_0%,rgba(0,0,0,0.78)_44%,black_100%)]" />
+      <motion.div
+        aria-hidden="true"
+        animate={
+          reduceMotion
+            ? undefined
+            : { x: ["-18%", "18%"], opacity: [0.08, 0.22, 0.1] }
+        }
+        className="absolute left-1/2 top-1/2 h-[70%] w-[92%] -translate-x-1/2 -translate-y-1/2 rounded-[999px] border border-cyan-100/12"
+        transition={{
+          duration: 14,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatType: "mirror",
+        }}
+      />
+
+      <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
+        <div className="lg:sticky lg:top-28">
+          <SectionBadge>Capability Spine</SectionBadge>
+          <h2 className="mt-5 max-w-2xl text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+            See the room think before it acts.
+          </h2>
+          <p className="mt-6 max-w-xl text-sm font-light leading-relaxed text-white/64 font-body md:text-base">
+            Homefront should not feel like a black box. Each lane shows what it
+            watches, why it cares, what it can recommend, and what proof remains
+            after the operator decides.
+          </p>
+
+          <div
+            className="mt-8 flex flex-wrap gap-2 rounded-[2rem] border border-white/10 bg-black/28 p-2 backdrop-blur-xl"
+            data-testid="landing-core-function-switcher"
+            role="tablist"
+            aria-label="Homefront core functions"
+          >
+            {HOMEFRONT_CAPABILITY_SPINE.map((capability) => {
+              const isActive = activeCapability.id === capability.id;
+
+              return (
+                <button
+                  key={capability.id}
+                  aria-controls="landing-capability-panel"
+                  aria-selected={isActive}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition duration-300 font-body ${
+                    isActive
+                      ? "bg-white text-black shadow-[0_14px_48px_rgba(255,255,255,0.12)]"
+                      : "text-white/58 hover:bg-white/8 hover:text-white"
+                  }`}
+                  data-testid={`landing-capability-tab-${capability.id}`}
+                  onClick={() => setActiveCapabilityId(capability.id)}
+                  role="tab"
+                  type="button"
+                >
+                  {capability.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <motion.div
+            key={activeCapability.id}
+            animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+            className="liquid-glass mt-6 rounded-[2rem] p-5 md:p-6"
+            data-testid="landing-capability-panel"
+            id="landing-capability-panel"
+            initial={
+              reduceMotion ? false : { filter: "blur(10px)", opacity: 0, y: 18 }
+            }
+            role="tabpanel"
+            transition={{ duration: 0.42, ease: "easeOut" }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-[0.24em] text-cyan-100/48 font-body">
+                  {activeCapability.label}
+                </div>
+                <h3 className="mt-3 text-3xl font-heading italic leading-[0.94] text-white md:text-4xl">
+                  {activeCapability.title}
+                </h3>
+              </div>
+              <span className="hidden rounded-full border border-cyan-100/18 bg-cyan-100/[0.055] px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-cyan-100/70 font-body sm:inline-flex">
+                {activeCapability.readout}
+              </span>
+            </div>
+            <p className="mt-5 text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
+              {activeCapability.body}
+            </p>
+
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
+              {activeCapabilityGroups.map(({ items, label }) => (
+                <div
+                  key={label}
+                  className="rounded-3xl border border-white/10 bg-white/[0.035] p-4"
+                >
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/34 font-body">
+                    {label}
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    {items.map((item) => (
+                      <div key={item} className="flex items-center gap-2">
+                        <span className="size-1.5 rounded-full bg-cyan-100/70 shadow-[0_0_12px_rgba(125,231,255,0.55)]" />
+                        <span className="text-sm font-light text-white/62 font-body">
+                          {item}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 rounded-3xl border border-amber-200/15 bg-amber-200/[0.045] p-4">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-100/48 font-body">
+                Operating boundary
+              </div>
+              <p className="mt-3 text-sm font-light leading-relaxed text-white/62 font-body">
+                No autonomous escalation, no face recognition, no citizen
+                scoring. The system narrows the moment; the operator owns it.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+
+        <div
+          className="liquid-glass relative min-h-[780px] overflow-hidden rounded-[2.25rem] p-4 md:p-6"
+          data-testid="landing-capability-media"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_62%_28%,rgba(125,231,255,0.16),transparent_26%),linear-gradient(135deg,rgba(255,255,255,0.06),transparent_42%)]" />
+          <div className="relative h-[380px] overflow-hidden rounded-[1.8rem] border border-white/10 bg-black/45 md:h-[460px]">
+            {!reduceMotion ? (
+              <video
+                aria-hidden="true"
+                autoPlay
+                className="absolute inset-0 size-full object-cover opacity-90"
+                data-testid="landing-capability-spine-video"
+                loop
+                muted
+                playsInline
+                poster={GUARDIAN_HERO_IMAGE}
+                preload="metadata"
+              >
+                <source src={GUARDIAN_CAPABILITY_VIDEO} type="video/webm" />
+              </video>
+            ) : (
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 size-full object-cover opacity-85"
+                fill
+                sizes="(min-width: 1024px) 720px, 100vw"
+                src={GUARDIAN_HERO_IMAGE}
+              />
+            )}
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.2),rgba(0,0,0,0.78)),radial-gradient(circle_at_70%_34%,transparent_0%,rgba(0,0,0,0.58)_66%)]" />
+            <motion.img
+              alt=""
+              aria-hidden="true"
+              animate={
+                reduceMotion
+                  ? undefined
+                  : {
+                      rotate: [-5, 4, -2],
+                      x: ["0%", "9%", "-4%", "0%"],
+                      y: ["0%", "-7%", "5%", "0%"],
+                    }
+              }
+              className="absolute right-[8%] top-[10%] h-14 w-24 object-contain opacity-92 drop-shadow-[0_24px_44px_rgba(0,0,0,0.55)] md:h-20 md:w-36"
+              src={GUARDIAN_DRONE_IMAGE}
+              transition={{
+                duration: 12,
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatType: "mirror",
+              }}
+            />
+            <motion.div
+              aria-hidden="true"
+              animate={
+                reduceMotion
+                  ? undefined
+                  : { opacity: [0.08, 0.3, 0.12], rotate: [-14, -4, -18] }
+              }
+              className="absolute right-[16%] top-[26%] h-[62%] w-[28%] origin-top bg-gradient-to-b from-cyan-100/32 via-cyan-100/10 to-transparent blur-xl"
+              style={{ clipPath: "polygon(45% 0%, 100% 100%, 0% 100%)" }}
+              transition={{
+                duration: 9,
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatType: "mirror",
+              }}
+            />
+            <div className="absolute left-5 top-5 flex flex-wrap gap-2">
+              {["local", activeCapability.label, activeCapability.readout].map(
+                (item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-white/12 bg-black/42 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/64 backdrop-blur-xl font-body"
+                  >
+                    {item}
+                  </span>
+                ),
+              )}
+            </div>
+            <div className="absolute bottom-5 left-5 max-w-md">
+              <div className="text-xs uppercase tracking-[0.28em] text-white/42 font-body">
+                capability state
+              </div>
+              <h3 className="mt-3 text-4xl font-heading italic leading-[0.88] text-white md:text-5xl">
+                {activeCapability.title}
+              </h3>
+            </div>
+          </div>
+
+          <div
+            className="relative mt-5 grid gap-3"
+            data-testid="landing-thinking-chain"
+          >
+            <div className="flex items-center justify-between gap-4 rounded-full border border-white/10 bg-black/28 px-4 py-3">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/42 font-body">
+                How Homefront thinks
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-100/60 font-body">
+                operator approved
+              </span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {HOMEFRONT_THINKING_CHAIN.map(([step, label, detail], index) => (
+                <motion.article
+                  key={label}
+                  animate={
+                    reduceMotion
+                      ? undefined
+                      : {
+                          borderColor: [
+                            "rgba(255,255,255,0.1)",
+                            index === 5
+                              ? "rgba(251,191,36,0.36)"
+                              : "rgba(125,231,255,0.24)",
+                            "rgba(255,255,255,0.1)",
+                          ],
+                          opacity: [0.76, 1, 0.82],
+                        }
+                  }
+                  className="rounded-3xl border border-white/10 bg-white/[0.035] p-4"
+                  transition={{
+                    delay: index * 0.22,
+                    duration: 4.6,
+                    ease: "easeInOut",
+                    repeat: Infinity,
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] text-white/34 font-body">
+                      {step}
+                    </span>
+                    <span className="size-1.5 rounded-full bg-white/70" />
+                  </div>
+                  <h3 className="mt-4 text-2xl font-heading italic leading-none text-white">
+                    {label}
+                  </h3>
+                  <p className="mt-3 text-sm font-light leading-relaxed text-white/56 font-body">
+                    {detail}
+                  </p>
+                </motion.article>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -1022,6 +1890,141 @@ function CommandContractSection() {
               </p>
             </article>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SourceIntelligenceSection() {
+  return (
+    <section
+      className="bg-black px-6 py-28"
+      data-testid="landing-source-intelligence"
+    >
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-14 grid gap-8 lg:grid-cols-[0.78fr_1fr] lg:items-end">
+          <div>
+            <SectionBadge>Source Intelligence</SectionBadge>
+            <h2 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white md:text-5xl lg:text-6xl">
+              Outside ideas enter through discipline.
+            </h2>
+          </div>
+          <p className="max-w-2xl text-sm font-light leading-relaxed text-white/60 font-body md:text-base">
+            The web is full of useful patterns and dangerous shortcuts.
+            Homefront should be able to study both without losing its posture:
+            No vendoring, Passive-first, operator-approved, and proof kept.
+          </p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[1fr_0.54fr]">
+          <div className="grid gap-4 md:grid-cols-2">
+            {HOMEFRONT_SOURCE_INTELLIGENCE_LANES.map((lane) => (
+              <article
+                key={lane.title}
+                className="liquid-glass flex min-h-[310px] flex-col rounded-3xl p-5 md:p-6"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs uppercase tracking-[0.22em] text-white/35 font-body">
+                    {lane.label}
+                  </span>
+                  <span className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] uppercase text-white/55 font-body">
+                    {lane.posture}
+                  </span>
+                </div>
+                <h3 className="mt-7 text-3xl font-heading italic leading-none text-white md:text-4xl">
+                  {lane.title}
+                </h3>
+                <p className="mt-5 text-sm font-light leading-relaxed text-white/60 font-body">
+                  {lane.body}
+                </p>
+                <div className="mt-auto flex flex-wrap gap-2 pt-8">
+                  {lane.references.map((reference) => (
+                    <span
+                      key={reference}
+                      className="rounded-full bg-white/[0.055] px-2.5 py-1 text-[11px] text-white/45 font-body"
+                    >
+                      {reference}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <aside className="liquid-glass rounded-3xl p-5 md:p-6">
+            <div className="text-xs uppercase tracking-[0.22em] text-white/35 font-body">
+              Intake ritual
+            </div>
+            <h3 className="mt-5 text-4xl font-heading italic leading-[0.9] text-white">
+              Useful does not mean imported.
+            </h3>
+            <div className="mt-8 grid gap-3">
+              {HOMEFRONT_SOURCE_GOVERNANCE_STEPS.map((item, index) => (
+                <div
+                  key={item.step}
+                  className="rounded-2xl border border-white/10 bg-black/25 p-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex size-9 items-center justify-center rounded-full border border-white/15 text-xs text-white/55 font-body">
+                      0{index + 1}
+                    </span>
+                    <span className="text-xl font-heading italic text-white">
+                      {item.step}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm font-light leading-relaxed text-white/56 font-body">
+                    {item.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+
+        <div
+          className="mt-5 grid gap-3 rounded-3xl border border-white/10 bg-white/[0.025] p-4 md:p-5"
+          data-testid="landing-source-active-queue"
+        >
+          <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+            <div>
+              <div className="text-xs uppercase tracking-[0.22em] text-white/35 font-body">
+                Active intake queue
+              </div>
+              <h3 className="mt-3 text-3xl font-heading italic leading-none text-white md:text-4xl">
+                What is still being worked now.
+              </h3>
+            </div>
+            <p className="max-w-xl text-sm font-light leading-relaxed text-white/52 font-body">
+              The link list becomes a living queue: active where it improves the
+              command room, staged where evidence is thin, and guarded where
+              private tooling belongs.
+            </p>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-5">
+            {HOMEFRONT_SOURCE_ACTIVE_QUEUE.map((item) => (
+              <article
+                key={item.lane}
+                className="rounded-2xl border border-white/10 bg-black/25 p-4"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-medium uppercase text-white/42 font-body">
+                    {item.lane}
+                  </span>
+                  <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] uppercase text-white/52 font-body">
+                    {item.status}
+                  </span>
+                </div>
+                <div className="mt-4 text-xl font-heading italic leading-none text-white">
+                  {item.source}
+                </div>
+                <p className="mt-4 text-xs font-light leading-relaxed text-white/55 font-body">
+                  {item.next}
+                </p>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -1604,9 +2607,12 @@ export default function LandingPage({
       <Navbar accessHref={accessHref} />
       <Hero accessHref={accessHref} />
       <div className="relative z-10 bg-black">
+        <GuardianProtocolSection />
+        <CapabilitySpineSection />
         <StartSection accessHref={accessHref} />
         <ArchitectureSection />
         <CommandContractSection />
+        <SourceIntelligenceSection />
         <FeaturesChess accessHref={accessHref} />
         <AgentBenchSection />
         <FeaturesGrid />

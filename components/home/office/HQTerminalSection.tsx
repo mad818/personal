@@ -1,10 +1,20 @@
 "use client";
 
-import type { CSSProperties, KeyboardEvent, Ref } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type Ref,
+} from "react";
 import CompactOperatorNote from "@/components/ui/CompactOperatorNote";
+import AssistantOperatorWorkflowPanel from "@/components/assistant/AssistantOperatorWorkflowPanel";
+import AssistantTurnReceipt from "@/components/assistant/AssistantTurnReceipt";
 import AssistantGuidanceStack from "@/components/ui/AssistantGuidanceStack";
 import DictationButton from "@/components/ui/DictationButton";
 import EvidencePosturePanel from "@/components/ui/EvidencePosturePanel";
+import FreeLocalReadinessPanel from "@/components/ui/FreeLocalReadinessPanel";
 import { SpeakButton } from "@/components/ui/SpeakButton";
 import VoiceProjectButton from "@/components/ui/VoiceProjectButton";
 import { FileBackButton } from "@/components/home/office/FileBackButton";
@@ -21,6 +31,15 @@ import {
   resolveChronicleMotionPreset,
   type SurfaceMotionProfile,
 } from "@/lib/surfaceMotion";
+import { apiFetch } from "@/lib/apiFetch";
+import { resolveAssistantDispatch } from "@/lib/assistantDispatch";
+import type { AssistantChatActionModel } from "@/lib/assistantChatActions";
+import {
+  shouldShowAssistantOperatorWorkflow,
+  type AssistantOperatorWorkflowFocus,
+  type AssistantOperatorWorkflowState,
+} from "@/lib/assistantOperatorWorkflow";
+import { useStore } from "@/store/useStore";
 import { AGENTS } from "./constants";
 import { ToolCallBadge } from "./ToolCallBadge";
 import { detectAgentDebug } from "./prompts";
@@ -30,6 +49,9 @@ import { STRATEGIUM_PROMPTS } from "./officeCommandCenterConfig";
 import type { AgentId, ChatMessage, CouncilResult } from "./types";
 import type { AgentStep } from "@/lib/agent";
 import type { CorrectionMemoryEntry } from "@/lib/assistantSessionMemory";
+
+const LOCAL_AI_CHECK_PROMPT =
+  "Are you using local Ollama, what model, and are paid APIs blocked?";
 
 interface HQTerminalSectionProps {
   messages: ChatMessage[];
@@ -48,11 +70,16 @@ interface HQTerminalSectionProps {
   inputRef: Ref<HTMLTextAreaElement>;
   scrollViewportRef: Ref<HTMLDivElement>;
   onPrimePrompt: (prompt: string) => void;
+  onQuickSend: (prompt: string) => void | Promise<void>;
   onInputChange: (value: string) => void;
   onDictationAppend: (value: string) => void;
   onInputKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
   onAskMemory: () => void;
   onSend: () => void | Promise<void>;
+  onAssistantAction: (
+    message: ChatMessage,
+    action: AssistantChatActionModel["actions"][number],
+  ) => void;
   onClear: () => void;
   onMergeCouncil: (results: CouncilResult[]) => void;
   onUseCouncilResult: (result: CouncilResult) => void;
@@ -76,11 +103,13 @@ export default function HQTerminalSection({
   inputRef,
   scrollViewportRef,
   onPrimePrompt,
+  onQuickSend,
   onInputChange,
   onDictationAppend,
   onInputKeyDown,
   onAskMemory,
   onSend,
+  onAssistantAction,
   onClear,
   onMergeCouncil,
   onUseCouncilResult,
@@ -95,6 +124,160 @@ export default function HQTerminalSection({
   const debugScores = debug
     ? Object.entries(debug.scores).sort(([, a], [, b]) => b - a)
     : [];
+  const settings = useStore((s) => s.settings);
+  const agentRuntime = useStore((s) => s.agentRuntime);
+  const setTab = useStore((s) => s.setTab);
+  const readinessPlan = useMemo(
+    () => resolveAssistantDispatch(input.trim() || "What can you do?"),
+    [input],
+  );
+  const readinessToolGroups = readinessPlan.toolCatalog.id
+    .split("+")
+    .filter(Boolean)
+    .slice(0, 4)
+    .join(" / ");
+  const providerLabel =
+    settings.aiProvider === "ollama" ? "Local Ollama" : settings.aiProvider;
+  const modelLabel =
+    settings.aiProvider === "ollama"
+      ? settings.localModel || "auto"
+      : "provider default";
+  const readinessStatus = settings.agentHighRiskWritesRequireApproval
+    ? "writes review-gated"
+    : "high-risk posture open";
+  const [liveReadiness, setLiveReadiness] = useState({
+    session: "checking",
+    networkMode: "checking",
+    ollama: "checking",
+    resolvedModel: modelLabel,
+    agentHealth: "checking",
+    blockedReason: readinessStatus,
+  });
+  const [workflowFocusByMessage, setWorkflowFocusByMessage] = useState<
+    Record<number, AssistantOperatorWorkflowFocus>
+  >({});
+  const [liveNow, setLiveNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (!activeAgent) return;
+    setLiveNow(Date.now());
+    const interval = window.setInterval(() => setLiveNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, [activeAgent]);
+
+  const liveExecutionElapsedMs =
+    activeAgent && agentRuntime.startedAt
+      ? Math.max(0, liveNow - agentRuntime.startedAt)
+      : 0;
+  const waitingOnLocalRuntime = liveSteps.some(
+    (step) =>
+      step.type === "thinking" &&
+      /local model|ollama|runtime model/i.test(step.content),
+  );
+  const showLiveWatchdog =
+    Boolean(activeAgent) && waitingOnLocalRuntime && liveExecutionElapsedMs > 15000;
+  const providerHealthHref = "/command?focus=provider-health";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadReadiness() {
+      let session = "session unknown";
+      let networkMode = "local-first";
+      let ollama = "provider unknown";
+      let resolvedModel = modelLabel;
+      let agentHealth = "eval unknown";
+      let blockedReason = readinessStatus;
+
+      try {
+        const authResponse = await apiFetch("/api/auth-diagnostics", {
+          cache: "no-store",
+        });
+        if (authResponse.ok) {
+          const auth = (await authResponse.json()) as {
+            summary?: {
+              authenticated?: boolean;
+              networkMode?: string;
+              highRiskEnabled?: boolean;
+            };
+          };
+          session = auth.summary?.authenticated ? "session armed" : "session required";
+          networkMode = auth.summary?.networkMode ?? networkMode;
+          blockedReason = auth.summary?.highRiskEnabled
+            ? "high-risk enabled"
+            : "high-risk blocked";
+        }
+      } catch {
+        session = "session check unavailable";
+      }
+
+      try {
+        const ollamaResponse = await apiFetch(
+          `/api/ollama/catalog?model=${encodeURIComponent(settings.localModel || "")}`,
+          { cache: "no-store" },
+        );
+        if (ollamaResponse.status === 401 || ollamaResponse.status === 403) {
+          session = "session required";
+          ollama = "catalog locked";
+        } else if (ollamaResponse.ok) {
+          const catalog = (await ollamaResponse.json()) as {
+            reachable?: boolean;
+            resolvedModel?: string;
+            resolutionReason?: string;
+          };
+          resolvedModel = catalog.resolvedModel || resolvedModel;
+          ollama = catalog.reachable
+            ? `ollama ready · ${catalog.resolutionReason ?? "resolved"}`
+            : "ollama offline";
+        } else {
+          ollama = `catalog ${ollamaResponse.status}`;
+        }
+      } catch {
+        ollama = "catalog unavailable";
+      }
+
+      try {
+        const healthResponse = await apiFetch("/api/agent-health", {
+          cache: "no-store",
+        });
+        if (healthResponse.status === 401 || healthResponse.status === 403) {
+          session = "session required";
+          agentHealth = "agent health locked";
+        } else if (healthResponse.ok) {
+          const health = (await healthResponse.json()) as {
+            agents?: Array<{ passRate?: number; passCount?: number; failCount?: number }>;
+          };
+          const aggregate = health.agents?.[0];
+          agentHealth =
+            typeof aggregate?.passRate === "number"
+              ? `eval ${Math.round(aggregate.passRate * 100)}% · ${aggregate.passCount ?? 0}/${(aggregate.passCount ?? 0) + (aggregate.failCount ?? 0)}`
+              : "eval not recorded";
+        } else {
+          agentHealth = `agent health ${healthResponse.status}`;
+        }
+      } catch {
+        agentHealth = "agent health unavailable";
+      }
+
+      if (!cancelled) {
+        setLiveReadiness({
+          session,
+          networkMode,
+          ollama,
+          resolvedModel,
+          agentHealth,
+          blockedReason,
+        });
+      }
+    }
+
+    void loadReadiness();
+    const interval = window.setInterval(loadReadiness, 30_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [modelLabel, readinessStatus, settings.localModel]);
 
   return (
     <div
@@ -157,6 +340,8 @@ export default function HQTerminalSection({
               const cfgColor = message.agent
                 ? (AGENTS[message.agent]?.color ?? activeColor)
                 : activeColor;
+              const operatorWorkflow =
+                message.actionModel?.operatorWorkflow ?? message.operatorWorkflow;
               const thinkingTrace =
                 message.role === "agent"
                   ? extractThinkingTrace(message.text)
@@ -279,6 +464,46 @@ export default function HQTerminalSection({
                       />
                     </div>
                   ) : null}
+                  {message.role === "agent" &&
+                  message.actionModel?.actions.length ? (
+                    <div className="nexus-hq-chronicle__assistantActions">
+                      {message.actionModel.actions.map((action) => (
+                        <button
+                          key={`${action.kind}-${action.href ?? action.label}`}
+                          type="button"
+                          className="nexus-hq-chronicle__assistantAction"
+                          title={action.detail}
+                          onClick={() => {
+                            if (action.workflowFocus) {
+                              const workflowFocus = action.workflowFocus;
+                              setWorkflowFocusByMessage((current) => ({
+                                ...current,
+                                [index]: workflowFocus,
+                              }));
+                              return;
+                            }
+                            onAssistantAction(message, action);
+                          }}
+                        >
+                          {action.label}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  {message.role === "agent" ? (
+                    <AssistantTurnReceipt
+                      actionModel={message.actionModel}
+                      compact
+                    />
+                  ) : null}
+                  {message.role === "agent" &&
+                  shouldShowAssistantOperatorWorkflow(operatorWorkflow) ? (
+                    <AssistantOperatorWorkflowPanel
+                      workflow={operatorWorkflow as AssistantOperatorWorkflowState}
+                      focus={workflowFocusByMessage[index]}
+                      compact
+                    />
+                  ) : null}
                   {message.role === "agent" && message.agent ? (
                     <div className="nexus-hq-chronicle__fileBack">
                       <FileBackButton
@@ -334,6 +559,26 @@ export default function HQTerminalSection({
                     <ToolCallBadge key={index} step={step} />
                   ))}
                 </div>
+                {showLiveWatchdog ? (
+                  <div
+                    className="nexus-hq-chronicle__liveRecovery"
+                    data-testid="hq-live-execution-watchdog"
+                  >
+                    <div>
+                      <strong>Local model is still responding.</strong>
+                      <span>
+                        This is usually Ollama loading or a slow model turn. Short
+                        pings now answer locally; real tasks stay in the runtime.
+                      </span>
+                    </div>
+                    <a
+                      href={providerHealthHref}
+                      onClick={() => setTab(getTabFromHref(providerHealthHref))}
+                    >
+                      Provider health
+                    </a>
+                  </div>
+                ) : null}
               </div>
             ) : null}
             {activeAgent && liveSteps.length === 0 ? (
@@ -437,6 +682,20 @@ export default function HQTerminalSection({
             ))}
           </div>
         ) : null}
+        <div className="nexus-hq-composer__localCheck">
+          <button
+            type="button"
+            onClick={() => {
+              void onQuickSend(LOCAL_AI_CHECK_PROMPT);
+            }}
+            disabled={Boolean(activeAgent)}
+            className="nexus-hq-composer__preset is-local-check"
+            data-testid="hq-check-local-ai"
+          >
+            Check local AI
+          </button>
+          <span>Provider, model, free posture, and file-change proof</span>
+        </div>
         {debug ? (
           <div className="nexus-hq-composer__routeDebug">
             <span className="nexus-hq-composer__routeLabel">Route</span>
@@ -456,6 +715,26 @@ export default function HQTerminalSection({
             ) : null}
           </div>
         ) : null}
+        <div className="nexus-hq-free-local-readiness">
+          <FreeLocalReadinessPanel surface="hq" compact />
+        </div>
+        <div className="nexus-hq-assistant-readiness">
+          <span className="nexus-hq-assistant-readiness__label">
+            Assistant readiness
+          </span>
+          <span>{liveReadiness.session}</span>
+          <span>{providerLabel}</span>
+          <span>{liveReadiness.resolvedModel}</span>
+          <span>{liveReadiness.ollama}</span>
+          <span>{liveReadiness.agentHealth}</span>
+          <span>{liveReadiness.networkMode}</span>
+          <span>
+            {readinessPlan.agent.toUpperCase()} ·{" "}
+            {readinessPlan.answerMode.replace(/_/g, " ")}
+          </span>
+          <span>{readinessToolGroups || "base tools"}</span>
+          <span>{liveReadiness.blockedReason}</span>
+        </div>
         <div className="nexus-hq-composer__topline">
           <PersonaModeBar />
         </div>

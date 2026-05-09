@@ -37,6 +37,21 @@ for (const gate of ["arpg:tools:check", "arpg:save:check", "arpg:balance:check",
 requireStringArray("releaseGates.staticGates", releaseGates.staticGates, 5);
 requireStringArray("releaseGates.browserRoutes", releaseGates.browserRoutes, 3);
 requireStringArray("releaseGates.closureRules", releaseGates.closureRules, 4);
+if (!Array.isArray(releaseGates.fallbackProofMatrix) || releaseGates.fallbackProofMatrix.length < 4) {
+  fail("releaseGates.fallbackProofMatrix", "must contain the ARPG fallback proof matrix");
+}
+for (const row of releaseGates.fallbackProofMatrix ?? []) {
+  const owner = `releaseGates.fallbackProofMatrix.${row?.id ?? "unknown"}`;
+  if (typeof row?.id !== "string" || !row.id.trim()) fail(owner, "missing id");
+  if (typeof row?.label !== "string" || !row.label.trim()) fail(owner, "missing label");
+  requireStringArray(`${owner}.proof`, row?.proof, 1);
+  if (typeof row?.acceptance !== "string" || !row.acceptance.trim()) fail(owner, "missing acceptance");
+}
+for (const proofId of ["static-release-gates", "save-combat-item-city-quest", "browser-fallback-route-proof", "arpg-isolation"]) {
+  if (!releaseGates.fallbackProofMatrix?.some((row) => row.id === proofId)) {
+    fail("releaseGates.fallbackProofMatrix", `missing ${proofId}`);
+  }
+}
 
 const requiredFlows = [
   "start-continue-reset",

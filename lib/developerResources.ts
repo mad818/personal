@@ -12,6 +12,7 @@ export type ResourceFit = "fit_now" | "reference" | "defer";
 export type ResourceChamberHint =
   | "finder"
   | "start"
+  | "sources"
   | "study"
   | "system"
   | "launch"
@@ -144,7 +145,7 @@ export const DEVELOPER_RESOURCES: DeveloperResource[] = [
     licenseHint: "Check upstream repo",
     tags: ["security", "evals", "vulnerability-detection", "benchmarks"],
     integrationFit: "fit_now",
-    recommendedChambers: ["study", "system"],
+    recommendedChambers: ["sources", "study", "system"],
   },
   {
     title: "factory-cursor-bridge",
@@ -167,7 +168,7 @@ export const DEVELOPER_RESOURCES: DeveloperResource[] = [
     licenseHint: "Check upstream repo",
     tags: ["plugins", "mcp", "samples"],
     integrationFit: "reference",
-    recommendedChambers: ["start", "utilities"],
+    recommendedChambers: ["sources", "start", "utilities"],
   },
   {
     title: "Multica",
@@ -232,7 +233,7 @@ export const DEVELOPER_RESOURCES: DeveloperResource[] = [
     licenseHint: "CC BY-NC 4.0",
     tags: ["skills", "autodetect", "bootstrap", "claude-code"],
     integrationFit: "reference",
-    recommendedChambers: ["start", "system"],
+    recommendedChambers: ["sources", "start", "system"],
   },
   {
     title: "last30days skill",

@@ -130,6 +130,7 @@ export const CANONICAL_SEGMENTED_ROUTE_RULES: Record<
 export const CANONICAL_RESOURCES_VIEWS = new Set([
   "finder",
   "manual",
+  "sources",
   "surfaces",
   "playbooks",
   "specs",

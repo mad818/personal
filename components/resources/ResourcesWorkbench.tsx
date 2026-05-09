@@ -9,6 +9,7 @@ import PlaybooksConsole from "@/components/resources/PlaybooksConsole";
 import ProjectImpactConsole from "@/components/resources/ProjectImpactConsole";
 import RegistryConsole from "@/components/resources/RegistryConsole";
 import SessionFinderConsole from "@/components/resources/SessionFinderConsole";
+import SourceIntelligenceConsole from "@/components/resources/SourceIntelligenceConsole";
 import SpecDrivenConsole from "@/components/resources/SpecDrivenConsole";
 import StudyWorkbenchConsole from "@/components/resources/StudyWorkbenchConsole";
 import SurfaceCapabilitiesConsole from "@/components/resources/SurfaceCapabilitiesConsole";
@@ -37,12 +38,16 @@ import {
 } from "@/lib/surfaceCondensationRegistry";
 import { getOpsLayoutDescriptor } from "@/lib/opsLayoutRegistry";
 import type { SurfaceModuleSpec } from "@/lib/surfaceRedesignRegistry";
-import { getResourcesWorkbenchViewSpec, getSurfaceModuleSpec } from "@/lib/surfaceRedesignRegistry";
+import {
+  getResourcesWorkbenchViewSpec,
+  getSurfaceModuleSpec,
+} from "@/lib/surfaceRedesignRegistry";
 import { useStore } from "@/store/useStore";
 
 type View =
   | "finder"
   | "manual"
+  | "sources"
   | "study"
   | "surfaces"
   | "playbooks"
@@ -57,6 +62,7 @@ type View =
 const CHAMBERS: Array<{ id: ResourcesChamberId; label: string }> = [
   { id: "finder", label: "Find lane" },
   { id: "start", label: "Start safely" },
+  { id: "sources", label: "Sources" },
   { id: "study", label: "Study" },
   { id: "system", label: "System" },
   { id: "launch", label: "Open session" },
@@ -64,23 +70,35 @@ const CHAMBERS: Array<{ id: ResourcesChamberId; label: string }> = [
   { id: "wins", label: "Massive wins" },
 ];
 
-const START_VIEWS: Array<{ id: Extract<View, "manual" | "playbooks" | "specs">; label: string }> = [
+const START_VIEWS: Array<{
+  id: Extract<View, "manual" | "playbooks" | "specs">;
+  label: string;
+}> = [
   { id: "playbooks", label: "Playbooks" },
   { id: "specs", label: "Specs" },
   { id: "manual", label: "Manual" },
 ];
 
-const SYSTEM_VIEWS: Array<{ id: Extract<View, "surfaces" | "system">; label: string }> = [
+const SYSTEM_VIEWS: Array<{
+  id: Extract<View, "surfaces" | "system">;
+  label: string;
+}> = [
   { id: "system", label: "System design" },
   { id: "surfaces", label: "Surfaces" },
 ];
 
-const UTILITY_VIEWS: Array<{ id: Extract<View, "registry" | "kits">; label: string }> = [
+const UTILITY_VIEWS: Array<{
+  id: Extract<View, "registry" | "kits">;
+  label: string;
+}> = [
   { id: "registry", label: "Registry" },
   { id: "kits", label: "Kits" },
 ];
 
-const LAUNCH_VIEWS: Array<{ id: Extract<View, "impact" | "voice-lab">; label: string }> = [
+const LAUNCH_VIEWS: Array<{
+  id: Extract<View, "impact" | "voice-lab">;
+  label: string;
+}> = [
   { id: "impact", label: "Impact" },
   { id: "voice-lab", label: "Voice Lab" },
 ];
@@ -109,6 +127,8 @@ function resolvePanelModuleId(view: View) {
       return "open-exact-session";
     case "wins":
       return "massive-win-plans";
+    case "sources":
+      return "source-intelligence";
     case "playbooks":
     case "specs":
     case "study":
@@ -130,7 +150,13 @@ function renderPanelContent(
   opts?: {
     prefillFile?: string | null;
     projectId?: string | null;
-    impactMode?: "blast" | "graph" | "ownership" | "hotspots" | "security" | null;
+    impactMode?:
+      | "blast"
+      | "graph"
+      | "ownership"
+      | "hotspots"
+      | "security"
+      | null;
   },
 ): ReactNode {
   switch (view) {
@@ -138,6 +164,8 @@ function renderPanelContent(
       return <SessionFinderConsole />;
     case "manual":
       return <DeveloperFieldManual />;
+    case "sources":
+      return <SourceIntelligenceConsole />;
     case "study":
       return <StudyWorkbenchConsole />;
     case "surfaces":
@@ -193,9 +221,9 @@ export default function ResourcesWorkbench() {
 
   const urlView = useMemo(() => {
     const value = (normalizedParams.get("view") ?? "").toLowerCase() as View;
-    return (
-      value === "finder" ||
+    return value === "finder" ||
       value === "manual" ||
+      value === "sources" ||
       value === "study" ||
       value === "surfaces" ||
       value === "playbooks" ||
@@ -206,7 +234,6 @@ export default function ResourcesWorkbench() {
       value === "impact" ||
       value === "voice-lab" ||
       value === "wins"
-    )
       ? value
       : null;
   }, [normalizedParams]);
@@ -218,7 +245,10 @@ export default function ResourcesWorkbench() {
 
   const resolvedView = urlView ?? view;
 
-  const chamber = useMemo(() => resolveResourcesChamber(resolvedView), [resolvedView]);
+  const chamber = useMemo(
+    () => resolveResourcesChamber(resolvedView),
+    [resolvedView],
+  );
   const activeView = useMemo(
     () => resolveResourcesViewForChamber(chamber, resolvedView),
     [chamber, resolvedView],
@@ -253,7 +283,8 @@ export default function ResourcesWorkbench() {
 
   const activeViewSpec = getResourcesWorkbenchViewSpec(activeView);
   const introRole =
-    getSurfaceModuleSpec("resources", activeViewSpec.jobId)?.role ?? "workspace";
+    getSurfaceModuleSpec("resources", activeViewSpec.jobId)?.role ??
+    "workspace";
   const panelRole =
     getSurfaceModuleSpec("resources", resolvePanelModuleId(activeView))?.role ??
     "workspace";
@@ -281,7 +312,8 @@ export default function ResourcesWorkbench() {
     "guidance",
   );
   const activeChamberLabel =
-    CHAMBERS.find((entry) => entry.id === chamber)?.label ?? activeViewSpec.introTitle;
+    CHAMBERS.find((entry) => entry.id === chamber)?.label ??
+    activeViewSpec.introTitle;
   const stackCountLabel = `${chamberIntegrationHighlights.length} fit${
     chamberIntegrationHighlights.length === 1 ? "" : "s"
   }`;
@@ -301,7 +333,10 @@ export default function ResourcesWorkbench() {
         className="nexus-shell-segmented--compactLane"
       />
 
-      <div className="nexus-resources-mission-strip" aria-label="Resources chamber orientation">
+      <div
+        className="nexus-resources-mission-strip"
+        aria-label="Resources chamber orientation"
+      >
         <div className="nexus-resources-mission-strip__lead">
           <span className="nexus-resources-mission-strip__eyebrow">
             Active chamber
@@ -309,7 +344,10 @@ export default function ResourcesWorkbench() {
           <strong>{activeChamberLabel}</strong>
           <p>{activeViewSpec.introSummary}</p>
         </div>
-        <div className="nexus-resources-mission-strip__signals" aria-label="Resources quick status">
+        <div
+          className="nexus-resources-mission-strip__signals"
+          aria-label="Resources quick status"
+        >
           <span>
             <span>View</span>
             <strong>{activeViewSpec.introTitle}</strong>
@@ -343,35 +381,58 @@ export default function ResourcesWorkbench() {
 
       <div className="nexus-surface-chamber-shell">
         <div className="nexus-surface-chamber-shell__body">
-          <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${resourcesLayout.railClass}`}>
-            <OpsField title={introSpec.title} detail={introSpec.detail} tone="muted" compact className="nexus-resources-support-field">
+          <OpsRail
+            className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${resourcesLayout.railClass}`}
+          >
+            <OpsField
+              title={introSpec.title}
+              detail={introSpec.detail}
+              tone="muted"
+              compact
+              className="nexus-resources-support-field"
+            >
               <div className="nexus-resources-support-summary">
                 <p>{activeViewSpec.introSummary}</p>
                 <div className="nexus-shell-actions">
-                  <ShellBadge tone="accent">{activeViewSpec.introTitle}</ShellBadge>
-                  <ShellBadge tone="muted">{activeViewSpec.introDetail}</ShellBadge>
+                  <ShellBadge tone="accent">
+                    {activeViewSpec.introTitle}
+                  </ShellBadge>
+                  <ShellBadge tone="muted">
+                    {activeViewSpec.introDetail}
+                  </ShellBadge>
                 </div>
               </div>
             </OpsField>
 
             {chamberIntegrationHighlights.length ? (
-              <OpsField title={stackSpec.title} detail={stackSpec.detail} tone="muted" compact>
-                <div className="nexus-resources-rail-preview" aria-label="External stack preview">
+              <OpsField
+                title={stackSpec.title}
+                detail={stackSpec.detail}
+                tone="muted"
+                compact
+              >
+                <div
+                  className="nexus-resources-rail-preview"
+                  aria-label="External stack preview"
+                >
                   <span>{stackCountLabel}</span>
                   <span>{activeChamberLabel}</span>
                 </div>
                 <details
                   className="nexus-surface-disclosure"
                   open={stackExpanded}
-                  onToggle={(event) => setStackExpanded(event.currentTarget.open)}
+                  onToggle={(event) =>
+                    setStackExpanded(event.currentTarget.open)
+                  }
                 >
                   <summary>Open external stack</summary>
                   <div className="nexus-surface-disclosure__body">
                     <div className="nexus-shell-copy nexus-shell-copy--compact">
                       <p>
-                        These upstream projects map cleanly onto the current chamber, so
-                        we can absorb their runtime, memory, browser-ops, or skill ideas
-                        without breaking the Satellite Ops workplane.
+                        These upstream projects map cleanly onto the current
+                        chamber, so we can absorb their runtime, memory,
+                        browser-ops, or skill ideas without breaking the
+                        Satellite Ops workplane.
                       </p>
                     </div>
                     <div className="nexus-resources-external-stack">
@@ -389,7 +450,11 @@ export default function ResourcesWorkbench() {
                             </span>
                             {resource.integrationFit ? (
                               <span className="nexus-shell-resource-card__chip">
-                                {DEVELOPER_RESOURCE_FIT_LABELS[resource.integrationFit]}
+                                {
+                                  DEVELOPER_RESOURCE_FIT_LABELS[
+                                    resource.integrationFit
+                                  ]
+                                }
                               </span>
                             ) : null}
                             <span className="nexus-shell-resource-card__external">
@@ -403,7 +468,9 @@ export default function ResourcesWorkbench() {
                             {resource.description}
                           </p>
                           {resource.note ? (
-                            <p className="nexus-shell-resource-card__note">{resource.note}</p>
+                            <p className="nexus-shell-resource-card__note">
+                              {resource.note}
+                            </p>
                           ) : null}
                         </a>
                       ))}
@@ -414,12 +481,38 @@ export default function ResourcesWorkbench() {
             ) : null}
 
             <OpsField
+              title="Finalize loop"
+              detail="Find browser/runtime errors before done"
+              tone="muted"
+              compact
+            >
+              <div
+                className="nexus-resources-rail-preview"
+                aria-label="Runtime finalize preview"
+              >
+                <span>Type + verify</span>
+                <span>Build quiet</span>
+                <span>Browser probe</span>
+              </div>
+              <a
+                href="/resources?view=playbooks&playbook=runtime-finalize-loop"
+                className="nexus-shell-actionControl__action"
+              >
+                <span>Open runtime finalize</span>
+                <em>Check routes, console, media, hydration, and handoff.</em>
+              </a>
+            </OpsField>
+
+            <OpsField
               title="Operator readiness"
               detail="Security, capability, and browser posture"
               tone="muted"
               compact
             >
-              <div className="nexus-resources-rail-preview" aria-label="Operator readiness preview">
+              <div
+                className="nexus-resources-rail-preview"
+                aria-label="Operator readiness preview"
+              >
                 <span>Secrets local</span>
                 <span>Governed</span>
                 <span>Browser-aware</span>
@@ -442,13 +535,20 @@ export default function ResourcesWorkbench() {
             </OpsField>
           </OpsRail>
 
-          <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${resourcesLayout.workplaneClass}`}>
+          <OpsWorkplane
+            className={`nexus-surface-chamber-shell__lead ${resourcesLayout.workplaneClass}`}
+          >
             <OpsField title={panelSpec.title} detail={panelSpec.detail}>
               <div className="nexus-surface-subtabs">
                 {chamber === "start" ? (
                   <ShellSegmentedTabs
                     items={START_VIEWS}
-                    active={activeView as Extract<View, "manual" | "playbooks" | "specs">}
+                    active={
+                      activeView as Extract<
+                        View,
+                        "manual" | "playbooks" | "specs"
+                      >
+                    }
                     onChange={handleSubviewChange}
                     minButtonWidth={110}
                   />

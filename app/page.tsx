@@ -18,6 +18,7 @@ type RootPageProps = {
 const rootMetadataTitle = "Homefront | Local-first command intelligence";
 const rootMetadataDescription =
   "A local-first command room for markets, cyber, recon, vault memory, operator AI, and protected tools.";
+const homefrontGuardianHeroImage = "/images/homefront-guardian-hero.webp";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -35,10 +36,10 @@ export const metadata: Metadata = {
     siteName: "Homefront",
     images: [
       {
-        url: "/office/la-skyline.jpg",
+        url: homefrontGuardianHeroImage,
         width: 1200,
         height: 630,
-        alt: "Dark cinematic Homefront landing background.",
+        alt: "Cinematic Homefront perimeter scene with a patrol drone and protected home.",
       },
     ],
     type: "website",
@@ -47,7 +48,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: rootMetadataTitle,
     description: rootMetadataDescription,
-    images: ["/office/la-skyline.jpg"],
+    images: [homefrontGuardianHeroImage],
   },
 };
 

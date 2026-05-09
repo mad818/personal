@@ -4,6 +4,8 @@
 // No React or store imports — pure type definitions only.
 
 import type { AgentStep } from "@/lib/agent";
+import type { AssistantChatActionModel } from "@/lib/assistantChatActions";
+import type { AssistantOperatorWorkflowState } from "@/lib/assistantOperatorWorkflow";
 import type { VaultCaptureSuggestion } from "@/lib/vaultCapture";
 
 // ── Emotion ───────────────────────────────────────────────────────────────────
@@ -154,6 +156,8 @@ export interface ChatMessage {
   showEvidencePosture?: boolean;
   assistantIntent?: HQAssistantIntent;
   preparedWorkspace?: PreparedWorkspaceTarget | null;
+  actionModel?: AssistantChatActionModel | null;
+  operatorWorkflow?: AssistantOperatorWorkflowState | null;
   assistantGuidance?: AssistantGuidance[];
   vaultCaptureSuggestion?: VaultCaptureSuggestion | null;
 }

@@ -35,10 +35,9 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 
 ### What’s next (from `tasks/todo.md`)
 
-- MW6-ARPG-FULL-GAME-PRODUCTION — Expand `Aether Reliquary` from the MW5 Phaser vertical slice into a complete browser RPG inside `/hq`, not a single chapter: target one playable protagonist with race/class/subclass customization, 12 major cities with 4...
-- MW6 child tracks — 4 follow-up tracks are queued in `tasks/todo.md`; expand there when implementing.
-- UXA3 — After acceptance on merged `main`, retire the older replay worktree queue only once we no longer need side-by-side rollback or visual-reference inspection.
-- Retire the older M2/M3/M4 review queue only after UXA3 is accepted on merged `main` and there is no remaining need for replay-era rollback/reference worktrees.
+- FREE-LOCAL-PHONE-ACCEPTANCE — Manual acceptance from the phone: run `npm run phone:lan:start`, open one printed LAN URL or copy the direct HQ URL from Free Local Readiness, log in with `NEXUS_TOKEN`, open `/hq?focus=hq-chronicle`, send `ping`, ask...
+- LOCAL-AI-OFFLINE-OPERATIONS — With an authenticated browser session, confirm the Free Local Readiness panel shows `isolated`, paid APIs blocked, Ollama reachable, resolved local model, agent-health proof, and no cloud-provider dependency; then test...
+- GIT-PERMISSION-RECOVERY — Use `npm run repo:sync:health` plus `docs/repo-hygiene/git-permission-recovery.md` to remove the confirmed `.git` DENY ACL, then prove `npm run handoff:pull`, `git fetch`, branch cleanup, staging, and future pushes work...
 - Full queue: `tasks/todo.md` -> `## Next Up`.
 
 ### Where to look

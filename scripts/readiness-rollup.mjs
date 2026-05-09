@@ -89,7 +89,14 @@ function artifactSummary(metric) {
   };
 }
 
-function collectBlocked({ phone, release, dependencyAudit, publicationSafety }) {
+function collectBlocked({
+  phone,
+  release,
+  dependencyAudit,
+  dependencyPosture,
+  infraHardening,
+  publicationSafety,
+}) {
   const blocked = [];
 
   if (!publicationSafety.ok) {
@@ -120,6 +127,18 @@ function collectBlocked({ phone, release, dependencyAudit, publicationSafety }) 
     );
   }
 
+  if (!dependencyPosture?.data) {
+    blocked.push("No dependency risk posture artifact is available.");
+  } else if (dependencyPosture.data.riskReady !== true) {
+    blocked.push("Dependency risk posture has blocking package graph issues.");
+  }
+
+  if (!infraHardening?.data) {
+    blocked.push("No infra hardening artifact is available.");
+  } else if (infraHardening.data.hardeningReady !== true) {
+    blocked.push("Infra hardening audit has critical failures.");
+  }
+
   return blocked;
 }
 
@@ -130,6 +149,8 @@ function main() {
   const phone = latestMetric("phone-local-acceptance-");
   const release = latestMetric("release-diagnostics-");
   const dependencyAudit = latestMetric("dependabot-security-audit-");
+  const dependencyPosture = latestMetric("dependency-risk-posture-");
+  const infraHardening = latestMetric("infra-hardening-");
   const agentRuntime = latestMetric("agent-runtime-");
   const runtimeExperiment = latestMetric("runtime-experiment-");
   const publicationSafety = runNodeCheck("scripts/validate-publication-safety.mjs");
@@ -138,6 +159,8 @@ function main() {
     phone,
     release,
     dependencyAudit,
+    dependencyPosture,
+    infraHardening,
     publicationSafety,
   });
 
@@ -148,6 +171,8 @@ function main() {
       phoneAcceptance: artifactSummary(phone),
       releaseDiagnostics: artifactSummary(release),
       dependencyAudit: artifactSummary(dependencyAudit),
+      dependencyPosture: artifactSummary(dependencyPosture),
+      infraHardening: artifactSummary(infraHardening),
       agentRuntime: artifactSummary(agentRuntime),
       runtimeExperiment: artifactSummary(runtimeExperiment),
     },
@@ -159,6 +184,8 @@ function main() {
         phone?.data?.manualPhoneProof?.localAiReceipt === true,
       releaseDiagnosticsReady: release?.data?.releaseProofReady === true,
       dependencyAuditReady: dependencyAudit?.data?.auditReady === true,
+      dependencyRiskReady: dependencyPosture?.data?.riskReady === true,
+      infraHardeningReady: infraHardening?.data?.hardeningReady === true,
     },
     latestEvidence: {
       phoneAcceptance: phone?.data
@@ -184,8 +211,29 @@ function main() {
         ? {
             knownWarning: dependencyAudit.data.knownWarning ?? null,
             classification: dependencyAudit.data.classification ?? null,
+            upgradePolicy: dependencyAudit.data.upgradePolicy ?? null,
+            metadataSource: dependencyAudit.data.metadataSource ?? null,
             blocked: dependencyAudit.data.blocked ?? [],
             auditReady: dependencyAudit.data.auditReady === true,
+          }
+        : null,
+      dependencyPosture: dependencyPosture?.data
+        ? {
+            packageGraph: dependencyPosture.data.packageGraph ?? null,
+            lifecycleScriptPackageCount:
+              dependencyPosture.data.lifecycleScriptPackageCount ?? null,
+            warnings: dependencyPosture.data.warnings ?? [],
+            blocked: dependencyPosture.data.blocked ?? [],
+            riskReady: dependencyPosture.data.riskReady === true,
+          }
+        : null,
+      infraHardening: infraHardening?.data
+        ? {
+            checks: infraHardening.data.checks ?? [],
+            releasePrerequisites: infraHardening.data.releasePrerequisites ?? null,
+            criticalFailures: infraHardening.data.criticalFailures ?? [],
+            blocked: infraHardening.data.blocked ?? [],
+            hardeningReady: infraHardening.data.hardeningReady === true,
           }
         : null,
     },
@@ -197,6 +245,8 @@ function main() {
       "npm run phone:acceptance:capture -- --phone-opened --phone-login --ping-receipt --local-ai-receipt --pwa-installed",
       "npm run release:diagnostics:capture",
       "npm run dependabot:audit:classify",
+      "npm run dependency:risk:posture",
+      "npm run infra:hardening:audit",
       "npm run readiness:rollup",
       "npm run verify",
     ],

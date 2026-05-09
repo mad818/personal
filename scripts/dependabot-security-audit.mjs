@@ -1,7 +1,13 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { join, relative } from "node:path";
 
 const root = process.cwd();
@@ -48,6 +54,62 @@ function buildPackageGraphSummary() {
   };
 }
 
+function latestMetric(prefix) {
+  if (!existsSync(metricsDir)) return null;
+  const file = readdirSync(metricsDir)
+    .filter((entry) => entry.startsWith(prefix) && entry.endsWith(".json"))
+    .sort()
+    .at(-1);
+  if (!file) return null;
+  return {
+    file: `docs/metrics/${file}`,
+    data: readJson(`docs/metrics/${file}`),
+  };
+}
+
+function buildMetadataSource(dependencyPosture) {
+  return {
+    githubReachable: false,
+    localGraphAvailable: Boolean(dependencyPosture?.data?.packageGraph),
+    manualMetadataRequired: true,
+    dependencyPostureArtifact: dependencyPosture?.file ?? null,
+    requiredFields: [
+      "package name",
+      "manifest path",
+      "ecosystem",
+      "severity",
+      "vulnerable range",
+      "patched range",
+      "direct or transitive ownership",
+      "runtime or dev-only impact",
+    ],
+  };
+}
+
+function buildUpgradePolicy() {
+  return {
+    order: [
+      "Classify runtime-critical alerts first.",
+      "Patch one minimal dependency batch at a time.",
+      "Prefer patched minor/patch ranges before major-version sweeps.",
+      "Run npm run dependency:risk:posture and npm run verify after each batch.",
+      "Regenerate sanitized audit artifacts before committing.",
+    ],
+    blockedUntil: [
+      "GitHub Dependabot metadata identifies package names and patched ranges.",
+      "A rollback point is visible in git status/log.",
+      "Publication safety and security scan pass on the staged state.",
+    ],
+    forbiddenInAuditOnlyPass: [
+      "Package upgrades",
+      "Auth loosening",
+      "Provider bypass",
+      "Public route widening",
+      "Committing private proof values",
+    ],
+  };
+}
+
 function buildClassification() {
   const unavailableReason =
     "Dependabot alert package metadata is unavailable from this shell because GitHub access is blocked; category counts stay pending until the GitHub UI or API can be queried.";
@@ -88,6 +150,7 @@ function main() {
   mkdirSync(metricsDir, { recursive: true });
 
   const capturedAt = new Date().toISOString();
+  const dependencyPosture = latestMetric("dependency-risk-posture-");
   const artifact = {
     capturedAt,
     auditName: "DEPENDABOT-SECURITY-AUDIT",
@@ -98,7 +161,18 @@ function main() {
     },
     knownWarning,
     packageGraph: buildPackageGraphSummary(),
+    dependencyPosture: dependencyPosture?.data
+      ? {
+          artifact: dependencyPosture.file,
+          riskReady: dependencyPosture.data.riskReady === true,
+          blocked: dependencyPosture.data.blocked ?? [],
+          warnings: dependencyPosture.data.warnings ?? [],
+          packageGraph: dependencyPosture.data.packageGraph ?? null,
+        }
+      : null,
+    metadataSource: buildMetadataSource(dependencyPosture),
     classification: buildClassification(),
+    upgradePolicy: buildUpgradePolicy(),
     blocked: [
       "GitHub Dependabot alert details are not reachable from this Codex shell.",
       "No dependency upgrades were performed in this acceptance tranche.",

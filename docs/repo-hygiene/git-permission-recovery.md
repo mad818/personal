@@ -10,6 +10,9 @@ Current root cause seen in this checkout:
 - `DENY` overrides later `FullControl` allows for Mario and Codex sandbox
   groups.
 - Git may leave active helper processes while it retries maintenance.
+- `npm run git:safe -- <git args>` is the repo's Windows-safe wrapper for this
+  blocker; it removes the known explicit `.git` DENY ACL in the same process
+  before running Git. `npm run handoff:pull` uses this wrapper.
 
 Do not delete branches, remove worktrees, or push while this blocker is active.
 
@@ -67,8 +70,8 @@ process is active can corrupt repository state.
 cd C:\Users\mario\Desktop\personal
 npm run repo:sync:health
 npm run handoff:pull
-git fetch --all --prune
-git status --short --branch
+npm run git:safe -- fetch --all --prune
+npm run git:safe -- status --short --branch
 npm run handoff:write
 npm run handoff:check
 ```

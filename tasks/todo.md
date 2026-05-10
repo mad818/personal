@@ -47,6 +47,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] SELF-WORKING-AI-AUTONOMY — Add a safe self-development loop so Nexus Prime can select bounded tasks, prepare isolated work, record sanitized run artifacts, and keep risky mutation review-gated instead of silently changing the live repo.
+  - Current pass: add `npm run autonomy:self-work`, a policy-aware self-work runner, sanitized `docs/metrics/autonomy-self-work-*.json` artifacts, dirty-tree blocking, approval-required classification, worktree preparation for execute mode, and verification gate reporting.
+  - Guardrail: no `.env.local` reads, token values, cookies, auth headers, private LAN IPs, local home paths, account/payment data, raw private assets, direct provider calls, unreviewed auth/security/dependency/deploy mutations, or automatic merge/push.
+  - Progress: added `scripts/autonomy-self-work.mjs`, `npm run autonomy:self-work`, and `docs/agents/self-working-ai-autonomy.md`. Dry-run selects the first active open-ready task and writes a sanitized readiness artifact; execute mode starts only from a clean tree and blocks manual/external or approval-required work before mutation; approval mode prepares merge instructions only for a verified `readyForMerge` run. Latest artifact `docs/metrics/autonomy-self-work-asw-2026-05-10T07-55-04-041Z.json` correctly blocks autonomous work on the current manual phone/PWA task, unpushed commits, approval-required auth/token posture, and missing Docker strong-isolation proof; `npm run autonomy:self-work -- --execute --out-dir=tmp-codex-runtime` exited blocked as expected while the implementation tree was dirty.
+
 - [x] NEXT-UPDATES-COMPLETION-PASS — Move hardening from built-local into the next release-candidate checkpoint without publishing vital local information or simulating external proof.
   - Current pass: attempted to publish the local commit stack, refreshed security hardening/dependency/Dependabot evidence, captured blocked phone and release artifacts honestly, and regenerated the wide readiness rollup.
   - Guardrail: no token values, cookies, auth headers, real LAN IPs, local home paths, screenshots, receipts, account/payment details, raw asset intake, package upgrades, auth loosening, public route widening, or private RPG work.

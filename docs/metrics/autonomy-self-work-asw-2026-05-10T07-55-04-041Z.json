@@ -1,0 +1,89 @@
+{
+  "runId": "asw-2026-05-10T07-55-04-041Z",
+  "capturedAt": "2026-05-10T07:55:04.041Z",
+  "selectedTask": {
+    "id": "FREE-LOCAL-PHONE-ACCEPTANCE",
+    "title": "FREE-LOCAL-PHONE-ACCEPTANCE",
+    "text": "FREE-LOCAL-PHONE-ACCEPTANCE — Desktop LAN runtime proof is refreshed with publish-safe placeholders: `npm run phone:lan:start` printed `http://<LAN-IP>:3100` and `http://<LAN-IP>:3100/hq?focus=hq-chronicle`, while the sanitized desktop route harness returned 200 for `/api/health`, `/hq?focus=hq-chronicle`, and `/command`; raw `/api/free-local-readiness` returned `401 AUTH-PROTECTED` without a browser session as expected. The Free Local Readiness panel now has a single **Copy acceptance steps** brief for phone URL, direct HQ URL, `ping`, the local AI proof prompt, PWA install, and placeholder-only evidence. `npm run phone:acceptance:capture` writes sanitized `docs/metrics/phone-local-acceptance-*.json` artifacts; latest blocked artifact `docs/metrics/phone-local-acceptance-2026-05-09T22-28-55-871Z.json` records `acceptanceReady: false` because the runtime was not listening during capture and no manual phone flags were supplied. Remaining manual acceptance from the phone: open one LAN URL, log in with `NEXUS_TOKEN`, send `ping`, ask one local Ollama prompt, install the PWA, then rerun capture with all manual flags.",
+    "description": "Desktop LAN runtime proof is refreshed with publish-safe placeholders: `npm run phone:lan:start` printed `http://<LAN-IP>:3100` and `http://<LAN-IP>:3100/hq?focus=hq-chronicle`, while the sanitized desktop route harness returned 200 for `/api/health`, `/hq?focus=hq-chronicle`, and `/command`; raw `/api/free-local-readiness` returned `401 AUTH-PROTECTED` without a browser session as expected. The Free Local Readiness panel now has a single **Copy acceptance steps** brief for phone URL, direct HQ URL, `ping`, the local AI proof prompt, PWA install, and placeholder-only evidence. `npm run phone:acceptance:capture` writes sanitized `docs/metrics/phone-local-acceptance-*.json` artifacts; latest blocked artifact `docs/metrics/phone-local-acceptance-2026-05-09T22-28-55-871Z.json` records `acceptanceReady: false` because the runtime was not listening during capture and no manual phone flags were supplied. Remaining manual acceptance from the phone: open one LAN URL, log in with `NEXUS_TOKEN`, send `ping`, ask one local Ollama prompt, install the PWA, then rerun capture with all manual flags.",
+    "source": "tasks/todo.md#Next Up"
+  },
+  "autonomyMode": "dry-run",
+  "riskTier": "tier3_approval_required",
+  "branchOrWorktree": null,
+  "filesInspected": [
+    "tasks/todo.md",
+    "docs/SYSTEM_STATE.md"
+  ],
+  "filesChanged": [],
+  "commandsRun": [
+    {
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File <repo-root> status --short --branch",
+      "cwd": ".",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 900,
+      "stdout": "Removed 2 known .git DENY ACL entries before git status --short --branch.\n## codex/homefront-vision-expansion...origin/codex/homefront-vision-expansion [ahead 7]",
+      "stderr": "",
+      "error": null
+    }
+  ],
+  "verification": {
+    "requiredCommands": [
+      "npm run publication:safety:check",
+      "npm run security-scan",
+      "npm run security:boundaries",
+      "npm run dependency:risk:check",
+      "npm run verify"
+    ],
+    "handoffCommandsWhenDocsChange": [
+      "npm run handoff:write",
+      "npm run handoff:check"
+    ],
+    "executed": [],
+    "passed": false
+  },
+  "blocked": [
+    "Approval required because task mentions guarded domain(s): auth, token.",
+    "Autonomous execution blocked by manual/external dependency: manual, phone, pwa."
+  ],
+  "warnings": [
+    "Branch has unpushed commits; local project remains source of truth until GitHub connectivity is restored.",
+    "Docker CLI is unavailable; execute mode can prepare a git worktree but cannot claim strong container isolation."
+  ],
+  "rollback": null,
+  "approvalRequired": true,
+  "approvalStatus": "not_requested",
+  "readyForMerge": false,
+  "policy": {
+    "automationEligible": false,
+    "restrictedMatches": [
+      "auth",
+      "token"
+    ],
+    "externalOrManualMatches": [
+      "manual",
+      "phone",
+      "pwa"
+    ],
+    "codeMatches": [
+      "route"
+    ],
+    "noEnvLocalRead": true,
+    "directProviderCallsAllowed": false,
+    "automaticMergeOrPushAllowed": false
+  },
+  "infrastructure": {
+    "gitStatus": {
+      "branchLine": "## codex/homefront-vision-expansion...origin/codex/homefront-vision-expansion [ahead 7]",
+      "isDirty": false,
+      "changes": [],
+      "ahead": true
+    },
+    "docker": {
+      "available": false,
+      "summary": "Docker CLI unavailable; strong container isolation cannot be claimed."
+    },
+    "systemStateRead": true
+  }
+}

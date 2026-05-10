@@ -45,6 +45,7 @@
     "release:smoke": "node scripts/release-smoke.mjs",
     "release:diagnostics:capture": "node scripts/release-diagnostics-capture.mjs",
     "readiness:rollup": "node scripts/readiness-rollup.mjs",
+    "autonomy:self-work": "node scripts/autonomy-self-work.mjs",
     "infra:hardening:audit": "node scripts/infra-hardening-audit.mjs",
     "dependabot:audit:classify": "node scripts/dependabot-security-audit.mjs",
     "auth:regression": "node scripts/auth-regression.mjs",

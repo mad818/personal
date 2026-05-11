@@ -47,6 +47,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] SMOOTHNESS-OPERATIONAL-LIGHTS — Make Nexus feel calmer and always connected by adding a shared publish-safe operational light grid plus smoothness guardrails across the authenticated shell, HQ, COMMAND, and 3D office.
+  - Current pass: added `lib/operationalLights.ts`, `hooks/useOperationalLights.ts`, and `components/ui/OperationalLightGrid.tsx`; mounted compact fixed-size lights in the toprail, shared Free Local Readiness panel used by HQ/COMMAND, and the 3D office server-rack ambience.
+  - Guardrail: lights are read-only indicators, not controls; no token values, cookies, auth headers, real LAN IPs, local home paths, account/payment proof, raw proof screenshots, paid-provider defaults, public route widening, package upgrades, or private RPG work.
+  - Progress: `npm run smoothness:check` validates the shared light contract, visibility-aware polling, legacy floating status-widget non-mounting, and no `networkidle` proof waits; `npm run verify` now includes the smoothness gate. `npm run smoothness:check`, `npm run publication:safety:check`, `npm run security-scan`, `npm run type-check`, `npm run lint`, `git diff --check`, merge-marker sweep, and `npm run verify` passed. Runtime HTTP proof returned 200 for `/api/health`, `/hq?focus=hq-chronicle`, and `/command`, while raw `/api/free-local-readiness` returned `401 AUTH-PROTECTED`; hydrated browser proof remains locally blocked by Windows Playwright `spawn EPERM`.
+
 - [x] SELF-WORKING-AI-AUTONOMY — Add a safe self-development loop so Nexus Prime can select bounded tasks, prepare isolated work, record sanitized run artifacts, and keep risky mutation review-gated instead of silently changing the live repo.
   - Current pass: add `npm run autonomy:self-work`, a policy-aware self-work runner, sanitized `docs/metrics/autonomy-self-work-*.json` artifacts, dirty-tree blocking, approval-required classification, worktree preparation for execute mode, and verification gate reporting.
   - Guardrail: no `.env.local` reads, token values, cookies, auth headers, private LAN IPs, local home paths, account/payment data, raw private assets, direct provider calls, unreviewed auth/security/dependency/deploy mutations, or automatic merge/push.

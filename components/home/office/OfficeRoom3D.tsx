@@ -7,6 +7,10 @@ import type { CSSProperties } from "react";
 import { useStore } from "@/store/useStore";
 import * as THREE from "three";
 import {
+  getOperationalLightStateHex,
+  type OperationalLightState,
+} from "@/lib/operationalLights";
+import {
   resolveOfficeSceneCue,
   type OfficeSceneCue,
   type SurfaceMotionProfile,
@@ -3060,6 +3064,75 @@ function CinematicCameraRig({
   return null;
 }
 
+type OfficeOperationalLight = {
+  id: string;
+  label: string;
+  state: OperationalLightState;
+};
+
+function OperationalRoomLightRack({
+  lights,
+  position,
+}: {
+  lights: OfficeOperationalLight[];
+  position: Vec3;
+}) {
+  return (
+    <group position={position} rotation={[0, -0.12, 0]} castShadow={false}>
+      <mesh castShadow={false} receiveShadow={false}>
+        <boxGeometry args={[0.58, 0.18, 0.035]} />
+        <meshStandardMaterial
+          color="#08111f"
+          roughness={0.62}
+          metalness={0.18}
+          emissive="#0f172a"
+          emissiveIntensity={0.12}
+        />
+      </mesh>
+      {lights.map((light, index) => {
+        const color = getOperationalLightStateHex(light.state);
+        return (
+          <mesh
+            key={light.id}
+            position={[-0.24 + index * 0.096, 0.035, 0.024]}
+            castShadow={false}
+            receiveShadow={false}
+          >
+            <sphereGeometry args={[0.027, 12, 12]} />
+            <meshStandardMaterial
+              color="#07111f"
+              emissive={color}
+              emissiveIntensity={light.state === "off" ? 0.16 : 0.72}
+              roughness={0.2}
+            />
+          </mesh>
+        );
+      })}
+      <Html
+        transform
+        position={[0, -0.052, 0.03]}
+        distanceFactor={3.7}
+        style={{ pointerEvents: "none" }}
+      >
+        <div
+          style={{
+            width: 104,
+            textAlign: "center",
+            color: "#b7d7ff",
+            fontFamily: "Inter, system-ui, sans-serif",
+            fontSize: 8,
+            fontWeight: 800,
+            letterSpacing: ".18em",
+            textTransform: "uppercase",
+          }}
+        >
+          Ops Link
+        </div>
+      </Html>
+    </group>
+  );
+}
+
 function OfficeRoom3DInner({
   officeLayout,
   agentPos,
@@ -3209,6 +3282,32 @@ function OfficeRoom3DInner({
     const disk = Math.min(99, 42 + msgCount * 0.7);
     return { cpu, mem, disk };
   }, [msgCount, activeAgent, fuelPct]);
+  const roomOperationalLights = useMemo<OfficeOperationalLight[]>(() => {
+    const hasAgentProof = (Object.values(agentStats ?? {}) as Array<{
+      lastConfidence?: number;
+    }>).some((stat) => Number(stat?.lastConfidence ?? 0) > 0);
+    const hasData = articlesCount + pricesCount > 0;
+    return [
+      { id: "room-runtime", label: "Runtime", state: "on" },
+      {
+        id: "room-ai",
+        label: "Local AI",
+        state: modelLabel && modelLabel !== "auto" ? "on" : "dim",
+      },
+      {
+        id: "room-data",
+        label: "Data",
+        state: hasData ? "on" : "dim",
+      },
+      {
+        id: "room-agents",
+        label: "Agents",
+        state: activeAgent ? "on" : hasAgentProof ? "dim" : "checking",
+      },
+      { id: "room-security", label: "Review gates", state: "on" },
+      { id: "room-release", label: "Release proof", state: "off" },
+    ];
+  }, [activeAgent, agentStats, articlesCount, modelLabel, pricesCount]);
 
   const tryMove = (id: OfficeObjectId, world: Vec3) => {
     const prev = layout[id];
@@ -3557,6 +3656,14 @@ function OfficeRoom3DInner({
             </group>
           );
         })}
+        <OperationalRoomLightRack
+          lights={roomOperationalLights}
+          position={[
+            worldPos.serverRack[0] + 0.205,
+            1.23,
+            worldPos.serverRack[2] + 0.185,
+          ]}
+        />
         <DraggableProp
           id="waterCooler"
           pos={layout.waterCooler}

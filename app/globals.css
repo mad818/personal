@@ -16278,6 +16278,226 @@ html[data-nexus-motion-profile="reduced"] .nexus-homefront-mediaPanel__video {
   color: #d8fffb;
 }
 
+.nexus-operational-lights {
+  --ops-light-on: #39f6c3;
+  --ops-light-dim: #fbbf24;
+  --ops-light-off: #64748b;
+  --ops-light-blocked: #fb7185;
+  --ops-light-checking: #60a5fa;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.nexus-operational-lights__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nexus-operational-lights__eyebrow,
+.nexus-operational-lights__groupLabel,
+.nexus-operational-lights__state {
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.nexus-operational-lights__summary {
+  margin-top: 3px;
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.nexus-operational-lights__state {
+  flex: 0 0 auto;
+  min-height: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.nexus-operational-lights__groups {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nexus-operational-lights__group {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nexus-operational-lights__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nexus-operational-lights__light {
+  --ops-light-color: var(--ops-light-off);
+  display: inline-grid;
+  grid-template-columns: 8px auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  min-width: 52px;
+  max-width: 100%;
+  border: 1px solid color-mix(in srgb, var(--ops-light-color) 38%, transparent);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background:
+    radial-gradient(
+      circle at 12px 50%,
+      color-mix(in srgb, var(--ops-light-color) 22%, transparent),
+      transparent 54%
+    ),
+    rgba(255, 255, 255, 0.035);
+  color: rgba(255, 255, 255, 0.84);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.nexus-operational-lights__light[data-state="on"] {
+  --ops-light-color: var(--ops-light-on);
+}
+
+.nexus-operational-lights__light[data-state="dim"] {
+  --ops-light-color: var(--ops-light-dim);
+}
+
+.nexus-operational-lights__light[data-state="off"] {
+  --ops-light-color: var(--ops-light-off);
+}
+
+.nexus-operational-lights__light[data-state="blocked"] {
+  --ops-light-color: var(--ops-light-blocked);
+}
+
+.nexus-operational-lights__light[data-state="checking"] {
+  --ops-light-color: var(--ops-light-checking);
+}
+
+.nexus-operational-lights__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ops-light-color);
+  box-shadow:
+    0 0 9px color-mix(in srgb, var(--ops-light-color) 70%, transparent),
+    0 0 20px color-mix(in srgb, var(--ops-light-color) 24%, transparent);
+}
+
+.nexus-operational-lights__short,
+.nexus-operational-lights__label {
+  overflow: hidden;
+  min-width: 0;
+  color: inherit;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nexus-operational-lights__label {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.nexus-operational-lights--panel {
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  border-radius: 18px;
+  padding: 12px;
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.08), transparent 46%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.nexus-operational-lights--panel .nexus-operational-lights__groups {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nexus-operational-lights--panel .nexus-operational-lights__light {
+  grid-template-columns: 8px 32px minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
+}
+
+.nexus-operational-lights--compact {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.nexus-operational-lights--toprail {
+  width: min(100%, 360px);
+  justify-self: end;
+}
+
+.nexus-operational-lights--toprail .nexus-operational-lights__groups,
+.nexus-operational-lights--toprail .nexus-operational-lights__group {
+  gap: 0;
+}
+
+.nexus-operational-lights--toprail .nexus-operational-lights__row {
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.nexus-operational-lights--toprail .nexus-operational-lights__light {
+  min-width: 36px;
+  min-height: 22px;
+  grid-template-columns: 7px auto;
+  gap: 4px;
+  padding: 4px 6px;
+}
+
+.nexus-operational-lights--toprail .nexus-operational-lights__dot {
+  width: 7px;
+  height: 7px;
+}
+
+.nexus-operational-lights--toprail .nexus-operational-lights__short {
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nexus-operational-lights__light[data-state="on"]
+    .nexus-operational-lights__dot,
+  .nexus-operational-lights__light[data-state="checking"]
+    .nexus-operational-lights__dot {
+    animation: nexus-operational-light-pulse 2.6s ease-in-out infinite;
+  }
+}
+
+@keyframes nexus-operational-light-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+  50% {
+    filter: brightness(1.22);
+    transform: scale(1.12);
+  }
+}
+
 .nexus-free-local-readiness__details {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -16305,6 +16525,22 @@ html[data-nexus-motion-profile="reduced"] .nexus-homefront-mediaPanel__video {
 }
 
 @media (max-width: 720px) {
+  .nexus-operational-lights--panel .nexus-operational-lights__groups {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-operational-lights__head {
+    display: grid;
+  }
+
+  .nexus-operational-lights--toprail {
+    width: 100%;
+  }
+
+  .nexus-operational-lights--toprail .nexus-operational-lights__row {
+    justify-content: flex-start;
+  }
+
   .nexus-assistant-turn-receipt,
   .nexus-assistant-turn-receipt--compact {
     grid-template-columns: repeat(2, minmax(0, 1fr));

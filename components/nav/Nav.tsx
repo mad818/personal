@@ -11,7 +11,9 @@ import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import SettingsDrawer from "@/components/settings/SettingsDrawer";
 import NotificationCenter from "@/components/ui/NotificationCenter";
+import OperationalLightGrid from "@/components/ui/OperationalLightGrid";
 import TrustPostureStrip from "@/components/ui/TrustPostureStrip";
+import { useOperationalLights } from "@/hooks/useOperationalLights";
 import { BRAND_NAME, BRAND_TAGLINE, getSurfaceBranding } from "@/lib/brand";
 import { formatNexusTasteProfile, getNexusTasteContract } from "@/lib/nexusTasteContract";
 import { buildSnapshot, resolveActiveUIRules } from "@/lib/uiRules";
@@ -45,6 +47,7 @@ export default function Nav() {
   const agentRuntime = useStore((s) => s.agentRuntime);
   const councilMode = useStore((s) => s.councilMode);
   const tabs = getNavProductSurfaces();
+  const { grid: operationalLights } = useOperationalLights();
 
   // Keyboard shortcuts: Alt+1 through Alt+8 switch to the Nth GA tab.
   useEffect(() => {
@@ -226,6 +229,12 @@ export default function Nav() {
                   </span>
                 ) : null}
               </div>
+              <OperationalLightGrid
+                grid={operationalLights}
+                variant="toprail"
+                maxLights={10}
+                title="Operational lights"
+              />
               <TrustPostureStrip />
             </div>
             <span className="nexus-command-header__utilityNote">

@@ -19,7 +19,9 @@ import {
 } from "@/lib/freeLocalOperations";
 import { useStore } from "@/store/useStore";
 import { ShellBadge, ShellButton } from "@/components/ui/shell";
+import OperationalLightGrid from "@/components/ui/OperationalLightGrid";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { buildOperationalLightGrid } from "@/lib/operationalLights";
 
 type BrowserStorageStatus = "checking" | "ready" | "blocked";
 
@@ -130,14 +132,15 @@ export default function FreeLocalReadinessPanel({
     }
   }, []);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     setLoadError(null);
     try {
       const params = new URLSearchParams();
       if (settings.localModel) params.set("model", settings.localModel);
       const url = `/api/free-local-readiness${params.toString() ? `?${params.toString()}` : ""}`;
-      const response = await apiFetch(url, { cache: "no-store" });
+      const response = await apiFetch(url, { cache: "no-store", signal });
+      if (signal?.aborted) return;
       if (response.status === 401 || response.status === 403) {
         setSnapshot(null);
         setLoadError("Session required. Log in with NEXUS_TOKEN, then refresh readiness.");
@@ -150,10 +153,11 @@ export default function FreeLocalReadinessPanel({
       }
       setSnapshot((await response.json()) as FreeLocalReadinessSnapshot);
     } catch {
+      if (signal?.aborted) return;
       setSnapshot(null);
       setLoadError("Readiness check could not reach the local runtime.");
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, [settings.localModel]);
 
@@ -181,9 +185,25 @@ export default function FreeLocalReadinessPanel({
   }, []);
 
   useEffect(() => {
-    void refresh();
-    const interval = window.setInterval(refresh, 30_000);
-    return () => window.clearInterval(interval);
+    let controller: AbortController | null = null;
+    const run = () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      controller?.abort();
+      controller = new AbortController();
+      void refresh(controller.signal);
+    };
+    run();
+    const interval = window.setInterval(run, 30_000);
+    const handleVisibility = () => {
+      if (document.hidden) return;
+      run();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      controller?.abort();
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [refresh]);
 
   const rows = useMemo(() => {
@@ -229,6 +249,15 @@ export default function FreeLocalReadinessPanel({
     [snapshot],
   );
   const repoSync = useMemo(() => buildRepoSyncHealthReport(), []);
+  const operationalLights = useMemo(
+    () =>
+      buildOperationalLightGrid({
+        freeLocal: snapshot,
+        runtimeOk: snapshot ? snapshot.runtime.status === "ready" : null,
+        protectedStatusOk: snapshot ? snapshot.session.authenticated : null,
+      }),
+    [snapshot],
+  );
 
   const rowsGrid = rows.length ? (
     <div
@@ -291,13 +320,19 @@ export default function FreeLocalReadinessPanel({
             </ShellBadge>
           )}
           <ShellBadge tone={storageTone}>{storageLabel(browserStorage)}</ShellBadge>
-          <ShellButton onClick={refresh} disabled={loading}>
+          <ShellButton onClick={() => void refresh()} disabled={loading}>
             {loading ? "Checking..." : "Run local check"}
           </ShellButton>
           <a className="nexus-shell-button" href="/command?focus=provider-health">
             Open provider health
           </a>
         </div>
+
+        <OperationalLightGrid
+          grid={operationalLights}
+          variant={compact ? "compact" : "panel"}
+          title="Local readiness lights"
+        />
 
         {snapshot ? (
           <div

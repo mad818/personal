@@ -47,6 +47,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] SUBSCRIPTION-ESCAPE-LOCAL-HUB — Add a private Resources lane for replacing monthly subscriptions with safe local/free/open alternatives, using the always-on MacBook as the Nexus host and desktop/iPad as Tailscale clients.
+  - Current pass: add a scoped feature spec, protected server-side local storage, a Resources Escape console, Tailscale/private-access posture, cancellation safety checks, and source-backed replacement catalog without building a VPN/proxy or adding public exposure.
+  - Guardrail: no piracy, DRM bypass, paywall bypass, ad-circumvention claims, account-ban evasion, auto-canceling accounts, Nexus-side billing, cloud sync database, new top-level tab, or public unauthenticated route.
+  - Progress: added `specs/features/subscription-escape-local-hub.md`, `lib/subscriptionEscape.ts`, `lib/subscriptionEscapeStore.ts`, protected `/api/subscription-escape`, and `components/resources/SubscriptionEscapeConsole.tsx`; mounted it at `/resources?view=escape`, excluded local `data/subscription-escape*.json` from git, and added route policy coverage. `npx tsc --noEmit`, `npm run lint`, `npm run verify`, `git diff --check`, and live dev-route proof passed: `/api/health` returned 200, `/resources?view=escape` returned 200, and unauthenticated `/api/subscription-escape` returned 401 as expected.
+
 - [x] SMOOTHNESS-OPERATIONAL-LIGHTS — Make Nexus feel calmer and always connected by adding a shared publish-safe operational light grid plus smoothness guardrails across the authenticated shell, HQ, COMMAND, and 3D office.
   - Current pass: added `lib/operationalLights.ts`, `hooks/useOperationalLights.ts`, and `components/ui/OperationalLightGrid.tsx`; mounted compact fixed-size lights in the toprail, shared Free Local Readiness panel used by HQ/COMMAND, and the 3D office server-rack ambience.
   - Guardrail: lights are read-only indicators, not controls; no token values, cookies, auth headers, real LAN IPs, local home paths, account/payment proof, raw proof screenshots, paid-provider defaults, public route widening, package upgrades, or private RPG work.

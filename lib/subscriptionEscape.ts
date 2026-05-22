@@ -1,0 +1,368 @@
+export type SubscriptionEscapeCategory =
+  | "cloud-storage"
+  | "passwords"
+  | "media"
+  | "notes-docs"
+  | "dns-privacy"
+  | "ai-dev"
+  | "device-sync"
+  | "other";
+
+export type SubscriptionEscapeStatus =
+  | "paying"
+  | "testing"
+  | "ready_to_cancel"
+  | "cancelled";
+
+export type SubscriptionEscapeDifficulty = "easy" | "medium" | "hard";
+
+export type SubscriptionEscapeCostPosture =
+  | "free_local"
+  | "open_source"
+  | "byok"
+  | "one_time"
+  | "manual_review";
+
+export type SubscriptionSafetyKey =
+  | "replacementTested"
+  | "dataExported"
+  | "backupVerified"
+  | "loginRecoveryConfirmed"
+  | "cancelDateCaptured";
+
+export interface SubscriptionSafetyChecklist {
+  replacementTested: boolean;
+  dataExported: boolean;
+  backupVerified: boolean;
+  loginRecoveryConfirmed: boolean;
+  cancelDateCaptured: boolean;
+}
+
+export interface SubscriptionEscapeItem {
+  id: string;
+  name: string;
+  category: SubscriptionEscapeCategory;
+  monthlyCost: number;
+  renewalDate?: string;
+  replacementId?: string;
+  status: SubscriptionEscapeStatus;
+  notes?: string;
+  safety: SubscriptionSafetyChecklist;
+  updatedAt: string;
+}
+
+export interface SubscriptionReplacementOption {
+  id: string;
+  category: SubscriptionEscapeCategory;
+  title: string;
+  replaces: string;
+  costPosture: SubscriptionEscapeCostPosture;
+  difficulty: SubscriptionEscapeDifficulty;
+  hostFit: "macbook-host" | "client-only" | "either";
+  privacyPosture: string;
+  bestFor: string;
+  setupSteps: string[];
+  safetyNotes: string[];
+}
+
+export interface SubscriptionEscapeSource {
+  id: string;
+  url: string;
+  status: "supplied" | "metadata_unverified";
+  note: string;
+}
+
+export interface SubscriptionEscapeHostPosture {
+  hostLabel: string;
+  hostRole: "macbook" | "desktop" | "nas" | "unknown";
+  accessMode: "tailscale" | "lan" | "public" | "unknown";
+  clients: Array<"desktop" | "ipad" | "macbook">;
+  publicExposure: "blocked" | "unknown" | "detected";
+  backupReminder: string;
+}
+
+export interface SubscriptionEscapeState {
+  version: 1;
+  updatedAt: string;
+  currency: "USD";
+  host: SubscriptionEscapeHostPosture;
+  subscriptions: SubscriptionEscapeItem[];
+}
+
+export const SUBSCRIPTION_ESCAPE_SAFETY_LABELS: Record<
+  SubscriptionSafetyKey,
+  string
+> = {
+  replacementTested: "Replacement tested",
+  dataExported: "Data exported",
+  backupVerified: "Backup verified",
+  loginRecoveryConfirmed: "Login recovery confirmed",
+  cancelDateCaptured: "Cancel date captured",
+};
+
+export const SUBSCRIPTION_ESCAPE_GUARDRAILS = [
+  "Use Tailscale/LAN as the private access layer; Nexus does not build a VPN or anonymizer.",
+  "Keep the MacBook-hosted route token-gated and avoid public unauthenticated exposure.",
+  "Do not use piracy, DRM bypass, paywall bypass, ad-circumvention claims, or account-ban evasion as replacements.",
+  "Do not auto-cancel accounts; the operator reviews and performs cancellation manually.",
+  "Do not add Nexus-side billing, cloud sync, or a new public product surface.",
+] as const;
+
+export const SUBSCRIPTION_ESCAPE_SOURCES: SubscriptionEscapeSource[] = [
+  {
+    id: "yt-IN9jr1VbwZM",
+    url: "https://www.youtube.com/watch?v=IN9jr1VbwZM",
+    status: "metadata_unverified",
+    note: "Operator-supplied subscription replacement reference.",
+  },
+  {
+    id: "yt-w8_IBJLNo04",
+    url: "https://www.youtube.com/watch?v=w8_IBJLNo04",
+    status: "metadata_unverified",
+    note: "Operator-supplied subscription replacement reference.",
+  },
+  {
+    id: "yt-S8mG6KOku1I",
+    url: "https://www.youtube.com/watch?v=S8mG6KOku1I",
+    status: "supplied",
+    note: "Referenced as a digital-life ownership and subscription reduction source.",
+  },
+  {
+    id: "yt-efl2kuPNEpE",
+    url: "https://www.youtube.com/watch?v=efl2kuPNEpE",
+    status: "metadata_unverified",
+    note: "Operator-supplied subscription replacement reference.",
+  },
+  {
+    id: "yt-46T4cDQBkDs",
+    url: "https://www.youtube.com/watch?v=46T4cDQBkDs",
+    status: "supplied",
+    note: "Referenced as an old-laptop/home-server replacement projects source.",
+  },
+  {
+    id: "yt-AVLZOCW7v6Y",
+    url: "https://www.youtube.com/watch?v=AVLZOCW7v6Y",
+    status: "metadata_unverified",
+    note: "Operator-supplied subscription replacement reference.",
+  },
+  {
+    id: "yt-ziuRW5P4MfM",
+    url: "https://www.youtube.com/watch?v=ziuRW5P4MfM",
+    status: "metadata_unverified",
+    note: "Operator-supplied subscription replacement reference.",
+  },
+  {
+    id: "yt--gMogGlXcAA",
+    url: "https://www.youtube.com/watch?v=-gMogGlXcAA",
+    status: "metadata_unverified",
+    note: "Operator-supplied subscription replacement reference.",
+  },
+] as const;
+
+export const SUBSCRIPTION_REPLACEMENT_CATALOG: SubscriptionReplacementOption[] = [
+  {
+    id: "nextcloud-macbook",
+    category: "cloud-storage",
+    title: "Nextcloud on the MacBook host",
+    replaces: "iCloud/Drive-style file sync and personal document storage",
+    costPosture: "open_source",
+    difficulty: "hard",
+    hostFit: "macbook-host",
+    privacyPosture: "Private tailnet access through Tailscale; no public share by default.",
+    bestFor: "Files, photos, documents, and personal sync where you own the host.",
+    setupSteps: [
+      "Run the service on the always-on MacBook or a later NAS.",
+      "Expose only over Tailscale or LAN.",
+      "Test upload, download, mobile access, and backup restore before canceling any storage plan.",
+    ],
+    safetyNotes: [
+      "Confirm backups before deleting cloud originals.",
+      "Avoid public file sharing until reverse-proxy and auth posture are reviewed.",
+    ],
+  },
+  {
+    id: "vaultwarden-tailnet",
+    category: "passwords",
+    title: "Vaultwarden behind Tailscale",
+    replaces: "Password manager subscriptions",
+    costPosture: "open_source",
+    difficulty: "medium",
+    hostFit: "macbook-host",
+    privacyPosture: "Tailnet-only password vault; operator-owned backups required.",
+    bestFor: "Password vault replacement after export/import and recovery testing.",
+    setupSteps: [
+      "Export the existing vault from the paid provider.",
+      "Import into Vaultwarden on the MacBook host.",
+      "Test desktop, browser extension, iPad, emergency access, and restore before canceling.",
+    ],
+    safetyNotes: [
+      "Do not cancel the old vault until recovery keys and backups are proven.",
+      "Use strong master password and 2FA before production use.",
+    ],
+  },
+  {
+    id: "jellyfin-tailnet",
+    category: "media",
+    title: "Jellyfin private media library",
+    replaces: "Personal media streaming subscriptions where you own the media",
+    costPosture: "open_source",
+    difficulty: "medium",
+    hostFit: "macbook-host",
+    privacyPosture: "Private streaming over LAN/Tailscale; no public media endpoint.",
+    bestFor: "Owned video/music library playback across desktop, iPad, and TV clients.",
+    setupSteps: [
+      "Place legally owned media on the MacBook host or attached storage.",
+      "Run Jellyfin on LAN/Tailscale only.",
+      "Test playback and remote bandwidth before canceling overlapping services.",
+    ],
+    safetyNotes: [
+      "No piracy, DRM bypass, or scraping paid libraries.",
+      "Keep media rights and storage provenance clean.",
+    ],
+  },
+  {
+    id: "obsidian-syncthing",
+    category: "notes-docs",
+    title: "Obsidian plus Syncthing",
+    replaces: "Notes, lightweight docs, and personal knowledge subscriptions",
+    costPosture: "free_local",
+    difficulty: "easy",
+    hostFit: "either",
+    privacyPosture: "Local files with optional private-device sync.",
+    bestFor: "Markdown notes, checklists, migration logs, and personal knowledge base.",
+    setupSteps: [
+      "Create a local vault folder.",
+      "Sync only trusted devices.",
+      "Export old notes and verify search/history before canceling.",
+    ],
+    safetyNotes: [
+      "Avoid syncing secrets into plain-text notes.",
+      "Keep device-level backups enabled.",
+    ],
+  },
+  {
+    id: "adguard-home-tailnet",
+    category: "dns-privacy",
+    title: "AdGuard Home or Pi-hole",
+    replaces: "Paid DNS filtering or family-safe resolver subscriptions",
+    costPosture: "open_source",
+    difficulty: "medium",
+    hostFit: "macbook-host",
+    privacyPosture: "Private DNS filtering for your devices; not an anonymity service.",
+    bestFor: "Reducing noisy trackers and blocking known bad domains on trusted devices.",
+    setupSteps: [
+      "Run DNS filtering on the MacBook host or later dedicated device.",
+      "Point only your devices to it.",
+      "Keep bypass and emergency fallback DNS documented.",
+    ],
+    safetyNotes: [
+      "This does not hide identity from websites by itself.",
+      "Do not break banking, school, or work device policies.",
+    ],
+  },
+  {
+    id: "ollama-local-ai",
+    category: "ai-dev",
+    title: "Ollama local AI lane",
+    replaces: "Some paid AI utility usage for private drafting and coding support",
+    costPosture: "free_local",
+    difficulty: "easy",
+    hostFit: "either",
+    privacyPosture: "Runs on your machine; optional BYOK providers remain separate.",
+    bestFor: "Private drafts, summaries, local code help, and offline-first assistant checks.",
+    setupSteps: [
+      "Keep Ollama running on the host with the chosen local model.",
+      "Use Nexus provider-health proof to confirm local/free posture.",
+      "Keep paid provider keys disabled unless you explicitly need them.",
+    ],
+    safetyNotes: [
+      "Local models are not a complete replacement for every paid model.",
+      "Review output before using it in sensitive workflows.",
+    ],
+  },
+  {
+    id: "tailscale-private-access",
+    category: "device-sync",
+    title: "Tailscale private access",
+    replaces: "Public hosting needs for personal-only Nexus access",
+    costPosture: "free_local",
+    difficulty: "easy",
+    hostFit: "either",
+    privacyPosture: "Private tailnet path between MacBook, desktop, and iPad.",
+    bestFor: "Opening MacBook-hosted Nexus from your own devices without port forwarding.",
+    setupSteps: [
+      "Keep Tailscale installed and signed in on MacBook, desktop, and iPad.",
+      "Run Nexus on the MacBook host.",
+      "Open the MacBook Tailscale IP or MagicDNS name from desktop/iPad.",
+    ],
+    safetyNotes: [
+      "Do not enable public Funnel for Nexus by default.",
+      "This protects access to the host; outbound website IP privacy still depends on OS-level VPN or exit-node settings.",
+    ],
+  },
+] as const;
+
+export function createEmptySafetyChecklist(): SubscriptionSafetyChecklist {
+  return {
+    replacementTested: false,
+    dataExported: false,
+    backupVerified: false,
+    loginRecoveryConfirmed: false,
+    cancelDateCaptured: false,
+  };
+}
+
+export function createDefaultSubscriptionEscapeState(): SubscriptionEscapeState {
+  return {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    currency: "USD",
+    host: {
+      hostLabel: "MacBook always-on host",
+      hostRole: "macbook",
+      accessMode: "tailscale",
+      clients: ["macbook", "desktop", "ipad"],
+      publicExposure: "blocked",
+      backupReminder: "Export or back up the local state file before canceling a provider.",
+    },
+    subscriptions: [],
+  };
+}
+
+export function normalizeMonthlyCost(value: unknown): number {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : Number.parseFloat(String(value ?? "").replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return Math.round(parsed * 100) / 100;
+}
+
+export function countCompletedSafetySteps(item: SubscriptionEscapeItem) {
+  return Object.values(item.safety).filter(Boolean).length;
+}
+
+export function isSafeToCancel(item: SubscriptionEscapeItem) {
+  return Object.values(item.safety).every(Boolean);
+}
+
+export function calculateSubscriptionEscapeTotals(
+  items: SubscriptionEscapeItem[],
+) {
+  const activeMonthly = items
+    .filter((item) => item.status !== "cancelled")
+    .reduce((total, item) => total + normalizeMonthlyCost(item.monthlyCost), 0);
+  const readyMonthly = items
+    .filter((item) => item.status === "ready_to_cancel")
+    .reduce((total, item) => total + normalizeMonthlyCost(item.monthlyCost), 0);
+  const cancelledMonthly = items
+    .filter((item) => item.status === "cancelled")
+    .reduce((total, item) => total + normalizeMonthlyCost(item.monthlyCost), 0);
+
+  return {
+    activeMonthly: Math.round(activeMonthly * 100) / 100,
+    readyMonthly: Math.round(readyMonthly * 100) / 100,
+    cancelledMonthly: Math.round(cancelledMonthly * 100) / 100,
+    yearlyActive: Math.round(activeMonthly * 12 * 100) / 100,
+  };
+}

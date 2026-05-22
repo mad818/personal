@@ -165,6 +165,7 @@ export const SURFACE_CONDENSATION_REGISTRY: Record<
       "voice-lab": "launch",
       registry: "utilities",
       kits: "utilities",
+      escape: "utilities",
       wins: "wins",
     },
   },
@@ -252,7 +253,7 @@ export function resolveResourcesChamber(
   if (view === "impact" || view === "voice-lab") {
     return "launch";
   }
-  if (view === "registry" || view === "kits") {
+  if (view === "registry" || view === "kits" || view === "escape") {
     return "utilities";
   }
   if (view === "wins") {
@@ -289,7 +290,11 @@ export function resolveResourcesViewForChamber(
     }
     return "system" as const;
   }
-  if (currentView === "registry" || currentView === "kits") {
+  if (
+    currentView === "registry" ||
+    currentView === "kits" ||
+    currentView === "escape"
+  ) {
     return currentView;
   }
   return "registry" as const;

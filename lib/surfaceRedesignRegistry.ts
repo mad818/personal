@@ -71,6 +71,7 @@ export type ResourcesWorkbenchView =
   | "system"
   | "registry"
   | "kits"
+  | "escape"
   | "impact"
   | "voice-lab"
   | "wins";
@@ -898,6 +899,18 @@ export const RESOURCES_WORKBENCH_VIEW_SPECS: Record<
     panelDetail: "Reusable operator bundles",
     panelSummary:
       "Kits stay supporting and should not compete with the first-view problem-solving paths.",
+  },
+  escape: {
+    view: "escape",
+    jobId: "supporting-utilities",
+    introTitle: "Cut subscriptions",
+    introDetail: "MacBook-hosted local replacements",
+    introSummary:
+      "Use Escape when recurring subscriptions need a safe local, free, open-source, or BYOK replacement plan before cancellation.",
+    panelTitle: "Subscription Escape",
+    panelDetail: "Tailscale access, safety checks, and replacement map",
+    panelSummary:
+      "Subscription replacement should prove data export, backup, recovery, and private access before any cancellation step.",
   },
 };
 

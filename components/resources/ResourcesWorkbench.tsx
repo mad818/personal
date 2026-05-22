@@ -12,6 +12,7 @@ import SessionFinderConsole from "@/components/resources/SessionFinderConsole";
 import SourceIntelligenceConsole from "@/components/resources/SourceIntelligenceConsole";
 import SpecDrivenConsole from "@/components/resources/SpecDrivenConsole";
 import StudyWorkbenchConsole from "@/components/resources/StudyWorkbenchConsole";
+import SubscriptionEscapeConsole from "@/components/resources/SubscriptionEscapeConsole";
 import SurfaceCapabilitiesConsole from "@/components/resources/SurfaceCapabilitiesConsole";
 import SystemDesignConsole from "@/components/resources/SystemDesignConsole";
 import VoiceLabConsole from "@/components/resources/VoiceLabConsole";
@@ -55,6 +56,7 @@ type View =
   | "system"
   | "registry"
   | "kits"
+  | "escape"
   | "impact"
   | "voice-lab"
   | "wins";
@@ -88,11 +90,12 @@ const SYSTEM_VIEWS: Array<{
 ];
 
 const UTILITY_VIEWS: Array<{
-  id: Extract<View, "registry" | "kits">;
+  id: Extract<View, "registry" | "kits" | "escape">;
   label: string;
 }> = [
   { id: "registry", label: "Registry" },
   { id: "kits", label: "Kits" },
+  { id: "escape", label: "Escape" },
 ];
 
 const LAUNCH_VIEWS: Array<{
@@ -139,6 +142,7 @@ function resolvePanelModuleId(view: View) {
       return "understand-system";
     case "registry":
     case "kits":
+    case "escape":
       return "supporting-utilities";
     default:
       return "supporting-utilities";
@@ -180,6 +184,8 @@ function renderPanelContent(
       return <RegistryConsole view="items" />;
     case "kits":
       return <RegistryConsole view="kits" />;
+    case "escape":
+      return <SubscriptionEscapeConsole />;
     case "impact":
       return (
         <ProjectImpactConsole
@@ -231,6 +237,7 @@ export default function ResourcesWorkbench() {
       value === "system" ||
       value === "registry" ||
       value === "kits" ||
+      value === "escape" ||
       value === "impact" ||
       value === "voice-lab" ||
       value === "wins"
@@ -564,7 +571,9 @@ export default function ResourcesWorkbench() {
                 {chamber === "utilities" ? (
                   <ShellSegmentedTabs
                     items={UTILITY_VIEWS}
-                    active={activeView as Extract<View, "registry" | "kits">}
+                    active={
+                      activeView as Extract<View, "registry" | "kits" | "escape">
+                    }
                     onChange={handleSubviewChange}
                     minButtonWidth={110}
                   />

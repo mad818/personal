@@ -12,6 +12,8 @@ tmp-codex-runtime/
 .turbo/
 out/
 dist/
+data/subscription-escape*.json
+data/subscription-escape*.json.enc
 *.log
 .nexus-runtime-identity.json
 .nexus-runtime.pid

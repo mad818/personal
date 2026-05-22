@@ -1,0 +1,187 @@
+import { mkdir, readFile, writeFile } from "fs/promises";
+import path from "path";
+import {
+  createDefaultSubscriptionEscapeState,
+  createEmptySafetyChecklist,
+  normalizeMonthlyCost,
+  type SubscriptionEscapeCategory,
+  type SubscriptionEscapeHostPosture,
+  type SubscriptionEscapeItem,
+  type SubscriptionEscapeState,
+  type SubscriptionEscapeStatus,
+} from "@/lib/subscriptionEscape";
+
+const DATA_FILE =
+  process.env.NEXUS_SUBSCRIPTION_ESCAPE_FILE ??
+  path.join(process.cwd(), "data", "subscription-escape.json");
+
+const CATEGORIES = new Set<SubscriptionEscapeCategory>([
+  "cloud-storage",
+  "passwords",
+  "media",
+  "notes-docs",
+  "dns-privacy",
+  "ai-dev",
+  "device-sync",
+  "other",
+]);
+
+const STATUSES = new Set<SubscriptionEscapeStatus>([
+  "paying",
+  "testing",
+  "ready_to_cancel",
+  "cancelled",
+]);
+
+function normalizeCategory(value: unknown): SubscriptionEscapeCategory {
+  return typeof value === "string" && CATEGORIES.has(value as SubscriptionEscapeCategory)
+    ? (value as SubscriptionEscapeCategory)
+    : "other";
+}
+
+function normalizeStatus(value: unknown): SubscriptionEscapeStatus {
+  return typeof value === "string" && STATUSES.has(value as SubscriptionEscapeStatus)
+    ? (value as SubscriptionEscapeStatus)
+    : "paying";
+}
+
+function normalizeText(value: unknown, fallback = "") {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function normalizeHost(
+  value: Partial<SubscriptionEscapeHostPosture> | undefined,
+): SubscriptionEscapeHostPosture {
+  const fallback = createDefaultSubscriptionEscapeState().host;
+  const accessMode =
+    value?.accessMode === "lan" ||
+    value?.accessMode === "public" ||
+    value?.accessMode === "unknown" ||
+    value?.accessMode === "tailscale"
+      ? value.accessMode
+      : fallback.accessMode;
+  const publicExposure =
+    value?.publicExposure === "unknown" || value?.publicExposure === "detected"
+      ? value.publicExposure
+      : "blocked";
+  const hostRole =
+    value?.hostRole === "desktop" ||
+    value?.hostRole === "nas" ||
+    value?.hostRole === "unknown" ||
+    value?.hostRole === "macbook"
+      ? value.hostRole
+      : fallback.hostRole;
+  const clients = Array.isArray(value?.clients)
+    ? value.clients.filter(
+        (client): client is "desktop" | "ipad" | "macbook" =>
+          client === "desktop" || client === "ipad" || client === "macbook",
+      )
+    : fallback.clients;
+
+  return {
+    hostLabel: normalizeText(value?.hostLabel, fallback.hostLabel),
+    hostRole,
+    accessMode,
+    clients: clients.length ? Array.from(new Set(clients)) : fallback.clients,
+    publicExposure,
+    backupReminder: normalizeText(value?.backupReminder, fallback.backupReminder),
+  };
+}
+
+function normalizeSubscription(value: Partial<SubscriptionEscapeItem>) {
+  const fallbackSafety = createEmptySafetyChecklist();
+  const safety = value.safety ?? fallbackSafety;
+  const updatedAt =
+    typeof value.updatedAt === "string" && value.updatedAt
+      ? value.updatedAt
+      : new Date().toISOString();
+
+  return {
+    id: normalizeText(value.id, `sub-${Date.now()}`),
+    name: normalizeText(value.name, "Untitled subscription"),
+    category: normalizeCategory(value.category),
+    monthlyCost: normalizeMonthlyCost(value.monthlyCost),
+    renewalDate:
+      typeof value.renewalDate === "string" && value.renewalDate.trim()
+        ? value.renewalDate.trim()
+        : undefined,
+    replacementId:
+      typeof value.replacementId === "string" && value.replacementId.trim()
+        ? value.replacementId.trim()
+        : undefined,
+    status: normalizeStatus(value.status),
+    notes:
+      typeof value.notes === "string" && value.notes.trim()
+        ? value.notes.trim()
+        : undefined,
+    safety: {
+      replacementTested: Boolean(safety.replacementTested),
+      dataExported: Boolean(safety.dataExported),
+      backupVerified: Boolean(safety.backupVerified),
+      loginRecoveryConfirmed: Boolean(safety.loginRecoveryConfirmed),
+      cancelDateCaptured: Boolean(safety.cancelDateCaptured),
+    },
+    updatedAt,
+  } satisfies SubscriptionEscapeItem;
+}
+
+export function normalizeSubscriptionEscapeState(
+  input: Partial<SubscriptionEscapeState> | null | undefined,
+): SubscriptionEscapeState {
+  const fallback = createDefaultSubscriptionEscapeState();
+  return {
+    version: 1,
+    updatedAt:
+      typeof input?.updatedAt === "string" && input.updatedAt
+        ? input.updatedAt
+        : fallback.updatedAt,
+    currency: "USD",
+    host: normalizeHost(input?.host),
+    subscriptions: Array.isArray(input?.subscriptions)
+      ? input.subscriptions.map((item) => normalizeSubscription(item))
+      : [],
+  };
+}
+
+async function ensureSubscriptionEscapeFile() {
+  await mkdir(path.dirname(DATA_FILE), { recursive: true });
+  try {
+    await readFile(DATA_FILE, "utf8");
+  } catch {
+    await writeFile(
+      DATA_FILE,
+      `${JSON.stringify(createDefaultSubscriptionEscapeState(), null, 2)}\n`,
+      "utf8",
+    );
+  }
+}
+
+export async function readSubscriptionEscapeState() {
+  await ensureSubscriptionEscapeFile();
+  try {
+    const raw = await readFile(DATA_FILE, "utf8");
+    return normalizeSubscriptionEscapeState(
+      JSON.parse(raw) as Partial<SubscriptionEscapeState>,
+    );
+  } catch {
+    const fallback = createDefaultSubscriptionEscapeState();
+    await writeSubscriptionEscapeState(fallback);
+    return fallback;
+  }
+}
+
+export async function writeSubscriptionEscapeState(
+  input: Partial<SubscriptionEscapeState>,
+) {
+  await ensureSubscriptionEscapeFile();
+  const payload = normalizeSubscriptionEscapeState({
+    ...input,
+    updatedAt: new Date().toISOString(),
+  });
+  await writeFile(DATA_FILE, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  return payload;
+}
+
+export function getSubscriptionEscapeStoragePath() {
+  return DATA_FILE;
+}

@@ -45,6 +45,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/workflows", routeClass: "local_only", public: false },
   { prefix: "/api/workflow-runs", routeClass: "local_only", public: false },
   { prefix: "/api/registry", routeClass: "local_only", public: false },
+  { prefix: "/api/subscription-escape", routeClass: "local_only", public: false },
   { prefix: "/api/security/scenarios", routeClass: "local_only", public: false },
   { prefix: "/api/security/runs", routeClass: "local_only", public: false },
   { prefix: "/api/model-lab", routeClass: "local_only", public: false },

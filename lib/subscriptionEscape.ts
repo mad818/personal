@@ -51,6 +51,30 @@ export interface SubscriptionEscapeItem {
   updatedAt: string;
 }
 
+export type MediaEscapeKind = "movie" | "music";
+
+export type MediaEscapeStatus = "owned" | "needs_metadata" | "wishlist";
+
+export type MediaEscapeSort = "recent" | "title" | "year" | "favorite";
+
+export interface MediaEscapeItem {
+  id: string;
+  kind: MediaEscapeKind;
+  title: string;
+  subtitle?: string;
+  creator?: string;
+  year?: string;
+  genre?: string;
+  duration?: string;
+  rating?: string;
+  summary?: string;
+  coverUrl?: string;
+  filePath?: string;
+  status: MediaEscapeStatus;
+  favorite: boolean;
+  updatedAt: string;
+}
+
 export interface SubscriptionReplacementOption {
   id: string;
   category: SubscriptionEscapeCategory;
@@ -87,6 +111,7 @@ export interface SubscriptionEscapeState {
   currency: "USD";
   host: SubscriptionEscapeHostPosture;
   subscriptions: SubscriptionEscapeItem[];
+  mediaLibrary: MediaEscapeItem[];
 }
 
 export const SUBSCRIPTION_ESCAPE_SAFETY_LABELS: Record<
@@ -107,6 +132,17 @@ export const SUBSCRIPTION_ESCAPE_GUARDRAILS = [
   "Do not auto-cancel accounts; the operator reviews and performs cancellation manually.",
   "Do not add Nexus-side billing, cloud sync, or a new public product surface.",
 ] as const;
+
+export const MEDIA_ESCAPE_KIND_LABELS: Record<MediaEscapeKind, string> = {
+  movie: "Movie",
+  music: "Music",
+};
+
+export const MEDIA_ESCAPE_STATUS_LABELS: Record<MediaEscapeStatus, string> = {
+  owned: "Owned",
+  needs_metadata: "Needs info",
+  wishlist: "Wishlist",
+};
 
 export const SUBSCRIPTION_ESCAPE_SOURCES: SubscriptionEscapeSource[] = [
   {
@@ -159,148 +195,164 @@ export const SUBSCRIPTION_ESCAPE_SOURCES: SubscriptionEscapeSource[] = [
   },
 ] as const;
 
-export const SUBSCRIPTION_REPLACEMENT_CATALOG: SubscriptionReplacementOption[] = [
-  {
-    id: "nextcloud-macbook",
-    category: "cloud-storage",
-    title: "Nextcloud on the MacBook host",
-    replaces: "iCloud/Drive-style file sync and personal document storage",
-    costPosture: "open_source",
-    difficulty: "hard",
-    hostFit: "macbook-host",
-    privacyPosture: "Private tailnet access through Tailscale; no public share by default.",
-    bestFor: "Files, photos, documents, and personal sync where you own the host.",
-    setupSteps: [
-      "Run the service on the always-on MacBook or a later NAS.",
-      "Expose only over Tailscale or LAN.",
-      "Test upload, download, mobile access, and backup restore before canceling any storage plan.",
-    ],
-    safetyNotes: [
-      "Confirm backups before deleting cloud originals.",
-      "Avoid public file sharing until reverse-proxy and auth posture are reviewed.",
-    ],
-  },
-  {
-    id: "vaultwarden-tailnet",
-    category: "passwords",
-    title: "Vaultwarden behind Tailscale",
-    replaces: "Password manager subscriptions",
-    costPosture: "open_source",
-    difficulty: "medium",
-    hostFit: "macbook-host",
-    privacyPosture: "Tailnet-only password vault; operator-owned backups required.",
-    bestFor: "Password vault replacement after export/import and recovery testing.",
-    setupSteps: [
-      "Export the existing vault from the paid provider.",
-      "Import into Vaultwarden on the MacBook host.",
-      "Test desktop, browser extension, iPad, emergency access, and restore before canceling.",
-    ],
-    safetyNotes: [
-      "Do not cancel the old vault until recovery keys and backups are proven.",
-      "Use strong master password and 2FA before production use.",
-    ],
-  },
-  {
-    id: "jellyfin-tailnet",
-    category: "media",
-    title: "Jellyfin private media library",
-    replaces: "Personal media streaming subscriptions where you own the media",
-    costPosture: "open_source",
-    difficulty: "medium",
-    hostFit: "macbook-host",
-    privacyPosture: "Private streaming over LAN/Tailscale; no public media endpoint.",
-    bestFor: "Owned video/music library playback across desktop, iPad, and TV clients.",
-    setupSteps: [
-      "Place legally owned media on the MacBook host or attached storage.",
-      "Run Jellyfin on LAN/Tailscale only.",
-      "Test playback and remote bandwidth before canceling overlapping services.",
-    ],
-    safetyNotes: [
-      "No piracy, DRM bypass, or scraping paid libraries.",
-      "Keep media rights and storage provenance clean.",
-    ],
-  },
-  {
-    id: "obsidian-syncthing",
-    category: "notes-docs",
-    title: "Obsidian plus Syncthing",
-    replaces: "Notes, lightweight docs, and personal knowledge subscriptions",
-    costPosture: "free_local",
-    difficulty: "easy",
-    hostFit: "either",
-    privacyPosture: "Local files with optional private-device sync.",
-    bestFor: "Markdown notes, checklists, migration logs, and personal knowledge base.",
-    setupSteps: [
-      "Create a local vault folder.",
-      "Sync only trusted devices.",
-      "Export old notes and verify search/history before canceling.",
-    ],
-    safetyNotes: [
-      "Avoid syncing secrets into plain-text notes.",
-      "Keep device-level backups enabled.",
-    ],
-  },
-  {
-    id: "adguard-home-tailnet",
-    category: "dns-privacy",
-    title: "AdGuard Home or Pi-hole",
-    replaces: "Paid DNS filtering or family-safe resolver subscriptions",
-    costPosture: "open_source",
-    difficulty: "medium",
-    hostFit: "macbook-host",
-    privacyPosture: "Private DNS filtering for your devices; not an anonymity service.",
-    bestFor: "Reducing noisy trackers and blocking known bad domains on trusted devices.",
-    setupSteps: [
-      "Run DNS filtering on the MacBook host or later dedicated device.",
-      "Point only your devices to it.",
-      "Keep bypass and emergency fallback DNS documented.",
-    ],
-    safetyNotes: [
-      "This does not hide identity from websites by itself.",
-      "Do not break banking, school, or work device policies.",
-    ],
-  },
-  {
-    id: "ollama-local-ai",
-    category: "ai-dev",
-    title: "Ollama local AI lane",
-    replaces: "Some paid AI utility usage for private drafting and coding support",
-    costPosture: "free_local",
-    difficulty: "easy",
-    hostFit: "either",
-    privacyPosture: "Runs on your machine; optional BYOK providers remain separate.",
-    bestFor: "Private drafts, summaries, local code help, and offline-first assistant checks.",
-    setupSteps: [
-      "Keep Ollama running on the host with the chosen local model.",
-      "Use Nexus provider-health proof to confirm local/free posture.",
-      "Keep paid provider keys disabled unless you explicitly need them.",
-    ],
-    safetyNotes: [
-      "Local models are not a complete replacement for every paid model.",
-      "Review output before using it in sensitive workflows.",
-    ],
-  },
-  {
-    id: "tailscale-private-access",
-    category: "device-sync",
-    title: "Tailscale private access",
-    replaces: "Public hosting needs for personal-only Nexus access",
-    costPosture: "free_local",
-    difficulty: "easy",
-    hostFit: "either",
-    privacyPosture: "Private tailnet path between MacBook, desktop, and iPad.",
-    bestFor: "Opening MacBook-hosted Nexus from your own devices without port forwarding.",
-    setupSteps: [
-      "Keep Tailscale installed and signed in on MacBook, desktop, and iPad.",
-      "Run Nexus on the MacBook host.",
-      "Open the MacBook Tailscale IP or MagicDNS name from desktop/iPad.",
-    ],
-    safetyNotes: [
-      "Do not enable public Funnel for Nexus by default.",
-      "This protects access to the host; outbound website IP privacy still depends on OS-level VPN or exit-node settings.",
-    ],
-  },
-] as const;
+export const SUBSCRIPTION_REPLACEMENT_CATALOG: SubscriptionReplacementOption[] =
+  [
+    {
+      id: "nextcloud-macbook",
+      category: "cloud-storage",
+      title: "Nextcloud on the MacBook host",
+      replaces: "iCloud/Drive-style file sync and personal document storage",
+      costPosture: "open_source",
+      difficulty: "hard",
+      hostFit: "macbook-host",
+      privacyPosture:
+        "Private tailnet access through Tailscale; no public share by default.",
+      bestFor:
+        "Files, photos, documents, and personal sync where you own the host.",
+      setupSteps: [
+        "Run the service on the always-on MacBook or a later NAS.",
+        "Expose only over Tailscale or LAN.",
+        "Test upload, download, mobile access, and backup restore before canceling any storage plan.",
+      ],
+      safetyNotes: [
+        "Confirm backups before deleting cloud originals.",
+        "Avoid public file sharing until reverse-proxy and auth posture are reviewed.",
+      ],
+    },
+    {
+      id: "vaultwarden-tailnet",
+      category: "passwords",
+      title: "Vaultwarden behind Tailscale",
+      replaces: "Password manager subscriptions",
+      costPosture: "open_source",
+      difficulty: "medium",
+      hostFit: "macbook-host",
+      privacyPosture:
+        "Tailnet-only password vault; operator-owned backups required.",
+      bestFor:
+        "Password vault replacement after export/import and recovery testing.",
+      setupSteps: [
+        "Export the existing vault from the paid provider.",
+        "Import into Vaultwarden on the MacBook host.",
+        "Test desktop, browser extension, iPad, emergency access, and restore before canceling.",
+      ],
+      safetyNotes: [
+        "Do not cancel the old vault until recovery keys and backups are proven.",
+        "Use strong master password and 2FA before production use.",
+      ],
+    },
+    {
+      id: "jellyfin-tailnet",
+      category: "media",
+      title: "Jellyfin private media library",
+      replaces:
+        "Personal media streaming subscriptions where you own the media",
+      costPosture: "open_source",
+      difficulty: "medium",
+      hostFit: "macbook-host",
+      privacyPosture:
+        "Private streaming over LAN/Tailscale; no public media endpoint.",
+      bestFor:
+        "Owned video/music library playback across desktop, iPad, and TV clients.",
+      setupSteps: [
+        "Place legally owned media on the MacBook host or attached storage.",
+        "Run Jellyfin on LAN/Tailscale only.",
+        "Test playback and remote bandwidth before canceling overlapping services.",
+      ],
+      safetyNotes: [
+        "No piracy, DRM bypass, or scraping paid libraries.",
+        "Keep media rights and storage provenance clean.",
+      ],
+    },
+    {
+      id: "obsidian-syncthing",
+      category: "notes-docs",
+      title: "Obsidian plus Syncthing",
+      replaces: "Notes, lightweight docs, and personal knowledge subscriptions",
+      costPosture: "free_local",
+      difficulty: "easy",
+      hostFit: "either",
+      privacyPosture: "Local files with optional private-device sync.",
+      bestFor:
+        "Markdown notes, checklists, migration logs, and personal knowledge base.",
+      setupSteps: [
+        "Create a local vault folder.",
+        "Sync only trusted devices.",
+        "Export old notes and verify search/history before canceling.",
+      ],
+      safetyNotes: [
+        "Avoid syncing secrets into plain-text notes.",
+        "Keep device-level backups enabled.",
+      ],
+    },
+    {
+      id: "adguard-home-tailnet",
+      category: "dns-privacy",
+      title: "AdGuard Home or Pi-hole",
+      replaces: "Paid DNS filtering or family-safe resolver subscriptions",
+      costPosture: "open_source",
+      difficulty: "medium",
+      hostFit: "macbook-host",
+      privacyPosture:
+        "Private DNS filtering for your devices; not an anonymity service.",
+      bestFor:
+        "Reducing noisy trackers and blocking known bad domains on trusted devices.",
+      setupSteps: [
+        "Run DNS filtering on the MacBook host or later dedicated device.",
+        "Point only your devices to it.",
+        "Keep bypass and emergency fallback DNS documented.",
+      ],
+      safetyNotes: [
+        "This does not hide identity from websites by itself.",
+        "Do not break banking, school, or work device policies.",
+      ],
+    },
+    {
+      id: "ollama-local-ai",
+      category: "ai-dev",
+      title: "Ollama local AI lane",
+      replaces:
+        "Some paid AI utility usage for private drafting and coding support",
+      costPosture: "free_local",
+      difficulty: "easy",
+      hostFit: "either",
+      privacyPosture:
+        "Runs on your machine; optional BYOK providers remain separate.",
+      bestFor:
+        "Private drafts, summaries, local code help, and offline-first assistant checks.",
+      setupSteps: [
+        "Keep Ollama running on the host with the chosen local model.",
+        "Use Nexus provider-health proof to confirm local/free posture.",
+        "Keep paid provider keys disabled unless you explicitly need them.",
+      ],
+      safetyNotes: [
+        "Local models are not a complete replacement for every paid model.",
+        "Review output before using it in sensitive workflows.",
+      ],
+    },
+    {
+      id: "tailscale-private-access",
+      category: "device-sync",
+      title: "Tailscale private access",
+      replaces: "Public hosting needs for personal-only Nexus access",
+      costPosture: "free_local",
+      difficulty: "easy",
+      hostFit: "either",
+      privacyPosture:
+        "Private tailnet path between MacBook, desktop, and iPad.",
+      bestFor:
+        "Opening MacBook-hosted Nexus from your own devices without port forwarding.",
+      setupSteps: [
+        "Keep Tailscale installed and signed in on MacBook, desktop, and iPad.",
+        "Run Nexus on the MacBook host.",
+        "Open the MacBook Tailscale IP or MagicDNS name from desktop/iPad.",
+      ],
+      safetyNotes: [
+        "Do not enable public Funnel for Nexus by default.",
+        "This protects access to the host; outbound website IP privacy still depends on OS-level VPN or exit-node settings.",
+      ],
+    },
+  ] as const;
 
 export function createEmptySafetyChecklist(): SubscriptionSafetyChecklist {
   return {
@@ -323,9 +375,11 @@ export function createDefaultSubscriptionEscapeState(): SubscriptionEscapeState 
       accessMode: "tailscale",
       clients: ["macbook", "desktop", "ipad"],
       publicExposure: "blocked",
-      backupReminder: "Export or back up the local state file before canceling a provider.",
+      backupReminder:
+        "Export or back up the local state file before canceling a provider.",
     },
     subscriptions: [],
+    mediaLibrary: [],
   };
 }
 
@@ -365,4 +419,95 @@ export function calculateSubscriptionEscapeTotals(
     cancelledMonthly: Math.round(cancelledMonthly * 100) / 100,
     yearlyActive: Math.round(activeMonthly * 12 * 100) / 100,
   };
+}
+
+export function createDefaultMediaEscapeItem(
+  kind: MediaEscapeKind,
+): Omit<MediaEscapeItem, "id"> {
+  return {
+    kind,
+    title: "",
+    subtitle: "",
+    creator: "",
+    year: "",
+    genre: "",
+    duration: "",
+    rating: "",
+    summary: "",
+    coverUrl: "",
+    filePath: "",
+    status: "owned",
+    favorite: false,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function getMediaEscapeCounts(items: MediaEscapeItem[]) {
+  return items.reduce(
+    (acc, item) => {
+      acc.total += 1;
+      acc[item.kind] += 1;
+      if (item.favorite) acc.favorite += 1;
+      if (item.status === "needs_metadata") acc.needsMetadata += 1;
+      return acc;
+    },
+    {
+      total: 0,
+      movie: 0,
+      music: 0,
+      favorite: 0,
+      needsMetadata: 0,
+    },
+  );
+}
+
+export function filterMediaEscapeItems(
+  items: MediaEscapeItem[],
+  opts: {
+    query?: string;
+    kind?: MediaEscapeKind | "all";
+  },
+) {
+  const query = opts.query?.trim().toLowerCase() ?? "";
+  return items.filter((item) => {
+    if (opts.kind && opts.kind !== "all" && item.kind !== opts.kind) {
+      return false;
+    }
+    if (!query) return true;
+    return [
+      item.title,
+      item.subtitle,
+      item.creator,
+      item.year,
+      item.genre,
+      item.rating,
+      item.summary,
+      item.filePath,
+    ]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query));
+  });
+}
+
+export function sortMediaEscapeItems(
+  items: MediaEscapeItem[],
+  sort: MediaEscapeSort,
+) {
+  const sorted = [...items];
+  sorted.sort((a, b) => {
+    if (sort === "title") {
+      return a.title.localeCompare(b.title);
+    }
+    if (sort === "year") {
+      return (b.year ?? "").localeCompare(a.year ?? "");
+    }
+    if (sort === "favorite") {
+      return (
+        Number(b.favorite) - Number(a.favorite) ||
+        b.updatedAt.localeCompare(a.updatedAt)
+      );
+    }
+    return b.updatedAt.localeCompare(a.updatedAt);
+  });
+  return sorted;
 }

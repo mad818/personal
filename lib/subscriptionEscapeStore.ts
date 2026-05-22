@@ -4,6 +4,9 @@ import {
   createDefaultSubscriptionEscapeState,
   createEmptySafetyChecklist,
   normalizeMonthlyCost,
+  type MediaEscapeItem,
+  type MediaEscapeKind,
+  type MediaEscapeStatus,
   type SubscriptionEscapeCategory,
   type SubscriptionEscapeHostPosture,
   type SubscriptionEscapeItem,
@@ -33,20 +36,47 @@ const STATUSES = new Set<SubscriptionEscapeStatus>([
   "cancelled",
 ]);
 
+const MEDIA_KINDS = new Set<MediaEscapeKind>(["movie", "music"]);
+
+const MEDIA_STATUSES = new Set<MediaEscapeStatus>([
+  "owned",
+  "needs_metadata",
+  "wishlist",
+]);
+
 function normalizeCategory(value: unknown): SubscriptionEscapeCategory {
-  return typeof value === "string" && CATEGORIES.has(value as SubscriptionEscapeCategory)
+  return typeof value === "string" &&
+    CATEGORIES.has(value as SubscriptionEscapeCategory)
     ? (value as SubscriptionEscapeCategory)
     : "other";
 }
 
 function normalizeStatus(value: unknown): SubscriptionEscapeStatus {
-  return typeof value === "string" && STATUSES.has(value as SubscriptionEscapeStatus)
+  return typeof value === "string" &&
+    STATUSES.has(value as SubscriptionEscapeStatus)
     ? (value as SubscriptionEscapeStatus)
     : "paying";
 }
 
+function normalizeMediaKind(value: unknown): MediaEscapeKind {
+  return typeof value === "string" && MEDIA_KINDS.has(value as MediaEscapeKind)
+    ? (value as MediaEscapeKind)
+    : "movie";
+}
+
+function normalizeMediaStatus(value: unknown): MediaEscapeStatus {
+  return typeof value === "string" &&
+    MEDIA_STATUSES.has(value as MediaEscapeStatus)
+    ? (value as MediaEscapeStatus)
+    : "owned";
+}
+
 function normalizeText(value: unknown, fallback = "") {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function normalizeOptionalText(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
 function normalizeHost(
@@ -84,7 +114,10 @@ function normalizeHost(
     accessMode,
     clients: clients.length ? Array.from(new Set(clients)) : fallback.clients,
     publicExposure,
-    backupReminder: normalizeText(value?.backupReminder, fallback.backupReminder),
+    backupReminder: normalizeText(
+      value?.backupReminder,
+      fallback.backupReminder,
+    ),
   };
 }
 
@@ -125,6 +158,35 @@ function normalizeSubscription(value: Partial<SubscriptionEscapeItem>) {
   } satisfies SubscriptionEscapeItem;
 }
 
+function normalizeMediaItem(value: Partial<MediaEscapeItem>, index: number) {
+  const kind = normalizeMediaKind(value.kind);
+  const updatedAt =
+    typeof value.updatedAt === "string" && value.updatedAt
+      ? value.updatedAt
+      : new Date().toISOString();
+
+  return {
+    id: normalizeText(value.id, `media-${Date.now()}-${index}`),
+    kind,
+    title: normalizeText(
+      value.title,
+      kind === "music" ? "Untitled music" : "Untitled movie",
+    ),
+    subtitle: normalizeOptionalText(value.subtitle),
+    creator: normalizeOptionalText(value.creator),
+    year: normalizeOptionalText(value.year),
+    genre: normalizeOptionalText(value.genre),
+    duration: normalizeOptionalText(value.duration),
+    rating: normalizeOptionalText(value.rating),
+    summary: normalizeOptionalText(value.summary),
+    coverUrl: normalizeOptionalText(value.coverUrl),
+    filePath: normalizeOptionalText(value.filePath),
+    status: normalizeMediaStatus(value.status),
+    favorite: Boolean(value.favorite),
+    updatedAt,
+  } satisfies MediaEscapeItem;
+}
+
 export function normalizeSubscriptionEscapeState(
   input: Partial<SubscriptionEscapeState> | null | undefined,
 ): SubscriptionEscapeState {
@@ -139,6 +201,9 @@ export function normalizeSubscriptionEscapeState(
     host: normalizeHost(input?.host),
     subscriptions: Array.isArray(input?.subscriptions)
       ? input.subscriptions.map((item) => normalizeSubscription(item))
+      : [],
+    mediaLibrary: Array.isArray(input?.mediaLibrary)
+      ? input.mediaLibrary.map((item, index) => normalizeMediaItem(item, index))
       : [],
   };
 }

@@ -47,6 +47,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] MEDIA-ESCAPE-VISUAL-LIBRARY — Add a Netflix-style local media catalog inside `/resources?view=escape` for movies and music together, with cover/poster cards, simple search/sort/filter, one obvious add/edit form, favorites, and protected MacBook-hosted state.
+  - Current pass: extend the existing Subscription Escape local state with media records, add a visual media library component, and keep all data in the same protected server-side state file.
+  - Guardrail: no piracy, DRM bypass, paywall bypass, ad-circumvention, paid-library scraping, public media endpoint, or streaming/playback server in this pass; local file paths are catalog metadata only.
+  - Progress: added `specs/features/media-escape-visual-library.md`, media record types/helpers in `lib/subscriptionEscape.ts`, local-state normalization in `lib/subscriptionEscapeStore.ts`, and `components/resources/MediaEscapeLibrary.tsx`; mounted it inside the Escape console with shared persistence through `/api/subscription-escape`. `npx tsc --noEmit`, `npm run lint`, `npm run verify`, `git diff --check`, and live dev-route proof passed: `/api/health` returned 200, `/resources?view=escape` returned 200, and unauthenticated `/api/subscription-escape` returned 401 as expected.
+
 - [x] SUBSCRIPTION-ESCAPE-LOCAL-HUB — Add a private Resources lane for replacing monthly subscriptions with safe local/free/open alternatives, using the always-on MacBook as the Nexus host and desktop/iPad as Tailscale clients.
   - Current pass: add a scoped feature spec, protected server-side local storage, a Resources Escape console, Tailscale/private-access posture, cancellation safety checks, and source-backed replacement catalog without building a VPN/proxy or adding public exposure.
   - Guardrail: no piracy, DRM bypass, paywall bypass, ad-circumvention claims, account-ban evasion, auto-canceling accounts, Nexus-side billing, cloud sync database, new top-level tab, or public unauthenticated route.

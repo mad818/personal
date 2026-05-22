@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import MediaEscapeLibrary from "@/components/resources/MediaEscapeLibrary";
 import {
   calculateSubscriptionEscapeTotals,
   countCompletedSafetySteps,
@@ -10,6 +11,7 @@ import {
   isSafeToCancel,
   normalizeMonthlyCost,
   SUBSCRIPTION_ESCAPE_SAFETY_LABELS,
+  type MediaEscapeItem,
   type SubscriptionEscapeCategory,
   type SubscriptionEscapeItem,
   type SubscriptionEscapeSource,
@@ -207,7 +209,9 @@ export default function SubscriptionEscapeConsole() {
         body: JSON.stringify({ state: nextState }),
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const nextPayload = (await response.json()) as { state: SubscriptionEscapeState };
+      const nextPayload = (await response.json()) as {
+        state: SubscriptionEscapeState;
+      };
       setPayload((current) =>
         current
           ? { ...current, state: nextPayload.state }
@@ -236,11 +240,23 @@ export default function SubscriptionEscapeConsole() {
     void persist(nextState);
   }
 
+  function updateMediaLibrary(
+    updater: (items: MediaEscapeItem[]) => MediaEscapeItem[],
+  ) {
+    const nextState: SubscriptionEscapeState = {
+      ...state,
+      mediaLibrary: updater(state.mediaLibrary),
+      updatedAt: new Date().toISOString(),
+    };
+    void persist(nextState);
+  }
+
   function addSubscription() {
     const name = draftName.trim();
     if (!name) return;
     const replacement =
-      draftReplacementId || catalog.find((item) => item.category === draftCategory)?.id;
+      draftReplacementId ||
+      catalog.find((item) => item.category === draftCategory)?.id;
     const item: SubscriptionEscapeItem = {
       id: buildId("escape"),
       name,
@@ -270,7 +286,10 @@ export default function SubscriptionEscapeConsole() {
     );
   }
 
-  function toggleSafety(item: SubscriptionEscapeItem, key: SubscriptionSafetyKey) {
+  function toggleSafety(
+    item: SubscriptionEscapeItem,
+    key: SubscriptionSafetyKey,
+  ) {
     patchSubscription(item, {
       safety: {
         ...item.safety,
@@ -280,7 +299,9 @@ export default function SubscriptionEscapeConsole() {
   }
 
   function removeSubscription(item: SubscriptionEscapeItem) {
-    updateSubscriptions((items) => items.filter((entry) => entry.id !== item.id));
+    updateSubscriptions((items) =>
+      items.filter((entry) => entry.id !== item.id),
+    );
   }
 
   const publicExposureTone =
@@ -305,46 +326,90 @@ export default function SubscriptionEscapeConsole() {
       >
         <div style={cardStyle("accent")}>
           <SectionLabel detail="Still active">Monthly burn</SectionLabel>
-          <strong style={{ fontSize: "24px" }}>{money(totals.activeMonthly)}</strong>
-          <p style={{ margin: "6px 0 0", color: "var(--text2)", fontSize: "11px" }}>
+          <strong style={{ fontSize: "24px" }}>
+            {money(totals.activeMonthly)}
+          </strong>
+          <p
+            style={{
+              margin: "6px 0 0",
+              color: "var(--text2)",
+              fontSize: "11px",
+            }}
+          >
             {money(totals.yearlyActive)} per year if nothing changes.
           </p>
         </div>
         <div style={cardStyle()}>
           <SectionLabel detail="Checklist complete">Ready savings</SectionLabel>
-          <strong style={{ fontSize: "24px" }}>{money(totals.readyMonthly)}</strong>
-          <p style={{ margin: "6px 0 0", color: "var(--text2)", fontSize: "11px" }}>
+          <strong style={{ fontSize: "24px" }}>
+            {money(totals.readyMonthly)}
+          </strong>
+          <p
+            style={{
+              margin: "6px 0 0",
+              color: "var(--text2)",
+              fontSize: "11px",
+            }}
+          >
             Manual cancellation only after proof is complete.
           </p>
         </div>
         <div style={cardStyle()}>
           <SectionLabel detail="Already removed">Cancelled</SectionLabel>
-          <strong style={{ fontSize: "24px" }}>{money(totals.cancelledMonthly)}</strong>
-          <p style={{ margin: "6px 0 0", color: "var(--text2)", fontSize: "11px" }}>
+          <strong style={{ fontSize: "24px" }}>
+            {money(totals.cancelledMonthly)}
+          </strong>
+          <p
+            style={{
+              margin: "6px 0 0",
+              color: "var(--text2)",
+              fontSize: "11px",
+            }}
+          >
             Keep receipts and exports until the next billing cycle clears.
           </p>
         </div>
         <div style={cardStyle(publicExposureTone)}>
-          <SectionLabel detail={state.host.accessMode}>Access privacy</SectionLabel>
+          <SectionLabel detail={state.host.accessMode}>
+            Access privacy
+          </SectionLabel>
           <strong style={{ fontSize: "16px" }}>{state.host.hostLabel}</strong>
-          <p style={{ margin: "6px 0 0", color: "var(--text2)", fontSize: "11px" }}>
-            Tailscale hides the Nexus host from public internet exposure. Outbound IP
-            privacy still belongs to OS VPN or exit-node settings.
+          <p
+            style={{
+              margin: "6px 0 0",
+              color: "var(--text2)",
+              fontSize: "11px",
+            }}
+          >
+            Tailscale hides the Nexus host from public internet exposure.
+            Outbound IP privacy still belongs to OS VPN or exit-node settings.
           </p>
         </div>
       </div>
+
+      <MediaEscapeLibrary
+        items={state.mediaLibrary}
+        onChangeItems={updateMediaLibrary}
+        saveStatus={saveStatus}
+      />
 
       <div style={cardStyle()}>
         <div
           style={{
             display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
             gap: "10px",
             alignItems: "end",
           }}
         >
           <label style={{ display: "grid", gap: "6px" }}>
-            <span style={{ color: "var(--text3)", fontSize: "10px", textTransform: "uppercase" }}>
+            <span
+              style={{
+                color: "var(--text3)",
+                fontSize: "10px",
+                textTransform: "uppercase",
+              }}
+            >
               Subscription
             </span>
             <input
@@ -355,7 +420,13 @@ export default function SubscriptionEscapeConsole() {
             />
           </label>
           <label style={{ display: "grid", gap: "6px" }}>
-            <span style={{ color: "var(--text3)", fontSize: "10px", textTransform: "uppercase" }}>
+            <span
+              style={{
+                color: "var(--text3)",
+                fontSize: "10px",
+                textTransform: "uppercase",
+              }}
+            >
               Monthly
             </span>
             <input
@@ -367,13 +438,21 @@ export default function SubscriptionEscapeConsole() {
             />
           </label>
           <label style={{ display: "grid", gap: "6px" }}>
-            <span style={{ color: "var(--text3)", fontSize: "10px", textTransform: "uppercase" }}>
+            <span
+              style={{
+                color: "var(--text3)",
+                fontSize: "10px",
+                textTransform: "uppercase",
+              }}
+            >
               Category
             </span>
             <select
               value={draftCategory}
               onChange={(event) =>
-                setDraftCategory(event.target.value as SubscriptionEscapeCategory)
+                setDraftCategory(
+                  event.target.value as SubscriptionEscapeCategory,
+                )
               }
               style={controlStyle()}
             >
@@ -385,7 +464,13 @@ export default function SubscriptionEscapeConsole() {
             </select>
           </label>
           <label style={{ display: "grid", gap: "6px" }}>
-            <span style={{ color: "var(--text3)", fontSize: "10px", textTransform: "uppercase" }}>
+            <span
+              style={{
+                color: "var(--text3)",
+                fontSize: "10px",
+                textTransform: "uppercase",
+              }}
+            >
               Replacement
             </span>
             <select
@@ -401,15 +486,36 @@ export default function SubscriptionEscapeConsole() {
               ))}
             </select>
           </label>
-          <button type="button" onClick={addSubscription} style={buttonStyle(true)}>
+          <button
+            type="button"
+            onClick={addSubscription}
+            style={buttonStyle(true)}
+          >
             Add
           </button>
         </div>
-        <div style={{ marginTop: "10px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+        <div
+          style={{
+            marginTop: "10px",
+            display: "flex",
+            gap: "8px",
+            flexWrap: "wrap",
+          }}
+        >
           <ShellBadge tone={loadStatus === "error" ? "default" : "muted"}>
-            {loadStatus === "error" ? "Local API unavailable" : "Protected local API"}
+            {loadStatus === "error"
+              ? "Local API unavailable"
+              : "Protected local API"}
           </ShellBadge>
-          <ShellBadge tone={saveStatus === "error" ? "default" : saveStatus === "saved" ? "success" : "muted"}>
+          <ShellBadge
+            tone={
+              saveStatus === "error"
+                ? "default"
+                : saveStatus === "saved"
+                  ? "success"
+                  : "muted"
+            }
+          >
             {saveStatus === "saving"
               ? "Saving"
               : saveStatus === "saved"
@@ -418,7 +524,9 @@ export default function SubscriptionEscapeConsole() {
                   ? "Save failed"
                   : "Server-side file"}
           </ShellBadge>
-          <ShellBadge tone="muted">{payload?.storage?.pathHint ?? "data/subscription-escape.json"}</ShellBadge>
+          <ShellBadge tone="muted">
+            {payload?.storage?.pathHint ?? "data/subscription-escape.json"}
+          </ShellBadge>
         </div>
       </div>
 
@@ -429,9 +537,15 @@ export default function SubscriptionEscapeConsole() {
         {state.subscriptions.length === 0 ? (
           <div style={cardStyle()}>
             <strong>Start with the highest bill.</strong>
-            <p style={{ margin: "8px 0 0", color: "var(--text2)", fontSize: "12px" }}>
-              Add one subscription above, choose a replacement, then work the safety
-              checklist before canceling anything.
+            <p
+              style={{
+                margin: "8px 0 0",
+                color: "var(--text2)",
+                fontSize: "12px",
+              }}
+            >
+              Add one subscription above, choose a replacement, then work the
+              safety checklist before canceling anything.
             </p>
           </div>
         ) : (
@@ -440,7 +554,10 @@ export default function SubscriptionEscapeConsole() {
             const completeCount = countCompletedSafetySteps(item);
             const safe = isSafeToCancel(item);
             return (
-              <article key={item.id} style={cardStyle(safe ? "accent" : "normal")}>
+              <article
+                key={item.id}
+                style={cardStyle(safe ? "accent" : "normal")}
+              >
                 <div
                   style={{
                     display: "flex",
@@ -452,16 +569,27 @@ export default function SubscriptionEscapeConsole() {
                 >
                   <div>
                     <strong>{item.name}</strong>
-                    <p style={{ margin: "6px 0 0", color: "var(--text2)", fontSize: "12px" }}>
-                      {CATEGORY_LABELS[item.category]} | {money(item.monthlyCost)}/mo
+                    <p
+                      style={{
+                        margin: "6px 0 0",
+                        color: "var(--text2)",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {CATEGORY_LABELS[item.category]} |{" "}
+                      {money(item.monthlyCost)}/mo
                       {replacement ? ` -> ${replacement.title}` : ""}
                     </p>
                   </div>
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <div
+                    style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}
+                  >
                     <ShellBadge tone={safe ? "success" : "accent"}>
                       {completeCount}/5 safe
                     </ShellBadge>
-                    <ShellBadge tone={item.status === "cancelled" ? "success" : "muted"}>
+                    <ShellBadge
+                      tone={item.status === "cancelled" ? "success" : "muted"}
+                    >
                       {STATUS_LABELS[item.status]}
                     </ShellBadge>
                   </div>
@@ -476,14 +604,21 @@ export default function SubscriptionEscapeConsole() {
                   }}
                 >
                   <label style={{ display: "grid", gap: "6px" }}>
-                    <span style={{ color: "var(--text3)", fontSize: "10px", textTransform: "uppercase" }}>
+                    <span
+                      style={{
+                        color: "var(--text3)",
+                        fontSize: "10px",
+                        textTransform: "uppercase",
+                      }}
+                    >
                       Status
                     </span>
                     <select
                       value={item.status}
                       onChange={(event) =>
                         patchSubscription(item, {
-                          status: event.target.value as SubscriptionEscapeStatus,
+                          status: event.target
+                            .value as SubscriptionEscapeStatus,
                         })
                       }
                       style={controlStyle()}
@@ -496,7 +631,13 @@ export default function SubscriptionEscapeConsole() {
                     </select>
                   </label>
                   <label style={{ display: "grid", gap: "6px" }}>
-                    <span style={{ color: "var(--text3)", fontSize: "10px", textTransform: "uppercase" }}>
+                    <span
+                      style={{
+                        color: "var(--text3)",
+                        fontSize: "10px",
+                        textTransform: "uppercase",
+                      }}
+                    >
                       Replacement
                     </span>
                     <select
@@ -517,7 +658,13 @@ export default function SubscriptionEscapeConsole() {
                     </select>
                   </label>
                   <label style={{ display: "grid", gap: "6px" }}>
-                    <span style={{ color: "var(--text3)", fontSize: "10px", textTransform: "uppercase" }}>
+                    <span
+                      style={{
+                        color: "var(--text3)",
+                        fontSize: "10px",
+                        textTransform: "uppercase",
+                      }}
+                    >
                       Renewal
                     </span>
                     <input
@@ -539,14 +686,29 @@ export default function SubscriptionEscapeConsole() {
 
                 {replacement ? (
                   <div style={{ ...cardStyle("accent"), marginTop: "12px" }}>
-                    <strong style={{ fontSize: "12px" }}>{replacement.bestFor}</strong>
-                    <p style={{ margin: "6px 0 0", color: "var(--text2)", fontSize: "11px" }}>
+                    <strong style={{ fontSize: "12px" }}>
+                      {replacement.bestFor}
+                    </strong>
+                    <p
+                      style={{
+                        margin: "6px 0 0",
+                        color: "var(--text2)",
+                        fontSize: "11px",
+                      }}
+                    >
                       {replacement.privacyPosture}
                     </p>
                   </div>
                 ) : null}
 
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "12px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                    marginTop: "12px",
+                  }}
+                >
                   {SAFETY_KEYS.map((key) => (
                     <button
                       key={key}
@@ -559,13 +721,30 @@ export default function SubscriptionEscapeConsole() {
                   ))}
                 </div>
 
-                <div style={{ display: "flex", gap: "8px", justifyContent: "space-between", flexWrap: "wrap", marginTop: "12px" }}>
-                  <span style={{ color: safe ? "var(--good)" : "var(--text3)", fontSize: "11px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    marginTop: "12px",
+                  }}
+                >
+                  <span
+                    style={{
+                      color: safe ? "var(--good)" : "var(--text3)",
+                      fontSize: "11px",
+                    }}
+                  >
                     {safe
                       ? "All safety checks complete. You can review cancellation manually."
                       : "Do not cancel yet. Finish the checklist and verify backup/recovery first."}
                   </span>
-                  <button type="button" onClick={() => removeSubscription(item)} style={buttonStyle()}>
+                  <button
+                    type="button"
+                    onClick={() => removeSubscription(item)}
+                    style={buttonStyle()}
+                  >
                     Remove
                   </button>
                 </div>
@@ -583,13 +762,25 @@ export default function SubscriptionEscapeConsole() {
         }}
       >
         <div style={cardStyle()}>
-          <SectionLabel detail={`${catalog.length} options`}>Replacement map</SectionLabel>
+          <SectionLabel detail={`${catalog.length} options`}>
+            Replacement map
+          </SectionLabel>
           <div style={{ display: "grid", gap: "10px", marginTop: "10px" }}>
             {Object.entries(CATEGORY_LABELS).map(([category, label]) => (
-              <div key={category} style={{ display: "flex", justifyContent: "space-between", gap: "10px", fontSize: "12px" }}>
+              <div
+                key={category}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                  fontSize: "12px",
+                }}
+              >
                 <span>{label}</span>
                 <ShellBadge tone="muted">
-                  {replacementByCategory[category as SubscriptionEscapeCategory] ?? 0}
+                  {replacementByCategory[
+                    category as SubscriptionEscapeCategory
+                  ] ?? 0}
                 </ShellBadge>
               </div>
             ))}
@@ -597,10 +788,20 @@ export default function SubscriptionEscapeConsole() {
         </div>
 
         <div style={cardStyle()}>
-          <SectionLabel detail="No public exposure">Safety guardrails</SectionLabel>
+          <SectionLabel detail="No public exposure">
+            Safety guardrails
+          </SectionLabel>
           <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
             {guardrails.map((entry) => (
-              <p key={entry} style={{ margin: 0, color: "var(--text2)", fontSize: "11px", lineHeight: 1.5 }}>
+              <p
+                key={entry}
+                style={{
+                  margin: 0,
+                  color: "var(--text2)",
+                  fontSize: "11px",
+                  lineHeight: 1.5,
+                }}
+              >
                 {entry}
               </p>
             ))}
@@ -608,7 +809,9 @@ export default function SubscriptionEscapeConsole() {
         </div>
 
         <div style={cardStyle()}>
-          <SectionLabel detail={`${sources.length} links`}>Source shelf</SectionLabel>
+          <SectionLabel detail={`${sources.length} links`}>
+            Source shelf
+          </SectionLabel>
           <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
             {sources.map((source) => (
               <a
@@ -616,7 +819,11 @@ export default function SubscriptionEscapeConsole() {
                 href={source.url}
                 target="_blank"
                 rel="noreferrer"
-                style={{ color: "var(--accent)", fontSize: "11px", lineHeight: 1.4 }}
+                style={{
+                  color: "var(--accent)",
+                  fontSize: "11px",
+                  lineHeight: 1.4,
+                }}
               >
                 {source.id.replace("yt-", "")} Open
               </a>

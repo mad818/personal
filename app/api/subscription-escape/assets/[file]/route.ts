@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { applyProtectedApiHeaders, protectedJson } from "@/lib/protectedApi";
 import { readSubscriptionEscapeAsset } from "@/lib/subscriptionEscapeAssets";
 
@@ -6,11 +6,12 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(
-  _req: Request,
-  { params }: { params: { file: string } },
+  _req: NextRequest,
+  { params }: { params: Promise<{ file: string }> },
 ) {
   try {
-    const asset = await readSubscriptionEscapeAsset(params.file);
+    const { file } = await params;
+    const asset = await readSubscriptionEscapeAsset(file);
     const response = new NextResponse(asset.buffer, {
       headers: {
         "Content-Type": asset.contentType,

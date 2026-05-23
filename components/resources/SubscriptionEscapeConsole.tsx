@@ -13,6 +13,7 @@ import {
   normalizeMonthlyCost,
   SUBSCRIPTION_ESCAPE_SAFETY_LABELS,
   type MediaEscapeItem,
+  type MediaEscapeIntakeItem,
   type SubscriptionEscapeAccessPosture,
   type SubscriptionEscapeCategory,
   type SubscriptionEscapeItem,
@@ -257,6 +258,39 @@ export default function SubscriptionEscapeConsole() {
     void persist(nextState);
   }
 
+  function updateMediaIntake(
+    updater: (items: MediaEscapeIntakeItem[]) => MediaEscapeIntakeItem[],
+  ) {
+    const nextState: SubscriptionEscapeState = {
+      ...state,
+      mediaIntake: updater(state.mediaIntake),
+      updatedAt: new Date().toISOString(),
+    };
+    void persist(nextState);
+  }
+
+  function updateMediaState(
+    updater: (state: {
+      mediaLibrary: MediaEscapeItem[];
+      mediaIntake: MediaEscapeIntakeItem[];
+    }) => {
+      mediaLibrary: MediaEscapeItem[];
+      mediaIntake: MediaEscapeIntakeItem[];
+    },
+  ) {
+    const nextMedia = updater({
+      mediaLibrary: state.mediaLibrary,
+      mediaIntake: state.mediaIntake,
+    });
+    const nextState: SubscriptionEscapeState = {
+      ...state,
+      mediaLibrary: nextMedia.mediaLibrary,
+      mediaIntake: nextMedia.mediaIntake,
+      updatedAt: new Date().toISOString(),
+    };
+    void persist(nextState);
+  }
+
   function updateAccess(
     updater: (
       access: SubscriptionEscapeAccessPosture,
@@ -418,7 +452,10 @@ export default function SubscriptionEscapeConsole() {
 
       <MediaEscapeLibrary
         items={state.mediaLibrary}
+        intakeItems={state.mediaIntake}
         onChangeItems={updateMediaLibrary}
+        onChangeIntake={updateMediaIntake}
+        onChangeMediaState={updateMediaState}
         saveStatus={saveStatus}
       />
 

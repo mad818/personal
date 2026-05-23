@@ -57,6 +57,12 @@ export type MediaEscapeStatus = "owned" | "needs_metadata" | "wishlist";
 
 export type MediaEscapeSort = "recent" | "title" | "year" | "favorite";
 
+export type MediaEscapeIntakeStatus =
+  | "needs_review"
+  | "ready"
+  | "imported"
+  | "ignored";
+
 export interface MediaEscapeItem {
   id: string;
   kind: MediaEscapeKind;
@@ -72,6 +78,21 @@ export interface MediaEscapeItem {
   filePath?: string;
   status: MediaEscapeStatus;
   favorite: boolean;
+  updatedAt: string;
+}
+
+export interface MediaEscapeIntakeItem {
+  id: string;
+  rawName: string;
+  kind: MediaEscapeKind;
+  suggestedTitle: string;
+  suggestedYear?: string;
+  suggestedCreator?: string;
+  suggestedGenre?: string;
+  suggestedPath?: string;
+  status: MediaEscapeIntakeStatus;
+  duplicateOfId?: string;
+  notes?: string;
   updatedAt: string;
 }
 
@@ -141,6 +162,7 @@ export interface SubscriptionEscapeState {
   access: SubscriptionEscapeAccessPosture;
   subscriptions: SubscriptionEscapeItem[];
   mediaLibrary: MediaEscapeItem[];
+  mediaIntake: MediaEscapeIntakeItem[];
 }
 
 export const SUBSCRIPTION_ESCAPE_SAFETY_LABELS: Record<
@@ -190,6 +212,16 @@ export const MEDIA_ESCAPE_STATUS_LABELS: Record<MediaEscapeStatus, string> = {
   owned: "Owned",
   needs_metadata: "Needs info",
   wishlist: "Wishlist",
+};
+
+export const MEDIA_ESCAPE_INTAKE_STATUS_LABELS: Record<
+  MediaEscapeIntakeStatus,
+  string
+> = {
+  needs_review: "Needs review",
+  ready: "Ready",
+  imported: "Imported",
+  ignored: "Ignored",
 };
 
 export const SUBSCRIPTION_ESCAPE_SOURCES: SubscriptionEscapeSource[] = [
@@ -446,6 +478,7 @@ export function createDefaultSubscriptionEscapeState(): SubscriptionEscapeState 
     access: createDefaultAccessPosture(),
     subscriptions: [],
     mediaLibrary: [],
+    mediaIntake: [],
   };
 }
 
@@ -506,6 +539,129 @@ export function createDefaultMediaEscapeItem(
     favorite: false,
     updatedAt: new Date().toISOString(),
   };
+}
+
+const MEDIA_ESCAPE_AUDIO_EXTENSIONS = new Set([
+  "aac",
+  "aiff",
+  "alac",
+  "flac",
+  "m4a",
+  "mp3",
+  "ogg",
+  "opus",
+  "wav",
+  "wma",
+]);
+
+const MEDIA_ESCAPE_VIDEO_EXTENSIONS = new Set([
+  "avi",
+  "m4v",
+  "mkv",
+  "mov",
+  "mp4",
+  "mpeg",
+  "mpg",
+  "webm",
+  "wmv",
+]);
+
+const MEDIA_ESCAPE_RELEASE_TAGS =
+  /\b(480p|720p|1080p|1440p|2160p|4k|8k|aac|atmos|av1|bluray|brrip|dvdrip|dts|extended|h264|h265|hdr|hdr10|hdrip|hevc|internal|limited|proper|repack|remaster(?:ed)?|remux|uhd|unrated|web[ .-]?dl|webrip|x264|x265|yify|yts)\b/gi;
+
+export function normalizeMediaEscapeTitle(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function getMediaEscapeExtension(rawName: string) {
+  const basename = rawName.trim().split(/[\\/]/).pop() ?? rawName.trim();
+  const match = basename.match(/\.([a-z0-9]{2,5})$/i);
+  return match?.[1]?.toLowerCase() ?? "";
+}
+
+function titleCaseMediaEscapeName(value: string) {
+  const clean = value.replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  if (!/[a-z]/.test(clean)) return clean;
+  return clean.replace(/\b([a-z])/g, (letter) => letter.toUpperCase());
+}
+
+export function parseMediaEscapeFileName(
+  input: string,
+  fallbackKind: MediaEscapeKind = "movie",
+) {
+  const rawName = input.trim();
+  const extension = getMediaEscapeExtension(rawName);
+  const kind = MEDIA_ESCAPE_AUDIO_EXTENSIONS.has(extension)
+    ? "music"
+    : MEDIA_ESCAPE_VIDEO_EXTENSIONS.has(extension)
+      ? "movie"
+      : fallbackKind;
+  const basename = rawName.split(/[\\/]/).pop() ?? rawName;
+  const withoutExtension = extension
+    ? basename.replace(new RegExp(`\\.${extension}$`, "i"), "")
+    : basename;
+  const suggestedPath =
+    /[\\/]/.test(rawName) || /^[a-zA-Z]:/.test(rawName)
+      ? rawName
+      : undefined;
+  const yearMatch = withoutExtension.match(/\b(19\d{2}|20\d{2})\b/);
+  const suggestedYear = yearMatch?.[1];
+  const cleaned = withoutExtension
+    .replace(/[._]+/g, " ")
+    .replace(/[()[\]{}]/g, " ")
+    .replace(MEDIA_ESCAPE_RELEASE_TAGS, " ")
+    .replace(/\b(19\d{2}|20\d{2})\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const parts = cleaned
+    .split(/\s+-\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const suggestedCreator =
+    kind === "music" && parts.length > 1
+      ? titleCaseMediaEscapeName(parts[0])
+      : undefined;
+  const titleSource =
+    kind === "music" && parts.length > 1 ? parts.slice(1).join(" ") : cleaned;
+  const suggestedTitle =
+    titleCaseMediaEscapeName(titleSource) ||
+    (kind === "music" ? "Untitled music" : "Untitled movie");
+
+  return {
+    rawName,
+    kind,
+    suggestedTitle,
+    suggestedYear,
+    suggestedCreator,
+    suggestedPath,
+  } satisfies Omit<
+    MediaEscapeIntakeItem,
+    "id" | "status" | "duplicateOfId" | "suggestedGenre" | "notes" | "updatedAt"
+  >;
+}
+
+export function findMediaEscapeDuplicate(
+  items: MediaEscapeItem[],
+  candidate: Pick<MediaEscapeItem, "kind" | "title"> &
+    Partial<Pick<MediaEscapeItem, "creator" | "year">>,
+) {
+  const title = normalizeMediaEscapeTitle(candidate.title);
+  if (!title) return null;
+  const year = candidate.year?.trim().toLowerCase();
+  const creator = candidate.creator?.trim().toLowerCase();
+
+  return (
+    items.find((item) => {
+      if (item.kind !== candidate.kind) return false;
+      if (normalizeMediaEscapeTitle(item.title) !== title) return false;
+      const itemYear = item.year?.trim().toLowerCase();
+      const itemCreator = item.creator?.trim().toLowerCase();
+      if (year && itemYear) return year === itemYear;
+      if (creator && itemCreator) return creator === itemCreator;
+      return true;
+    }) ?? null
+  );
 }
 
 export function getMediaEscapeCounts(items: MediaEscapeItem[]) {

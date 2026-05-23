@@ -47,6 +47,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] MEDIA-ESCAPE-INTAKE-QUEUE — Add a local review queue so movies and music can be pasted in from filenames/paths, checked for likely duplicates, cleaned up, and imported into the library only after review.
+  - Current pass: add a scoped feature spec, intake-state normalization, filename parsing helpers, duplicate detection, a review queue UI, import/ignore actions, and a missing-info board without scanning arbitrary host folders or exposing media publicly.
+  - Guardrail: pasted paths are catalog metadata only; no automatic filesystem crawling, piracy, DRM bypass, paid metadata lookup, public media endpoint, or cloud source of truth.
+  - Progress: added `specs/features/media-escape-intake-queue.md`, `docs/superpowers/plans/2026-05-23-media-escape-intake-queue.md`, media intake types/helpers in `lib/subscriptionEscape.ts`, `mediaIntake` normalization in `lib/subscriptionEscapeStore.ts`, `components/resources/MediaIntakeReviewPanel.tsx`, duplicate confirmation in `components/resources/MediaEscapeLibrary.tsx`, and combined media/intake persistence in `components/resources/SubscriptionEscapeConsole.tsx`. Also updated the private asset dynamic route to the current Next route-handler params signature required by `tsc`. `npx tsc --noEmit`, `npm run lint`, `npm run verify`, `git diff --check`, and live dev-route proof passed: `/api/health` returned 200, `/resources?view=escape` returned 200, unauthenticated `/api/subscription-escape` returned 401, and unauthenticated `/api/subscription-escape/assets/not-real.png` returned 401.
+
 - [x] ESCAPE-PRIVATE-FOUNDATION — Solidify the Escape media/subscription base with Tailscale-first access posture, revocable access tracking, backup export/import, and protected local cover/poster storage.
   - Current pass: add a scoped feature spec, access-state normalization, a private asset store under ignored local data, protected asset upload/read routes, backup/restore controls, authorized person/device tracking, and media cover upload without adding paid APIs or public media exposure.
   - Guardrail: cloud is optional backup only; no paid metadata services, cloud source-of-truth database, public unauthenticated media endpoint, Tailscale Funnel default, piracy, DRM bypass, paywall bypass, or ad-circumvention scope.

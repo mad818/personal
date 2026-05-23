@@ -2,14 +2,17 @@
 
 import { useMemo, useState, type CSSProperties } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import MediaIntakeReviewPanel from "@/components/resources/MediaIntakeReviewPanel";
 import {
   createDefaultMediaEscapeItem,
+  findMediaEscapeDuplicate,
   filterMediaEscapeItems,
   getMediaEscapeCounts,
   MEDIA_ESCAPE_KIND_LABELS,
   MEDIA_ESCAPE_STATUS_LABELS,
   sortMediaEscapeItems,
   type MediaEscapeItem,
+  type MediaEscapeIntakeItem,
   type MediaEscapeKind,
   type MediaEscapeSort,
   type MediaEscapeStatus,
@@ -19,8 +22,21 @@ import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 
 interface MediaEscapeLibraryProps {
   items: MediaEscapeItem[];
+  intakeItems: MediaEscapeIntakeItem[];
   onChangeItems: (
     updater: (items: MediaEscapeItem[]) => MediaEscapeItem[],
+  ) => void;
+  onChangeIntake: (
+    updater: (items: MediaEscapeIntakeItem[]) => MediaEscapeIntakeItem[],
+  ) => void;
+  onChangeMediaState: (
+    updater: (state: {
+      mediaLibrary: MediaEscapeItem[];
+      mediaIntake: MediaEscapeIntakeItem[];
+    }) => {
+      mediaLibrary: MediaEscapeItem[];
+      mediaIntake: MediaEscapeIntakeItem[];
+    },
   ) => void;
   saveStatus: "idle" | "saving" | "saved" | "error";
 }
@@ -241,7 +257,10 @@ function renderCover(item: MediaEscapeItem, compact = false) {
 
 export default function MediaEscapeLibrary({
   items,
+  intakeItems,
   onChangeItems,
+  onChangeIntake,
+  onChangeMediaState,
   saveStatus,
 }: MediaEscapeLibraryProps) {
   const [draft, setDraft] = useState<MediaDraft>(() => createDraft("movie"));
@@ -319,6 +338,18 @@ export default function MediaEscapeLibrary({
 
     const id = editingId ?? buildId("media");
     const nextItem = itemFromDraft(draft, id);
+    const duplicate = editingId
+      ? null
+      : findMediaEscapeDuplicate(items, nextItem);
+    if (
+      duplicate &&
+      typeof window !== "undefined" &&
+      !window.confirm(
+        `"${duplicate.title}" looks like the same ${MEDIA_ESCAPE_KIND_LABELS[nextItem.kind].toLowerCase()}. Add it anyway?`,
+      )
+    ) {
+      return;
+    }
     onChangeItems((currentItems) => {
       if (editingId) {
         return currentItems.map((item) =>
@@ -489,6 +520,14 @@ export default function MediaEscapeLibrary({
           <strong style={{ fontSize: "24px" }}>{counts.favorite}</strong>
         </div>
       </div>
+
+      <MediaIntakeReviewPanel
+        items={items}
+        intakeItems={intakeItems}
+        onChangeIntake={onChangeIntake}
+        onChangeMediaState={onChangeMediaState}
+        saveStatus={saveStatus}
+      />
 
       <div
         style={{

@@ -5,7 +5,10 @@ import {
   createDefaultSubscriptionEscapeState,
   createEmptySafetyChecklist,
   normalizeMonthlyCost,
+  parseMediaEscapeFileName,
   type MediaEscapeItem,
+  type MediaEscapeIntakeItem,
+  type MediaEscapeIntakeStatus,
   type MediaEscapeKind,
   type MediaEscapeStatus,
   type SubscriptionEscapeAccessEntry,
@@ -49,6 +52,13 @@ const MEDIA_STATUSES = new Set<MediaEscapeStatus>([
   "wishlist",
 ]);
 
+const MEDIA_INTAKE_STATUSES = new Set<MediaEscapeIntakeStatus>([
+  "needs_review",
+  "ready",
+  "imported",
+  "ignored",
+]);
+
 const ACCESS_ROLES = new Set<SubscriptionEscapeAccessRole>([
   "owner",
   "family",
@@ -86,6 +96,13 @@ function normalizeMediaStatus(value: unknown): MediaEscapeStatus {
     MEDIA_STATUSES.has(value as MediaEscapeStatus)
     ? (value as MediaEscapeStatus)
     : "owned";
+}
+
+function normalizeMediaIntakeStatus(value: unknown): MediaEscapeIntakeStatus {
+  return typeof value === "string" &&
+    MEDIA_INTAKE_STATUSES.has(value as MediaEscapeIntakeStatus)
+    ? (value as MediaEscapeIntakeStatus)
+    : "needs_review";
 }
 
 function normalizeAccessRole(value: unknown): SubscriptionEscapeAccessRole {
@@ -218,6 +235,38 @@ function normalizeMediaItem(value: Partial<MediaEscapeItem>, index: number) {
   } satisfies MediaEscapeItem;
 }
 
+function normalizeMediaIntakeItem(
+  value: Partial<MediaEscapeIntakeItem>,
+  index: number,
+) {
+  const parsed = parseMediaEscapeFileName(
+    normalizeText(value.rawName, "Untitled media"),
+    normalizeMediaKind(value.kind),
+  );
+  const updatedAt =
+    typeof value.updatedAt === "string" && value.updatedAt
+      ? value.updatedAt
+      : new Date().toISOString();
+
+  return {
+    id: normalizeText(value.id, `intake-${Date.now()}-${index}`),
+    rawName: parsed.rawName,
+    kind: normalizeMediaKind(value.kind ?? parsed.kind),
+    suggestedTitle: normalizeText(value.suggestedTitle, parsed.suggestedTitle),
+    suggestedYear:
+      normalizeOptionalText(value.suggestedYear) ?? parsed.suggestedYear,
+    suggestedCreator:
+      normalizeOptionalText(value.suggestedCreator) ?? parsed.suggestedCreator,
+    suggestedGenre: normalizeOptionalText(value.suggestedGenre),
+    suggestedPath:
+      normalizeOptionalText(value.suggestedPath) ?? parsed.suggestedPath,
+    status: normalizeMediaIntakeStatus(value.status),
+    duplicateOfId: normalizeOptionalText(value.duplicateOfId),
+    notes: normalizeOptionalText(value.notes),
+    updatedAt,
+  } satisfies MediaEscapeIntakeItem;
+}
+
 function normalizeAccessEntry(
   value: Partial<SubscriptionEscapeAccessEntry>,
   index: number,
@@ -283,6 +332,11 @@ export function normalizeSubscriptionEscapeState(
       : [],
     mediaLibrary: Array.isArray(input?.mediaLibrary)
       ? input.mediaLibrary.map((item, index) => normalizeMediaItem(item, index))
+      : [],
+    mediaIntake: Array.isArray(input?.mediaIntake)
+      ? input.mediaIntake.map((item, index) =>
+          normalizeMediaIntakeItem(item, index),
+        )
       : [],
   };
 }

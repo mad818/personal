@@ -105,11 +105,40 @@ export interface SubscriptionEscapeHostPosture {
   backupReminder: string;
 }
 
+export type SubscriptionEscapeAccessRole = "owner" | "family" | "viewer";
+
+export type SubscriptionEscapeAccessStatus =
+  | "active"
+  | "remove_pending"
+  | "revoked";
+
+export interface SubscriptionEscapeAccessEntry {
+  id: string;
+  label: string;
+  role: SubscriptionEscapeAccessRole;
+  status: SubscriptionEscapeAccessStatus;
+  deviceHint?: string;
+  tailscaleManaged: boolean;
+  notes?: string;
+  updatedAt: string;
+}
+
+export interface SubscriptionEscapeAccessPosture {
+  policy: "tailscale_first";
+  nexusAuth: "required";
+  publicLinks: "blocked";
+  cloudBackup: "optional";
+  localSourceOfTruth: "macbook";
+  authorized: SubscriptionEscapeAccessEntry[];
+  revocationChecklist: string[];
+}
+
 export interface SubscriptionEscapeState {
   version: 1;
   updatedAt: string;
   currency: "USD";
   host: SubscriptionEscapeHostPosture;
+  access: SubscriptionEscapeAccessPosture;
   subscriptions: SubscriptionEscapeItem[];
   mediaLibrary: MediaEscapeItem[];
 }
@@ -128,10 +157,29 @@ export const SUBSCRIPTION_ESCAPE_SAFETY_LABELS: Record<
 export const SUBSCRIPTION_ESCAPE_GUARDRAILS = [
   "Use Tailscale/LAN as the private access layer; Nexus does not build a VPN or anonymizer.",
   "Keep the MacBook-hosted route token-gated and avoid public unauthenticated exposure.",
+  "Cloud is optional backup only; the local MacBook state remains the source of truth.",
   "Do not use piracy, DRM bypass, paywall bypass, ad-circumvention claims, or account-ban evasion as replacements.",
   "Do not auto-cancel accounts; the operator reviews and performs cancellation manually.",
   "Do not add Nexus-side billing, cloud sync, or a new public product surface.",
 ] as const;
+
+export const SUBSCRIPTION_ESCAPE_ACCESS_ROLE_LABELS: Record<
+  SubscriptionEscapeAccessRole,
+  string
+> = {
+  owner: "Owner",
+  family: "Family",
+  viewer: "Viewer",
+};
+
+export const SUBSCRIPTION_ESCAPE_ACCESS_STATUS_LABELS: Record<
+  SubscriptionEscapeAccessStatus,
+  string
+> = {
+  active: "Active",
+  remove_pending: "Remove pending",
+  revoked: "Revoked",
+};
 
 export const MEDIA_ESCAPE_KIND_LABELS: Record<MediaEscapeKind, string> = {
   movie: "Movie",
@@ -364,6 +412,23 @@ export function createEmptySafetyChecklist(): SubscriptionSafetyChecklist {
   };
 }
 
+export function createDefaultAccessPosture(): SubscriptionEscapeAccessPosture {
+  return {
+    policy: "tailscale_first",
+    nexusAuth: "required",
+    publicLinks: "blocked",
+    cloudBackup: "optional",
+    localSourceOfTruth: "macbook",
+    authorized: [],
+    revocationChecklist: [
+      "Remove or disable the shared Tailscale user/device.",
+      "Rotate the Nexus token if the link or password was shared.",
+      "Confirm old browser sessions no longer open protected Escape APIs.",
+      "Mark the person/device revoked in this tracker.",
+    ],
+  };
+}
+
 export function createDefaultSubscriptionEscapeState(): SubscriptionEscapeState {
   return {
     version: 1,
@@ -378,6 +443,7 @@ export function createDefaultSubscriptionEscapeState(): SubscriptionEscapeState 
       backupReminder:
         "Export or back up the local state file before canceling a provider.",
     },
+    access: createDefaultAccessPosture(),
     subscriptions: [],
     mediaLibrary: [],
   };
@@ -457,6 +523,24 @@ export function getMediaEscapeCounts(items: MediaEscapeItem[]) {
       music: 0,
       favorite: 0,
       needsMetadata: 0,
+    },
+  );
+}
+
+export function getSubscriptionEscapeAccessCounts(
+  access: SubscriptionEscapeAccessPosture,
+) {
+  return access.authorized.reduce(
+    (acc, item) => {
+      acc.total += 1;
+      acc[item.status] += 1;
+      return acc;
+    },
+    {
+      total: 0,
+      active: 0,
+      remove_pending: 0,
+      revoked: 0,
     },
   );
 }

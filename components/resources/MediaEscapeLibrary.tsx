@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type CSSProperties } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 import {
   createDefaultMediaEscapeItem,
   filterMediaEscapeItems,
@@ -250,6 +251,9 @@ export default function MediaEscapeLibrary({
   const [kindFilter, setKindFilter] = useState<MediaEscapeKind | "all">("all");
   const [sort, setSort] = useState<MediaEscapeSort>("recent");
   const [message, setMessage] = useState("");
+  const [coverUploadStatus, setCoverUploadStatus] = useState<
+    "idle" | "uploading" | "uploaded" | "error"
+  >("idle");
 
   const counts = useMemo(() => getMediaEscapeCounts(items), [items]);
   const visibleItems = useMemo(
@@ -359,6 +363,28 @@ export default function MediaEscapeLibrary({
           : entry,
       ),
     );
+  }
+
+  async function uploadCover(file: File | null) {
+    if (!file) return;
+    setCoverUploadStatus("uploading");
+    try {
+      const formData = new FormData();
+      formData.set("file", file);
+      const response = await apiFetch("/api/subscription-escape/assets", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = (await response.json()) as { url?: string };
+      if (!payload.url) throw new Error("Missing private asset URL.");
+      updateDraft({ coverUrl: payload.url });
+      setCoverUploadStatus("uploaded");
+      setMessage("Private cover uploaded.");
+    } catch {
+      setCoverUploadStatus("error");
+      setMessage("Cover upload failed.");
+    }
   }
 
   function renderMediaCard(item: MediaEscapeItem) {
@@ -771,7 +797,18 @@ export default function MediaEscapeLibrary({
                 onChange={(event) =>
                   updateDraft({ coverUrl: event.target.value })
                 }
-                placeholder="https://... or /cover.jpg"
+                placeholder="/api/subscription-escape/assets/..."
+                style={controlStyle()}
+              />
+            </label>
+            <label style={labelStyle()}>
+              <span style={labelTextStyle()}>Private image</span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/gif,image/webp"
+                onChange={(event) =>
+                  void uploadCover(event.currentTarget.files?.[0] ?? null)
+                }
                 style={controlStyle()}
               />
             </label>
@@ -873,6 +910,23 @@ export default function MediaEscapeLibrary({
                     : "Local file"}
             </ShellBadge>
             {message ? <ShellBadge tone="accent">{message}</ShellBadge> : null}
+            {coverUploadStatus !== "idle" ? (
+              <ShellBadge
+                tone={
+                  coverUploadStatus === "uploaded"
+                    ? "success"
+                    : coverUploadStatus === "error"
+                      ? "default"
+                      : "muted"
+                }
+              >
+                {coverUploadStatus === "uploading"
+                  ? "Uploading cover"
+                  : coverUploadStatus === "uploaded"
+                    ? "Private cover ready"
+                    : "Cover upload failed"}
+              </ShellBadge>
+            ) : null}
           </div>
         </section>
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import EscapeAccessBackupPanel from "@/components/resources/EscapeAccessBackupPanel";
 import MediaEscapeLibrary from "@/components/resources/MediaEscapeLibrary";
 import {
   calculateSubscriptionEscapeTotals,
@@ -12,6 +13,7 @@ import {
   normalizeMonthlyCost,
   SUBSCRIPTION_ESCAPE_SAFETY_LABELS,
   type MediaEscapeItem,
+  type SubscriptionEscapeAccessPosture,
   type SubscriptionEscapeCategory,
   type SubscriptionEscapeItem,
   type SubscriptionEscapeSource,
@@ -201,7 +203,7 @@ export default function SubscriptionEscapeConsole() {
     );
   }, [catalog]);
 
-  async function persist(nextState: SubscriptionEscapeState) {
+  async function persist(nextState: Partial<SubscriptionEscapeState>) {
     setSaveStatus("saving");
     try {
       const response = await apiFetch("/api/subscription-escape", {
@@ -240,12 +242,29 @@ export default function SubscriptionEscapeConsole() {
     void persist(nextState);
   }
 
+  function replaceState(nextState: Partial<SubscriptionEscapeState>) {
+    void persist(nextState);
+  }
+
   function updateMediaLibrary(
     updater: (items: MediaEscapeItem[]) => MediaEscapeItem[],
   ) {
     const nextState: SubscriptionEscapeState = {
       ...state,
       mediaLibrary: updater(state.mediaLibrary),
+      updatedAt: new Date().toISOString(),
+    };
+    void persist(nextState);
+  }
+
+  function updateAccess(
+    updater: (
+      access: SubscriptionEscapeAccessPosture,
+    ) => SubscriptionEscapeAccessPosture,
+  ) {
+    const nextState: SubscriptionEscapeState = {
+      ...state,
+      access: updater(state.access),
       updatedAt: new Date().toISOString(),
     };
     void persist(nextState);
@@ -386,6 +405,16 @@ export default function SubscriptionEscapeConsole() {
           </p>
         </div>
       </div>
+
+      <EscapeAccessBackupPanel
+        state={state}
+        saveStatus={saveStatus}
+        storageHint={
+          payload?.storage?.pathHint ?? "data/subscription-escape.json"
+        }
+        onReplaceState={replaceState}
+        onChangeAccess={updateAccess}
+      />
 
       <MediaEscapeLibrary
         items={state.mediaLibrary}

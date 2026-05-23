@@ -1,12 +1,17 @@
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import {
+  createDefaultAccessPosture,
   createDefaultSubscriptionEscapeState,
   createEmptySafetyChecklist,
   normalizeMonthlyCost,
   type MediaEscapeItem,
   type MediaEscapeKind,
   type MediaEscapeStatus,
+  type SubscriptionEscapeAccessEntry,
+  type SubscriptionEscapeAccessPosture,
+  type SubscriptionEscapeAccessRole,
+  type SubscriptionEscapeAccessStatus,
   type SubscriptionEscapeCategory,
   type SubscriptionEscapeHostPosture,
   type SubscriptionEscapeItem,
@@ -44,6 +49,18 @@ const MEDIA_STATUSES = new Set<MediaEscapeStatus>([
   "wishlist",
 ]);
 
+const ACCESS_ROLES = new Set<SubscriptionEscapeAccessRole>([
+  "owner",
+  "family",
+  "viewer",
+]);
+
+const ACCESS_STATUSES = new Set<SubscriptionEscapeAccessStatus>([
+  "active",
+  "remove_pending",
+  "revoked",
+]);
+
 function normalizeCategory(value: unknown): SubscriptionEscapeCategory {
   return typeof value === "string" &&
     CATEGORIES.has(value as SubscriptionEscapeCategory)
@@ -69,6 +86,20 @@ function normalizeMediaStatus(value: unknown): MediaEscapeStatus {
     MEDIA_STATUSES.has(value as MediaEscapeStatus)
     ? (value as MediaEscapeStatus)
     : "owned";
+}
+
+function normalizeAccessRole(value: unknown): SubscriptionEscapeAccessRole {
+  return typeof value === "string" &&
+    ACCESS_ROLES.has(value as SubscriptionEscapeAccessRole)
+    ? (value as SubscriptionEscapeAccessRole)
+    : "viewer";
+}
+
+function normalizeAccessStatus(value: unknown): SubscriptionEscapeAccessStatus {
+  return typeof value === "string" &&
+    ACCESS_STATUSES.has(value as SubscriptionEscapeAccessStatus)
+    ? (value as SubscriptionEscapeAccessStatus)
+    : "active";
 }
 
 function normalizeText(value: unknown, fallback = "") {
@@ -187,6 +218,53 @@ function normalizeMediaItem(value: Partial<MediaEscapeItem>, index: number) {
   } satisfies MediaEscapeItem;
 }
 
+function normalizeAccessEntry(
+  value: Partial<SubscriptionEscapeAccessEntry>,
+  index: number,
+) {
+  const updatedAt =
+    typeof value.updatedAt === "string" && value.updatedAt
+      ? value.updatedAt
+      : new Date().toISOString();
+
+  return {
+    id: normalizeText(value.id, `access-${Date.now()}-${index}`),
+    label: normalizeText(value.label, "Authorized person"),
+    role: normalizeAccessRole(value.role),
+    status: normalizeAccessStatus(value.status),
+    deviceHint: normalizeOptionalText(value.deviceHint),
+    tailscaleManaged: value.tailscaleManaged !== false,
+    notes: normalizeOptionalText(value.notes),
+    updatedAt,
+  } satisfies SubscriptionEscapeAccessEntry;
+}
+
+function normalizeAccessPosture(
+  value: Partial<SubscriptionEscapeAccessPosture> | undefined,
+): SubscriptionEscapeAccessPosture {
+  const fallback = createDefaultAccessPosture();
+  const checklist = Array.isArray(value?.revocationChecklist)
+    ? value.revocationChecklist
+        .filter((entry): entry is string => typeof entry === "string")
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+    : fallback.revocationChecklist;
+
+  return {
+    policy: "tailscale_first",
+    nexusAuth: "required",
+    publicLinks: "blocked",
+    cloudBackup: "optional",
+    localSourceOfTruth: "macbook",
+    authorized: Array.isArray(value?.authorized)
+      ? value.authorized.map((item, index) => normalizeAccessEntry(item, index))
+      : [],
+    revocationChecklist: checklist.length
+      ? checklist
+      : fallback.revocationChecklist,
+  };
+}
+
 export function normalizeSubscriptionEscapeState(
   input: Partial<SubscriptionEscapeState> | null | undefined,
 ): SubscriptionEscapeState {
@@ -199,6 +277,7 @@ export function normalizeSubscriptionEscapeState(
         : fallback.updatedAt,
     currency: "USD",
     host: normalizeHost(input?.host),
+    access: normalizeAccessPosture(input?.access),
     subscriptions: Array.isArray(input?.subscriptions)
       ? input.subscriptions.map((item) => normalizeSubscription(item))
       : [],

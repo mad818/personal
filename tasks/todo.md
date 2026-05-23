@@ -47,6 +47,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] ESCAPE-PRIVATE-FOUNDATION — Solidify the Escape media/subscription base with Tailscale-first access posture, revocable access tracking, backup export/import, and protected local cover/poster storage.
+  - Current pass: add a scoped feature spec, access-state normalization, a private asset store under ignored local data, protected asset upload/read routes, backup/restore controls, authorized person/device tracking, and media cover upload without adding paid APIs or public media exposure.
+  - Guardrail: cloud is optional backup only; no paid metadata services, cloud source-of-truth database, public unauthenticated media endpoint, Tailscale Funnel default, piracy, DRM bypass, paywall bypass, or ad-circumvention scope.
+  - Progress: added `specs/features/escape-private-foundation.md`, `docs/superpowers/plans/2026-05-22-escape-private-foundation.md`, access posture/record types in `lib/subscriptionEscape.ts`, normalization in `lib/subscriptionEscapeStore.ts`, protected asset helpers/routes, ignored `data/subscription-escape-assets/`, `components/resources/EscapeAccessBackupPanel.tsx`, and private cover upload in `components/resources/MediaEscapeLibrary.tsx`. `npx tsc --noEmit`, `npm run lint`, `npm run verify`, `git diff --check`, and live dev-route proof passed: `/api/health` returned 200, `/resources?view=escape` returned 200, unauthenticated `/api/subscription-escape` returned 401, and unauthenticated `/api/subscription-escape/assets/not-real.png` returned 401.
+
 - [x] MEDIA-ESCAPE-VISUAL-LIBRARY — Add a Netflix-style local media catalog inside `/resources?view=escape` for movies and music together, with cover/poster cards, simple search/sort/filter, one obvious add/edit form, favorites, and protected MacBook-hosted state.
   - Current pass: extend the existing Subscription Escape local state with media records, add a visual media library component, and keep all data in the same protected server-side state file.
   - Guardrail: no piracy, DRM bypass, paywall bypass, ad-circumvention, paid-library scraping, public media endpoint, or streaming/playback server in this pass; local file paths are catalog metadata only.

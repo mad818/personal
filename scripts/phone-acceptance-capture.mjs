@@ -217,12 +217,13 @@ async function fetchReadiness(baseUrl, token) {
 
 async function fetchReceiptSummary(baseUrl, token) {
   if (!token) {
-    return {
-      ok: false,
-      status: 0,
-      summary: null,
-      error: "NEXUS_TOKEN unavailable; protected receipt capture skipped.",
-    };
+      return {
+        ok: false,
+        status: 0,
+        summary: null,
+        statusPayload: null,
+        error: "NEXUS_TOKEN unavailable; protected receipt capture skipped.",
+      };
   }
 
   const controller = new AbortController();
@@ -238,6 +239,7 @@ async function fetchReceiptSummary(baseUrl, token) {
         ok: false,
         status: response.status,
         summary: null,
+        statusPayload: null,
       };
     }
 
@@ -246,12 +248,14 @@ async function fetchReceiptSummary(baseUrl, token) {
       ok: true,
       status: response.status,
       summary: sanitizeValue(payload?.summary ?? null),
+      statusPayload: sanitizeValue(payload?.status ?? null),
     };
   } catch (error) {
     return {
       ok: false,
       status: 0,
       summary: null,
+      statusPayload: null,
       error: sanitizeString(error instanceof Error ? error.message : String(error)),
     };
   } finally {
@@ -392,6 +396,20 @@ function phoneProofBlockedReasons(proof) {
   return blocked;
 }
 
+function buildMissingReceiptProofItems(status) {
+  if (status?.acceptanceReady === true) return [];
+  if (!Array.isArray(status?.items)) {
+    return ["Receipt live status unavailable"];
+  }
+  return status.items
+    .filter((item) => item && item.passed !== true)
+    .map((item) =>
+      typeof item.label === "string" && item.label.trim()
+        ? sanitizeString(item.label.trim())
+        : "Unnamed receipt proof",
+    );
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const fileEnv = loadEnvFile(envLocalPath);
@@ -413,6 +431,9 @@ async function main() {
   const receipts = await fetchReceiptSummary(baseUrl, token);
   const receiptPhoneProof = buildReceiptPhoneProof(receipts.summary);
   const combinedPhoneProof = combinePhoneProof(args.manual, receiptPhoneProof);
+  const receiptLiveStatus = receipts.statusPayload;
+  const missingReceiptProofItems =
+    buildMissingReceiptProofItems(receiptLiveStatus);
   const blocked = [];
 
   for (const result of routeResults) {
@@ -449,6 +470,8 @@ async function main() {
     manualPhoneProof: args.manual,
     receiptPhoneProof,
     combinedPhoneProof,
+    receiptLiveStatus,
+    missingReceiptProofItems,
     blocked,
     acceptanceReady: blocked.length === 0,
   };
@@ -468,6 +491,10 @@ async function main() {
   if (blocked.length > 0) {
     console.log("blocked acceptance items:");
     for (const reason of blocked) console.log(`- ${sanitizeString(reason)}`);
+  }
+  if (missingReceiptProofItems.length > 0) {
+    console.log("missing receipt proof:");
+    for (const label of missingReceiptProofItems) console.log(`- ${label}`);
   }
 }
 

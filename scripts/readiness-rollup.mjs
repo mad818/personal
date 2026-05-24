@@ -197,6 +197,9 @@ function main() {
             manualPhoneProof: phone.data.manualPhoneProof ?? null,
             receiptPhoneProof: phone.data.receiptPhoneProof ?? null,
             combinedPhoneProof: phone.data.combinedPhoneProof ?? null,
+            receiptLiveStatus: phone.data.receiptLiveStatus ?? null,
+            missingReceiptProofItems:
+              phone.data.missingReceiptProofItems ?? [],
             blocked: phone.data.blocked ?? [],
             acceptanceReady: phone.data.acceptanceReady === true,
           }

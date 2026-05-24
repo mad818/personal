@@ -21,6 +21,7 @@ import type {
   PhoneAcceptanceLiveStatus,
   PhoneAcceptanceLiveStatusItem,
 } from "@/lib/phoneAcceptanceStatus";
+import { buildPhoneHandoffQrMatrix } from "@/lib/phoneHandoffQr";
 import { useStore } from "@/store/useStore";
 import { ShellBadge, ShellButton } from "@/components/ui/shell";
 import OperationalLightGrid from "@/components/ui/OperationalLightGrid";
@@ -149,6 +150,25 @@ function LiveStatusProofItem({ item }: { item: PhoneAcceptanceLiveStatusItem }) 
         {item.detail}
       </p>
     </div>
+  );
+}
+
+function PhoneHandoffQr({
+  qr,
+}: {
+  qr: NonNullable<ReturnType<typeof buildPhoneHandoffQrMatrix>>;
+}) {
+  const viewSize = qr.size + qr.quietZone * 2;
+  return (
+    <svg
+      aria-label="QR code for direct HQ URL"
+      className="aspect-square w-full max-w-[180px] rounded-xl border border-white/10 bg-white p-2"
+      role="img"
+      viewBox={`0 0 ${viewSize} ${viewSize}`}
+    >
+      <rect width={viewSize} height={viewSize} fill="white" />
+      <path d={qr.path} fill="black" />
+    </svg>
   );
 }
 
@@ -402,6 +422,10 @@ export default function FreeLocalReadinessPanel({
   const phoneLanReady =
     Boolean(snapshot?.phoneLan.enabled) &&
     Boolean(snapshot?.phoneLan.preferredLanUrl);
+  const phoneHandoffQr = useMemo(
+    () => buildPhoneHandoffQrMatrix(snapshot?.phoneLan.preferredHqLanUrl),
+    [snapshot?.phoneLan.preferredHqLanUrl],
+  );
   const phoneChecklist = useMemo(
     () => buildPhoneAcceptanceChecklist(snapshot),
     [snapshot],
@@ -543,7 +567,7 @@ export default function FreeLocalReadinessPanel({
             </div>
 
             {phoneLanReady ? (
-              <div className="mt-3 grid gap-2 md:grid-cols-2">
+              <div className="mt-3 grid gap-2 md:grid-cols-3">
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text3)]">
                     Phone home
@@ -581,6 +605,26 @@ export default function FreeLocalReadinessPanel({
                   >
                     {copiedTarget === "Direct HQ" ? "Copied" : "Copy HQ URL"}
                   </ShellButton>
+                </div>
+                <div
+                  className="rounded-xl border border-white/10 bg-black/20 p-3"
+                  data-testid="free-local-phone-handoff-qr"
+                >
+                  <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text3)]">
+                    Scan direct HQ
+                  </div>
+                  <div className="mt-2 flex justify-center">
+                    {phoneHandoffQr ? (
+                      <PhoneHandoffQr qr={phoneHandoffQr} />
+                    ) : (
+                      <div className="rounded-xl border border-amber-300/25 bg-amber-300/[0.06] p-3 text-xs leading-5 text-[var(--text2)]">
+                        QR is unavailable for this URL. Use Copy HQ URL.
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-2 text-[11px] font-bold leading-5 text-[var(--text3)]">
+                    Offline QR. Encodes only the visible HQ URL.
+                  </p>
                 </div>
               </div>
             ) : (

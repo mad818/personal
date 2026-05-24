@@ -32,6 +32,10 @@ const phoneAcceptanceCaptureScript = readProjectFile(
   "scripts",
   "phone-acceptance-capture.mjs",
 );
+const phoneAcceptanceQrValidator = readProjectFile(
+  "scripts",
+  "validate-phone-acceptance-qr-handoff.mjs",
+);
 const readinessPanel = readProjectFile(
   "components",
   "ui",
@@ -65,6 +69,8 @@ assertIncludes(phoneAcceptanceCaptureScript, "acceptanceReady", "phone acceptanc
 assertIncludes(phoneAcceptanceCaptureScript, "x-nexus-internal-auth", "phone acceptance capture");
 assertIncludes(phoneAcceptanceCaptureScript, "<LAN-IP>", "phone acceptance capture");
 assertIncludes(readinessPanel, "Copy acceptance steps", "readiness panel");
+assertIncludes(readinessPanel, "free-local-phone-handoff-qr", "readiness panel");
+assertIncludes(phoneAcceptanceQrValidator, "PHONE-ACCEPTANCE-QR-HANDOFF", "QR validator");
 assertIncludes(readinessRoute, "phoneLan", "readiness route");
 assertIncludes(readinessRoute, "preferredHqLanUrl", "readiness route");
 

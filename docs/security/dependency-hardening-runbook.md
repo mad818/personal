@@ -17,11 +17,11 @@ Use this runbook after the metadata-only Dependabot audit identifies concrete pa
 3. Export GitHub Dependabot metadata from normal PowerShell when the Codex shell cannot reach GitHub:
 
    ```powershell
-   gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "/repos/mad818/personal/dependabot/alerts?state=open&per_page=100" > docs\metrics\dependabot-alerts-source.json
+   gh api --paginate --slurp -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "/repos/mad818/personal/dependabot/alerts?state=open&per_page=100" > docs\metrics\dependabot-alerts-source.json
    npm run dependabot:audit:classify -- --alerts=docs\metrics\dependabot-alerts-source.json
    ```
 
-4. Classify each alert as runtime-critical, dev-only, transitive, or blocked/deferred from the sanitized audit artifact.
+4. Classify each alert as active runtime-critical, dev-only, transitive, retired-manifest, or blocked/deferred from the sanitized audit artifact.
 5. Pick the smallest runtime-critical batch with a known patched range.
 6. Apply that package update only.
 7. Run `npm run dependency:risk:posture`.

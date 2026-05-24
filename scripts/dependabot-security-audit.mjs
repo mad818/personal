@@ -15,6 +15,8 @@ const metricsDir = join(root, "docs", "metrics");
 const args = process.argv.slice(2);
 const alertImportArg = readArgValue("--alerts=");
 const dryRun = args.includes("--dry-run");
+const dependabotAlertExportCommand =
+  'gh api --paginate --slurp -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "/repos/mad818/personal/dependabot/alerts?state=open&per_page=100" > docs\\metrics\\dependabot-alerts-source.json';
 
 const knownWarning = {
   source: "github-push-warning",
@@ -71,6 +73,15 @@ function projectPath(input) {
 
 function packagePathForName(name) {
   return `node_modules/${name}`;
+}
+
+function normalizeManifestPath(manifestPath) {
+  return typeof manifestPath === "string" ? manifestPath.replace(/\\/g, "/") : null;
+}
+
+function isRetiredManifest(manifestPath) {
+  const normalized = normalizeManifestPath(manifestPath);
+  return Boolean(normalized?.startsWith("archive/"));
 }
 
 function directDependencyGroups(pkg) {
@@ -197,6 +208,16 @@ function buildMetadataSource(dependencyPosture, alertImport) {
   };
 }
 
+function buildKnownWarning(importedMode) {
+  if (!importedMode) return knownWarning;
+  return {
+    ...knownWarning,
+    supersededByImportedMetadata: true,
+    note:
+      "Initial push-warning counts are preserved for audit history. Imported Dependabot metadata is the current source of truth for this artifact.",
+  };
+}
+
 function normalizeSeverity(value) {
   if (!value) return "unknown";
   return value === "medium" ? "moderate" : value;
@@ -220,6 +241,9 @@ function alertIdentifier(alert, type) {
 }
 
 function recommendationFor(record) {
+  if (record.retiredManifest) {
+    return "Treat as archived-manifest review; do not patch active runtime from this alert.";
+  }
   if (record.blockedReasons.length > 0) {
     return "Defer until missing Dependabot metadata or lockfile ownership is resolved.";
   }
@@ -243,7 +267,8 @@ function classifyImportedAlerts(alerts, packageGraph) {
   return alerts.map((alert) => {
     const packageName = alert?.dependency?.package?.name ?? null;
     const ecosystem = alert?.dependency?.package?.ecosystem ?? null;
-    const manifestPath = alert?.dependency?.manifest_path ?? null;
+    const manifestPath = normalizeManifestPath(alert?.dependency?.manifest_path ?? null);
+    const retiredManifest = isRetiredManifest(manifestPath);
     const scope = alert?.dependency?.scope ?? null;
     const severity = normalizeSeverity(
       alert?.security_vulnerability?.severity ??
@@ -264,14 +289,19 @@ function classifyImportedAlerts(alerts, packageGraph) {
       directDependencyGroup === "optionalDependencies" ||
       directDependencyGroup === "peerDependencies";
     const directDev = directDependencyGroup === "devDependencies";
-    const runtimeImpact =
+    const rawRuntimeImpact =
       scope === "runtime" || directRuntime || (hasRuntimeLockEntry && !directDev);
+    const runtimeImpact = !retiredManifest && rawRuntimeImpact;
     const devOnlyImpact =
+      !retiredManifest &&
       !runtimeImpact &&
       (scope === "development" || directDev || (hasDevLockEntry && !hasRuntimeLockEntry));
     const transitiveOwnership = !directDependencyGroup;
     const blockedReasons = [];
 
+    if (retiredManifest) {
+      blockedReasons.push("Archived manifest is not part of the active React/Next runtime.");
+    }
     if (!packageName) blockedReasons.push("Missing package name.");
     if (ecosystem !== "npm") blockedReasons.push("Non-npm alert needs separate ecosystem handling.");
     if (!severity || severity === "unknown") blockedReasons.push("Missing severity.");
@@ -305,6 +335,7 @@ function classifyImportedAlerts(alerts, packageGraph) {
       lockfileEntryCount: lockEntries.length,
       runtimeImpact,
       devOnlyImpact,
+      retiredManifest,
       transitiveOwnership,
       blockedReasons,
     };
@@ -334,8 +365,11 @@ function queueEntry(record) {
     severity: record.severity,
     manifestPath: record.manifestPath,
     scope: record.scope,
+    ecosystem: record.ecosystem,
     directDependencyGroup: record.directDependencyGroup,
+    lockfileOwnership: record.lockfileOwnership,
     transitiveOwnership: record.transitiveOwnership,
+    retiredManifest: record.retiredManifest,
     firstPatchedVersion: record.firstPatchedVersion,
     blockedReasons: record.blockedReasons,
     recommendation: record.recommendation,
@@ -399,15 +433,27 @@ function buildPendingClassification() {
         "All known alerts remain deferred as a metadata-only audit lane until GitHub Dependabot details are reachable.",
       blockers: [unavailableReason],
     },
+    retiredManifest: {
+      status: "pending_metadata",
+      count: null,
+      description:
+        "Alerts from archived manifests are unknown until Dependabot metadata is imported.",
+      blockers: [unavailableReason],
+    },
   };
 }
 
 function buildImportedClassification(records) {
   const sorted = [...records].sort(sortAlerts);
-  const runtimeCritical = sorted.filter((record) => record.runtimeImpact);
-  const devOnly = sorted.filter((record) => record.devOnlyImpact);
-  const transitive = sorted.filter((record) => record.transitiveOwnership);
-  const blockedDeferred = sorted.filter((record) => record.blockedReasons.length > 0);
+  const active = sorted.filter((record) => !record.retiredManifest);
+  const actionable = active.filter((record) => record.blockedReasons.length === 0);
+  const runtimeCritical = actionable.filter((record) => record.runtimeImpact);
+  const devOnly = actionable.filter((record) => record.devOnlyImpact);
+  const transitive = active.filter(
+    (record) => record.transitiveOwnership && record.blockedReasons.length === 0,
+  );
+  const blockedDeferred = active.filter((record) => record.blockedReasons.length > 0);
+  const retiredManifest = sorted.filter((record) => record.retiredManifest);
 
   return {
     runtimeCritical: {
@@ -438,6 +484,13 @@ function buildImportedClassification(records) {
         "Alerts missing enough local or Dependabot metadata to select a safe package update.",
       alerts: blockedDeferred.map(queueEntry),
     },
+    retiredManifest: {
+      status: retiredManifest.length > 0 ? "needs_dependabot_scope_review" : "none",
+      count: retiredManifest.length,
+      description:
+        "Alerts raised from archive/ manifests. These are not active runtime fixes unless the archived app is intentionally restored.",
+      alerts: retiredManifest.map(queueEntry),
+    },
   };
 }
 
@@ -450,6 +503,21 @@ function severityCounts(records) {
     },
     { critical: 0, high: 0, moderate: 0, low: 0, unknown: 0 },
   );
+}
+
+function manifestCounts(records) {
+  return records.reduce((counts, record) => {
+    const manifestPath = normalizeManifestPath(record.manifestPath) ?? "unknown";
+    counts[manifestPath] = (counts[manifestPath] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+function paginationWarning(records) {
+  if (records.length > 0 && records.length % 100 === 0) {
+    return "Imported alert count is a multiple of 100; rerun the paginated --slurp export command before treating this as the full open-alert set.";
+  }
+  return null;
 }
 
 function buildPackageGraphContext() {
@@ -477,6 +545,7 @@ function main() {
   const classification = importedMode
     ? buildImportedClassification(importedRecords)
     : buildPendingClassification();
+  const importPaginationWarning = importedMode ? paginationWarning(importedRecords) : null;
   const artifact = {
     capturedAt,
     auditName: "DEPENDABOT-SECURITY-AUDIT",
@@ -486,13 +555,15 @@ function main() {
       upgradesPerformed: false,
       alertImportArtifact: alertImport?.file ?? null,
     },
-    knownWarning,
+    knownWarning: buildKnownWarning(importedMode),
     importSummary: importedMode
       ? {
           alertCount: importedRecords.length,
           severityCounts: severityCounts(importedRecords),
+          manifestCounts: manifestCounts(importedRecords),
           sourceFile: alertImport.file,
           sanitizedOnly: true,
+          paginationWarning: importPaginationWarning,
         }
       : null,
     packageGraph: buildPackageGraphSummary(),
@@ -513,6 +584,7 @@ function main() {
           devOnly: classification.devOnly.alerts,
           transitive: classification.transitive.alerts,
           blockedDeferred: classification.blockedDeferred.alerts,
+          retiredManifest: classification.retiredManifest.alerts,
         }
       : {
           runtimeCritical: [],
@@ -521,11 +593,16 @@ function main() {
           blockedDeferred: [
             "Dependabot package metadata is still required before selecting upgrade batches.",
           ],
+          retiredManifest: [],
         },
     upgradePolicy: buildUpgradePolicy(),
     blocked: importedMode
       ? [
           ...importBlocked,
+          importPaginationWarning,
+          classification.retiredManifest.count > 0
+            ? `${classification.retiredManifest.count} imported alert(s) target archive/ manifests and need Dependabot scope review before active runtime patching.`
+            : null,
           "No dependency upgrades were performed in this audit tranche.",
           "Review the runtimeCritical queue first, then patch one minimal package batch at a time.",
         ].filter(Boolean)
@@ -536,8 +613,7 @@ function main() {
           "Run the GitHub Dependabot UI or API from a network-enabled session to fill package names, vulnerable ranges, patched ranges, and direct/transitive ownership.",
         ],
     importInstructions: {
-      normalPowerShell:
-        'gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "/repos/mad818/personal/dependabot/alerts?state=open&per_page=100" > docs\\metrics\\dependabot-alerts-source.json',
+      normalPowerShell: dependabotAlertExportCommand,
       classify:
         "npm run dependabot:audit:classify -- --alerts=docs\\metrics\\dependabot-alerts-source.json",
     },
@@ -555,7 +631,9 @@ function main() {
     console.log(`Dependabot security audit dry run: ${displayPath}`);
   } else {
     writeFileSync(outPath, `${JSON.stringify(artifact, null, 2)}\n`);
-    console.log(`Dependabot security audit starter written: ${displayPath}`);
+    console.log(
+      `Dependabot security audit ${importedMode ? "artifact" : "starter"} written: ${displayPath}`,
+    );
   }
   console.log(
     importedMode
@@ -564,8 +642,11 @@ function main() {
   );
   if (importedMode) {
     console.log(
-      `Queues: ${classification.runtimeCritical.count} runtime, ${classification.devOnly.count} dev-only, ${classification.transitive.count} transitive, ${classification.blockedDeferred.count} blocked/deferred.`,
+      `Queues: ${classification.runtimeCritical.count} active runtime, ${classification.devOnly.count} dev-only, ${classification.transitive.count} transitive, ${classification.retiredManifest.count} retired-manifest, ${classification.blockedDeferred.count} blocked/deferred.`,
     );
+    if (importPaginationWarning) {
+      console.log(`Pagination: ${importPaginationWarning}`);
+    }
   }
   if (!existsSync(join(root, "package-lock.json"))) {
     console.log("Warning: package-lock.json was not found for package graph summary.");

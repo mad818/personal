@@ -35,11 +35,14 @@ assertIncludes(spec, "Do not upgrade packages", "feature spec");
 
 assertIncludes(runner, "--alerts=", "audit runner");
 assertIncludes(runner, "--dry-run", "audit runner");
+assertIncludes(runner, "--paginate --slurp", "audit runner");
 assertIncludes(runner, "parseAlertImport", "audit runner");
 assertIncludes(runner, "classifyImportedAlerts", "audit runner");
 assertIncludes(runner, "runtimeImpact", "audit runner");
 assertIncludes(runner, "devOnlyImpact", "audit runner");
 assertIncludes(runner, "transitiveOwnership", "audit runner");
+assertIncludes(runner, "retiredManifest", "audit runner");
+assertIncludes(runner, "archive/", "audit runner");
 assertIncludes(runner, "firstPatchedVersion", "audit runner");
 assertIncludes(runner, "dependabot-alerts-source", "audit runner");
 assertIncludes(runner, "upgradesPerformed: false", "audit runner");

@@ -9,7 +9,7 @@ Make `npm run dependabot:audit:classify` useful even when Codex cannot reach Git
 1. From a network-enabled normal PowerShell session, export open Dependabot alerts:
 
    ```powershell
-   gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "/repos/mad818/personal/dependabot/alerts?state=open&per_page=100" > docs\metrics\dependabot-alerts-source.json
+   gh api --paginate --slurp -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "/repos/mad818/personal/dependabot/alerts?state=open&per_page=100" > docs\metrics\dependabot-alerts-source.json
    ```
 
 2. Run the local classifier:
@@ -25,6 +25,7 @@ Make `npm run dependabot:audit:classify` useful even when Codex cannot reach Git
 - Runtime impact: dependency scope is `runtime`, the package is a direct runtime dependency, or the lockfile marks the package as non-dev.
 - Dev-only impact: dependency scope is `development`, the package is a direct dev dependency, or the lockfile marks the package as dev-only.
 - Transitive ownership: the package is not declared directly in `package.json`.
+- Retired manifest: the alert comes from `archive/` and should not inflate the active runtime queue unless the archived app is intentionally restored.
 - Blocked/deferred: alert metadata is incomplete, no patched version is published, the package is absent from the local lockfile, or the ecosystem is not npm.
 
 These buckets may overlap; impact and ownership are different review axes.

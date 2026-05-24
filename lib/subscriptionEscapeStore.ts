@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
+import { inspectSecureLink } from "@/lib/secureLink";
 import {
   createDefaultAccessPosture,
   createDefaultSubscriptionEscapeState,
@@ -11,6 +12,8 @@ import {
   type MediaEscapeIntakeStatus,
   type MediaEscapeKind,
   type MediaEscapeStatus,
+  type SecureStreamLink,
+  type SecureStreamLinkCategory,
   type SubscriptionEscapeAccessEntry,
   type SubscriptionEscapeAccessPosture,
   type SubscriptionEscapeAccessRole,
@@ -59,6 +62,15 @@ const MEDIA_INTAKE_STATUSES = new Set<MediaEscapeIntakeStatus>([
   "ignored",
 ]);
 
+const SECURE_STREAM_CATEGORIES = new Set<SecureStreamLinkCategory>([
+  "media-server",
+  "movie",
+  "music",
+  "show",
+  "playlist",
+  "other",
+]);
+
 const ACCESS_ROLES = new Set<SubscriptionEscapeAccessRole>([
   "owner",
   "family",
@@ -103,6 +115,15 @@ function normalizeMediaIntakeStatus(value: unknown): MediaEscapeIntakeStatus {
     MEDIA_INTAKE_STATUSES.has(value as MediaEscapeIntakeStatus)
     ? (value as MediaEscapeIntakeStatus)
     : "needs_review";
+}
+
+function normalizeSecureStreamCategory(
+  value: unknown,
+): SecureStreamLinkCategory {
+  return typeof value === "string" &&
+    SECURE_STREAM_CATEGORIES.has(value as SecureStreamLinkCategory)
+    ? (value as SecureStreamLinkCategory)
+    : "media-server";
 }
 
 function normalizeAccessRole(value: unknown): SubscriptionEscapeAccessRole {
@@ -267,6 +288,31 @@ function normalizeMediaIntakeItem(
   } satisfies MediaEscapeIntakeItem;
 }
 
+function normalizeSecureStreamLink(
+  value: Partial<SecureStreamLink>,
+  index: number,
+): SecureStreamLink | null {
+  const inspection = inspectSecureLink(normalizeText(value.url));
+  if (!inspection.href || !inspection.canOpen) return null;
+  const updatedAt =
+    typeof value.updatedAt === "string" && value.updatedAt
+      ? value.updatedAt
+      : new Date().toISOString();
+
+  return {
+    id: normalizeText(value.id, `stream-${Date.now()}-${index}`),
+    title: normalizeText(
+      value.title,
+      inspection.displayHost ?? "Secure stream",
+    ),
+    url: inspection.href,
+    category: normalizeSecureStreamCategory(value.category),
+    favorite: Boolean(value.favorite),
+    notes: normalizeOptionalText(value.notes),
+    updatedAt,
+  } satisfies SecureStreamLink;
+}
+
 function normalizeAccessEntry(
   value: Partial<SubscriptionEscapeAccessEntry>,
   index: number,
@@ -337,6 +383,11 @@ export function normalizeSubscriptionEscapeState(
       ? input.mediaIntake.map((item, index) =>
           normalizeMediaIntakeItem(item, index),
         )
+      : [],
+    secureStreamLinks: Array.isArray(input?.secureStreamLinks)
+      ? input.secureStreamLinks
+          .map((item, index) => normalizeSecureStreamLink(item, index))
+          .filter((item): item is SecureStreamLink => Boolean(item))
       : [],
   };
 }

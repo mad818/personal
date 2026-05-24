@@ -47,6 +47,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] ESCAPE-STREAM-CONNECT-SHELF — Make secure link opening feel like a private streaming site: paste a link, validate it, save it as a sorted tile, and connect securely from the Escape shelf.
+  - Current pass: add a scoped feature spec, persisted secure stream-link records, safe state normalization, a streaming-style connect shelf, search/filter/sort/favorite controls, and secure open/copy/remove actions.
+  - Guardrail: Nexus opens approved links only; it does not proxy streams, scrape paid libraries, bypass DRM/paywalls, store credential-bearing URLs, fetch remote previews, or allow unsafe public HTTP.
+  - Progress: added `specs/features/escape-stream-connect-shelf.md`, `docs/superpowers/plans/2026-05-24-escape-stream-connect-shelf.md`, persisted `secureStreamLinks` in `lib/subscriptionEscape.ts`, safe normalization through `inspectSecureLink` in `lib/subscriptionEscapeStore.ts`, a streaming-style tile shelf in `components/resources/SecureLinkOpenPanel.tsx`, and Escape persistence wiring in `components/resources/SubscriptionEscapeConsole.tsx`. `npx tsc --noEmit`, `npm run lint`, `npm run verify`, `git diff --check`, and live dev-route proof passed: `/api/health` returned 200, `/resources?view=escape` returned 200, unauthenticated `/api/subscription-escape` returned 401, and unauthenticated `/api/subscription-escape/assets/not-real.png` returned 401.
+
 - [x] ESCAPE-SECURE-LINK-OPENER — Add a safe local option for opening links from the Escape lane with URL validation, private-network awareness, and explicit operator click-through.
   - Current pass: add a scoped feature spec, secure URL inspection helper, protected Escape UI panel, and verification without fetching/unfurling pasted links or storing link history.
   - Guardrail: no automatic opening, no unsafe protocols, no public plain-HTTP links, no credential-bearing URLs, no remote preview fetches, and no public unauthenticated route.

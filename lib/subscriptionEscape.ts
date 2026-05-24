@@ -63,6 +63,14 @@ export type MediaEscapeIntakeStatus =
   | "imported"
   | "ignored";
 
+export type SecureStreamLinkCategory =
+  | "media-server"
+  | "movie"
+  | "music"
+  | "show"
+  | "playlist"
+  | "other";
+
 export interface MediaEscapeItem {
   id: string;
   kind: MediaEscapeKind;
@@ -92,6 +100,16 @@ export interface MediaEscapeIntakeItem {
   suggestedPath?: string;
   status: MediaEscapeIntakeStatus;
   duplicateOfId?: string;
+  notes?: string;
+  updatedAt: string;
+}
+
+export interface SecureStreamLink {
+  id: string;
+  title: string;
+  url: string;
+  category: SecureStreamLinkCategory;
+  favorite: boolean;
   notes?: string;
   updatedAt: string;
 }
@@ -163,6 +181,7 @@ export interface SubscriptionEscapeState {
   subscriptions: SubscriptionEscapeItem[];
   mediaLibrary: MediaEscapeItem[];
   mediaIntake: MediaEscapeIntakeItem[];
+  secureStreamLinks: SecureStreamLink[];
 }
 
 export const SUBSCRIPTION_ESCAPE_SAFETY_LABELS: Record<
@@ -222,6 +241,18 @@ export const MEDIA_ESCAPE_INTAKE_STATUS_LABELS: Record<
   ready: "Ready",
   imported: "Imported",
   ignored: "Ignored",
+};
+
+export const SECURE_STREAM_LINK_CATEGORY_LABELS: Record<
+  SecureStreamLinkCategory,
+  string
+> = {
+  "media-server": "Media server",
+  movie: "Movie",
+  music: "Music",
+  show: "Show",
+  playlist: "Playlist",
+  other: "Other",
 };
 
 export const SUBSCRIPTION_ESCAPE_SOURCES: SubscriptionEscapeSource[] = [
@@ -479,6 +510,7 @@ export function createDefaultSubscriptionEscapeState(): SubscriptionEscapeState 
     subscriptions: [],
     mediaLibrary: [],
     mediaIntake: [],
+    secureStreamLinks: [],
   };
 }
 

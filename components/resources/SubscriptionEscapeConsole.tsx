@@ -15,6 +15,7 @@ import {
   SUBSCRIPTION_ESCAPE_SAFETY_LABELS,
   type MediaEscapeItem,
   type MediaEscapeIntakeItem,
+  type SecureStreamLink,
   type SubscriptionEscapeAccessPosture,
   type SubscriptionEscapeCategory,
   type SubscriptionEscapeItem,
@@ -292,6 +293,17 @@ export default function SubscriptionEscapeConsole() {
     void persist(nextState);
   }
 
+  function updateSecureStreamLinks(
+    updater: (items: SecureStreamLink[]) => SecureStreamLink[],
+  ) {
+    const nextState: SubscriptionEscapeState = {
+      ...state,
+      secureStreamLinks: updater(state.secureStreamLinks),
+      updatedAt: new Date().toISOString(),
+    };
+    void persist(nextState);
+  }
+
   function updateAccess(
     updater: (
       access: SubscriptionEscapeAccessPosture,
@@ -451,7 +463,11 @@ export default function SubscriptionEscapeConsole() {
         onChangeAccess={updateAccess}
       />
 
-      <SecureLinkOpenPanel />
+      <SecureLinkOpenPanel
+        links={state.secureStreamLinks}
+        onChangeLinks={updateSecureStreamLinks}
+        saveStatus={saveStatus}
+      />
 
       <MediaEscapeLibrary
         items={state.mediaLibrary}

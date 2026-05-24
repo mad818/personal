@@ -8,10 +8,13 @@ import {
   readFileSync,
   writeFileSync,
 } from "node:fs";
-import { join, relative } from "node:path";
+import { isAbsolute, join, relative } from "node:path";
 
 const root = process.cwd();
 const metricsDir = join(root, "docs", "metrics");
+const args = process.argv.slice(2);
+const alertImportArg = readArgValue("--alerts=");
+const dryRun = args.includes("--dry-run");
 
 const knownWarning = {
   source: "github-push-warning",
@@ -27,9 +30,31 @@ const knownWarning = {
     "Push output reported a Dependabot warning on the default branch. Detailed alert metadata was not reachable from this Codex shell.",
 };
 
+const severityOrder = {
+  critical: 4,
+  high: 3,
+  moderate: 2,
+  medium: 2,
+  low: 1,
+  unknown: 0,
+};
+
+function readArgValue(prefix) {
+  const match = args.find((arg) => arg.startsWith(prefix));
+  return match ? match.slice(prefix.length) : null;
+}
+
 function readJson(file) {
   try {
     return JSON.parse(readFileSync(join(root, file), "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function readJsonPath(filePath) {
+  try {
+    return JSON.parse(readFileSync(filePath, "utf8"));
   } catch {
     return null;
   }
@@ -39,18 +64,102 @@ function countKeys(value) {
   return value && typeof value === "object" ? Object.keys(value).length : 0;
 }
 
+function projectPath(input) {
+  if (!input) return null;
+  return isAbsolute(input) ? input : join(root, input);
+}
+
+function packagePathForName(name) {
+  return `node_modules/${name}`;
+}
+
+function directDependencyGroups(pkg) {
+  const groups = new Map();
+  for (const group of [
+    "dependencies",
+    "devDependencies",
+    "optionalDependencies",
+    "peerDependencies",
+  ]) {
+    for (const name of Object.keys(pkg[group] ?? {})) {
+      groups.set(name, group);
+    }
+  }
+  return groups;
+}
+
+function packageLockPackages(lock) {
+  return lock?.packages && typeof lock.packages === "object" ? lock.packages : {};
+}
+
+function lockEntriesForPackage(lockPackages, packageName) {
+  if (!packageName) return [];
+  const directPath = packagePathForName(packageName);
+  return Object.entries(lockPackages)
+    .filter(([packagePath]) => {
+      return (
+        packagePath === directPath ||
+        packagePath.endsWith(`/node_modules/${packageName}`)
+      );
+    })
+    .map(([packagePath, meta]) => ({ packagePath, meta: meta ?? {} }));
+}
+
 function buildPackageGraphSummary() {
   const pkg = readJson("package.json") ?? {};
   const lock = readJson("package-lock.json") ?? {};
-  const packages = lock.packages && typeof lock.packages === "object"
-    ? Object.keys(lock.packages).filter(Boolean)
-    : [];
+  const packages = Object.keys(packageLockPackages(lock)).filter(Boolean);
 
   return {
     directDependencies: countKeys(pkg.dependencies),
     directDevDependencies: countKeys(pkg.devDependencies),
     lockfilePackages: packages.length,
     lockfilePresent: Boolean(lock.lockfileVersion),
+  };
+}
+
+function findLatestAlertImport() {
+  if (!existsSync(metricsDir)) return null;
+  const file = readdirSync(metricsDir)
+    .filter((entry) => entry.startsWith("dependabot-alerts-source") && entry.endsWith(".json"))
+    .sort()
+    .at(-1);
+  return file ? join(metricsDir, file) : null;
+}
+
+function parseAlertImport(raw) {
+  if (Array.isArray(raw)) {
+    return raw.flat().filter((entry) => entry && typeof entry === "object");
+  }
+  if (raw?.alerts && Array.isArray(raw.alerts)) {
+    return raw.alerts.filter((entry) => entry && typeof entry === "object");
+  }
+  if (raw?.data && Array.isArray(raw.data)) {
+    return raw.data.filter((entry) => entry && typeof entry === "object");
+  }
+  return [];
+}
+
+function loadAlertImport() {
+  const requestedPath = projectPath(alertImportArg);
+  const fallbackPath = requestedPath ?? findLatestAlertImport();
+  if (!fallbackPath || !existsSync(fallbackPath)) {
+    return null;
+  }
+
+  const parsed = readJsonPath(fallbackPath);
+  if (!parsed) {
+    return {
+      file: relative(root, fallbackPath).replace(/\\/g, "/"),
+      alerts: [],
+      blocked: ["Dependabot alert import JSON could not be parsed."],
+    };
+  }
+
+  return {
+    file: relative(root, fallbackPath).replace(/\\/g, "/"),
+    alerts: parseAlertImport(parsed),
+    blocked: [],
   };
 }
 
@@ -67,11 +176,13 @@ function latestMetric(prefix) {
   };
 }
 
-function buildMetadataSource(dependencyPosture) {
+function buildMetadataSource(dependencyPosture, alertImport) {
   return {
     githubReachable: false,
+    importedAlertMetadata: Boolean(alertImport?.alerts?.length),
+    alertImportArtifact: alertImport?.file ?? null,
     localGraphAvailable: Boolean(dependencyPosture?.data?.packageGraph),
-    manualMetadataRequired: true,
+    manualMetadataRequired: !alertImport?.alerts?.length,
     dependencyPostureArtifact: dependencyPosture?.file ?? null,
     requiredFields: [
       "package name",
@@ -83,6 +194,151 @@ function buildMetadataSource(dependencyPosture) {
       "direct or transitive ownership",
       "runtime or dev-only impact",
     ],
+  };
+}
+
+function normalizeSeverity(value) {
+  if (!value) return "unknown";
+  return value === "medium" ? "moderate" : value;
+}
+
+function firstPatchedVersion(alert) {
+  return (
+    alert?.security_vulnerability?.first_patched_version?.identifier ??
+    alert?.security_advisory?.vulnerabilities?.[0]?.first_patched_version?.identifier ??
+    null
+  );
+}
+
+function alertIdentifier(alert, type) {
+  const identifiers = alert?.security_advisory?.identifiers;
+  if (!Array.isArray(identifiers)) return [];
+  return identifiers
+    .filter((identifier) => identifier?.type === type && identifier?.value)
+    .map((identifier) => identifier.value)
+    .sort();
+}
+
+function recommendationFor(record) {
+  if (record.blockedReasons.length > 0) {
+    return "Defer until missing Dependabot metadata or lockfile ownership is resolved.";
+  }
+  if (record.runtimeImpact) {
+    return "Review first; patch in the smallest runtime-safe batch and run full verification.";
+  }
+  if (record.devOnlyImpact) {
+    return "Patch after runtime-impact alerts unless this blocks verification or release tooling.";
+  }
+  if (record.transitiveOwnership) {
+    return "Patch through the smallest parent-package update that resolves this transitive alert.";
+  }
+  return "Review with the dependency hardening runbook before selecting an upgrade batch.";
+}
+
+function classifyImportedAlerts(alerts, packageGraph) {
+  const pkg = packageGraph.pkg;
+  const lockPackages = packageGraph.lockPackages;
+  const directGroups = directDependencyGroups(pkg);
+
+  return alerts.map((alert) => {
+    const packageName = alert?.dependency?.package?.name ?? null;
+    const ecosystem = alert?.dependency?.package?.ecosystem ?? null;
+    const manifestPath = alert?.dependency?.manifest_path ?? null;
+    const scope = alert?.dependency?.scope ?? null;
+    const severity = normalizeSeverity(
+      alert?.security_vulnerability?.severity ??
+        alert?.security_advisory?.severity ??
+        null,
+    );
+    const vulnerableRange =
+      alert?.security_vulnerability?.vulnerable_version_range ??
+      alert?.security_advisory?.vulnerabilities?.[0]?.vulnerable_version_range ??
+      null;
+    const patchedVersion = firstPatchedVersion(alert);
+    const directDependencyGroup = packageName ? directGroups.get(packageName) ?? null : null;
+    const lockEntries = lockEntriesForPackage(lockPackages, packageName);
+    const hasRuntimeLockEntry = lockEntries.some(({ meta }) => meta.dev !== true);
+    const hasDevLockEntry = lockEntries.some(({ meta }) => meta.dev === true);
+    const directRuntime =
+      directDependencyGroup === "dependencies" ||
+      directDependencyGroup === "optionalDependencies" ||
+      directDependencyGroup === "peerDependencies";
+    const directDev = directDependencyGroup === "devDependencies";
+    const runtimeImpact =
+      scope === "runtime" || directRuntime || (hasRuntimeLockEntry && !directDev);
+    const devOnlyImpact =
+      !runtimeImpact &&
+      (scope === "development" || directDev || (hasDevLockEntry && !hasRuntimeLockEntry));
+    const transitiveOwnership = !directDependencyGroup;
+    const blockedReasons = [];
+
+    if (!packageName) blockedReasons.push("Missing package name.");
+    if (ecosystem !== "npm") blockedReasons.push("Non-npm alert needs separate ecosystem handling.");
+    if (!severity || severity === "unknown") blockedReasons.push("Missing severity.");
+    if (!vulnerableRange) blockedReasons.push("Missing vulnerable range.");
+    if (!patchedVersion) blockedReasons.push("No first patched version is published.");
+    if (packageName && lockEntries.length === 0) {
+      blockedReasons.push("Package is absent from the local package-lock graph.");
+    }
+
+    const record = {
+      alertNumber: alert?.number ?? null,
+      state: alert?.state ?? null,
+      packageName,
+      ecosystem,
+      manifestPath,
+      scope,
+      severity,
+      advisoryId: alert?.security_advisory?.ghsa_id ?? alertIdentifier(alert, "GHSA")[0] ?? null,
+      cveIds: alertIdentifier(alert, "CVE"),
+      vulnerableRange,
+      firstPatchedVersion: patchedVersion,
+      directDependencyGroup,
+      lockfileOwnership:
+        lockEntries.length === 0
+          ? "absent"
+          : hasRuntimeLockEntry && hasDevLockEntry
+            ? "mixed"
+            : hasRuntimeLockEntry
+              ? "runtime"
+              : "dev-only",
+      lockfileEntryCount: lockEntries.length,
+      runtimeImpact,
+      devOnlyImpact,
+      transitiveOwnership,
+      blockedReasons,
+    };
+
+    return {
+      ...record,
+      recommendation: recommendationFor(record),
+    };
+  });
+}
+
+function sortAlerts(a, b) {
+  const severityDelta =
+    (severityOrder[b.severity] ?? 0) - (severityOrder[a.severity] ?? 0);
+  if (severityDelta !== 0) return severityDelta;
+  if (a.runtimeImpact !== b.runtimeImpact) return a.runtimeImpact ? -1 : 1;
+  if (a.transitiveOwnership !== b.transitiveOwnership) {
+    return a.transitiveOwnership ? 1 : -1;
+  }
+  return String(a.packageName ?? "").localeCompare(String(b.packageName ?? ""));
+}
+
+function queueEntry(record) {
+  return {
+    alertNumber: record.alertNumber,
+    packageName: record.packageName,
+    severity: record.severity,
+    manifestPath: record.manifestPath,
+    scope: record.scope,
+    directDependencyGroup: record.directDependencyGroup,
+    transitiveOwnership: record.transitiveOwnership,
+    firstPatchedVersion: record.firstPatchedVersion,
+    blockedReasons: record.blockedReasons,
+    recommendation: record.recommendation,
   };
 }
 
@@ -110,7 +366,7 @@ function buildUpgradePolicy() {
   };
 }
 
-function buildClassification() {
+function buildPendingClassification() {
   const unavailableReason =
     "Dependabot alert package metadata is unavailable from this shell because GitHub access is blocked; category counts stay pending until the GitHub UI or API can be queried.";
 
@@ -146,20 +402,99 @@ function buildClassification() {
   };
 }
 
+function buildImportedClassification(records) {
+  const sorted = [...records].sort(sortAlerts);
+  const runtimeCritical = sorted.filter((record) => record.runtimeImpact);
+  const devOnly = sorted.filter((record) => record.devOnlyImpact);
+  const transitive = sorted.filter((record) => record.transitiveOwnership);
+  const blockedDeferred = sorted.filter((record) => record.blockedReasons.length > 0);
+
+  return {
+    runtimeCritical: {
+      status: runtimeCritical.length > 0 ? "ready" : "none",
+      count: runtimeCritical.length,
+      description:
+        "Alerts with production/runtime impact by Dependabot scope, direct dependency group, or lockfile ownership.",
+      alerts: runtimeCritical.map(queueEntry),
+    },
+    devOnly: {
+      status: devOnly.length > 0 ? "ready" : "none",
+      count: devOnly.length,
+      description:
+        "Alerts isolated to development, test, lint, build, or local tooling ownership.",
+      alerts: devOnly.map(queueEntry),
+    },
+    transitive: {
+      status: transitive.length > 0 ? "ready" : "none",
+      count: transitive.length,
+      description:
+        "Alerts for packages that are not directly declared in package.json. This can overlap with runtime/dev impact.",
+      alerts: transitive.map(queueEntry),
+    },
+    blockedDeferred: {
+      status: blockedDeferred.length > 0 ? "needs_review" : "none",
+      count: blockedDeferred.length,
+      description:
+        "Alerts missing enough local or Dependabot metadata to select a safe package update.",
+      alerts: blockedDeferred.map(queueEntry),
+    },
+  };
+}
+
+function severityCounts(records) {
+  return records.reduce(
+    (counts, record) => {
+      const severity = normalizeSeverity(record.severity);
+      counts[severity] = (counts[severity] ?? 0) + 1;
+      return counts;
+    },
+    { critical: 0, high: 0, moderate: 0, low: 0, unknown: 0 },
+  );
+}
+
+function buildPackageGraphContext() {
+  const pkg = readJson("package.json") ?? {};
+  const lock = readJson("package-lock.json") ?? {};
+  return {
+    pkg,
+    lock,
+    lockPackages: packageLockPackages(lock),
+  };
+}
+
 function main() {
   mkdirSync(metricsDir, { recursive: true });
 
   const capturedAt = new Date().toISOString();
   const dependencyPosture = latestMetric("dependency-risk-posture-");
+  const alertImport = loadAlertImport();
+  const packageGraphContext = buildPackageGraphContext();
+  const importedRecords = alertImport?.alerts?.length
+    ? classifyImportedAlerts(alertImport.alerts, packageGraphContext)
+    : [];
+  const importedMode = importedRecords.length > 0;
+  const importBlocked = alertImport?.blocked ?? [];
+  const classification = importedMode
+    ? buildImportedClassification(importedRecords)
+    : buildPendingClassification();
   const artifact = {
     capturedAt,
     auditName: "DEPENDABOT-SECURITY-AUDIT",
     source: {
-      mode: "metadata-starter",
+      mode: importedMode ? "imported-alert-metadata" : "metadata-starter",
       githubReachableFromCodex: false,
       upgradesPerformed: false,
+      alertImportArtifact: alertImport?.file ?? null,
     },
     knownWarning,
+    importSummary: importedMode
+      ? {
+          alertCount: importedRecords.length,
+          severityCounts: severityCounts(importedRecords),
+          sourceFile: alertImport.file,
+          sanitizedOnly: true,
+        }
+      : null,
     packageGraph: buildPackageGraphSummary(),
     dependencyPosture: dependencyPosture?.data
       ? {
@@ -170,28 +505,68 @@ function main() {
           packageGraph: dependencyPosture.data.packageGraph ?? null,
         }
       : null,
-    metadataSource: buildMetadataSource(dependencyPosture),
-    classification: buildClassification(),
+    metadataSource: buildMetadataSource(dependencyPosture, alertImport),
+    classification,
+    upgradeQueue: importedMode
+      ? {
+          runtimeCritical: classification.runtimeCritical.alerts,
+          devOnly: classification.devOnly.alerts,
+          transitive: classification.transitive.alerts,
+          blockedDeferred: classification.blockedDeferred.alerts,
+        }
+      : {
+          runtimeCritical: [],
+          devOnly: [],
+          transitive: [],
+          blockedDeferred: [
+            "Dependabot package metadata is still required before selecting upgrade batches.",
+          ],
+        },
     upgradePolicy: buildUpgradePolicy(),
-    blocked: [
-      "GitHub Dependabot alert details are not reachable from this Codex shell.",
-      "No dependency upgrades were performed in this acceptance tranche.",
-      "Run the GitHub Dependabot UI or API from a network-enabled session to fill package names, vulnerable ranges, patched ranges, and direct/transitive ownership.",
-    ],
-    auditReady: false,
-    nextCommand:
-      "Review GitHub Dependabot metadata, classify alerts into runtime-critical, dev-only, transitive, and blocked/deferred, then run npm run verify after any minimal package update.",
+    blocked: importedMode
+      ? [
+          ...importBlocked,
+          "No dependency upgrades were performed in this audit tranche.",
+          "Review the runtimeCritical queue first, then patch one minimal package batch at a time.",
+        ].filter(Boolean)
+      : [
+          ...importBlocked,
+          "GitHub Dependabot alert details are not reachable from this Codex shell.",
+          "No dependency upgrades were performed in this acceptance tranche.",
+          "Run the GitHub Dependabot UI or API from a network-enabled session to fill package names, vulnerable ranges, patched ranges, and direct/transitive ownership.",
+        ],
+    importInstructions: {
+      normalPowerShell:
+        'gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "/repos/mad818/personal/dependabot/alerts?state=open&per_page=100" > docs\\metrics\\dependabot-alerts-source.json',
+      classify:
+        "npm run dependabot:audit:classify -- --alerts=docs\\metrics\\dependabot-alerts-source.json",
+    },
+    auditReady: importedMode,
+    nextCommand: importedMode
+      ? "Review classification.runtimeCritical, patch the smallest runtime-safe batch, then run npm run dependency:risk:posture and npm run verify."
+      : "Export GitHub Dependabot metadata from normal PowerShell, then run npm run dependabot:audit:classify -- --alerts=docs\\metrics\\dependabot-alerts-source.json.",
   };
 
   const fileName = `dependabot-security-audit-${capturedAt.replace(/[:.]/g, "-")}.json`;
   const outPath = join(metricsDir, fileName);
-  writeFileSync(outPath, `${JSON.stringify(artifact, null, 2)}\n`);
-
   const displayPath = relative(root, outPath).replace(/\\/g, "/");
-  console.log(`Dependabot security audit starter written: ${displayPath}`);
+
+  if (dryRun) {
+    console.log(`Dependabot security audit dry run: ${displayPath}`);
+  } else {
+    writeFileSync(outPath, `${JSON.stringify(artifact, null, 2)}\n`);
+    console.log(`Dependabot security audit starter written: ${displayPath}`);
+  }
   console.log(
-    `Known warning captured: ${knownWarning.totalAlerts} alerts (${knownWarning.severityCounts.critical} critical, ${knownWarning.severityCounts.high} high, ${knownWarning.severityCounts.moderate} moderate, ${knownWarning.severityCounts.low} low).`,
+    importedMode
+      ? `Imported alerts classified: ${importedRecords.length} (${artifact.importSummary.severityCounts.critical} critical, ${artifact.importSummary.severityCounts.high} high, ${artifact.importSummary.severityCounts.moderate} moderate, ${artifact.importSummary.severityCounts.low} low).`
+      : `Known warning captured: ${knownWarning.totalAlerts} alerts (${knownWarning.severityCounts.critical} critical, ${knownWarning.severityCounts.high} high, ${knownWarning.severityCounts.moderate} moderate, ${knownWarning.severityCounts.low} low).`,
   );
+  if (importedMode) {
+    console.log(
+      `Queues: ${classification.runtimeCritical.count} runtime, ${classification.devOnly.count} dev-only, ${classification.transitive.count} transitive, ${classification.blockedDeferred.count} blocked/deferred.`,
+    );
+  }
   if (!existsSync(join(root, "package-lock.json"))) {
     console.log("Warning: package-lock.json was not found for package graph summary.");
   }

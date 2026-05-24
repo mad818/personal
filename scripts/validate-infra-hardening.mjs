@@ -126,7 +126,13 @@ function main() {
   checkPackageScript(
     pkg,
     "validate:infra-hardening",
-    "node scripts/validate-infra-hardening.mjs",
+    "npm run dependabot:audit:check && node scripts/validate-infra-hardening.mjs",
+    findings,
+  );
+  checkPackageScript(
+    pkg,
+    "dependabot:audit:check",
+    "node scripts/validate-dependabot-security-audit.mjs",
     findings,
   );
   checkFile("scripts/dependency-risk-posture.mjs", findings);

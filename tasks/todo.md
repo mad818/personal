@@ -47,6 +47,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] ESCAPE-IP-PRIVACY-GUARD — Prevent accidental public-IP exposure from the stream connect shelf by classifying links as private/local or public and locking public links until a VPN/Tailscale exit-node/privacy route is confirmed.
+  - Current pass: add a scoped feature spec, network-scope metadata in `inspectSecureLink`, public-link lock states in the stream shelf, and copy that makes clear Nexus cannot hide a browser IP by itself.
+  - Guardrail: no false anonymity claims, no built-in proxy, no IP lookup service, no public route, no logging/publishing of client IPs, and no unsafe link-opening bypass.
+  - Progress: added `specs/features/escape-ip-privacy-guard.md`, `docs/superpowers/plans/2026-05-24-escape-ip-privacy-guard.md`, network-scope and `requiresIpPrivacy` metadata in `lib/secureLink.ts`, and public-link locking plus session-only privacy route confirmation in `components/resources/SecureLinkOpenPanel.tsx`. `npx tsc --noEmit`, `npm run lint`, `npm run verify`, `git diff --check`, and live dev-route proof passed: `/api/health` returned 200, `/resources?view=escape` returned 200, unauthenticated `/api/subscription-escape` returned 401, and unauthenticated `/api/subscription-escape/assets/not-real.png` returned 401.
+
 - [x] ESCAPE-STREAM-CONNECT-SHELF — Make secure link opening feel like a private streaming site: paste a link, validate it, save it as a sorted tile, and connect securely from the Escape shelf.
   - Current pass: add a scoped feature spec, persisted secure stream-link records, safe state normalization, a streaming-style connect shelf, search/filter/sort/favorite controls, and secure open/copy/remove actions.
   - Guardrail: Nexus opens approved links only; it does not proxy streams, scrape paid libraries, bypass DRM/paywalls, store credential-bearing URLs, fetch remote previews, or allow unsafe public HTTP.

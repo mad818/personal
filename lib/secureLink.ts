@@ -1,7 +1,16 @@
 export type SecureLinkRisk = "empty" | "safe" | "private" | "blocked";
 
+export type SecureLinkNetworkScope =
+  | "unknown"
+  | "same-app"
+  | "private"
+  | "public"
+  | "blocked";
+
 export interface SecureLinkInspection {
   risk: SecureLinkRisk;
+  networkScope: SecureLinkNetworkScope;
+  requiresIpPrivacy: boolean;
   canOpen: boolean;
   label: string;
   reason: string;
@@ -16,6 +25,8 @@ const SCHEME_PATTERN = /^[a-z][a-z0-9+.-]*:/i;
 function blocked(reason: string): SecureLinkInspection {
   return {
     risk: "blocked",
+    networkScope: "blocked",
+    requiresIpPrivacy: false,
     canOpen: false,
     label: "Blocked",
     reason,
@@ -72,6 +83,8 @@ export function inspectSecureLink(input: string): SecureLinkInspection {
   if (!trimmed) {
     return {
       risk: "empty",
+      networkScope: "unknown",
+      requiresIpPrivacy: false,
       canOpen: false,
       label: "Waiting",
       reason: "Paste a link to validate it before opening.",
@@ -86,6 +99,8 @@ export function inspectSecureLink(input: string): SecureLinkInspection {
   if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
     return {
       risk: "safe",
+      networkScope: "same-app",
+      requiresIpPrivacy: false,
       canOpen: true,
       label: "Same app",
       reason: "This opens inside the current Nexus host without a referrer.",
@@ -101,11 +116,16 @@ export function inspectSecureLink(input: string): SecureLinkInspection {
       return blocked("Links with embedded usernames or passwords are blocked.");
     }
     if (protocol === "https:") {
+      const privateHost = isPrivateHost(url.hostname);
       return {
-        risk: "safe",
+        risk: privateHost ? "private" : "safe",
+        networkScope: privateHost ? "private" : "public",
+        requiresIpPrivacy: !privateHost,
         canOpen: true,
-        label: "HTTPS",
-        reason: "This opens in a new tab without opener access or referrer.",
+        label: privateHost ? "Private HTTPS" : "Public HTTPS",
+        reason: privateHost
+          ? "Private host. This stays on localhost, LAN, or Tailscale-style access."
+          : "Public site. The destination can see your network IP unless a VPN, Tailscale exit node, or privacy route is active.",
         href: url.toString(),
         displayHost: url.hostname,
       };
@@ -116,6 +136,8 @@ export function inspectSecureLink(input: string): SecureLinkInspection {
       }
       return {
         risk: "private",
+        networkScope: "private",
+        requiresIpPrivacy: false,
         canOpen: true,
         label: "Private HTTP",
         reason:

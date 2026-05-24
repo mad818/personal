@@ -94,6 +94,23 @@ function badgeTone(risk: ReturnType<typeof inspectSecureLink>["risk"]) {
   return "muted";
 }
 
+function scopeBadgeTone(
+  scope: ReturnType<typeof inspectSecureLink>["networkScope"],
+) {
+  if (scope === "private" || scope === "same-app") return "success";
+  if (scope === "public") return "default";
+  if (scope === "blocked") return "default";
+  return "muted";
+}
+
+function scopeLabel(scope: ReturnType<typeof inspectSecureLink>["networkScope"]) {
+  if (scope === "same-app") return "Same app";
+  if (scope === "private") return "Private";
+  if (scope === "public") return "Public IP risk";
+  if (scope === "blocked") return "Blocked";
+  return "Unknown";
+}
+
 function titleCase(value: string) {
   return value
     .replace(/[-_.]+/g, " ")
@@ -166,6 +183,7 @@ export default function SecureLinkOpenPanel({
   const [categoryFilter, setCategoryFilter] =
     useState<SecureStreamLinkCategory | "all">("all");
   const [sort, setSort] = useState<StreamLinkSort>("favorite");
+  const [privacyRouteConfirmed, setPrivacyRouteConfirmed] = useState(false);
   const [message, setMessage] = useState("");
   const inspection = useMemo(() => inspectSecureLink(link), [link]);
   const visibleLinks = useMemo(
@@ -173,6 +191,9 @@ export default function SecureLinkOpenPanel({
     [categoryFilter, links, query, sort],
   );
   const favoriteCount = links.filter((item) => item.favorite).length;
+  const publicLinkCount = links.filter(
+    (item) => inspectSecureLink(item.url).requiresIpPrivacy,
+  ).length;
 
   async function copyLink(href: string) {
     try {
@@ -264,6 +285,49 @@ export default function SecureLinkOpenPanel({
           <SectionLabel detail="Validated input">Posture</SectionLabel>
           <strong style={{ fontSize: "16px" }}>{inspection.label}</strong>
         </div>
+        <div style={cardStyle(publicLinkCount ? "accent" : "normal")}>
+          <SectionLabel detail="VPN/exit-node check">IP guard</SectionLabel>
+          <strong style={{ fontSize: "16px" }}>
+            {publicLinkCount
+              ? privacyRouteConfirmed
+                ? "Public unlocked"
+                : "Public locked"
+              : "Private only"}
+          </strong>
+        </div>
+      </div>
+
+      <div style={cardStyle()}>
+        <SectionLabel detail="Session only">IP privacy route</SectionLabel>
+        <label
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "flex-start",
+            marginTop: "10px",
+            color: "var(--text2)",
+            fontSize: "12px",
+            lineHeight: 1.5,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={privacyRouteConfirmed}
+            onChange={(event) => {
+              setPrivacyRouteConfirmed(event.target.checked);
+              setMessage(
+                event.target.checked
+                  ? "Public links unlocked for this session."
+                  : "Public links locked.",
+              );
+            }}
+          />
+          <span>
+            VPN, Tailscale exit node, or another privacy route is active before
+            opening public links. Nexus does not look up, store, or hide your IP
+            by itself.
+          </span>
+        </label>
       </div>
 
       <div style={cardStyle()}>
@@ -345,6 +409,9 @@ export default function SecureLinkOpenPanel({
           {inspection.displayHost ? (
             <ShellBadge tone="muted">{inspection.displayHost}</ShellBadge>
           ) : null}
+          <ShellBadge tone={scopeBadgeTone(inspection.networkScope)}>
+            {scopeLabel(inspection.networkScope)}
+          </ShellBadge>
           <ShellBadge
             tone={
               saveStatus === "error"
@@ -440,7 +507,18 @@ export default function SecureLinkOpenPanel({
           }}
         >
           {visibleLinks.map((item) => (
-            <div key={item.id} style={cardStyle(item.favorite ? "accent" : "normal")}>
+            <div
+              key={item.id}
+              style={cardStyle(item.favorite ? "accent" : "normal")}
+            >
+              {(() => {
+                const tileInspection = inspectSecureLink(item.url);
+                const connectAllowed =
+                  tileInspection.canOpen &&
+                  (!tileInspection.requiresIpPrivacy ||
+                    privacyRouteConfirmed);
+                return (
+                  <>
               <div
                 style={{
                   aspectRatio: "16 / 10",
@@ -456,6 +534,9 @@ export default function SecureLinkOpenPanel({
                 <ShellBadge tone={item.favorite ? "success" : "muted"}>
                   {SECURE_STREAM_LINK_CATEGORY_LABELS[item.category]}
                 </ShellBadge>
+                <ShellBadge tone={scopeBadgeTone(tileInspection.networkScope)}>
+                  {scopeLabel(tileInspection.networkScope)}
+                </ShellBadge>
                 <strong style={{ fontSize: "18px" }}>{item.title}</strong>
               </div>
               <p
@@ -468,6 +549,18 @@ export default function SecureLinkOpenPanel({
               >
                 {hostFromHref(item.url)}
               </p>
+              {tileInspection.requiresIpPrivacy && !privacyRouteConfirmed ? (
+                <p
+                  style={{
+                    margin: "6px 0 0",
+                    color: "var(--text2)",
+                    fontSize: "11px",
+                    lineHeight: 1.45,
+                  }}
+                >
+                  Locked until VPN or exit-node route is confirmed.
+                </p>
+              ) : null}
               <div
                 style={{
                   display: "grid",
@@ -476,16 +569,24 @@ export default function SecureLinkOpenPanel({
                   marginTop: "10px",
                 }}
               >
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  referrerPolicy="no-referrer"
-                  onClick={() => setMessage(`Connecting to "${item.title}".`)}
-                  style={buttonStyle(true)}
-                >
-                  Connect
-                </a>
+                {connectAllowed ? (
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    referrerPolicy="no-referrer"
+                    onClick={() =>
+                      setMessage(`Connecting to "${item.title}".`)
+                    }
+                    style={buttonStyle(true)}
+                  >
+                    Connect
+                  </a>
+                ) : (
+                  <span aria-disabled="true" style={buttonStyle(false)}>
+                    Locked
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={() => void copyLink(item.url)}
@@ -510,6 +611,9 @@ export default function SecureLinkOpenPanel({
                   Remove
                 </button>
               </div>
+                  </>
+                );
+              })()}
             </div>
           ))}
         </div>

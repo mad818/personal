@@ -7,6 +7,7 @@ import {
   summarizePhoneAcceptanceReceipts,
   type PhoneAcceptanceReceiptInput,
 } from "@/lib/phoneAcceptanceReceipts";
+import { buildPhoneAcceptanceLiveStatus } from "@/lib/phoneAcceptanceStatus";
 import { readProtectedActionContext } from "@/lib/security/toolCapabilityPolicy";
 
 export const dynamic = "force-dynamic";
@@ -21,9 +22,11 @@ export async function GET() {
   try {
     const receipts = await readPhoneAcceptanceReceipts();
     const summary = summarizePhoneAcceptanceReceipts(receipts);
+    const status = buildPhoneAcceptanceLiveStatus(summary);
     return protectedJson({
       ok: true,
       summary,
+      status,
       receipts: summary.recent,
     });
   } catch {
@@ -52,11 +55,13 @@ export async function POST(req: NextRequest) {
     });
     const receipts = await readPhoneAcceptanceReceipts();
     const summary = summarizePhoneAcceptanceReceipts(receipts);
+    const status = buildPhoneAcceptanceLiveStatus(summary);
     return protectedJson(
       {
         ok: true,
         receipt,
         summary,
+        status,
       },
       { status: 201 },
     );

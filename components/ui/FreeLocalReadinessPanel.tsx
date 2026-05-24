@@ -17,6 +17,10 @@ import {
   getStepTone,
   type PhoneAcceptanceStep,
 } from "@/lib/freeLocalOperations";
+import type {
+  PhoneAcceptanceLiveStatus,
+  PhoneAcceptanceLiveStatusItem,
+} from "@/lib/phoneAcceptanceStatus";
 import { useStore } from "@/store/useStore";
 import { ShellBadge, ShellButton } from "@/components/ui/shell";
 import OperationalLightGrid from "@/components/ui/OperationalLightGrid";
@@ -130,6 +134,24 @@ function ChecklistStep({ step }: { step: PhoneAcceptanceStep }) {
   );
 }
 
+function LiveStatusProofItem({ item }: { item: PhoneAcceptanceLiveStatusItem }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="text-sm font-black text-[var(--text)]">
+          {item.label}
+        </div>
+        <ShellBadge tone={item.passed ? "success" : "muted"}>
+          {item.passed ? "done" : "waiting"}
+        </ShellBadge>
+      </div>
+      <p className="mt-1 text-xs leading-5 text-[var(--text2)]">
+        {item.detail}
+      </p>
+    </div>
+  );
+}
+
 export default function FreeLocalReadinessPanel({
   compact = false,
 }: {
@@ -142,6 +164,10 @@ export default function FreeLocalReadinessPanel({
   );
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [phoneAcceptanceStatus, setPhoneAcceptanceStatus] =
+    useState<PhoneAcceptanceLiveStatus | null>(null);
+  const [phoneAcceptanceStatusLoading, setPhoneAcceptanceStatusLoading] =
+    useState(false);
   const [browserStorage, setBrowserStorage] =
     useState<BrowserStorageStatus>("checking");
   const [copiedTarget, setCopiedTarget] = useState<string | null>(null);
@@ -186,6 +212,32 @@ export default function FreeLocalReadinessPanel({
       if (!signal?.aborted) setLoading(false);
     }
   }, [settings.localModel]);
+
+  const refreshPhoneAcceptanceStatus = useCallback(
+    async (signal?: AbortSignal) => {
+      setPhoneAcceptanceStatusLoading(true);
+      try {
+        const response = await apiFetch("/api/phone-acceptance/receipt", {
+          cache: "no-store",
+          signal,
+        });
+        if (signal?.aborted) return;
+        if (!response.ok) {
+          setPhoneAcceptanceStatus(null);
+          return;
+        }
+        const payload = (await response.json()) as {
+          status?: PhoneAcceptanceLiveStatus;
+        };
+        setPhoneAcceptanceStatus(payload.status ?? null);
+      } catch {
+        if (!signal?.aborted) setPhoneAcceptanceStatus(null);
+      } finally {
+        if (!signal?.aborted) setPhoneAcceptanceStatusLoading(false);
+      }
+    },
+    [],
+  );
 
   const copyToClipboard = useCallback(async (label: string, value: string) => {
     try {
@@ -233,6 +285,34 @@ export default function FreeLocalReadinessPanel({
   }, [refresh]);
 
   useEffect(() => {
+    if (!snapshot) {
+      setPhoneAcceptanceStatus(null);
+      return;
+    }
+
+    let controller: AbortController | null = null;
+    const run = () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      controller?.abort();
+      controller = new AbortController();
+      void refreshPhoneAcceptanceStatus(controller.signal);
+    };
+
+    run();
+    const interval = window.setInterval(run, 15_000);
+    const handleVisibility = () => {
+      if (document.hidden) return;
+      run();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      controller?.abort();
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [refreshPhoneAcceptanceStatus, snapshot]);
+
+  useEffect(() => {
     if (!snapshot || browserStorage === "checking" || receiptPingedRef.current) {
       return;
     }
@@ -268,6 +348,15 @@ export default function FreeLocalReadinessPanel({
         if (!response.ok) {
           receiptPingedRef.current = false;
           return;
+        }
+
+        try {
+          const payload = (await response.json()) as {
+            status?: PhoneAcceptanceLiveStatus;
+          };
+          if (payload.status) setPhoneAcceptanceStatus(payload.status);
+        } catch {
+          // Silent: the receipt itself succeeded, live status can refresh later.
         }
 
         try {
@@ -538,6 +627,71 @@ export default function FreeLocalReadinessPanel({
             {phoneChecklist.steps.map((step) => (
               <ChecklistStep key={step.id} step={step} />
             ))}
+          </div>
+          <div
+            className="grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-3"
+            data-testid="free-local-phone-acceptance-live-status"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text3)]">
+                  Live receipt proof
+                </div>
+                <div className="mt-1 text-sm font-black text-[var(--text)]">
+                  {phoneAcceptanceStatus?.acceptanceReady
+                    ? "Phone acceptance proof is complete"
+                    : "Waiting for phone receipt proof"}
+                </div>
+                <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--text2)]">
+                  Protected receipts update here with booleans, counts, and sanitized
+                  timestamps only.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <ShellBadge
+                  tone={
+                    phoneAcceptanceStatus
+                      ? badgeTone(phoneAcceptanceStatus.overallStatus)
+                      : "muted"
+                  }
+                >
+                  {phoneAcceptanceStatus
+                    ? formatFreeLocalStatusLabel(
+                        phoneAcceptanceStatus.overallStatus,
+                      )
+                    : "checking"}
+                </ShellBadge>
+                <ShellButton
+                  onClick={() => void refreshPhoneAcceptanceStatus()}
+                  disabled={phoneAcceptanceStatusLoading}
+                >
+                  {phoneAcceptanceStatusLoading
+                    ? "Refreshing..."
+                    : "Refresh receipt proof"}
+                </ShellButton>
+              </div>
+            </div>
+            {phoneAcceptanceStatus ? (
+              <>
+                <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                  {phoneAcceptanceStatus.items.map((item) => (
+                    <LiveStatusProofItem key={item.id} item={item} />
+                  ))}
+                </div>
+                <div className="text-[11px] font-bold leading-5 text-[var(--text3)]">
+                  Mobile receipts: {phoneAcceptanceStatus.mobileReceiptCount} /{" "}
+                  {phoneAcceptanceStatus.receiptCount}
+                  {phoneAcceptanceStatus.latestAt
+                    ? ` · Latest ${phoneAcceptanceStatus.latestAt}`
+                    : " · No recent receipt yet"}
+                </div>
+              </>
+            ) : (
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs leading-5 text-[var(--text2)]">
+                Receipt status will appear after the protected local receipt API is
+                reachable from this session.
+              </div>
+            )}
           </div>
         </div>
 

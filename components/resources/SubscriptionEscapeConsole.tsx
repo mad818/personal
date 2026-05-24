@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
 import EscapeAccessBackupPanel from "@/components/resources/EscapeAccessBackupPanel";
 import MediaEscapeLibrary from "@/components/resources/MediaEscapeLibrary";
+import SecureLinkOpenPanel from "@/components/resources/SecureLinkOpenPanel";
 import {
   calculateSubscriptionEscapeTotals,
   countCompletedSafetySteps,
@@ -449,6 +450,8 @@ export default function SubscriptionEscapeConsole() {
         onReplaceState={replaceState}
         onChangeAccess={updateAccess}
       />
+
+      <SecureLinkOpenPanel />
 
       <MediaEscapeLibrary
         items={state.mediaLibrary}

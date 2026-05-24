@@ -47,6 +47,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] ESCAPE-SECURE-LINK-OPENER — Add a safe local option for opening links from the Escape lane with URL validation, private-network awareness, and explicit operator click-through.
+  - Current pass: add a scoped feature spec, secure URL inspection helper, protected Escape UI panel, and verification without fetching/unfurling pasted links or storing link history.
+  - Guardrail: no automatic opening, no unsafe protocols, no public plain-HTTP links, no credential-bearing URLs, no remote preview fetches, and no public unauthenticated route.
+  - Progress: added `specs/features/escape-secure-link-opener.md`, `docs/superpowers/plans/2026-05-24-escape-secure-link-opener.md`, deterministic local URL inspection in `lib/secureLink.ts`, the protected `components/resources/SecureLinkOpenPanel.tsx`, and mounted it inside `components/resources/SubscriptionEscapeConsole.tsx`. `npx tsc --noEmit`, `npm run lint`, `npm run verify`, `git diff --check`, and live dev-route proof passed: `/api/health` returned 200, `/resources?view=escape` returned 200, unauthenticated `/api/subscription-escape` returned 401, and unauthenticated `/api/subscription-escape/assets/not-real.png` returned 401.
+
 - [x] MEDIA-ESCAPE-INTAKE-QUEUE — Add a local review queue so movies and music can be pasted in from filenames/paths, checked for likely duplicates, cleaned up, and imported into the library only after review.
   - Current pass: add a scoped feature spec, intake-state normalization, filename parsing helpers, duplicate detection, a review queue UI, import/ignore actions, and a missing-info board without scanning arbitrary host folders or exposing media publicly.
   - Guardrail: pasted paths are catalog metadata only; no automatic filesystem crawling, piracy, DRM bypass, paid metadata lookup, public media endpoint, or cloud source of truth.

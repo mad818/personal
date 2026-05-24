@@ -181,7 +181,8 @@ function main() {
       phoneAcceptanceReady: phone?.data?.acceptanceReady === true,
       localAiOfflineReady:
         phone?.data?.acceptanceReady === true &&
-        phone?.data?.manualPhoneProof?.localAiReceipt === true,
+        (phone?.data?.combinedPhoneProof?.localAiReceipt === true ||
+          phone?.data?.manualPhoneProof?.localAiReceipt === true),
       releaseDiagnosticsReady: release?.data?.releaseProofReady === true,
       dependencyAuditReady: dependencyAudit?.data?.auditReady === true,
       dependencyRiskReady: dependencyPosture?.data?.riskReady === true,
@@ -194,6 +195,8 @@ function main() {
             routes: phone.data.routes ?? null,
             readinessSummary: phone.data.readinessSummary ?? null,
             manualPhoneProof: phone.data.manualPhoneProof ?? null,
+            receiptPhoneProof: phone.data.receiptPhoneProof ?? null,
+            combinedPhoneProof: phone.data.combinedPhoneProof ?? null,
             blocked: phone.data.blocked ?? [],
             acceptanceReady: phone.data.acceptanceReady === true,
           }

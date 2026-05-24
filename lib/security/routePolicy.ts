@@ -23,6 +23,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/agent-health", routeClass: "local_only", public: false },
   { prefix: "/api/agent-learnings", routeClass: "local_only", public: false },
   { prefix: "/api/free-local-readiness", routeClass: "local_only", public: false },
+  { prefix: "/api/phone-acceptance/receipt", routeClass: "local_only", public: false },
   { prefix: "/api/token", routeClass: "local_only", public: true },
   { prefix: "/api/health", routeClass: "local_only", public: true },
   { prefix: "/api/auth-diagnostics", routeClass: "local_only", public: true },

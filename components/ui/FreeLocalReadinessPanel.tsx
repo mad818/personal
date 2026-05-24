@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
 import type {
   FreeLocalReadinessSection,
@@ -41,6 +41,31 @@ function storageLabel(status: BrowserStorageStatus) {
   if (status === "ready") return "Browser storage ready";
   if (status === "blocked") return "Browser storage blocked";
   return "Checking browser storage";
+}
+
+function getPwaDisplayMode() {
+  try {
+    const navigatorWithStandalone = navigator as Navigator & {
+      standalone?: boolean;
+    };
+    if (
+      navigatorWithStandalone.standalone === true ||
+      window.matchMedia?.("(display-mode: standalone)")?.matches
+    ) {
+      return "standalone";
+    }
+    return "browser";
+  } catch {
+    return "unknown";
+  }
+}
+
+function getCurrentInternalRoute() {
+  try {
+    return `${window.location.pathname}${window.location.search}`;
+  } catch {
+    return "/";
+  }
 }
 
 function ReadinessRow({ item }: { item: FreeLocalReadinessSection }) {
@@ -120,6 +145,7 @@ export default function FreeLocalReadinessPanel({
   const [browserStorage, setBrowserStorage] =
     useState<BrowserStorageStatus>("checking");
   const [copiedTarget, setCopiedTarget] = useState<string | null>(null);
+  const receiptPingedRef = useRef(false);
 
   useEffect(() => {
     try {
@@ -205,6 +231,57 @@ export default function FreeLocalReadinessPanel({
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [refresh]);
+
+  useEffect(() => {
+    if (!snapshot || browserStorage === "checking" || receiptPingedRef.current) {
+      return;
+    }
+
+    receiptPingedRef.current = true;
+    const route = getCurrentInternalRoute();
+    const receiptKey = `nexus-phone-acceptance-receipt:${route}`;
+
+    const run = async () => {
+      try {
+        try {
+          if (window.sessionStorage.getItem(receiptKey)) return;
+        } catch {
+          // Session storage can be blocked on phone browsers; the receipt still helps.
+        }
+
+        const pwaDisplayMode = getPwaDisplayMode();
+        const response = await apiFetch("/api/phone-acceptance/receipt", {
+          method: "POST",
+          cache: "no-store",
+          body: JSON.stringify({
+            source: "free-local-readiness-panel",
+            route,
+            browserStorageReady: browserStorage === "ready",
+            pwaDisplayMode,
+            pwaCapable:
+              snapshot.phoneLan.pwaReady &&
+              typeof navigator !== "undefined" &&
+              "serviceWorker" in navigator,
+          }),
+        });
+
+        if (!response.ok) {
+          receiptPingedRef.current = false;
+          return;
+        }
+
+        try {
+          window.sessionStorage.setItem(receiptKey, "1");
+        } catch {
+          // Silent: receipt already reached the local API.
+        }
+      } catch {
+        receiptPingedRef.current = false;
+      }
+    };
+
+    void run();
+  }, [browserStorage, snapshot]);
 
   const rows = useMemo(() => {
     if (!snapshot) return [];

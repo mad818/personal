@@ -15,6 +15,7 @@ dist/
 data/subscription-escape*.json
 data/subscription-escape*.json.enc
 data/subscription-escape-assets/
+data/phone-acceptance-receipts*.json
 *.log
 .nexus-runtime-identity.json
 .nexus-runtime.pid

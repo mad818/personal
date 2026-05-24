@@ -14,6 +14,7 @@ const DEFAULT_ROUTES = [
   "/hq?focus=hq-chronicle",
   "/command",
   "/api/free-local-readiness",
+  "/api/phone-acceptance/receipt",
 ];
 
 const PRIVATE_LAN_IP_RE =
@@ -214,6 +215,50 @@ async function fetchReadiness(baseUrl, token) {
   }
 }
 
+async function fetchReceiptSummary(baseUrl, token) {
+  if (!token) {
+    return {
+      ok: false,
+      status: 0,
+      summary: null,
+      error: "NEXUS_TOKEN unavailable; protected receipt capture skipped.",
+    };
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const response = await fetch(`${baseUrl}/api/phone-acceptance/receipt`, {
+      headers: { [INTERNAL_AUTH_HEADER]: token },
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        summary: null,
+      };
+    }
+
+    const payload = await response.json();
+    return {
+      ok: true,
+      status: response.status,
+      summary: sanitizeValue(payload?.summary ?? null),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      summary: null,
+      error: sanitizeString(error instanceof Error ? error.message : String(error)),
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function summarizeReadiness(snapshot) {
   return sanitizeValue({
     overallStatus: snapshot?.overallStatus ?? "unknown",
@@ -296,13 +341,54 @@ function readinessIsLocalFree(summary) {
   );
 }
 
-function manualProofBlockedReasons(manual) {
+function buildReceiptPhoneProof(summary) {
+  return {
+    receiptAvailable: Boolean(summary),
+    latestAt: summary?.latestAt ?? null,
+    receiptCount: summary?.count ?? 0,
+    mobileReceiptCount: summary?.mobileCount ?? 0,
+    phoneOpened: summary?.phoneOpened === true,
+    phoneLogin: summary?.mobileAuthenticated === true,
+    browserStorageReady: summary?.browserStorageReady === true,
+    pwaCapable: summary?.pwaCapable === true,
+    pingReceipt: summary?.localFastPathReceipt === true,
+    localAiReceipt: summary?.localAiReceipt === true,
+    pwaInstalled: summary?.pwaInstalled === true,
+  };
+}
+
+function combinePhoneProof(manual, receipt) {
+  return {
+    phoneOpened: manual.phoneOpened || receipt.phoneOpened,
+    phoneLogin: manual.phoneLogin || receipt.phoneLogin,
+    pingReceipt: manual.pingReceipt || receipt.pingReceipt,
+    localAiReceipt: manual.localAiReceipt || receipt.localAiReceipt,
+    pwaInstalled: manual.pwaInstalled || receipt.pwaInstalled,
+    browserStorageReady: receipt.browserStorageReady,
+    pwaCapable: receipt.pwaCapable,
+    receiptCount: receipt.receiptCount,
+    mobileReceiptCount: receipt.mobileReceiptCount,
+    latestReceiptAt: receipt.latestAt,
+  };
+}
+
+function phoneProofBlockedReasons(proof) {
   const blocked = [];
-  if (!manual.phoneOpened) blocked.push("Manual phone proof missing: phone opened LAN URL.");
-  if (!manual.phoneLogin) blocked.push("Manual phone proof missing: phone logged in with NEXUS_TOKEN.");
-  if (!manual.pingReceipt) blocked.push("Manual phone proof missing: HQ ping receipt.");
-  if (!manual.localAiReceipt) blocked.push("Manual phone proof missing: local AI receipt.");
-  if (!manual.pwaInstalled) blocked.push("Manual phone proof missing: PWA install.");
+  if (!proof.phoneOpened) {
+    blocked.push("Phone proof missing: phone or iPad opened the LAN URL.");
+  }
+  if (!proof.phoneLogin) {
+    blocked.push("Phone proof missing: phone logged in with NEXUS_TOKEN.");
+  }
+  if (!proof.pingReceipt) {
+    blocked.push("Phone proof missing: HQ ping receipt.");
+  }
+  if (!proof.localAiReceipt) {
+    blocked.push("Phone proof missing: local AI receipt.");
+  }
+  if (!proof.pwaInstalled) {
+    blocked.push("Phone proof missing: PWA install.");
+  }
   return blocked;
 }
 
@@ -324,6 +410,9 @@ async function main() {
   }
 
   const readiness = await fetchReadiness(baseUrl, token);
+  const receipts = await fetchReceiptSummary(baseUrl, token);
+  const receiptPhoneProof = buildReceiptPhoneProof(receipts.summary);
+  const combinedPhoneProof = combinePhoneProof(args.manual, receiptPhoneProof);
   const blocked = [];
 
   for (const result of routeResults) {
@@ -342,10 +431,15 @@ async function main() {
       `Free Local Readiness capture did not return 200 (${readiness.status || "ERR"}).`,
     );
   }
+  if (!receipts.ok) {
+    blocked.push(
+      `Phone acceptance receipt capture did not return 200 (${receipts.status || "ERR"}).`,
+    );
+  }
   if (!readinessIsLocalFree(readiness.summary)) {
     blocked.push("Free Local Readiness is not fully local/free for phone acceptance.");
   }
-  blocked.push(...manualProofBlockedReasons(args.manual));
+  blocked.push(...phoneProofBlockedReasons(combinedPhoneProof));
 
   const artifact = {
     capturedAt: capturedAt.toISOString(),
@@ -353,6 +447,8 @@ async function main() {
     routes: sanitizeValue(routeResults),
     readinessSummary: readiness.summary,
     manualPhoneProof: args.manual,
+    receiptPhoneProof,
+    combinedPhoneProof,
     blocked,
     acceptanceReady: blocked.length === 0,
   };

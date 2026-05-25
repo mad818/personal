@@ -8,6 +8,7 @@ Use this runbook after the metadata-only Dependabot audit identifies concrete pa
 - Do not run a broad package upgrade sweep before classifying the alerts.
 - Patch one minimal dependency batch at a time.
 - Prefer runtime-critical alerts first, then dev-only alerts that affect verification, then transitive alerts by parent package.
+- Keep retired `archive/` dependency files under archival names only; do not restore live manifest names in `archive/`.
 - Keep package upgrades separate from unrelated UI or product work.
 
 ## Upgrade Order
@@ -22,12 +23,13 @@ Use this runbook after the metadata-only Dependabot audit identifies concrete pa
    ```
 
 4. Classify each alert as active runtime-critical, dev-only, transitive, retired-manifest, or blocked/deferred from the sanitized audit artifact.
-5. Pick the smallest runtime-critical batch with a known patched range.
-6. Apply that package update only.
-7. Run `npm run dependency:risk:posture`.
-8. Run `npm run verify`.
-9. Run `npm run publication:safety:check`.
-10. Commit only that batch if all gates pass.
+5. For retired-manifest alerts, verify `npm run archive:manifest:check` and wait for GitHub to rescan before treating them as active runtime work.
+6. Pick the smallest runtime-critical batch with a known patched range.
+7. Apply that package update only.
+8. Run `npm run dependency:risk:posture`.
+9. Run `npm run verify`.
+10. Run `npm run publication:safety:check`.
+11. Commit only that batch if all gates pass.
 
 ## Rollback
 

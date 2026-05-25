@@ -42,6 +42,8 @@ assertIncludes(runner, "runtimeImpact", "audit runner");
 assertIncludes(runner, "devOnlyImpact", "audit runner");
 assertIncludes(runner, "transitiveOwnership", "audit runner");
 assertIncludes(runner, "retiredManifest", "audit runner");
+assertIncludes(runner, "retiredManifestQuarantine", "audit runner");
+assertIncludes(runner, "package.archived.json", "audit runner");
 assertIncludes(runner, "archive/", "audit runner");
 assertIncludes(runner, "firstPatchedVersion", "audit runner");
 assertIncludes(runner, "dependabot-alerts-source", "audit runner");
@@ -59,6 +61,11 @@ if (
 assertIncludes(
   packageJson.scripts?.["validate:infra-hardening"] ?? "",
   "dependabot:audit:check",
+  "validate:infra-hardening script",
+);
+assertIncludes(
+  packageJson.scripts?.["validate:infra-hardening"] ?? "",
+  "archive:manifest:check",
   "validate:infra-hardening script",
 );
 

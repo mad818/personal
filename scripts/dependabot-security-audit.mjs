@@ -84,6 +84,29 @@ function isRetiredManifest(manifestPath) {
   return Boolean(normalized?.startsWith("archive/"));
 }
 
+function archiveManifestQuarantineStatus() {
+  const liveManifests = [
+    "archive/package.json",
+    "archive/pnpm-lock.yaml",
+    "archive/package-lock.json",
+    "archive/yarn.lock",
+  ];
+  const archivedFiles = [
+    "archive/package.archived.json",
+    "archive/pnpm-lock.archived.yaml",
+  ];
+  const liveManifestsPresent = liveManifests.filter((file) => existsSync(join(root, file)));
+  const archivedFilesPresent = archivedFiles.filter((file) => existsSync(join(root, file)));
+
+  return {
+    quarantined: liveManifestsPresent.length === 0 && archivedFilesPresent.length === archivedFiles.length,
+    liveManifestsPresent,
+    archivedFilesPresent,
+    note:
+      "Retired archive dependency files are preserved under non-manifest names so GitHub does not treat them as active package manifests after rescan.",
+  };
+}
+
 function directDependencyGroups(pkg) {
   const groups = new Map();
   for (const group of [
@@ -577,6 +600,7 @@ function main() {
         }
       : null,
     metadataSource: buildMetadataSource(dependencyPosture, alertImport),
+    retiredManifestQuarantine: archiveManifestQuarantineStatus(),
     classification,
     upgradeQueue: importedMode
       ? {

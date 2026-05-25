@@ -125,10 +125,17 @@ function main() {
   );
   checkPackageScript(
     pkg,
-    "validate:infra-hardening",
-    "npm run dependabot:audit:check && node scripts/validate-infra-hardening.mjs",
+    "archive:manifest:check",
+    "node scripts/validate-archive-manifest-quarantine.mjs",
     findings,
   );
+  checkPackageScript(
+    pkg,
+    "validate:infra-hardening",
+    "npm run archive:manifest:check && npm run dependabot:audit:check && node scripts/validate-infra-hardening.mjs",
+    findings,
+  );
+  checkFile("scripts/validate-archive-manifest-quarantine.mjs", findings);
   checkPackageScript(
     pkg,
     "dependabot:audit:check",

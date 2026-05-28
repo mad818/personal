@@ -263,7 +263,7 @@ export default function SecureLinkOpenPanel({
         compact
         icon="S"
         title="Stream connect shelf"
-        description="Paste a local, Tailscale, or HTTPS media link. Nexus validates it, saves it as a private tile, and connects without opener access or referrer."
+        description="Paste a local, Tailscale, or HTTPS media or reading link. Nexus validates it, saves it as a private tile, and connects without opener access or referrer."
       />
 
       <div
@@ -350,7 +350,7 @@ export default function SecureLinkOpenPanel({
                 setLink(event.target.value);
                 setMessage("");
               }}
-              placeholder="jellyfin.local:8096 or https://..."
+              placeholder="jellyfin.local:8096, calibre.local, or https://..."
               style={controlStyle()}
             />
           </label>

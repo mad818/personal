@@ -47,6 +47,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] MEDIA-ESCAPE-BOOK-LIBRARY — Add books to the existing Subscription Escape media library without widening into scraping, piracy, or public media hosting.
+  - Current pass: extend the protected local media catalog from movies/music to movies/music/books, add book intake parsing, surface book counts/filter/shelves, and include `https://fmhy.net/` as an operator-supplied reference link only.
+  - Guardrail: no scraping, downloading, torrenting, DRM bypass, paywall bypass, piracy workflow, public media endpoints, paid APIs, cloud database, or new tab.
+  - Progress: shipped book support through the protected local media catalog, add/edit form, counts, filters, shelves, intake fallback review, secure link categories, source shelf, and Calibre-Web replacement catalog entry. Proof: `npx tsc --noEmit`, `npm run verify`, and `npm run build` passed.
+
 - [x] DEPENDABOT-NEXT-RUNTIME-PATCH — Patch the active root-app Next.js alerts with the smallest runtime-safe dependency batch.
   - Current pass: update only the root app `next` dependency from `15.5.15` to the patched `15.5.18` floor identified by the sanitized Dependabot artifact, refresh dependency/audit evidence, and leave `postcss`, `prismjs`, Cargo, and retired `archive/` manifest work for separate batches.
   - Guardrail: no broad dependency sweep, no archive package updates, no Cargo updates, no UI/product changes, no auth/provider changes, no public route changes, no raw Dependabot export commit, and no ARPG work.

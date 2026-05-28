@@ -132,6 +132,11 @@ function findReplacement(
   return catalog.find((entry) => entry.id === id) ?? null;
 }
 
+function formatSourceLabel(source: SubscriptionEscapeSource) {
+  if (source.id.startsWith("yt-")) return source.id.replace("yt-", "");
+  return source.id.replace(/-/g, " ");
+}
+
 export default function SubscriptionEscapeConsole() {
   const [payload, setPayload] = useState<EscapePayload | null>(null);
   const [loadStatus, setLoadStatus] = useState<
@@ -909,8 +914,9 @@ export default function SubscriptionEscapeConsole() {
                   fontSize: "11px",
                   lineHeight: 1.4,
                 }}
+                title={source.note}
               >
-                {source.id.replace("yt-", "")} Open
+                {formatSourceLabel(source)} Open
               </a>
             ))}
           </div>

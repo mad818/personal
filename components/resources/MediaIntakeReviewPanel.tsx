@@ -322,7 +322,9 @@ export default function MediaIntakeReviewPanel({
             <textarea
               value={pasteText}
               onChange={(event) => setPasteText(event.target.value)}
-              placeholder={"Movie.Name.2024.1080p.mkv\nArtist - Album (2021).flac"}
+              placeholder={
+                "Movie.Name.2024.1080p.mkv\nArtist - Album (2021).flac\nAuthor - Book Title (2020).epub"
+              }
               rows={4}
               style={{ ...controlStyle(), resize: "vertical" }}
             />
@@ -339,6 +341,7 @@ export default function MediaIntakeReviewPanel({
               >
                 <option value="movie">Movie</option>
                 <option value="music">Music</option>
+                <option value="book">Book</option>
               </select>
             </label>
             <button type="button" onClick={addToReview} style={buttonStyle(true)}>

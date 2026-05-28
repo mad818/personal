@@ -51,7 +51,7 @@ export interface SubscriptionEscapeItem {
   updatedAt: string;
 }
 
-export type MediaEscapeKind = "movie" | "music";
+export type MediaEscapeKind = "movie" | "music" | "book";
 
 export type MediaEscapeStatus = "owned" | "needs_metadata" | "wishlist";
 
@@ -67,6 +67,7 @@ export type SecureStreamLinkCategory =
   | "media-server"
   | "movie"
   | "music"
+  | "book"
   | "show"
   | "playlist"
   | "other";
@@ -225,6 +226,7 @@ export const SUBSCRIPTION_ESCAPE_ACCESS_STATUS_LABELS: Record<
 export const MEDIA_ESCAPE_KIND_LABELS: Record<MediaEscapeKind, string> = {
   movie: "Movie",
   music: "Music",
+  book: "Book",
 };
 
 export const MEDIA_ESCAPE_STATUS_LABELS: Record<MediaEscapeStatus, string> = {
@@ -250,12 +252,19 @@ export const SECURE_STREAM_LINK_CATEGORY_LABELS: Record<
   "media-server": "Media server",
   movie: "Movie",
   music: "Music",
+  book: "Book",
   show: "Show",
   playlist: "Playlist",
   other: "Other",
 };
 
 export const SUBSCRIPTION_ESCAPE_SOURCES: SubscriptionEscapeSource[] = [
+  {
+    id: "fmhy-reading",
+    url: "https://fmhy.net/",
+    status: "supplied",
+    note: "Operator-supplied free-media reference. Use only for lawful, public-domain, owned, or licensed material.",
+  },
   {
     id: "yt-IN9jr1VbwZM",
     url: "https://www.youtube.com/watch?v=IN9jr1VbwZM",
@@ -373,6 +382,28 @@ export const SUBSCRIPTION_REPLACEMENT_CATALOG: SubscriptionReplacementOption[] =
       safetyNotes: [
         "No piracy, DRM bypass, or scraping paid libraries.",
         "Keep media rights and storage provenance clean.",
+      ],
+    },
+    {
+      id: "calibre-web-tailnet",
+      category: "media",
+      title: "Calibre-Web private bookshelf",
+      replaces: "Book library subscriptions where you own the books",
+      costPosture: "open_source",
+      difficulty: "medium",
+      hostFit: "macbook-host",
+      privacyPosture:
+        "Private reading catalog over LAN/Tailscale; no public book endpoint.",
+      bestFor:
+        "Owned ebooks, PDFs, comics, manuals, and reading lists across trusted devices.",
+      setupSteps: [
+        "Place legally owned books on the MacBook host or attached storage.",
+        "Run Calibre or Calibre-Web behind Tailscale/LAN only.",
+        "Test search, metadata, covers, backups, and iPad reading flow before canceling overlapping services.",
+      ],
+      safetyNotes: [
+        "No piracy, DRM bypass, or paid-library scraping.",
+        "Keep book provenance, backups, and restore proof clean.",
       ],
     },
     {
@@ -598,6 +629,17 @@ const MEDIA_ESCAPE_VIDEO_EXTENSIONS = new Set([
   "wmv",
 ]);
 
+const MEDIA_ESCAPE_BOOK_EXTENSIONS = new Set([
+  "azw",
+  "azw3",
+  "cbr",
+  "cbz",
+  "djvu",
+  "epub",
+  "mobi",
+  "pdf",
+]);
+
 const MEDIA_ESCAPE_RELEASE_TAGS =
   /\b(480p|720p|1080p|1440p|2160p|4k|8k|aac|atmos|av1|bluray|brrip|dvdrip|dts|extended|h264|h265|hdr|hdr10|hdrip|hevc|internal|limited|proper|repack|remaster(?:ed)?|remux|uhd|unrated|web[ .-]?dl|webrip|x264|x265|yify|yts)\b/gi;
 
@@ -628,7 +670,9 @@ export function parseMediaEscapeFileName(
     ? "music"
     : MEDIA_ESCAPE_VIDEO_EXTENSIONS.has(extension)
       ? "movie"
-      : fallbackKind;
+      : MEDIA_ESCAPE_BOOK_EXTENSIONS.has(extension)
+        ? "book"
+        : fallbackKind;
   const basename = rawName.split(/[\\/]/).pop() ?? rawName;
   const withoutExtension = extension
     ? basename.replace(new RegExp(`\\.${extension}$`, "i"), "")
@@ -651,14 +695,20 @@ export function parseMediaEscapeFileName(
     .map((part) => part.trim())
     .filter(Boolean);
   const suggestedCreator =
-    kind === "music" && parts.length > 1
+    (kind === "music" || kind === "book") && parts.length > 1
       ? titleCaseMediaEscapeName(parts[0])
       : undefined;
   const titleSource =
-    kind === "music" && parts.length > 1 ? parts.slice(1).join(" ") : cleaned;
+    (kind === "music" || kind === "book") && parts.length > 1
+      ? parts.slice(1).join(" ")
+      : cleaned;
   const suggestedTitle =
     titleCaseMediaEscapeName(titleSource) ||
-    (kind === "music" ? "Untitled music" : "Untitled movie");
+    (kind === "music"
+      ? "Untitled music"
+      : kind === "book"
+        ? "Untitled book"
+        : "Untitled movie");
 
   return {
     rawName,
@@ -709,6 +759,7 @@ export function getMediaEscapeCounts(items: MediaEscapeItem[]) {
       total: 0,
       movie: 0,
       music: 0,
+      book: 0,
       favorite: 0,
       needsMetadata: 0,
     },

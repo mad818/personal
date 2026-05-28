@@ -228,7 +228,9 @@ function renderCover(item: MediaEscapeItem, compact = false) {
         background:
           item.kind === "movie"
             ? "linear-gradient(145deg, rgba(39, 65, 130, 0.88), rgba(10, 15, 30, 0.95))"
-            : "linear-gradient(145deg, rgba(30, 106, 92, 0.88), rgba(10, 15, 30, 0.95))",
+            : item.kind === "book"
+              ? "linear-gradient(145deg, rgba(135, 92, 52, 0.88), rgba(10, 15, 30, 0.95))"
+              : "linear-gradient(145deg, rgba(30, 106, 92, 0.88), rgba(10, 15, 30, 0.95))",
         display: "grid",
         placeItems: "center",
         color: "var(--text)",
@@ -308,6 +310,14 @@ export default function MediaEscapeLibrary({
     () =>
       sortMediaEscapeItems(
         items.filter((item) => item.kind === "music"),
+        sort,
+      ),
+    [items, sort],
+  );
+  const books = useMemo(
+    () =>
+      sortMediaEscapeItems(
+        items.filter((item) => item.kind === "book"),
         sort,
       ),
     [items, sort],
@@ -492,8 +502,8 @@ export default function MediaEscapeLibrary({
         tone="success"
         compact
         icon="M"
-        title="Movie and music library"
-        description="One local catalog for owned movies, albums, and music. Add the cover, location, and notes now; sort the files later when you are ready."
+        title="Movie, music, and book library"
+        description="One local catalog for owned movies, albums, songs, ebooks, comics, manuals, and reading lists. Add the cover, location, and notes now; sort the files later when you are ready."
       />
 
       <div
@@ -514,6 +524,10 @@ export default function MediaEscapeLibrary({
         <div style={cardStyle()}>
           <SectionLabel detail="Albums/songs">Music</SectionLabel>
           <strong style={{ fontSize: "24px" }}>{counts.music}</strong>
+        </div>
+        <div style={cardStyle()}>
+          <SectionLabel detail="Ebooks/PDFs">Books</SectionLabel>
+          <strong style={{ fontSize: "24px" }}>{counts.book}</strong>
         </div>
         <div style={cardStyle()}>
           <SectionLabel detail="Quick picks">Favorites</SectionLabel>
@@ -551,12 +565,19 @@ export default function MediaEscapeLibrary({
         >
           Add music
         </button>
+        <button
+          type="button"
+          onClick={() => startNew("book")}
+          style={buttonStyle(draft.kind === "book" && !editingId)}
+        >
+          Add book
+        </button>
         <label style={labelStyle()}>
           <span style={labelTextStyle()}>Search</span>
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Find title, artist, genre..."
+            placeholder="Find title, author, artist, genre..."
             style={controlStyle()}
           />
         </label>
@@ -569,9 +590,10 @@ export default function MediaEscapeLibrary({
             }
             style={controlStyle()}
           >
-            <option value="all">Movies and music</option>
+            <option value="all">Movies, music, and books</option>
             <option value="movie">Movies only</option>
             <option value="music">Music only</option>
+            <option value="book">Books only</option>
           </select>
         </label>
         <label style={labelStyle()}>
@@ -707,7 +729,7 @@ export default function MediaEscapeLibrary({
                   maxWidth: "320px",
                 }}
               >
-                Add one movie or album. A cover can come later.
+                Add one movie, album, or book. A cover can come later.
               </p>
             </div>
           )}
@@ -736,6 +758,7 @@ export default function MediaEscapeLibrary({
               >
                 <option value="movie">Movie</option>
                 <option value="music">Music</option>
+                <option value="book">Book</option>
               </select>
             </label>
             <label style={labelStyle()}>
@@ -743,29 +766,29 @@ export default function MediaEscapeLibrary({
               <input
                 value={draft.title}
                 onChange={(event) => updateDraft({ title: event.target.value })}
-                placeholder="Movie, album, or song"
+                placeholder="Movie, album, song, or book"
                 style={controlStyle()}
               />
             </label>
             <label style={labelStyle()}>
-              <span style={labelTextStyle()}>Artist or director</span>
+              <span style={labelTextStyle()}>Author, artist, or director</span>
               <input
                 value={draft.creator}
                 onChange={(event) =>
                   updateDraft({ creator: event.target.value })
                 }
-                placeholder="Artist, band, director"
+                placeholder="Author, artist, band, director"
                 style={controlStyle()}
               />
             </label>
             <label style={labelStyle()}>
-              <span style={labelTextStyle()}>Album or subtitle</span>
+              <span style={labelTextStyle()}>Series, album, or subtitle</span>
               <input
                 value={draft.subtitle}
                 onChange={(event) =>
                   updateDraft({ subtitle: event.target.value })
                 }
-                placeholder="Album, series, edition"
+                placeholder="Series, edition, album"
                 style={controlStyle()}
               />
             </label>
@@ -783,7 +806,7 @@ export default function MediaEscapeLibrary({
               <input
                 value={draft.genre}
                 onChange={(event) => updateDraft({ genre: event.target.value })}
-                placeholder="Action, hip hop, jazz"
+                placeholder="Sci-fi, action, hip hop, jazz"
                 style={controlStyle()}
               />
             </label>
@@ -794,7 +817,7 @@ export default function MediaEscapeLibrary({
                 onChange={(event) =>
                   updateDraft({ duration: event.target.value })
                 }
-                placeholder="2h 10m or 12 tracks"
+                placeholder="320 pages, 2h 10m, or 12 tracks"
                 style={controlStyle()}
               />
             </label>
@@ -805,7 +828,7 @@ export default function MediaEscapeLibrary({
                 onChange={(event) =>
                   updateDraft({ rating: event.target.value })
                 }
-                placeholder="PG-13, clean, explicit"
+                placeholder="5 stars, PG-13, clean, explicit"
                 style={controlStyle()}
               />
             </label>
@@ -858,7 +881,7 @@ export default function MediaEscapeLibrary({
                 onChange={(event) =>
                   updateDraft({ filePath: event.target.value })
                 }
-                placeholder="MacBook media folder, drive, shelf, or note"
+                placeholder="MacBook media/books folder, drive, shelf, or note"
                 style={controlStyle()}
               />
             </label>
@@ -972,7 +995,7 @@ export default function MediaEscapeLibrary({
 
       {items.length === 0 ? (
         <div style={cardStyle()}>
-          <strong>Add the first movie or album.</strong>
+          <strong>Add the first movie, album, or book.</strong>
           <p
             style={{
               margin: "8px 0 0",
@@ -1001,7 +1024,7 @@ export default function MediaEscapeLibrary({
                 fontSize: "12px",
               }}
             >
-              Clear search or switch the filter back to movies and music.
+              Clear search or switch the filter back to all media.
             </p>
           </div>
         )
@@ -1015,6 +1038,7 @@ export default function MediaEscapeLibrary({
           {renderShelf("Favorites", favorites, `${favorites.length} saved`)}
           {renderShelf("Movies", movies, `${movies.length} titles`)}
           {renderShelf("Music", music, `${music.length} entries`)}
+          {renderShelf("Books", books, `${books.length} titles`)}
         </>
       )}
     </div>

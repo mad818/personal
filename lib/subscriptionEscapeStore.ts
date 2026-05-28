@@ -47,7 +47,7 @@ const STATUSES = new Set<SubscriptionEscapeStatus>([
   "cancelled",
 ]);
 
-const MEDIA_KINDS = new Set<MediaEscapeKind>(["movie", "music"]);
+const MEDIA_KINDS = new Set<MediaEscapeKind>(["movie", "music", "book"]);
 
 const MEDIA_STATUSES = new Set<MediaEscapeStatus>([
   "owned",
@@ -66,6 +66,7 @@ const SECURE_STREAM_CATEGORIES = new Set<SecureStreamLinkCategory>([
   "media-server",
   "movie",
   "music",
+  "book",
   "show",
   "playlist",
   "other",
@@ -239,7 +240,11 @@ function normalizeMediaItem(value: Partial<MediaEscapeItem>, index: number) {
     kind,
     title: normalizeText(
       value.title,
-      kind === "music" ? "Untitled music" : "Untitled movie",
+      kind === "music"
+        ? "Untitled music"
+        : kind === "book"
+          ? "Untitled book"
+          : "Untitled movie",
     ),
     subtitle: normalizeOptionalText(value.subtitle),
     creator: normalizeOptionalText(value.creator),

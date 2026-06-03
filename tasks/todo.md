@@ -18,7 +18,7 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 
 - [ ] CP2.1 — Web release rehearsal: Docker + target deployment + diagnostics snapshot + rollback proof
 - [ ] CP2.2 — Desktop isolation validation: secure runtime, no-outbound proof in isolated mode, capability lockdown evidence
-- [ ] CP2.3 — Desktop trust chain: checksum verification, signing status record, SBOM status record
+- [ ] CP2.3 — Desktop trust chain: checksum verification, signing status record, SBOM status record. Status-record command now exists (`npm run desktop:trust-chain`) and records missing artifact/signing/SBOM proof honestly; remaining release work is real packaged artifacts, checksums for those artifacts, configured signing strategy, and attached/generated SBOM.
 - [ ] CP2.4 — Final launch gate: `type-check`, `lint`, `verify`, `route:integrity`, `eval:agent-runtime:ci`, `release:smoke`, auth E2E
 
 ## Next Up
@@ -46,6 +46,11 @@ Blocked or manual watchlist, not the active queue:
 - [ ] FD2 remains blocked on the real staged Coolify hostname in repo-root `.env.local`, so release-proof work still stays out of this replay stack.
 
 ## In Progress
+
+- [x] DESKTOP-TRUST-CHAIN-STATUS — Add a no-network desktop trust-chain status record for CP2.3.
+  - Current pass: record checksum verification posture, signing configuration posture, and SBOM/dependency-inventory posture for the desktop release lane without claiming unsigned artifacts are ready.
+  - Guardrail: no actual signing, no certificate/private-key reads, no secret/env reads, no network calls, no dependency installs, no Tauri packaging run, no UI changes, no RPG work, and no release-ready claim without artifacts.
+  - Progress: added `specs/features/desktop-trust-chain-status.md`, `scripts/desktop-trust-chain-status.mjs`, `scripts/validate-desktop-trust-chain-status.mjs`, `npm run desktop:trust-chain`, `npm run desktop:trust-chain:check`, and `verify` wiring. Latest status artifact: `docs/metrics/desktop-trust-chain-2026-06-03T08-04-02-570Z.json`, which honestly reports missing desktop artifact directory, pending signing strategy, and dependency inventory available without an SBOM artifact. Proof: `npm run desktop:trust-chain`, `npm run desktop:trust-chain:check`, `npx tsc --noEmit`, `npm run verify`, and `npm run build` passed.
 
 - [x] DEPENDABOT-NEXT-RUNTIME-PATCH-HELPER — Add a no-network command that identifies the next direct Dependabot runtime patch and prints the exact normal-PowerShell install/proof steps.
   - Current pass: read the latest sanitized Dependabot audit artifact, skip already-patched direct npm alerts, identify `postcss` alert 85 as the next direct runtime patch, and print the narrow install command plus proof commands.

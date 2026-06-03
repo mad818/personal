@@ -69,6 +69,7 @@ Use this checklist for both deployment lanes before promoting a release.
 - [ ] capability lockdown checks pass
 - [ ] checksums are generated for the target build
 - [ ] signing/SBOM status is recorded for the release
+- [ ] `npm run desktop:trust-chain` records checksum, signing, and SBOM posture for the target artifact directory
 
 ## Rollback
 

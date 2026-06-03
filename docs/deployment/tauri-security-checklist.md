@@ -26,7 +26,7 @@ Reference templates added in-repo:
 - [ ] macOS signing identity + notarization flow.
 - [ ] Windows code-signing certificate + timestamping.
 - [ ] Linux package signing strategy per target.
-- [ ] CI release pipeline signs artifacts and generates checksums/SBOM (verify workflow + checksum script shipped; signing/SBOM still pending).
+- [ ] CI release pipeline signs artifacts and generates checksums/SBOM (verify workflow, checksum script, and `npm run desktop:trust-chain` status record shipped; signing/SBOM artifacts still pending).
 - [ ] Publish verification steps in operator runbook.
 
 ---

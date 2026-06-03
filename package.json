@@ -50,6 +50,8 @@
     "infra:hardening:audit": "node scripts/infra-hardening-audit.mjs",
     "dependabot:audit:classify": "node scripts/dependabot-security-audit.mjs",
     "dependabot:audit:check": "node scripts/validate-dependabot-security-audit.mjs",
+    "dependabot:next-runtime-patch": "node scripts/dependabot-next-runtime-patch.mjs",
+    "dependabot:next-runtime-patch:check": "node scripts/dependabot-next-runtime-patch.mjs --check",
     "auth:regression": "node scripts/auth-regression.mjs",
     "auth:e2e": "playwright test -c playwright.auth.config.ts",
     "hq:e2e": "playwright test -c playwright.auth.config.ts tests/e2e/hq-shell.spec.ts",

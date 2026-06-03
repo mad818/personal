@@ -26,12 +26,24 @@ function assertIncludes(text, expected, label) {
 }
 
 const spec = readRequired("specs", "features", "dependabot-alert-import-triage.md");
+const nextPatchSpec = readRequired(
+  "specs",
+  "features",
+  "dependabot-next-runtime-patch-helper.md",
+);
 const runner = readRequired("scripts", "dependabot-security-audit.mjs");
+const nextPatchRunner = readRequired("scripts", "dependabot-next-runtime-patch.mjs");
 const packageJson = JSON.parse(readRequired("package.json"));
 
 assertIncludes(spec, "Dependabot Alert Import Triage", "feature spec");
 assertIncludes(spec, "--alerts=docs\\metrics\\dependabot-alerts-source.json", "feature spec");
 assertIncludes(spec, "Do not upgrade packages", "feature spec");
+assertIncludes(
+  nextPatchSpec,
+  "Dependabot Next Runtime Patch Helper",
+  "next patch spec",
+);
+assertIncludes(nextPatchSpec, "No package upgrades are performed", "next patch spec");
 
 assertIncludes(runner, "--alerts=", "audit runner");
 assertIncludes(runner, "--dry-run", "audit runner");
@@ -49,6 +61,12 @@ assertIncludes(runner, "firstPatchedVersion", "audit runner");
 assertIncludes(runner, "dependabot-alerts-source", "audit runner");
 assertIncludes(runner, "upgradesPerformed: false", "audit runner");
 
+assertIncludes(nextPatchRunner, "firstPatchedVersion", "next patch runner");
+assertIncludes(nextPatchRunner, "npm install", "next patch runner");
+assertIncludes(nextPatchRunner, "--no-audit", "next patch runner");
+assertIncludes(nextPatchRunner, ".npm-cache", "next patch runner");
+assertIncludes(nextPatchRunner, "--check", "next patch runner");
+
 readRequired("scripts", "fixtures", "dependabot-alerts-sample.json");
 
 if (
@@ -56,6 +74,20 @@ if (
   "node scripts/validate-dependabot-security-audit.mjs"
 ) {
   fail("package.json is missing dependabot:audit:check");
+}
+
+if (
+  packageJson.scripts?.["dependabot:next-runtime-patch"] !==
+  "node scripts/dependabot-next-runtime-patch.mjs"
+) {
+  fail("package.json is missing dependabot:next-runtime-patch");
+}
+
+if (
+  packageJson.scripts?.["dependabot:next-runtime-patch:check"] !==
+  "node scripts/dependabot-next-runtime-patch.mjs --check"
+) {
+  fail("package.json is missing dependabot:next-runtime-patch:check");
 }
 
 assertIncludes(

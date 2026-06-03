@@ -47,6 +47,16 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] DEPENDABOT-NEXT-RUNTIME-PATCH-HELPER — Add a no-network command that identifies the next direct Dependabot runtime patch and prints the exact normal-PowerShell install/proof steps.
+  - Current pass: read the latest sanitized Dependabot audit artifact, skip already-patched direct npm alerts, identify `postcss` alert 85 as the next direct runtime patch, and print the narrow install command plus proof commands.
+  - Guardrail: no broad dependency sweep, no `npm audit fix --force`, no archive package updates, no Cargo updates, no UI/product changes, no auth/provider changes, no public route changes, and no raw Dependabot export commit.
+  - Progress: added `specs/features/dependabot-next-runtime-patch-helper.md`, `scripts/dependabot-next-runtime-patch.mjs`, `npm run dependabot:next-runtime-patch`, `npm run dependabot:next-runtime-patch:check`, and validator coverage through `npm run dependabot:audit:check`. The actual `postcss` package patch is still pending because this Codex shell cannot fetch `https://registry.npmjs.org/postcss`; run the printed command from normal PowerShell to complete the package update. Proof: `npm run dependabot:next-runtime-patch`, `npm run dependabot:next-runtime-patch:check`, `npm run dependabot:audit:check`, `npx tsc --noEmit`, `npm run validate:infra-hardening`, `npm run verify`, and `npm run build` passed.
+
+- [ ] DEPENDABOT-POSTCSS-RUNTIME-PATCH — Patch the active root-app `postcss` alert with the smallest safe dependency batch.
+  - Current pass: update only root `postcss` from `^8.4.39` to the recorded patched floor `8.5.10` for alert 85, refresh lockfile evidence, and leave `prismjs`, dev-only `brace-expansion`, Cargo alerts, and retired `archive/` alerts for separate batches.
+  - Guardrail: no broad dependency sweep, no `npm audit fix --force`, no archive package updates, no Cargo updates, no UI/product changes, no auth/provider changes, no public route changes, and no raw Dependabot export commit.
+  - Progress: blocked in the Codex shell by npm registry `EACCES`; `npm run dependabot:next-runtime-patch` now prints the normal-PowerShell command and proof sequence needed to finish it.
+
 - [x] MEDIA-ESCAPE-BOOK-LIBRARY — Add books to the existing Subscription Escape media library without widening into scraping, piracy, or public media hosting.
   - Current pass: extend the protected local media catalog from movies/music to movies/music/books, add book intake parsing, surface book counts/filter/shelves, and include `https://fmhy.net/` as an operator-supplied reference link only.
   - Guardrail: no scraping, downloading, torrenting, DRM bypass, paywall bypass, piracy workflow, public media endpoints, paid APIs, cloud database, or new tab.

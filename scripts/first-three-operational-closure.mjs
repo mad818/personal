@@ -247,8 +247,8 @@ function phoneClosure() {
     nextAction: ready
       ? "Phone/iPad acceptance is complete in the latest sanitized artifact."
       : hasRouteBlocker
-        ? "Start the LAN runtime with npm run phone:lan:start, rerun capture, then rerun npm run phone:acceptance:report."
-        : "From the phone/iPad: open HQ, log in, send ping, ask one local AI prompt, install the PWA, rerun capture, then rerun npm run phone:acceptance:report.",
+        ? "Run npm run phone:acceptance:guide, start the LAN runtime with npm run phone:lan:start, rerun capture, then rerun npm run phone:acceptance:report."
+        : "Run npm run phone:acceptance:guide, then from the phone/iPad: open HQ, log in, send ping, ask one local AI prompt, install the PWA, rerun capture, then rerun npm run phone:acceptance:report.",
   };
 }
 

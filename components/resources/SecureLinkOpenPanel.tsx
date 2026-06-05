@@ -3,6 +3,11 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { inspectSecureLink } from "@/lib/secureLink";
 import {
+  buildLegalPrivacyRoutePosture,
+  LEGAL_PRIVACY_ROUTE_OPTIONS,
+  type LegalPrivacyRouteKind,
+} from "@/lib/legalPrivacyRoute";
+import {
   SECURE_STREAM_LINK_CATEGORY_LABELS,
   type SecureStreamLink,
   type SecureStreamLinkCategory,
@@ -183,9 +188,19 @@ export default function SecureLinkOpenPanel({
   const [categoryFilter, setCategoryFilter] =
     useState<SecureStreamLinkCategory | "all">("all");
   const [sort, setSort] = useState<StreamLinkSort>("favorite");
+  const [legalPrivacyRouteKind, setLegalPrivacyRouteKind] =
+    useState<LegalPrivacyRouteKind>("none");
   const [privacyRouteConfirmed, setPrivacyRouteConfirmed] = useState(false);
   const [message, setMessage] = useState("");
   const inspection = useMemo(() => inspectSecureLink(link), [link]);
+  const privacyRoutePosture = useMemo(
+    () =>
+      buildLegalPrivacyRoutePosture(
+        legalPrivacyRouteKind,
+        privacyRouteConfirmed,
+      ),
+    [legalPrivacyRouteKind, privacyRouteConfirmed],
+  );
   const visibleLinks = useMemo(
     () => filterAndSortLinks(links, query, categoryFilter, sort),
     [categoryFilter, links, query, sort],
@@ -194,6 +209,13 @@ export default function SecureLinkOpenPanel({
   const publicLinkCount = links.filter(
     (item) => inspectSecureLink(item.url).requiresIpPrivacy,
   ).length;
+  const lockedPublicLinkCount = links.filter((item) => {
+    const itemInspection = inspectSecureLink(item.url);
+    return (
+      itemInspection.requiresIpPrivacy &&
+      !privacyRoutePosture.canOpenPublicLinks
+    );
+  }).length;
 
   async function copyLink(href: string) {
     try {
@@ -289,17 +311,72 @@ export default function SecureLinkOpenPanel({
           <SectionLabel detail="VPN/exit-node check">IP guard</SectionLabel>
           <strong style={{ fontSize: "16px" }}>
             {publicLinkCount
-              ? privacyRouteConfirmed
-                ? "Public unlocked"
-                : "Public locked"
+              ? privacyRoutePosture.statusLabel
               : "Private only"}
           </strong>
+          {lockedPublicLinkCount ? (
+            <p
+              style={{
+                margin: "6px 0 0",
+                color: "var(--text2)",
+                fontSize: "11px",
+              }}
+            >
+              {lockedPublicLinkCount} public locked
+            </p>
+          ) : null}
         </div>
       </div>
 
-      <div style={cardStyle()}>
+      <div style={cardStyle()} data-testid="escape-privacy-route-panel">
         <SectionLabel detail="Session only">IP privacy route</SectionLabel>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "10px",
+            alignItems: "end",
+            marginTop: "10px",
+          }}
+        >
+          <label style={{ display: "grid", gap: "6px" }}>
+            <span style={labelTextStyle()}>Legal route</span>
+            <select
+              data-testid="escape-privacy-route-selector"
+              value={legalPrivacyRouteKind}
+              onChange={(event) => {
+                const next = event.target.value as LegalPrivacyRouteKind;
+                setLegalPrivacyRouteKind(next);
+                setPrivacyRouteConfirmed(false);
+                setMessage(
+                  next === "none"
+                    ? "Public links locked."
+                    : "Confirm the selected route before opening public links.",
+                );
+              }}
+              style={controlStyle()}
+            >
+              {LEGAL_PRIVACY_ROUTE_OPTIONS.map((option) => (
+                <option key={option.kind} value={option.kind}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div style={cardStyle(privacyRoutePosture.active ? "accent" : "normal")}>
+            <SectionLabel detail="VPN / Tailscale exit node / Legal proxy">
+              Route status
+            </SectionLabel>
+            <strong
+              data-testid="escape-privacy-route-status"
+              style={{ fontSize: "16px" }}
+            >
+              {privacyRoutePosture.statusLabel}
+            </strong>
+          </div>
+        </div>
         <label
+          data-testid="escape-privacy-route-confirmation"
           style={{
             display: "flex",
             gap: "10px",
@@ -312,22 +389,32 @@ export default function SecureLinkOpenPanel({
         >
           <input
             type="checkbox"
-            checked={privacyRouteConfirmed}
+            disabled={!privacyRoutePosture.active}
+            checked={privacyRoutePosture.active && privacyRouteConfirmed}
             onChange={(event) => {
               setPrivacyRouteConfirmed(event.target.checked);
               setMessage(
                 event.target.checked
-                  ? "Public links unlocked for this session."
+                  ? `${privacyRoutePosture.label} confirmed for this session.`
                   : "Public links locked.",
               );
             }}
           />
-          <span>
-            VPN, Tailscale exit node, or another privacy route is active before
-            opening public links. Nexus does not look up, store, or hide your IP
-            by itself.
-          </span>
+          <span>{privacyRoutePosture.confirmationLabel}</span>
         </label>
+        <p
+          style={{
+            margin: "8px 0 0",
+            color: "var(--text2)",
+            fontSize: "12px",
+            lineHeight: 1.5,
+          }}
+        >
+          {privacyRoutePosture.summary} Supported legal routes: VPN, Tailscale
+          exit node, Legal proxy. Nexus does not hide your IP by itself; it
+          keeps public links locked until your own authorized route is selected
+          and confirmed.
+        </p>
       </div>
 
       <div style={cardStyle()}>
@@ -516,7 +603,7 @@ export default function SecureLinkOpenPanel({
                 const connectAllowed =
                   tileInspection.canOpen &&
                   (!tileInspection.requiresIpPrivacy ||
-                    privacyRouteConfirmed);
+                    privacyRoutePosture.canOpenPublicLinks);
                 return (
                   <>
               <div
@@ -558,7 +645,8 @@ export default function SecureLinkOpenPanel({
                     lineHeight: 1.45,
                   }}
                 >
-                  Locked until VPN or exit-node route is confirmed.
+                  Locked until {privacyRoutePosture.label} is active and
+                  confirmed.
                 </p>
               ) : null}
               <div

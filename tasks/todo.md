@@ -49,6 +49,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] ESCAPE-LEGAL-PRIVACY-ROUTE — Add legal VPN/proxy/Tailscale exit-node route readiness on top of the existing Escape IP guard.
+  - Current pass: add a route selector for none/VPN/Tailscale exit node/legal proxy, explicit session confirmation, public-link lock/unlock posture, no-false-anonymity copy, and validator coverage under `npm run verify`.
+  - Guardrail: no built-in VPN, open proxy, relay, tunnel, IP lookup service, public route, dependency install, public-IP storage/display, anonymity guarantee, DRM/paywall/geo-restriction bypass, or ARPG work.
+  - Progress: shipped `lib/legalPrivacyRoute.ts`, the session-only route selector and confirmation panel in `components/resources/SecureLinkOpenPanel.tsx`, `scripts/validate-escape-legal-privacy-route.mjs`, and `npm run escape:privacy-route:check` wired into `npm run verify`. Public HTTPS tiles remain locked until VPN, Tailscale exit node, or Legal proxy is selected and confirmed for the session; private/local/Tailscale links remain open through the existing no-referrer launch path. Proof: red validator failed on missing helper first, then `npm run escape:privacy-route:check`, `npm run type-check`, `npm run lint`, `npm run publication:safety:check`, `npm run privacy:shield:check`, `npm run verify`, `npm run build`, and compiled artifact checks passed.
+
 - [x] PRIVACY-SHIELD-FULL-RUNTIME — Fully implement Privacy Shield 2.0 beyond the CLI preview by covering every cloud-bound AI request fragment and adding an in-app protected preview panel.
   - Current pass: sanitize `messages`, `system`, `tools`, and `tool_choice`; add structured policy/field metadata; add protected `POST /api/privacy-shield/preview`; mount a COMMAND provider-health preview panel; and keep the full gate under `npm run privacy:shield:check` / `npm run verify`.
   - Guardrail: no AI/provider calls from preview, no CLI network calls, no env/token/cookie/auth-header/raw-receipt reads, no local file reads except CLI stdin, no file writes/artifacts, no dependency installs, no public routes, no provider-routing changes, no proxy/VPN/IP-hiding claims, no background workers, and no ARPG work.

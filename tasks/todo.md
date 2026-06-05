@@ -49,6 +49,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] PRIVACY-SHIELD-PREVIEW-CLI — Tackle the next secure/local idea by making Privacy Shield 2.0 inspectable before any cloud-bound model dispatch.
+  - Current pass: add a no-network `npm run privacy:shield:preview` command, a red/green validator, a scoped feature spec, and `npm run verify` coverage so Mario can see class counts, blocked reason, and sanitized preview text without sending anything to a provider.
+  - Guardrail: no AI/provider calls, network calls, file reads beyond stdin, file writes, env/secret/raw receipt reads, proxy/VPN/IP-hiding claims, provider-routing changes, public routes, background workers, dependency installs, or ARPG work.
+  - Progress: shipped `specs/features/privacy-shield-preview-cli.md`, `scripts/privacy-shield-preview.mjs`, `scripts/validate-privacy-shield-preview-cli.mjs`, `npm run privacy:shield:preview`, and `npm run privacy:shield:check` wired into `npm run verify`. The preview reports credential, internal-host, protected-path, and sensitive-evidence counts, blocks cloud dispatch when operator-only evidence markers are present, and prints only sanitized preview text. Proof: red validator first failed on the missing runner, then `node scripts/validate-privacy-shield-preview-cli.mjs`, `npm run privacy:shield:preview -- --sample`, `npm run privacy:shield:preview -- --sample --json`, `npm run privacy:shield:preview -- --check`, `npm run privacy:shield:check`, `npm run security-scan`, `npm run verify`, `git diff --check`, and `npm run build` passed.
+
 - [x] AGENCY-AGENTS-VISIBLE-ROLE-LIBRARY — Finish the `agency-agents` application by making the curated Nexus role packs visible and testable inside the existing Skills library surface.
   - Current pass: add a prompt-match helper to `lib/agentRoleTaxonomy.ts`, build `components/skills/AgencyRoleLibrary.tsx`, mount it under `/skills?view=library`, extend `npm run agent:taxonomy:check`, and prove the UI compiles without adding a new route.
   - Guardrail: no upstream install/convert scripts, no copied upstream prompt bodies, no generated `.codex` agents, no separate marketplace/agent-builder route, no direct provider calls, no unreviewed background workers, no public positioning change, and no ARPG work.

@@ -18,6 +18,7 @@ The source repo is useful because it organizes AI specialists by role, use case,
 - Keep the source attribution and explicit no-vendoring guardrails in code.
 - Add compact role-pack guidance to `buildCapabilitiesBlock()` through `lib/liveContext.ts`.
 - Use taxonomy routing keywords in `components/home/office/prompts.ts` so agent detection benefits from the new role packs.
+- Add a visible role-library panel to `/skills?view=library` so the operator can inspect the curated packs and test routing examples.
 - Add a local validator command and wire it into `npm run verify`.
 
 ## Out of Scope
@@ -26,7 +27,7 @@ The source repo is useful because it organizes AI specialists by role, use case,
 - Copying upstream agent Markdown bodies.
 - Generating `.codex/agents/*.toml`.
 - Creating hundreds of runtime agents.
-- Adding a new route or visual panel.
+- Adding a new route.
 - Changing provider calls or bypassing `lib/ai.ts`.
 
 ## Done When
@@ -36,3 +37,4 @@ The source repo is useful because it organizes AI specialists by role, use case,
 - `npm run verify` passes.
 - The taxonomy is available to prompts through live-context capability injection.
 - The router has role-pack keywords for the existing specialist agents.
+- `/skills?view=library` surfaces the curated role packs, source guardrails, and prompt-routing preview.

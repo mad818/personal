@@ -49,6 +49,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] AGENCY-AGENTS-VISIBLE-ROLE-LIBRARY — Finish the `agency-agents` application by making the curated Nexus role packs visible and testable inside the existing Skills library surface.
+  - Current pass: add a prompt-match helper to `lib/agentRoleTaxonomy.ts`, build `components/skills/AgencyRoleLibrary.tsx`, mount it under `/skills?view=library`, extend `npm run agent:taxonomy:check`, and prove the UI compiles without adding a new route.
+  - Guardrail: no upstream install/convert scripts, no copied upstream prompt bodies, no generated `.codex` agents, no separate marketplace/agent-builder route, no direct provider calls, no unreviewed background workers, no public positioning change, and no ARPG work.
+  - Progress: shipped `matchAgencyRolePrompt()` and `getAgencyRoleInventorySummary()`, added the `/skills?view=library` Agency role library panel with source guardrails, pack counts, role cards, and routing preview, and extended the taxonomy validator to require the visible panel and test IDs. Proof: red `npm run agent:taxonomy:check` failed before implementation, then `npm run agent:taxonomy:check`, `npm run type-check`, `npm run verify`, `npm run build`, `git diff --check`, and a `.next` artifact string check passed. The Windows runtime launcher reported `http://127.0.0.1:3100` healthy but held the shell until timeout, so final live-route proof was not used.
+
 - [x] AGENCY-AGENTS-NATIVE-ROLE-TAXONOMY — Apply `msitarzewski/agency-agents` fully where it fits by turning the reference into a Nexus-native specialist taxonomy, routing hint set, and prompt/context guardrail.
   - Current pass: add a curated local role registry for JANSKY/ORBIT/NOVA/CIPHER/FLUX, inject compact role-pack guidance through `lib/liveContext.ts`, align `detectAgent()` scoring with the new specialist hints, and add a validator wired into `npm run verify`.
   - Guardrail: no upstream install/convert scripts, no copied prompt bodies, no generated `.codex` agents, no new UI route, no public positioning change, no direct provider calls, no unreviewed background agents, no ARPG work, and no raw external source vendoring.

@@ -18,6 +18,27 @@ export interface AgencyRolePack {
   evalSignals: string[];
 }
 
+export interface AgencyRoleInventorySummary {
+  sourceRepo: string;
+  sourceUrl: string;
+  license: string;
+  packCount: number;
+  archetypeCount: number;
+  keywordCount: number;
+  guardrails: string[];
+  implementation: string[];
+}
+
+export interface AgencyRolePromptMatch {
+  agentId: AgencyRoleAgentId;
+  agentLabel: string;
+  roleTitle: string;
+  score: number;
+  matchedKeywords: string[];
+  deliverables: string[];
+  reason: string;
+}
+
 export const AGENCY_AGENT_SOURCE = {
   repo: "msitarzewski/agency-agents",
   url: "https://github.com/msitarzewski/agency-agents",
@@ -240,6 +261,101 @@ export function getAgencyRoutingKeywords(agentId: AgencyRoleAgentId): string[] {
     for (const keyword of archetype.keywords) keywords.add(keyword.toLowerCase());
   }
   return Array.from(keywords);
+}
+
+function normalizeRoleText(value: string): string {
+  return value.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function uniqueSorted(values: string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean))).sort((a, b) =>
+    a.localeCompare(b),
+  );
+}
+
+export function getAgencyRoleInventorySummary(): AgencyRoleInventorySummary {
+  const keywordSet = new Set<string>();
+  let archetypeCount = 0;
+
+  for (const pack of AGENCY_AGENT_ROLE_PACKS) {
+    archetypeCount += pack.archetypes.length;
+    for (const role of pack.archetypes) {
+      keywordSet.add(role.title.toLowerCase());
+      for (const keyword of role.keywords) keywordSet.add(keyword.toLowerCase());
+    }
+  }
+
+  return {
+    sourceRepo: AGENCY_AGENT_SOURCE.repo,
+    sourceUrl: AGENCY_AGENT_SOURCE.url,
+    license: AGENCY_AGENT_SOURCE.license,
+    packCount: AGENCY_AGENT_ROLE_PACKS.length,
+    archetypeCount,
+    keywordCount: keywordSet.size,
+    guardrails: [
+      "No copied prompt bodies",
+      "No upstream install scripts",
+      "No generated hidden agents",
+      "No bypass around Nexus routing",
+    ],
+    implementation: [
+      "Prompt role-pack injection",
+      "Specialist routing keywords",
+      "Visible Skills library",
+      "Verify-gated taxonomy check",
+    ],
+  };
+}
+
+export function matchAgencyRolePrompt(input: string): AgencyRolePromptMatch[] {
+  const lower = normalizeRoleText(input);
+  if (!lower) return [];
+
+  const matches: AgencyRolePromptMatch[] = [];
+
+  for (const pack of AGENCY_AGENT_ROLE_PACKS) {
+    const divisionHits = pack.sourceDivisions
+      .map((division) => division.toLowerCase())
+      .filter((division) => lower.includes(division));
+
+    for (const role of pack.archetypes) {
+      const roleTitle = role.title.toLowerCase();
+      const keywordHits = role.keywords.filter((keyword) =>
+        lower.includes(keyword.toLowerCase()),
+      );
+      const titleHit = lower.includes(roleTitle) ? [roleTitle] : [];
+      const deliverableHits = role.deliverables.filter((deliverable) =>
+        lower.includes(deliverable.toLowerCase()),
+      );
+      const matchedKeywords = uniqueSorted([
+        ...titleHit,
+        ...keywordHits,
+        ...divisionHits,
+        ...deliverableHits,
+      ]);
+      const score =
+        titleHit.length * 4 +
+        keywordHits.length * 2 +
+        divisionHits.length +
+        deliverableHits.length;
+
+      if (score <= 0) continue;
+
+      matches.push({
+        agentId: pack.agentId,
+        agentLabel: pack.label,
+        roleTitle: role.title,
+        score,
+        matchedKeywords,
+        deliverables: role.deliverables,
+        reason: role.whenToUse,
+      });
+    }
+  }
+
+  return matches
+    .sort((a, b) => b.score - a.score || a.roleTitle.localeCompare(b.roleTitle))
+    .slice(0, 5);
 }
 
 export function buildAgencyRoleTaxonomyBlock(agentId: string): string {

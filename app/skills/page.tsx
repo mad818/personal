@@ -12,6 +12,7 @@ import LearningProgressRing from "@/components/skills/LearningProgressRing";
 import KnowledgeGraphViz from "@/components/skills/KnowledgeGraphViz";
 import WorkflowForge from "@/components/skills/WorkflowForge";
 import BlacksiteLab from "@/components/skills/BlacksiteLab";
+import AgencyRoleLibrary from "@/components/skills/AgencyRoleLibrary";
 import MissionHandoffStrip from "@/components/ui/MissionHandoffStrip";
 import OperatorReadinessLane from "@/components/ui/OperatorReadinessLane";
 import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
@@ -428,9 +429,14 @@ export default function SkillsPage() {
               <div className="nexus-surface-chamber-shell">
                 <div className="nexus-surface-chamber-shell__body">
                   <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${skillsLayout.workplaneClass}`}>
-                    <OpsField title="Skill library" detail="Actionable capability catalog">
-                      <SkillLibrary onNewEvent={handleNewEvent} />
-                    </OpsField>
+                    <ShellStack gap="12px">
+                      <OpsField title="Skill library" detail="Actionable capability catalog">
+                        <SkillLibrary onNewEvent={handleNewEvent} />
+                      </OpsField>
+                      <OpsField title="Agency role library" detail="Curated specialist role packs">
+                        <AgencyRoleLibrary />
+                      </OpsField>
+                    </ShellStack>
                   </OpsWorkplane>
                   <OpsRail className={`nexus-surface-chamber-shell__support ${skillsLayout.railClass}`}>
                     <ShellStack gap="12px">

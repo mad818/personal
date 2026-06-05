@@ -25,6 +25,8 @@ function assertIncludes(text, needle, label) {
 const taxonomy = read("lib/agentRoleTaxonomy.ts");
 const liveContext = read("lib/liveContext.ts");
 const prompts = read("components/home/office/prompts.ts");
+const skillsPage = read("app/skills/page.tsx");
+const roleLibrary = read("components/skills/AgencyRoleLibrary.tsx");
 const packageJson = read("package.json");
 const spec = read("specs/features/agency-agents-native-role-taxonomy.md");
 const externalMap = read("docs/ideas/external-links-mapping.md");
@@ -36,6 +38,8 @@ assertIncludes(taxonomy, "AGENCY_AGENT_SOURCE", "taxonomy source attribution");
 assertIncludes(taxonomy, "AGENCY_AGENT_ROLE_PACKS", "taxonomy role pack export");
 assertIncludes(taxonomy, "buildAgencyRoleTaxonomyBlock", "taxonomy prompt block builder");
 assertIncludes(taxonomy, "getAgencyRoutingKeywords", "taxonomy routing keywords export");
+assertIncludes(taxonomy, "matchAgencyRolePrompt", "taxonomy prompt matcher");
+assertIncludes(taxonomy, "getAgencyRoleInventorySummary", "taxonomy inventory summary");
 assertIncludes(taxonomy, "No upstream prompt bodies are copied", "taxonomy no-copy guardrail");
 
 for (const agent of ["jansky", "orbit", "nova", "cipher", "flux"]) {
@@ -58,6 +62,16 @@ assertIncludes(liveContext, "[AGENCY ROLE PACK", "live context role pack block")
 
 assertIncludes(prompts, "getAgencyRoutingKeywords", "prompt routing import/use");
 assertIncludes(prompts, "scoreAgencyRoleKeywords", "prompt routing scorer");
+
+if (!roleLibrary) fail("missing components/skills/AgencyRoleLibrary.tsx");
+assertIncludes(roleLibrary, "AGENCY_AGENT_ROLE_PACKS", "role library role packs");
+assertIncludes(roleLibrary, "matchAgencyRolePrompt", "role library prompt preview");
+assertIncludes(roleLibrary, "No copied prompt bodies", "role library no-copy guardrail");
+assertIncludes(roleLibrary, "data-testid=\"agency-role-library\"", "role library test id");
+assertIncludes(roleLibrary, "data-testid=\"agency-role-routing-preview\"", "routing preview test id");
+
+assertIncludes(skillsPage, "AgencyRoleLibrary", "skills page role library import/mount");
+assertIncludes(skillsPage, "Agency role library", "skills page role library section");
 
 assertIncludes(packageJson, "\"agent:taxonomy:check\"", "package script");
 assertIncludes(packageJson, "agent:taxonomy:check && npm run type-check", "verify wiring");

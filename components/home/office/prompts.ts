@@ -10,6 +10,7 @@
 //   Perplexity-style — grounded research: search → open sources → cross-ref → cite
 
 import type { AgentId, PersonaMode } from "./types";
+import { getAgencyRoutingKeywords } from "@/lib/agentRoleTaxonomy";
 import { buildPersonaSuffix } from "@/lib/personaEngine";
 import {
   AI_AGENT_TRUTHFULNESS_POSTURE,
@@ -419,6 +420,13 @@ const FLUX_PHRASES = [
   "technical analysis", "price prediction",
 ];
 
+function scoreAgencyRoleKeywords(agentId: AgentId, lower: string): number {
+  if (agentId === "jansky") return 0;
+  return getAgencyRoutingKeywords(agentId).filter((keyword) =>
+    lower.includes(keyword),
+  ).length;
+}
+
 /** Compute raw scores for all four specialist domains. */
 function scoreDomains(lower: string): Record<string, number> {
   const hit1 = (kws: string[]) => kws.filter((k) => lower.includes(k)).length;
@@ -426,10 +434,22 @@ function scoreDomains(lower: string): Record<string, number> {
     phrases.filter((p) => lower.includes(p)).length * 2;
 
   return {
-    orbit:  hit1(ORBIT_UNIGRAMS)  + hit2(ORBIT_PHRASES),
-    nova:   hit1(NOVA_UNIGRAMS)   + hit2(NOVA_PHRASES),
-    cipher: hit1(CIPHER_UNIGRAMS) + hit2(CIPHER_PHRASES),
-    flux:   hit1(FLUX_UNIGRAMS)   + hit2(FLUX_PHRASES),
+    orbit:
+      hit1(ORBIT_UNIGRAMS) +
+      hit2(ORBIT_PHRASES) +
+      scoreAgencyRoleKeywords("orbit", lower),
+    nova:
+      hit1(NOVA_UNIGRAMS) +
+      hit2(NOVA_PHRASES) +
+      scoreAgencyRoleKeywords("nova", lower),
+    cipher:
+      hit1(CIPHER_UNIGRAMS) +
+      hit2(CIPHER_PHRASES) +
+      scoreAgencyRoleKeywords("cipher", lower),
+    flux:
+      hit1(FLUX_UNIGRAMS) +
+      hit2(FLUX_PHRASES) +
+      scoreAgencyRoleKeywords("flux", lower),
   };
 }
 

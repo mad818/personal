@@ -18,6 +18,7 @@
 //   const enrichedPrompt = systemPrompt + liveBlock
 
 import type { AgentStats } from "@/store/useStore";
+import { buildAgencyRoleTaxonomyBlock } from "@/lib/agentRoleTaxonomy";
 import { buildStackContextBlock } from "@/lib/projectContext";
 import { buildLearningsBlock } from "@/lib/agentLearnings";
 import type { CorrectionMemoryEntry } from "@/lib/assistantSessionMemory";
@@ -572,5 +573,7 @@ export function buildCapabilitiesBlock(agentId: string): string {
     flux: `You are a market analyst with live prices, Fear & Greed, and news signals available right now. Lead every market answer with the actual current numbers. Then layer in macro context via web_search. Never give generic market commentary — you have real data, use it.`,
   };
   const block = cap[agentId] ?? cap.jansky;
-  return `\n\n[AGENT CAPABILITIES & REASONING STYLE]\n${block}\n[END CAPABILITIES]\n`;
+  const rolePackBlock = buildAgencyRoleTaxonomyBlock(agentId);
+  // The role pack appends a compact [AGENCY ROLE PACK ...] block per agent.
+  return `\n\n[AGENT CAPABILITIES & REASONING STYLE]\n${block}\n[END CAPABILITIES]\n${rolePackBlock}`;
 }

@@ -480,8 +480,9 @@ This batch feeds the Homefront source-intelligence pass. The useful product move
 - **Link**: `https://github.com/msitarzewski/agency-agents`
 - **What it is**: MIT-licensed library of specialist AI-agent Markdown definitions plus conversion/install notes for multiple agentic coding tools, including Codex TOML generation.
 - **Likely Nexus mapping**: ORBIT/NOVA/CIPHER/JANSKY role taxonomy, `components/home/office/prompts.ts`, `lib/agent.ts`, future prompt-pack eval fixtures, and Resources/source-ledger review notes.
-- **Disposition**: **Candidate prompt taxonomy**
+- **Disposition**: **Implemented locally as curated prompt taxonomy**
 - **Safest implementation shape**: Mine only reviewed role categories, checklist structure, and evaluation ideas; do not run its install scripts, copy the prompt bodies wholesale, generate `.codex` agents, bypass Nexus routing, or expand the product into hundreds of unreviewed background agents.
+- **Local implementation**: `lib/agentRoleTaxonomy.ts`, `lib/liveContext.ts`, `components/home/office/prompts.ts`, and `npm run agent:taxonomy:check`.
 
 ### Privacy / sandbox / runtime hardening
 

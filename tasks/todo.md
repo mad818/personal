@@ -49,6 +49,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] AGENCY-AGENTS-NATIVE-ROLE-TAXONOMY — Apply `msitarzewski/agency-agents` fully where it fits by turning the reference into a Nexus-native specialist taxonomy, routing hint set, and prompt/context guardrail.
+  - Current pass: add a curated local role registry for JANSKY/ORBIT/NOVA/CIPHER/FLUX, inject compact role-pack guidance through `lib/liveContext.ts`, align `detectAgent()` scoring with the new specialist hints, and add a validator wired into `npm run verify`.
+  - Guardrail: no upstream install/convert scripts, no copied prompt bodies, no generated `.codex` agents, no new UI route, no public positioning change, no direct provider calls, no unreviewed background agents, no ARPG work, and no raw external source vendoring.
+  - Progress: shipped `lib/agentRoleTaxonomy.ts` with curated role packs for all five Nexus agents, injected the per-agent `[AGENCY ROLE PACK]` block through `buildCapabilitiesBlock()`, added taxonomy keyword scoring to `detectAgent()`, documented the source as implemented locally, and wired `npm run agent:taxonomy:check` into `npm run verify`. Proof: red validator first failed on missing taxonomy, then `npm run agent:taxonomy:check`, `npm run type-check`, `npm run verify`, and `npm run build` passed.
+
 - [x] SOURCE-INTAKE-AGENCY-AGENTS — Triage `msitarzewski/agency-agents` into the external-source map without vendoring prompt packs or creating runtime agents.
   - Current pass: inspect the GitHub README/integration notes, document a Nexus-safe fit for ORBIT/NOVA/CIPHER/JANSKY prompt taxonomy and eval/checklist use, and promote only the reviewed pattern to the assimilated ecosystem docs.
   - Guardrail: no install/convert scripts, no copied prompt bodies, no generated Codex agents under `.codex`, no runtime routing changes, no app UI change, no public positioning change, and no ARPG work.

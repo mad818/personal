@@ -49,6 +49,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] SOURCE-INTAKE-AGENCY-AGENTS — Triage `msitarzewski/agency-agents` into the external-source map without vendoring prompt packs or creating runtime agents.
+  - Current pass: inspect the GitHub README/integration notes, document a Nexus-safe fit for ORBIT/NOVA/CIPHER/JANSKY prompt taxonomy and eval/checklist use, and promote only the reviewed pattern to the assimilated ecosystem docs.
+  - Guardrail: no install/convert scripts, no copied prompt bodies, no generated Codex agents under `.codex`, no runtime routing changes, no app UI change, no public positioning change, and no ARPG work.
+  - Progress: mapped `msitarzewski/agency-agents` into `docs/ideas/external-links-mapping.md`, promoted the distilled fit to `docs/ideas/assimilated-ecosystem.md`, and added it to the P1.3 repo-assimilation backlog as a prompt-taxonomy reference only. Proof: `git diff --check` and `npm run verify` passed.
+
 - [x] PHONE-ACCEPTANCE-GUIDE-CLI — Add one read-only command that turns the current phone/iPad acceptance artifact into a simple desktop-and-phone checklist with exact next commands.
   - Current pass: summarize the latest sanitized phone acceptance artifact, show local LAN/HQ URL candidates from local network interfaces, list the phone-side proof items as done/missing, and print the safest next command sequence for `phone:lan:start`, capture, report, local-AI report, and first-three closure.
   - Guardrail: no network calls, no runtime launch, no receipt API calls, no provider calls, no file writes, no `.env.local` reads, no raw receipt storage reads, no token value reads/prints, no proof simulation, no manual flag claim unless the operator actually performed the steps, no UI change, no public route change, and no ARPG work.

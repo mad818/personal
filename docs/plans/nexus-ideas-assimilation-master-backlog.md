@@ -189,7 +189,7 @@ The program runs **adjacent to** the current UXA3 merged-main work. UXA3 remains
 
 ### P1.3 Repo Assimilation Workflow Upgrade
 
-**Primary inputs:** `pro-workflow`, current repo-assimilation stack, ORBIT handoff patterns
+**Primary inputs:** `pro-workflow`, `agency-agents`, current repo-assimilation stack, ORBIT handoff patterns
 
 **Ship**
 - Stronger bounded repo-fit briefs.

@@ -475,6 +475,14 @@ This batch feeds the Homefront source-intelligence pass. The useful product move
 - **Disposition**: **Already covered**
 - **Safest implementation shape**: Already tracked in [`assimilated-ecosystem.md`](./assimilated-ecosystem.md); continue using it as a prompt/process pattern only.
 
+#### 13A) `msitarzewski/agency-agents`
+
+- **Link**: `https://github.com/msitarzewski/agency-agents`
+- **What it is**: MIT-licensed library of specialist AI-agent Markdown definitions plus conversion/install notes for multiple agentic coding tools, including Codex TOML generation.
+- **Likely Nexus mapping**: ORBIT/NOVA/CIPHER/JANSKY role taxonomy, `components/home/office/prompts.ts`, `lib/agent.ts`, future prompt-pack eval fixtures, and Resources/source-ledger review notes.
+- **Disposition**: **Candidate prompt taxonomy**
+- **Safest implementation shape**: Mine only reviewed role categories, checklist structure, and evaluation ideas; do not run its install scripts, copy the prompt bodies wholesale, generate `.codex` agents, bypass Nexus routing, or expand the product into hundreds of unreviewed background agents.
+
 ### Privacy / sandbox / runtime hardening
 
 #### 14) `google/magika`

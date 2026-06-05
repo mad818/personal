@@ -427,6 +427,8 @@ export async function POST(req: NextRequest) {
         providerName,
         messages,
         system,
+        tools,
+        toolChoice: tool_choice,
       });
       if (protectedPayload.status?.dispatchMode === "blocked") {
         const response = NextResponse.json(
@@ -456,8 +458,8 @@ export async function POST(req: NextRequest) {
         safeMaxTokens,
         protectedPayload.system,
         stream,
-        tools,
-        tool_choice,
+        protectedPayload.tools,
+        protectedPayload.toolChoice,
         providerName === "ollama"
           ? {
               url: typeof localEndpoint === "string" ? localEndpoint : undefined,

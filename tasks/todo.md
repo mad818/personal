@@ -49,6 +49,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] PRIVACY-SHIELD-FULL-RUNTIME — Fully implement Privacy Shield 2.0 beyond the CLI preview by covering every cloud-bound AI request fragment and adding an in-app protected preview panel.
+  - Current pass: sanitize `messages`, `system`, `tools`, and `tool_choice`; add structured policy/field metadata; add protected `POST /api/privacy-shield/preview`; mount a COMMAND provider-health preview panel; and keep the full gate under `npm run privacy:shield:check` / `npm run verify`.
+  - Guardrail: no AI/provider calls from preview, no CLI network calls, no env/token/cookie/auth-header/raw-receipt reads, no local file reads except CLI stdin, no file writes/artifacts, no dependency installs, no public routes, no provider-routing changes, no proxy/VPN/IP-hiding claims, no background workers, and no ARPG work.
+  - Progress: shipped runtime protection for `messages`, `system`, `tools`, and `tool_choice`, policy/field headers, protected preview API, COMMAND preview panel, client-store posture parsing, route-policy coverage, and validator coverage. Proof: red validator failed on the missing preview API route first, then `node scripts/validate-privacy-shield-preview-cli.mjs`, `npm run privacy:shield:preview -- --check`, `npm run privacy:shield:check`, `npm run type-check`, `npm run publication:safety:check`, `npm run security-scan`, `npm run verify`, `npm run build`, and compiled artifact checks passed.
+
 - [x] PRIVACY-SHIELD-PREVIEW-CLI — Tackle the next secure/local idea by making Privacy Shield 2.0 inspectable before any cloud-bound model dispatch.
   - Current pass: add a no-network `npm run privacy:shield:preview` command, a red/green validator, a scoped feature spec, and `npm run verify` coverage so Mario can see class counts, blocked reason, and sanitized preview text without sending anything to a provider.
   - Guardrail: no AI/provider calls, network calls, file reads beyond stdin, file writes, env/secret/raw receipt reads, proxy/VPN/IP-hiding claims, provider-routing changes, public routes, background workers, dependency installs, or ARPG work.

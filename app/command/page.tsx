@@ -110,6 +110,10 @@ const LazyProviderHealthStrip = dynamic(
   () => import("@/components/ui/ProviderHealthStrip"),
   { ssr: false },
 );
+const LazyPrivacyShieldPreviewPanel = dynamic(
+  () => import("@/components/command/PrivacyShieldPreviewPanel"),
+  { ssr: false },
+);
 const LazyOperatorReadinessLane = dynamic(
   () => import("@/components/ui/OperatorReadinessLane"),
   { ssr: false },
@@ -607,6 +611,9 @@ export default function CommandPage() {
                           <summary>Open provider chain</summary>
                           <div className="nexus-surface-disclosure__body">
                             <LazyProviderHealthStrip surface="command" />
+                            <div id="command-privacy-shield-preview">
+                              <LazyPrivacyShieldPreviewPanel />
+                            </div>
                           </div>
                         </details>
                       </OpsField>

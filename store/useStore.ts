@@ -715,7 +715,9 @@ export interface SecurityAlert {
 export interface PrivacyShieldStatus {
   active: boolean
   provider?: string
+  policy?: string
   protectedKinds: string[]
+  protectedFields?: string[]
   protectedCount: number
   summary: string
   classCounts?: Record<string, number>

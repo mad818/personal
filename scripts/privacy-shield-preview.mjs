@@ -21,7 +21,7 @@ const CLASS_ORDER = [
 const SAMPLE_PAYLOAD = [
   "token=exampleSecretValue1234567890",
   "open localhost:11434 for local model checks",
-  "path C:\\Users\\mario\\Desktop\\personal\\secrets\\vault.txt",
+  "path C:\\private\\secrets\\vault.txt",
   "operator-only incident evidence must stay local",
   "api_key=anotherSecretValue123456",
 ].join("\n");
@@ -234,7 +234,7 @@ function runCheck() {
   for (const leaked of [
     "exampleSecretValue1234567890",
     "anotherSecretValue123456",
-    "C:\\Users\\mario\\Desktop\\personal\\secrets\\vault.txt",
+    "C:\\private\\secrets\\vault.txt",
   ]) {
     if (preview.safePreview.includes(leaked)) {
       console.error(`raw sample leaked: ${leaked}`);

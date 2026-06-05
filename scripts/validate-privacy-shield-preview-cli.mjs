@@ -33,12 +33,21 @@ function assertExcludes(source, needle, label) {
 }
 
 const spec = readRequired("specs", "features", "privacy-shield-preview-cli.md");
+const fullSpec = readRequired("specs", "features", "privacy-shield-full-runtime.md");
 const runner = readRequired("scripts", "privacy-shield-preview.mjs");
 const server = readRequired("lib", "privacyShieldServer.ts");
+const aiRoute = readRequired("app", "api", "ai", "route.ts");
+const previewRoute = readRequired("app", "api", "privacy-shield", "preview", "route.ts");
+const routePolicy = readRequired("lib", "security", "routePolicy.ts");
+const commandPage = readRequired("app", "command", "page.tsx");
+const panel = readRequired("components", "command", "PrivacyShieldPreviewPanel.tsx");
+const client = readRequired("lib", "privacyShieldClient.ts");
+const store = readRequired("store", "useStore.ts");
 const packageJsonText = readRequired("package.json");
 const packageJson = JSON.parse(packageJsonText);
 
 assertIncludes(spec, "PRIVACY-SHIELD-PREVIEW-CLI", "feature spec");
+assertIncludes(fullSpec, "PRIVACY-SHIELD-FULL-RUNTIME", "full runtime spec");
 assertIncludes(spec, "No AI/provider calls", "feature spec");
 assertIncludes(spec, "No network calls", "feature spec");
 assertIncludes(spec, "No file reads except stdin", "feature spec");
@@ -52,6 +61,37 @@ for (const className of [
   assertIncludes(server, className, "runtime privacy shield");
   assertIncludes(runner, className, "preview runner");
 }
+
+for (const required of [
+  "PrivacyShieldProtectedField",
+  "protectedFields",
+  "previewPrivacyShieldPayload",
+  "tools",
+  "toolChoice",
+  "local_redaction_v2",
+]) {
+  assertIncludes(server, required, "runtime privacy shield");
+}
+
+assertIncludes(aiRoute, "protectedPayload.tools", "AI route sanitized tools dispatch");
+assertIncludes(aiRoute, "protectedPayload.toolChoice", "AI route sanitized tool_choice dispatch");
+assertIncludes(previewRoute, "previewPrivacyShieldPayload", "preview API route");
+assertIncludes(previewRoute, "protectedJson", "preview API route");
+assertIncludes(previewRoute, "POST", "preview API route");
+assertExcludes(previewRoute, "callProvider", "preview API route");
+assertExcludes(previewRoute, "callAI", "preview API route");
+assertIncludes(routePolicy, "/api/privacy-shield/preview", "route policy");
+assertIncludes(routePolicy, "local_only", "route policy");
+assertIncludes(commandPage, "PrivacyShieldPreviewPanel", "COMMAND page");
+assertIncludes(commandPage, "command-privacy-shield-preview", "COMMAND page");
+assertIncludes(panel, "data-testid=\"privacy-shield-preview-panel\"", "preview panel");
+assertIncludes(panel, "data-testid=\"privacy-shield-safe-preview\"", "preview panel");
+assertIncludes(panel, "/api/privacy-shield/preview", "preview panel");
+assertIncludes(panel, "setPrivacyShieldStatus", "preview panel");
+assertIncludes(client, "X-Anonymization-Policy", "client privacy parser");
+assertIncludes(client, "X-Anonymization-Fields", "client privacy parser");
+assertIncludes(store, "protectedFields", "privacy shield store type");
+assertIncludes(store, "policy?:", "privacy shield store type");
 
 for (const required of [
   "PRIVACY_SHIELD_PREVIEW_FIELDS",
@@ -121,7 +161,7 @@ if (check.status !== 0) {
 for (const leaked of [
   "exampleSecretValue1234567890",
   "anotherSecretValue123456",
-  "C:\\Users\\mario\\Desktop\\personal\\secrets\\vault.txt",
+  "C:\\private\\secrets\\vault.txt",
 ]) {
   if (`${check.stdout}\n${check.stderr}`.includes(leaked)) {
     fail(`preview self-check leaked raw sample value ${leaked}`);

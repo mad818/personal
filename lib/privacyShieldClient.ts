@@ -28,9 +28,12 @@ export function readPrivacyShieldStatusFromHeaders(
     10,
   );
   const protectedKinds = parseKinds(response.headers.get("X-Anonymization-Kinds"));
+  const protectedFields = parseKinds(response.headers.get("X-Anonymization-Fields"));
   const classCounts = parseClassCounts(
     response.headers.get("X-Anonymization-Classes"),
   );
+  const policy =
+    response.headers.get("X-Anonymization-Policy")?.trim() || undefined;
   const provider = response.headers.get("X-Provider")?.trim() || undefined;
   const dispatchMode =
     response.headers.get("X-Anonymization-Mode")?.trim() === "blocked"
@@ -45,7 +48,9 @@ export function readPrivacyShieldStatusFromHeaders(
   return {
     active: true,
     provider,
+    policy,
     protectedKinds,
+    protectedFields,
     protectedCount: Number.isFinite(protectedCount) ? protectedCount : protectedKinds.length,
     summary,
     classCounts,

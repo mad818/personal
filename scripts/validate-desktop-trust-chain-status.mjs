@@ -34,7 +34,15 @@ assertIncludes(runner, "SHA256SUMS.txt", "trust-chain runner");
 assertIncludes(runner, "signingIdentity", "trust-chain runner");
 assertIncludes(runner, "readsSecrets: false", "trust-chain runner");
 assertIncludes(runner, "sbom", "trust-chain runner");
+assertIncludes(runner, "desktop-sbom.cdx.json", "trust-chain runner");
+assertIncludes(runner, "componentCount", "trust-chain runner");
+assertIncludes(runner, "lockDigest", "trust-chain runner");
 assertIncludes(runner, "--check", "trust-chain runner");
+assertIncludes(
+  readRequired("docs", "metrics", "desktop-sbom.cdx.json"),
+  "\"bomFormat\": \"CycloneDX\"",
+  "canonical desktop SBOM",
+);
 
 if (
   packageJson.scripts?.["desktop:trust-chain"] !==

@@ -18,6 +18,7 @@ const checkOnly = args.includes("--check");
 const jsonOutput = args.includes("--json");
 const noWrite = args.includes("--no-write") || checkOnly;
 const metricsDir = join(root, "docs", "metrics");
+const canonicalSbomPath = join(metricsDir, "desktop-sbom.cdx.json");
 
 function readArgValue(prefix) {
   const match = args.find((arg) => arg.startsWith(prefix));
@@ -212,17 +213,78 @@ function findSbomFiles(targetDir) {
   return candidates.sort((a, b) => pathLabel(a).localeCompare(pathLabel(b)));
 }
 
+function canonicalSbomSummary() {
+  if (!existsSync(canonicalSbomPath)) return null;
+  let sbom;
+  try {
+    sbom = JSON.parse(readFileSync(canonicalSbomPath, "utf8"));
+  } catch {
+    return {
+      path: pathLabel(canonicalSbomPath),
+      valid: false,
+      componentCount: 0,
+      npmComponentCount: 0,
+      cargoComponentCount: 0,
+      lockDigest: null,
+    };
+  }
+
+  const components = Array.isArray(sbom.components) ? sbom.components : [];
+  const ecosystemFor = (component) =>
+    Array.isArray(component?.properties)
+      ? component.properties.find(
+          (property) => property?.name === "nexus:ecosystem",
+        )?.value
+      : null;
+  const properties = new Map(
+    Array.isArray(sbom?.metadata?.properties)
+      ? sbom.metadata.properties.map((property) => [
+          property?.name,
+          property?.value,
+        ])
+      : [],
+  );
+
+  return {
+    path: pathLabel(canonicalSbomPath),
+    valid: sbom.bomFormat === "CycloneDX" && sbom.specVersion === "1.5",
+    bomFormat: sbom.bomFormat ?? null,
+    specVersion: sbom.specVersion ?? null,
+    componentCount: components.length,
+    npmComponentCount: components.filter(
+      (component) => ecosystemFor(component) === "npm",
+    ).length,
+    cargoComponentCount: components.filter(
+      (component) => ecosystemFor(component) === "cargo",
+    ).length,
+    lockDigest: properties.get("nexus:lock-digest-sha256") ?? null,
+  };
+}
+
 function sbomStatus(targetDir) {
   const packageLock = readJson("package-lock.json");
   const cargoLockPath = join(root, "desktop", "src-tauri", "Cargo.lock");
   const sbomFiles = findSbomFiles(targetDir);
+  const canonical = canonicalSbomSummary();
   const lockfilePackages =
     packageLock?.packages && typeof packageLock.packages === "object"
       ? Object.keys(packageLock.packages).filter(Boolean).length
       : 0;
+  const findings = [];
+
+  if (!canonical) {
+    findings.push(
+      "Canonical desktop SBOM is missing; run npm run desktop:sbom.",
+    );
+  } else if (!canonical.valid) {
+    findings.push("Canonical desktop SBOM is not valid CycloneDX 1.5 JSON.");
+  }
 
   return {
-    status: sbomFiles.length > 0 ? "recorded" : "inventory_available",
+    status: canonical?.valid ? "recorded" : "inventory_available",
+    canonical,
+    componentCount: canonical?.componentCount ?? 0,
+    lockDigest: canonical?.lockDigest ?? null,
     sbomFiles: sbomFiles.map(pathLabel),
     packageLock: {
       present: Boolean(packageLock),
@@ -232,9 +294,7 @@ function sbomStatus(targetDir) {
       present: existsSync(cargoLockPath),
       path: existsSync(cargoLockPath) ? pathLabel(cargoLockPath) : null,
     },
-    findings: sbomFiles.length > 0
-      ? []
-      : ["No desktop SBOM artifact was found; dependency inventory is available from lockfiles."],
+    findings,
   };
 }
 
@@ -274,7 +334,9 @@ function buildRecord(targetDir) {
       "Build desktop artifacts with npm run desktop:tauri:build when release packaging is ready.",
       "Run npm run release:checksums -- <artifact-dir> after artifacts exist.",
       "Record signing identities/cert strategy before promoting artifacts.",
-      "Attach or generate a desktop SBOM before release promotion.",
+      ...(sbom.status === "recorded"
+        ? []
+        : ["Generate the canonical desktop SBOM with npm run desktop:sbom."]),
     ],
   };
 }

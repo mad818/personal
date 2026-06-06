@@ -11,7 +11,7 @@ Close the missing CP2.3 status-record layer for desktop releases by adding a loc
 - Inspect `desktop/dist` by default and support `--dir=<path>` for a release artifact directory.
 - Verify `SHA256SUMS.txt` when desktop artifacts exist.
 - Record macOS, Windows, and Linux signing posture from committed Tauri config only.
-- Record SBOM posture from committed lockfiles and any existing SBOM-like files.
+- Record SBOM posture from committed lockfiles and the canonical `docs/metrics/desktop-sbom.cdx.json` artifact.
 
 ## Guardrails
 

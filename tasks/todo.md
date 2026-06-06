@@ -49,6 +49,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] LOCAL-RECOVERY-BUNDLE — Protect Nexus-owned private local state with an offline checksummed snapshot and guarded restore command.
+  - Current pass: add create/list/verify/restore commands for an explicit allowlist of Escape state, private cover assets, and phone acceptance receipts under ignored `.nexus/backups/`.
+  - Guardrail: no network/cloud/subscription dependency, no env/token/key/git reads, no arbitrary workspace backup, no file-content output, no automatic restore/overwrite/delete/retention behavior, no UI/public-route/provider/dependency/ARPG changes.
+  - Progress: shipped `npm run local:recovery -- create|list|verify|restore`, SHA-256 manifests, tamper/extra/missing/symlink/path rejection, dry-run restore, exact apply confirmation, overwrite protection, operator documentation, and `npm run verify` coverage. The real list command reports no snapshots yet because this workspace currently has no allowlisted local-state files; isolated fixtures prove create, list, ID/path verification, tamper rejection, dry-run, confirmation blocking, conflict blocking, and reviewed overwrite restore. Proof: red validator failed before the runtime existed; `npm run local:recovery:check`, real list/JSON list, security scan, full verify, production build, and diff check passed.
+
 - [x] DESKTOP-SBOM-GENERATOR — Generate a deterministic offline CycloneDX SBOM for the Next/npm and Tauri/Cargo desktop release lane.
   - Current pass: add `npm run desktop:sbom`, a freshness validator, canonical `docs/metrics/desktop-sbom.cdx.json`, desktop trust-chain integration, and `npm run verify` coverage.
   - Guardrail: no network calls, dependency installs/upgrades, Cargo downloads, registry lookups, certificate/key/token/env reads, Tauri packaging, signing, notarization, release-ready claim, UI/product changes, public routes, or ARPG work.

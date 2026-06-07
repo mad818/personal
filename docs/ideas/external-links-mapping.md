@@ -52,7 +52,7 @@ This document maps each external link you provided to the **corresponding Nexus 
 
 - **Link**: `https://x.com/advaitpaliwal/status/2036900468056875332`
 - **Fits**: `lib/agent.ts` research pipeline, `app/api/tools/route.ts` web tools, Vault for artifacts
-- **Implement?**: **YES (partial)**: add “cited brief” workflow + claim-audit mode.
+- **Implemented fully (native assimilation)**: `lib/feynmanResearch.ts`, `feynman_research`, `feynman_outputs`, and the HQ workflow registry now provide Researcher/Writer/Verifier/Reviewer orchestration; `/deepresearch`, `/lit`, `/review`, `/audit`, `/replicate`, `/recipe`, `/compare`, `/draft`, `/autoresearch`, `/watch`, and `/outputs`; direct-source evidence; claim-level verdicts; severity-graded review; provenance; deterministic degraded fallbacks; real VAULT output indexing; and human-gated replication/autoresearch/watch follow-through. Nexus does not vendor the upstream runtime, auth store, prompt bodies, or provider integrations.
 
 ### 7) `shannholmberg` — AutoResearch: fast constrained loops + single metric
 

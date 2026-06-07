@@ -7,11 +7,11 @@ import * as path from "path";
 import { getBrandServiceName } from "@/lib/brand";
 import { resolveInternalServiceOrigin } from "@/lib/authSession";
 import {
-  buildDeepResearchSynthesisPrompt,
-  runDeepResearch,
-  type DeepResearchPipelineInput,
-} from "@/lib/deepResearch";
+  runFeynmanResearch,
+  type FeynmanWorkflowId,
+} from "@/lib/feynmanResearch";
 import { callInternalAi } from "@/lib/internalAi";
+import { listCompiledMemoryPages } from "@/lib/memoryPagesStore";
 import {
   buildRepoCompareSynthesisPrompt,
   runRepoCompare,
@@ -825,43 +825,107 @@ async function compareRepos(
   }
 }
 
-async function deepResearch(
+const FEYNMAN_WORKFLOWS = new Set<FeynmanWorkflowId>([
+  "deepresearch",
+  "lit-review",
+  "review",
+  "audit",
+  "replicate",
+  "recipe",
+  "compare",
+  "draft",
+  "autoresearch",
+  "watch",
+]);
+
+async function callFeynmanStage(
+  origin: string,
+  task: string,
+  prompt: string,
+  maxTokens: number,
+) {
+  const aiResult = await callInternalAi({
+    origin,
+    task,
+    maxTokens,
+    timeoutMs: 60_000,
+    messages: [{ role: "user", content: prompt }],
+  });
+  if (!aiResult.ok || !aiResult.text.trim()) {
+    throw new Error(`${task} failed.`);
+  }
+  return aiResult.text;
+}
+
+async function feynmanResearch(
+  rawWorkflow: string,
   topic: string,
   origin: string,
 ): Promise<ToolResult> {
-  const normalizedTopic = topic.trim();
-  if (!normalizedTopic) {
-    return withToolResult("deep_research: topic is required.");
+  const workflow = rawWorkflow.trim().toLowerCase() as FeynmanWorkflowId;
+  if (!FEYNMAN_WORKFLOWS.has(workflow)) {
+    return withToolResult(
+      `feynman_research: workflow must be one of ${Array.from(FEYNMAN_WORKFLOWS).join(", ")}.`,
+    );
+  }
+  if (!topic.trim()) {
+    return withToolResult("feynman_research: topic or artifact is required.");
   }
 
-  const result = await runDeepResearch(normalizedTopic, {
-    hfPapersSearch: hfPapersSearch,
-    webSearch: webSearch,
-    rssFetch: rssFetch,
-    fetchUrl: fetchUrl,
-    synthesize: async (input: DeepResearchPipelineInput) => {
-      const aiResult = await callInternalAi({
-        origin,
-        task: "deep_research",
-        maxTokens: 900,
-        timeoutMs: 45_000,
-        messages: [
-          {
-            role: "user",
-            content: buildDeepResearchSynthesisPrompt(input),
-          },
-        ],
-      });
+  try {
+    const result = await runFeynmanResearch(workflow, topic, {
+      searchPapers: hfPapersSearch,
+      webSearch,
+      fetchUrl,
+      write: (prompt) =>
+        callFeynmanStage(origin, "feynman_writer", prompt, 1_800),
+      verify: (prompt) =>
+        callFeynmanStage(origin, "feynman_verifier", prompt, 1_300),
+      review: (prompt) =>
+        callFeynmanStage(origin, "feynman_reviewer", prompt, 1_100),
+    });
+    return withToolResult(result.report);
+  } catch (error) {
+    return withToolResult(
+      error instanceof Error
+        ? error.message
+        : "Feynman research workflow failed.",
+    );
+  }
+}
 
-      if (!aiResult.ok || !aiResult.text.trim()) {
-        throw new Error("Deep research synthesis failed.");
-      }
+async function deepResearch(topic: string, origin: string): Promise<ToolResult> {
+  return feynmanResearch("deepresearch", topic, origin);
+}
 
-      return aiResult.text;
-    },
-  });
-
-  return withToolResult(result);
+async function feynmanOutputs(): Promise<ToolResult> {
+  try {
+    const pages = await listCompiledMemoryPages({ limit: 80 });
+    const researchPages = pages
+      .filter(
+        (page) =>
+          FEYNMAN_WORKFLOWS.has(page.workflowId as FeynmanWorkflowId) ||
+          page.tags.includes("feynman-native"),
+      )
+      .slice(0, 20);
+    if (researchPages.length === 0) {
+      return withToolResult(
+        "No Feynman-native VAULT outputs exist yet. Run /deepresearch, /lit, /review, /audit, /replicate, /recipe, /compare, /draft, /autoresearch, or /watch first.",
+      );
+    }
+    return withToolResult(
+      [
+        "# Feynman Outputs",
+        "",
+        ...researchPages.map(
+          (page, index) =>
+            `${index + 1}. **${page.title}**\n   Workflow: ${page.workflowId ?? "research"} · Updated: ${new Date(page.updatedAt).toISOString()} · Sources: ${page.researchSignals.sourceCount} · Citations: ${page.researchSignals.citationCount}\n   Open: /vault?focus=vault-compiled-pages&pageId=${encodeURIComponent(page.id)}${page.workflowId ? `&workflowId=${encodeURIComponent(page.workflowId)}` : ""}`,
+        ),
+      ].join("\n"),
+    );
+  } catch {
+    return withToolResult("Could not read Feynman outputs from the local VAULT.");
+  }
 }
 
 async function rssFetch(feedUrl: string, limit: string): Promise<string> {
@@ -1401,6 +1465,24 @@ export async function POST(req: NextRequest) {
             input.topic ?? input.question ?? "",
             resolveInternalServiceOrigin(),
           );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "feynman_research":
+        {
+          const toolResult = await feynmanResearch(
+            input.workflow ?? "deepresearch",
+            input.topic ?? input.question ?? input.artifact ?? "",
+            resolveInternalServiceOrigin(),
+          );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "feynman_outputs":
+        {
+          const toolResult = await feynmanOutputs();
           result = toolResult.result;
           meta = toolResult.meta;
         }

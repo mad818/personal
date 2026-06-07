@@ -8,7 +8,15 @@ export type HQWorkflowCommandId =
   | "repo-assimilation"
   | "repo-compare"
   | "lit-review"
+  | "review"
+  | "audit"
+  | "replicate"
+  | "recipe"
   | "compare"
+  | "draft"
+  | "autoresearch"
+  | "watch"
+  | "outputs"
   | "brief"
   | "threat-hunt"
   | "evidence-pack";
@@ -99,6 +107,76 @@ interface HQWorkflowDefinition {
   systemDirective: string;
 }
 
+function buildFeynmanWorkflowDefinition(input: {
+  id:
+    | "review"
+    | "audit"
+    | "replicate"
+    | "recipe"
+    | "draft"
+    | "autoresearch"
+    | "watch"
+    | "outputs";
+  label: string;
+  aliases: string[];
+  fallbackTopic: string;
+  promptExample: string;
+  purpose: string;
+  route?: NexusRoute;
+  outputTarget?: HQWorkflowOutputTarget;
+  automationReady?: boolean;
+  schedulerDefaults?: HQWorkflowSchedulerDefaults;
+}): HQWorkflowDefinition {
+  const outputsOnly = input.id === "outputs";
+  return {
+    id: input.id,
+    label: input.label,
+    source: "feynman",
+    agent: "nova",
+    route: input.route ?? "/intel",
+    aliases: input.aliases,
+    fallbackTopic: input.fallbackTopic,
+    promptExample: input.promptExample,
+    risk: "low",
+    posture: "research",
+    outputTarget: input.outputTarget ?? "compiled_memory_page",
+    outputLayer: "knowledge",
+    defensiveOnly: false,
+    automationReady: input.automationReady ?? false,
+    automationPosture: input.automationReady
+      ? "candidate_with_human_gate"
+      : "review_only",
+    automationGuidance: input.automationReady
+      ? "This Feynman workflow can become a reviewed scheduler mission, but enabling recurring work always requires a human gate."
+      : "This Feynman workflow stays explicit and review-only.",
+    schedulerDefaults: input.schedulerDefaults,
+    hookNotes: [
+      outputsOnly
+        ? "Reads real Feynman-native compiled pages from the local VAULT."
+        : "Files the cited, claim-audited, provenance-backed result into the local VAULT.",
+      "Uses the shared Researcher, Writer, Verifier, and Reviewer engine.",
+    ],
+    buildUserPrompt: (topic) =>
+      outputsOnly
+        ? "Use feynman_outputs to list the real recent Feynman-native artifacts stored in the local VAULT."
+        : `Use feynman_research with workflow "${input.id}" for: ${topic}\n\n${input.purpose}`,
+    systemDirective: outputsOnly
+      ? `
+[WORKFLOW DIRECTIVE — FEYNMAN OUTPUTS]
+Use feynman_outputs. Return the real local VAULT output index and do not invent artifacts.
+[END WORKFLOW DIRECTIVE]
+`
+      : `
+[WORKFLOW DIRECTIVE — FEYNMAN ${input.label.toUpperCase()}]
+Use feynman_research with workflow "${input.id}".
+The shared engine must run Researcher, Writer, Verifier, and Reviewer stages.
+Preserve direct source URLs, claim-level verdicts, severity-graded review findings, provenance, coverage gaps, and execution gates.
+${input.id === "replicate" || input.id === "autoresearch" || input.id === "watch" ? "Do not execute, install, train, spend, write externally, or enable recurring work without explicit operator approval." : ""}
+[END WORKFLOW DIRECTIVE]
+`,
+  };
+}
+
 const HQ_WORKFLOW_DEFINITIONS: HQWorkflowDefinition[] = [
   {
     id: "deepresearch",
@@ -133,7 +211,7 @@ const HQ_WORKFLOW_DEFINITIONS: HQWorkflowDefinition[] = [
     systemDirective: `
 [WORKFLOW DIRECTIVE — DEEP RESEARCH]
 Treat this request as a structured research mission, not a casual answer.
-Prefer the deep_research tool for the bounded multi-source pipeline when it is available.
+Prefer feynman_research with workflow "deepresearch" for the full Researcher, Writer, Verifier, and Reviewer pipeline.
 Use current-source verification before you conclude.
 Return a compact response with EXACTLY these sections:
 1. Scope
@@ -308,7 +386,7 @@ Keep the brief metadata-grounded, operator-grade, and explicitly local-first.
     source: "feynman",
     agent: "nova",
     route: "/intel",
-    aliases: ["lit-review", "litreview", "literature-review"],
+    aliases: ["lit", "lit-review", "litreview", "literature-review"],
     fallbackTopic: "the most relevant papers or technical sources for the current issue",
     promptExample: "/lit-review browser tool-use prompt caching and agent reliability",
     risk: "low",
@@ -334,6 +412,7 @@ Keep the brief metadata-grounded, operator-grade, and explicitly local-first.
       `Run a literature review for: ${topic}\n\nPrioritize papers, standards, official docs, benchmarks, and technical writeups before commentary.`,
     systemDirective: `
 [WORKFLOW DIRECTIVE — LITERATURE REVIEW]
+Prefer feynman_research with workflow "lit-review".
 Prioritize papers, technical docs, official standards, and primary materials ahead of commentary.
 Return a compact response with EXACTLY these sections:
 1. Research question
@@ -346,10 +425,90 @@ Keep it operator-grade and concise.
 [END WORKFLOW DIRECTIVE]
 `,
   },
+  buildFeynmanWorkflowDefinition({
+    id: "review",
+    label: "Peer review",
+    aliases: ["review", "peer-review"],
+    fallbackTopic: "the artifact or argument that needs rigorous review",
+    promptExample: "/review the latest research brief",
+    purpose:
+      "Produce severity-graded peer review findings, identify unsupported claims and logical gaps, and provide a revision plan.",
+  }),
+  buildFeynmanWorkflowDefinition({
+    id: "audit",
+    label: "Claim audit",
+    aliases: ["audit", "claim-audit", "paper-audit"],
+    fallbackTopic: "the claim, paper, or public artifact that needs source verification",
+    promptExample: "/audit does this paper's public code support its headline claim?",
+    purpose:
+      "Compare claims against direct sources, public documentation, repositories, counter-evidence, and coverage gaps.",
+  }),
+  buildFeynmanWorkflowDefinition({
+    id: "replicate",
+    label: "Replication plan",
+    aliases: ["replicate", "replication"],
+    fallbackTopic: "the experiment or benchmark that needs a reproducible plan",
+    promptExample: "/replicate chain-of-thought improves math reasoning",
+    purpose:
+      "Produce a reproducible plan, environment choices, metrics, stop conditions, and verification criteria without executing anything.",
+  }),
+  buildFeynmanWorkflowDefinition({
+    id: "recipe",
+    label: "Research recipe",
+    aliases: ["recipe", "ml-recipe"],
+    fallbackTopic: "the implementation or training objective that needs ranked methods",
+    promptExample: "/recipe fine-tune a small local model for structured extraction",
+    purpose:
+      "Rank implementable methods with datasets, code anchors, tradeoffs, resource posture, and verification status.",
+  }),
+  buildFeynmanWorkflowDefinition({
+    id: "draft",
+    label: "Research draft",
+    aliases: ["draft", "paper-draft"],
+    fallbackTopic: "the source-grounded topic that needs a structured draft",
+    promptExample: "/draft a source-grounded paper on local-first agent memory",
+    purpose:
+      "Turn gathered evidence into a paper-style draft while preserving citations, uncertainty, and open questions.",
+  }),
+  buildFeynmanWorkflowDefinition({
+    id: "autoresearch",
+    label: "Autoresearch plan",
+    aliases: ["autoresearch", "auto-research"],
+    fallbackTopic: "the bounded experiment idea that needs one measurable objective",
+    promptExample: "/autoresearch reduce local agent response latency without lowering citation quality",
+    purpose:
+      "Define a bounded experiment loop, one measurable objective, variants, acceptance criteria, and stop conditions without executing it.",
+  }),
+  buildFeynmanWorkflowDefinition({
+    id: "watch",
+    label: "Research watch",
+    aliases: ["watch", "research-watch"],
+    fallbackTopic: "the topic that needs a recurring material-change watch",
+    promptExample: "/watch local AI agent security releases",
+    purpose:
+      "Define sources, cadence, material-change criteria, output expectations, and a human-gated scheduler handoff.",
+    automationReady: true,
+    schedulerDefaults: {
+      cronSuggestion: "0 9 * * 1-5",
+      outputTarget: "review",
+      approvalPolicy: "human_gate",
+      topicPlaceholder: "the topic that needs a recurring material-change watch",
+    },
+  }),
+  buildFeynmanWorkflowDefinition({
+    id: "outputs",
+    label: "Feynman outputs",
+    aliases: ["outputs", "research-outputs"],
+    fallbackTopic: "recent Feynman-native VAULT outputs",
+    promptExample: "/outputs",
+    purpose: "List real recent Feynman-native research artifacts.",
+    route: "/vault",
+    outputTarget: "session_only",
+  }),
   {
     id: "compare",
     label: "Compare matrix",
-    source: "rtk",
+    source: "feynman",
     agent: "nova",
     route: "/intel",
     aliases: ["compare"],
@@ -379,6 +538,7 @@ Keep it operator-grade and concise.
     systemDirective: `
 [WORKFLOW DIRECTIVE — COMPARISON MATRIX]
 This is a structured comparison request.
+Prefer feynman_research with workflow "compare".
 Return a compact response with EXACTLY these sections:
 1. Options
 2. Criteria matrix

@@ -71,6 +71,8 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   web_search: "tier0",
   fetch_url: "tier0",
   deep_research: "tier0",
+  feynman_research: "tier0",
+  feynman_outputs: "tier0",
   compare_repos: "tier0",
   assimilate_repo: "tier0",
   read_file: "tier0",
@@ -169,6 +171,47 @@ export const AGENT_TOOLS = [
         },
       },
       required: ["topic"],
+    },
+  },
+  {
+    name: "feynman_research",
+    description:
+      "Run the complete Nexus-native Feynman workflow with Researcher, Writer, Verifier, and Reviewer stages; direct-source evidence, claim-level audit verdicts, reviewer findings, provenance, and approval gates. Use for explicit /deepresearch, /lit, /review, /audit, /replicate, /recipe, /compare, /draft, /autoresearch, and /watch requests.",
+    input_schema: {
+      type: "object",
+      properties: {
+        workflow: {
+          type: "string",
+          enum: [
+            "deepresearch",
+            "lit-review",
+            "review",
+            "audit",
+            "replicate",
+            "recipe",
+            "compare",
+            "draft",
+            "autoresearch",
+            "watch",
+          ],
+          description: "The Feynman workflow to run.",
+        },
+        topic: {
+          type: "string",
+          description: "The topic, claim, paper, artifact, or experiment idea.",
+        },
+      },
+      required: ["workflow", "topic"],
+    },
+  },
+  {
+    name: "feynman_outputs",
+    description:
+      "List real recent Feynman-native research artifacts stored in the local VAULT. Use for explicit /outputs requests.",
+    input_schema: {
+      type: "object",
+      properties: {},
+      required: [],
     },
   },
   {
@@ -532,6 +575,10 @@ const RESEARCH_INTENT_RE =
   /\b(research|search|find|latest|current|news|read|summarize|verify|look up|cite|source)\b/i;
 const DELEGATE_INTENT_RE =
   /\b(max|delegate|second opinion|double-check)\b/i;
+const FEYNMAN_WORKFLOW_INTENT_RE =
+  /\bfeynman_research\b|(?:^|\s)\/(?:deepresearch|deep-research|lit|lit-review|literature-review|review|audit|replicate|recipe|compare|draft|autoresearch|watch)\b|\b(?:deep research|literature review|peer review|paper audit|claim audit|experiment replication|replication plan|implementation recipe|research recipe|comparison matrix|paper draft|research watch|autoresearch)\b/i;
+const FEYNMAN_OUTPUTS_INTENT_RE =
+  /\bfeynman_outputs\b|(?:^|\s)\/outputs\b|\bfeynman outputs\b/i;
 
 function pickAgentTools(names: Iterable<string>): AgentToolDefinition[] {
   return Array.from(names)
@@ -576,6 +623,8 @@ export function getAgentToolCatalog(
     RESEARCH_INTENT_RE.test(userMessage) ||
     (!codeIntent && normalizedAgent !== "orbit");
   const deepResearchIntent = hasDeepResearchIntent(userMessage);
+  const feynmanWorkflowIntent = FEYNMAN_WORKFLOW_INTENT_RE.test(userMessage);
+  const feynmanOutputsIntent = FEYNMAN_OUTPUTS_INTENT_RE.test(userMessage);
   const repoCompareIntent = hasRepoCompareSignal(userMessage);
   const repoAssimilationIntent = hasRepoAssimilationSignal(userMessage);
   const delegateIntent = DELEGATE_INTENT_RE.test(userMessage);
@@ -594,6 +643,22 @@ export function getAgentToolCatalog(
   if (deepResearchIntent && (normalizedAgent === "nova" || normalizedAgent === "jansky")) {
     groups.add("deep_research");
     names.add("deep_research");
+  }
+
+  if (
+    feynmanWorkflowIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("feynman_research");
+    names.add("feynman_research");
+  }
+
+  if (
+    feynmanOutputsIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("feynman_outputs");
+    names.add("feynman_outputs");
   }
 
   if (

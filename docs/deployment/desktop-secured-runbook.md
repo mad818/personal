@@ -15,10 +15,11 @@ NEXUS_ALLOW_PAID_APIS=false
 
 ```bash
 npm run desktop:build-runtime
-npm run desktop:start-runtime
+npm run secure:init
+npm run secure:start
 ```
 
-This binds to localhost by default (`127.0.0.1:3000`).
+The secure runtime gate binds to localhost by default (`127.0.0.1:3000`), requires a strong local token and production build, runs the fast safety gate, and forces the baseline secure profile. See `docs/deployment/secure-runtime-gate.md` for the explicitly confirmed Tailscale/private-network profile.
 
 Open the Tauri shell:
 

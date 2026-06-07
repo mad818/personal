@@ -229,23 +229,17 @@ CLAIM AUDIT (trigger: "verify this", "is this true", "fact-check"):
 Run a dedicated search + cross-reference before stating any verdict.
 Never verify claims from memory alone. Always cite the source that confirms or refutes.
 
-DEEP RESEARCH WORKFLOW (trigger: "deep research", "full report", "research brief", "/deepresearch"):
-When explicitly triggered, prefer the deep_research tool instead of manually chaining the lower-level research tools yourself.
-The deep_research tool already runs the bounded pipeline server-side:
-  1. hf_papers_search once for technical or paper signal
-  2. up to 3 targeted web_search angles
-  3. rss_fetch only when a feed-shaped source is clearly relevant
-  4. fetch_url on the strongest handful of returned sources
-  5. source-grounded synthesis into the exact six-section brief
-Use the lower-level tools manually only if deep_research is unavailable or the user asked for a lighter research pass.
-Do not hijack ordinary research, analyze, or compare requests into deep_research unless the user clearly asked for the deeper mode.
-The final deep-research brief must preserve these exact sections:
-  1. Scope
-  2. Core claim
-  3. Evidence ledger
-  4. Counter-signals
-  5. Operator takeaway
-  6. Confidence & Gaps
+FULL FEYNMAN WORKFLOW FAMILY:
+For explicit /deepresearch, /lit, /review, /audit, /replicate, /recipe, /compare,
+/draft, /autoresearch, or /watch requests, use feynman_research with the matching
+workflow id. The shared engine runs Researcher, Writer, Verifier, and Reviewer
+stages and returns direct-source evidence, claim-level verdicts, severity-graded
+review findings, provenance, coverage gaps, and execution gates.
+For /outputs, use feynman_outputs and list only real local VAULT artifacts.
+Use deep_research only as the backward-compatible alias for the deepresearch mode.
+Replication, autoresearch, and watch workflows are plan/review lanes by default:
+never install packages, execute code, train, spend money, write externally, or
+enable recurring work without explicit operator approval.
 
 Do not state opinions as facts. Do not skip steps when the question is time-sensitive.
 Speed is not an excuse for shallow research — a wrong fast answer is worse than
@@ -393,7 +387,10 @@ const NOVA_PHRASES = [
   "research this", "what is", "who is", "how does", "current news",
   "read this url", "open this link", "latest news", "find out", "tell me about",
   "deep research", "lit review", "literature review", "research brief",
-  "compare matrix", "/deepresearch", "/lit-review", "/compare",
+  "compare matrix", "peer review", "claim audit", "paper audit",
+  "replication plan", "research recipe", "autoresearch", "research watch",
+  "/deepresearch", "/lit", "/lit-review", "/review", "/audit", "/replicate",
+  "/recipe", "/compare", "/draft", "/autoresearch", "/watch", "/outputs",
 ];
 
 const CIPHER_UNIGRAMS = [

@@ -49,6 +49,16 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] FEYNMAN-NATIVE-ASSIMILATION — Add the complete useful Feynman research-agent capability model natively inside Nexus.
+  - Current pass: implement Researcher/Writer/Verifier/Reviewer orchestration, the full `/deepresearch`, `/lit`, `/review`, `/audit`, `/replicate`, `/recipe`, `/compare`, `/draft`, `/autoresearch`, `/watch`, and `/outputs` workflow family, claim-level audit verdicts, provenance, real VAULT outputs, and approval-gated experiment lanes.
+  - Guardrail: no upstream runtime/prompt/auth vendoring, no paid dependency, no direct provider call, no silent install/execution/training/paid compute/external write, no public route, no visual redesign, and no ARPG work.
+  - Progress: shipped `lib/feynmanResearch.ts`, the shared `feynman_research` and local `feynman_outputs` tools, complete HQ workflow commands, protected compiled-page API restoration, Feynman-native VAULT tags, network-policy classification, deterministic runtime fixtures, degraded fallback proof, and an isolated production smoke runner. Replication/autoresearch/watch are fully implemented as plan/review/scheduler-template capabilities and intentionally require explicit operator approval before execution or recurring enablement. Proof: initial `npm run feynman:check` failed on the missing engine; `npm run feynman:check`, `npm run type-check`, `npm run lint`, `npm run security:boundaries`, `npm run publication:safety:check`, `npm run security-scan`, `npm run verify`, `npm run build`, `npm run feynman:smoke`, and `git diff --check` passed.
+
+- [x] SECURE-RUNTIME-GATE — Make secure, efficient production startup the default operational path.
+  - Current pass: add local and explicitly confirmed tailnet profiles, strong-token/build requirements, a fast fail-closed safety gate, check-only/full-verify modes, and guarded delegation to the existing production runtime.
+  - Guardrail: no weak/missing token, no secret output, no development fallback, no inherited paid/high-risk enablement, no broad bind without confirmation, no false Tailscale-only claim, no dependency/network/UI/public-route/provider/ARPG change.
+  - Progress: shipped `npm run secure:init`, `npm run secure:start`, and `npm run secure:start:check`; local and confirmed-tailnet profiles; strong-token initialization/preservation; production-build enforcement; fast publication/security/boundary gates; optional full verification; and shutdown forwarding. Proof: weak-token and unconfirmed-tailnet checks blocked as expected; token initialization/preservation, local/tailnet check-only runs, live health/shutdown proof, `npm run secure:start:check`, `npm run verify`, and final production build passed.
+
 - [x] LOCAL-RECOVERY-BUNDLE — Protect Nexus-owned private local state with an offline checksummed snapshot and guarded restore command.
   - Current pass: add create/list/verify/restore commands for an explicit allowlist of Escape state, private cover assets, and phone acceptance receipts under ignored `.nexus/backups/`.
   - Guardrail: no network/cloud/subscription dependency, no env/token/key/git reads, no arbitrary workspace backup, no file-content output, no automatic restore/overwrite/delete/retention behavior, no UI/public-route/provider/dependency/ARPG changes.

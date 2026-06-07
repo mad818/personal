@@ -217,7 +217,14 @@ function defaultLayerForWorkflow(workflowId?: string): MemoryLayer {
   if (
     workflowId === "deepresearch" ||
     workflowId === "lit-review" ||
+    workflowId === "review" ||
+    workflowId === "audit" ||
+    workflowId === "replicate" ||
+    workflowId === "recipe" ||
     workflowId === "compare" ||
+    workflowId === "draft" ||
+    workflowId === "autoresearch" ||
+    workflowId === "watch" ||
     workflowId === "vuln-review" ||
     workflowId === "repo-assimilation" ||
     workflowId === "repo-compare" ||

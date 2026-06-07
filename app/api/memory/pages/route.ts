@@ -6,6 +6,7 @@ import {
   toCompiledMemoryPageSummary,
   type CompiledMemoryPageSource,
 } from "@/lib/memoryPagesStore";
+import { turboVecSearch } from "@/lib/localAcceleration";
 
 export const dynamic = "force-dynamic";
 
@@ -29,10 +30,50 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ page: toCompiledMemoryPageSummary(page) });
     }
 
+    const limit = boundedLimit(req.nextUrl.searchParams.get("limit"));
     const pages = await listCompiledMemoryPages({
-      limit: boundedLimit(req.nextUrl.searchParams.get("limit")),
+      limit: req.nextUrl.searchParams.get("semanticQuery") ? 160 : limit,
       workflowId: req.nextUrl.searchParams.get("workflowId")?.trim() || undefined,
     });
+    const semanticQuery = req.nextUrl.searchParams.get("semanticQuery")?.trim() ?? "";
+    if (semanticQuery) {
+      const visiblePages = pages.filter((page) => page.visibility !== "restricted");
+      try {
+        const matches = await turboVecSearch({
+          query: semanticQuery,
+          limit,
+          allowlist: visiblePages.map((page) => page.id),
+        });
+        if (matches.length > 0) {
+          const pageById = new Map(visiblePages.map((page) => [page.id, page]));
+          return NextResponse.json({
+            pages: matches
+              .map((match) => pageById.get(match.id))
+              .filter((page): page is NonNullable<typeof page> => Boolean(page))
+              .map(toCompiledMemoryPageSummary),
+            retrieval: "turbovec",
+          });
+        }
+      } catch {
+        // Preserve local keyword fallback when the optional runtime is unavailable.
+      }
+      const tokens = semanticQuery.toLowerCase().split(/\W+/).filter(Boolean);
+      const keywordPages = visiblePages
+        .map((page) => ({
+          page,
+          score: tokens.filter((token) =>
+            [page.title, page.summary, page.content, page.tags.join(" ")]
+              .join(" ")
+              .toLowerCase()
+              .includes(token),
+          ).length,
+        }))
+        .filter((entry) => entry.score > 0)
+        .sort((left, right) => right.score - left.score)
+        .slice(0, limit)
+        .map((entry) => toCompiledMemoryPageSummary(entry.page));
+      return NextResponse.json({ pages: keywordPages, retrieval: "keyword_fallback" });
+    }
     return NextResponse.json({
       pages: pages.map(toCompiledMemoryPageSummary),
     });

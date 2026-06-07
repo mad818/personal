@@ -21,6 +21,10 @@ import {
   protectCloudBoundPayload,
 } from "@/lib/privacyShieldServer";
 import { readProtectedActionContext } from "@/lib/security/toolCapabilityPolicy";
+import {
+  readLocalAccelerationConfig,
+  validateLocalAccelerationEndpoint,
+} from "@/lib/localAcceleration";
 
 /**
  * Multi-provider AI proxy with task-based model routing.
@@ -73,6 +77,20 @@ const PROVIDERS: Record<string, Provider> = {
     key: () => process.env.OLLAMA_API_KEY ?? "ollama",
     format: "openai",
     model: DEFAULT_LOCAL_MODEL,
+    headers: (key) => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`,
+    }),
+  },
+  turboquant: {
+    name: "turboquant",
+    url: readLocalAccelerationConfig().turboQuant.openAiEndpoint,
+    key: () =>
+      readLocalAccelerationConfig().turboQuant.enabled
+        ? "turboquant-local"
+        : "",
+    format: "openai",
+    model: readLocalAccelerationConfig().turboQuant.model,
     headers: (key) => ({
       "Content-Type": "application/json",
       Authorization: `Bearer ${key}`,
@@ -154,6 +172,7 @@ const PROVIDERS: Record<string, Provider> = {
 // auto: try local first, fall back to cloud
 const AUTO_CHAIN = [
   "ollama",
+  "turboquant",
   "groq",
   "openrouter",
   "google",
@@ -167,15 +186,16 @@ const RESEARCH_CHAIN = [
   "openrouter",
   "groq",
   "minimax",
+  "turboquant",
   "ollama",
   "openai",
 ];
 
-const FREE_DEFAULT_PROVIDERS = new Set(["ollama"]);
+const FREE_DEFAULT_PROVIDERS = new Set(["ollama", "turboquant"]);
 const ALLOW_PAID_APIS = process.env.NEXUS_ALLOW_PAID_APIS === "true";
 
 function providerAllowedByPolicy(providerName: string, localOnlyMode: boolean) {
-  if (localOnlyMode) return providerName === "ollama";
+  if (localOnlyMode) return providerName === "ollama" || providerName === "turboquant";
   if (ALLOW_PAID_APIS) return true;
   return FREE_DEFAULT_PROVIDERS.has(providerName);
 }
@@ -231,7 +251,14 @@ async function callProvider(
   }
 
   try {
-    const r = await fetch(options?.url ?? p.url, {
+    const requestUrl =
+      providerName === "turboquant"
+        ? validateLocalAccelerationEndpoint(
+            options?.url ?? p.url,
+            readLocalAccelerationConfig().allowTailnet,
+          ).toString()
+        : options?.url ?? p.url;
+    const r = await fetch(requestUrl, {
       method: "POST",
       headers: p.headers(key),
       body: JSON.stringify(body),
@@ -327,15 +354,15 @@ export async function POST(req: NextRequest) {
     let resolvedModel: string | undefined;
 
     if (provider && PROVIDERS[provider]) {
-      if (localOnlyMode && provider !== "ollama") {
+      if (localOnlyMode && provider !== "ollama" && provider !== "turboquant") {
         return NextResponse.json(
           {
             error: {
               code: "network_locked",
               message:
-                `Provider "${provider}" is blocked while the network mode is isolated. Start Ollama locally or switch to internal/connected mode first.`,
+                `Provider "${provider}" is blocked while the network mode is isolated. Start Ollama or the optional TurboQuant local runtime, or switch to internal/connected mode first.`,
               recoveryAction:
-                "Keep NEXUS_NETWORK_MODE=isolated for offline use and run Ollama locally.",
+                "Keep NEXUS_NETWORK_MODE=isolated for offline use and run Ollama or TurboQuant locally.",
             },
           },
           { status: 403 },
@@ -468,7 +495,9 @@ export async function POST(req: NextRequest) {
                   ? localApiKey.trim()
                   : undefined,
             }
-          : undefined,
+          : providerName === "turboquant"
+            ? { url: readLocalAccelerationConfig().turboQuant.openAiEndpoint }
+            : undefined,
       );
 
       if (r) {

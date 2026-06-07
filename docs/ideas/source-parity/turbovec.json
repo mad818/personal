@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "id": "turbovec",
+  "name": "TurboVec",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/RyanCodrai/turbovec",
+    "version": "0.8.0",
+    "reviewedAt": "2026-06-07",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/RyanCodrai/turbovec/blob/main/README.md",
+      "https://github.com/RyanCodrai/turbovec/blob/main/docs/api.md",
+      "https://github.com/RyanCodrai/turbovec/blob/main/turbovec/src/lib.rs",
+      "https://github.com/RyanCodrai/turbovec/blob/main/turbovec/src/id_map.rs",
+      "https://github.com/RyanCodrai/turbovec/blob/main/turbovec/Cargo.toml"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "turboquant-vector-algorithm",
+      "title": "Normalize, random rotate, Lloyd-Max quantize, bit-pack, and length-renormalize vectors",
+      "sourceEvidence": "README.md How it works and turbovec/src",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "docs/deployment/local-acceleration-plane.md"]
+    },
+    {
+      "id": "tqplus-online-calibration",
+      "title": "Fit and freeze TQ+ per-coordinate calibration during first online add",
+      "sourceEvidence": "README.md TQ+ and turbovec/src/lib.rs",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "docs/deployment/local-acceleration-plane.md"]
+    },
+    {
+      "id": "two-three-four-bit-indexes",
+      "title": "2, 3, and 4-bit compressed vector indexes",
+      "sourceEvidence": "turbovec/src/lib.rs constructor",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "scripts/check-local-acceleration-runtime.mjs"]
+    },
+    {
+      "id": "simd-cross-platform-search",
+      "title": "NEON, AVX-512BW, and AVX2 accelerated search",
+      "sourceEvidence": "README.md Search and benchmarks",
+      "disposition": "adapted",
+      "proof": ["scripts/local-acceleration-service.py", "docs/deployment/local-acceleration-plane.md"]
+    },
+    {
+      "id": "positional-index",
+      "title": "Positional TurboQuantIndex with O(1) swap-remove",
+      "sourceEvidence": "docs/api.md TurboQuantIndex",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus uses stable external page IDs for ACL-safe deletion, filtering, persistence, and reload; exposing slot positions would weaken the application contract."
+    },
+    {
+      "id": "stable-external-ids",
+      "title": "Stable external IDs, membership, and O(1) removal",
+      "sourceEvidence": "docs/api.md IdMapIndex",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
+    },
+    {
+      "id": "online-batch-ingest",
+      "title": "Online batched vector/document ingest without separate training",
+      "sourceEvidence": "README.md and docs/api.md add",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "lib/memoryPagesStore.ts"]
+    },
+    {
+      "id": "lazy-dimension-lock",
+      "title": "Optional lazy dimension inference and lock on first add",
+      "sourceEvidence": "docs/api.md lazy index",
+      "disposition": "adapted",
+      "proof": ["scripts/local-acceleration-service.py", "docs/deployment/local-acceleration-plane.md"]
+    },
+    {
+      "id": "prepare-warmup",
+      "title": "Prepare rotation, codebook, and blocked layout before first search",
+      "sourceEvidence": "docs/api.md prepare",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
+    },
+    {
+      "id": "concurrent-search",
+      "title": "Thread-safe concurrent search",
+      "sourceEvidence": "turbovec/src/lib.rs Concurrent search",
+      "disposition": "adapted",
+      "proof": ["scripts/local-acceleration-service.py", "docs/deployment/local-acceleration-plane.md"]
+    },
+    {
+      "id": "filtered-hybrid-search",
+      "title": "Mask and stable-ID allowlist filtered search for ACL, SQL, BM25, and time windows",
+      "sourceEvidence": "docs/api.md Filtering",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/memory/pages/route.ts"]
+    },
+    {
+      "id": "persistence-and-reload",
+      "title": "Stable local persistence and reload",
+      "sourceEvidence": "docs/api.md File formats",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
+    },
+    {
+      "id": "corruption-and-input-rejection",
+      "title": "Reject corrupt indexes, duplicate IDs, dimension mismatches, non-finite, and unsafe values",
+      "sourceEvidence": "docs/api.md and turbovec/src/lib.rs",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "scripts/check-local-acceleration-runtime.mjs"]
+    },
+    {
+      "id": "vault-auto-index-and-retrieval",
+      "title": "Nexus VAULT auto-indexing and protected semantic retrieval",
+      "sourceEvidence": "Nexus-native integration target",
+      "disposition": "implemented",
+      "proof": ["lib/memoryPagesStore.ts", "app/api/memory/pages/route.ts"]
+    },
+    {
+      "id": "rust-python-language-bindings",
+      "title": "Direct Rust and Python language bindings",
+      "sourceEvidence": "README.md Python and Rust",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus consumes one protected service contract instead of duplicating upstream language-specific client APIs."
+    },
+    {
+      "id": "third-party-framework-adapters",
+      "title": "LangChain, LlamaIndex, Haystack, and Agno drop-in adapters",
+      "sourceEvidence": "README.md Framework integrations",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is the host retrieval application and does not run those external framework pipelines."
+    },
+    {
+      "id": "real-runtime-acceptance",
+      "title": "Real TurboVec recall, compression, SIMD latency, filtered search, delete, persistence, reload, and corruption proof",
+      "sourceEvidence": "README.md benchmarks and repository tests",
+      "disposition": "pending",
+      "reason": "The Nexus integration is implemented, but this machine has not installed or started a real TurboVec control service to capture runtime acceptance."
+    }
+  ]
+}

@@ -227,7 +227,7 @@ export function protectCloudBoundPayload(args: {
   tools?: unknown;
   toolChoice?: unknown;
 }) {
-  if (args.providerName === "ollama") {
+  if (args.providerName === "ollama" || args.providerName === "turboquant") {
     return {
       messages: args.messages,
       system: args.system,

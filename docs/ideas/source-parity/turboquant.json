@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "id": "turboquant",
+  "name": "TurboQuant KV Cache",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/0xSero/turboquant",
+    "version": "main reviewed 2026-06-07",
+    "reviewedAt": "2026-06-07",
+    "license": "GPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/0xSero/turboquant/blob/main/README.md",
+      "https://github.com/0xSero/turboquant/tree/main/turboquant",
+      "https://github.com/0xSero/turboquant/blob/main/validate_paper.py",
+      "https://github.com/0xSero/turboquant/blob/main/audit_claims.py",
+      "https://github.com/0xSero/turboquant/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "key-compression-algorithm",
+      "title": "Random rotation, Lloyd-Max scalar quantization, QJL residual sign bits, and unbiased key scoring",
+      "sourceEvidence": "README.md How It Works and turboquant quantizer modules",
+      "disposition": "adapted",
+      "proof": ["docs/deployment/local-acceleration-plane.md", "lib/localAcceleration.ts", "scripts/local-acceleration-service.py"]
+    },
+    {
+      "id": "value-group-quantization",
+      "title": "2-bit and 4-bit grouped value quantization with bit packing",
+      "sourceEvidence": "README.md How It Works and kv_cache.py",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "scripts/check-local-acceleration-runtime.mjs"]
+    },
+    {
+      "id": "kv-capture-store-score",
+      "title": "Attention capture hooks, compressed append/flat store, and compressed-key scoring",
+      "sourceEvidence": "README.md Architecture",
+      "disposition": "adapted",
+      "proof": ["docs/deployment/local-acceleration-plane.md", "lib/localAcceleration.ts", "scripts/local-acceleration-service.py"]
+    },
+    {
+      "id": "vllm-adapter",
+      "title": "vLLM integration with free-KV-cache and hybrid decode",
+      "sourceEvidence": "README.md Architecture and integration/vllm.py",
+      "disposition": "adapted",
+      "proof": ["app/api/ai/route.ts", "docs/deployment/local-acceleration-plane.md"]
+    },
+    {
+      "id": "operating-modes",
+      "title": "Off, capture-only validation, and hybrid serving modes",
+      "sourceEvidence": "Nexus-safe adaptation of capture and hybrid paths",
+      "disposition": "implemented",
+      "proof": ["lib/localAcceleration.ts", ".env.example"]
+    },
+    {
+      "id": "dense-and-moe-posture",
+      "title": "Dense and MoE/full-attention capability and savings reporting",
+      "sourceEvidence": "README.md dense and MoE benchmark results",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "docs/deployment/local-acceleration-plane.md"]
+    },
+    {
+      "id": "sanitized-runtime-stats",
+      "title": "KV capacity, compression, throughput, latency, quality, and concurrency statistics",
+      "sourceEvidence": "README.md benchmark and quality tables",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
+    },
+    {
+      "id": "paper-theorem-validation",
+      "title": "Run the nine paper theorem and retrieval validation tests",
+      "sourceEvidence": "README.md Paper Validation and validate_paper.py",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
+    },
+    {
+      "id": "adversarial-claim-audit",
+      "title": "Run and expose the adversarial audit of compression, quality, speed, and context claims",
+      "sourceEvidence": "README.md Adversarial Audit and audit_claims.py",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
+    },
+    {
+      "id": "modular-and-core-tests",
+      "title": "Run modular architecture and core quantizer tests",
+      "sourceEvidence": "README.md Test Results",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
+    },
+    {
+      "id": "proof-and-profiling",
+      "title": "Run approved A/B proof and long-context profiling",
+      "sourceEvidence": "README.md proof.py and profiling scripts",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
+    },
+    {
+      "id": "local-ai-provider-routing",
+      "title": "Explicit free/local OpenAI-compatible TurboQuant provider through Nexus policy",
+      "sourceEvidence": "vLLM integration surface",
+      "disposition": "implemented",
+      "proof": ["app/api/ai/route.ts", "app/api/health/providers/route.ts", "lib/privacyShieldServer.ts"]
+    },
+    {
+      "id": "honest-limitations",
+      "title": "Report prefill allocation, full-attention-only support, value-quality bottleneck, hybrid dequantization, and MoE limitations",
+      "sourceEvidence": "README.md Limitations",
+      "disposition": "adapted",
+      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "docs/deployment/local-acceleration-plane.md"]
+    },
+    {
+      "id": "gpl-runtime-boundary",
+      "title": "Keep GPL runtime separate from Nexus MIT source",
+      "sourceEvidence": "LICENSE",
+      "disposition": "implemented",
+      "proof": ["docs/superpowers/specs/2026-06-07-local-acceleration-plane-design.md", "docs/deployment/local-acceleration-plane.md", "scripts/local-acceleration-service.py"]
+    },
+    {
+      "id": "automatic-install-download-start",
+      "title": "Automatically install packages, download models, or launch the GPU runtime",
+      "sourceEvidence": "README.md Usage",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus requires explicit operator review for installs, model downloads, and local process execution."
+    },
+    {
+      "id": "fused-triton-hybrid-decode",
+      "title": "Use fused Triton kernels directly in the hybrid decode path",
+      "sourceEvidence": "README.md Limitations",
+      "disposition": "pending",
+      "reason": "Upstream states that fused Triton kernels exist but the hybrid path does not use them yet; Nexus cannot truthfully claim this behavior through the external runtime."
+    },
+    {
+      "id": "real-gpu-runtime-acceptance",
+      "title": "Real GPU validation, audit, tests, benchmark, quality, memory, and long-context proof on the configured runtime",
+      "sourceEvidence": "README.md Usage, tests, and benchmark results",
+      "disposition": "pending",
+      "reason": "The Nexus integration is implemented, but a compatible Python/vLLM/CUDA TurboQuant runtime is not installed or running on this machine."
+    }
+  ]
+}

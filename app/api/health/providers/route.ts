@@ -38,14 +38,14 @@ import { isConfiguredSecretValue } from "@/lib/secretReadiness";
 // to avoid circular imports and keep the health endpoint standalone.
 
 const FREE_PROVIDERS = new Set([
-  "ollama", "cerebras", "groq", "sambanova", "nvidia", "hyperbolic",
+  "ollama", "turboquant", "cerebras", "groq", "sambanova", "nvidia", "hyperbolic",
   "together", "siliconflow", "zai", "iflow", "deepinfra", "fireworks",
   "scaleway", "qwen", "huggingface", "codestral", "googleai", "cloudflare",
   "perplexity",
 ]);
 
 const ALL_PROVIDERS_ORDER = [
-  "ollama", "cerebras", "groq", "sambanova", "nvidia", "hyperbolic",
+  "ollama", "turboquant", "cerebras", "groq", "sambanova", "nvidia", "hyperbolic",
   "together", "siliconflow", "zai", "iflow", "deepinfra", "fireworks",
   "scaleway", "qwen", "huggingface", "codestral", "googleai", "cloudflare",
   "perplexity", "openrouter", "google", "minimax", "anthropic", "openai",
@@ -53,6 +53,7 @@ const ALL_PROVIDERS_ORDER = [
 
 const PROVIDER_DEFAULT_MODELS: Record<string, string> = {
   ollama:      "local",
+  turboquant:  process.env.NEXUS_TURBOQUANT_MODEL ?? "local-turboquant",
   cerebras:    "qwen-3-235b-a22b-instruct-2507",
   groq:        "qwen/qwen3-32b",
   sambanova:   "DeepSeek-V3.2",
@@ -79,7 +80,7 @@ const PROVIDER_DEFAULT_MODELS: Record<string, string> = {
 };
 
 const SWE_SCORES: Record<string, string> = {
-  ollama: "—", cerebras: "S+ 70.0%", groq: "A+ 50.0%",
+  ollama: "—", turboquant: "—", cerebras: "S+ 70.0%", groq: "A+ 50.0%",
   sambanova: "S+ 73.1%", nvidia: "S+ 70.6%", hyperbolic: "S+ 70.6%",
   together: "S+ 76.8%", siliconflow: "S+ 70.6%", zai: "S+ 77.8%",
   iflow: "S+ 73.1%", deepinfra: "S+ 70.0%", fireworks: "S+ 70.0%",
@@ -93,6 +94,7 @@ const SWE_SCORES: Record<string, string> = {
 function hasKey(provider: string): boolean {
   switch (provider) {
     case "ollama":      return true; // always "present" (localhost)
+    case "turboquant":  return process.env.NEXUS_TURBOQUANT_ENABLED === "true" && process.env.NEXUS_TURBOQUANT_MODE !== "off";
     case "cerebras":    return isConfiguredSecretValue(process.env.CEREBRAS_API_KEY);
     case "groq":        return isConfiguredSecretValue(process.env.GROQ_API_KEY);
     case "sambanova":   return isConfiguredSecretValue(process.env.SAMBANOVA_API_KEY);

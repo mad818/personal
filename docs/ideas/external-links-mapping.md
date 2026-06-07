@@ -238,6 +238,18 @@ Links:
 - **Fits**: `components/vault/*`
 - **Implement?**: **LATER / only if** you want external vault integration; security-sensitive.
 
+### G) TurboVec — compressed local vector index
+
+- **Link**: `https://github.com/RyanCodrai/turbovec`
+- **Fits**: VAULT compiled pages, memory retrieval, local RAG, and phone/iPad access through the existing Nexus runtime.
+- **Source parity: IN PROGRESS**: Nexus now has a protected local acceleration client, `/api/local-acceleration`, and a loopback-only companion bridge with exact `IdMapIndex` batch ingest, deterministic collision-checked IDs, native allowlist filtering, concurrent search, private persistence/rebuild, and local Ollama embeddings. VAULT compiled-page auto-indexing, semantic search fallback, loopback/tailnet endpoint policy, and the exhaustive matrix at [`source-parity/turbovec.json`](./source-parity/turbovec.json) are wired. Real TurboVec runtime acceptance remains pending until the upstream package is installed and proves recall, compression, filtered search, delete, persistence, reload, and corruption behavior.
+
+### H) TurboQuant — local vLLM KV-cache compression
+
+- **Link**: `https://github.com/0xSero/turboquant`
+- **Fits**: optional local long-context model serving on a GPU host, routed through Nexus auth/privacy/rate-limit policy for MacBook/iPad use.
+- **Source parity: IN PROGRESS**: Nexus now keeps TurboQuant as a separate GPL runtime, exposes protected control posture through the loopback companion bridge, double-gates fixed validation/audit/test/benchmark commands with sanitized receipts, and adds an explicit `turboquant` provider to the existing AI proxy. The matrix at [`source-parity/turboquant.json`](./source-parity/turboquant.json) keeps real GPU acceptance and upstream fused hybrid decode pending.
+
 ---
 
 ## GitHub batch intake — 2026-04-22 (23 links)

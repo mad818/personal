@@ -32,6 +32,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/status", routeClass: "local_only", public: false },
   { prefix: "/api/project", routeClass: "local_only", public: false },
   { prefix: "/api/ollama/catalog", routeClass: "local_only", public: false },
+  { prefix: "/api/local-acceleration", routeClass: "local_only", public: false },
   { prefix: "/api/assistant/retrieve", routeClass: "connector_opt_in", public: false },
   { prefix: "/api/settings", routeClass: "local_only", public: false },
   { prefix: "/api/verify", routeClass: "local_only", public: false },

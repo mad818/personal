@@ -29,6 +29,7 @@ import type {
   ResearchSourceType,
   WorkflowPackId,
 } from "@/lib/researchSources";
+import { turboVecUpsert } from "@/lib/localAcceleration";
 
 export type CompiledMemoryPageSource = "workflow" | "manual" | "scheduler";
 
@@ -399,6 +400,33 @@ export async function getCompiledMemoryPageById(id: string) {
   return pages.find((page) => page.id === id) ?? null;
 }
 
+export async function indexCompiledMemoryPage(page: CompiledMemoryPage) {
+  if (page.visibility === "restricted") return false;
+  try {
+    await turboVecUpsert([
+      {
+        id: page.id,
+        text: [
+          page.title,
+          page.summary,
+          page.content,
+          page.tags.join(" "),
+        ].join("\n"),
+        metadata: {
+          route: page.route ?? "",
+          domain: page.domain,
+          layer: page.layer,
+          source: page.source,
+          createdAt: page.createdAt,
+        },
+      },
+    ]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function createCompiledMemoryPage(input: {
   title: string;
   summary?: string;
@@ -578,6 +606,7 @@ export async function createCompiledMemoryPage(input: {
   const pages = await readPages();
   const next = [page, ...pages].slice(0, 160);
   await writePages(next);
+  await indexCompiledMemoryPage(page);
   return page;
 }
 

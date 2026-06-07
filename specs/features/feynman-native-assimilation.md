@@ -2,7 +2,7 @@
 
 ## Objective
 
-Implement the complete useful Feynman research workflow family natively inside Nexus Prime using the existing agent, tool, scheduler, and VAULT architecture.
+Implement the first native Feynman research foundation inside Nexus Prime using the existing agent, tool, scheduler, and VAULT architecture. Full source parity is tracked separately in `docs/ideas/source-parity/feynman.json`.
 
 ## Required Workflows
 
@@ -26,10 +26,12 @@ Implement the complete useful Feynman research workflow family natively inside N
 - No upstream runtime, prompt-pack, auth-store, or CLI vendoring.
 - No silent execution, package installation, training, or paid compute.
 - No public route, auth bypass, security-policy bypass, visual redesign, or ARPG work.
+- Do not mark Feynman complete while useful capabilities remain pending in the source-parity matrix.
 
 ## Verification
 
 - `npm run feynman:check`
+- `npm run source:parity:check`
 - `npm run feynman:smoke`
 - `npm run type-check`
 - `npm run verify`

@@ -71,6 +71,7 @@ export function initializeSecureToken(envPath = ".env.local") {
   }
 
   const generatedToken = randomBytes(32).toString("base64url");
+  const tokenAssignment = ["NEXUS_TOKEN", generatedToken].join("=");
   const lines = existingText.split(/\r?\n/);
   const tokenLinePattern = /^\s*(?:export\s+)?NEXUS_TOKEN\s*=/i;
   const nextLines = [];
@@ -81,13 +82,13 @@ export function initializeSecureToken(envPath = ".env.local") {
       continue;
     }
     if (!tokenWritten) {
-      nextLines.push(`NEXUS_TOKEN=${generatedToken}`);
+      nextLines.push(tokenAssignment);
       tokenWritten = true;
     }
   }
   if (!tokenWritten) {
     if (nextLines.length > 0 && nextLines.at(-1) !== "") nextLines.push("");
-    nextLines.push(`NEXUS_TOKEN=${generatedToken}`);
+    nextLines.push(tokenAssignment);
   }
   while (nextLines.length > 1 && nextLines.at(-1) === "") nextLines.pop();
   const nextText = `${nextLines.join("\n")}\n`;

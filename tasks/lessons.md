@@ -92,6 +92,7 @@
 79. Photoreal Homefront environment assets should be source-isolated like the drone: generate the home/perimeter as a real raster source with no baked text, people, animals, drone, HUD, police, or emergency-call cues, then layer patrol route and scenario behavior in React/video so it stays editable.
 80. Simple assistant greetings, pings/tests, and acknowledgements should prove the chat is alive through a local fast reply instead of starting the full agent/runtime loop; reserve `LIVE EXECUTION` for real tasks, route actions, retrieval, or review-gated work.
 81. When HQ is waiting on a local Ollama/model turn, the live execution rail must show a slow-runtime watchdog and a provider-health recovery lane instead of looking like a frozen chat.
+82. Never label a GitHub/X idea fully implemented from a feature sample or command-name match. Reverse-engineer the primary source into an exhaustive capability matrix; implement every capability that fits Nexus, explicitly reject only capabilities that conflict with security, legality, licensing, the free/local invariant, or product purpose, and require acceptance proof for every implemented/adapted row before marking parity complete.
 
 ---
 

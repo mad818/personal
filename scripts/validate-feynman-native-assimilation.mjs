@@ -31,6 +31,9 @@ const memoryPagesRoute = readRequired("app", "api", "memory", "pages", "route.ts
 const toolPolicy = readRequired("lib", "security", "toolCapabilityPolicy.ts");
 const packageJson = JSON.parse(readRequired("package.json"));
 const spec = readRequired("specs", "features", "feynman-native-assimilation.md");
+const parity = JSON.parse(
+  readRequired("docs", "ideas", "source-parity", "feynman.json"),
+);
 
 for (const needle of [
   "FeynmanWorkflowId",
@@ -82,6 +85,14 @@ requireText(memoryPagesRoute, "toCompiledMemoryPageSummary", "compiled pages API
 requireText(toolPolicy, 'feynman_research: "networked"', "network policy");
 requireText(toolPolicy, 'feynman_outputs: "read"', "local output policy");
 requireText(spec, "No silent execution", "feature guardrail");
+if (parity.status !== "in_progress") {
+  console.error("x feynman-native: source parity must remain in_progress while useful capabilities are pending");
+  process.exit(1);
+}
+if (!parity.capabilities?.some((capability) => capability.disposition === "pending")) {
+  console.error("x feynman-native: source parity matrix must honestly track pending capabilities");
+  process.exit(1);
+}
 
 if (
   packageJson.scripts?.["feynman:check"] !==
@@ -98,5 +109,6 @@ if (
   process.exit(1);
 }
 requireText(packageJson.scripts?.verify ?? "", "npm run feynman:check", "verify wiring");
+requireText(packageJson.scripts?.verify ?? "", "npm run source:parity:check", "source parity wiring");
 
-console.log("ok feynman-native (full workflow family, audit contract, tool and Vault wiring)");
+console.log("ok feynman-native-foundation (workflow family, audit contract, tool and Vault wiring; source parity remains open)");

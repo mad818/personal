@@ -52,7 +52,7 @@ This document maps each external link you provided to the **corresponding Nexus 
 
 - **Link**: `https://x.com/advaitpaliwal/status/2036900468056875332`
 - **Fits**: `lib/agent.ts` research pipeline, `app/api/tools/route.ts` web tools, Vault for artifacts
-- **Implemented fully (native assimilation)**: `lib/feynmanResearch.ts`, `feynman_research`, `feynman_outputs`, and the HQ workflow registry now provide Researcher/Writer/Verifier/Reviewer orchestration; `/deepresearch`, `/lit`, `/review`, `/audit`, `/replicate`, `/recipe`, `/compare`, `/draft`, `/autoresearch`, `/watch`, and `/outputs`; direct-source evidence; claim-level verdicts; severity-graded review; provenance; deterministic degraded fallbacks; real VAULT output indexing; and human-gated replication/autoresearch/watch follow-through. Nexus does not vendor the upstream runtime, auth store, prompt bodies, or provider integrations.
+- **Source parity: IN PROGRESS**: the native foundation provides Researcher/Writer/Verifier/Reviewer orchestration; the command family; direct-source evidence; claim-level verdicts; severity-graded review; deterministic degraded fallbacks; and real VAULT output indexing. The exhaustive parity matrix at [`source-parity/feynman.json`](./source-parity/feynman.json) reopens missing useful behavior including full paper/Hugging Face inspection, paper-code audit, approved local replication execution, Docker isolation, measured autoresearch, enabled recurring watches, session search/logs, separate provenance artifacts, and preview/PDF export. Feynman must not be called fully implemented until that matrix has no useful pending rows.
 
 ### 7) `shannholmberg` — AutoResearch: fast constrained loops + single metric
 

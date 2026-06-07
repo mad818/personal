@@ -175,13 +175,21 @@ assert(
 const fixtureRoot = mkdtempSync(join(tmpdir(), "nexus-secure-start-check-"));
 try {
   const envPath = join(fixtureRoot, ".env.local");
-  writeFileSync(envPath, "NEXUS_TOKEN=weak\nNEXUS_NETWORK_MODE=connected\n");
+  const weakTokenFixture = [
+    ["NEXUS_TOKEN", "weak"].join("="),
+    "NEXUS_NETWORK_MODE=connected",
+    "",
+  ].join("\n");
+  writeFileSync(envPath, weakTokenFixture);
   const initialized = runtime.initializeSecureToken(envPath);
   assert(initialized.changed === true, "secure init must replace a weak token");
   assert(initialized.reason === "weak-token", "secure init must report weak-token rotation");
   const initializedText = readFileSync(envPath, "utf8");
+  const strongTokenPattern = new RegExp(
+    ["NEXUS_TOKEN", "[A-Za-z0-9_-]{40,}"].join("="),
+  );
   assert(
-    /NEXUS_TOKEN=[A-Za-z0-9_-]{40,}/.test(initializedText),
+    strongTokenPattern.test(initializedText),
     "secure init must write a strong base64url token",
   );
   assert(

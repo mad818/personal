@@ -152,18 +152,18 @@ function buildFeynmanWorkflowDefinition(input: {
     schedulerDefaults: input.schedulerDefaults,
     hookNotes: [
       outputsOnly
-        ? "Reads real Feynman-native compiled pages from the local VAULT."
+        ? "Searches and resumes local Feynman continuity sessions and reads real compiled pages from the local VAULT."
         : "Files the cited, claim-audited, provenance-backed result into the local VAULT.",
       "Uses the shared Researcher, Writer, Verifier, and Reviewer engine.",
     ],
     buildUserPrompt: (topic) =>
       outputsOnly
-        ? "Use feynman_outputs to list the real recent Feynman-native artifacts stored in the local VAULT."
+        ? "Use feynman_outputs to list, search, resume, preview, or export real local Feynman sessions and VAULT artifacts."
         : `Use feynman_research with workflow "${input.id}" for: ${topic}\n\n${input.purpose}`,
     systemDirective: outputsOnly
       ? `
 [WORKFLOW DIRECTIVE — FEYNMAN OUTPUTS]
-Use feynman_outputs. Return the real local VAULT output index and do not invent artifacts.
+Use feynman_outputs. Return only real local continuity sessions and VAULT artifacts. Use action search, resume, or export when requested; do not invent sessions or paths.
 [END WORKFLOW DIRECTIVE]
 `
       : `

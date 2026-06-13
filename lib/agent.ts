@@ -211,10 +211,39 @@ export const AGENT_TOOLS = [
   {
     name: "feynman_outputs",
     description:
-      "List real recent Feynman-native research artifacts stored in the local VAULT. Use for explicit /outputs requests.",
+      "Search, resume, preview, or export real Feynman-native research sessions and list recent artifacts stored in the local VAULT. Use for explicit /outputs, research-session search, resume, preview, and export requests.",
     input_schema: {
       type: "object",
-      properties: {},
+      properties: {
+        action: {
+          type: "string",
+          enum: ["list", "search", "resume", "export"],
+          description: "List sessions and VAULT outputs, search sessions, resume one session, or export one fixed artifact.",
+        },
+        query: {
+          type: "string",
+          description: "Search text used for session search or resume when session_id is unknown.",
+        },
+        session_id: {
+          type: "string",
+          description: "Generated Feynman continuity session ID used for resume or export.",
+        },
+        format: {
+          type: "string",
+          enum: [
+            "plan",
+            "notebook",
+            "report",
+            "evidence",
+            "claims",
+            "review",
+            "provenance",
+            "preview",
+            "pdf",
+          ],
+          description: "Fixed local artifact kind used by export.",
+        },
+      },
       required: [],
     },
   },
@@ -582,7 +611,7 @@ const DELEGATE_INTENT_RE =
 const FEYNMAN_WORKFLOW_INTENT_RE =
   /\bfeynman_research\b|(?:^|\s)\/(?:deepresearch|deep-research|lit|lit-review|literature-review|review|audit|replicate|recipe|compare|draft|autoresearch|watch)\b|\b(?:deep research|literature review|peer review|paper audit|claim audit|experiment replication|replication plan|implementation recipe|research recipe|comparison matrix|paper draft|research watch|autoresearch)\b/i;
 const FEYNMAN_OUTPUTS_INTENT_RE =
-  /\bfeynman_outputs\b|(?:^|\s)\/outputs\b|\bfeynman outputs\b/i;
+  /\bfeynman_outputs\b|(?:^|\s)\/outputs\b|\bfeynman outputs\b|\b(?:search|find|resume|continue|preview|export|pdf)\b.{0,40}\b(?:feynman|research session|research output)\b|\b(?:feynman|research session|research output)\b.{0,40}\b(?:search|find|resume|continue|preview|export|pdf)\b/i;
 
 function pickAgentTools(names: Iterable<string>): AgentToolDefinition[] {
   return Array.from(names)

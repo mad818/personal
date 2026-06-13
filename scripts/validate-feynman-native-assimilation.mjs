@@ -96,7 +96,7 @@ if (!parity.capabilities?.some((capability) => capability.disposition === "pendi
 
 if (
   packageJson.scripts?.["feynman:check"] !==
-  "node scripts/validate-feynman-native-assimilation.mjs && npm run feynman:runtime:check"
+  "node scripts/validate-feynman-native-assimilation.mjs && npm run feynman:runtime:check && npm run feynman:continuity:check"
 ) {
   console.error("x feynman-native: package.json is missing feynman:check");
   process.exit(1);

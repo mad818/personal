@@ -163,36 +163,58 @@
       "id": "session-search-resume",
       "title": "Search prior research sessions and resume relevant work",
       "sourceEvidence": "skills/session-search/SKILL.md",
-      "disposition": "pending",
-      "reason": "VAULT output browsing exists, but Feynman-specific session transcript search and resume behavior does not."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanContinuity.ts",
+        "lib/feynmanContinuityStore.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-continuity-runtime.mjs"
+      ]
     },
     {
       "id": "session-log-lab-notebook",
       "title": "Chronological lab notebook and session logs for long-running research",
       "sourceEvidence": "AGENTS.md Workspace changelog and skills/session-log",
-      "disposition": "pending",
-      "reason": "Nexus stores final compiled pages but does not maintain the source-style progressive research lab notebook."
+      "disposition": "implemented",
+      "proof": [
+        "lib/feynmanResearch.ts",
+        "lib/feynmanContinuityStore.ts",
+        "scripts/check-feynman-continuity-runtime.mjs"
+      ]
     },
     {
       "id": "externalized-plan-and-intermediate-artifacts",
       "title": "Progressive file-based plans and intermediate research artifacts with collision-safe slugs",
       "sourceEvidence": "AGENTS.md Output conventions and file naming",
-      "disposition": "pending",
-      "reason": "Current engine keeps intermediate state in one runtime result and final compiled page."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanContinuity.ts",
+        "lib/feynmanContinuityStore.ts",
+        "scripts/check-feynman-continuity-runtime.mjs"
+      ]
     },
     {
       "id": "provenance-sidecar",
       "title": "Separate provenance sidecar for deep research and literature review outputs",
       "sourceEvidence": "AGENTS.md Provenance and verification",
-      "disposition": "pending",
-      "reason": "Current report contains an embedded provenance section but does not preserve a separately reopenable provenance artifact."
+      "disposition": "implemented",
+      "proof": [
+        "lib/feynmanContinuityStore.ts",
+        "app/api/feynman/artifacts/route.ts",
+        "scripts/check-feynman-continuity-runtime.mjs"
+      ]
     },
     {
       "id": "preview-and-pdf-export",
       "title": "Browser preview and local PDF export for research artifacts",
       "sourceEvidence": "skills/preview/SKILL.md",
-      "disposition": "pending",
-      "reason": "VAULT renders compiled pages, but a dedicated preview/export path and local PDF artifact do not exist."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanContinuity.ts",
+        "app/api/feynman/artifacts/route.ts",
+        "lib/security/routePolicy.ts",
+        "scripts/check-feynman-continuity-runtime.mjs"
+      ]
     },
     {
       "id": "capability-discovery",

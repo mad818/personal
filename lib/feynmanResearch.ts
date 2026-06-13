@@ -91,6 +91,12 @@ export interface FeynmanResearchResult {
   approvalRequired: boolean;
 }
 
+export interface FeynmanResearchProgressEvent {
+  stage: "workflow" | FeynmanAgentStage;
+  status: "started" | "complete" | "degraded";
+  note: string;
+}
+
 export interface FeynmanResearchDeps {
   searchPapers: (query: string, limit: string) => Promise<string>;
   webSearch: (query: string) => Promise<string>;
@@ -98,6 +104,7 @@ export interface FeynmanResearchDeps {
   write: (prompt: string) => Promise<string>;
   verify: (prompt: string) => Promise<string>;
   review: (prompt: string) => Promise<string>;
+  progress?: (event: FeynmanResearchProgressEvent) => Promise<void> | void;
 }
 
 const URL_RE = /https?:\/\/[^\s)\]}>"']+/g;
@@ -119,6 +126,17 @@ const EXECUTION_GATED_WORKFLOWS = new Set<FeynmanWorkflowId>([
   "replicate",
   "autoresearch",
 ]);
+
+async function emitProgress(
+  deps: FeynmanResearchDeps,
+  event: FeynmanResearchProgressEvent,
+) {
+  try {
+    await deps.progress?.(event);
+  } catch {
+    // Continuity logging is best-effort and must not block research.
+  }
+}
 
 function uniqueStrings(values: string[]) {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
@@ -628,6 +646,16 @@ export async function runFeynmanResearch(
     verifier: "complete",
     reviewer: "complete",
   };
+  await emitProgress(deps, {
+    stage: "workflow",
+    status: "started",
+    note: `${WORKFLOW_LABELS[workflow]} started for "${normalizedTopic || "Unspecified research topic"}".`,
+  });
+  await emitProgress(deps, {
+    stage: "researcher",
+    status: "started",
+    note: "Researcher started the bounded paper, web, and direct-source pass.",
+  });
 
   if (!normalizedTopic) {
     failures.push("No research topic or artifact was provided.");
@@ -679,6 +707,11 @@ export async function runFeynmanResearch(
   if (webResults.length === 0 && !paperSignal && fetchedSources.length === 0) {
     stageStatus.researcher = "degraded";
   }
+  await emitProgress(deps, {
+    stage: "researcher",
+    status: stageStatus.researcher,
+    note: `Researcher finished with ${webResults.length} web results and ${fetchedSources.length} directly read sources.`,
+  });
 
   const research: FeynmanResearchInput = {
     workflow,
@@ -690,6 +723,11 @@ export async function runFeynmanResearch(
   };
   const sources = buildSourceLedger(research);
 
+  await emitProgress(deps, {
+    stage: "writer",
+    status: "started",
+    note: `Writer started synthesis from ${sources.length} ledger entries.`,
+  });
   let writer = fallbackWriter(research, sources);
   try {
     const result = parseWriterResult(
@@ -709,7 +747,17 @@ export async function runFeynmanResearch(
     failures.push("Writer stage failed.");
     stageStatus.writer = "degraded";
   }
+  await emitProgress(deps, {
+    stage: "writer",
+    status: stageStatus.writer,
+    note: `Writer finished the structured synthesis with ${writer.claims.length} candidate claims.`,
+  });
 
+  await emitProgress(deps, {
+    stage: "verifier",
+    status: "started",
+    note: "Verifier started claim-to-source auditing.",
+  });
   let claims: FeynmanClaimAudit[] = fallbackClaims(writer, sources);
   try {
     const result = parseClaimAudits(
@@ -725,7 +773,17 @@ export async function runFeynmanResearch(
     failures.push("Verifier stage failed.");
     stageStatus.verifier = "degraded";
   }
+  await emitProgress(deps, {
+    stage: "verifier",
+    status: stageStatus.verifier,
+    note: `Verifier finished with ${claims.length} audited claims.`,
+  });
 
+  await emitProgress(deps, {
+    stage: "reviewer",
+    status: "started",
+    note: "Reviewer started adversarial review.",
+  });
   let reviewFindings = fallbackReview(workflow, sources, claims, failures);
   try {
     const result = parseReviewFindings(
@@ -741,6 +799,11 @@ export async function runFeynmanResearch(
     failures.push("Reviewer stage failed.");
     stageStatus.reviewer = "degraded";
   }
+  await emitProgress(deps, {
+    stage: "reviewer",
+    status: stageStatus.reviewer,
+    note: `Reviewer finished with ${reviewFindings.length} findings.`,
+  });
 
   research.failures = failures;
   const report = formatFeynmanReport({
@@ -750,6 +813,13 @@ export async function runFeynmanResearch(
     claims,
     findings: reviewFindings,
     stageStatus,
+  });
+  await emitProgress(deps, {
+    stage: "workflow",
+    status: Object.values(stageStatus).some((status) => status === "degraded")
+      ? "degraded"
+      : "complete",
+    note: `Research workflow produced the final report with ${sources.length} sources and ${claims.length} audited claims.`,
   });
 
   return {

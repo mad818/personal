@@ -10,6 +10,21 @@ import {
   runFeynmanResearch,
   type FeynmanWorkflowId,
 } from "@/lib/feynmanResearch";
+import {
+  buildFeynmanResumeContext,
+  isFeynmanContinuityArtifactKind,
+  type FeynmanContinuitySession,
+} from "@/lib/feynmanContinuity";
+import {
+  appendFeynmanNotebookEntry,
+  completeFeynmanContinuitySession,
+  degradeFeynmanContinuitySession,
+  getFeynmanContinuitySession,
+  listFeynmanContinuitySessions,
+  readFeynmanContinuityArtifact,
+  searchFeynmanContinuitySessions,
+  startFeynmanContinuitySession,
+} from "@/lib/feynmanContinuityStore";
 import { callInternalAi } from "@/lib/internalAi";
 import { listCompiledMemoryPages } from "@/lib/memoryPagesStore";
 import {
@@ -872,6 +887,13 @@ async function feynmanResearch(
     return withToolResult("feynman_research: topic or artifact is required.");
   }
 
+  let continuitySession: FeynmanContinuitySession | null = null;
+  try {
+    continuitySession = await startFeynmanContinuitySession({ workflow, topic });
+  } catch {
+    // Research remains available when local continuity storage is unavailable.
+  }
+
   try {
     const result = await runFeynmanResearch(workflow, topic, {
       searchPapers: hfPapersSearch,
@@ -883,9 +905,50 @@ async function feynmanResearch(
         callFeynmanStage(origin, "feynman_verifier", prompt, 1_300),
       review: (prompt) =>
         callFeynmanStage(origin, "feynman_reviewer", prompt, 1_100),
+      progress: continuitySession
+        ? (event) =>
+            appendFeynmanNotebookEntry(continuitySession.id, {
+              ...event,
+              at: new Date().toISOString(),
+            })
+        : undefined,
     });
-    return withToolResult(result.report);
+    let completedSession: FeynmanContinuitySession | null = null;
+    if (continuitySession) {
+      try {
+        completedSession = await completeFeynmanContinuitySession(
+          continuitySession.id,
+          result,
+        );
+      } catch {
+        // Preserve the primary research result if continuity finalization fails.
+      }
+    }
+    return withToolResult(
+      completedSession
+        ? [
+            result.report,
+            "",
+            "## Research Continuity",
+            `- Session: ${completedSession.id}`,
+            `- Resume: use feynman_outputs action "resume" with session_id "${completedSession.id}".`,
+            `- Notebook: /api/feynman/artifacts?sessionId=${encodeURIComponent(completedSession.id)}&artifact=notebook`,
+            `- Preview: /api/feynman/artifacts?sessionId=${encodeURIComponent(completedSession.id)}&artifact=preview`,
+            `- PDF: /api/feynman/artifacts?sessionId=${encodeURIComponent(completedSession.id)}&artifact=pdf`,
+          ].join("\n")
+        : result.report,
+    );
   } catch (error) {
+    if (continuitySession) {
+      try {
+        await degradeFeynmanContinuitySession(
+          continuitySession.id,
+          error instanceof Error ? error.message : "Feynman research workflow failed.",
+        );
+      } catch {
+        // Preserve the original workflow failure.
+      }
+    }
     return withToolResult(
       error instanceof Error
         ? error.message
@@ -898,8 +961,72 @@ async function deepResearch(topic: string, origin: string): Promise<ToolResult> 
   return feynmanResearch("deepresearch", topic, origin);
 }
 
-async function feynmanOutputs(): Promise<ToolResult> {
+function formatFeynmanSessionIndex(sessions: FeynmanContinuitySession[]) {
+  if (sessions.length === 0) return "No local Feynman continuity sessions exist yet.";
+  return sessions
+    .map(
+      (session, index) =>
+        `${index + 1}. **${session.title}**\n   Session: ${session.id} · Workflow: ${session.workflow} · Status: ${session.status} · Updated: ${session.updatedAt}\n   Preview: /api/feynman/artifacts?sessionId=${encodeURIComponent(session.id)}&artifact=preview · PDF: /api/feynman/artifacts?sessionId=${encodeURIComponent(session.id)}&artifact=pdf`,
+    )
+    .join("\n");
+}
+
+async function feynmanOutputs(input: Record<string, string> = {}): Promise<ToolResult> {
+  const action = (input.action ?? "list").trim().toLowerCase();
   try {
+    switch (action) {
+      case "search": {
+        const query = input.query?.trim() ?? "";
+        if (!query) {
+          return withToolResult("feynman_outputs search requires query.");
+        }
+        const sessions = await searchFeynmanContinuitySessions(query, { limit: 20 });
+        return withToolResult(
+          [`# Feynman Session Search · ${query}`, "", formatFeynmanSessionIndex(sessions)].join(
+            "\n",
+          ),
+        );
+      }
+      case "resume": {
+        const session = input.session_id?.trim()
+          ? await getFeynmanContinuitySession(input.session_id.trim())
+          : (await searchFeynmanContinuitySessions(input.query ?? "", { limit: 1 }))[0];
+        if (!session) {
+          return withToolResult("No matching Feynman continuity session was found.");
+        }
+        return withToolResult(buildFeynmanResumeContext(session));
+      }
+      case "export": {
+        const sessionId = input.session_id?.trim() ?? "";
+        const artifact = (input.format ?? "pdf").trim().toLowerCase();
+        if (!sessionId) {
+          return withToolResult("feynman_outputs export requires session_id.");
+        }
+        if (!isFeynmanContinuityArtifactKind(artifact)) {
+          return withToolResult(
+            "feynman_outputs export format must be plan, notebook, report, evidence, claims, review, provenance, preview, or pdf.",
+          );
+        }
+        const exportArtifact = await readFeynmanContinuityArtifact(sessionId, artifact);
+        return withToolResult(
+          [
+            `# Feynman ${artifact} export`,
+            "",
+            `- Session: ${sessionId}`,
+            `- File: ${exportArtifact.fileName}`,
+            `- Open: /api/feynman/artifacts?sessionId=${encodeURIComponent(sessionId)}&artifact=${artifact}`,
+          ].join("\n"),
+        );
+      }
+      case "list":
+        break;
+      default:
+        return withToolResult(
+          "feynman_outputs action must be list, search, resume, or export.",
+        );
+    }
+
+    const sessions = await listFeynmanContinuitySessions({ limit: 20 });
     const pages = await listCompiledMemoryPages({ limit: 80 });
     const researchPages = pages
       .filter(
@@ -908,7 +1035,7 @@ async function feynmanOutputs(): Promise<ToolResult> {
           page.tags.includes("feynman-native"),
       )
       .slice(0, 20);
-    if (researchPages.length === 0) {
+    if (researchPages.length === 0 && sessions.length === 0) {
       return withToolResult(
         "No Feynman-native VAULT outputs exist yet. Run /deepresearch, /lit, /review, /audit, /replicate, /recipe, /compare, /draft, /autoresearch, or /watch first.",
       );
@@ -917,6 +1044,10 @@ async function feynmanOutputs(): Promise<ToolResult> {
       [
         "# Feynman Outputs",
         "",
+        "## Continuity Sessions",
+        formatFeynmanSessionIndex(sessions),
+        "",
+        "## VAULT Compiled Pages",
         ...researchPages.map(
           (page, index) =>
             `${index + 1}. **${page.title}**\n   Workflow: ${page.workflowId ?? "research"} · Updated: ${new Date(page.updatedAt).toISOString()} · Sources: ${page.researchSignals.sourceCount} · Citations: ${page.researchSignals.citationCount}\n   Open: /vault?focus=vault-compiled-pages&pageId=${encodeURIComponent(page.id)}${page.workflowId ? `&workflowId=${encodeURIComponent(page.workflowId)}` : ""}`,
@@ -1482,7 +1613,7 @@ export async function POST(req: NextRequest) {
         break;
       case "feynman_outputs":
         {
-          const toolResult = await feynmanOutputs();
+          const toolResult = await feynmanOutputs(input);
           result = toolResult.result;
           meta = toolResult.meta;
         }

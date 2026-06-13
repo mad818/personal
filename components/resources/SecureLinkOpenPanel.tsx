@@ -14,6 +14,7 @@ import {
 } from "@/lib/subscriptionEscape";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import MasterDnsVpnReadinessPanel from "@/components/resources/MasterDnsVpnReadinessPanel";
 
 interface SecureLinkOpenPanelProps {
   links: SecureStreamLink[];
@@ -415,6 +416,7 @@ export default function SecureLinkOpenPanel({
           keeps public links locked until your own authorized route is selected
           and confirmed.
         </p>
+        <MasterDnsVpnReadinessPanel />
       </div>
 
       <div style={cardStyle()}>

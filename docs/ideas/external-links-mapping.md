@@ -584,6 +584,11 @@ This batch feeds the Homefront source-intelligence pass. The useful product move
 
 ## Implemented (safe wiring fixes)
 
+### Source-assimilated sensor and emergency transport integrations
+
+- `francescopace/espectre` is adapted into the existing IoT/WiFi-sensing lane through protected normalized telemetry, consent-aware readiness, multi-sensor posture, bounded command envelopes, and an external GPL runtime boundary. See `docs/ideas/source-parity/espectre.json`.
+- `masterking32/MasterDnsVPN` is adapted only as an external emergency-transport readiness lane inside the existing legal IP-privacy guard. Nexus probes loopback only, rejects weak XOR posture, never starts a DNS tunnel, and never treats the transport as IP invisibility. See `docs/ideas/source-parity/masterdnsvpn.json`.
+
 These were already flagged as “not wired / mismatched,” and are safe to fix:
 
 1. **Camera alerts** now subscribe via typed `eventBus` (instead of `window` events)

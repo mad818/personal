@@ -30,6 +30,10 @@ const SensorDashboard = dynamic(
   () => import("@/components/iot/SensorDashboard"),
   { ssr: false },
 );
+const EspectreWifiViewer = dynamic(
+  () => import("@/components/iot/EspectreWifiViewer"),
+  { ssr: false },
+);
 const WeatherTimeline = dynamic(
   () => import("@/components/iot/WeatherTimeline"),
   { ssr: false },
@@ -87,6 +91,13 @@ export default function IoTPage() {
             <DeviceRegistry />
           </ShellPanel>
         </ShellGrid>
+
+        <ShellPanel>
+          <SectionLabel detail="Consent-aware ESPectre telemetry">
+            WiFi sensing
+          </SectionLabel>
+          <EspectreWifiViewer />
+        </ShellPanel>
 
         <ShellPanel tone="muted">
           <SectionLabel detail="Review before physical-world automation">

@@ -29,6 +29,8 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/health", routeClass: "local_only", public: true },
   { prefix: "/api/auth-diagnostics", routeClass: "local_only", public: true },
   { prefix: "/api/network-health/check", routeClass: "local_only", public: false },
+  { prefix: "/api/espectre", routeClass: "local_only", public: false },
+  { prefix: "/api/masterdnsvpn/readiness", routeClass: "local_only", public: false },
   { prefix: "/api/status", routeClass: "local_only", public: false },
   { prefix: "/api/project", routeClass: "local_only", public: false },
   { prefix: "/api/ollama/catalog", routeClass: "local_only", public: false },

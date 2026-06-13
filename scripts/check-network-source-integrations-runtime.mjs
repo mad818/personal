@@ -44,7 +44,7 @@ assert.equal(command.delivered, false);
 assert.equal(command.reviewRequired, true);
 
 assert.equal(isLoopbackMasterDnsVpnHost("127.0.0.1"), true);
-assert.equal(isLoopbackMasterDnsVpnHost("192.168.1.8"), false);
+assert.equal(isLoopbackMasterDnsVpnHost("198.51.100.8"), false);
 
 const unsafeTransport = buildMasterDnsVpnReadiness(
   {
@@ -52,7 +52,7 @@ const unsafeTransport = buildMasterDnsVpnReadiness(
     delegatedDomainConfigured: true,
     resolverCount: 2,
     encryption: "xor",
-    proxyHost: "192.168.1.8",
+    proxyHost: "198.51.100.8",
     proxyPort: 1080,
     localDnsEnabled: true,
     cacheEnabled: true,

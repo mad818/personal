@@ -33,6 +33,7 @@ import type { HQAssistantIntent, PreparedWorkspaceTarget } from '@/components/ho
 import type { ContextLoadReport } from '@/lib/contextPolicy'
 import type { ArticleReasoningIndex } from '@/lib/articleReasoning'
 import type { VoiceProfile, VoiceProject } from '@/lib/voiceLab'
+import type { RuntimeContinuityReceipt } from '@/lib/runtimeAuthority'
 import {
   advanceArpgStory as advanceArpgStoryState,
   acceptArpgQuest as acceptArpgQuestState,
@@ -314,6 +315,7 @@ export interface AgentRunArtifact {
   contextCompacted: boolean
   toolTraces: AgentToolTrace[]
   efficiency: AgentEfficiencyMetrics
+  continuity: RuntimeContinuityReceipt
 }
 
 // ── Activity log ──────────────────────────────────────────────────────────────

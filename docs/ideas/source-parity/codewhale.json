@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "id": "codewhale",
+  "name": "CodeWhale",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/Hmbown/CodeWhale",
+    "version": "v0.8.58",
+    "reviewedAt": "2026-06-13",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/Hmbown/CodeWhale/blob/main/README.md",
+      "https://github.com/Hmbown/CodeWhale/blob/main/docs/ARCHITECTURE.md",
+      "https://github.com/Hmbown/CodeWhale/blob/main/docs/CONFIGURATION.md",
+      "https://github.com/Hmbown/CodeWhale/blob/main/docs/SUBAGENTS.md",
+      "https://github.com/Hmbown/CodeWhale/blob/main/docs/RUNTIME_API.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "operating-identity",
+      "title": "Durable runtime identity tied to the active runtime session",
+      "sourceEvidence": "README operating identity and runtime architecture",
+      "disposition": "adapted",
+      "proof": ["lib/runtimeIdentity.ts", "app/api/health/route.ts"]
+    },
+    {
+      "id": "authority-constitution",
+      "title": "Explicit authority order and protected project invariants",
+      "sourceEvidence": "CONFIGURATION.md constitution and authority order",
+      "disposition": "implemented",
+      "proof": ["lib/runtimeAuthority.ts", "lib/agent.ts", "scripts/check-codewhale-obliteratus-runtime.mjs"]
+    },
+    {
+      "id": "runtime-enforced-approval",
+      "title": "Runtime-enforced approval and capability policy",
+      "sourceEvidence": "README and CONFIGURATION.md approval policies",
+      "disposition": "adapted",
+      "proof": ["lib/security/toolCapabilityPolicy.ts", "lib/security/toolIsolationPolicy.ts"]
+    },
+    {
+      "id": "sandboxed-execution",
+      "title": "Sandbox-required execution posture",
+      "sourceEvidence": "README sandbox and tool policies",
+      "disposition": "adapted",
+      "proof": ["lib/security/toolIsolationPolicy.ts", "scripts/tool-isolation-runner.mjs"]
+    },
+    {
+      "id": "side-snapshot-rollback",
+      "title": "Read-only snapshot and verification-backed recovery posture",
+      "sourceEvidence": "README side-git snapshots and restore",
+      "disposition": "adapted",
+      "proof": ["scripts/local-recovery-bundle.mjs", "specs/features/local-recovery-bundle.md"]
+    },
+    {
+      "id": "live-diagnostics-after-edits",
+      "title": "Verification evidence after write-capable work",
+      "sourceEvidence": "README live language-server diagnostics",
+      "disposition": "adapted",
+      "proof": ["lib/agent.ts", "app/api/verify/route.ts"]
+    },
+    {
+      "id": "bounded-concurrent-workers",
+      "title": "Bounded concurrent agent and tool work",
+      "sourceEvidence": "SUBAGENTS.md concurrent subagents",
+      "disposition": "adapted",
+      "proof": ["lib/agent.ts", "lib/agentRoleTaxonomy.ts", "lib/runtimeAuthority.ts"]
+    },
+    {
+      "id": "durable-session-continuity",
+      "title": "Durable session, relay, and handoff continuity",
+      "sourceEvidence": "README durable sessions, forks, and relay handoffs",
+      "disposition": "adapted",
+      "proof": ["lib/assistantSessionMemory.ts", "docs/AGENT_HANDOFF.md", "lib/runtimeAuthority.ts"]
+    },
+    {
+      "id": "provider-model-routing",
+      "title": "Local and hosted provider/model routing behind one runtime boundary",
+      "sourceEvidence": "CONFIGURATION.md provider and model routing",
+      "disposition": "adapted",
+      "proof": ["lib/ai.ts", "lib/aiModelRouting.ts", "lib/runtimeAuthority.ts"]
+    },
+    {
+      "id": "harness-profiles",
+      "title": "Model-specific harness safety and concurrency profiles",
+      "sourceEvidence": "CONFIGURATION.md harness profiles",
+      "disposition": "implemented",
+      "proof": ["lib/runtimeAuthority.ts", "scripts/check-codewhale-obliteratus-runtime.mjs"]
+    },
+    {
+      "id": "credential-source-diagnostics",
+      "title": "Credential and provider readiness without printing secrets",
+      "sourceEvidence": "CONFIGURATION.md credential source diagnostics",
+      "disposition": "adapted",
+      "proof": ["app/api/diagnostics/route.ts", "lib/clientSettingsBoundary.ts"]
+    },
+    {
+      "id": "airgapped-operation",
+      "title": "Air-gapped and no-update operation",
+      "sourceEvidence": "CONFIGURATION.md update checks and air-gapped environments",
+      "disposition": "adapted",
+      "proof": ["scripts/secure-runtime-gate.mjs", "lib/freeLocalOperations.ts"]
+    },
+    {
+      "id": "worker-lifecycle",
+      "title": "Pending, running, completed, failed, cancelled, and interrupted lifecycle truth",
+      "sourceEvidence": "SUBAGENTS.md lifecycle state machine",
+      "disposition": "implemented",
+      "proof": ["lib/runtimeAuthority.ts", "scripts/check-codewhale-obliteratus-runtime.mjs"]
+    },
+    {
+      "id": "stale-heartbeat-recovery",
+      "title": "Stale running work reconciles to interrupted",
+      "sourceEvidence": "SUBAGENTS.md heartbeat cancellation and restart recovery",
+      "disposition": "implemented",
+      "proof": ["lib/runtimeAuthority.ts", "scripts/check-codewhale-obliteratus-runtime.mjs"]
+    },
+    {
+      "id": "evidence-first-worker-output",
+      "title": "Summary, changes, evidence, risks, and blockers completion contract",
+      "sourceEvidence": "SUBAGENTS.md subagent output contract",
+      "disposition": "implemented",
+      "proof": ["lib/runtimeAuthority.ts", "lib/agent.ts", "store/useStore.ts"]
+    },
+    {
+      "id": "local-runtime-api",
+      "title": "Local-only protected runtime status and control-plane routes",
+      "sourceEvidence": "RUNTIME_API.md localhost bearer-token runtime API",
+      "disposition": "adapted",
+      "proof": ["lib/security/routePolicy.ts", "app/api/status/route.ts", "app/api/health/route.ts"]
+    },
+    {
+      "id": "replayable-event-stream",
+      "title": "Replayable monotonic SSE runtime event service",
+      "sourceEvidence": "RUNTIME_API.md SSE events and replay sequence",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus already uses its in-app event bus and durable run artifacts. A second external runtime event service would duplicate the active control plane without adding a required operator capability."
+    },
+    {
+      "id": "standalone-rust-tui",
+      "title": "Standalone Rust terminal UI and coding-agent runtime",
+      "sourceEvidence": "README install and terminal workflow",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus assimilates the governance and continuity behavior inside its existing Next.js runtime instead of shipping a second user-facing coding-agent product."
+    },
+    {
+      "id": "automatic-updater-installer",
+      "title": "Automatic runtime updater and installer",
+      "sourceEvidence": "README install and update workflow",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus does not silently install or update external runtimes. Dependency and runtime changes remain explicit operator actions."
+    },
+    {
+      "id": "hosted-relay-broad-bind",
+      "title": "Hosted relay or broad unauthenticated network binding",
+      "sourceEvidence": "RUNTIME_API.md security boundary and mobile/LAN mode",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus remains local/private-network first with authenticated routes and does not add a hosted relay or unauthenticated broad bind."
+    }
+  ]
+}

@@ -63,6 +63,10 @@ import { hasDeepResearchIntent } from "@/lib/deepResearch";
 import { hasRepoCompareSignal } from "@/lib/repoCompare";
 import { hasRepoAssimilationSignal } from "@/lib/repoAssimilation";
 import { hasRepoIntelSignal } from "@/lib/repoIntel";
+import {
+  buildRuntimeAuthorityPromptBlock,
+  buildRuntimeContinuityReceipt,
+} from "@/lib/runtimeAuthority";
 
 type ToolRiskTier = "tier0" | "tier1" | "tier2";
 
@@ -1920,7 +1924,8 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
 
   // ── Auto-recall: inject relevant memories into system prompt ─────────────
   const memoryContext = await buildMemoryContext(userMessage);
-  const enrichedPrompt = systemPrompt + memoryContext;
+  const enrichedPrompt =
+    systemPrompt + buildRuntimeAuthorityPromptBlock() + memoryContext;
   const contextChars = enrichedPrompt.length;
   const contextCompacted =
     Boolean(efficiencyHint?.liveContextCompacted) ||
@@ -2022,6 +2027,43 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       readCacheHits,
       duplicateReadCount,
     };
+    const verificationEvidence = v
+      ? v.adapters.map(
+          (adapter) =>
+            `${adapter.adapter}:${adapter.passed ? "passed" : "failed"}`,
+        )
+      : [verificationSummary];
+    const mutationTools = toolTraces
+      .filter((trace) => trace.risk !== "tier0")
+      .map((trace) => `Tool activity: ${trace.tool}`);
+    const elevatedRisks = toolTraces
+      .filter((trace) => trace.risk === "tier2")
+      .map((trace) => `High-risk tool invoked: ${trace.tool}`);
+    const blockers = [
+      ...(args.failureCause ? [args.failureCause] : []),
+      ...(v && !v.ok
+        ? v.adapters
+            .filter((adapter) => !adapter.passed)
+            .map((adapter) => `Verification failed: ${adapter.adapter}`)
+        : []),
+    ];
+    const continuity = buildRuntimeContinuityReceipt({
+      runId,
+      status: args.ok ? "completed" : "failed",
+      summary: args.ok
+        ? "Nexus agent run completed with an evidence-first continuity receipt."
+        : "Nexus agent run failed and preserved its blockers.",
+      changes: mutationTools,
+      evidence: [
+        ...verificationEvidence,
+        `provider:${providerUsed ?? "unknown"}`,
+        `tool-traces:${toolTraces.length}`,
+      ],
+      risks: elevatedRisks,
+      blockers,
+      provider: providerUsed,
+      verificationPassed: verification.passed,
+    });
     useStore.getState().addAgentRunArtifact({
       runId,
       runtimeEngine,
@@ -2035,6 +2077,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       contextCompacted,
       toolTraces,
       efficiency,
+      continuity,
     });
   };
 

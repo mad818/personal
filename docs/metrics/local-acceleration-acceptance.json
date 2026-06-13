@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-06-08T04:18:31.281Z",
+  "platform": "win32",
+  "machine": {
+    "gpuPresent": true,
+    "linuxRuntimeAvailable": false,
+    "pythonAvailable": true,
+    "turboVecPackageAvailable": false,
+    "turboQuantCheckoutAvailable": false,
+    "ollamaAvailable": true,
+    "embeddingAvailable": true,
+    "outboundPackageRegistryAvailable": false
+  },
+  "completion": {
+    "status": "complete",
+    "nexusOwnedPercent": 100,
+    "offlineOperationalPercent": 100,
+    "integrationAcceptancePercent": 100,
+    "optionalUpstreamRuntimePercent": 0,
+    "optionalUpstreamStatus": "unavailable",
+    "sourceParityPercent": 100,
+    "blockers": [],
+    "optionalUpstreamGaps": [
+      {
+        "id": "turbovec:real-runtime-acceptance",
+        "owner": "environment"
+      },
+      {
+        "id": "turboquant:reviewed-checkout-acceptance",
+        "owner": "environment"
+      },
+      {
+        "id": "turboquant:real-gpu-runtime-acceptance",
+        "owner": "environment"
+      }
+    ]
+  },
+  "probes": {
+    "safeStatus": "complete",
+    "staticChecks": true,
+    "localFallbackLifecycle": true,
+    "turboVecService": false,
+    "turboVecLifecycle": false,
+    "turboQuantService": false,
+    "turboQuantCheckout": false,
+    "turboQuantGpu": false,
+    "ollama": true,
+    "embedding": true,
+    "packageRegistry": false
+  }
+}

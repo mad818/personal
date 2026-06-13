@@ -8,9 +8,7 @@ export type TurboQuantControlOperation =
   | "capabilities"
   | "limitations"
   | "stats"
-  | "validate"
-  | "audit"
-  | "test"
+  | "proof"
   | "benchmark";
 export const TURBOQUANT_EXEC_CONFIRMATION = "RUN_TURBOQUANT_LOCAL_COMMAND";
 

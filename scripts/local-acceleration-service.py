@@ -24,6 +24,9 @@ import sys
 import threading
 import time
 from contextlib import contextmanager
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import asyncio
+import inspect
 from pathlib import Path
 from typing import Any
 from urllib.error import URLError
@@ -35,10 +38,103 @@ try:
     from fastapi import FastAPI, HTTPException, Request
     from fastapi.responses import JSONResponse
     import uvicorn
-except ImportError as exc:
-    raise SystemExit(
-        f"Missing dependency: {exc}\nRun: pip install fastapi uvicorn"
-    ) from exc
+    HTTP_BACKEND = "fastapi"
+except ImportError:
+    HTTP_BACKEND = "stdlib"
+
+    class Request:  # type: ignore[no-redef]
+        def __init__(self, payload: Any) -> None:
+            self._payload = payload
+
+        async def json(self) -> Any:
+            return self._payload
+
+    class JSONResponse:  # type: ignore[no-redef]
+        def __init__(self, content: Any, status_code: int = 200) -> None:
+            self.content = content
+            self.status_code = status_code
+
+    HTTPException = RuntimeError  # type: ignore[assignment,misc]
+
+    class FastAPI:  # type: ignore[no-redef]
+        def __init__(self, **_: Any) -> None:
+            self.routes: dict[tuple[str, str], Any] = {}
+
+        def _route(self, method: str, route_path: str) -> Any:
+            def decorator(function: Any) -> Any:
+                self.routes[(method, route_path)] = function
+                return function
+
+            return decorator
+
+        def get(self, route_path: str) -> Any:
+            return self._route("GET", route_path)
+
+        def post(self, route_path: str) -> Any:
+            return self._route("POST", route_path)
+
+        def serve(self, host: str, port: int) -> None:
+            application = self
+
+            class Handler(BaseHTTPRequestHandler):
+                def log_message(self, _: str, *__: Any) -> None:
+                    return
+
+                def _respond(self, method: str) -> None:
+                    function = application.routes.get((method, self.path.split("?", 1)[0]))
+                    if function is None:
+                        self._json({"error": "Not found."}, 404)
+                        return
+                    payload: Any = {}
+                    if method == "POST":
+                        try:
+                            length = int(self.headers.get("Content-Length", "0"))
+                            if length < 0 or length > 2_000_000:
+                                self._json({"error": "Request body is too large."}, 413)
+                                return
+                            payload = json.loads(self.rfile.read(length) or b"{}")
+                        except (ValueError, json.JSONDecodeError):
+                            self._json({"error": "Request body must be valid JSON."}, 400)
+                            return
+                    try:
+                        parameters = inspect.signature(function).parameters
+                        result = (
+                            function(Request(payload))
+                            if method == "POST" and parameters
+                            else function()
+                        )
+                        if inspect.isawaitable(result):
+                            result = asyncio.run(result)
+                        if isinstance(result, JSONResponse):
+                            self._json(result.content, result.status_code)
+                        else:
+                            self._json(result, 200)
+                    except Exception:
+                        self._json({"error": "Local acceleration operation failed."}, 503)
+
+                def _json(self, payload: Any, status: int) -> None:
+                    body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+                    self.send_response(status)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.send_header("Cache-Control", "no-store")
+                    self.end_headers()
+                    self.wfile.write(body)
+
+                def do_GET(self) -> None:  # noqa: N802
+                    self._respond("GET")
+
+                def do_POST(self) -> None:  # noqa: N802
+                    self._respond("POST")
+
+            ThreadingHTTPServer((host, port), Handler).serve_forever()
+
+    class _UvicornFallback:
+        @staticmethod
+        def run(application: FastAPI, host: str, port: int, **_: Any) -> None:
+            application.serve(host, port)
+
+    uvicorn = _UvicornFallback()
 
 
 SERVICE_VERSION = "1.0.0"
@@ -52,6 +148,13 @@ STATE_PATH = STATE_DIR / "turbovec-state.json"
 INDEX_PATH = STATE_DIR / "turbovec-index.bin"
 OLLAMA_BASE_URL = os.getenv("NEXUS_LOCAL_ACCELERATION_OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
 OLLAMA_EMBED_MODEL = os.getenv("NEXUS_LOCAL_ACCELERATION_EMBED_MODEL", "nomic-embed-text").strip()
+EMBED_MODE = os.getenv("NEXUS_LOCAL_ACCELERATION_EMBED_MODE", "auto").strip().lower()
+HASH_DIMENSION = max(
+    64, min(4_096, int(os.getenv("NEXUS_LOCAL_ACCELERATION_HASH_DIMENSION", "384")))
+)
+VECTOR_BACKEND = os.getenv(
+    "NEXUS_LOCAL_ACCELERATION_VECTOR_BACKEND", "auto"
+).strip().lower()
 TURBOVEC_DEFAULT_BITS = int(os.getenv("NEXUS_TURBOVEC_BIT_WIDTH", "4"))
 TURBOQUANT_ROOT_RAW = os.getenv("NEXUS_TURBOQUANT_ROOT", "").strip()
 TURBOQUANT_ROOT = Path(TURBOQUANT_ROOT_RAW).resolve() if TURBOQUANT_ROOT_RAW else None
@@ -64,9 +167,6 @@ TURBOQUANT_ALLOW_EXEC = os.getenv("NEXUS_LOCAL_ACCELERATION_ALLOW_EXEC", "").str
 TURBOQUANT_COMMAND_TIMEOUT = max(
     30, min(7_200, int(os.getenv("NEXUS_TURBOQUANT_COMMAND_TIMEOUT_SECONDS", "900")))
 )
-TURBOQUANT_BENCHMARK_SCRIPT = os.getenv(
-    "NEXUS_TURBOQUANT_BENCHMARK_SCRIPT", "proof.py"
-).strip()
 
 MAX_DOCUMENTS = 64
 MAX_DOCUMENT_CHARS = 32_000
@@ -78,6 +178,12 @@ if HOST not in {"127.0.0.1", "localhost", "::1"}:
     raise SystemExit("Local acceleration service refuses non-loopback bind hosts.")
 if TURBOVEC_DEFAULT_BITS not in {2, 3, 4}:
     raise SystemExit("NEXUS_TURBOVEC_BIT_WIDTH must be 2, 3, or 4.")
+if EMBED_MODE not in {"auto", "ollama", "hash"}:
+    raise SystemExit("NEXUS_LOCAL_ACCELERATION_EMBED_MODE must be auto, ollama, or hash.")
+if VECTOR_BACKEND not in {"auto", "turbovec", "local"}:
+    raise SystemExit(
+        "NEXUS_LOCAL_ACCELERATION_VECTOR_BACKEND must be auto, turbovec, or local."
+    )
 
 
 class ServiceError(Exception):
@@ -121,6 +227,51 @@ class ReadWriteLock:
             with self._condition:
                 self._writer = False
                 self._condition.notify_all()
+
+
+class LocalVectorIndex:
+    """Dependency-free exact-search fallback for offline Nexus operation."""
+
+    def __init__(self, dimension: int) -> None:
+        self.dimension = dimension
+        self.vectors: dict[int, list[float]] = {}
+
+    def add_with_ids(self, vectors: Any, ids: Any) -> None:
+        clean_vectors = [list(map(float, vector)) for vector in vectors]
+        clean_ids = [int(value) for value in ids]
+        if len(clean_vectors) != len(clean_ids):
+            raise ValueError("vector and ID counts differ")
+        for vector, numeric_id in zip(clean_vectors, clean_ids):
+            if len(vector) != self.dimension or any(
+                not math.isfinite(value) for value in vector
+            ):
+                raise ValueError("invalid vector")
+            self.vectors[numeric_id] = vector
+
+    def remove(self, numeric_id: int) -> bool:
+        return self.vectors.pop(int(numeric_id), None) is not None
+
+    def search(
+        self, query: Any, k: int, allowlist: Any | None = None
+    ) -> tuple[list[float], list[int]]:
+        clean_query = list(map(float, query))
+        if len(clean_query) != self.dimension:
+            raise ValueError("query dimension differs")
+        accepted = {int(value) for value in allowlist} if allowlist is not None else None
+        scored = [
+            (
+                sum(left * right for left, right in zip(clean_query, vector)),
+                numeric_id,
+            )
+            for numeric_id, vector in self.vectors.items()
+            if accepted is None or numeric_id in accepted
+        ]
+        scored.sort(key=lambda item: (-item[0], item[1]))
+        selected = scored[: max(0, int(k))]
+        return [score for score, _ in selected], [numeric_id for _, numeric_id in selected]
+
+    def prepare(self) -> None:
+        return
 
 
 def _is_loopback_url(raw: str) -> bool:
@@ -174,6 +325,16 @@ def _turbovec_types() -> tuple[Any | None, Any | None]:
     if module is None:
         return None, None
     return getattr(module, "TurboQuantIndex", None), getattr(module, "IdMapIndex", None)
+
+
+def _uses_local_vector_backend() -> bool:
+    return VECTOR_BACKEND == "local" or (
+        VECTOR_BACKEND == "auto" and _turbovec_types()[1] is None
+    )
+
+
+def _vector_backend_name() -> str:
+    return "local_fallback" if _uses_local_vector_backend() else "turbovec"
 
 
 def _write_state() -> None:
@@ -243,7 +404,27 @@ def _validate_vector(vector: Any) -> list[float]:
     return clean
 
 
-def _embed(texts: list[str]) -> list[list[float]]:
+def _hash_embed(text: str) -> list[float]:
+    normalized = " ".join(text.lower().split())
+    words = normalized.split() or ["empty"]
+    features = words + [
+        f"{words[index]}::{words[index + 1]}" for index in range(len(words) - 1)
+    ]
+    features.extend(
+        normalized[index:index + 3]
+        for index in range(max(0, len(normalized) - 2))
+        if " " not in normalized[index:index + 3]
+    )
+    vector = [0.0] * HASH_DIMENSION
+    for feature in features:
+        digest = hashlib.blake2b(feature.encode("utf-8"), digest_size=16).digest()
+        index = int.from_bytes(digest[:8], "big", signed=False) % HASH_DIMENSION
+        vector[index] += 1.0 if digest[8] & 1 else -1.0
+    norm = math.sqrt(sum(value * value for value in vector)) or 1.0
+    return [value / norm for value in vector]
+
+
+def _embed_ollama(texts: list[str]) -> list[list[float]]:
     try:
         payload = _post_json(
             f"{OLLAMA_BASE_URL}/api/embed",
@@ -271,8 +452,21 @@ def _embed(texts: list[str]) -> list[list[float]]:
     return vectors
 
 
+def _embed(texts: list[str]) -> list[list[float]]:
+    if EMBED_MODE == "hash":
+        return [_hash_embed(text) for text in texts]
+    try:
+        return _embed_ollama(texts)
+    except ServiceError:
+        if EMBED_MODE == "ollama":
+            raise
+        return [_hash_embed(text) for text in texts]
+
+
 def _new_index(dimension: int, bit_width: int) -> Any:
     _, id_map_type = _turbovec_types()
+    if _uses_local_vector_backend():
+        return LocalVectorIndex(dimension)
     if id_map_type is None:
         raise ServiceError("TurboVec is not installed in this Python environment.")
 
@@ -337,8 +531,12 @@ def _index_add_batch(document_ids: list[str], vectors: list[list[float]]) -> Non
         raise ServiceError("TurboVec stable-ID batch add is unavailable.")
     try:
         _index.add_with_ids(
-            _as_numpy_vectors(vectors),
-            _as_numpy_ids([_numeric_id(document_id) for document_id in document_ids]),
+            vectors if isinstance(_index, LocalVectorIndex) else _as_numpy_vectors(vectors),
+            (
+                [_numeric_id(document_id) for document_id in document_ids]
+                if isinstance(_index, LocalVectorIndex)
+                else _as_numpy_ids([_numeric_id(document_id) for document_id in document_ids])
+            ),
         )
     except Exception as exc:
         raise ServiceError("TurboVec rejected vectors during stable-ID ingest.") from exc
@@ -365,10 +563,14 @@ def _index_search(
 ) -> list[tuple[str, float]]:
     if _index is None or not hasattr(_index, "search"):
         return []
-    query = _as_numpy_vectors([vector])[0]
+    query = vector if isinstance(_index, LocalVectorIndex) else _as_numpy_vectors([vector])[0]
     kwargs = {"k": limit}
     if allowed_numeric_ids is not None:
-        kwargs["allowlist"] = _as_numpy_ids(allowed_numeric_ids)
+        kwargs["allowlist"] = (
+            allowed_numeric_ids
+            if isinstance(_index, LocalVectorIndex)
+            else _as_numpy_ids(allowed_numeric_ids)
+        )
     try:
         scores, ids = _index.search(query, **kwargs)
     except Exception as exc:
@@ -407,6 +609,8 @@ def _save_index() -> bool:
 
 def _load_saved_index() -> bool:
     global _index
+    if _uses_local_vector_backend():
+        return False
     if not INDEX_PATH.exists():
         return False
     _, id_map_type = _turbovec_types()
@@ -500,14 +704,19 @@ def _metadata_matches(metadata: dict[str, Any], filters: dict[str, Any]) -> bool
 
 def _turbovec_stats() -> dict[str, Any]:
     vector_type, id_map_type = _turbovec_types()
+    upstream_available = id_map_type is not None
     return {
-        "available": id_map_type is not None,
+        "available": upstream_available or VECTOR_BACKEND != "turbovec",
+        "backend": _vector_backend_name(),
+        "upstreamAvailable": upstream_available,
         "positionalIndexAvailable": vector_type is not None,
-        "stableIdsAvailable": id_map_type is not None,
+        "stableIdsAvailable": upstream_available or VECTOR_BACKEND != "turbovec",
         "vectorCount": len(_documents),
         "dimension": _dimension,
         "bitWidth": _bit_width,
         "embeddingModel": OLLAMA_EMBED_MODEL,
+        "embeddingMode": EMBED_MODE,
+        "hashDimension": HASH_DIMENSION if EMBED_MODE != "ollama" else None,
         "prepared": _index is not None,
         "statePersisted": STATE_PATH.exists(),
         "binaryIndexPersisted": INDEX_PATH.exists(),
@@ -516,7 +725,12 @@ def _turbovec_stats() -> dict[str, Any]:
 
 
 def _turboquant_available() -> bool:
-    return _module_available("turboquant") or bool(TURBOQUANT_ROOT and TURBOQUANT_ROOT.is_dir())
+    return _module_available("turboquant") or bool(
+        TURBOQUANT_ROOT
+        and TURBOQUANT_ROOT.is_dir()
+        and (TURBOQUANT_ROOT / "proof.py").is_file()
+        and (TURBOQUANT_ROOT / "benchmark.py").is_file()
+    )
 
 
 def _turboquant_capabilities() -> dict[str, Any]:
@@ -529,7 +743,7 @@ def _turboquant_capabilities() -> dict[str, Any]:
         "keyCompression": ["random_rotation", "lloyd_max", "qjl_residual_sign_bits"],
         "valueCompression": ["grouped_quantization", "bit_packing"],
         "serving": ["vllm_openai_compatible", "dense", "moe_full_attention"],
-        "controls": ["validate", "audit", "test", "benchmark"],
+        "controls": ["proof", "benchmark"],
         "executionEnabled": TURBOQUANT_ALLOW_EXEC,
     }
 
@@ -542,7 +756,7 @@ def _turboquant_limitations() -> dict[str, Any]:
         "valueQualitySensitive": True,
         "hybridDequantizationOverhead": True,
         "moeSupport": "full-attention layers only",
-        "source": "upstream README reviewed 2026-06-07",
+        "source": "upstream commit 7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5 reviewed 2026-06-07",
     }
 
 
@@ -569,26 +783,12 @@ def _relative_script(name: str) -> Path:
 
 
 def _turboquant_command(operation: str) -> tuple[list[str], str]:
-    if operation == "validate":
-        script = _relative_script("validate_paper.py")
-        return [sys.executable, str(script)], "validate_paper.py"
-    if operation == "audit":
-        script = _relative_script("audit_claims.py")
-        return [sys.executable, str(script)], "audit_claims.py"
+    if operation == "proof":
+        script = _relative_script("proof.py")
+        return [sys.executable, str(script)], "proof.py"
     if operation == "benchmark":
-        script = _relative_script(TURBOQUANT_BENCHMARK_SCRIPT)
-        return [sys.executable, str(script)], TURBOQUANT_BENCHMARK_SCRIPT
-    if operation == "test":
-        if TURBOQUANT_ROOT is None or not TURBOQUANT_ROOT.is_dir():
-            raise ServiceError("NEXUS_TURBOQUANT_ROOT is not configured to an installed runtime.")
-        return [
-            sys.executable,
-            "-m",
-            "pytest",
-            "test_modular.py",
-            "test_turboquant.py",
-            "-q",
-        ], "python -m pytest test_modular.py test_turboquant.py -q"
+        script = _relative_script("benchmark.py")
+        return [sys.executable, str(script)], "benchmark.py"
     raise ServiceError("Unknown TurboQuant command.")
 
 
@@ -653,11 +853,14 @@ def _error_response(exc: Exception) -> JSONResponse:
 
 @app.get("/turbovec/health")
 def turbovec_health() -> dict[str, Any]:
-    available = _turbovec_types()[1] is not None
+    upstream_available = _turbovec_types()[1] is not None
+    available = upstream_available or VECTOR_BACKEND != "turbovec"
     return {
         "status": "ok" if available else "degraded",
         "available": available,
         "engine": "turbovec",
+        "backend": _vector_backend_name(),
+        "upstreamAvailable": upstream_available,
         "serviceVersion": SERVICE_VERSION,
     }
 
@@ -887,29 +1090,11 @@ def turboquant_limitations() -> dict[str, Any]:
     return _turboquant_limitations()
 
 
-@app.post("/turboquant/validate")
-async def turboquant_validate(request: Request) -> JSONResponse:
+@app.post("/turboquant/proof")
+async def turboquant_proof(request: Request) -> JSONResponse:
     try:
         body = await _json_body(request)
-        return JSONResponse(_run_turboquant("validate", body.get("confirmation")))
-    except Exception as exc:
-        return _error_response(exc)
-
-
-@app.post("/turboquant/audit")
-async def turboquant_audit(request: Request) -> JSONResponse:
-    try:
-        body = await _json_body(request)
-        return JSONResponse(_run_turboquant("audit", body.get("confirmation")))
-    except Exception as exc:
-        return _error_response(exc)
-
-
-@app.post("/turboquant/test")
-async def turboquant_test(request: Request) -> JSONResponse:
-    try:
-        body = await _json_body(request)
-        return JSONResponse(_run_turboquant("test", body.get("confirmation")))
+        return JSONResponse(_run_turboquant("proof", body.get("confirmation")))
     except Exception as exc:
         return _error_response(exc)
 
@@ -931,5 +1116,8 @@ except ServiceError:
 
 
 if __name__ == "__main__":
-    print(f"Nexus Local Acceleration Service starting on http://{HOST}:{PORT}")
+    print(
+        f"Nexus Local Acceleration Service starting on http://{HOST}:{PORT} "
+        f"({HTTP_BACKEND} HTTP backend)"
+    )
     uvicorn.run(app, host=HOST, port=PORT, log_level="warning")

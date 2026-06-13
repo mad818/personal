@@ -17,14 +17,28 @@ Nexus owns one protected local acceleration control plane:
 - TurboQuant is an optional separately installed GPL-3.0 vLLM runtime. Nexus
   never vendors its code. The existing AI proxy can explicitly route requests to
   its OpenAI-compatible endpoint and the acceleration control plane exposes
-  sanitized health, capability, limitation, validation, audit, and benchmark
-  posture.
+  sanitized health, capability, limitation, proof, and benchmark posture.
 - The bridge always binds to loopback. A tailnet host is accepted by the Nexus
   client only when the operator explicitly enables the tailnet acceleration
   policy.
 
 The services are optional. Nexus keeps keyword retrieval and Ollama behavior
 when either runtime is unavailable.
+
+## Completion Contract
+
+Nexus completion is based on complete useful adaptation into Nexus, not on
+reproducing or installing either upstream project:
+
+- Required integration acceptance proves Nexus-owned capability coverage,
+  source-parity accounting, protected controls, and the complete offline
+  fallback lifecycle.
+- Optional upstream readiness separately reports whether real TurboVec and
+  TurboQuant runtimes are installed and have passed their native lifecycle,
+  checkout, GPU, proof, benchmark, and serving checks.
+- An unavailable optional runtime never blocks Nexus integration completion and
+  never appears as live. Operators who install the runtimes can use a separate
+  strict upstream-readiness gate.
 
 ## TurboVec Assimilation
 
@@ -55,8 +69,7 @@ The Nexus contract covers:
 - Dense and MoE/full-attention capability reporting.
 - Sanitized KV capacity, compression, throughput, latency, quality, and
   concurrency statistics.
-- Paper theorem validation, adversarial claim audit, modular test, proof, and
-  benchmark command contracts.
+- Actual reviewed upstream `proof.py` and `benchmark.py` command contracts.
 - Honest limitation reporting for prefill allocation, linear-attention/Mamba
   exclusion, value-quality loss, full-history dequantization, and model/GPU
   compatibility.
@@ -90,7 +103,7 @@ claim the upstream algorithm is built into the MIT application.
 - All service calls use `try/catch` and degrade without taking down VAULT or AI.
 - No paid API, automatic install, automatic model download, or automatic runtime
   launch.
-- No arbitrary shell command execution. Fixed TurboQuant validation commands
+- No arbitrary shell command execution. Fixed TurboQuant proof/benchmark commands
   require an environment opt-in plus an exact per-request confirmation.
 
 ## Verification

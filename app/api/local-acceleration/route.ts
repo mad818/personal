@@ -25,9 +25,7 @@ const TURBOQUANT_CONTROLS = new Set<TurboQuantControlOperation>([
   "capabilities",
   "limitations",
   "stats",
-  "validate",
-  "audit",
-  "test",
+  "proof",
   "benchmark",
 ]);
 

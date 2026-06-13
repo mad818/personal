@@ -93,6 +93,9 @@
 80. Simple assistant greetings, pings/tests, and acknowledgements should prove the chat is alive through a local fast reply instead of starting the full agent/runtime loop; reserve `LIVE EXECUTION` for real tasks, route actions, retrieval, or review-gated work.
 81. When HQ is waiting on a local Ollama/model turn, the live execution rail must show a slow-runtime watchdog and a provider-health recovery lane instead of looking like a frozen chat.
 82. Never label a GitHub/X idea fully implemented from a feature sample or command-name match. Reverse-engineer the primary source into an exhaustive capability matrix; implement every capability that fits Nexus, explicitly reject only capabilities that conflict with security, legality, licensing, the free/local invariant, or product purpose, and require acceptance proof for every implemented/adapted row before marking parity complete.
+83. Complete upstream assimilation means every useful capability is adapted and proven inside Nexus, not that Nexus reproduces or installs the entire upstream project. Track optional upstream runtime readiness separately and never let an unavailable optional runtime block Nexus integration completion or appear live.
+84. JavaScript chunk budgets must distinguish a production `.next` build with `BUILD_ID` from unminified development output; keep source-level performance boundaries active in development and enforce byte budgets only against production chunks.
+85. Preserve the Next development cache between normal development starts, but detect `.next/BUILD_ID` and clear incompatible production output before launching `next dev`; reusing a production build can force first-interaction dynamic imports to reload the page and lose UI state.
 
 ---
 

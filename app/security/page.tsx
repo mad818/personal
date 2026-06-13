@@ -1,15 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import CameraGrid from "@/components/security/CameraGrid";
-import SecurityAlerts from "@/components/security/SecurityAlerts";
-import DronePanel from "@/components/security/DronePanel";
-import ThreatLevelIndicator from "@/components/security/ThreatLevelIndicator";
-import PerimeterSweep from "@/components/security/PerimeterSweep";
-import AlertTimeline from "@/components/security/AlertTimeline";
-import SecurityDoctrineMatrix from "@/components/security/SecurityDoctrineMatrix";
-import AIHardeningCoveragePanel from "@/components/security/AIHardeningCoveragePanel";
 import MissionHandoffStrip from "@/components/ui/MissionHandoffStrip";
 import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
 import TrustOperationsRail from "@/components/ui/TrustOperationsRail";
@@ -28,6 +21,37 @@ import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
 import { getOpsLayoutDescriptor } from "@/lib/opsLayoutRegistry";
 import { useStore } from "@/store/useStore";
+
+const AIHardeningCoveragePanel = dynamic(
+  () => import("@/components/security/AIHardeningCoveragePanel"),
+  { ssr: false },
+);
+const AlertTimeline = dynamic(
+  () => import("@/components/security/AlertTimeline"),
+  { ssr: false },
+);
+const CameraGrid = dynamic(() => import("@/components/security/CameraGrid"), {
+  ssr: false,
+});
+const DronePanel = dynamic(() => import("@/components/security/DronePanel"), {
+  ssr: false,
+});
+const PerimeterSweep = dynamic(
+  () => import("@/components/security/PerimeterSweep"),
+  { ssr: false },
+);
+const SecurityAlerts = dynamic(
+  () => import("@/components/security/SecurityAlerts"),
+  { ssr: false },
+);
+const SecurityDoctrineMatrix = dynamic(
+  () => import("@/components/security/SecurityDoctrineMatrix"),
+  { ssr: false },
+);
+const ThreatLevelIndicator = dynamic(
+  () => import("@/components/security/ThreatLevelIndicator"),
+  { ssr: false },
+);
 
 type View = "doctrine" | "ai" | "physical";
 

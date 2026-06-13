@@ -242,13 +242,13 @@ Links:
 
 - **Link**: `https://github.com/RyanCodrai/turbovec`
 - **Fits**: VAULT compiled pages, memory retrieval, local RAG, and phone/iPad access through the existing Nexus runtime.
-- **Source parity: IN PROGRESS**: Nexus now has a protected local acceleration client, `/api/local-acceleration`, and a loopback-only companion bridge with exact `IdMapIndex` batch ingest, deterministic collision-checked IDs, native allowlist filtering, concurrent search, private persistence/rebuild, and local Ollama embeddings. VAULT compiled-page auto-indexing, semantic search fallback, loopback/tailnet endpoint policy, and the exhaustive matrix at [`source-parity/turbovec.json`](./source-parity/turbovec.json) are wired. Real TurboVec runtime acceptance remains pending until the upstream package is installed and proves recall, compression, filtered search, delete, persistence, reload, and corruption behavior.
+- **Nexus integration complete; optional upstream readiness unavailable**: Nexus has a protected local acceleration client, `/api/local-acceleration`, and a loopback-only companion bridge with exact `IdMapIndex` batch ingest, deterministic collision-checked IDs, native allowlist filtering, concurrent search, private persistence/rebuild, a dependency-free HTTP backend, automatic Python discovery, local Ollama/private hash embeddings, and an exact-search fallback. VAULT auto-indexing, semantic fallback, endpoint policy, exhaustive accounting, live fallback lifecycle proof, aligned completion, and separate strict upstream-readiness acceptance are wired.
 
 ### H) TurboQuant — local vLLM KV-cache compression
 
 - **Link**: `https://github.com/0xSero/turboquant`
 - **Fits**: optional local long-context model serving on a GPU host, routed through Nexus auth/privacy/rate-limit policy for MacBook/iPad use.
-- **Source parity: IN PROGRESS**: Nexus now keeps TurboQuant as a separate GPL runtime, exposes protected control posture through the loopback companion bridge, double-gates fixed validation/audit/test/benchmark commands with sanitized receipts, and adds an explicit `turboquant` provider to the existing AI proxy. The matrix at [`source-parity/turboquant.json`](./source-parity/turboquant.json) keeps real GPU acceptance and upstream fused hybrid decode pending.
+- **Nexus integration complete; optional upstream readiness unavailable**: Nexus keeps TurboQuant as a separate GPL runtime, pins optional checkout readiness to reviewed commit `7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5`, exposes only the actual fixed `proof.py` and `benchmark.py` commands through double-gated loopback controls with sanitized receipts, adds an explicit `turboquant` provider to the AI proxy, and includes a separate strict checkout/GPU readiness runner. Nexus records that the reviewed README advertises validation/audit/test/profiling scripts absent from the commit, and reports upstream's absent fused-hybrid optimization as a limitation instead of falsely treating either as available source capability.
 
 ---
 

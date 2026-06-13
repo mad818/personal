@@ -1,16 +1,6 @@
 "use client";
 
-import CameraArray from "@/components/vehicle/CameraArray";
-import BenchBringUpChecklist from "@/components/vehicle/BenchBringUpChecklist";
-import ControlPanel from "@/components/vehicle/ControlPanel";
-import RadarSweep from "@/components/vehicle/RadarSweep";
-import SensorFusion from "@/components/vehicle/SensorFusion";
-import SensorHealthRadial from "@/components/vehicle/SensorHealthRadial";
-import TelemetryChart from "@/components/vehicle/TelemetryChart";
-import TelemetryPanel from "@/components/vehicle/TelemetryPanel";
-import DroneOpsLaunchpad from "@/components/vehicle/DroneOpsLaunchpad";
-import FirstHardwareDayCard from "@/components/vehicle/FirstHardwareDayCard";
-import VehicleArtifactManifestCard from "@/components/vehicle/VehicleArtifactManifestCard";
+import dynamic from "next/dynamic";
 import VehicleBridgeStatusCard from "@/components/vehicle/VehicleBridgeStatusCard";
 import VehicleConnectorOnboardingCard from "@/components/vehicle/VehicleConnectorOnboardingCard";
 import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry";
@@ -30,6 +20,47 @@ import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
 import { getOpsLayoutDescriptor } from "@/lib/opsLayoutRegistry";
+
+const BenchBringUpChecklist = dynamic(
+  () => import("@/components/vehicle/BenchBringUpChecklist"),
+  { ssr: false },
+);
+const CameraArray = dynamic(() => import("@/components/vehicle/CameraArray"), {
+  ssr: false,
+});
+const ControlPanel = dynamic(() => import("@/components/vehicle/ControlPanel"), {
+  ssr: false,
+});
+const DroneOpsLaunchpad = dynamic(
+  () => import("@/components/vehicle/DroneOpsLaunchpad"),
+  { ssr: false },
+);
+const FirstHardwareDayCard = dynamic(
+  () => import("@/components/vehicle/FirstHardwareDayCard"),
+  { ssr: false },
+);
+const RadarSweep = dynamic(() => import("@/components/vehicle/RadarSweep"), {
+  ssr: false,
+});
+const SensorFusion = dynamic(() => import("@/components/vehicle/SensorFusion"), {
+  ssr: false,
+});
+const SensorHealthRadial = dynamic(
+  () => import("@/components/vehicle/SensorHealthRadial"),
+  { ssr: false },
+);
+const TelemetryChart = dynamic(
+  () => import("@/components/vehicle/TelemetryChart"),
+  { ssr: false },
+);
+const TelemetryPanel = dynamic(
+  () => import("@/components/vehicle/TelemetryPanel"),
+  { ssr: false },
+);
+const VehicleArtifactManifestCard = dynamic(
+  () => import("@/components/vehicle/VehicleArtifactManifestCard"),
+  { ssr: false },
+);
 
 const READINESS_PHASES = [
   {

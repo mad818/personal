@@ -4,13 +4,12 @@
 "use client";
 
 import { clsx } from "clsx";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
-import SettingsDrawer from "@/components/settings/SettingsDrawer";
-import NotificationCenter from "@/components/ui/NotificationCenter";
 import OperationalLightGrid from "@/components/ui/OperationalLightGrid";
 import TrustPostureStrip from "@/components/ui/TrustPostureStrip";
 import { useOperationalLights } from "@/hooks/useOperationalLights";
@@ -32,11 +31,20 @@ import {
   normalizeSurfaceHref,
 } from "@/lib/releaseMatrix";
 
+const SettingsDrawer = dynamic(() => import("@/components/settings/SettingsDrawer"), {
+  ssr: false,
+});
+const NotificationCenter = dynamic(() => import("@/components/ui/NotificationCenter"), {
+  ssr: false,
+});
+
 export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
   const toprailRef = useRef<HTMLElement | null>(null);
   const [activeOverlay, setActiveOverlay] = useState<"settings" | "notifications" | null>(null);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [notificationsLoaded, setNotificationsLoaded] = useState(false);
   const [hoverSurface, setHoverSurface] = useState<SurfaceMotionSurface | null>(null);
   const unreadCount = useStore((s) => s.unreadCount);
   const activeUIRuleIds = useStore((s) => s.activeUIRuleIds);
@@ -246,10 +254,13 @@ export default function Nav() {
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
+                setNotificationsLoaded(true);
                 flushSync(() => {
                   setActiveOverlay("notifications");
                 });
               }}
+              onMouseEnter={() => setNotificationsLoaded(true)}
+              onFocus={() => setNotificationsLoaded(true)}
               className="nexus-toprail__icon-button"
               data-testid="toprail-notifications"
               title="Notifications"
@@ -271,10 +282,13 @@ export default function Nav() {
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
+                setSettingsLoaded(true);
                 flushSync(() => {
                   setActiveOverlay("settings");
                 });
               }}
+              onMouseEnter={() => setSettingsLoaded(true)}
+              onFocus={() => setSettingsLoaded(true)}
               className="nexus-toprail__icon-button"
               data-testid="toprail-settings"
               title="Settings"
@@ -288,22 +302,26 @@ export default function Nav() {
         </div>
       </nav>
 
-      <SettingsDrawer
-        open={settingsOpen}
-        onClose={() =>
-          flushSync(() => {
-            setActiveOverlay(null);
-          })
-        }
-      />
-      <NotificationCenter
-        open={notificationsOpen}
-        onClose={() =>
-          flushSync(() => {
-            setActiveOverlay(null);
-          })
-        }
-      />
+      {settingsLoaded ? (
+        <SettingsDrawer
+          open={settingsOpen}
+          onClose={() =>
+            flushSync(() => {
+              setActiveOverlay(null);
+            })
+          }
+        />
+      ) : null}
+      {notificationsLoaded ? (
+        <NotificationCenter
+          open={notificationsOpen}
+          onClose={() =>
+            flushSync(() => {
+              setActiveOverlay(null);
+            })
+          }
+        />
+      ) : null}
     </>
   );
 }

@@ -2,18 +2,19 @@
   "schemaVersion": 1,
   "id": "turboquant",
   "name": "TurboQuant KV Cache",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/0xSero/turboquant",
-    "version": "main reviewed 2026-06-07",
+    "version": "7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5",
     "reviewedAt": "2026-06-07",
     "license": "GPL-3.0",
     "primaryEvidence": [
-      "https://github.com/0xSero/turboquant/blob/main/README.md",
-      "https://github.com/0xSero/turboquant/tree/main/turboquant",
-      "https://github.com/0xSero/turboquant/blob/main/validate_paper.py",
-      "https://github.com/0xSero/turboquant/blob/main/audit_claims.py",
-      "https://github.com/0xSero/turboquant/blob/main/LICENSE"
+      "https://github.com/0xSero/turboquant/blob/7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5/README.md",
+      "https://github.com/0xSero/turboquant/tree/7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5/turboquant",
+      "https://github.com/0xSero/turboquant/blob/7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5/proof.py",
+      "https://github.com/0xSero/turboquant/blob/7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5/benchmark.py",
+      "https://github.com/0xSero/turboquant/blob/7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5/setup.py",
+      "https://github.com/0xSero/turboquant/blob/7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5/LICENSE"
     ]
   },
   "capabilities": [
@@ -67,32 +68,47 @@
       "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
     },
     {
-      "id": "paper-theorem-validation",
-      "title": "Run the nine paper theorem and retrieval validation tests",
-      "sourceEvidence": "README.md Paper Validation and validate_paper.py",
+      "id": "readme-only-paper-validation",
+      "title": "README-advertised nine-test paper theorem and retrieval validation script",
+      "sourceEvidence": "README.md advertises validate_paper.py, but that path is absent from reviewed commit 7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5",
+      "disposition": "excluded",
+      "owner": "upstream",
+      "conflict": "product_purpose",
+      "reason": "The reviewed upstream source does not contain validate_paper.py. Nexus records the documentation/source mismatch instead of inventing an executable or claiming parity with unavailable source."
+    },
+    {
+      "id": "readme-only-claim-audit",
+      "title": "README-advertised adversarial audit of compression, quality, speed, and context claims",
+      "sourceEvidence": "README.md advertises audit_claims.py, but that path is absent from reviewed commit 7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5",
+      "disposition": "excluded",
+      "owner": "upstream",
+      "conflict": "product_purpose",
+      "reason": "The reviewed upstream source does not contain audit_claims.py. Nexus reports the upstream assessment as documentation only and does not expose a nonexistent command."
+    },
+    {
+      "id": "readme-only-test-suites",
+      "title": "README-advertised modular architecture and core quantizer test suites",
+      "sourceEvidence": "README.md advertises test_modular.py and test_turboquant.py, but both paths are absent from reviewed commit 7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5",
+      "disposition": "excluded",
+      "owner": "upstream",
+      "conflict": "product_purpose",
+      "reason": "The reviewed upstream source contains neither advertised test file. Nexus does not substitute command labels for absent upstream acceptance proof."
+    },
+    {
+      "id": "proof-and-benchmark",
+      "title": "Run the actual upstream A/B proof and comprehensive benchmark scripts",
+      "sourceEvidence": "proof.py and benchmark.py at reviewed commit 7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5",
       "disposition": "adapted",
       "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
     },
     {
-      "id": "adversarial-claim-audit",
-      "title": "Run and expose the adversarial audit of compression, quality, speed, and context claims",
-      "sourceEvidence": "README.md Adversarial Audit and audit_claims.py",
-      "disposition": "adapted",
-      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
-    },
-    {
-      "id": "modular-and-core-tests",
-      "title": "Run modular architecture and core quantizer tests",
-      "sourceEvidence": "README.md Test Results",
-      "disposition": "adapted",
-      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
-    },
-    {
-      "id": "proof-and-profiling",
-      "title": "Run approved A/B proof and long-context profiling",
-      "sourceEvidence": "README.md proof.py and profiling scripts",
-      "disposition": "adapted",
-      "proof": ["lib/localAcceleration.ts", "scripts/local-acceleration-service.py", "app/api/local-acceleration/route.ts"]
+      "id": "readme-only-profiling-scripts",
+      "title": "README-advertised MoE validation and long-context profiling script set",
+      "sourceEvidence": "README.md advertises validate_moe.py, validate_moe_phase2.py, validate_moe_phase3.py, profile_100k.py, profile_large.py, baseline_vs_tq.py, and baseline_vs_tq_v2.py; those paths are absent from the reviewed commit",
+      "disposition": "excluded",
+      "owner": "upstream",
+      "conflict": "product_purpose",
+      "reason": "The reviewed upstream source does not contain the advertised profiling files. Nexus exposes the two executable scripts that exist and records the rest as unavailable upstream surfaces."
     },
     {
       "id": "local-ai-provider-routing",
@@ -127,15 +143,10 @@
       "id": "fused-triton-hybrid-decode",
       "title": "Use fused Triton kernels directly in the hybrid decode path",
       "sourceEvidence": "README.md Limitations",
-      "disposition": "pending",
-      "reason": "Upstream states that fused Triton kernels exist but the hybrid path does not use them yet; Nexus cannot truthfully claim this behavior through the external runtime."
-    },
-    {
-      "id": "real-gpu-runtime-acceptance",
-      "title": "Real GPU validation, audit, tests, benchmark, quality, memory, and long-context proof on the configured runtime",
-      "sourceEvidence": "README.md Usage, tests, and benchmark results",
-      "disposition": "pending",
-      "reason": "The Nexus integration is implemented, but a compatible Python/vLLM/CUDA TurboQuant runtime is not installed or running on this machine."
+      "disposition": "excluded",
+      "owner": "upstream",
+      "conflict": "product_purpose",
+      "reason": "Upstream explicitly states that its hybrid path does not use the fused Triton kernels. This is not an available upstream capability to assimilate; Nexus reports the limitation instead of inventing or falsely claiming a GPL runtime fork."
     }
   ]
 }

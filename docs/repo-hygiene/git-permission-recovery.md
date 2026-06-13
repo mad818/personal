@@ -32,16 +32,21 @@ or terminal that owns them before lock cleanup.
 
 ## 2. Repair ACLs
 
-Use the SID printed by `icacls .git | Select-String "DENY"`. The SID below is
-the one observed on this machine during the blocker audit.
+Use every SID printed by `icacls .git | Select-String "DENY"`. The SIDs below
+are the ones observed on this machine during blocker audits.
 
 ```powershell
 cd <repo-root>
-$denySid = "S-1-5-21-779443000-71960511-1366699174-2556294504"
+$denySids = @(
+  "S-1-5-21-779443000-71960511-1366699174-2556294504",
+  "S-1-5-21-1768906453-2027885692-4155740187-81600975"
+)
 $currentUser = "$env:USERDOMAIN\$env:USERNAME"
 icacls .git /inheritance:e
 takeown /F .git /R /D Y
-icacls .git /remove:d $denySid /T /C
+foreach ($denySid in $denySids) {
+  icacls .git /remove:d $denySid /T /C
+}
 icacls .git /grant "${currentUser}:(OI)(CI)F" /T /C
 icacls .git /grant "Mario\CodexSandboxUsers:(OI)(CI)F" /T /C
 icacls .git /grant "Mario\CodexSandboxOffline:(OI)(CI)F" /T /C

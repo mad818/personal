@@ -4,13 +4,9 @@
 "use client";
 // Device management, sensor networks, and home automation
 
+import dynamic from "next/dynamic";
 import MQTTStatus from "@/components/iot/MQTTStatus";
-import SensorDashboard from "@/components/iot/SensorDashboard";
-import DeviceRegistry from "@/components/iot/DeviceRegistry";
-import AutomationRules from "@/components/iot/AutomationRules";
 import SensorGauges from "@/components/iot/SensorGauges";
-import WeatherTimeline from "@/components/iot/WeatherTimeline";
-import DeviceStatusMatrix from "@/components/iot/DeviceStatusMatrix";
 import {
   SectionLabel,
   ShellGrid,
@@ -18,6 +14,26 @@ import {
   ShellPanel,
   ShellStack,
 } from "@/components/ui/shell";
+
+const AutomationRules = dynamic(
+  () => import("@/components/iot/AutomationRules"),
+  { ssr: false },
+);
+const DeviceRegistry = dynamic(() => import("@/components/iot/DeviceRegistry"), {
+  ssr: false,
+});
+const DeviceStatusMatrix = dynamic(
+  () => import("@/components/iot/DeviceStatusMatrix"),
+  { ssr: false },
+);
+const SensorDashboard = dynamic(
+  () => import("@/components/iot/SensorDashboard"),
+  { ssr: false },
+);
+const WeatherTimeline = dynamic(
+  () => import("@/components/iot/WeatherTimeline"),
+  { ssr: false },
+);
 
 export default function IoTPage() {
   return (

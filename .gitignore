@@ -23,6 +23,8 @@ data/phone-acceptance-receipts*.json
 .nexus-runtime.err
 .nexus-dev*.out
 .nexus-dev*.err
+.phone-lan.out
+.phone-lan.err
 .nexus-release-boundary.json
 .nexus/
 .env.*.local
@@ -35,6 +37,8 @@ yarn-debug.log*
 .DS_Store
 *.tsbuildinfo
 tsconfig.tsbuildinfo
+__pycache__/
+*.pyc
 .env.local
 temp-*.html
 desktop/src-tauri/target/

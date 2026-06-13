@@ -1,15 +1,11 @@
-[CmdletBinding()]
-param(
-  [Parameter(ValueFromRemainingArguments = $true)]
-  [string[]]$GitArgs
-)
-
 $ErrorActionPreference = "Stop"
+$GitArgs = @($args)
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $gitDir = Join-Path $repoRoot ".git"
 $knownDenySids = @(
-  "S-1-5-21-779443000-71960511-1366699174-2556294504"
+  "S-1-5-21-779443000-71960511-1366699174-2556294504",
+  "S-1-5-21-1768906453-2027885692-4155740187-81600975"
 )
 
 function Remove-KnownGitDenyAcl {

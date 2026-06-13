@@ -2,20 +2,8 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import DeveloperFieldManual from "@/components/resources/DeveloperFieldManual";
-import MassiveWinConsole from "@/components/resources/MassiveWinConsole";
-import PlaybooksConsole from "@/components/resources/PlaybooksConsole";
-import ProjectImpactConsole from "@/components/resources/ProjectImpactConsole";
-import RegistryConsole from "@/components/resources/RegistryConsole";
-import SessionFinderConsole from "@/components/resources/SessionFinderConsole";
-import SourceIntelligenceConsole from "@/components/resources/SourceIntelligenceConsole";
-import SpecDrivenConsole from "@/components/resources/SpecDrivenConsole";
-import StudyWorkbenchConsole from "@/components/resources/StudyWorkbenchConsole";
-import SubscriptionEscapeConsole from "@/components/resources/SubscriptionEscapeConsole";
-import SurfaceCapabilitiesConsole from "@/components/resources/SurfaceCapabilitiesConsole";
-import SystemDesignConsole from "@/components/resources/SystemDesignConsole";
-import VoiceLabConsole from "@/components/resources/VoiceLabConsole";
 import OperatorReadinessLane from "@/components/ui/OperatorReadinessLane";
 import {
   OpsField,
@@ -44,6 +32,59 @@ import {
   getSurfaceModuleSpec,
 } from "@/lib/surfaceRedesignRegistry";
 import { useStore } from "@/store/useStore";
+
+const DeveloperFieldManual = dynamic(
+  () => import("@/components/resources/DeveloperFieldManual"),
+  { ssr: false },
+);
+const MassiveWinConsole = dynamic(
+  () => import("@/components/resources/MassiveWinConsole"),
+  { ssr: false },
+);
+const PlaybooksConsole = dynamic(
+  () => import("@/components/resources/PlaybooksConsole"),
+  { ssr: false },
+);
+const ProjectImpactConsole = dynamic(
+  () => import("@/components/resources/ProjectImpactConsole"),
+  { ssr: false },
+);
+const RegistryConsole = dynamic(
+  () => import("@/components/resources/RegistryConsole"),
+  { ssr: false },
+);
+const SessionFinderConsole = dynamic(
+  () => import("@/components/resources/SessionFinderConsole"),
+  { ssr: false },
+);
+const SourceIntelligenceConsole = dynamic(
+  () => import("@/components/resources/SourceIntelligenceConsole"),
+  { ssr: false },
+);
+const SpecDrivenConsole = dynamic(
+  () => import("@/components/resources/SpecDrivenConsole"),
+  { ssr: false },
+);
+const StudyWorkbenchConsole = dynamic(
+  () => import("@/components/resources/StudyWorkbenchConsole"),
+  { ssr: false },
+);
+const SubscriptionEscapeConsole = dynamic(
+  () => import("@/components/resources/SubscriptionEscapeConsole"),
+  { ssr: false },
+);
+const SurfaceCapabilitiesConsole = dynamic(
+  () => import("@/components/resources/SurfaceCapabilitiesConsole"),
+  { ssr: false },
+);
+const SystemDesignConsole = dynamic(
+  () => import("@/components/resources/SystemDesignConsole"),
+  { ssr: false },
+);
+const VoiceLabConsole = dynamic(
+  () => import("@/components/resources/VoiceLabConsole"),
+  { ssr: false },
+);
 
 type View =
   | "finder"

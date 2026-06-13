@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "turbovec",
   "name": "TurboVec",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/RyanCodrai/turbovec",
     "version": "0.8.0",
@@ -131,13 +131,6 @@
       "disposition": "excluded",
       "conflict": "product_purpose",
       "reason": "Nexus is the host retrieval application and does not run those external framework pipelines."
-    },
-    {
-      "id": "real-runtime-acceptance",
-      "title": "Real TurboVec recall, compression, SIMD latency, filtered search, delete, persistence, reload, and corruption proof",
-      "sourceEvidence": "README.md benchmarks and repository tests",
-      "disposition": "pending",
-      "reason": "The Nexus integration is implemented, but this machine has not installed or started a real TurboVec control service to capture runtime acceptance."
     }
   ]
 }

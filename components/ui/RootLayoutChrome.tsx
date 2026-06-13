@@ -26,15 +26,7 @@ import {
   isGACinematicSurface,
 } from "@/lib/cinematicIA";
 import { getDefaultEntrypoint } from "@/lib/releaseMatrix";
-import GlobalDataLoader from "@/components/ui/GlobalDataLoader";
-import {
-  ArticlesLoader,
-  CVEsLoader,
-  FearGreedLoader,
-  PricesLoader,
-  WorldRiskLoader,
-} from "@/components/ui/DataLoader";
-import CronSchedulerRunner from "@/components/ui/CronSchedulerRunner";
+import ShellBackgroundServices from "@/components/ui/ShellBackgroundServices";
 
 const CommandBar = dynamic(() => import("@/components/ui/CommandBar"), {
   ssr: false,
@@ -49,11 +41,6 @@ const ChangeLogPanel = dynamic(() => import("@/components/ui/ChangeLogPanel"), {
 const ClickDebug = dynamic(() => import("@/components/ui/ClickDebug"), {
   ssr: false,
 });
-const MemorySpineSync = dynamic(
-  () => import("@/components/ui/MemorySpineSync"),
-  { ssr: false },
-);
-
 type RootLayoutChromeProps = {
   children: React.ReactNode;
   initiallyAuthed: boolean;
@@ -142,14 +129,7 @@ export default function RootLayoutChrome({
             >
               {children}
             </main>
-            <GlobalDataLoader />
-            <PricesLoader />
-            <ArticlesLoader />
-            <FearGreedLoader />
-            <CVEsLoader />
-            <WorldRiskLoader />
-            <MemorySpineSync />
-            <CronSchedulerRunner />
+            <ShellBackgroundServices pathname={pathname} />
             <NotificationToastBridge />
             <CommandBar />
             <ClickDebug />

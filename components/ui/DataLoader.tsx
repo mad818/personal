@@ -16,68 +16,22 @@ import { useCVEs } from "@/hooks/useCVEs";
 import { useOTX } from "@/hooks/useOTX";
 import { useStore } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
-import { readBrowserInternetAvailability, shouldPauseInternetPolling } from "@/lib/offlineReadiness";
-import { NEXUS_RUNTIME_POLICY_REFRESHED_EVENT } from "@/lib/runtimePolicyEvents";
+import { subscribeVisiblePolling } from "@/lib/visiblePolling";
 
-function startVisiblePolling(fn: () => void | Promise<void>, intervalMs: number) {
-  const run = () => {
-    if (typeof document !== "undefined" && document.hidden) return;
-    if (shouldPauseInternetPolling()) return;
-    void fn();
-  };
-
-  if (readBrowserInternetAvailability()) {
-    run();
-  }
-  const id = setInterval(run, intervalMs);
-  const onVisible = () => {
-    if (typeof document === "undefined" || document.hidden) return;
-    if (shouldPauseInternetPolling()) return;
-    void fn();
-  };
-  const onOnline = () => {
-    if (typeof document !== "undefined" && document.hidden) return;
-    void fn();
-  };
-  const onRuntimePolicyRefreshed = () => {
-    if (typeof document !== "undefined" && document.hidden) return;
-    if (shouldPauseInternetPolling()) return;
-    void fn();
-  };
-
-  if (typeof document !== "undefined") {
-    document.addEventListener("visibilitychange", onVisible);
-  }
-  if (typeof window !== "undefined") {
-    window.addEventListener("online", onOnline);
-    window.addEventListener(
-      NEXUS_RUNTIME_POLICY_REFRESHED_EVENT,
-      onRuntimePolicyRefreshed,
-    );
-  }
-
-  return () => {
-    clearInterval(id);
-    if (typeof document !== "undefined") {
-      document.removeEventListener("visibilitychange", onVisible);
-    }
-    if (typeof window !== "undefined") {
-      window.removeEventListener("online", onOnline);
-      window.removeEventListener(
-        NEXUS_RUNTIME_POLICY_REFRESHED_EVENT,
-        onRuntimePolicyRefreshed,
-      );
-    }
-  };
+function startVisiblePolling(
+  key: string,
+  fn: () => void | Promise<void>,
+  intervalMs: number,
+) {
+  return subscribeVisiblePolling({ key, run: fn, intervalMs });
 }
 
 // ── Prices (ALPHA + COMMAND tabs) ─────────────────────────────────────────────
 export function PricesLoader() {
-  const { start, stop } = usePrices();
+  const { fetchPrices } = usePrices();
   useEffect(() => {
-    start(60_000); // refresh every 60s
-    return stop;
-  }, [start, stop]);
+    return startVisiblePolling("prices", fetchPrices, 60_000);
+  }, [fetchPrices]);
   return null;
 }
 
@@ -85,7 +39,7 @@ export function PricesLoader() {
 export function ArticlesLoader() {
   const { fetchArticles } = useArticles();
   useEffect(() => {
-    return startVisiblePolling(fetchArticles, 5 * 60_000);
+    return startVisiblePolling("articles", fetchArticles, 5 * 60_000);
   }, [fetchArticles]);
   return null;
 }
@@ -94,7 +48,7 @@ export function ArticlesLoader() {
 export function CVEsLoader() {
   const { fetchCVEs } = useCVEs();
   useEffect(() => {
-    return startVisiblePolling(fetchCVEs, 15 * 60_000);
+    return startVisiblePolling("cves", fetchCVEs, 15 * 60_000);
   }, [fetchCVEs]);
   return null;
 }
@@ -103,7 +57,7 @@ export function CVEsLoader() {
 export function OTXLoader() {
   const { fetchOTX } = useOTX();
   useEffect(() => {
-    return startVisiblePolling(fetchOTX, 15 * 60_000);
+    return startVisiblePolling("otx", fetchOTX, 15 * 60_000);
   }, [fetchOTX]);
   return null;
 }
@@ -151,7 +105,7 @@ export function WorldRiskLoader() {
         /* silent */
       }
     }
-    return startVisiblePolling(load, 15 * 60_000);
+    return startVisiblePolling("worldRisk", load, 15 * 60_000);
   }, [setWorldRisk]);
 
   return null;
@@ -181,7 +135,7 @@ export function FearGreedLoader() {
         /* silent */
       }
     }
-    return startVisiblePolling(fetchFearGreed, 10 * 60_000);
+    return startVisiblePolling("fearGreed", fetchFearGreed, 10 * 60_000);
   }, [setSignals]);
 
   return null;

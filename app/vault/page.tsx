@@ -8,12 +8,10 @@ import type {
   VaultGraphData,
   VaultItemMetadata,
 } from "@/components/home/office/types";
-import TrustOperationsRail from "@/components/ui/TrustOperationsRail";
 import MissionHandoffStrip from "@/components/ui/MissionHandoffStrip";
 import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
 import {
   OpsField,
-  OpsInspector,
   OpsRail,
   OpsStrip,
   OpsWorkplane,
@@ -41,7 +39,6 @@ import {
   buildVaultGraphFocusHref,
   coerceStoredGraphFilters,
   filterVaultGraph,
-  resetGraphFiltersToBalanced,
   toCompiledPageGraphNode,
   VAULT_GRAPH_FILTERS_STORAGE_KEY,
   type CompiledMemoryPageSummary,
@@ -79,28 +76,12 @@ const LazyCompiledMemoryPagesPanel = dynamic(
   () => import("@/components/vault/CompiledMemoryPagesPanel"),
   { ssr: false },
 );
-const LazyVaultExport = dynamic(
-  () => import("@/components/vault/VaultExport"),
+const LazyVaultRelationsChamber = dynamic(
+  () => import("@/components/vault/VaultRelationsChamber"),
   { ssr: false },
 );
-const LazyVaultGraphControlsSection = dynamic(
-  () => import("@/components/vault/VaultGraphControlsSection"),
-  { ssr: false },
-);
-const LazyVaultGraphFocusPanel = dynamic(
-  () => import("@/components/vault/VaultGraphFocusPanel"),
-  { ssr: false },
-);
-const LazyVaultLibrarianPanel = dynamic(
-  () => import("@/components/vault/VaultLibrarianPanel").then((module) => ({
-    default: module.VaultLibrarianPanel,
-  })),
-  { ssr: false },
-);
-const LazyVaultGraphView = dynamic(
-  () => import("@/components/vault/VaultGraphView").then((module) => ({
-    default: module.VaultGraphView,
-  })),
+const LazyVaultPublishChamber = dynamic(
+  () => import("@/components/vault/VaultPublishChamber"),
   { ssr: false },
 );
 
@@ -193,31 +174,6 @@ function toSavedArticleNode(article: Article): VaultItemMetadata {
 
 function buildSavedArticleGraphText(article: Article) {
   return buildArticleReasoningGraphText(article);
-}
-
-function getGraphViewLabel(
-  source: GraphSourceFilter,
-  visibility: GraphVisibilityFilter,
-) {
-  if (source === "compiled" && visibility === "all") return "Compiled research";
-  if (source === "all" && visibility === "safe") return "Safe-only topology";
-  if (source === "all" && visibility === "restricted") return "Restricted topology";
-  if (source === "clips") return "Saved clips";
-  if (visibility === "sensitive") return "Sensitive topology";
-  return "Balanced topology";
-}
-
-function getGraphViewMessage(
-  source: GraphSourceFilter,
-  visibility: GraphVisibilityFilter,
-  graphAudit: string | null,
-) {
-  if (graphAudit === "orphans") return "Recover orphaned archive links";
-  if (source === "compiled") return "Compiled pages only";
-  if (visibility === "safe") return "Safe archive slice";
-  if (visibility === "restricted") return "Restricted archive slice";
-  if (visibility === "sensitive") return "Internal + restricted slice";
-  return "Mixed archive topology";
 }
 
 function focusToMemoryView(focus: string | null): MemoryBriefView | null {
@@ -789,272 +745,48 @@ export default function VaultPage() {
         ) : null}
 
         {chamber === "relations" ? (
-          <div id="vault-relations" style={{ scrollMarginTop: "120px" }}>
-            <div className="nexus-surface-chamber-shell">
-              <div className="nexus-surface-chamber-shell__body">
-                <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.railClass}`}>
-                  <ShellStack gap="12px">
-                    <OpsField
-                      title={memoryBriefSpec.title}
-                      detail={memoryBriefSpec.detail}
-                      tone="muted"
-                      compact
-                    >
-                      <div className="nexus-shell-copy nexus-shell-copy--compact">
-                        Relation mode keeps the graph primary. Stewardship, trust posture, and durable archive continuity stay one rail away instead of competing with the topology view.
-                      </div>
-                      <div className="nexus-vault-rail-preview" aria-label="Relations rail preview">
-                        <span>{chamberPosture.primarySignal}</span>
-                        <span>{filteredGraph.nodes.length} nodes</span>
-                        <span>{filteredGraph.orphans.length} orphans</span>
-                      </div>
-                      <div className="nexus-shell-actions">
-                        <ShellBadge tone="accent">
-                          {filteredGraph.orphans.length} orphans
-                        </ShellBadge>
-                        <ShellBadge tone="muted">
-                          {filteredGraph.clusters.length} clusters
-                        </ShellBadge>
-                        <ShellBadge tone="muted">
-                          {selectedGraphNodeId ? "Node selected" : "No node selected"}
-                        </ShellBadge>
-                      </div>
-                    </OpsField>
-                    <TrustOperationsRail
-                      title={vaultLayout.trustLabel}
-                      detail="Graph mutations, export posture, and protected archive actions stay inline with relation review."
-                      compact
-                    />
-                  </ShellStack>
-                </OpsRail>
-
-                <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${vaultLayout.workplaneClass}`}>
-                  <OpsField title={relationsSpec.title} detail={relationsSpec.detail}>
-                    <div className="nexus-shell-copy nexus-shell-copy--compact">
-                      Trace how clips, compiled pages, and durable notes connect before promoting, exporting, or repairing archive state.
-                    </div>
-                    <div style={{ marginTop: "14px" }}>
-                      <LazyVaultGraphControlsSection
-                        activeGraphViewLabel={getGraphViewLabel(
-                          graphSourceFilter,
-                          graphVisibilityFilter,
-                        )}
-                        graphViewMsg={getGraphViewMessage(
-                          graphSourceFilter,
-                          graphVisibilityFilter,
-                          graphAudit,
-                        )}
-                        nodeCount={filteredGraph.nodes.length}
-                        edgeCount={filteredGraph.edges.length}
-                        clusterCount={filteredGraph.clusters.length}
-                        orphanCount={filteredGraph.orphans.length}
-                        graphSourceFilter={graphSourceFilter}
-                        graphVisibilityFilter={graphVisibilityFilter}
-                        selectedGraphNodeId={selectedGraphNodeId}
-                        typeCounts={typeCounts}
-                        visibilityCounts={visibilityCounts}
-                        onApplyPreset={(nextSource, nextVisibility) => {
-                          setGraphSourceFilter(nextSource);
-                          setGraphVisibilityFilter(nextVisibility);
-                        }}
-                        onCopyGraphViewSummary={async () => {
-                          const summary = [
-                            getGraphViewLabel(
-                              graphSourceFilter,
-                              graphVisibilityFilter,
-                            ),
-                            `${filteredGraph.nodes.length} nodes`,
-                            `${filteredGraph.edges.length} edges`,
-                            `${filteredGraph.orphans.length} orphans`,
-                          ].join(" · ");
-                          await navigator.clipboard.writeText(summary);
-                        }}
-                        onCopyVisibleGraphNodes={async () => {
-                          const visibleNodes = filteredGraph.nodes
-                            .map((node) => node.title)
-                            .join("\n");
-                          await navigator.clipboard.writeText(visibleNodes);
-                        }}
-                        onDownloadVisibleGraphNodes={() => {
-                          const blob = new Blob(
-                            [JSON.stringify(filteredGraph.nodes, null, 2)],
-                            { type: "application/json" },
-                          );
-                          const url = URL.createObjectURL(blob);
-                          const link = document.createElement("a");
-                          link.href = url;
-                          link.download = "vault-visible-nodes.json";
-                          link.click();
-                          URL.revokeObjectURL(url);
-                        }}
-                        onResetGraphView={() => {
-                          const reset = resetGraphFiltersToBalanced();
-                          setGraphSourceFilter(reset.source);
-                          setGraphVisibilityFilter(reset.visibility);
-                          setSelectedGraphNodeId(null);
-                        }}
-                        onSetSourceFilter={setGraphSourceFilter}
-                        onSetVisibilityFilter={setGraphVisibilityFilter}
-                      />
-                    </div>
-
-                    <div
-                      className="nexus-surface-chamber-shell__body"
-                      style={{ marginTop: "14px" }}
-                    >
-                      <div className="nexus-surface-chamber-shell__lead">
-                        <div className="nexus-vault-graph-surface">
-                          <div className="nexus-vault-graph-surface__meta">
-                            <span>Visible nodes {filteredGraph.nodes.length}</span>
-                            <span>Edges {filteredGraph.edges.length}</span>
-                          </div>
-                          <div className="nexus-vault-graph-surface__canvas">
-                            <LazyVaultGraphView
-                              graph={filteredGraph}
-                              onNode={setSelectedGraphNodeId}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <OpsInspector
-                        className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.inspectorClass}`}
-                      >
-                        <ShellStack gap="12px">
-                          <OpsField
-                            title="Graph focus"
-                            detail="Drill into the selected node"
-                            tone="muted"
-                            compact
-                          >
-                            <LazyVaultGraphFocusPanel
-                              nodeId={selectedGraphNodeId}
-                              savedArticles={savedArticles}
-                              compiledPages={compiledPages}
-                              graph={filteredGraph}
-                              onSelectNode={setSelectedGraphNodeId}
-                            />
-                          </OpsField>
-                          <OpsField
-                            title="Vault librarian"
-                            detail="Synthesis and lint posture"
-                            tone="muted"
-                            compact
-                          >
-                            <LazyVaultLibrarianPanel
-                              compiledPages={compiledPages}
-                              selectedNodeId={selectedGraphNodeId}
-                            />
-                          </OpsField>
-                        </ShellStack>
-                      </OpsInspector>
-                    </div>
-                  </OpsField>
-                </OpsWorkplane>
-              </div>
-            </div>
-          </div>
+          <LazyVaultRelationsChamber
+            memoryBriefTitle={memoryBriefSpec.title}
+            memoryBriefDetail={memoryBriefSpec.detail}
+            relationsTitle={relationsSpec.title}
+            relationsDetail={relationsSpec.detail}
+            primarySignal={chamberPosture.primarySignal}
+            railClass={vaultLayout.railClass}
+            workplaneClass={vaultLayout.workplaneClass}
+            inspectorClass={vaultLayout.inspectorClass}
+            trustLabel={vaultLayout.trustLabel}
+            graphAudit={graphAudit}
+            filteredGraph={filteredGraph}
+            graphSourceFilter={graphSourceFilter}
+            graphVisibilityFilter={graphVisibilityFilter}
+            selectedGraphNodeId={selectedGraphNodeId}
+            typeCounts={typeCounts}
+            visibilityCounts={visibilityCounts}
+            savedArticles={savedArticles}
+            compiledPages={compiledPages}
+            onSetSourceFilter={setGraphSourceFilter}
+            onSetVisibilityFilter={setGraphVisibilityFilter}
+            onSelectNode={setSelectedGraphNodeId}
+          />
         ) : null}
 
         {chamber === "publish" ? (
-          <div id="vault-publish" style={{ scrollMarginTop: "120px" }}>
-            <div className="nexus-surface-chamber-shell">
-              <div className="nexus-surface-chamber-shell__body">
-                <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.railClass}`}>
-                  <ShellStack gap="12px">
-                    <OpsField
-                      title={memoryBriefSpec.title}
-                      detail={memoryBriefSpec.detail}
-                      tone="muted"
-                      compact
-                    >
-                      <div className="nexus-shell-copy nexus-shell-copy--compact">
-                        Publish mode is where durable notes get promoted, repaired, bundled, and exported. Stewardship and trust posture stay visible here so export does not outrun archive health.
-                      </div>
-                      <div className="nexus-vault-rail-preview" aria-label="Publish rail preview">
-                        <span>{chamberPosture.primarySignal}</span>
-                        <span>{compiledPages.length} pages</span>
-                        <span>{savedArticles.length} clips</span>
-                      </div>
-                      <div className="nexus-shell-actions">
-                        <ShellBadge tone="accent">{compiledPages.length} pages</ShellBadge>
-                        <ShellBadge tone="muted">{savedArticles.length} clips</ShellBadge>
-                        <ShellBadge tone="muted">
-                          {compiledLoading ? "Refreshing" : "Archive ready"}
-                        </ShellBadge>
-                      </div>
-                    </OpsField>
-                    <TrustOperationsRail
-                      title={vaultLayout.trustLabel}
-                      detail="Promotion, export, and protected archive writes stay inline with durable publishing."
-                      compact
-                    />
-                    <OpsField
-                      title="Stewardship"
-                      detail="Durable archive repair and readiness"
-                      tone="muted"
-                      compact
-                    >
-                      <details
-                        className="nexus-surface-disclosure"
-                        open={publishStewardExpanded}
-                        onToggle={(event) =>
-                          setPublishStewardExpanded(event.currentTarget.open)
-                        }
-                      >
-                        <summary>Open stewardship detail</summary>
-                        <div className="nexus-surface-disclosure__body">
-                          <LazyVaultStewardshipPanel compiledPages={compiledPages} />
-                        </div>
-                      </details>
-                    </OpsField>
-                  </ShellStack>
-                </OpsRail>
-
-                <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${vaultLayout.workplaneClass}`}>
-                  <OpsField title={durableArtifactsSpec.title} detail={durableArtifactsSpec.detail}>
-                    <div className="nexus-shell-copy nexus-shell-copy--compact">
-                      Promote, repair, and reuse durable archive outputs without leaving the active publishing lane.
-                    </div>
-                    <div style={{ marginTop: "14px" }}>
-                      <LazyCompiledMemoryPagesPanel />
-                    </div>
-                  </OpsField>
-                </OpsWorkplane>
-              </div>
-
-              <div
-                id="vault-export-second-brain"
-                className="nexus-surface-continuity-strip"
-                style={{ scrollMarginTop: "120px" }}
-              >
-                <OpsStrip className="nexus-motion-enter nexus-motion-enter--continuity">
-                  <div className="nexus-surface-chamber-shell__body">
-                    <div className="nexus-surface-chamber-shell__lead">
-                      <OpsField
-                        title="Export archive bundles"
-                        detail="JSON and second-brain continuity outputs"
-                        tone="muted"
-                      >
-                        <LazyVaultExport compiledPages={compiledPages} />
-                      </OpsField>
-                    </div>
-                    <OpsInspector
-                      className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.inspectorClass}`}
-                    >
-                      <OpsField
-                        title="Saved article archive"
-                        detail="Durable clip backlog close to export"
-                        tone="muted"
-                        compact
-                      >
-                        <LazySavedArticles />
-                      </OpsField>
-                    </OpsInspector>
-                  </div>
-                </OpsStrip>
-              </div>
-            </div>
-          </div>
+          <LazyVaultPublishChamber
+            memoryBriefTitle={memoryBriefSpec.title}
+            memoryBriefDetail={memoryBriefSpec.detail}
+            durableArtifactsTitle={durableArtifactsSpec.title}
+            durableArtifactsDetail={durableArtifactsSpec.detail}
+            primarySignal={chamberPosture.primarySignal}
+            railClass={vaultLayout.railClass}
+            workplaneClass={vaultLayout.workplaneClass}
+            inspectorClass={vaultLayout.inspectorClass}
+            trustLabel={vaultLayout.trustLabel}
+            compiledPages={compiledPages}
+            savedArticles={savedArticles}
+            compiledLoading={compiledLoading}
+            stewardExpanded={publishStewardExpanded}
+            onStewardExpandedChange={setPublishStewardExpanded}
+          />
         ) : null}
       </ShellStack>
     </ShellPage>

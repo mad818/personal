@@ -8,12 +8,19 @@ import { createRequire } from "module";
 
 const root = process.cwd();
 const nextDir = join(root, ".next");
+const productionBuildMarker = join(nextDir, "BUILD_ID");
 const runtimeIdentityPath = join(root, ".nexus-runtime-identity.json");
 const require = createRequire(import.meta.url);
+const freshStart = process.argv.includes("--fresh");
 
-if (existsSync(nextDir)) {
+if (freshStart && existsSync(nextDir)) {
   rmSync(nextDir, { recursive: true, force: true });
   console.log("nexus-dev: cleared .next for a fresh runtime");
+} else if (existsSync(productionBuildMarker)) {
+  rmSync(nextDir, { recursive: true, force: true });
+  console.log("nexus-dev: cleared incompatible production build before development runtime");
+} else if (existsSync(nextDir)) {
+  console.log("nexus-dev: reusing .next cache (use npm run dev:fresh to clear it)");
 }
 
 if (existsSync(runtimeIdentityPath)) {

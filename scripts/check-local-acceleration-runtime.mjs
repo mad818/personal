@@ -73,13 +73,13 @@ assert.equal(matches[0]?.id, "page-1");
 await turboVecRemove(["page-1"], deps);
 await turboVecControl("prepare", deps);
 await turboQuantControl(
-  "validate",
+  "proof",
   { confirmation: TURBOQUANT_EXEC_CONFIRMATION },
   deps,
 );
 assert.ok(calls.some((call) => call.url.endsWith("/turbovec/upsert")));
-assert.ok(calls.some((call) => call.url.endsWith("/turboquant/validate")));
-const turboQuantCall = calls.find((call) => call.url.endsWith("/turboquant/validate"));
+assert.ok(calls.some((call) => call.url.endsWith("/turboquant/proof")));
+const turboQuantCall = calls.find((call) => call.url.endsWith("/turboquant/proof"));
 assert.equal(
   JSON.parse(turboQuantCall.init.body).confirmation,
   TURBOQUANT_EXEC_CONFIRMATION,

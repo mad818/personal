@@ -47,7 +47,8 @@
     "archive:manifest:check": "node scripts/validate-archive-manifest-quarantine.mjs",
     "dependency:risk:posture": "node scripts/dependency-risk-posture.mjs",
     "dependency:risk:check": "node scripts/dependency-risk-posture.mjs --check",
-    "validate:infra-hardening": "npm run archive:manifest:check && npm run dependabot:audit:check && node scripts/validate-infra-hardening.mjs",
+    "dependency:security:check": "node scripts/validate-active-dependency-security-patches.mjs",
+    "validate:infra-hardening": "npm run archive:manifest:check && npm run dependabot:audit:check && npm run dependency:security:check && node scripts/validate-infra-hardening.mjs",
     "route:integrity": "node scripts/route-integrity.mjs",
     "release:smoke": "node scripts/release-smoke.mjs",
     "release:diagnostics:capture": "node scripts/release-diagnostics-capture.mjs",
@@ -212,13 +213,20 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-tailwindcss": "^3.14.0",
     "husky": "^9.1.7",
-    "postcss": "^8.4.39",
+    "postcss": "^8.5.10",
     "prettier": "^3.3.2",
     "tailwind-merge": "^2.3.0",
     "tailwindcss": "^3.4.19",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.5.2",
     "yaml": "^2.8.3"
+  },
+  "overrides": {
+    "postcss": "$postcss",
+    "prismjs": "1.30.0",
+    "minimatch@10.2.5": {
+      "brace-expansion": "5.0.6"
+    }
   },
   "packageManager": "pnpm@8.6.3"
 }

@@ -132,7 +132,7 @@ function main() {
   checkPackageScript(
     pkg,
     "validate:infra-hardening",
-    "npm run archive:manifest:check && npm run dependabot:audit:check && node scripts/validate-infra-hardening.mjs",
+    "npm run archive:manifest:check && npm run dependabot:audit:check && npm run dependency:security:check && node scripts/validate-infra-hardening.mjs",
     findings,
   );
   checkFile("scripts/validate-archive-manifest-quarantine.mjs", findings);
@@ -143,6 +143,13 @@ function main() {
     findings,
   );
   checkFile("scripts/dependency-risk-posture.mjs", findings);
+  checkPackageScript(
+    pkg,
+    "dependency:security:check",
+    "node scripts/validate-active-dependency-security-patches.mjs",
+    findings,
+  );
+  checkFile("scripts/validate-active-dependency-security-patches.mjs", findings);
   checkPackageScript(
     pkg,
     "security:boundaries",

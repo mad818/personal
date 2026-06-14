@@ -1,7 +1,7 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:58be2ab2-8382-81d9-a80c-2fa65e94ae36",
+  "serialNumber": "urn:uuid:ddea6c54-a2f9-8405-0976-d2d25ce2c25a",
   "version": 1,
   "metadata": {
     "component": {
@@ -13,7 +13,7 @@
     "properties": [
       {
         "name": "nexus:component-count",
-        "value": "1316"
+        "value": "1269"
       },
       {
         "name": "nexus:generator",
@@ -21,7 +21,7 @@
       },
       {
         "name": "nexus:lock-digest-sha256",
-        "value": "58be2ab2838281d9a80c2fa65e94ae3640808384f159952aa3d3ac7e2e91c4f8"
+        "value": "ddea6c54a2f984050976d2d25ce2c25ac3f9ed6f78e25e3e94cc783058e04816"
       },
       {
         "name": "nexus:network-required",
@@ -887,29 +887,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/convert_case@0.4.0",
-      "name": "convert_case",
-      "version": "0.4.0",
-      "purl": "pkg:cargo/convert_case@0.4.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/cookie@0.18.1",
       "name": "cookie",
       "version": "0.18.1",
@@ -1163,29 +1140,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/cssparser@0.29.6",
-      "name": "cssparser",
-      "version": "0.29.6",
-      "purl": "pkg:cargo/cssparser@0.29.6",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "f93d03419cb5950ccfd3daf3ff1c7a36ace64609a1a8746d493df1ca0afde0fa"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/cssparser@0.36.0",
       "name": "cssparser",
       "version": "0.36.0",
@@ -1209,10 +1163,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/ctor@0.2.9",
-      "name": "ctor",
-      "version": "0.2.9",
-      "purl": "pkg:cargo/ctor@0.2.9",
+      "bom-ref": "pkg:cargo/ctor-proc-macro@0.0.7",
+      "name": "ctor-proc-macro",
+      "version": "0.0.7",
+      "purl": "pkg:cargo/ctor-proc-macro@0.0.7",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -1226,7 +1180,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "32a2785755761f3ddc1492979ce1e48d2c00d09311c39e4466429188f3dd6501"
+          "content": "52560adf09603e58c9a7ee1fe1dcb95a16927b17c127f0ac02d6e768a0e25bc1"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/ctor@0.8.0",
+      "name": "ctor",
+      "version": "0.8.0",
+      "purl": "pkg:cargo/ctor@0.8.0",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "352d39c2f7bef1d6ad73db6f5160efcaed66d94ef8c6c573a8410c00bf909a98"
         }
       ]
     },
@@ -1301,6 +1278,29 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/dbus@0.9.11",
+      "name": "dbus",
+      "version": "0.9.11",
+      "purl": "pkg:cargo/dbus@0.9.11",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b942602992bb7acfd1f51c49811c58a610ef9181b6e66f3e519d79b540a3bf73"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/deranged@0.5.8",
       "name": "deranged",
       "version": "0.5.8",
@@ -1342,29 +1342,6 @@
         {
           "alg": "SHA-256",
           "content": "799a97264921d8623a957f6c3b9011f3b5492f557bbb7a5a19b7fa6d06ba8dcb"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/derive_more@0.99.20",
-      "name": "derive_more",
-      "version": "0.99.20",
-      "purl": "pkg:cargo/derive_more@0.99.20",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "6edb4b64a43d977b8e99788fe3a04d483834fba1215a7e02caa415b626497f7f"
         }
       ]
     },
@@ -1641,6 +1618,52 @@
         {
           "alg": "SHA-256",
           "content": "4c3cf4824e2d5f025c7b531afcb2325364084a16806f6d47fbc1f5fbd9960590"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/dtor-proc-macro@0.0.6",
+      "name": "dtor-proc-macro",
+      "version": "0.0.6",
+      "purl": "pkg:cargo/dtor-proc-macro@0.0.6",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f678cf4a922c215c63e0de95eb1ff08a958a81d47e485cf9da1e27bf6305cfa5"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/dtor@0.3.0",
+      "name": "dtor",
+      "version": "0.3.0",
+      "purl": "pkg:cargo/dtor@0.3.0",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f1057d6c64987086ff8ed0fd3fbf377a6b7d205cc7715868cd401705f715cbe4"
         }
       ]
     },
@@ -2060,29 +2083,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/futf@0.1.5",
-      "name": "futf",
-      "version": "0.1.5",
-      "purl": "pkg:cargo/futf@0.1.5",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "df420e2e84819663797d1ec6544b13c5be84629e7bb00dc960d6917db2987843"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/futures-channel@0.3.32",
       "name": "futures-channel",
       "version": "0.3.32",
@@ -2267,29 +2267,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/fxhash@0.2.1",
-      "name": "fxhash",
-      "version": "0.2.1",
-      "purl": "pkg:cargo/fxhash@0.2.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "c31b6d751ae2c7f11320402d34e41349dd1016f8d5d45e48c4312bc8625af50c"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/gdk-pixbuf-sys@0.18.0",
       "name": "gdk-pixbuf-sys",
       "version": "0.18.0",
@@ -2469,29 +2446,6 @@
         {
           "alg": "SHA-256",
           "content": "85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/getrandom@0.1.16",
-      "name": "getrandom",
-      "version": "0.1.16",
-      "purl": "pkg:cargo/getrandom@0.1.16",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "8fc3cb4d91f53b50155bdcfd23f6a4c39ae1969c2ae85982b135750cccaf5fce"
         }
       ]
     },
@@ -2929,29 +2883,6 @@
         {
           "alg": "SHA-256",
           "content": "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/html5ever@0.29.1",
-      "name": "html5ever",
-      "version": "0.29.1",
-      "purl": "pkg:cargo/html5ever@0.29.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "3b7410cae13cbc75623c98ac4cbfd1f0bedddf3227afc24f370cf0f50a44a11c"
         }
       ]
     },
@@ -3808,29 +3739,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/kuchikiki@0.8.8-speedreader",
-      "name": "kuchikiki",
-      "version": "0.8.8-speedreader",
-      "purl": "pkg:cargo/kuchikiki@0.8.8-speedreader",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "02cb977175687f33fa4afa0c95c112b987ea1443e5a51c8f8ff27dc618270cc2"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/leb128fmt@0.1.0",
       "name": "leb128fmt",
       "version": "0.1.0",
@@ -3918,6 +3826,29 @@
         {
           "alg": "SHA-256",
           "content": "b5b646652bf6661599e1da8901b3b9522896f01e736bad5f723fe7a3a27f899d"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/libdbus-sys@0.2.7",
+      "name": "libdbus-sys",
+      "version": "0.2.7",
+      "purl": "pkg:cargo/libdbus-sys@0.2.7",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "328c4789d42200f1eeec05bd86c9c13c7f091d2ba9a6ea35acdf51f31bc0f043"
         }
       ]
     },
@@ -4038,52 +3969,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/mac@0.1.1",
-      "name": "mac",
-      "version": "0.1.1",
-      "purl": "pkg:cargo/mac@0.1.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/markup5ever@0.14.1",
-      "name": "markup5ever",
-      "version": "0.14.1",
-      "purl": "pkg:cargo/markup5ever@0.14.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "c7a7213d12e1864c0f002f52c2923d4556935a43dec5e71355c2760e0f6e7a18"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/markup5ever@0.38.0",
       "name": "markup5ever",
       "version": "0.38.0",
@@ -4102,52 +3987,6 @@
         {
           "alg": "SHA-256",
           "content": "8983d30f2915feeaaab2d6babdd6bc7e9ed1a00b66b5e6d74df19aa9c0e91862"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/match_token@0.1.0",
-      "name": "match_token",
-      "version": "0.1.0",
-      "purl": "pkg:cargo/match_token@0.1.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "88a9689d8d44bf9964484516275f5cd4c9b59457a6940c1d5d0ecbb94510a36b"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/matches@0.1.10",
-      "name": "matches",
-      "version": "0.1.10",
-      "purl": "pkg:cargo/matches@0.1.10",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "2532096657941c2fea9c289d370a250971c689d4f143798ff67113ec042024a5"
         }
       ]
     },
@@ -4268,10 +4107,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/muda@0.17.1",
+      "bom-ref": "pkg:cargo/muda@0.19.1",
       "name": "muda",
-      "version": "0.17.1",
-      "purl": "pkg:cargo/muda@0.17.1",
+      "version": "0.19.1",
+      "purl": "pkg:cargo/muda@0.19.1",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -4285,30 +4124,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "01c1738382f66ed56b3b9c8119e794a2e23148ac8ea214eda86622d4cb9d415a"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/ndk-context@0.1.1",
-      "name": "ndk-context",
-      "version": "0.1.1",
-      "purl": "pkg:cargo/ndk-context@0.1.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "27b02d87554356db9e9a873add8782d4ea6e3e58ea071a9adb9a2e8ddb884a8b"
+          "content": "0ae8844f63b5b118e334e205585b8c5c17b984121dbdb179d44aeb087ffad3cb"
         }
       ]
     },
@@ -4395,29 +4211,6 @@
         {
           "name": "nexus:ecosystem",
           "value": "cargo"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/nodrop@0.1.14",
-      "name": "nodrop",
-      "version": "0.1.14",
-      "purl": "pkg:cargo/nodrop@0.1.14",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "72ef4a56884ca558e5ddb05a1d1e7e1bfd9a68d9ed024c21704cc98872dae1bb"
         }
       ]
     },
@@ -4538,6 +4331,52 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/objc2-cloud-kit@0.3.2",
+      "name": "objc2-cloud-kit",
+      "version": "0.3.2",
+      "purl": "pkg:cargo/objc2-cloud-kit@0.3.2",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "73ad74d880bb43877038da939b7427bba67e9dd42004a18b809ba7d87cee241c"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/objc2-core-data@0.3.2",
+      "name": "objc2-core-data",
+      "version": "0.3.2",
+      "purl": "pkg:cargo/objc2-core-data@0.3.2",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0b402a653efbb5e82ce4df10683b6b28027616a2715e90009947d50b8dd298fa"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/objc2-core-foundation@0.3.2",
       "name": "objc2-core-foundation",
       "version": "0.3.2",
@@ -4579,6 +4418,75 @@
         {
           "alg": "SHA-256",
           "content": "e022c9d066895efa1345f8e33e584b9f958da2fd4cd116792e15e07e4720a807"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/objc2-core-image@0.3.2",
+      "name": "objc2-core-image",
+      "version": "0.3.2",
+      "purl": "pkg:cargo/objc2-core-image@0.3.2",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e5d563b38d2b97209f8e861173de434bd0214cf020e3423a52624cd1d989f006"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/objc2-core-location@0.3.2",
+      "name": "objc2-core-location",
+      "version": "0.3.2",
+      "purl": "pkg:cargo/objc2-core-location@0.3.2",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ca347214e24bc973fc025fd0d36ebb179ff30536ed1f80252706db19ee452009"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/objc2-core-text@0.3.2",
+      "name": "objc2-core-text",
+      "version": "0.3.2",
+      "purl": "pkg:cargo/objc2-core-text@0.3.2",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0cde0dfb48d25d2b4862161a4d5fcc0e3c24367869ad306b0c9ec0073bfed92d"
         }
       ]
     },
@@ -4717,6 +4625,29 @@
         {
           "alg": "SHA-256",
           "content": "d87d638e33c06f577498cbcc50491496a3ed4246998a7fbba7ccb98b1e7eab22"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/objc2-user-notifications@0.3.2",
+      "name": "objc2-user-notifications",
+      "version": "0.3.2",
+      "purl": "pkg:cargo/objc2-user-notifications@0.3.2",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9df9128cbbfef73cda168416ccf7f837b62737d748333bfe9ab71c245d76613e"
         }
       ]
     },
@@ -4929,29 +4860,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/phf_codegen@0.11.3",
-      "name": "phf_codegen",
-      "version": "0.11.3",
-      "purl": "pkg:cargo/phf_codegen@0.11.3",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "aef8048c789fa5e851558d709946d6d79a8ff88c0440c587967f8e94bfb1216a"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/phf_codegen@0.13.1",
       "name": "phf_codegen",
       "version": "0.13.1",
@@ -4970,75 +4878,6 @@
         {
           "alg": "SHA-256",
           "content": "49aa7f9d80421bca176ca8dbfebe668cc7a2684708594ec9f3c0db0805d5d6e1"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/phf_codegen@0.8.0",
-      "name": "phf_codegen",
-      "version": "0.8.0",
-      "purl": "pkg:cargo/phf_codegen@0.8.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "cbffee61585b0411840d3ece935cce9cb6321f01c45477d30066498cd5e1a815"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/phf_generator@0.10.0",
-      "name": "phf_generator",
-      "version": "0.10.0",
-      "purl": "pkg:cargo/phf_generator@0.10.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "5d5285893bb5eb82e6aaf5d59ee909a06a16737a8970984dd7746ba9283498d6"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/phf_generator@0.11.3",
-      "name": "phf_generator",
-      "version": "0.11.3",
-      "purl": "pkg:cargo/phf_generator@0.11.3",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "3c80231409c20246a13fddb31776fb942c38553c51e871f8cbd687a4cfb5843d"
         }
       ]
     },
@@ -5067,75 +4906,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/phf_generator@0.8.0",
-      "name": "phf_generator",
-      "version": "0.8.0",
-      "purl": "pkg:cargo/phf_generator@0.8.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "17367f0cc86f2d25802b2c26ee58a7b23faeccf78a396094c13dced0d0182526"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/phf_macros@0.10.0",
-      "name": "phf_macros",
-      "version": "0.10.0",
-      "purl": "pkg:cargo/phf_macros@0.10.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "58fdf3184dd560f160dd73922bea2d5cd6e8f064bf4b13110abd81b03697b4e0"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/phf_macros@0.11.3",
-      "name": "phf_macros",
-      "version": "0.11.3",
-      "purl": "pkg:cargo/phf_macros@0.11.3",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "f84ac04429c13a7ff43785d75ad27569f2951ce0ffd30a3321230db2fc727216"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/phf_macros@0.13.1",
       "name": "phf_macros",
       "version": "0.13.1",
@@ -5154,52 +4924,6 @@
         {
           "alg": "SHA-256",
           "content": "812f032b54b1e759ccd5f8b6677695d5268c588701effba24601f6932f8269ef"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/phf_shared@0.10.0",
-      "name": "phf_shared",
-      "version": "0.10.0",
-      "purl": "pkg:cargo/phf_shared@0.10.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "b6796ad771acdc0123d2a88dc428b5e38ef24456743ddb1744ed628f9815c096"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/phf_shared@0.11.3",
-      "name": "phf_shared",
-      "version": "0.11.3",
-      "purl": "pkg:cargo/phf_shared@0.11.3",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "67eabc2ef2a60eb7faa00097bd1ffdb5bd28e62bf39990626a582201b7a754e5"
         }
       ]
     },
@@ -5228,75 +4952,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/phf_shared@0.8.0",
-      "name": "phf_shared",
-      "version": "0.8.0",
-      "purl": "pkg:cargo/phf_shared@0.8.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "c00cf8b9eafe68dde5e9eaa2cef8ee84a9336a47d566ec55ca16589633b65af7"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/phf@0.10.1",
-      "name": "phf",
-      "version": "0.10.1",
-      "purl": "pkg:cargo/phf@0.10.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "fabbf1ead8a5bcbc20f5f8b939ee3f5b0f6f281b6ad3468b84656b658b455259"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/phf@0.11.3",
-      "name": "phf",
-      "version": "0.11.3",
-      "purl": "pkg:cargo/phf@0.11.3",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "1fd6780a80ae0c52cc120a26a1a42c1ae51b247a253e4e06113d23d2c2edd078"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/phf@0.13.1",
       "name": "phf",
       "version": "0.13.1",
@@ -5315,29 +4970,6 @@
         {
           "alg": "SHA-256",
           "content": "c1562dc717473dbaa4c1f85a36410e03c047b2e7df7f45ee938fbef64ae7fadf"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/phf@0.8.0",
-      "name": "phf",
-      "version": "0.8.0",
-      "purl": "pkg:cargo/phf@0.8.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "3dfb61232e34fcb633f43d12c58f83c1df82962dcdfa565a4e866ffc17dafe12"
         }
       ]
     },
@@ -5435,6 +5067,29 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/png@0.18.1",
+      "name": "png",
+      "version": "0.18.1",
+      "purl": "pkg:cargo/png@0.18.1",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "60769b8b31b2a9f263dae2776c37b1b28ae246943cf719eb6946a1db05128a61"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/potential_utf@0.1.4",
       "name": "potential_utf",
       "version": "0.1.4",
@@ -5476,29 +5131,6 @@
         {
           "alg": "SHA-256",
           "content": "439ee305def115ba05938db6eb1644ff94165c5ab5e9420d1c1bcedbba909391"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/ppv-lite86@0.2.21",
-      "name": "ppv-lite86",
-      "version": "0.2.21",
-      "purl": "pkg:cargo/ppv-lite86@0.2.21",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
         }
       ]
     },
@@ -5665,29 +5297,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/proc-macro-hack@0.5.20%2Bdeprecated",
-      "name": "proc-macro-hack",
-      "version": "0.5.20+deprecated",
-      "purl": "pkg:cargo/proc-macro-hack@0.5.20%2Bdeprecated",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "dc375e1527247fe1a97d8b7156678dfe7c1af2fc075c9a4db3690ecd2a148068"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/proc-macro2@1.0.106",
       "name": "proc-macro2",
       "version": "1.0.106",
@@ -5798,190 +5407,6 @@
         {
           "alg": "SHA-256",
           "content": "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/rand_chacha@0.2.2",
-      "name": "rand_chacha",
-      "version": "0.2.2",
-      "purl": "pkg:cargo/rand_chacha@0.2.2",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "f4c8ed856279c9737206bf725bf36935d8666ead7aa69b52be55af369d193402"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/rand_chacha@0.3.1",
-      "name": "rand_chacha",
-      "version": "0.3.1",
-      "purl": "pkg:cargo/rand_chacha@0.3.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "e6c10a63a0fa32252be49d21e7709d4d4baf8d231c2dbce1eaa8141b9b127d88"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/rand_core@0.5.1",
-      "name": "rand_core",
-      "version": "0.5.1",
-      "purl": "pkg:cargo/rand_core@0.5.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "90bde5296fc891b0cef12a6d03ddccc162ce7b2aff54160af9338f8d40df6d19"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/rand_core@0.6.4",
-      "name": "rand_core",
-      "version": "0.6.4",
-      "purl": "pkg:cargo/rand_core@0.6.4",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/rand_hc@0.2.0",
-      "name": "rand_hc",
-      "version": "0.2.0",
-      "purl": "pkg:cargo/rand_hc@0.2.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "ca3129af7b92a17112d59ad498c6f81eaf463253766b90396d39ea7a39d6613c"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/rand_pcg@0.2.1",
-      "name": "rand_pcg",
-      "version": "0.2.1",
-      "purl": "pkg:cargo/rand_pcg@0.2.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "16abd0c1b639e9eb4d7c50c0b8100b0d0f849be2349829c740fe8e6eb4816429"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/rand@0.7.3",
-      "name": "rand",
-      "version": "0.7.3",
-      "purl": "pkg:cargo/rand@0.7.3",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "6a6b1679d49b24bbfe0c803429aa1874472f50d9b363131f0e89fc356b544d03"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/rand@0.8.5",
-      "name": "rand",
-      "version": "0.8.5",
-      "purl": "pkg:cargo/rand@0.8.5",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404"
         }
       ]
     },
@@ -6401,29 +5826,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/selectors@0.24.0",
-      "name": "selectors",
-      "version": "0.24.0",
-      "purl": "pkg:cargo/selectors@0.24.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "0c37578180969d00692904465fb7f6b3d50b9a2b952b87c23d0e2e5cb5013416"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/selectors@0.36.1",
       "name": "selectors",
       "version": "0.36.1",
@@ -6769,29 +6171,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/servo_arc@0.2.0",
-      "name": "servo_arc",
-      "version": "0.2.0",
-      "purl": "pkg:cargo/servo_arc@0.2.0",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "d52aa42f8fdf0fed91e5ce7f23d8138441002fa31dca008acf47e6fd4721f741"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/servo_arc@0.4.3",
       "name": "servo_arc",
       "version": "0.4.3",
@@ -6879,29 +6258,6 @@
         {
           "alg": "SHA-256",
           "content": "703d5c7ef118737c72f1af64ad2f6f8c5e1921f818cdcb97b8fe6fc69bf66214"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/siphasher@0.3.11",
-      "name": "siphasher",
-      "version": "0.3.11",
-      "purl": "pkg:cargo/siphasher@0.3.11",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "38b58827f4464d87d377d175e90bf58eb00fd8716ff0a62f80356b5e61555d0d"
         }
       ]
     },
@@ -7091,29 +6447,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/string_cache_codegen@0.5.4",
-      "name": "string_cache_codegen",
-      "version": "0.5.4",
-      "purl": "pkg:cargo/string_cache_codegen@0.5.4",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "c711928715f1fe0fe509c53b43e993a9a557babc2d0a3567d0a3006f1ac931a0"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/string_cache_codegen@0.6.1",
       "name": "string_cache_codegen",
       "version": "0.6.1",
@@ -7132,29 +6465,6 @@
         {
           "alg": "SHA-256",
           "content": "585635e46db231059f76c5849798146164652513eb9e8ab2685939dd90f29b69"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/string_cache@0.8.9",
-      "name": "string_cache",
-      "version": "0.8.9",
-      "purl": "pkg:cargo/string_cache@0.8.9",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "bf776ba3fa74f83bf4b63c3dcbbf82173db2632ed8452cb2d891d33f459de70f"
         }
       ]
     },
@@ -7367,10 +6677,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tao@0.34.8",
+      "bom-ref": "pkg:cargo/tao@0.35.2",
       "name": "tao",
-      "version": "0.34.8",
-      "purl": "pkg:cargo/tao@0.34.8",
+      "version": "0.35.2",
+      "purl": "pkg:cargo/tao@0.35.2",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -7384,7 +6694,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9103edf55f2da3c82aea4c7fab7c4241032bfeea0e71fa557d98e00e7ce7cc20"
+          "content": "a33f7f9e486ade65fcf1e45c440f9236c904f5c1002cdc7fc6ae582777345ce4"
         }
       ]
     },
@@ -7413,10 +6723,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-build@2.5.6",
+      "bom-ref": "pkg:cargo/tauri-build@2.6.2",
       "name": "tauri-build",
-      "version": "2.5.6",
-      "purl": "pkg:cargo/tauri-build@2.5.6",
+      "version": "2.6.2",
+      "purl": "pkg:cargo/tauri-build@2.6.2",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -7430,16 +6740,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4bbc990d1dbf57a8e1c7fa2327f2a614d8b757805603c1b9ba5c81bade09fd4d"
+          "content": "4aa1f9055fc23919a54e4e125052bed16ed04aef0487086e758fe01a67b451c7"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-codegen@2.5.5",
+      "bom-ref": "pkg:cargo/tauri-codegen@2.6.2",
       "name": "tauri-codegen",
-      "version": "2.5.5",
-      "purl": "pkg:cargo/tauri-codegen@2.5.5",
+      "version": "2.6.2",
+      "purl": "pkg:cargo/tauri-codegen@2.6.2",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -7453,16 +6763,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d4a24476afd977c5d5d169f72425868613d82747916dd29e0a357c84c4bd6d29"
+          "content": "e4a0319528a025a38c4078e7dae2c446f4e63620ddb0659a643ede1cb38f90e9"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-macros@2.5.5",
+      "bom-ref": "pkg:cargo/tauri-macros@2.6.2",
       "name": "tauri-macros",
-      "version": "2.5.5",
-      "purl": "pkg:cargo/tauri-macros@2.5.5",
+      "version": "2.6.2",
+      "purl": "pkg:cargo/tauri-macros@2.6.2",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -7476,16 +6786,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d39b349a98dadaffebb73f0a40dcd1f23c999211e5a2e744403db384d0c33de7"
+          "content": "ae6cb4e3896c21d2f6da5b31251d2faea0153bba56ed0e970f918115dbee4924"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-runtime-wry@2.10.1",
+      "bom-ref": "pkg:cargo/tauri-runtime-wry@2.11.2",
       "name": "tauri-runtime-wry",
-      "version": "2.10.1",
-      "purl": "pkg:cargo/tauri-runtime-wry@2.10.1",
+      "version": "2.11.2",
+      "purl": "pkg:cargo/tauri-runtime-wry@2.11.2",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -7499,16 +6809,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e11ea2e6f801d275fdd890d6c9603736012742a1c33b96d0db788c9cdebf7f9e"
+          "content": "b83849ee63ecb27a8e8d0fe51915ca215076914aca43f96db1179f0f415f6cd9"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-runtime@2.10.1",
+      "bom-ref": "pkg:cargo/tauri-runtime@2.11.2",
       "name": "tauri-runtime",
-      "version": "2.10.1",
-      "purl": "pkg:cargo/tauri-runtime@2.10.1",
+      "version": "2.11.2",
+      "purl": "pkg:cargo/tauri-runtime@2.11.2",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -7522,16 +6832,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2826d79a3297ed08cd6ea7f412644ef58e32969504bc4fbd8d7dbeabc4445ea2"
+          "content": "48222d7116c8807eaa6fe2f372e023fae125084e61e6eca6d70b7961cdf129ef"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-utils@2.8.3",
+      "bom-ref": "pkg:cargo/tauri-utils@2.9.2",
       "name": "tauri-utils",
-      "version": "2.8.3",
-      "purl": "pkg:cargo/tauri-utils@2.8.3",
+      "version": "2.9.2",
+      "purl": "pkg:cargo/tauri-utils@2.9.2",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -7545,7 +6855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "219a1f983a2af3653f75b5747f76733b0da7ff03069c7a41901a5eb3ace4557d"
+          "content": "092379df9a707631978e6c56b1bc2401d387f01e2d4a3c123360d167bbb9aa95"
         }
       ]
     },
@@ -7574,10 +6884,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri@2.10.3",
+      "bom-ref": "pkg:cargo/tauri@2.11.2",
       "name": "tauri",
-      "version": "2.10.3",
-      "purl": "pkg:cargo/tauri@2.10.3",
+      "version": "2.11.2",
+      "purl": "pkg:cargo/tauri@2.11.2",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -7591,30 +6901,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "da77cc00fb9028caf5b5d4650f75e31f1ef3693459dfca7f7e506d1ecef0ba2d"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/tendril@0.4.3",
-      "name": "tendril",
-      "version": "0.4.3",
-      "purl": "pkg:cargo/tendril@0.4.3",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "d24a120c5fc464a3458240ee02c299ebcb9d67b5249c8848b09d639dca8d7bb0"
+          "content": "437404997acf375d85f1177afa7e11bb971f274ed6a7b83a2a3e339015f4cc28"
         }
       ]
     },
@@ -8241,10 +7528,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tray-icon@0.21.3",
+      "bom-ref": "pkg:cargo/tray-icon@0.23.1",
       "name": "tray-icon",
-      "version": "0.21.3",
-      "purl": "pkg:cargo/tray-icon@0.21.3",
+      "version": "0.23.1",
+      "purl": "pkg:cargo/tray-icon@0.23.1",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -8258,7 +7545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5e85aa143ceb072062fc4d6356c1b520a51d636e7bc8e77ec94be3608e5e80c"
+          "content": "15edbb0d80583e85ee8df283410038e17314df5cba30da2087a54a85216c0773"
         }
       ]
     },
@@ -8788,29 +8075,6 @@
         {
           "alg": "SHA-256",
           "content": "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/wasi@0.9.0%2Bwasi-snapshot-preview1",
-      "name": "wasi",
-      "version": "0.9.0+wasi-snapshot-preview1",
-      "purl": "pkg:cargo/wasi@0.9.0%2Bwasi-snapshot-preview1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "cccddf32554fecc6acb585f82a32a72e28b48f8c4c1883ddfeeeaa96f7d8e519"
         }
       ]
     },
@@ -9391,29 +8655,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/windows_aarch64_gnullvm@0.53.1",
-      "name": "windows_aarch64_gnullvm",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_aarch64_gnullvm@0.53.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "a9d8416fa8b42f5c947f8482c43e7d89e73a173cead56d044f6a56104a6d1b53"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/windows_aarch64_msvc@0.42.2",
       "name": "windows_aarch64_msvc",
       "version": "0.42.2",
@@ -9455,29 +8696,6 @@
         {
           "alg": "SHA-256",
           "content": "09ec2a7bb152e2252b53fa7803150007879548bc709c039df7627cabbd05d469"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/windows_aarch64_msvc@0.53.1",
-      "name": "windows_aarch64_msvc",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_aarch64_msvc@0.53.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "b9d782e804c2f632e395708e99a94275910eb9100b2114651e04744e9b125006"
         }
       ]
     },
@@ -9529,29 +8747,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/windows_i686_gnu@0.53.1",
-      "name": "windows_i686_gnu",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_i686_gnu@0.53.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "960e6da069d81e09becb0ca57a65220ddff016ff2d6af6a223cf372a506593a3"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/windows_i686_gnullvm@0.52.6",
       "name": "windows_i686_gnullvm",
       "version": "0.52.6",
@@ -9570,29 +8765,6 @@
         {
           "alg": "SHA-256",
           "content": "0eee52d38c090b3caa76c563b86c3a4bd71ef1a819287c19d586d7334ae8ed66"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/windows_i686_gnullvm@0.53.1",
-      "name": "windows_i686_gnullvm",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_i686_gnullvm@0.53.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "fa7359d10048f68ab8b09fa71c3daccfb0e9b559aed648a8f95469c27057180c"
         }
       ]
     },
@@ -9644,29 +8816,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/windows_i686_msvc@0.53.1",
-      "name": "windows_i686_msvc",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_i686_msvc@0.53.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "1e7ac75179f18232fe9c285163565a57ef8d3c89254a30685b57d83a38d326c2"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/windows_x86_64_gnu@0.42.2",
       "name": "windows_x86_64_gnu",
       "version": "0.42.2",
@@ -9708,29 +8857,6 @@
         {
           "alg": "SHA-256",
           "content": "147a5c80aabfbf0c7d901cb5895d1de30ef2907eb21fbbab29ca94c5b08b1a78"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/windows_x86_64_gnu@0.53.1",
-      "name": "windows_x86_64_gnu",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_x86_64_gnu@0.53.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "9c3842cdd74a865a8066ab39c8a7a473c0778a3f29370b5fd6b4b9aa7df4a499"
         }
       ]
     },
@@ -9782,29 +8908,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/windows_x86_64_gnullvm@0.53.1",
-      "name": "windows_x86_64_gnullvm",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_x86_64_gnullvm@0.53.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "0ffa179e2d07eee8ad8f57493436566c7cc30ac536a3379fdf008f47f6bb7ae1"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/windows_x86_64_msvc@0.42.2",
       "name": "windows_x86_64_msvc",
       "version": "0.42.2",
@@ -9846,29 +8949,6 @@
         {
           "alg": "SHA-256",
           "content": "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/windows_x86_64_msvc@0.53.1",
-      "name": "windows_x86_64_msvc",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_x86_64_msvc@0.53.1",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "d6bbff5f0aada427a1e5a6da5f1f98158182f26556f345ac9e04d36d0ebed650"
         }
       ]
     },
@@ -10219,29 +9299,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/windows-sys@0.60.2",
-      "name": "windows-sys",
-      "version": "0.60.2",
-      "purl": "pkg:cargo/windows-sys@0.60.2",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "f2f500e4d28234f72040990ec9d39e3a6b950f9f22d3dba18416c35882612bcb"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/windows-sys@0.61.2",
       "name": "windows-sys",
       "version": "0.61.2",
@@ -10306,29 +9363,6 @@
         {
           "alg": "SHA-256",
           "content": "9b724f72796e036ab90c1021d4780d4d3d648aca59e491e6b98e725b84e99973"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/windows-targets@0.53.5",
-      "name": "windows-targets",
-      "version": "0.53.5",
-      "purl": "pkg:cargo/windows-targets@0.53.5",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "4945f9f551b88e0d65f3db0bc25c33b8acea4d9e41163edf90dcd0b19f9069f3"
         }
       ]
     },
@@ -10656,10 +9690,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/wry@0.54.4",
+      "bom-ref": "pkg:cargo/wry@0.55.1",
       "name": "wry",
-      "version": "0.54.4",
-      "purl": "pkg:cargo/wry@0.54.4",
+      "version": "0.55.1",
+      "purl": "pkg:cargo/wry@0.55.1",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -10673,7 +9707,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5a8135d8676225e5744de000d4dff5a082501bf7db6a1c1495034f8c314edbc"
+          "content": "186f9871daa55fd9c016578b810d149de58367113db7fb72b462d2323ce19514"
         }
       ]
     },
@@ -10766,52 +9800,6 @@
         {
           "alg": "SHA-256",
           "content": "72d6e5c6afb84d73944e5cedb052c4680d5657337201555f9f2a16b7406d4954"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/zerocopy-derive@0.8.48",
-      "name": "zerocopy-derive",
-      "version": "0.8.48",
-      "purl": "pkg:cargo/zerocopy-derive@0.8.48",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "70e3cd084b1788766f53af483dd21f93881ff30d7320490ec3ef7526d203bad4"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/zerocopy@0.8.48",
-      "name": "zerocopy",
-      "version": "0.8.48",
-      "purl": "pkg:cargo/zerocopy@0.8.48",
-      "properties": [
-        {
-          "name": "nexus:cargo-source",
-          "value": "registry+https://github.com/rust-lang/crates.io-index"
-        },
-        {
-          "name": "nexus:ecosystem",
-          "value": "cargo"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "eed437bf9d6692032087e337407a86f04cd8d6a16a37199ed57949d415bd68e9"
         }
       ]
     },
@@ -17418,10 +16406,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/brace-expansion@2.0.3",
+      "bom-ref": "pkg:npm/brace-expansion@2.1.1",
       "name": "brace-expansion",
-      "version": "2.0.3",
-      "purl": "pkg:npm/brace-expansion@2.0.3",
+      "version": "2.1.1",
+      "purl": "pkg:npm/brace-expansion@2.1.1",
       "properties": [
         {
           "name": "nexus:ecosystem",
@@ -17435,7 +16423,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "30257f7d82446eac7af1a139f24bf6700fe48a4cb51bcbeec77391ebf8db4be8c831effa7c959ad034f3254eddaa28ce598c078b5b76f4595f608f6ecadaa5a4"
+          "content": "591d5c511363baf04b31904c6ea33452813e5807dd51c115d5c703f0f54154e23e677343e3e4996cdf11b1f4f66ccb86d6ac33e5116f3ee912666e5f1760f978"
         }
       ],
       "licenses": [
@@ -17446,10 +16434,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/brace-expansion@5.0.5",
+      "bom-ref": "pkg:npm/brace-expansion@5.0.6",
       "name": "brace-expansion",
-      "version": "5.0.5",
-      "purl": "pkg:npm/brace-expansion@5.0.5",
+      "version": "5.0.6",
+      "purl": "pkg:npm/brace-expansion@5.0.6",
       "properties": [
         {
           "name": "nexus:ecosystem",
@@ -17463,7 +16451,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "559ce72e0b70867f8c69cb7db5f8b0c7ae1f03d7ab1c7fcc0971147c1ff46d7ffa173ea7cb91064d7625b4ca1caa0e31140419b673b70c75965e2f118ae37b71"
+          "content": "90ba71bab638678afdb2032cc86d19f6ecec06582253f1052a18ff87dd7ff321eed1e768ed7ba2c4e207dd5709f24931b3afe33f3a08e94f558f75aa6cc43de2"
         }
       ],
       "licenses": [
@@ -27700,7 +26688,7 @@
         },
         {
           "name": "nexus:npm-scope",
-          "value": "runtime"
+          "value": "development"
         }
       ],
       "hashes": [
@@ -29061,38 +28049,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/postcss@8.4.31",
+      "bom-ref": "pkg:npm/postcss@8.5.10",
       "name": "postcss",
-      "version": "8.4.31",
-      "purl": "pkg:npm/postcss@8.4.31",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "runtime"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "3d2d3c21ba226bd9adb3fdb2815dde2e96398219d471f2d5fc45d3396d44daa63124a186054b4d8cdefa1581e732cdfa4660119f8d5b0b40199a7fab474395a5"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/postcss@8.4.39",
-      "name": "postcss",
-      "version": "8.4.39",
-      "purl": "pkg:npm/postcss@8.4.39",
+      "version": "8.5.10",
+      "purl": "pkg:npm/postcss@8.5.10",
       "properties": [
         {
           "name": "nexus:ecosystem",
@@ -29106,35 +28066,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "d2fcc4fa50221bb859975ffd23ccb328bc77691f576e87f77c11caba7bcc7ce09802d321aec9dc7096368935116fd119779fa92ee88d57dfdcfc6649387b2023"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/postcss@8.5.8",
-      "name": "postcss",
-      "version": "8.5.8",
-      "purl": "pkg:npm/postcss@8.5.8",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "396feb5fc3bf8d79e6f36132d64e38a4e6cfb5d6e57e2b969eb77c5fb189ede9889823acb6e9c66d7529a7b1dd06b1505faac9ce7dec3d3dfded6a79682c021e"
+          "content": "a4c307c4139928553a1e0019e1ec869f05c5fc4bcf186a94af4327679fbdf78f39c305b8d645bdd40e0b386c521e182e8199920a12f902512535dc253607272d"
         }
       ],
       "licenses": [
@@ -29219,34 +28151,6 @@
         {
           "alg": "SHA-512",
           "content": "50e9c6e8b7edcdb75a1d970aa0f16d39c08acedad0e7b5a41c37910fdb7f3d342d993d0d1d279659ea63ea94b4cff37bfb4f011c50d0554adf99f311719c1b32"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/prismjs@1.27.0",
-      "name": "prismjs",
-      "version": "1.27.0",
-      "purl": "pkg:npm/prismjs@1.27.0",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "runtime"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "b75dc118f52514347bc110799100c6e238e5ed77ae1fa8db246b75d491cf2fdeaac2c107357dbeebcb455ea735fe4fbf8c02ec6d2589294393fe1718019e4b90"
         }
       ],
       "licenses": [

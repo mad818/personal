@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "id": "optimizerduck",
+  "name": "optimizerDuck",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/itsfatduck/optimizerDuck",
+    "version": "94c85034708c5dc08f915ea728f2ea4340afaa31",
+    "reviewedAt": "2026-06-14",
+    "license": "GPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/itsfatduck/optimizerDuck/blob/94c85034708c5dc08f915ea728f2ea4340afaa31/README.md",
+      "https://github.com/itsfatduck/optimizerDuck/blob/94c85034708c5dc08f915ea728f2ea4340afaa31/optimizerDuck/optimizerDuck.csproj",
+      "https://github.com/itsfatduck/optimizerDuck/blob/94c85034708c5dc08f915ea728f2ea4340afaa31/optimizerDuck/Services/Optimization/OptimizationService.cs",
+      "https://github.com/itsfatduck/optimizerDuck/blob/94c85034708c5dc08f915ea728f2ea4340afaa31/optimizerDuck/Domain/Abstractions/IOptimization.cs",
+      "https://github.com/itsfatduck/optimizerDuck/blob/94c85034708c5dc08f915ea728f2ea4340afaa31/optimizerDuck/Domain/Revert/RevertData.cs"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "system-dashboard",
+      "title": "Read-only CPU, RAM, GPU, disk, and operating-system dashboard",
+      "sourceEvidence": "README.md Built-in Tools and SystemInfoService.cs",
+      "disposition": "adapted",
+      "proof": [
+        "lib/windowsOptimizationAdvisor.ts",
+        "scripts/windows-optimization-snapshot.ps1",
+        "app/api/windows-optimization-advisor/route.ts"
+      ]
+    },
+    {
+      "id": "risk-rated-optimization-catalog",
+      "title": "Clear descriptions and Safe, Moderate, or Risky ratings",
+      "sourceEvidence": "README.md System Optimizations and Safety; IOptimization.cs",
+      "disposition": "adapted",
+      "proof": [
+        "lib/windowsOptimizationAdvisor.ts",
+        "scripts/check-windows-optimization-advisor-runtime.mjs"
+      ]
+    },
+    {
+      "id": "explicit-selection-no-defaults",
+      "title": "Nothing applies until the operator explicitly selects it",
+      "sourceEvidence": "README.md Safety",
+      "disposition": "implemented",
+      "proof": [
+        "lib/windowsOptimizationAdvisor.ts",
+        "specs/features/windows-optimization-advisor.md"
+      ]
+    },
+    {
+      "id": "restore-point-and-revert-model",
+      "title": "Restore-point prompt, automatic revert records, and one-click revert",
+      "sourceEvidence": "README.md Safety; OptimizationService.cs; RevertData.cs",
+      "disposition": "adapted",
+      "proof": [
+        "lib/windowsOptimizationAdvisor.ts",
+        "docs/deployment/windows-optimization-advisor.md",
+        "scripts/local-recovery-bundle.mjs"
+      ]
+    },
+    {
+      "id": "measured-before-after-discipline",
+      "title": "Apply only researched changes with measured real-world impact",
+      "sourceEvidence": "README.md What optimizerDuck Does and FAQ",
+      "disposition": "implemented",
+      "proof": [
+        "lib/windowsOptimizationAdvisor.ts",
+        "docs/deployment/windows-optimization-advisor.md"
+      ]
+    },
+    {
+      "id": "startup-manager",
+      "title": "Inventory and enable or disable startup applications",
+      "sourceEvidence": "README.md Built-in Tools",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/windows-optimization-snapshot.ps1",
+        "lib/windowsOptimizationAdvisor.ts"
+      ]
+    },
+    {
+      "id": "scheduled-task-manager",
+      "title": "Browse, run, stop, enable, disable, or delete scheduled tasks",
+      "sourceEvidence": "README.md Built-in Tools",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/windows-optimization-snapshot.ps1",
+        "lib/windowsOptimizationAdvisor.ts"
+      ]
+    },
+    {
+      "id": "disk-cleanup",
+      "title": "Scan and clear temporary and system cleanup candidates",
+      "sourceEvidence": "README.md Built-in Tools",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/windows-optimization-snapshot.ps1",
+        "lib/windowsOptimizationAdvisor.ts"
+      ]
+    },
+    {
+      "id": "service-and-bloatware-manager",
+      "title": "Review Windows services and removable AppX packages",
+      "sourceEvidence": "README.md System Optimizations and Built-in Tools",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/windows-optimization-snapshot.ps1",
+        "lib/windowsOptimizationAdvisor.ts"
+      ]
+    },
+    {
+      "id": "performance-privacy-gpu-power-mutations",
+      "title": "Administrator-level registry, service, GPU, power, privacy, and UX mutations",
+      "sourceEvidence": "README.md System Optimizations and Customize",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus reports measured posture and recommendations but does not execute administrator-level Windows mutations."
+    },
+    {
+      "id": "task-startup-app-file-mutations",
+      "title": "Run, stop, enable, disable, delete, remove, or clean system resources",
+      "sourceEvidence": "README.md Built-in Tools",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus exposes aggregate counts only and does not mutate tasks, startup entries, apps, services, or files."
+    },
+    {
+      "id": "optimizerduck-runtime-and-wpf-ui",
+      "title": "Portable Windows WPF optimizer runtime and Fluent UI",
+      "sourceEvidence": "README.md Technical Details and optimizerDuck.csproj",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus remains its own cross-device Next.js and Tauri application and does not bundle a second Windows-only optimizer UI."
+    },
+    {
+      "id": "gpl-source-vendoring",
+      "title": "Reuse optimizerDuck's GPL-3.0 implementation source",
+      "sourceEvidence": "README.md License and LICENSE",
+      "disposition": "excluded",
+      "conflict": "license",
+      "reason": "Nexus adapts capability patterns without copying GPL-3.0 implementation code into the MIT runtime."
+    },
+    {
+      "id": "offline-no-telemetry",
+      "title": "Entirely offline operation with no telemetry or analytics",
+      "sourceEvidence": "README.md FAQ and Technical Details",
+      "disposition": "implemented",
+      "proof": [
+        "lib/windowsOptimizationAdvisorServer.ts",
+        "scripts/windows-optimization-snapshot.ps1",
+        "docs/deployment/windows-optimization-advisor.md"
+      ]
+    }
+  ]
+}

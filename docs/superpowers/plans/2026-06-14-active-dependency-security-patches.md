@@ -4,8 +4,8 @@
 > lockfile after every batch.
 
 **Goal:** Patch the actionable active npm and Tauri dependency advisories while
-preserving current application behavior and documenting the incompatible glib
-finding honestly.
+preserving current application behavior and classifying the incompatible
+Linux-only glib finding honestly.
 
 **Architecture:** Add a lockfile-level security floor gate, use npm overrides
 for vulnerable transitive copies, and consume the verified Dependabot Tauri
@@ -35,11 +35,14 @@ existing Dependabot classification tooling.
 
 - [x] Merge verified Dependabot PR 53 for `tauri 2.11.2`.
 - [x] Confirm vulnerable `rand 0.7.3` and `rand 0.8.5` copies are removed.
-- [x] Record the incompatible GTK3/glib migration finding without falsifying
-      the lockfile.
+- [x] Restrict release bundles to Windows/macOS and classify the incompatible
+      GTK3/glib finding as Linux-only non-release code without falsifying the
+      lockfile.
 
 ### Task 4: Verify And Publish
 
 - [x] Run focused dependency, Tauri, and infrastructure security gates.
 - [x] Run full project verification.
-- [x] Prepare task and handoff state for publication.
+- [x] Publish the active dependency patches through PR 47.
+- [ ] Complete the GitHub Dependabot rescan and mark the Linux-only glib alert
+      `not_used`.

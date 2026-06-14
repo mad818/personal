@@ -81,6 +81,11 @@ const cargoLock = readFileSync(
   join(root, "desktop", "src-tauri", "Cargo.lock"),
   "utf8",
 );
+const tauriConf = readJson("desktop/src-tauri/tauri.conf.json");
+const bundleTargets = Array.isArray(tauriConf?.bundle?.targets)
+  ? tauriConf.bundle.targets
+  : [];
+const linuxBundleTargets = ["appimage", "deb", "rpm"];
 const cargoPackages = Array.from(
   cargoLock.matchAll(
     /\[\[package\]\]\r?\nname = "([^"]+)"\r?\nversion = "([^"]+)"/g,
@@ -108,8 +113,22 @@ if (process.exitCode) {
 }
 
 const glib = cargoPackages.find((pkg) => pkg.name === "glib");
+if (
+  glib &&
+  compareVersions(glib.version, "0.20.0") < 0 &&
+  bundleTargets.some((target) => linuxBundleTargets.includes(target))
+) {
+  fail(
+    `Cargo.lock contains vulnerable Linux-only glib@${glib.version} while a Linux bundle remains a release target`,
+  );
+}
+
+if (process.exitCode) {
+  process.exit(process.exitCode);
+}
+
 console.log(
   `ok active-dependency-security (postcss>=8.5.10, prismjs>=1.30.0, brace-expansion 5.x>=5.0.6, tauri>=2.11.1${
-    glib ? `; deferred glib=${glib.version}` : ""
+    glib ? `; Linux-only non-release glib=${glib.version}` : ""
   })`,
 );

@@ -25,7 +25,7 @@ Reference templates added in-repo:
 
 - [ ] macOS signing identity + notarization flow.
 - [ ] Windows code-signing certificate + timestamping.
-- [ ] Linux package signing strategy per target.
+- [x] Restrict release bundles to supported Windows/macOS targets (`app`, `dmg`, `msi`); `npm run security:tauri` rejects Linux or unknown targets.
 - [ ] CI release pipeline signs artifacts and generates checksums/SBOM (verify workflow, checksum script, and `npm run desktop:trust-chain` status record shipped; signing/SBOM artifacts still pending).
 - [ ] Publish verification steps in operator runbook.
 

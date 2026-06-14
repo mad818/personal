@@ -26,9 +26,28 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
+import AssistantOperatorWorkflowPanel from "@/components/assistant/AssistantOperatorWorkflowPanel";
+import AssistantTurnReceipt from "@/components/assistant/AssistantTurnReceipt";
 import ClientStyleMount from "@/components/ui/ClientStyleMount";
 import { buildSystemPrompt } from "@/lib/ai";
 import { runAgent, type AgentStep } from "@/lib/agent";
+import {
+  buildAssistantChatActionModel,
+  normalizeAssistantFailureMessage,
+  resolveAssistantDispatch,
+  resolveAssistantFailure,
+} from "@/lib/assistantDispatch";
+import {
+  mergeAssistantRuntimeReceipt,
+  type AssistantChatActionModel,
+} from "@/lib/assistantChatActions";
+import {
+  shouldShowAssistantOperatorWorkflow,
+  type AssistantOperatorWorkflowFocus,
+  type AssistantOperatorWorkflowState,
+} from "@/lib/assistantOperatorWorkflow";
+import { loadAssistantRuntimeReceipt } from "@/lib/assistantRuntimeReceipt";
+import { getTabFromHref } from "@/lib/missionHandoff";
 import { normalizeSurfaceHref } from "@/lib/releaseMatrix";
 import type { OperationalPhase } from "@/store/useStore";
 
@@ -351,99 +370,6 @@ type CommandDirective = {
   color: string;
 };
 
-function detectAgent(msg: string): AgentId {
-  if (!msg.trim()) return "jansky";
-  const lower = msg.toLowerCase();
-  const code = [
-    "code",
-    "implement",
-    "build",
-    "fix",
-    "debug",
-    "write",
-    "create",
-    "component",
-    "function",
-    "patch",
-    "refactor",
-    "file",
-    "edit",
-    "typescript",
-    "react",
-    "next",
-    "bug",
-    "error",
-  ].filter((k) => lower.includes(k)).length;
-  const search = [
-    "research",
-    "find",
-    "search",
-    "what",
-    "how",
-    "why",
-    "news",
-    "latest",
-    "who",
-    "when",
-    "current",
-    "today",
-    "look up",
-    "summarize",
-    "open",
-    "go to",
-    "navigate",
-    "visit",
-    "read this",
-    "read the page",
-    "browse",
-    "url",
-    "website",
-    "site",
-    "http",
-  ].filter((k) => lower.includes(k)).length;
-  const sec = [
-    "security",
-    "cve",
-    "vulnerability",
-    "hack",
-    "exploit",
-    "threat",
-    "cyber",
-    "osint",
-    "malware",
-    "breach",
-    "attack",
-    "cipher",
-    "encrypt",
-  ].filter((k) => lower.includes(k)).length;
-  const mkt = [
-    "price",
-    "crypto",
-    "market",
-    "trade",
-    "stock",
-    "btc",
-    "eth",
-    "bitcoin",
-    "chart",
-    "bull",
-    "bear",
-    "signal",
-    "portfolio",
-    "momentum",
-    "alpha",
-    "flux",
-  ].filter((k) => lower.includes(k)).length;
-  const scores = { orbit: code, nova: search, cipher: sec, flux: mkt };
-  const max = Math.max(...Object.values(scores));
-  if (max < 2) return "jansky";
-  return (
-    (Object.entries(scores) as [AgentId, number][]).find(
-      ([, v]) => v === max,
-    )?.[0] ?? "jansky"
-  );
-}
-
 function buildAgentPrompt(id: AgentId, base: string): string {
   const personas: Record<AgentId, string> = {
     jansky: `\n\n[AGENT: JANSKY — Command] Strategic. Decisive. Brief. Speak with authority.`,
@@ -565,10 +491,22 @@ function MiniAgent({
 // ── Chat message with expand toggle ───────────────────────────────────────────
 const TRUNCATE = 280;
 
-function ChatMsg({ msg }: { msg: ChatMessage }) {
+function ChatMsg({
+  msg,
+  onAction,
+}: {
+  msg: ChatMessage;
+  onAction: (
+    message: ChatMessage,
+    action: AssistantChatActionModel["actions"][number],
+  ) => void;
+}) {
   const [open, setOpen] = useState(false);
+  const [workflowFocus, setWorkflowFocus] =
+    useState<AssistantOperatorWorkflowFocus>();
   const cfg = msg.agent ? AGENTS[msg.agent] : null;
   const isLong = msg.text.length > TRUNCATE;
+  const operatorWorkflow = msg.actionModel?.operatorWorkflow ?? msg.operatorWorkflow;
 
   return (
     <div
@@ -625,6 +563,55 @@ function ChatMsg({ msg }: { msg: ChatMessage }) {
           {open ? "show less" : `show all (${msg.text.length} chars)`}
         </button>
       )}
+      {msg.role === "agent" && msg.actionModel?.actions.length ? (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "4px",
+            marginTop: "6px",
+          }}
+        >
+          {msg.actionModel.actions.map((action) => (
+            <button
+              key={`${action.kind}-${action.href ?? action.label}`}
+              type="button"
+              onClick={() => {
+                if (action.workflowFocus) {
+                  setWorkflowFocus(action.workflowFocus);
+                  return;
+                }
+                onAction(msg, action);
+              }}
+              title={action.detail}
+              style={{
+                minHeight: "22px",
+                padding: "0 7px",
+                borderRadius: "999px",
+                border: `1px solid ${cfg?.color ?? "#6875a0"}33`,
+                background: "rgba(255,255,255,0.035)",
+                color: cfg?.color ?? "var(--text2)",
+                fontSize: "7px",
+                fontWeight: 900,
+                letterSpacing: ".06em",
+                cursor: "pointer",
+              }}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {msg.role === "agent" ? (
+        <AssistantTurnReceipt actionModel={msg.actionModel} compact />
+      ) : null}
+      {shouldShowAssistantOperatorWorkflow(operatorWorkflow) ? (
+        <AssistantOperatorWorkflowPanel
+          workflow={operatorWorkflow as AssistantOperatorWorkflowState}
+          focus={workflowFocus}
+          compact
+        />
+      ) : null}
     </div>
   );
 }
@@ -634,6 +621,9 @@ interface ChatMessage {
   role: "user" | "agent";
   agent?: AgentId;
   text: string;
+  sourceText?: string;
+  actionModel?: AssistantChatActionModel | null;
+  operatorWorkflow?: AssistantOperatorWorkflowState | null;
 }
 
 // ── CommandBar ─────────────────────────────────────────────────────────────────
@@ -643,6 +633,7 @@ export default function CommandBar() {
   const settings = useStore((s) => s.settings);
   const activityLog = useStore((s) => s.activityLog);
   const addLog = useStore((s) => s.addLog);
+  const setTab = useStore((s) => s.setTab);
   const currentPhase = useStore((s) => s.currentPhase);
   const pendingEdits = useStore((s) => s.pendingEdits);
   const articleCount = useStore((s) => s.articles.length);
@@ -850,18 +841,103 @@ export default function CommandBar() {
   }, [canonicalPath]);
 
   // Which agent would handle the current input (live routing preview)
-  const routingTarget = input.trim() ? detectAgent(input) : dutyAgent;
+  const routingPlan = useMemo(
+    () => (input.trim() ? resolveAssistantDispatch(input) : null),
+    [input],
+  );
+  const routingTarget = routingPlan?.agent ?? dutyAgent;
 
-  const send = useCallback(async () => {
-    const value = input.trim();
+  const send = useCallback(async (options: {
+    forceAnswerHere?: boolean;
+    forceRouteAction?: boolean;
+    overrideText?: string;
+  } = {}) => {
+    const value = (options.overrideText ?? input).trim();
     if (!value || activeAgent) return;
+    const dispatchPlan = resolveAssistantDispatch(value, {
+      forceAnswerHere: options.forceAnswerHere,
+      forceRouteAction: options.forceRouteAction,
+    });
+
+    if (dispatchPlan.localReply) {
+      const localReply = dispatchPlan.localReply;
+      setInput("");
+      setStatusLine("");
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", text: value },
+        {
+          role: "agent",
+          agent: dispatchPlan.agent,
+          text: localReply,
+          sourceText: value,
+          actionModel: dispatchPlan.actionModel,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
+        },
+      ]);
+      addLog({
+        type: "agent",
+        text: `${AGENTS[dispatchPlan.agent].name}: ${localReply}`,
+        color: AGENTS[dispatchPlan.agent].color,
+      });
+      return;
+    }
 
     setInput("");
     setStatusLine("");
     setMessages((prev) => [...prev, { role: "user", text: value }]);
 
-    const target = detectAgent(value);
+    const target = dispatchPlan.agent;
     setActiveAgent(target);
+
+    if (dispatchPlan.operatorChoiceNeeded && dispatchPlan.preparedWorkspace) {
+      const choiceText = `I can answer here, or open ${dispatchPlan.preparedWorkspace.label.replace(/^Open\s+/i, "")} so the workspace is in front. Which is better for this move?`;
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "agent",
+          agent: target,
+          text: choiceText,
+          sourceText: value,
+          actionModel: dispatchPlan.actionModel,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
+        },
+      ]);
+      addLog({
+        type: "agent",
+        text: `${AGENTS[target].name}: ${choiceText}`,
+        color: AGENTS[target].color,
+      });
+      setActiveAgent(null);
+      return;
+    }
+
+    if (dispatchPlan.answerMode === "route_action" && dispatchPlan.routeHref) {
+      const targetLabel =
+        dispatchPlan.preparedWorkspace?.label.replace(/^Open\s+/i, "") ??
+        dispatchPlan.routeHref;
+      const routeText = `Opening ${targetLabel}. I staged the right workspace so the next move is visible.`;
+      setTab(getTabFromHref(dispatchPlan.routeHref));
+      router.push(dispatchPlan.routeHref);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "agent",
+          agent: target,
+          text: routeText,
+          sourceText: value,
+          actionModel: dispatchPlan.actionModel,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
+        },
+      ]);
+      addLog({
+        type: "agent",
+        text: `${AGENTS[target].name}: ${routeText}`,
+        color: AGENTS[target].color,
+      });
+      setActiveAgent(null);
+      return;
+    }
 
     // Pass last 3 exchanges as conversation history
     const history: { role: string; content: string }[] = messages
@@ -872,13 +948,16 @@ export default function CommandBar() {
       }));
     history.push({ role: "user", content: value });
 
-    const enrichedPrompt = buildAgentPrompt(target, systemPrompt);
+    const enrichedPrompt =
+      buildAgentPrompt(target, systemPrompt) + dispatchPlan.contextBlock;
 
     try {
       let lastToolLabel = "";
 
       const result = await runAgent({
         settings,
+        agentId: target,
+        toolCatalog: dispatchPlan.toolCatalog,
         systemPrompt: enrichedPrompt,
         messages: history,
         maxIterations: 10,
@@ -897,9 +976,25 @@ export default function CommandBar() {
       });
 
       void lastToolLabel; // consumed by closure — no unused warning needed
+      const latestArtifact = useStore.getState().agentRunHistory[0];
+      const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
+        provider: latestArtifact?.providerUsed,
+        filesChanged: false,
+      });
+      const actionModel = mergeAssistantRuntimeReceipt(
+        dispatchPlan.actionModel,
+        runtimeReceipt,
+      );
       setMessages((prev) => [
         ...prev,
-        { role: "agent", agent: target, text: result },
+        {
+          role: "agent",
+          agent: target,
+          text: result,
+          sourceText: value,
+          actionModel,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
+        },
       ]);
       addLog({
         type: "agent",
@@ -907,19 +1002,74 @@ export default function CommandBar() {
         color: AGENTS[target].color,
       });
     } catch (err) {
+      const failure = resolveAssistantFailure(err);
+      const recoveryText = normalizeAssistantFailureMessage(err);
+      const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
+        recoveryCode: failure.recoveryCode,
+        filesChanged: false,
+      });
+      const recoveryActionModel = buildAssistantChatActionModel({
+        answerMode: "direct",
+        routeHref: null,
+        preparedWorkspace: null,
+        sourceText: value,
+        recoveryAction: failure.recoveryAction,
+        diagnostic: failure.diagnostic,
+        operatorWorkflow: dispatchPlan.operatorWorkflow,
+        runtimeReceipt,
+      });
       setMessages((prev) => [
         ...prev,
         {
           role: "agent",
           agent: target,
-          text: `Error: ${err instanceof Error ? err.message : "Something went wrong."}`,
+          text: recoveryText,
+          sourceText: value,
+          actionModel: recoveryActionModel,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
         },
       ]);
     } finally {
       setActiveAgent(null);
       setStatusLine("");
     }
-  }, [input, activeAgent, systemPrompt, settings, messages, addLog]);
+  }, [
+    input,
+    activeAgent,
+    systemPrompt,
+    settings,
+    messages,
+    addLog,
+    router,
+    setTab,
+  ]);
+
+  const handleChatAction = useCallback(
+    (
+      message: ChatMessage,
+      action: AssistantChatActionModel["actions"][number],
+    ) => {
+      if (action.kind === "answer_here") {
+        void send({
+          overrideText: action.prompt ?? message.sourceText ?? "",
+          forceAnswerHere: true,
+        });
+        return;
+      }
+      if (action.kind === "retry_local") {
+        void send({
+          overrideText: message.sourceText ?? "",
+          forceAnswerHere: true,
+        });
+        return;
+      }
+      if (action.href) {
+        setTab(getTabFromHref(action.href));
+        router.push(action.href);
+      }
+    },
+    [router, send, setTab],
+  );
 
   const handleKey = useCallback(
     (e: React.KeyboardEvent) => {
@@ -1405,9 +1555,9 @@ export default function CommandBar() {
               </div>
             )}
 
-            {messages.map((msg, i) => (
-              <ChatMsg key={i} msg={msg} />
-            ))}
+              {messages.map((msg, i) => (
+                <ChatMsg key={i} msg={msg} onAction={handleChatAction} />
+              ))}
 
             {/* Typing indicator with live step status */}
             {activeAgent && (

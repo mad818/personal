@@ -156,6 +156,32 @@ export interface ArpgBellrootLampReading {
   outcomeCopy: string;
 }
 
+export interface ArpgPilgrimRowsRestOption {
+  id: string;
+  label: string;
+  serviceId: string;
+  npcId: string;
+  restRole: string;
+  rewardItemIds: string[];
+  roadPrepTags: string[];
+  summary: string;
+  storyFlag: string;
+  outcomeCopy: string;
+}
+
+export interface ArpgPilgrimRowsRoadRumor {
+  id: string;
+  label: string;
+  npcId: string;
+  districtId: string;
+  rumorHook: string;
+  routeHint: string;
+  rewardItemIds: string[];
+  reputationDelta: number;
+  storyFlag: string;
+  outcomeCopy: string;
+}
+
 export interface ArpgStarterGearProgression {
   slot: string;
   starterItemId: string;
@@ -182,6 +208,8 @@ export interface ArpgTownServicesContent {
   wardensStepsOathContracts: ArpgWardensStepsOathContract[];
   bellrootCommonsBrews: ArpgBellrootCommonsBrew[];
   bellrootLampReadings: ArpgBellrootLampReading[];
+  pilgrimRowsRestOptions: ArpgPilgrimRowsRestOption[];
+  pilgrimRowsRoadRumors: ArpgPilgrimRowsRoadRumor[];
   districtHooks: ArpgTownDistrictHook[];
   starterGearProgression: ArpgStarterGearProgression[];
   releaseAcceptance: string[];
@@ -209,6 +237,10 @@ export const ARPG_BELLROOT_COMMONS_BREWS =
   ARPG_TOWN_SERVICES_CONTENT.bellrootCommonsBrews;
 export const ARPG_BELLROOT_LAMP_READINGS =
   ARPG_TOWN_SERVICES_CONTENT.bellrootLampReadings;
+export const ARPG_PILGRIM_ROWS_REST_OPTIONS =
+  ARPG_TOWN_SERVICES_CONTENT.pilgrimRowsRestOptions;
+export const ARPG_PILGRIM_ROWS_ROAD_RUMORS =
+  ARPG_TOWN_SERVICES_CONTENT.pilgrimRowsRoadRumors;
 export const ARPG_VEYR_DISTRICT_HOOKS = ARPG_TOWN_SERVICES_CONTENT.districtHooks;
 export const ARPG_VEYR_STARTER_GEAR_PROGRESSION =
   ARPG_TOWN_SERVICES_CONTENT.starterGearProgression;
@@ -229,6 +261,8 @@ export function getArpgVeyrholdTownServiceSummary() {
     wardensStepsOathContractCount: ARPG_WARDENS_STEPS_OATH_CONTRACTS.length,
     bellrootCommonsBrewCount: ARPG_BELLROOT_COMMONS_BREWS.length,
     bellrootLampReadingCount: ARPG_BELLROOT_LAMP_READINGS.length,
+    pilgrimRowsRestOptionCount: ARPG_PILGRIM_ROWS_REST_OPTIONS.length,
+    pilgrimRowsRoadRumorCount: ARPG_PILGRIM_ROWS_ROAD_RUMORS.length,
     districtHookCount: ARPG_VEYR_DISTRICT_HOOKS.length,
     starterGearSlotCount: ARPG_VEYR_STARTER_GEAR_PROGRESSION.length,
     serviceKinds: ARPG_VEYR_HUB_SERVICES.map((service) => service.kind),

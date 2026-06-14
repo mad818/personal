@@ -102,8 +102,16 @@ const LazyOfflineReadinessCallout = dynamic(
   () => import("@/components/ui/OfflineReadinessCallout"),
   { ssr: false },
 );
+const LazyFreeLocalReadinessPanel = dynamic(
+  () => import("@/components/ui/FreeLocalReadinessPanel"),
+  { ssr: false },
+);
 const LazyProviderHealthStrip = dynamic(
   () => import("@/components/ui/ProviderHealthStrip"),
+  { ssr: false },
+);
+const LazyPrivacyShieldPreviewPanel = dynamic(
+  () => import("@/components/command/PrivacyShieldPreviewPanel"),
   { ssr: false },
 );
 const LazyOperatorReadinessLane = dynamic(
@@ -603,6 +611,9 @@ export default function CommandPage() {
                           <summary>Open provider chain</summary>
                           <div className="nexus-surface-disclosure__body">
                             <LazyProviderHealthStrip surface="command" />
+                            <div id="command-privacy-shield-preview">
+                              <LazyPrivacyShieldPreviewPanel />
+                            </div>
                           </div>
                         </details>
                       </OpsField>
@@ -724,6 +735,7 @@ export default function CommandPage() {
                   compact
                 >
                   <ShellStack gap="12px">
+                    <LazyFreeLocalReadinessPanel surface="command" />
                     <LazyOfflineReadinessCallout surface="command" />
                     <LazyNetworkHealth />
                     <details

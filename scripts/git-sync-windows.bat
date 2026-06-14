@@ -2,9 +2,9 @@
 :: git-sync-windows.bat
 :: Auto-syncs the Nexus Prime project folder with GitHub on startup.
 :: Place a shortcut to this file in:
-:: C:\Users\mario\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
+:: %APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
 
-cd /d C:\Users\mario\Desktop\Project
+cd /d "%~dp0.."
 
 echo [Nexus Sync] Pulling latest from GitHub...
 git pull origin main

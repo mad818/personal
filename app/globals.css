@@ -3318,6 +3318,357 @@ body {
   font-style: italic;
 }
 
+.nexus-homefront-workplaneSummary {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr) minmax(260px, 0.9fr);
+  gap: 10px;
+  align-items: stretch;
+  margin: -2px 0 16px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 44px rgba(0, 0, 0, 0.18);
+}
+
+.nexus-homefront-workplaneSummary[data-interior-polish="true"] {
+  border-color: rgba(255, 255, 255, 0.16);
+  background:
+    radial-gradient(
+      circle at var(--nexus-ops-pointer-x, 50%) var(--nexus-ops-pointer-y, 50%),
+      rgba(109, 213, 226, 0.1),
+      transparent 38%
+    ),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.018)),
+    rgba(4, 8, 12, 0.58);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.nexus-homefront-workplaneSummary__copy,
+.nexus-homefront-workplaneSummary__action,
+.nexus-homefront-workplaneSummary__proof {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 13px;
+  background: rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.nexus-homefront-workplaneSummary span {
+  color: rgba(210, 226, 238, 0.62);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.nexus-homefront-workplaneSummary strong {
+  color: var(--text-strong);
+  font-size: 13px;
+  line-height: 1.34;
+}
+
+.nexus-homefront-workplaneSummary em {
+  color: rgba(219, 232, 240, 0.6);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.36;
+}
+
+.nexus-homefront-workplaneSummary__action span {
+  color: rgba(218, 228, 238, 0.72);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.38;
+}
+
+.nexus-homefront-workplaneSummary__action a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.nexus-source-intel-console {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.nexus-source-intel-console__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.44fr);
+  gap: 16px;
+  align-items: stretch;
+  padding: 18px;
+  border: 1px solid rgba(212, 149, 106, 0.14);
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at 4% 0%,
+      rgba(212, 149, 106, 0.12),
+      transparent 30%
+    ),
+    linear-gradient(180deg, rgba(22, 16, 18, 0.94), rgba(11, 9, 10, 0.9));
+}
+
+.nexus-source-intel-console__eyebrow {
+  display: inline-flex;
+  margin-bottom: 10px;
+  color: rgba(255, 226, 228, 0.58);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.nexus-source-intel-console__hero h2,
+.nexus-source-intel-card h3 {
+  margin: 0;
+  color: var(--text-strong);
+  letter-spacing: 0;
+}
+
+.nexus-source-intel-console__hero h2 {
+  max-width: 760px;
+  font-size: clamp(24px, 3vw, 44px);
+  line-height: 0.98;
+}
+
+.nexus-source-intel-console__hero p,
+.nexus-source-intel-card p,
+.nexus-source-intel-queueCard p,
+.nexus-source-intel-ledgerCard p,
+.nexus-source-intel-step p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.58;
+}
+
+.nexus-source-intel-console__hero p {
+  max-width: 72ch;
+  margin-top: 12px;
+}
+
+.nexus-source-intel-console__readouts,
+.nexus-source-intel-panel__stack {
+  display: grid;
+  gap: 10px;
+}
+
+.nexus-source-intel-console__readouts > span,
+.nexus-source-intel-signal {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.nexus-source-intel-console__readouts em,
+.nexus-source-intel-signal em {
+  color: var(--text-subtle);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.nexus-source-intel-console__readouts strong,
+.nexus-source-intel-signal strong,
+.nexus-source-intel-step strong,
+.nexus-source-intel-queueCard strong,
+.nexus-source-intel-ledgerCard strong {
+  color: var(--text-strong);
+}
+
+.nexus-source-intel-console__grid,
+.nexus-source-intel-queue,
+.nexus-source-intel-ledger {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.nexus-source-intel-card,
+.nexus-source-intel-panel,
+.nexus-source-intel-queueCard,
+.nexus-source-intel-ledgerCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 16px;
+  border: 1px solid rgba(196, 72, 90, 0.12);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(19, 14, 16, 0.92), rgba(14, 10, 11, 0.86)),
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(79, 110, 247, 0.08),
+      transparent 30%
+    );
+}
+
+.nexus-source-intel-card h3 {
+  font-size: 18px;
+  line-height: 1.12;
+}
+
+.nexus-source-intel-card__refs,
+.nexus-source-intel-guardrails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: auto 0 0;
+}
+
+.nexus-source-intel-card__refs span,
+.nexus-source-intel-guardrails li {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  color: rgba(255, 226, 228, 0.7);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.nexus-source-intel-console__twoColumn {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.nexus-source-intel-signal span {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.nexus-source-intel-steps {
+  display: grid;
+  gap: 10px;
+}
+
+.nexus-source-intel-step {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.nexus-source-intel-step > span {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(212, 149, 106, 0.16);
+  border-radius: 999px;
+  color: var(--accent2);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.nexus-source-intel-guardrails {
+  list-style: none;
+  padding: 0;
+}
+
+.nexus-source-intel-ledgerCard[data-status="blocked"],
+.nexus-source-intel-ledgerCard[data-status="rejected"] {
+  border-color: rgba(255, 111, 130, 0.24);
+}
+
+.nexus-source-intel-ledgerCard[data-status="private-lane"] {
+  border-color: rgba(255, 198, 117, 0.2);
+}
+
+.nexus-source-intel-ledgerCard__title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nexus-source-intel-ledgerCard__title span,
+.nexus-source-intel-ledgerCard__next {
+  color: var(--text-subtle);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.nexus-source-intel-ledgerCard__next {
+  display: block;
+  letter-spacing: 0.04em;
+  line-height: 1.45;
+  text-transform: none;
+}
+
+.nexus-source-intel-ledgerCard__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.nexus-source-intel-ledgerCard__actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  color: var(--text-strong);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+@media (max-width: 920px) {
+  .nexus-source-intel-console__hero,
+  .nexus-source-intel-console__twoColumn {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-homefront-workplaneSummary {
+    grid-template-columns: 1fr;
+  }
+}
+
 .nexus-shell-lab-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4331,6 +4682,48 @@ body {
   gap: 8px;
 }
 
+.nexus-hq-chronicle__liveRecovery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(243, 201, 130, 0.18);
+  background:
+    linear-gradient(135deg, rgba(243, 201, 130, 0.1), rgba(255, 255, 255, 0.035)),
+    rgba(0, 0, 0, 0.22);
+  color: rgba(244, 248, 255, 0.88);
+}
+
+.nexus-hq-chronicle__liveRecovery strong {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.nexus-hq-chronicle__liveRecovery span {
+  display: block;
+  margin-top: 3px;
+  max-width: 520px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(214, 225, 237, 0.72);
+}
+
+.nexus-hq-chronicle__liveRecovery a {
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(243, 201, 130, 0.28);
+  padding: 7px 10px;
+  color: #f3c982;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.26);
+}
+
 .nexus-hq-chronicle__bubble {
   width: min(760px, 100%);
   padding: 15px 16px;
@@ -4409,6 +4802,48 @@ body {
   gap: 6px;
   flex-wrap: wrap;
   padding-left: 2px;
+}
+
+.nexus-hq-chronicle__assistantActions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.nexus-hq-chronicle__assistantAction {
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--nexus-chronicle-accent) 34%,
+      rgba(255, 255, 255, 0.1)
+    );
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--nexus-chronicle-accent) 12%, transparent),
+      rgba(255, 255, 255, 0.025)
+    );
+  color: #edf8ff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.nexus-hq-chronicle__assistantAction:hover {
+  border-color: color-mix(in srgb, var(--nexus-chronicle-accent) 56%, #fff);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--nexus-chronicle-accent) 18%, transparent),
+      rgba(255, 255, 255, 0.045)
+    );
 }
 
 .nexus-hq-chronicle__handoff {
@@ -4768,6 +5203,45 @@ body {
     rgba(103, 232, 249, 0.16),
     rgba(212, 149, 106, 0.12)
   );
+}
+
+.nexus-hq-assistant-readiness {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  background:
+    linear-gradient(180deg, rgba(12, 26, 33, 0.72), rgba(7, 9, 13, 0.86)),
+    radial-gradient(circle at 0% 0%, rgba(103, 232, 249, 0.1), transparent 34%);
+  color: rgba(229, 242, 255, 0.78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.nexus-hq-assistant-readiness span {
+  min-width: 0;
+  padding: 3px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.nexus-hq-assistant-readiness__label {
+  color: #c7f5ff;
+  border-color: rgba(103, 232, 249, 0.18) !important;
+  background: rgba(103, 232, 249, 0.08) !important;
+}
+
+.nexus-hq-free-local-readiness {
+  display: grid;
+  gap: 8px;
 }
 
 .nexus-hq-strategium {
@@ -8724,6 +9198,66 @@ html[data-nexus-motion-profile="reduced"]
   opacity: 0.52;
 }
 
+.nexus-shell-stage__capabilityVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.82) contrast(1.12) brightness(0.34);
+  opacity: 0.34;
+  transform: translate3d(
+    calc(var(--nexus-ops-parallax-x) * 0.48),
+    calc(var(--nexus-ops-parallax-y) * 0.38),
+    0
+  );
+}
+
+.nexus-shell-stage__guardianDrone {
+  position: absolute;
+  right: clamp(28px, 10vw, 180px);
+  top: clamp(76px, 12vh, 180px);
+  width: clamp(180px, 18vw, 340px);
+  transform: translate3d(
+      calc(var(--nexus-ops-parallax-x) * -0.65),
+      calc(var(--nexus-ops-parallax-y) * -0.45),
+      0
+    )
+    rotate(-7deg);
+  opacity: 0.54;
+  animation: homefront-shell-drone-patrol 18s ease-in-out infinite;
+}
+
+.nexus-shell-stage__guardianDroneImage {
+  width: 100%;
+  height: auto;
+  filter: saturate(0.72) brightness(0.82)
+    drop-shadow(0 0 34px rgba(125, 231, 255, 0.28));
+}
+
+@keyframes homefront-shell-drone-patrol {
+  0%,
+  100% {
+    transform: translate3d(
+        calc(var(--nexus-ops-parallax-x) * -0.65 - 18px),
+        calc(var(--nexus-ops-parallax-y) * -0.45 + 4px),
+        0
+      )
+      rotate(-9deg);
+    opacity: 0.44;
+  }
+
+  48% {
+    transform: translate3d(
+        calc(var(--nexus-ops-parallax-x) * -0.65 + 22px),
+        calc(var(--nexus-ops-parallax-y) * -0.45 - 18px),
+        0
+      )
+      rotate(7deg);
+    opacity: 0.68;
+  }
+}
+
 .nexus-shell-stage__cartography,
 .nexus-shell-stage__trace,
 .nexus-shell-stage__rings,
@@ -9223,6 +9757,173 @@ html[data-nexus-motion-profile="reduced"]
   white-space: nowrap;
 }
 
+.nexus-shell-operatingContract {
+  display: grid;
+  gap: 10px;
+  max-width: 820px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.058),
+      rgba(255, 255, 255, 0.018)
+    ),
+    rgba(4, 8, 13, 0.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 16px 42px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.nexus-shell-operatingContract__lead {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 9px;
+}
+
+.nexus-shell-operatingContract__kicker {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nexus-shell-operatingContract__promise {
+  min-width: 0;
+  color: #f6fbff;
+  font-size: clamp(14px, 1.35vw, 19px);
+  font-weight: 850;
+  line-height: 1.05;
+  text-align: right;
+}
+
+.nexus-shell-operatingContract__grid {
+  display: grid;
+  grid-template-columns: minmax(94px, 0.34fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.nexus-shell-operatingContract__grid span {
+  display: grid;
+  gap: 4px;
+  min-height: 64px;
+  align-content: start;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 15px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.nexus-shell-operatingContract__grid em {
+  color: rgba(192, 214, 232, 0.48);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.nexus-shell-operatingContract__grid strong {
+  color: rgba(236, 247, 255, 0.8);
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.28;
+}
+
+.nexus-shell-sourceIntake {
+  display: grid;
+  gap: 10px;
+  max-width: 820px;
+  padding: 11px 12px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.095);
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.014)
+    ),
+    rgba(3, 7, 12, 0.56);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 14px 36px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(18px);
+}
+
+.nexus-shell-sourceIntake__head {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.nexus-shell-sourceIntake__head span {
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nexus-shell-sourceIntake__head strong {
+  min-width: 0;
+  color: rgba(246, 251, 255, 0.86);
+  font-size: clamp(12px, 1.05vw, 15px);
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: right;
+}
+
+.nexus-shell-sourceIntake__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.nexus-shell-sourceIntake__item {
+  display: grid;
+  gap: 4px;
+  min-height: 76px;
+  align-content: start;
+  border: 1px solid rgba(255, 255, 255, 0.078);
+  border-radius: 15px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.nexus-shell-sourceIntake__item em {
+  color: rgba(192, 214, 232, 0.48);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.nexus-shell-sourceIntake__item strong {
+  color: rgba(246, 251, 255, 0.86);
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.12;
+}
+
+.nexus-shell-sourceIntake__item span {
+  color: rgba(236, 247, 255, 0.62);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.28;
+}
+
 .nexus-shell-commandThreshold {
   position: relative;
   display: grid;
@@ -9641,6 +10342,65 @@ html[data-nexus-motion-profile="reduced"]
 
 .nexus-shell-opsHead[data-density="compact"] .nexus-shell-doctrineRail__chips {
   justify-content: flex-start;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-operatingContract {
+  max-width: 620px;
+  gap: 8px;
+  padding: 9px 10px;
+}
+
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-operatingContract__lead {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-operatingContract__promise {
+  text-align: left;
+}
+
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-operatingContract__grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-operatingContract__grid
+  span {
+  min-height: 0;
+  padding: 8px;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-sourceIntake {
+  max-width: 620px;
+  gap: 8px;
+  padding: 9px 10px;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-sourceIntake__head {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-sourceIntake__head
+  strong {
+  text-align: left;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-sourceIntake__grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-sourceIntake__item {
+  min-height: 0;
+  padding: 8px;
 }
 
 .nexus-shell-opsHead[data-density="compact"] .nexus-shell-commandThreshold {
@@ -10237,21 +10997,33 @@ html[data-nexus-motion-profile="reduced"]
 }
 
 html[data-nexus-motion-profile="reduced"] .nexus-ambient__layer--sweep,
+html[data-nexus-motion-profile="reduced"] .nexus-shell-stage__capabilityVideo,
 html[data-nexus-motion-profile="reduced"] .nexus-shell-stage__focus,
+html[data-nexus-motion-profile="reduced"] .nexus-shell-stage__guardianDrone,
 html[data-nexus-motion-profile="reduced"] .nexus-shell-opsHead__plateSweep,
 html[data-nexus-motion-profile="reduced"] .nexus-shell-commandThreshold::before,
 html[data-nexus-motion-profile="reduced"] .nexus-hq-supportLane__mapSweep {
   animation: none !important;
 }
 
+html[data-nexus-motion-profile="reduced"] .nexus-shell-stage__capabilityVideo {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .nexus-ambient__layer--sweep,
+  .nexus-shell-stage__capabilityVideo,
   .nexus-shell-stage__focus,
+  .nexus-shell-stage__guardianDrone,
   .nexus-shell-opsHead__plateSweep,
   .nexus-shell-commandThreshold::before,
   .nexus-hq-supportLane__mapSweep,
   .nexus-hq-tacticalRail__mapSweep {
     animation: none !important;
+  }
+
+  .nexus-shell-stage__capabilityVideo {
+    display: none;
   }
 }
 
@@ -10276,6 +11048,34 @@ html[data-nexus-motion-profile="reduced"] .nexus-hq-supportLane__mapSweep {
 
   .nexus-shell-doctrineRail__chips {
     justify-content: flex-start;
+  }
+
+  .nexus-shell-operatingContract__lead {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .nexus-shell-operatingContract__promise {
+    text-align: left;
+  }
+
+  .nexus-shell-operatingContract__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nexus-shell-sourceIntake__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .nexus-shell-sourceIntake__head strong {
+    text-align: left;
+  }
+
+  .nexus-shell-sourceIntake__grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .nexus-shell-commandThreshold {
@@ -13961,5 +14761,1853 @@ html[data-nexus-motion-profile="reduced"] .nexus-landing-proclamation__scan {
   .nexus-vault-mission-strip__signals > span {
     min-height: 0;
     padding: 6px 7px;
+  }
+}
+
+/* Homefront premium authenticated shell cohesion */
+
+.nexus-root-main,
+.nexus-toprail,
+.nexus-shell-stage {
+  font-family: "Barlow", "Inter", system-ui, sans-serif;
+}
+
+.nexus-toprail {
+  padding: clamp(10px, 1.25vw, 18px) clamp(14px, 1.8vw, 26px) 0;
+}
+
+.nexus-command-header__inner {
+  position: relative;
+  overflow: hidden;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(440px, 1.28fr) minmax(
+      220px,
+      0.72fr
+    );
+  gap: clamp(10px, 1vw, 16px);
+  align-items: stretch;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+  border-radius: 30px;
+  background:
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(255, 255, 255, 0.12),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 84% 12%,
+      rgba(109, 226, 255, 0.1),
+      transparent 26%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.012)
+    ),
+    rgba(2, 4, 7, 0.72);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+    0 28px 76px rgba(0, 0, 0, 0.44);
+  backdrop-filter: blur(28px) saturate(145%);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+}
+
+.nexus-command-header__inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.46) 0%,
+    rgba(255, 255, 255, 0.16) 21%,
+    rgba(255, 255, 255, 0) 42%,
+    rgba(255, 255, 255, 0) 62%,
+    rgba(255, 255, 255, 0.14) 82%,
+    rgba(255, 255, 255, 0.42) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+.nexus-command-header__inner::after {
+  content: "";
+  position: absolute;
+  inset: -40% auto -40% 18%;
+  width: 26%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.11),
+    transparent
+  );
+  opacity: 0.32;
+  transform: skewX(-18deg);
+  animation: nexus-command-threshold-scan 12s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.nexus-command-header__mission,
+.nexus-command-header__rail,
+.nexus-command-header__utility {
+  position: relative;
+  z-index: 1;
+}
+
+.nexus-command-header__brand {
+  width: max-content;
+  max-width: 100%;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 3px 0;
+}
+
+.nexus-command-header__brandLabel {
+  color: #ffffff;
+  font-size: clamp(13px, 1vw, 16px);
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  line-height: 1;
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.28);
+}
+
+.nexus-command-header__brandTag,
+.nexus-command-header__contextLabel,
+.nexus-command-header__railLabel,
+.nexus-command-header__statusLabel,
+.nexus-command-header__utilityNote {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+}
+
+.nexus-command-header__context {
+  gap: 5px 10px;
+  padding: 7px 0 0;
+  border-left: 0;
+}
+
+.nexus-command-header__contextValue {
+  color: #ffffff;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: clamp(23px, 2vw, 36px);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.92;
+}
+
+.nexus-command-header__contextMeta,
+.nexus-command-header__railNote,
+.nexus-command-header__railMetaHint,
+.nexus-command-header__utilityNote {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.nexus-command-header__rail {
+  align-content: center;
+  gap: 8px;
+}
+
+.nexus-command-header__railMeta {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.nexus-command-header__railMetaHint {
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.nexus-command-header__tabs {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  scrollbar-width: none;
+}
+
+.nexus-command-header__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.nexus-command-header__link {
+  flex: 1 0 max-content;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  min-height: 34px;
+  min-width: 70px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.76);
+  background: transparent;
+  box-shadow: none;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.nexus-command-header__link + .nexus-command-header__link {
+  border-left: 0;
+}
+
+.nexus-command-header__link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.nexus-command-header__link.is-active {
+  color: #05070a;
+  background: #ffffff;
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+}
+
+.nexus-command-header__linkIndex,
+.nexus-command-header__linkRule {
+  display: none;
+}
+
+.nexus-command-header__linkLabel {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.nexus-command-header__utility {
+  align-content: center;
+  gap: 8px;
+}
+
+.nexus-command-header__utilityCore {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+
+.nexus-command-header__status {
+  gap: 6px;
+}
+
+.nexus-command-header__statusValue,
+.nexus-command-header__statusAux {
+  min-height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.nexus-toprail__icon-button {
+  min-width: 54px;
+  min-height: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease,
+    border-color 180ms ease;
+}
+
+.nexus-toprail__icon-button:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.09);
+  transform: translateY(-1px);
+}
+
+.nexus-command-header__buttonLabel,
+.nexus-toprail__badge {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.nexus-shell-opsHead {
+  position: relative;
+  overflow: hidden;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.64fr);
+  gap: clamp(14px, 1.8vw, 24px);
+  align-items: stretch;
+  padding: clamp(18px, 2vw, 30px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 32px;
+  background:
+    radial-gradient(
+      circle at 11% 4%,
+      rgba(255, 255, 255, 0.105),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 86% 18%,
+      rgba(108, 219, 255, 0.1),
+      transparent 30%
+    ),
+    linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.012) 48%,
+      rgba(255, 255, 255, 0.034)
+    ),
+    rgba(3, 6, 10, 0.74);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.14),
+    0 30px 90px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(24px) saturate(135%);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
+}
+
+.nexus-shell-opsHead::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.2px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.1) 26%,
+    rgba(255, 255, 255, 0) 48%,
+    rgba(255, 255, 255, 0.14) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.nexus-shell-opsHead > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nexus-shell-opsHead__manifest,
+.nexus-shell-opsHead__copyBlock {
+  display: grid;
+  min-width: 0;
+}
+
+.nexus-shell-opsHead__manifest {
+  gap: 14px;
+}
+
+.nexus-shell-opsHead__copyBlock {
+  gap: 9px;
+}
+
+.nexus-shell-opsHead__heading {
+  gap: 8px;
+}
+
+.nexus-shell-opsHead__identity {
+  gap: 4px;
+  padding-left: 0;
+  border-left: 0;
+}
+
+.nexus-shell-opsHead__identityLabel,
+.nexus-shell-doctrineRail__kicker,
+.nexus-shell-operatingContract__kicker,
+.nexus-shell-actionControl__kicker,
+.nexus-shell-actionControl__matrix em,
+.nexus-shell-actionControl__subsections em,
+.nexus-shell-sourceIntake__head span,
+.nexus-shell-commandThreshold__kicker,
+.nexus-shell-commandThreshold__signalLabel,
+.nexus-shell-commandThreshold__visionLabel,
+.nexus-shell-opsHead__tape {
+  font-family: "Barlow", "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+}
+
+.nexus-shell-opsHead__identityLabel {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 10px;
+}
+
+.nexus-shell-opsHead__identityNote {
+  max-width: 52ch;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 11px;
+  font-weight: 300;
+}
+
+.nexus-shell-title {
+  max-width: 12ch;
+  color: #ffffff;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: clamp(42px, 5.8vw, 94px);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.82;
+  text-shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+}
+
+.nexus-shell-description {
+  max-width: 48ch;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: clamp(13px, 1vw, 15px);
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.nexus-shell-doctrineRail,
+.nexus-shell-operatingContract,
+.nexus-shell-actionControl,
+.nexus-shell-sourceIntake,
+.nexus-shell-commandThreshold {
+  max-width: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.018)
+    ),
+    rgba(255, 255, 255, 0.018);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.09),
+    0 18px 52px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.nexus-shell-doctrineRail {
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.nexus-shell-doctrineRail__line,
+.nexus-shell-actionControl__lead p,
+.nexus-shell-actionControl__action em,
+.nexus-shell-actionControl__subsections em,
+.nexus-shell-operatingContract__grid strong,
+.nexus-shell-sourceIntake__item span,
+.nexus-shell-commandThreshold__body,
+.nexus-shell-commandThreshold__visionDetail {
+  color: rgba(255, 255, 255, 0.66);
+  font-weight: 300;
+}
+
+.nexus-shell-doctrineRail__chips span,
+.nexus-shell-commandThreshold__proof span,
+.nexus-shell-badge,
+.nexus-shell-button,
+.nexus-shell-segmented__button {
+  border-radius: 999px;
+}
+
+.nexus-shell-doctrineRail__chips span,
+.nexus-shell-commandThreshold__proof span {
+  min-height: 28px;
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 500;
+}
+
+.nexus-shell-operatingContract__promise,
+.nexus-shell-actionControl__lead strong,
+.nexus-shell-sourceIntake__head strong,
+.nexus-shell-commandThreshold__title,
+.nexus-shell-commandThreshold__signalValue,
+.nexus-shell-commandThreshold__visionValue {
+  color: #ffffff;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.nexus-shell-actionControl {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.nexus-shell-actionControl__lead,
+.nexus-shell-actionControl__matrix span,
+.nexus-shell-actionControl__action,
+.nexus-shell-actionControl__subsections a {
+  display: grid;
+  min-width: 0;
+}
+
+.nexus-shell-actionControl__lead {
+  gap: 6px;
+}
+
+.nexus-shell-actionControl__kicker,
+.nexus-shell-actionControl__matrix em,
+.nexus-shell-actionControl__subsections em {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 9px;
+  font-style: normal;
+  text-transform: uppercase;
+}
+
+.nexus-shell-actionControl__lead strong {
+  font-size: clamp(20px, 2vw, 31px);
+  line-height: 0.95;
+}
+
+.nexus-shell-actionControl__lead p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.nexus-shell-actionControl__matrix,
+.nexus-shell-actionControl__actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.nexus-shell-actionControl__matrix span,
+.nexus-shell-actionControl__action {
+  gap: 7px;
+  min-height: 76px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 10px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.052),
+      rgba(255, 255, 255, 0.012)
+    ),
+    rgba(255, 255, 255, 0.018);
+}
+
+.nexus-shell-actionControl__matrix strong,
+.nexus-shell-actionControl__action span,
+.nexus-shell-actionControl__subsections span {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.nexus-shell-actionControl__action {
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.nexus-shell-actionControl__action:hover {
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.07);
+  transform: translateY(-1px);
+}
+
+.nexus-shell-actionControl__subsections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.nexus-shell-actionControl__subsections a {
+  gap: 4px;
+  max-width: min(100%, 250px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.035);
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.nexus-shell-actionControl__subsections a:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.065);
+  transform: translateY(-1px);
+}
+
+.nexus-homefront-visualParity {
+  grid-area: visual;
+  min-width: 0;
+}
+
+.nexus-homefront-visualParity--chrome {
+  width: min(100%, 1180px);
+  margin: 0 auto 12px;
+}
+
+.nexus-homefront-surfaceModule {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(250px, 0.72fr);
+  grid-template-areas:
+    "copy media"
+    "data media"
+    "tabs actions";
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 24px;
+  padding: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.014)),
+    radial-gradient(
+      circle at var(--nexus-ops-pointer-x, 50%) var(--nexus-ops-pointer-y, 50%),
+      rgba(103, 232, 249, 0.075),
+      transparent 34%
+    ),
+    rgba(255, 255, 255, 0.018);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.09),
+    0 18px 52px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.nexus-homefront-surfaceModule[data-interior-polish="true"] {
+  border-color: rgba(255, 255, 255, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.018)),
+    radial-gradient(
+      circle at var(--nexus-ops-pointer-x, 50%) var(--nexus-ops-pointer-y, 50%),
+      rgba(103, 232, 249, 0.12),
+      transparent 32%
+    ),
+    rgba(4, 7, 11, 0.62);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.14),
+    0 24px 72px rgba(0, 0, 0, 0.3);
+}
+
+.nexus-homefront-surfaceModule[data-support-density="compact"] {
+  gap: 9px;
+}
+
+.nexus-homefront-visualParity--chrome .nexus-homefront-surfaceModule {
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 0.42fr);
+  grid-template-areas:
+    "copy media"
+    "data media"
+    "tabs actions";
+  border-color: rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.044), rgba(255, 255, 255, 0.01)),
+    rgba(5, 8, 12, 0.34);
+}
+
+.nexus-homefront-visualParity__copy {
+  grid-area: copy;
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.nexus-homefront-visualParity__kicker,
+.nexus-homefront-dataRail em,
+.nexus-homefront-routeTabs em,
+.nexus-homefront-actionDock__primary {
+  color: rgba(255, 255, 255, 0.5);
+  font-family: "Barlow", "Inter", system-ui, sans-serif;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.nexus-homefront-visualParity__copy strong {
+  color: #fff;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: clamp(22px, 2.2vw, 34px);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.94;
+}
+
+.nexus-homefront-visualParity__copy p {
+  max-width: 62ch;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+.nexus-homefront-visualParity__proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nexus-homefront-visualParity__proof span,
+.nexus-homefront-actionDock a {
+  min-height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.nexus-homefront-dataRail {
+  grid-area: data;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.nexus-homefront-dataRail span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 9px;
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.nexus-homefront-dataRail strong {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nexus-homefront-routeTabs {
+  grid-area: tabs;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 0;
+}
+
+.nexus-homefront-routeTabs a {
+  display: grid;
+  gap: 3px;
+  min-width: min(100%, 128px);
+  max-width: 190px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.nexus-homefront-routeTabs a[data-active="true"],
+.nexus-homefront-routeTabs a[aria-current="page"],
+.nexus-homefront-actionDock a[data-active="true"] {
+  border-color: rgba(255, 255, 255, 0.34);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05)),
+    rgba(255, 255, 255, 0.08);
+  color: #fff;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.18),
+    0 14px 34px rgba(0, 0, 0, 0.28);
+}
+
+.nexus-homefront-routeTabs a:hover,
+.nexus-homefront-actionDock a:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.07);
+  transform: translateY(-1px);
+}
+
+.nexus-homefront-routeTabs span,
+.nexus-homefront-actionDock a {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.nexus-homefront-routeTabs em {
+  overflow: hidden;
+  max-width: 100%;
+  letter-spacing: 0.04em;
+  opacity: 0.76;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nexus-homefront-actionDock {
+  grid-area: actions;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+}
+
+.nexus-homefront-actionDock__primary {
+  display: grid;
+  gap: 4px;
+  line-height: 1.22;
+}
+
+.nexus-homefront-actionDock__activeLabel {
+  display: block;
+  overflow: hidden;
+  max-width: 100%;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nexus-homefront-actionDock div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.nexus-homefront-actionDock a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.nexus-homefront-mediaPanel {
+  grid-area: media;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nexus-homefront-mediaPanel__visual {
+  position: relative;
+  min-height: 176px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.nexus-homefront-mediaPanel__image,
+.nexus-homefront-mediaPanel__video {
+  object-fit: cover;
+  filter: saturate(0.9) contrast(1.15) brightness(0.56);
+}
+
+.nexus-homefront-mediaPanel__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.28;
+}
+
+.nexus-homefront-mediaPanel__grid,
+.nexus-homefront-mediaPanel__sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.nexus-homefront-mediaPanel__grid {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: 0.24;
+}
+
+.nexus-homefront-mediaPanel__sweep {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(103, 232, 249, 0.12) 48%,
+    rgba(255, 255, 255, 0.08) 52%,
+    transparent 100%
+  );
+  transform: translateX(-120%);
+  animation: nexus-homefront-visual-sweep 4.8s ease-in-out infinite;
+}
+
+.nexus-homefront-mediaPanel__drone {
+  position: absolute;
+  right: clamp(10px, 5vw, 42px);
+  top: clamp(8px, 3vw, 28px);
+  width: clamp(82px, 38%, 170px);
+  height: auto;
+  opacity: 0.82;
+  filter: drop-shadow(0 22px 38px rgba(0, 0, 0, 0.46));
+  transform: translate3d(
+      calc(var(--nexus-ops-parallax-x, 0px) * -0.4),
+      calc(var(--nexus-ops-parallax-y, 0px) * -0.3),
+      0
+    )
+    rotate(-5deg);
+  animation: nexus-homefront-drone-float 8s ease-in-out infinite;
+}
+
+.nexus-homefront-mediaPanel__readouts {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.nexus-homefront-mediaPanel__readouts span {
+  color: rgba(255, 255, 255, 0.44);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.nexus-homefront-mediaPanel__readouts strong {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.nexus-homefront-mediaPanel__moment {
+  max-width: 52ch;
+  margin: 0;
+  color: rgba(219, 232, 240, 0.62);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.nexus-homefront-mediaPanel__readouts div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nexus-homefront-mediaPanel__readouts em {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(255, 255, 255, 0.6);
+  font-style: normal;
+}
+
+@keyframes nexus-homefront-visual-sweep {
+  0%,
+  36% {
+    transform: translateX(-120%);
+  }
+  68%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes nexus-homefront-drone-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: -8px 6px;
+  }
+}
+
+html[data-nexus-motion-profile="reduced"] .nexus-homefront-mediaPanel__sweep,
+html[data-nexus-motion-profile="reduced"] .nexus-homefront-mediaPanel__drone {
+  animation: none;
+}
+
+html[data-nexus-motion-profile="reduced"] .nexus-homefront-mediaPanel__video {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nexus-homefront-mediaPanel__sweep,
+  .nexus-homefront-mediaPanel__drone {
+    animation: none;
+  }
+
+  .nexus-homefront-mediaPanel__video {
+    display: none;
+  }
+}
+
+.nexus-shell-operatingContract__promise {
+  font-size: clamp(20px, 2.25vw, 34px);
+}
+
+.nexus-shell-sourceIntake__head strong {
+  font-size: clamp(18px, 1.55vw, 25px);
+}
+
+.nexus-shell-commandThreshold__title {
+  font-size: clamp(27px, 3.1vw, 48px);
+  line-height: 0.88;
+}
+
+.nexus-shell-operatingContract__grid span,
+.nexus-shell-actionControl__matrix span,
+.nexus-shell-actionControl__action,
+.nexus-shell-sourceIntake__item,
+.nexus-shell-commandThreshold__signal,
+.nexus-shell-commandThreshold__visionItem,
+.nexus-shell-stage:not(.nexus-shell-stage--hq) .nexus-ops-field,
+.nexus-shell-stage:not(.nexus-shell-stage--hq) .nexus-ops-moduleCard,
+.nexus-shell-stage:not(.nexus-shell-stage--hq) .nexus-ops-section,
+.nexus-shell-stage:not(.nexus-shell-stage--hq) .nexus-shell-panel,
+.nexus-shell-stage:not(.nexus-shell-stage--hq) .nexus-mission-handoff,
+.nexus-shell-stage:not(.nexus-shell-stage--hq) .nexus-ops-note {
+  border-color: rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.048),
+      rgba(255, 255, 255, 0.012)
+    ),
+    rgba(255, 255, 255, 0.018);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.08),
+    0 18px 54px rgba(0, 0, 0, 0.2);
+}
+
+.nexus-shell-stage:not(.nexus-shell-stage--hq) .nexus-shell-button,
+.nexus-shell-opsHead .nexus-shell-button,
+.nexus-shell-stage:not(.nexus-shell-stage--hq) .nexus-shell-segmented__button {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0.018)
+    ),
+    rgba(255, 255, 255, 0.025);
+  color: rgba(255, 255, 255, 0.86);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.12),
+    0 16px 40px rgba(0, 0, 0, 0.22);
+}
+
+.nexus-shell-stage:not(.nexus-shell-stage--hq) .nexus-shell-button:hover,
+.nexus-shell-opsHead .nexus-shell-button:hover,
+.nexus-shell-stage:not(.nexus-shell-stage--hq)
+  .nexus-shell-segmented__button:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.09);
+  transform: translateY(-1px);
+}
+
+.nexus-shell-stage:not(.nexus-shell-stage--hq)[data-interior-polish="true"]
+  .nexus-shell-segmented__button.is-active,
+.nexus-shell-stage:not(.nexus-shell-stage--hq)[data-interior-polish="true"]
+  .nexus-shell-segmented__button[aria-selected="true"] {
+  border-color: rgba(255, 255, 255, 0.34);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.07);
+  color: #fff;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.18),
+    0 16px 42px rgba(0, 0, 0, 0.24);
+}
+
+.nexus-shell-opsHead__plateFrame {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 48%),
+    rgba(0, 0, 0, 0.34);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.1),
+    0 28px 78px rgba(0, 0, 0, 0.34);
+}
+
+.nexus-shell-opsHead__plate,
+.nexus-shell-opsHead__plateFrame,
+.nexus-shell-opsHead__plateFrame * {
+  pointer-events: none;
+}
+
+.nexus-shell-opsHead__plateFrame::before {
+  border-top-color: rgba(255, 255, 255, 0.24);
+  border-left-color: rgba(255, 255, 255, 0.14);
+}
+
+.nexus-shell-opsHead__plateImage {
+  filter: saturate(0.62) contrast(1.04) brightness(0.62);
+}
+
+.nexus-shell-opsHead__plateGrid {
+  opacity: 0.34;
+}
+
+.nexus-shell-opsHead__plateSweep {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 48%,
+    rgba(122, 223, 255, 0.08) 52%,
+    transparent 100%
+  );
+  opacity: 0.62;
+}
+
+.nexus-shell-opsHead__plateFocus {
+  border-color: rgba(255, 255, 255, 0.38);
+  box-shadow:
+    0 0 0 12px rgba(255, 255, 255, 0.035),
+    0 0 42px rgba(99, 223, 255, 0.14);
+}
+
+.nexus-shell-opsHead__plateTag {
+  left: 18px;
+  bottom: 16px;
+  border-left: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.58);
+  color: rgba(255, 255, 255, 0.82);
+  letter-spacing: 0.2em;
+}
+
+.nexus-shell-opsHead__telemetry {
+  gap: 6px;
+  border: 0;
+}
+
+.nexus-shell-opsHead__readout {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.nexus-shell-opsHead__readout + .nexus-shell-opsHead__readout {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nexus-shell-opsHead__readoutLabel {
+  color: rgba(255, 255, 255, 0.46);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+}
+
+.nexus-shell-opsHead__readoutValue {
+  color: #ffffff;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.nexus-shell-opsHead__tape {
+  border-top-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.44);
+}
+
+.nexus-shell-opsHead[data-density="compact"] {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
+  gap: 12px;
+  padding: clamp(14px, 1.4vw, 22px);
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-opsHead__manifest {
+  grid-template-columns: minmax(0, 0.98fr) minmax(280px, 1.02fr);
+  grid-template-areas:
+    "copy threshold"
+    "doctrine threshold"
+    "visual visual"
+    "contract actionControl"
+    "source actionControl"
+    "tape tape"
+    "actions actions";
+  align-content: start;
+  gap: 10px;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-opsHead__copyBlock {
+  grid-area: copy;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-doctrineRail {
+  grid-area: doctrine;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-homefront-visualParity {
+  grid-area: visual;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-operatingContract {
+  grid-area: contract;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-actionControl {
+  grid-area: actionControl;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-sourceIntake {
+  grid-area: source;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-commandThreshold {
+  grid-area: threshold;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-opsHead__tape {
+  grid-area: tape;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-actions--ops {
+  grid-area: actions;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-title {
+  max-width: 13ch;
+  font-size: clamp(34px, 4vw, 64px);
+  line-height: 0.84;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-description {
+  display: block;
+  max-width: 42ch;
+  color: rgba(255, 255, 255, 0.56);
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-doctrineRail,
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-operatingContract,
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-actionControl,
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-sourceIntake,
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-commandThreshold {
+  padding: 12px;
+}
+
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-operatingContract__grid,
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-actionControl__matrix,
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-actionControl__actions,
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-sourceIntake__grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-commandThreshold {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-homefront-surfaceModule {
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 0.52fr);
+  grid-template-areas:
+    "copy media"
+    "data media"
+    "tabs actions";
+  padding: 11px;
+}
+
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-commandThreshold__grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-commandThreshold__vision {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-opsHead__tape {
+  display: flex;
+}
+
+.nexus-shell-opsHead[data-density="compact"]
+  .nexus-shell-opsHead__identityNote {
+  display: block;
+}
+
+.nexus-shell-opsHead[data-density="compact"] .nexus-shell-opsHead__plateFrame {
+  min-height: 190px;
+}
+
+@media (max-width: 1180px) {
+  .nexus-toprail {
+    padding: 8px 10px 0;
+  }
+
+  .nexus-command-header__inner {
+    grid-template-columns: minmax(0, 1fr);
+    border-radius: 24px;
+    padding: 12px;
+  }
+
+  .nexus-command-header__utility,
+  .nexus-command-header__utilityCore {
+    justify-items: start;
+  }
+
+  .nexus-shell-opsHead,
+  .nexus-shell-opsHead[data-density="compact"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nexus-shell-opsHead[data-density="compact"] .nexus-shell-opsHead__manifest {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "copy"
+      "doctrine"
+      "visual"
+      "threshold"
+      "contract"
+      "actionControl"
+      "source"
+      "tape"
+      "actions";
+  }
+
+  .nexus-shell-opsHead__plateFrame,
+  .nexus-shell-opsHead[data-density="compact"] .nexus-shell-opsHead__plateFrame {
+    min-height: 180px;
+  }
+}
+
+@media (max-width: 760px) {
+  .nexus-command-header__tabs {
+    justify-content: flex-start;
+  }
+
+  .nexus-command-header__link {
+    flex: 0 0 auto;
+    min-width: auto;
+  }
+
+  .nexus-command-header__railMeta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nexus-command-header__railLabel,
+  .nexus-command-header__railMetaHint,
+  .nexus-command-header__contextLabel,
+  .nexus-command-header__statusLabel {
+    display: none;
+  }
+
+  .nexus-shell-title,
+  .nexus-shell-opsHead[data-density="compact"] .nexus-shell-title {
+    font-size: clamp(38px, 14vw, 58px);
+  }
+
+  .nexus-shell-doctrineRail,
+  .nexus-shell-operatingContract__lead,
+  .nexus-shell-actionControl__matrix,
+  .nexus-shell-actionControl__actions,
+  .nexus-shell-sourceIntake__head,
+  .nexus-shell-commandThreshold__grid,
+  .nexus-shell-commandThreshold__vision,
+  .nexus-shell-opsHead[data-density="compact"]
+    .nexus-shell-commandThreshold__grid,
+  .nexus-shell-opsHead[data-density="compact"]
+    .nexus-shell-commandThreshold__vision {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nexus-homefront-surfaceModule,
+  .nexus-homefront-visualParity--chrome .nexus-homefront-surfaceModule,
+  .nexus-shell-opsHead[data-density="compact"] .nexus-homefront-surfaceModule {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "copy"
+      "media"
+      "data"
+      "tabs"
+      "actions";
+  }
+
+  .nexus-homefront-dataRail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nexus-homefront-mediaPanel__visual {
+    min-height: 154px;
+  }
+
+  .nexus-shell-operatingContract__lead,
+  .nexus-shell-actionControl__lead,
+  .nexus-shell-sourceIntake__head {
+    align-items: start;
+  }
+
+  .nexus-shell-operatingContract__promise,
+  .nexus-shell-actionControl__lead strong,
+  .nexus-shell-sourceIntake__head strong {
+    text-align: left;
+  }
+
+  .nexus-shell-doctrineRail__chips {
+    justify-content: flex-start;
+  }
+}
+/* Local AI receipts and phone-first HQ readiness */
+.nexus-assistant-turn-receipt {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025)),
+    rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.nexus-assistant-turn-receipt--compact {
+  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  gap: 4px;
+  margin-top: 5px;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+.nexus-assistant-turn-receipt__item {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nexus-assistant-turn-receipt__label {
+  color: #8f9baa;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.nexus-assistant-turn-receipt--compact .nexus-assistant-turn-receipt__label {
+  font-size: 7px;
+}
+
+.nexus-assistant-turn-receipt__value {
+  overflow: hidden;
+  color: var(--text, #f7fbff);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nexus-assistant-turn-receipt--compact .nexus-assistant-turn-receipt__value {
+  font-size: 9px;
+}
+
+.nexus-hq-composer__localCheck {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nexus-hq-composer__preset.is-local-check {
+  border-color: rgba(94, 234, 212, 0.32);
+  background: rgba(20, 184, 166, 0.12);
+  color: #d8fffb;
+}
+
+.nexus-operational-lights {
+  --ops-light-on: #39f6c3;
+  --ops-light-dim: #fbbf24;
+  --ops-light-off: #64748b;
+  --ops-light-blocked: #fb7185;
+  --ops-light-checking: #60a5fa;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.nexus-operational-lights__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nexus-operational-lights__eyebrow,
+.nexus-operational-lights__groupLabel,
+.nexus-operational-lights__state {
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.nexus-operational-lights__summary {
+  margin-top: 3px;
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.nexus-operational-lights__state {
+  flex: 0 0 auto;
+  min-height: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.nexus-operational-lights__groups {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nexus-operational-lights__group {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nexus-operational-lights__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nexus-operational-lights__light {
+  --ops-light-color: var(--ops-light-off);
+  display: inline-grid;
+  grid-template-columns: 8px auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  min-width: 52px;
+  max-width: 100%;
+  border: 1px solid color-mix(in srgb, var(--ops-light-color) 38%, transparent);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background:
+    radial-gradient(
+      circle at 12px 50%,
+      color-mix(in srgb, var(--ops-light-color) 22%, transparent),
+      transparent 54%
+    ),
+    rgba(255, 255, 255, 0.035);
+  color: rgba(255, 255, 255, 0.84);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.nexus-operational-lights__light[data-state="on"] {
+  --ops-light-color: var(--ops-light-on);
+}
+
+.nexus-operational-lights__light[data-state="dim"] {
+  --ops-light-color: var(--ops-light-dim);
+}
+
+.nexus-operational-lights__light[data-state="off"] {
+  --ops-light-color: var(--ops-light-off);
+}
+
+.nexus-operational-lights__light[data-state="blocked"] {
+  --ops-light-color: var(--ops-light-blocked);
+}
+
+.nexus-operational-lights__light[data-state="checking"] {
+  --ops-light-color: var(--ops-light-checking);
+}
+
+.nexus-operational-lights__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ops-light-color);
+  box-shadow:
+    0 0 9px color-mix(in srgb, var(--ops-light-color) 70%, transparent),
+    0 0 20px color-mix(in srgb, var(--ops-light-color) 24%, transparent);
+}
+
+.nexus-operational-lights__short,
+.nexus-operational-lights__label {
+  overflow: hidden;
+  min-width: 0;
+  color: inherit;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nexus-operational-lights__label {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.nexus-operational-lights--panel {
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  border-radius: 18px;
+  padding: 12px;
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.08), transparent 46%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.nexus-operational-lights--panel .nexus-operational-lights__groups {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nexus-operational-lights--panel .nexus-operational-lights__light {
+  grid-template-columns: 8px 32px minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
+}
+
+.nexus-operational-lights--compact {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.nexus-operational-lights--toprail {
+  width: min(100%, 360px);
+  justify-self: end;
+}
+
+.nexus-operational-lights--toprail .nexus-operational-lights__groups,
+.nexus-operational-lights--toprail .nexus-operational-lights__group {
+  gap: 0;
+}
+
+.nexus-operational-lights--toprail .nexus-operational-lights__row {
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.nexus-operational-lights--toprail .nexus-operational-lights__light {
+  min-width: 36px;
+  min-height: 22px;
+  grid-template-columns: 7px auto;
+  gap: 4px;
+  padding: 4px 6px;
+}
+
+.nexus-operational-lights--toprail .nexus-operational-lights__dot {
+  width: 7px;
+  height: 7px;
+}
+
+.nexus-operational-lights--toprail .nexus-operational-lights__short {
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nexus-operational-lights__light[data-state="on"]
+    .nexus-operational-lights__dot,
+  .nexus-operational-lights__light[data-state="checking"]
+    .nexus-operational-lights__dot {
+    animation: nexus-operational-light-pulse 2.6s ease-in-out infinite;
+  }
+}
+
+@keyframes nexus-operational-light-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+  50% {
+    filter: brightness(1.22);
+    transform: scale(1.12);
+  }
+}
+
+.nexus-free-local-readiness__details {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.nexus-free-local-readiness__details > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.nexus-free-local-readiness__details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.nexus-free-local-readiness__details .nexus-free-local-readiness__rows {
+  padding: 0 10px 10px;
+}
+
+@media (max-width: 720px) {
+  .nexus-operational-lights--panel .nexus-operational-lights__groups {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-operational-lights__head {
+    display: grid;
+  }
+
+  .nexus-operational-lights--toprail {
+    width: 100%;
+  }
+
+  .nexus-operational-lights--toprail .nexus-operational-lights__row {
+    justify-content: flex-start;
+  }
+
+  .nexus-assistant-turn-receipt,
+  .nexus-assistant-turn-receipt--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    padding: 7px;
+  }
+
+  .nexus-assistant-turn-receipt__value {
+    font-size: 10px;
+  }
+
+  .nexus-hq-composer {
+    gap: 8px;
+  }
+
+  .nexus-hq-composer__dock {
+    order: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-hq-composer__localCheck {
+    order: 2;
+  }
+
+  .nexus-hq-assistant-readiness {
+    order: 3;
+  }
+
+  .nexus-hq-free-local-readiness {
+    order: 4;
+  }
+
+  .nexus-hq-composer__topline,
+  .nexus-hq-composer__council,
+  .nexus-hq-composer__routeDebug,
+  .nexus-hq-chronicle__prompts {
+    order: 5;
+  }
+
+  .nexus-hq-composer__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .nexus-hq-composer__actions > * {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .nexus-hq-composer__action,
+  .nexus-hq-composer__action--icon {
+    min-height: 40px;
+    justify-content: center;
+  }
+
+  .nexus-hq-composer__localCheck {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  .nexus-hq-free-local-readiness .nexus-shell-button,
+  .nexus-hq-free-local-readiness button {
+    width: 100%;
+    justify-content: center;
   }
 }

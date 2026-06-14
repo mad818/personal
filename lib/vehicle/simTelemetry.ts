@@ -23,6 +23,17 @@ const BASE_ALTITUDE_AGL = 34
 
 type Listener = () => void
 
+export interface SimulatedTelemetryFrameInput {
+  step: number
+  timestamp?: number
+  mode?: VehicleFlightMode
+  profile?: string
+  phase?: VehicleMissionPhase
+  batteryPercent?: number
+  linkQualityPercent?: number
+  eventMessage?: string
+}
+
 const listeners = new Set<Listener>()
 
 const CONTROL_POSTURE: VehicleControlPosture = {
@@ -342,6 +353,81 @@ function buildFrame(previous: VehicleTelemetryFrame | null, now: number): Vehicl
     fusionConfidencePercent,
     pipeline,
     recentEvents: buildEvents(batteryPercent, linkQuality, missionPhase, failsafes, now),
+  }
+}
+
+export function makeSimulatedTelemetryFrame(input: SimulatedTelemetryFrameInput): VehicleTelemetryFrame {
+  const originalStep = step
+  const originalEmergencyUntil = emergencyUntil
+  const now = input.timestamp ?? Date.now() + input.step * TICK_MS
+  const mode = input.mode ?? "LOITER"
+
+  try {
+    emergencyUntil = 0
+    step = Math.max(0, input.step - 1)
+    const previous = buildFrame(null, now - TICK_MS)
+
+    step = input.step
+    const frame = buildFrame(
+      {
+        ...previous,
+        heartbeat: {
+          ...previous.heartbeat,
+          mode,
+        },
+      },
+      now,
+    )
+
+    const batteryPercent = input.batteryPercent ?? frame.battery.percent
+    const linkQualityPercent = input.linkQualityPercent ?? frame.link.qualityPercent
+    const failsafes: VehicleFailsafeStatus = {
+      ...frame.failsafes,
+      battery: batteryPercent <= frame.battery.failsafeThresholdPercent,
+      radio: linkQualityPercent <= 35,
+    }
+    const event: VehicleHealthEvent | null = input.eventMessage
+      ? {
+          id: `scenario-${input.step}-${now}`,
+          ts: now,
+          severity: failsafes.battery || failsafes.radio ? "warning" : "info",
+          message: input.eventMessage,
+        }
+      : null
+
+    return {
+      ...frame,
+      source: "replay",
+      heartbeat: {
+        ...frame.heartbeat,
+        mode,
+        linkState:
+          linkQualityPercent <= 35
+            ? "lost"
+            : linkQualityPercent <= 55
+              ? "degraded"
+              : "online",
+        health: failsafes.battery || failsafes.radio ? "warning" : frame.heartbeat.health,
+      },
+      battery: {
+        ...frame.battery,
+        percent: batteryPercent,
+      },
+      link: {
+        ...frame.link,
+        qualityPercent: linkQualityPercent,
+      },
+      mission: {
+        ...frame.mission,
+        profile: input.profile ?? frame.mission.profile,
+        phase: input.phase ?? frame.mission.phase,
+      },
+      failsafes,
+      recentEvents: event ? [event, ...frame.recentEvents].slice(0, 3) : frame.recentEvents,
+    }
+  } finally {
+    step = originalStep
+    emergencyUntil = originalEmergencyUntil
   }
 }
 

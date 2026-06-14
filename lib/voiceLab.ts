@@ -189,7 +189,7 @@ export function normalizeVoiceProjectInput(
 
   const fallbackSegment = {
     id: generateId("voice-segment"),
-    text: "Voice briefing placeholder",
+    text: "Draft a short local-first command briefing for the current operator session.",
   };
 
   return {

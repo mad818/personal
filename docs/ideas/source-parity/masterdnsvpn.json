@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "id": "masterdnsvpn",
+  "name": "MasterDnsVPN",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/masterking32/MasterDnsVPN",
+    "version": "f466bf8c408036c604c38ffdd767dea9dde986b9",
+    "reviewedAt": "2026-06-13",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/masterking32/MasterDnsVPN/blob/f466bf8c408036c604c38ffdd767dea9dde986b9/README.md",
+      "https://github.com/masterking32/MasterDnsVPN/blob/f466bf8c408036c604c38ffdd767dea9dde986b9/go.mod",
+      "https://github.com/masterking32/MasterDnsVPN/blob/f466bf8c408036c604c38ffdd767dea9dde986b9/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "dns-tunneling-transport",
+      "title": "DNS tunneling transport that disguises traffic as DNS",
+      "sourceEvidence": "README.md Architecture and Disclaimer",
+      "disposition": "excluded",
+      "conflict": "legal",
+      "reason": "Nexus does not create, launch, or automate DNS tunnels or traffic-disguise workflows."
+    },
+    {
+      "id": "arq-session-stream-multiplexing",
+      "title": "ARQ, sessions, multiplexed streams, packed control blocks, and MTU synchronization",
+      "sourceEvidence": "README.md Features and Architecture",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "These belong to the separately managed upstream transport runtime; Nexus exposes readiness rather than reproducing the tunnel engine."
+    },
+    {
+      "id": "resolver-configuration-posture",
+      "title": "Multi-resolver configuration, balancing, health checks, failover, and reactivation",
+      "sourceEvidence": "README.md Resolver management",
+      "disposition": "adapted",
+      "proof": ["lib/masterDnsVpn.ts", "app/api/masterdnsvpn/readiness/route.ts", "components/resources/MasterDnsVpnReadinessPanel.tsx"]
+    },
+    {
+      "id": "strong-encryption-posture",
+      "title": "AES and ChaCha20 encryption posture",
+      "sourceEvidence": "README.md Encryption",
+      "disposition": "adapted",
+      "proof": ["lib/masterDnsVpn.ts", "app/api/masterdnsvpn/readiness/route.ts"]
+    },
+    {
+      "id": "weak-xor-mode",
+      "title": "Optional XOR mode",
+      "sourceEvidence": "README.md Encryption",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus rejects XOR as weak encryption."
+    },
+    {
+      "id": "local-socks-tcp-listener",
+      "title": "Local SOCKS4/SOCKS5 and TCP forwarding listener",
+      "sourceEvidence": "README.md Client features",
+      "disposition": "adapted",
+      "proof": ["lib/masterDnsVpn.ts", "app/api/masterdnsvpn/readiness/route.ts", "components/resources/MasterDnsVpnReadinessPanel.tsx"]
+    },
+    {
+      "id": "local-dns-cache-compression-packing",
+      "title": "Local DNS, cache, compression, and request-packing posture",
+      "sourceEvidence": "README.md Features",
+      "disposition": "adapted",
+      "proof": ["app/api/masterdnsvpn/readiness/route.ts", "components/resources/MasterDnsVpnReadinessPanel.tsx"]
+    },
+    {
+      "id": "direct-egress-external-socks",
+      "title": "Remote direct egress or external SOCKS5 forwarding",
+      "sourceEvidence": "README.md Server features",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus does not configure, contact, or operate remote egress or proxy infrastructure."
+    },
+    {
+      "id": "delegated-domain-server-requirements",
+      "title": "Delegated DNS domain and operator-managed server prerequisites",
+      "sourceEvidence": "README.md Setup",
+      "disposition": "adapted",
+      "proof": ["lib/masterDnsVpn.ts", "docs/deployment/espectre-masterdnsvpn-integrations.md"]
+    },
+    {
+      "id": "docker-binaries-auto-start",
+      "title": "Docker deployment, platform binaries, automatic install, and runtime launch",
+      "sourceEvidence": "README.md Installation and Docker",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus does not install, download, launch, or manage the external transport runtime."
+    },
+    {
+      "id": "authorization-legality-disclaimer",
+      "title": "Explicit authorization and legal-compliance boundary",
+      "sourceEvidence": "README.md Disclaimer",
+      "disposition": "implemented",
+      "proof": ["lib/masterDnsVpn.ts", "components/resources/MasterDnsVpnReadinessPanel.tsx", "docs/deployment/espectre-masterdnsvpn-integrations.md"]
+    },
+    {
+      "id": "no-ip-invisibility-claim",
+      "title": "Honest distinction between emergency transport and IP privacy",
+      "sourceEvidence": "Nexus-safe adaptation of upstream architecture",
+      "disposition": "implemented",
+      "proof": ["lib/masterDnsVpn.ts", "components/resources/MasterDnsVpnReadinessPanel.tsx", "components/resources/SecureLinkOpenPanel.tsx"]
+    }
+  ]
+}

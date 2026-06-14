@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "id": "espectre",
+  "name": "ESPectre",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/francescopace/espectre",
+    "version": "29e457a0cf4251d681905f0df60832988f2f7559",
+    "reviewedAt": "2026-06-13",
+    "license": "GPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/francescopace/espectre/blob/29e457a0cf4251d681905f0df60832988f2f7559/README.md",
+      "https://github.com/francescopace/espectre/blob/29e457a0cf4251d681905f0df60832988f2f7559/SETUP.md",
+      "https://github.com/francescopace/espectre/blob/29e457a0cf4251d681905f0df60832988f2f7559/SECURITY.md",
+      "https://github.com/francescopace/espectre/blob/29e457a0cf4251d681905f0df60832988f2f7559/ROADMAP.md",
+      "https://github.com/francescopace/espectre/tree/29e457a0cf4251d681905f0df60832988f2f7559/components/espectre",
+      "https://github.com/francescopace/espectre/tree/29e457a0cf4251d681905f0df60832988f2f7559/micro-espectre"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "edge-csi-motion-runtime",
+      "title": "ESP32 edge CSI capture and binary IDLE/MOTION detection",
+      "sourceEvidence": "README.md and components/espectre",
+      "disposition": "adapted",
+      "proof": ["docs/deployment/espectre-masterdnsvpn-integrations.md", "lib/espectre.ts"]
+    },
+    {
+      "id": "motion-score-threshold",
+      "title": "Movement score, motion state, and adjustable threshold",
+      "sourceEvidence": "README.md Features",
+      "disposition": "implemented",
+      "proof": ["lib/espectre.ts", "components/iot/EspectreWifiViewer.tsx"]
+    },
+    {
+      "id": "calibration-controls",
+      "title": "Manual recalibration and installed-position readiness",
+      "sourceEvidence": "README.md and SETUP.md",
+      "disposition": "adapted",
+      "proof": ["lib/espectre.ts", "app/api/espectre/route.ts", "components/iot/EspectreWifiViewer.tsx"]
+    },
+    {
+      "id": "detectors-and-filters",
+      "title": "MVS and experimental MLP detectors, NBVI, Hampel, low-pass, gain lock, and FFT lock",
+      "sourceEvidence": "README.md, ROADMAP.md, and component configuration",
+      "disposition": "adapted",
+      "proof": ["lib/espectre.ts", "components/iot/EspectreWifiViewer.tsx"]
+    },
+    {
+      "id": "traffic-and-hit-filtering",
+      "title": "Ping, DNS, external traffic modes and motion on/off hit filtering",
+      "sourceEvidence": "README.md and component configuration",
+      "disposition": "adapted",
+      "proof": ["lib/espectre.ts", "components/iot/EspectreWifiViewer.tsx"]
+    },
+    {
+      "id": "esphome-home-assistant-mqtt",
+      "title": "ESPHome, Home Assistant, and MQTT sensor integration",
+      "sourceEvidence": "README.md Native Home Assistant integration",
+      "disposition": "adapted",
+      "proof": ["app/api/espectre/route.ts", "docs/deployment/espectre-masterdnsvpn-integrations.md"]
+    },
+    {
+      "id": "ble-telemetry-control",
+      "title": "BLE telemetry and control channel",
+      "sourceEvidence": "README.md BLE and Web Bluetooth telemetry",
+      "disposition": "adapted",
+      "proof": ["lib/espectre.ts", "docs/deployment/espectre-masterdnsvpn-integrations.md"]
+    },
+    {
+      "id": "multi-sensor-deployment",
+      "title": "Multi-sensor deployment and per-zone posture",
+      "sourceEvidence": "README.md Multi-sensor deployments",
+      "disposition": "implemented",
+      "proof": ["app/api/espectre/route.ts", "components/iot/EspectreWifiViewer.tsx"]
+    },
+    {
+      "id": "micro-espectre-research-cli",
+      "title": "Raw CSI streaming, labeled collection, analysis, deploy, verify, and live-PC detector CLI",
+      "sourceEvidence": "micro-espectre/README.md",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Raw CSI capture, research collection, flashing, and external CLI execution remain in the separately managed GPL runtime. Nexus only accepts normalized motion posture and never exposes raw CSI."
+    },
+    {
+      "id": "privacy-consent-security",
+      "title": "Consent, disclosure, encryption, controlled access, and abuse warning",
+      "sourceEvidence": "SECURITY.md",
+      "disposition": "implemented",
+      "proof": ["lib/espectre.ts", "components/iot/EspectreWifiViewer.tsx", "docs/deployment/espectre-masterdnsvpn-integrations.md"]
+    },
+    {
+      "id": "planned-advanced-inference",
+      "title": "People counting, activity recognition, fall detection, gestures, vital signs, and 3D localization",
+      "sourceEvidence": "ROADMAP.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "These are planned or research capabilities rather than production behavior in the reviewed source. Nexus does not invent or claim them."
+    },
+    {
+      "id": "gpl-runtime-boundary",
+      "title": "Keep ESPectre GPL runtime external to Nexus MIT source",
+      "sourceEvidence": "LICENSE",
+      "disposition": "implemented",
+      "proof": ["docs/deployment/espectre-masterdnsvpn-integrations.md", "app/api/espectre/route.ts"]
+    }
+  ]
+}

@@ -31,6 +31,17 @@ import {
   type AssistantLiveRetrievalResult,
 } from "@/lib/assistantLiveRetrieval";
 import {
+  buildAssistantChatActionModel,
+  normalizeAssistantFailureMessage,
+  resolveAssistantDispatch,
+  resolveAssistantFailure,
+} from "@/lib/assistantDispatch";
+import {
+  mergeAssistantRuntimeReceipt,
+  type AssistantChatActionModel,
+} from "@/lib/assistantChatActions";
+import { loadAssistantRuntimeReceipt } from "@/lib/assistantRuntimeReceipt";
+import {
   renderContextBundle,
   selectContextAssets,
   type ContextAssetId,
@@ -51,7 +62,7 @@ import {
   parseRuntimeEvalPayload,
   parseStatusPayload,
 } from "@/lib/runtimeTypes";
-import { buildMissionHref } from "@/lib/missionHandoff";
+import { buildMissionHref, getTabFromHref } from "@/lib/missionHandoff";
 import {
   buildCouncilAdoptDraft,
   buildCouncilMergeDraft,
@@ -761,8 +772,12 @@ export default function OfficeCommandCenter() {
     router.push(`/command?memoryAsk=${encodeURIComponent(trimmed)}`);
   }, [activeAgent, input, router, setTab]);
 
-  const send = useCallback(async () => {
-    const value = input.trim();
+  const send = useCallback(async (options: {
+    forceAnswerHere?: boolean;
+    forceRouteAction?: boolean;
+    overrideText?: string;
+  } = {}) => {
+    const value = (options.overrideText ?? input).trim();
     if (!value) return;
     if (activeAgent) return;
     setPrivacyShieldStatus(null);
@@ -775,6 +790,10 @@ export default function OfficeCommandCenter() {
     const answerStylePlan = resolveHQAnswerStylePlan(unpinnedValue, {
       hasWorkflow: Boolean(workflow),
     });
+    const dispatchPlan = resolveAssistantDispatch(unpinnedValue, {
+      forceAnswerHere: options.forceAnswerHere,
+      forceRouteAction: options.forceRouteAction,
+    });
     const operatorPlan = operatorRequested
       ? await runSwitchOperator({ command: unpinnedValue })
       : null;
@@ -784,6 +803,7 @@ export default function OfficeCommandCenter() {
     const routeFromPrompt =
       operatorPlan?.routeHint ??
       workflow?.route ??
+      dispatchPlan.routeHref ??
       detectRouteFromPrompt(unpinnedValue);
     const assistantContext = resolveHQAssistantContext({
       input: unpinnedValue,
@@ -793,6 +813,143 @@ export default function OfficeCommandCenter() {
     });
     let liveRetrieval: AssistantLiveRetrievalResult | null = null;
     let minedMemory: MinedMemory[] = [];
+
+    if (
+      !workflow &&
+      !operatorPlan &&
+      dispatchPlan.operatorChoiceNeeded &&
+      dispatchPlan.preparedWorkspace
+    ) {
+      const choiceText = `I can answer here, or open ${dispatchPlan.preparedWorkspace.label.replace(/^Open\s+/i, "")} so the workspace is in front. Which is better for this move?`;
+      clearCouncilResults();
+      setInput("");
+      setLiveSteps([]);
+      setDispatchBubble(null);
+      setDispatchBar(null);
+      addOfficeMessage({ role: "user", text: value });
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", text: value },
+        {
+          role: "agent",
+          agent: dispatchPlan.agent,
+          text: choiceText,
+          sourceQuery: value,
+          answerStyle: dispatchPlan.answerStyle,
+          responseKind: "assistant",
+          assistantIntent: dispatchPlan.intent,
+          preparedWorkspace: dispatchPlan.preparedWorkspace,
+          actionModel: dispatchPlan.actionModel,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
+        },
+      ]);
+      addOfficeMessage({
+        role: "agent",
+        agent: dispatchPlan.agent,
+        text: choiceText,
+      });
+      setPreparedWorkspace(dispatchPlan.preparedWorkspace, {
+        intent: dispatchPlan.intent,
+        sourceQuery: value,
+      });
+      rememberUnfinishedSession(dispatchPlan.preparedWorkspace, {
+        intent: dispatchPlan.intent,
+        sourceQuery: value,
+        confidence: 82,
+        capability: dispatchPlan.capabilityId,
+        completionState: "prepared",
+      });
+      setEmotion("idle");
+      return;
+    }
+
+    if (!workflow && !operatorPlan && dispatchPlan.answerMode === "route_action" && dispatchPlan.routeHref) {
+      const targetLabel =
+        dispatchPlan.preparedWorkspace?.label.replace(/^Open\s+/i, "") ??
+        dispatchPlan.routeHref;
+      const routeText = `Opening ${targetLabel}. I staged the right workspace so the next move is visible.`;
+      clearCouncilResults();
+      setInput("");
+      setLiveSteps([]);
+      setDispatchBubble(null);
+      setDispatchBar(null);
+      addOfficeMessage({ role: "user", text: value });
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", text: value },
+        {
+          role: "agent",
+          agent: dispatchPlan.agent,
+          text: routeText,
+          sourceQuery: value,
+          answerStyle: dispatchPlan.answerStyle,
+          responseKind: "assistant",
+          assistantIntent: dispatchPlan.intent,
+          preparedWorkspace: dispatchPlan.preparedWorkspace,
+          actionModel: dispatchPlan.actionModel,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
+        },
+      ]);
+      addOfficeMessage({
+        role: "agent",
+        agent: dispatchPlan.agent,
+        text: routeText,
+      });
+      if (dispatchPlan.preparedWorkspace) {
+        setPreparedWorkspace(dispatchPlan.preparedWorkspace, {
+          intent: dispatchPlan.intent,
+          sourceQuery: value,
+        });
+        rememberUnfinishedSession(dispatchPlan.preparedWorkspace, {
+          intent: dispatchPlan.intent,
+          sourceQuery: value,
+          confidence: 88,
+          capability: dispatchPlan.capabilityId,
+          completionState: "prepared",
+        });
+      } else {
+        clearPreparedWorkspace();
+      }
+      setTab(getTabFromHref(dispatchPlan.routeHref));
+      router.push(dispatchPlan.routeHref);
+      setEmotion("success");
+      window.setTimeout(() => setEmotion("idle"), 900);
+      return;
+    }
+
+    if (!workflow && !operatorPlan && dispatchPlan.localReply) {
+      const localReply = dispatchPlan.localReply;
+      clearCouncilResults();
+      setInput("");
+      setLiveSteps([]);
+      setDispatchBubble(null);
+      setDispatchBar(null);
+      addOfficeMessage({ role: "user", text: value });
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", text: value },
+        {
+          role: "agent",
+          agent: dispatchPlan.agent,
+          text: localReply,
+          sourceQuery: value,
+          answerStyle: dispatchPlan.answerStyle,
+          responseKind: "assistant",
+          assistantIntent: dispatchPlan.intent,
+          actionModel: dispatchPlan.actionModel,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
+        },
+      ]);
+      addOfficeMessage({
+        role: "agent",
+        agent: dispatchPlan.agent,
+        text: localReply,
+      });
+      clearPreparedWorkspace();
+      setEmotion("happy");
+      window.setTimeout(() => setEmotion("idle"), 900);
+      return;
+    }
 
     if (answerStylePlan.verifiedRetrievalRequired) {
       try {
@@ -896,7 +1053,7 @@ export default function OfficeCommandCenter() {
 
     // Allow operator to force an agent with @AGENTNAME: prefix.
     // E.g. "@ORBIT: fix the bug in lib/agent.ts" — skips auto-detection.
-    const detectedTarget = workflow?.agent ?? detectAgent(unpinnedValue);
+    const detectedTarget = workflow?.agent ?? dispatchPlan.agent;
     const target: AgentId = pinMatch
       ? (pinMatch[1].toLowerCase() as AgentId)
       : operatorPlan?.targetAgent ??
@@ -1088,7 +1245,8 @@ export default function OfficeCommandCenter() {
       contentByAsset.assistant_context =
         assistantContext.promptBlock +
         buildCapabilitiesBlock(agentId) +
-        correctionBlock;
+        correctionBlock +
+        dispatchPlan.contextBlock;
       contentByAsset.continuation = assistantContext.continuationBlock;
       contentByAsset.prepared_workspace = assistantContext.preparedWorkspaceBlock;
       contentByAsset.lessons = lessonsBlock;
@@ -1344,6 +1502,7 @@ export default function OfficeCommandCenter() {
       const result = await runAgent({
         settings,
         agentId: target,
+        toolCatalog: dispatchPlan.toolCatalog,
         systemPrompt: enrichedPrompt + extraDirective,
         messages: [{ role: "user", content: agentInput }],
         efficiencyHint: {
@@ -1487,6 +1646,15 @@ export default function OfficeCommandCenter() {
       }
 
       // Finalize UI: agent reply + tool trace.
+      const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
+        provider: latestArtifact?.providerUsed,
+        filesChanged: false,
+      });
+      const actionModel = mergeAssistantRuntimeReceipt(
+        dispatchPlan.actionModel,
+        runtimeReceipt,
+      );
+
       setMessages((prev) => [
         ...prev,
         {
@@ -1500,6 +1668,8 @@ export default function OfficeCommandCenter() {
           showEvidencePosture: answerStylePlan.showEvidencePosture,
           assistantIntent: assistantContext.intent,
           preparedWorkspace,
+          actionModel,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
           assistantGuidance: mergeAssistantGuidance(
             assistantContext.assistantGuidance,
             correctionGuidance,
@@ -1588,19 +1758,36 @@ export default function OfficeCommandCenter() {
         });
       }
       clearPreparedWorkspace();
-      const msg = err instanceof Error ? err.message : "Something went wrong.";
+      const failure = resolveAssistantFailure(err);
+      const msg = normalizeAssistantFailureMessage(err);
+      const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
+        recoveryCode: failure.recoveryCode,
+        filesChanged: false,
+      });
+      const recoveryActionModel = buildAssistantChatActionModel({
+        answerMode: "direct",
+        routeHref: null,
+        preparedWorkspace: null,
+        sourceText: value,
+        recoveryAction: failure.recoveryAction,
+        diagnostic: failure.diagnostic,
+        operatorWorkflow: dispatchPlan.operatorWorkflow,
+        runtimeReceipt,
+      });
       setMessages((prev) => [
         ...prev,
         {
           role: "agent",
           agent: target,
-          text: `Error: ${msg}`,
+          text: msg,
           steps: latestSteps.length ? latestSteps : undefined,
           sourceQuery: value,
           assistantIntent: assistantContext.intent,
+          actionModel: recoveryActionModel,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
         },
       ]);
-      addOfficeMessage({ role: "agent", agent: target, text: `Error: ${msg}` });
+      addOfficeMessage({ role: "agent", agent: target, text: msg });
       setEmotion("error");
     } finally {
       // Release active agent lock.
@@ -1632,8 +1819,40 @@ export default function OfficeCommandCenter() {
     proposeCorrectionMemory,
     markCorrectionMemoriesApplied,
     rememberUnfinishedSession,
+    router,
+    setTab,
     unfinishedSessions,
   ]);
+
+  const handleAssistantAction = useCallback(
+    (
+      message: ChatMessage,
+      action: AssistantChatActionModel["actions"][number],
+    ) => {
+      if (action.workflowFocus) {
+        return;
+      }
+      if (action.kind === "answer_here") {
+        void send({
+          overrideText: action.prompt ?? message.sourceQuery ?? "",
+          forceAnswerHere: true,
+        });
+        return;
+      }
+      if (action.kind === "retry_local") {
+        void send({
+          overrideText: message.sourceQuery ?? "",
+          forceAnswerHere: true,
+        });
+        return;
+      }
+      if (action.href) {
+        setTab(getTabFromHref(action.href));
+        router.push(action.href);
+      }
+    },
+    [router, send, setTab],
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -2084,6 +2303,7 @@ export default function OfficeCommandCenter() {
                     inputRef={inputRef}
                     scrollViewportRef={chronicleScrollRef}
                     onPrimePrompt={primePrompt}
+                    onQuickSend={(prompt) => send({ overrideText: prompt })}
                     onInputChange={setInput}
                     onDictationAppend={(transcript) =>
                       setInput((current) =>
@@ -2095,6 +2315,7 @@ export default function OfficeCommandCenter() {
                     onInputKeyDown={handleKeyDown}
                     onAskMemory={openMemoryLane}
                     onSend={send}
+                    onAssistantAction={handleAssistantAction}
                     onClear={handleClear}
                     onMergeCouncil={(results) =>
                       setInput(buildCouncilMergeDraft(results))

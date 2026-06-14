@@ -106,6 +106,15 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
     headerNote: "Hardware desk, not admin chrome.",
     routeDirective: "Keep readiness clearer than telemetry.",
   },
+  iot: {
+    surface: "iot",
+    visualThesis: "A sensor desk with one device plane and one automation rail.",
+    workplaneLabel: "Sensor plane",
+    supportLabel: "Automation rail",
+    continuityLabel: "Device band",
+    headerNote: "Device posture, not generic admin.",
+    routeDirective: "Keep live sensor posture clearer than device sprawl.",
+  },
   security: {
     surface: "security",
     visualThesis: "A hardening desk with one control plane and one embedded trust rail.",

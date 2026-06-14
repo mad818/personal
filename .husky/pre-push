@@ -3,5 +3,8 @@ set -eu
 
 npm run handoff:check
 npm run design:check
+npm run publication:safety:check
+npm run security-scan
+npm run validate:infra-hardening
 npm run type-check
 npm run lint

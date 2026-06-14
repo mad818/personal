@@ -6,9 +6,20 @@ export type PrivacyShieldKind =
   | "protected_path"
   | "sensitive_evidence";
 
+export type PrivacyShieldProtectedField =
+  | "messages"
+  | "system"
+  | "tools"
+  | "tool_choice"
+  | "preview";
+
+export const PRIVACY_SHIELD_POLICY = "local_redaction_v2";
+
 export interface PrivacyShieldServerStatus {
   active: boolean;
+  policy: typeof PRIVACY_SHIELD_POLICY;
   protectedKinds: PrivacyShieldKind[];
+  protectedFields: PrivacyShieldProtectedField[];
   protectedCount: number;
   classCounts: Record<string, number>;
   summary: string;
@@ -18,6 +29,7 @@ export interface PrivacyShieldServerStatus {
 
 interface RedactionState {
   classCounts: Record<PrivacyShieldKind, number>;
+  protectedFields: Set<PrivacyShieldProtectedField>;
   blockedReason: string | null;
 }
 
@@ -83,6 +95,23 @@ function bumpCount(state: RedactionState, kind: PrivacyShieldKind, count: number
   state.classCounts[kind] += count;
 }
 
+function createRedactionState(): RedactionState {
+  return {
+    classCounts: {
+      credential: 0,
+      internal_host: 0,
+      protected_path: 0,
+      sensitive_evidence: 0,
+    },
+    protectedFields: new Set(),
+    blockedReason: null,
+  };
+}
+
+function countProtectedValues(state: RedactionState) {
+  return Object.values(state.classCounts).reduce((sum, count) => sum + count, 0);
+}
+
 function sanitizeString(value: string, state: RedactionState): string {
   let next = value;
 
@@ -135,14 +164,31 @@ function sanitizeUnknown(value: unknown, state: RedactionState): unknown {
   return value;
 }
 
+function sanitizeField<T>(
+  value: T,
+  state: RedactionState,
+  field: PrivacyShieldProtectedField,
+): T {
+  const before = countProtectedValues(state);
+  const sanitized = sanitizeUnknown(value, state) as T;
+  const after = countProtectedValues(state);
+  if (after > before) {
+    state.protectedFields.add(field);
+  }
+  return sanitized;
+}
+
 function buildSummary(status: Omit<PrivacyShieldServerStatus, "summary">) {
   const classLabels = status.protectedKinds
     .map((kind) => `${kind.replace(/_/g, " ")} ${status.classCounts[kind] ?? 0}`)
     .join(" · ");
+  const fieldLabels = status.protectedFields
+    .map((field) => field.replace(/_/g, " "))
+    .join(" · ");
   if (status.dispatchMode === "blocked") {
-    return `Privacy shield blocked cloud dispatch after detecting ${classLabels || "sensitive evidence"}.`;
+    return `Privacy shield blocked cloud dispatch after detecting ${classLabels || "sensitive evidence"} in ${fieldLabels || "provider payload"}.`;
   }
-  return `Privacy shield redacted ${status.protectedCount} sensitive value${status.protectedCount === 1 ? "" : "s"} across ${classLabels || "protected classes"}.`;
+  return `Privacy shield redacted ${status.protectedCount} sensitive value${status.protectedCount === 1 ? "" : "s"} across ${classLabels || "protected classes"} in ${fieldLabels || "provider payload"}.`;
 }
 
 function finalizeStatus(state: RedactionState): PrivacyShieldServerStatus | null {
@@ -160,7 +206,9 @@ function finalizeStatus(state: RedactionState): PrivacyShieldServerStatus | null
 
   const status: Omit<PrivacyShieldServerStatus, "summary"> = {
     active: true,
+    policy: PRIVACY_SHIELD_POLICY,
     protectedKinds,
+    protectedFields: Array.from(state.protectedFields),
     protectedCount,
     classCounts: state.classCounts,
     dispatchMode: state.blockedReason ? "blocked" : "redacted",
@@ -176,35 +224,70 @@ export function protectCloudBoundPayload(args: {
   providerName: string;
   messages: unknown[];
   system?: string;
+  tools?: unknown;
+  toolChoice?: unknown;
 }) {
-  if (args.providerName === "ollama") {
+  if (args.providerName === "ollama" || args.providerName === "turboquant") {
     return {
       messages: args.messages,
       system: args.system,
+      tools: args.tools,
+      toolChoice: args.toolChoice,
       status: null,
     };
   }
 
-  const state: RedactionState = {
-    classCounts: {
-      credential: 0,
-      internal_host: 0,
-      protected_path: 0,
-      sensitive_evidence: 0,
-    },
-    blockedReason: null,
-  };
+  const state = createRedactionState();
 
-  const messages = sanitizeUnknown(args.messages, state) as unknown[];
+  const messages = sanitizeField(args.messages, state, "messages") as unknown[];
   const system =
     typeof args.system === "string"
-      ? (sanitizeUnknown(args.system, state) as string)
+      ? (sanitizeField(args.system, state, "system") as string)
       : args.system;
+  const tools =
+    typeof args.tools === "undefined"
+      ? args.tools
+      : sanitizeField(args.tools, state, "tools");
+  const toolChoice =
+    typeof args.toolChoice === "undefined"
+      ? args.toolChoice
+      : sanitizeField(args.toolChoice, state, "tool_choice");
 
   return {
     messages,
     system,
+    tools,
+    toolChoice,
     status: finalizeStatus(state),
+  };
+}
+
+export function previewPrivacyShieldPayload(input: unknown) {
+  const state = createRedactionState();
+  const safePayload = sanitizeField(input, state, "preview");
+  const safePreview =
+    typeof safePayload === "string"
+      ? safePayload
+      : (JSON.stringify(safePayload, null, 2) ?? "");
+
+  return {
+    status: finalizeStatus(state) ?? {
+      active: false,
+      policy: PRIVACY_SHIELD_POLICY,
+      protectedKinds: [],
+      protectedFields: [],
+      protectedCount: 0,
+      classCounts: {
+        credential: 0,
+        internal_host: 0,
+        protected_path: 0,
+        sensitive_evidence: 0,
+      },
+      summary: "Privacy shield found no protected values in the preview payload.",
+      dispatchMode: "redacted" as const,
+      blockedReason: null,
+    },
+    safePreview,
   };
 }
 
@@ -214,6 +297,7 @@ export function applyPrivacyShieldHeaders(
 ) {
   if (!status?.active) return response;
   response.headers.set("X-Anonymization-Active", "true");
+  response.headers.set("X-Anonymization-Policy", status.policy);
   response.headers.set("X-Anonymization-Protected", String(status.protectedCount));
   response.headers.set(
     "X-Anonymization-Kinds",
@@ -226,6 +310,7 @@ export function applyPrivacyShieldHeaders(
       .map(([kind, count]) => `${kind}:${count}`)
       .join(","),
   );
+  response.headers.set("X-Anonymization-Fields", status.protectedFields.join(","));
   response.headers.set("X-Anonymization-Mode", status.dispatchMode);
   response.headers.set("X-Anonymization-Summary", status.summary);
   if (status.blockedReason) {

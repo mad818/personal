@@ -19,6 +19,7 @@ export const ENGINEERING_PLAYBOOK_IDS = [
   "radar-readiness-session",
   "repo-intel-briefing",
   "feature-ship",
+  "runtime-finalize-loop",
   "api-wire",
 ] as const;
 
@@ -27,6 +28,9 @@ export type EngineeringPlaybookId = (typeof ENGINEERING_PLAYBOOK_IDS)[number];
 const ENGINEERING_PLAYBOOK_ID_SET = new Set<string>(ENGINEERING_PLAYBOOK_IDS);
 
 const ENGINEERING_PLAYBOOK_ALIASES: Record<string, EngineeringPlaybookId> = {
+  finalize: "runtime-finalize-loop",
+  "bug-finalize": "runtime-finalize-loop",
+  "quality-finalize": "runtime-finalize-loop",
   "release-hardening": "feature-ship",
   "safe-refactors": "safe-refactor",
 };
@@ -124,6 +128,7 @@ export const SURFACE_CAPABILITY_IDS = [
   "recon",
   "vault",
   "vehicle",
+  "iot",
   "resources",
   "security",
   "skills",

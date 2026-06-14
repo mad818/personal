@@ -227,6 +227,32 @@
       "The first viewport reads as a game and command input remains usable.",
       "No unverified or franchise-derived assets are shipped.",
       "Resources and handoff docs match the verified state."
+    ],
+    "fallbackProofMatrix": [
+      {
+        "id": "static-release-gates",
+        "label": "Static release gates",
+        "proof": ["arpg:content:check", "arpg:assets:check", "arpg:production:check", "arpg:release:check"],
+        "acceptance": "Content, assets, production, and release contracts validate without browser automation."
+      },
+      {
+        "id": "save-combat-item-city-quest",
+        "label": "Deterministic gameplay validators",
+        "proof": ["arpg:save:check", "arpg:balance:check", "arpg:tools:check"],
+        "acceptance": "Save migration, combat/item balance, city registry, quest tooling, and authoring helpers stay deterministic."
+      },
+      {
+        "id": "browser-fallback-route-proof",
+        "label": "Browser fallback route proof",
+        "proof": ["/hq", "/hq?focus=hq-chronicle", "/resources?view=impact&impactMode=graph"],
+        "acceptance": "When Windows Playwright spawn is blocked, HTTP/source proof plus in-app browser acceptance can close the tranche without treating worker EPERM as a product failure."
+      },
+      {
+        "id": "arpg-isolation",
+        "label": "Private lane isolation",
+        "proof": ["data-testid=arpg-room", "command-room-fallback", "no public landing RPG positioning"],
+        "acceptance": "Aether Reliquary remains private inside /hq and Homefront public positioning stays separate."
+      }
     ]
   }
 }

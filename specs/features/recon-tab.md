@@ -19,7 +19,7 @@ Designed for operators who need fast, passive recon without leaving a footprint.
 
 | Input | Detected as | Tools used |
 |-------|-------------|-----------|
-| `192.168.1.1` | IP | RDAP, IP Geo, VirusTotal, Shodan |
+| `<IP-address>` | IP | RDAP, IP Geo, VirusTotal, Shodan |
 | `example.com` | Domain | RDAP, DNS, Certs, IP Geo (resolved), VirusTotal |
 | `user@email.com` | Email | HIBP breach check |
 | `3a4b5c...` (32-64 hex) | Hash | VirusTotal |

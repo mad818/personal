@@ -4,10 +4,15 @@ const devPort = process.env.PORT || '3000'
 const devOrigins = ['127.0.0.1', 'localhost']
 const devSockets = [`ws://127.0.0.1:${devPort}`, `ws://localhost:${devPort}`]
 const distDir = process.env.NEXUS_NEXT_DIST_DIR || '.next'
+const skipDuplicateBuildChecks = process.env.NEXUS_NEXT_SKIP_BUILD_CHECKS === '1'
 
 function buildCsp() {
   const scriptSrc = ["script-src 'self'", "'unsafe-inline'"]
-  const styleSrc = ["style-src 'self'", "'unsafe-inline'"]
+  const styleSrc = [
+    "style-src 'self'",
+    "'unsafe-inline'",
+    "https://fonts.googleapis.com",
+  ]
   const connectSrc = [
     "connect-src 'self'",
     "https://api.coingecko.com",
@@ -28,6 +33,8 @@ function buildCsp() {
     "https://www.virustotal.com",
     "https://api.shodan.io",
     "https://api.stlouisfed.org",
+    "https://stream.mux.com",
+    "https://*.mux.com",
   ]
   const imgSrc = [
     "img-src 'self' data: blob:",
@@ -39,6 +46,12 @@ function buildCsp() {
     "frame-src 'self'",
     "https://www.tradingview.com",
     "https://s.tradingview.com",
+  ]
+  const mediaSrc = [
+    "media-src 'self' data: blob:",
+    "https://d8j0ntlcm91z4.cloudfront.net",
+    "https://stream.mux.com",
+    "https://*.mux.com",
   ]
 
   if (isDevelopment) {
@@ -53,7 +66,8 @@ function buildCsp() {
     scriptSrc.join(' '),
     styleSrc.join(' '),
     imgSrc.join(' '),
-    "font-src 'self' data:",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    mediaSrc.join(' '),
     connectSrc.join(' '),
     frameSrc.join(' '),
     "object-src 'none'",
@@ -69,6 +83,17 @@ module.exports = {
   distDir,
   poweredByHeader: false,
   allowedDevOrigins: devOrigins,
+  experimental: {
+    // Windows local proof can reject Next's webpack worker spawn with EPERM.
+    // Keep compiler work in-process to reduce local build-worker failures.
+    webpackBuildWorker: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: skipDuplicateBuildChecks,
+  },
+  typescript: {
+    ignoreBuildErrors: skipDuplicateBuildChecks,
+  },
 
   // Air-gapped profile: keep `next/image` rendering without exposing the built-in optimizer.
   images: {

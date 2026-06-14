@@ -33,6 +33,7 @@ import type { HQAssistantIntent, PreparedWorkspaceTarget } from '@/components/ho
 import type { ContextLoadReport } from '@/lib/contextPolicy'
 import type { ArticleReasoningIndex } from '@/lib/articleReasoning'
 import type { VoiceProfile, VoiceProject } from '@/lib/voiceLab'
+import type { RuntimeContinuityReceipt } from '@/lib/runtimeAuthority'
 import {
   advanceArpgStory as advanceArpgStoryState,
   acceptArpgQuest as acceptArpgQuestState,
@@ -314,6 +315,7 @@ export interface AgentRunArtifact {
   contextCompacted: boolean
   toolTraces: AgentToolTrace[]
   efficiency: AgentEfficiencyMetrics
+  continuity: RuntimeContinuityReceipt
 }
 
 // ── Activity log ──────────────────────────────────────────────────────────────
@@ -715,7 +717,9 @@ export interface SecurityAlert {
 export interface PrivacyShieldStatus {
   active: boolean
   provider?: string
+  policy?: string
   protectedKinds: string[]
+  protectedFields?: string[]
   protectedCount: number
   summary: string
   classCounts?: Record<string, number>
@@ -764,7 +768,7 @@ interface NexusState {
   marketsView:   'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices' | 'charts'
   cyberView:     'triage' | 'matrix' | 'cves' | 'otx' | 'cisa' | 'drone' | 'vuln-review'
   skillsWorkbenchView: 'forge' | 'blacksite' | 'brain' | 'library'
-  resourcesWorkbenchView: 'finder' | 'manual' | 'study' | 'surfaces' | 'playbooks' | 'specs' | 'system' | 'impact' | 'registry' | 'kits' | 'voice-lab' | 'wins'
+  resourcesWorkbenchView: 'finder' | 'manual' | 'sources' | 'study' | 'surfaces' | 'playbooks' | 'specs' | 'system' | 'impact' | 'registry' | 'kits' | 'escape' | 'voice-lab' | 'wins'
   securityWorkbenchView: 'doctrine' | 'physical' | 'ai'
   prices:        Record<string, PriceData>
   sparklines:    Record<string, number[]>

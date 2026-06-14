@@ -1,17 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import SkillLibrary from "@/components/skills/SkillLibrary";
-import LearningLog from "@/components/skills/LearningLog";
-import SystemBrain from "@/components/skills/SystemBrain";
-import KnowledgeBase from "@/components/skills/KnowledgeBase";
-import SkillRadarChart from "@/components/skills/SkillRadarChart";
-import LearningProgressRing from "@/components/skills/LearningProgressRing";
-import KnowledgeGraphViz from "@/components/skills/KnowledgeGraphViz";
-import WorkflowForge from "@/components/skills/WorkflowForge";
-import BlacksiteLab from "@/components/skills/BlacksiteLab";
 import MissionHandoffStrip from "@/components/ui/MissionHandoffStrip";
 import OperatorReadinessLane from "@/components/ui/OperatorReadinessLane";
 import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
@@ -33,6 +25,43 @@ import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
 import { getOpsLayoutDescriptor } from "@/lib/opsLayoutRegistry";
 import { useStore } from "@/store/useStore";
 import type { LearningEvent } from "@/lib/skillEngine";
+
+const AgencyRoleLibrary = dynamic(
+  () => import("@/components/skills/AgencyRoleLibrary"),
+  { ssr: false },
+);
+const BlacksiteLab = dynamic(() => import("@/components/skills/BlacksiteLab"), {
+  ssr: false,
+});
+const KnowledgeBase = dynamic(
+  () => import("@/components/skills/KnowledgeBase"),
+  { ssr: false },
+);
+const KnowledgeGraphViz = dynamic(
+  () => import("@/components/skills/KnowledgeGraphViz"),
+  { ssr: false },
+);
+const LearningLog = dynamic(() => import("@/components/skills/LearningLog"), {
+  ssr: false,
+});
+const LearningProgressRing = dynamic(
+  () => import("@/components/skills/LearningProgressRing"),
+  { ssr: false },
+);
+const SkillLibrary = dynamic(() => import("@/components/skills/SkillLibrary"), {
+  ssr: false,
+});
+const SkillRadarChart = dynamic(
+  () => import("@/components/skills/SkillRadarChart"),
+  { ssr: false },
+);
+const SystemBrain = dynamic(() => import("@/components/skills/SystemBrain"), {
+  ssr: false,
+});
+const WorkflowForge = dynamic(
+  () => import("@/components/skills/WorkflowForge"),
+  { ssr: false },
+);
 
 type View = "forge" | "blacksite" | "brain" | "library";
 
@@ -428,9 +457,14 @@ export default function SkillsPage() {
               <div className="nexus-surface-chamber-shell">
                 <div className="nexus-surface-chamber-shell__body">
                   <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${skillsLayout.workplaneClass}`}>
-                    <OpsField title="Skill library" detail="Actionable capability catalog">
-                      <SkillLibrary onNewEvent={handleNewEvent} />
-                    </OpsField>
+                    <ShellStack gap="12px">
+                      <OpsField title="Skill library" detail="Actionable capability catalog">
+                        <SkillLibrary onNewEvent={handleNewEvent} />
+                      </OpsField>
+                      <OpsField title="Agency role library" detail="Curated specialist role packs">
+                        <AgencyRoleLibrary />
+                      </OpsField>
+                    </ShellStack>
                   </OpsWorkplane>
                   <OpsRail className={`nexus-surface-chamber-shell__support ${skillsLayout.railClass}`}>
                     <ShellStack gap="12px">

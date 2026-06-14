@@ -9,7 +9,8 @@ export type SpatialSurface =
   | "resources"
   | "security"
   | "skills"
-  | "vehicle";
+  | "vehicle"
+  | "iot";
 
 export type SpatialAnchorTone = "steady" | "warning" | "critical";
 
@@ -275,6 +276,15 @@ const SPATIAL_COMMAND_REGISTRY: Record<SpatialSurface, SpatialSurfaceDefinition>
         tone: "steady",
       },
       {
+        id: "resources-sources",
+        label: "Sources",
+        status: "Intake gated",
+        nextAction: "Open source intake",
+        detail: "Use source intelligence when external repos, posts, or tooling ideas need mapping before implementation.",
+        href: "/resources?view=sources",
+        tone: "steady",
+      },
+      {
         id: "resources-playbooks",
         label: "Playbooks",
         status: "Workflows staged",
@@ -390,6 +400,42 @@ const SPATIAL_COMMAND_REGISTRY: Record<SpatialSurface, SpatialSurfaceDefinition>
         detail: "Use the artifact convention when the bridge needs durable bundles, checklists, and field continuity.",
         href: "/vehicle?focus=vehicle-artifact-convention",
         tone: "steady",
+      },
+    ],
+  },
+  iot: {
+    kicker: "Sensor anchor",
+    note: "Device posture stays visible before automation gets authority.",
+    anchors: [
+      {
+        id: "iot-mqtt",
+        label: "MQTT",
+        status: "Adapter watched",
+        nextAction: "Open MQTT posture",
+        detail:
+          "Use MQTT posture first when sensor freshness or broker connectivity determines whether device state can be trusted.",
+        href: "/iot?focus=iot-mqtt",
+        tone: "steady",
+      },
+      {
+        id: "iot-devices",
+        label: "Devices",
+        status: "Matrix ready",
+        nextAction: "Open device matrix",
+        detail:
+          "Open device matrix when the mission needs health, location, or readiness across local devices.",
+        href: "/iot?focus=iot-devices",
+        tone: "steady",
+      },
+      {
+        id: "iot-automation",
+        label: "Automation",
+        status: "Review gated",
+        nextAction: "Open automation review",
+        detail:
+          "Use automation review when a rule touches physical-world behavior and should stay operator-owned.",
+        href: "/iot?focus=iot-automation",
+        tone: "warning",
       },
     ],
   },

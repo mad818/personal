@@ -1,0 +1,151 @@
+{
+  "capturedAt": "2026-05-09T22:28:42.970Z",
+  "auditName": "SECURITY-INFRASTRUCTURE-HARDENING",
+  "checks": [
+    {
+      "id": "publication-safety",
+      "command": "npm run publication:safety:check",
+      "delegatedCommand": "node scripts/validate-publication-safety.mjs",
+      "critical": true,
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 1080,
+      "summary": [
+        "Publication safety OK (tracked files contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
+      ]
+    },
+    {
+      "id": "security-scan",
+      "command": "npm run security-scan",
+      "delegatedCommand": "node scripts/security-scan.js",
+      "critical": true,
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 63,
+      "summary": [
+        "✅ security-scan: clean"
+      ]
+    },
+    {
+      "id": "tauri-security",
+      "command": "npm run security:tauri",
+      "delegatedCommand": "node scripts/check-tauri-security.mjs",
+      "critical": false,
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 35,
+      "summary": [
+        "✅ tauri-security: capability + CSP checks passed"
+      ]
+    },
+    {
+      "id": "security-boundaries",
+      "command": "npm run security:boundaries",
+      "delegatedCommand": "node scripts/validate-security-boundaries.mjs",
+      "critical": false,
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 37,
+      "summary": [
+        "Security boundary OK (middleware, route policy, protected helpers, high-risk routes, and protected 401/403 posture are wired)."
+      ]
+    },
+    {
+      "id": "dependency-risk-posture",
+      "command": "npm run dependency:risk:posture",
+      "delegatedCommand": "node scripts/dependency-risk-posture.mjs",
+      "critical": false,
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 145,
+      "summary": [
+        "Dependency risk posture written: docs/metrics/dependency-risk-posture-2026-05-09T22-28-44-321Z.json",
+        "Package graph: 40 runtime direct, 23 dev direct, 1070 transitive lockfile packages.",
+        "Warnings: 1"
+      ]
+    },
+    {
+      "id": "dependabot-audit",
+      "command": "npm run dependabot:audit:classify",
+      "delegatedCommand": "node scripts/dependabot-security-audit.mjs",
+      "critical": false,
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 41,
+      "summary": [
+        "Dependabot security audit starter written: docs/metrics/dependabot-security-audit-2026-05-09T22-28-44-361Z.json",
+        "Known warning captured: 75 alerts (3 critical, 23 high, 39 moderate, 10 low)."
+      ]
+    },
+    {
+      "id": "phone-lan-static",
+      "command": "npm run phone:lan:check",
+      "delegatedCommand": "node scripts/validate-phone-lan-readiness.mjs",
+      "critical": false,
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 37,
+      "summary": [
+        "Phone LAN readiness OK (free local runbook, opt-in LAN launcher, env defaults, and readiness surfacing wired)."
+      ]
+    }
+  ],
+  "artifacts": {
+    "dependencyRiskPosture": {
+      "file": "docs/metrics/dependency-risk-posture-2026-05-09T22-28-44-321Z.json",
+      "capturedAt": "2026-05-09T22:28:44.321Z",
+      "ready": true,
+      "blocked": []
+    },
+    "dependabotAudit": {
+      "file": "docs/metrics/dependabot-security-audit-2026-05-09T22-28-44-361Z.json",
+      "capturedAt": "2026-05-09T22:28:44.361Z",
+      "ready": false,
+      "blocked": [
+        "GitHub Dependabot alert details are not reachable from this Codex shell.",
+        "No dependency upgrades were performed in this acceptance tranche.",
+        "Run the GitHub Dependabot UI or API from a network-enabled session to fill package names, vulnerable ranges, patched ranges, and direct/transitive ownership."
+      ]
+    },
+    "releaseDiagnostics": {
+      "file": "docs/metrics/release-diagnostics-2026-05-09T13-04-08-863Z.json",
+      "capturedAt": "2026-05-09T13:04:08.863Z",
+      "ready": false,
+      "blocked": [
+        "NEXUS_RELEASE_BASE_URL is missing; capture used local fallback.",
+        "Docker CLI is unavailable; local container proof remains blocked."
+      ]
+    },
+    "readinessRollup": {
+      "file": "docs/metrics/readiness-rollup-2026-05-09T16-21-31-697Z.json",
+      "capturedAt": "2026-05-09T16:21:31.697Z",
+      "ready": false,
+      "blocked": [
+        "Phone/PWA acceptance is still open because the latest sanitized phone artifact is not acceptanceReady.",
+        "Release diagnostics are still blocked by staged-host or Docker proof gaps.",
+        "Dependabot audit is started but detailed GitHub alert metadata is still pending."
+      ]
+    }
+  },
+  "releasePrerequisites": {
+    "docker": {
+      "dockerfilePresent": true,
+      "dockerCliAvailable": false,
+      "summary": "Docker CLI unavailable from this shell."
+    },
+    "releaseBaseUrlConfiguredInProcess": false,
+    "note": "This audit does not read .env.local; release host/token proof remains operator-local."
+  },
+  "criticalFailures": [],
+  "blocked": [
+    "Docker CLI is unavailable, so container proof remains blocked.",
+    "NEXUS_RELEASE_BASE_URL is not present in the current process; staged-host proof remains blocked."
+  ],
+  "hardeningReady": true,
+  "nextActions": [
+    "Review lifecycle-script packages before dependency upgrades.",
+    "Use GitHub Dependabot metadata to classify package alerts before upgrading.",
+    "Keep package upgrades in one minimal batch at a time.",
+    "Run npm run verify after any package change."
+  ]
+}

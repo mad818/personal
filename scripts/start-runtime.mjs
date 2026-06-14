@@ -76,9 +76,19 @@ const child = spawn(
   },
 );
 
+const forwardSignal = (signal) => {
+  if (!child.killed) child.kill(signal);
+};
+const onSigint = () => forwardSignal("SIGINT");
+const onSigterm = () => forwardSignal("SIGTERM");
+process.once("SIGINT", onSigint);
+process.once("SIGTERM", onSigterm);
+
 child.on("exit", (code, signal) => {
+  process.off("SIGINT", onSigint);
+  process.off("SIGTERM", onSigterm);
   if (signal) {
-    process.kill(process.pid, signal);
+    process.exitCode = signal === "SIGINT" ? 130 : 143;
     return;
   }
   process.exit(code ?? 0);

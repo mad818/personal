@@ -163,7 +163,7 @@
     {
       "id": "MW6V-ENEMY-BOSS-HIFI-STORY-INTRO",
       "label": "Enemy/boss hifi art and Bellroot intro",
-      "status": "current",
+      "status": "done",
       "category": "assets",
       "summary": "Promote the enemy-boss high-fidelity card batch into runtime and make Bellroot open as a non-combat story flow before fighting unlocks at the Warden's Antechamber.",
       "docPath": "docs/game/aether-reliquary/enemy-boss-hifi-story-intro.md",
@@ -174,7 +174,7 @@
     {
       "id": "MW6FR1-ARPG-FIRST-TOWN-RELEASE-SLICE",
       "label": "First town release slice",
-      "status": "current",
+      "status": "done",
       "category": "release",
       "summary": "Shape the first release around Bellroot into the north-gate route and Veyrhold as the first intentional open town, with four district cards playable and the remaining 11 cities locked as future-act previews.",
       "docPath": "docs/game/aether-reliquary/first-town-release-slice.md",
@@ -185,7 +185,7 @@
     {
       "id": "MW6FR2-ARPG-VEYRHOLD-TOWN-SERVICES",
       "label": "Veyrhold town services",
-      "status": "current",
+      "status": "done",
       "category": "release",
       "summary": "Deepen Veyrhold into the first release hub with blacksmith, alchemy, market, inn, oath-board services, four district hooks, and starter armor/accessory progression for helm, armor, gloves, boots, rings, and amulet.",
       "docPath": "docs/game/aether-reliquary/veyrhold-town-services.md",
@@ -196,7 +196,7 @@
     {
       "id": "MW6FR3-ARPG-VEYRHOLD-NPCS-MINIQUESTS",
       "label": "Veyrhold NPCs and mini-quests",
-      "status": "current",
+      "status": "done",
       "category": "release",
       "summary": "Add named Veyrhold locals, district mini-quests, and service outcome cards so the first town feels inhabited and rewards are understandable before broader city slices open.",
       "docPath": "docs/game/aether-reliquary/veyrhold-npcs-miniquests.md",
@@ -207,7 +207,7 @@
     {
       "id": "MW6FR4-ARPG-VEYRHOLD-DISTRICT-HUB-RUNTIME",
       "label": "Veyrhold district hub runtime",
-      "status": "current",
+      "status": "done",
       "category": "release",
       "summary": "Turn Veyrhold's four districts into a compact visitable town-hub board that links each district to NPCs, services, mini-quests, rewards, and durable visit flags.",
       "docPath": "docs/game/aether-reliquary/veyrhold-district-hub-runtime.md",
@@ -218,7 +218,7 @@
     {
       "id": "MW6FR5-ARPG-OATHMARKET-VENDOR-JOB-RUNTIME",
       "label": "Oathmarket vendor and job runtime",
-      "status": "current",
+      "status": "done",
       "category": "release",
       "summary": "Make Oathmarket the first deeper Veyrhold district loop with starter wares, city-scrip prices, accessory comparison copy, and a one-choice ledger job that updates rewards and reputation.",
       "docPath": "docs/game/aether-reliquary/oathmarket-vendor-job-runtime.md",
@@ -229,7 +229,7 @@
     {
       "id": "MW6FR6-ARPG-WARDENS-STEPS-FORGE-ARMOR-RUNTIME",
       "label": "Warden's Steps forge and armor runtime",
-      "status": "current",
+      "status": "done",
       "category": "release",
       "summary": "Make Warden's Steps the first armor-focused Veyrhold district loop with helm, armor, gloves, and boots fittings plus civic oath contracts that teach quality progression, silhouette changes, rewards, and reputation.",
       "docPath": "docs/game/aether-reliquary/wardens-steps-forge-armor-runtime.md",
@@ -240,13 +240,24 @@
     {
       "id": "MW6FR7-ARPG-BELLROOT-COMMONS-ALCHEMY-MYSTERY-RUNTIME",
       "label": "Bellroot Commons alchemy and mystery runtime",
-      "status": "current",
+      "status": "done",
       "category": "release",
       "summary": "Make Bellroot Commons the first soft-support Veyrhold district loop with safe alchemy brews, Ilo-led oath-lamp readings, recovery rewards, mystery clues, and compact Map/Kit/Journal proof.",
       "docPath": "docs/game/aether-reliquary/bellroot-commons-alchemy-mystery-runtime.md",
       "runtimeSurface": "/hq Map, Kit, and Journal drawers",
       "requiredGates": ["npm run arpg:content:check", "npm run arpg:production:check", "npm run arpg:release:check", "npm run type-check", "npm run build", "npm run verify"],
       "acceptance": ["Bellroot Commons brews are validated and reward local-first recovery items", "Ilo lamp readings are validated and record durable mystery flags", "The /hq Map, Kit, and Journal drawers expose the first alchemy/story support loop"]
+    },
+    {
+      "id": "MW6FR9-ARPG-PILGRIM-ROWS-REST-ROAD-RUNTIME",
+      "label": "Pilgrim Rows rest and road runtime",
+      "status": "current",
+      "category": "release",
+      "summary": "Complete the fourth Veyrhold district loop with Pilgrim Rows rest options, checkpoint recovery, road rumors, travel-prep rewards, and compact Map/Kit/Journal proof.",
+      "docPath": "docs/game/aether-reliquary/pilgrim-rows-rest-road-runtime.md",
+      "runtimeSurface": "/hq Map, Kit, and Journal drawers",
+      "requiredGates": ["npm run arpg:content:check", "npm run arpg:production:check", "npm run arpg:release:check", "npm run type-check", "npm run build", "npm run verify"],
+      "acceptance": ["Pilgrim Rows rest options are validated and reward local-first recovery items", "Road rumors are validated and record durable route-prep flags", "The /hq Map, Kit, and Journal drawers expose the first inn/checkpoint/road-prep loop"]
     },
     {
       "id": "MW6V-ARPG-PROLOGUE-VISUAL-ASSETS",

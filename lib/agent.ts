@@ -63,6 +63,10 @@ import { hasDeepResearchIntent } from "@/lib/deepResearch";
 import { hasRepoCompareSignal } from "@/lib/repoCompare";
 import { hasRepoAssimilationSignal } from "@/lib/repoAssimilation";
 import { hasRepoIntelSignal } from "@/lib/repoIntel";
+import {
+  buildRuntimeAuthorityPromptBlock,
+  buildRuntimeContinuityReceipt,
+} from "@/lib/runtimeAuthority";
 
 type ToolRiskTier = "tier0" | "tier1" | "tier2";
 
@@ -71,6 +75,9 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   web_search: "tier0",
   fetch_url: "tier0",
   deep_research: "tier0",
+  feynman_research: "tier0",
+  feynman_outputs: "tier0",
+  huggingface_inspect: "tier0",
   compare_repos: "tier0",
   assimilate_repo: "tier0",
   read_file: "tier0",
@@ -169,6 +176,109 @@ export const AGENT_TOOLS = [
         },
       },
       required: ["topic"],
+    },
+  },
+  {
+    name: "feynman_research",
+    description:
+      "Run the complete Nexus-native Feynman workflow with Researcher, Writer, Verifier, and Reviewer stages; direct-source evidence, claim-level audit verdicts, reviewer findings, provenance, and approval gates. Use for explicit /deepresearch, /lit, /review, /audit, /replicate, /recipe, /compare, /draft, /autoresearch, and /watch requests.",
+    input_schema: {
+      type: "object",
+      properties: {
+        workflow: {
+          type: "string",
+          enum: [
+            "deepresearch",
+            "lit-review",
+            "review",
+            "audit",
+            "replicate",
+            "recipe",
+            "compare",
+            "draft",
+            "autoresearch",
+            "watch",
+          ],
+          description: "The Feynman workflow to run.",
+        },
+        topic: {
+          type: "string",
+          description: "The topic, claim, paper, artifact, or experiment idea.",
+        },
+      },
+      required: ["workflow", "topic"],
+    },
+  },
+  {
+    name: "feynman_outputs",
+    description:
+      "Search, resume, preview, or export real Feynman-native research sessions and list recent artifacts stored in the local VAULT. Use for explicit /outputs, research-session search, resume, preview, and export requests.",
+    input_schema: {
+      type: "object",
+      properties: {
+        action: {
+          type: "string",
+          enum: ["list", "search", "resume", "export"],
+          description: "List sessions and VAULT outputs, search sessions, resume one session, or export one fixed artifact.",
+        },
+        query: {
+          type: "string",
+          description: "Search text used for session search or resume when session_id is unknown.",
+        },
+        session_id: {
+          type: "string",
+          description: "Generated Feynman continuity session ID used for resume or export.",
+        },
+        format: {
+          type: "string",
+          enum: [
+            "plan",
+            "notebook",
+            "report",
+            "evidence",
+            "claims",
+            "review",
+            "provenance",
+            "preview",
+            "pdf",
+          ],
+          description: "Fixed local artifact kind used by export.",
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "huggingface_inspect",
+    description:
+      "Inspect one public Hugging Face model or dataset repository through a bounded read-only lane. Returns public metadata, access posture, bounded top-level files, and dataset split/schema information. It can also read one explicitly requested allowlisted small text file. Never use it for private/gated access attempts, inference, training, repository cloning, model weights, or binary downloads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        action: {
+          type: "string",
+          enum: ["inspect", "read_file"],
+          description:
+            "Inspect public repository metadata and structure, or read one bounded text file.",
+        },
+        reference: {
+          type: "string",
+          description:
+            'Public Hugging Face reference as "repo", "owner/repo", "datasets/owner/repo", or a full huggingface.co URL.',
+        },
+        repo_type: {
+          type: "string",
+          enum: ["model", "dataset"],
+          description:
+            "Required only when an owner/repo reference is ambiguous; defaults to model.",
+        },
+        path: {
+          type: "string",
+          description:
+            "Safe relative text-file path used only for read_file, such as README.md or config.json.",
+        },
+      },
+      required: ["action", "reference"],
     },
   },
   {
@@ -488,7 +598,7 @@ export const AGENT_TOOLS = [
 
 type AgentToolDefinition = (typeof AGENT_TOOLS)[number];
 
-interface AgentToolCatalog {
+export interface AgentToolCatalog {
   id: string;
   tools: AgentToolDefinition[];
 }
@@ -532,6 +642,12 @@ const RESEARCH_INTENT_RE =
   /\b(research|search|find|latest|current|news|read|summarize|verify|look up|cite|source)\b/i;
 const DELEGATE_INTENT_RE =
   /\b(max|delegate|second opinion|double-check)\b/i;
+const FEYNMAN_WORKFLOW_INTENT_RE =
+  /\bfeynman_research\b|(?:^|\s)\/(?:deepresearch|deep-research|lit|lit-review|literature-review|review|audit|replicate|recipe|compare|draft|autoresearch|watch)\b|\b(?:deep research|literature review|peer review|paper audit|claim audit|experiment replication|replication plan|implementation recipe|research recipe|comparison matrix|paper draft|research watch|autoresearch)\b/i;
+const FEYNMAN_OUTPUTS_INTENT_RE =
+  /\bfeynman_outputs\b|(?:^|\s)\/outputs\b|\bfeynman outputs\b|\b(?:search|find|resume|continue|preview|export|pdf)\b.{0,40}\b(?:feynman|research session|research output)\b|\b(?:feynman|research session|research output)\b.{0,40}\b(?:search|find|resume|continue|preview|export|pdf)\b/i;
+const HUGGING_FACE_INTENT_RE =
+  /\bhugging\s*face\b|\bhuggingface_inspect\b|https:\/\/huggingface\.co\/(?:datasets\/)?[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)?/i;
 
 function pickAgentTools(names: Iterable<string>): AgentToolDefinition[] {
   return Array.from(names)
@@ -576,6 +692,9 @@ export function getAgentToolCatalog(
     RESEARCH_INTENT_RE.test(userMessage) ||
     (!codeIntent && normalizedAgent !== "orbit");
   const deepResearchIntent = hasDeepResearchIntent(userMessage);
+  const feynmanWorkflowIntent = FEYNMAN_WORKFLOW_INTENT_RE.test(userMessage);
+  const feynmanOutputsIntent = FEYNMAN_OUTPUTS_INTENT_RE.test(userMessage);
+  const huggingFaceIntent = HUGGING_FACE_INTENT_RE.test(userMessage);
   const repoCompareIntent = hasRepoCompareSignal(userMessage);
   const repoAssimilationIntent = hasRepoAssimilationSignal(userMessage);
   const delegateIntent = DELEGATE_INTENT_RE.test(userMessage);
@@ -594,6 +713,30 @@ export function getAgentToolCatalog(
   if (deepResearchIntent && (normalizedAgent === "nova" || normalizedAgent === "jansky")) {
     groups.add("deep_research");
     names.add("deep_research");
+  }
+
+  if (
+    feynmanWorkflowIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("feynman_research");
+    names.add("feynman_research");
+  }
+
+  if (
+    feynmanOutputsIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("feynman_outputs");
+    names.add("feynman_outputs");
+  }
+
+  if (
+    huggingFaceIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("huggingface_inspection");
+    names.add("huggingface_inspect");
   }
 
   if (
@@ -1855,7 +1998,8 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
 
   // ── Auto-recall: inject relevant memories into system prompt ─────────────
   const memoryContext = await buildMemoryContext(userMessage);
-  const enrichedPrompt = systemPrompt + memoryContext;
+  const enrichedPrompt =
+    systemPrompt + buildRuntimeAuthorityPromptBlock() + memoryContext;
   const contextChars = enrichedPrompt.length;
   const contextCompacted =
     Boolean(efficiencyHint?.liveContextCompacted) ||
@@ -1957,6 +2101,43 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       readCacheHits,
       duplicateReadCount,
     };
+    const verificationEvidence = v
+      ? v.adapters.map(
+          (adapter) =>
+            `${adapter.adapter}:${adapter.passed ? "passed" : "failed"}`,
+        )
+      : [verificationSummary];
+    const mutationTools = toolTraces
+      .filter((trace) => trace.risk !== "tier0")
+      .map((trace) => `Tool activity: ${trace.tool}`);
+    const elevatedRisks = toolTraces
+      .filter((trace) => trace.risk === "tier2")
+      .map((trace) => `High-risk tool invoked: ${trace.tool}`);
+    const blockers = [
+      ...(args.failureCause ? [args.failureCause] : []),
+      ...(v && !v.ok
+        ? v.adapters
+            .filter((adapter) => !adapter.passed)
+            .map((adapter) => `Verification failed: ${adapter.adapter}`)
+        : []),
+    ];
+    const continuity = buildRuntimeContinuityReceipt({
+      runId,
+      status: args.ok ? "completed" : "failed",
+      summary: args.ok
+        ? "Nexus agent run completed with an evidence-first continuity receipt."
+        : "Nexus agent run failed and preserved its blockers.",
+      changes: mutationTools,
+      evidence: [
+        ...verificationEvidence,
+        `provider:${providerUsed ?? "unknown"}`,
+        `tool-traces:${toolTraces.length}`,
+      ],
+      risks: elevatedRisks,
+      blockers,
+      provider: providerUsed,
+      verificationPassed: verification.passed,
+    });
     useStore.getState().addAgentRunArtifact({
       runId,
       runtimeEngine,
@@ -1970,6 +2151,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       contextCompacted,
       toolTraces,
       efficiency,
+      continuity,
     });
   };
 

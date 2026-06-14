@@ -70,6 +70,12 @@ export interface ArpgProductionReadinessContent {
     e2eFlows: string[];
     browserRoutes: string[];
     closureRules: string[];
+    fallbackProofMatrix: Array<{
+      id: string;
+      label: string;
+      proof: string[];
+      acceptance: string;
+    }>;
   };
 }
 
@@ -94,6 +100,7 @@ export function getArpgProductionReadinessSummary() {
     releaseGateCount: ARPG_PRODUCTION_READINESS.releaseGates.requiredScripts.length,
     releaseFlowCount: ARPG_PRODUCTION_READINESS.releaseGates.e2eFlows.length,
     browserRouteCount: ARPG_PRODUCTION_READINESS.releaseGates.browserRoutes.length,
+    fallbackProofCount: ARPG_PRODUCTION_READINESS.releaseGates.fallbackProofMatrix.length,
     assetPipeline: ARPG_PRODUCTION_READINESS.assetPipeline,
     menuSurface: ARPG_PRODUCTION_READINESS.menuSurface,
     saveHardening: ARPG_PRODUCTION_READINESS.saveHardening,

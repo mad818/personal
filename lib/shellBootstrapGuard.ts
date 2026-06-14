@@ -360,6 +360,11 @@ export function buildShellBootstrapGuardScript() {
             return false;
           }
 
+          var rootMain = document.querySelector(".nexus-root-main");
+          if (shellHydrated() && rootMain instanceof HTMLElement) {
+            return true;
+          }
+
           var main = document.querySelector("main");
           if (!(main instanceof HTMLElement)) {
             return !isFinalAttempt;

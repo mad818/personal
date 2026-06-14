@@ -275,6 +275,10 @@ export function queueOfficeRunSideEffects({
           citationCount: sourceRefs.filter((sourceRef) => sourceRef.sourceType === "citation").length,
         })
       : "unverified");
+  const feynmanTags =
+    workflow.source === "feynman"
+      ? ["feynman-native", "claim-audit", "provenance"]
+      : [];
 
   void apiFetch("/api/memory/pages", {
     method: "POST",
@@ -309,6 +313,7 @@ export function queueOfficeRunSideEffects({
         workflow.source,
         target,
         (artifactOverrides?.route ?? workflow.route).replace(/^\//, ""),
+        ...feynmanTags,
         ...(repoAssimilationMetadata?.extraTags ?? []),
         ...(repoCompareMetadata?.extraTags ?? []),
         ...(artifactOverrides?.extraTags ?? []),

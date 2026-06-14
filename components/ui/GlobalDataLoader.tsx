@@ -5,6 +5,7 @@
 import { useEffect } from "react";
 import { useGlobalData } from "@/hooks/useGlobalData";
 import { useKeywordAlerts } from "@/hooks/useKeywordAlerts";
+import { subscribeVisiblePolling } from "@/lib/visiblePolling";
 
 export default function GlobalDataLoader() {
   const { fetchAll } = useGlobalData();
@@ -13,28 +14,11 @@ export default function GlobalDataLoader() {
   useKeywordAlerts();
 
   useEffect(() => {
-    const run = () => {
-      if (typeof document !== "undefined" && document.hidden) return;
-      void fetchAll();
-    };
-
-    run();
-    const id = setInterval(run, 5 * 60_000);
-    const onVisible = () => {
-      if (typeof document === "undefined" || document.hidden) return;
-      void fetchAll();
-    };
-
-    if (typeof document !== "undefined") {
-      document.addEventListener("visibilitychange", onVisible);
-    }
-
-    return () => {
-      clearInterval(id);
-      if (typeof document !== "undefined") {
-        document.removeEventListener("visibilitychange", onVisible);
-      }
-    };
+    return subscribeVisiblePolling({
+      key: "globalData",
+      run: fetchAll,
+      intervalMs: 5 * 60_000,
+    });
   }, [fetchAll]);
 
   // Manual refresh trigger from SystemStatusFooter

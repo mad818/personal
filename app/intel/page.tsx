@@ -25,35 +25,17 @@ import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
 import { getOpsLayoutDescriptor } from "@/lib/opsLayoutRegistry";
 import { getSurfaceModuleSpec } from "@/lib/surfaceRedesignRegistry";
 import { useStore } from "@/store/useStore";
-import { AlphaEarthCard } from "@/components/ops/AlphaEarthCard";
 
 const LazyTopicHeatmap = dynamic(
   () => import("@/components/signals/TopicHeatmap"),
   { ssr: false },
 );
-const LazyWorldTopicHeatmap = dynamic(
-  () => import("@/components/ops/WorldTopicHeatmap"),
-  { ssr: false },
-);
-const LazyGeoHeatmap = dynamic(() => import("@/components/ops/GeoHeatmap"), {
-  ssr: false,
-});
 const LazyConflictFeed = dynamic(
   () => import("@/components/ops/ConflictFeed"),
   { ssr: false },
 );
-const LazyMarketRates = dynamic(() => import("@/components/ops/MarketRates"), {
-  ssr: false,
-});
-const LazyPolymarketFeed = dynamic(
-  () => import("@/components/intel/PolymarketFeed"),
-  { ssr: false },
-);
-const LazyOpsMap = dynamic(() => import("@/components/ops/OpsMap"), {
-  ssr: false,
-});
-const LazySweepEnginePanel = dynamic(
-  () => import("@/components/intel/SweepEnginePanel"),
+const LazyIntelDeferredSegment = dynamic(
+  () => import("@/components/intel/IntelDeferredSegment"),
   { ssr: false },
 );
 
@@ -216,78 +198,13 @@ export default function IntelPage() {
           </div>
         )}
 
-        {seg === "world" && (
-          <div id="intel-world" style={{ scrollMarginTop: "120px" }}>
-            <ShellStack>
-              <OpsWorkplane className={intelLayout.workplaneClass}>
-                <ShellStack gap="12px">
-                  <OpsField
-                    title="World risk map"
-                    detail="Why it matters across global posture and concentration"
-                  >
-                    <LazyWorldTopicHeatmap />
-                  </OpsField>
-                  <OpsField
-                    title="Conflict impact assessment"
-                    detail="What to monitor as posture shifts"
-                    tone="muted"
-                  >
-                    <LazyGeoHeatmap />
-                  </OpsField>
-                </ShellStack>
-              </OpsWorkplane>
-
-              <OpsRail className={intelLayout.railClass}>
-                <ShellStack gap="12px">
-                  <ShellGrid columns="minmax(300px, 0.38fr) minmax(0, 0.62fr)" gap="12px" align="start">
-                    <OpsField title="Market rates" detail="Cross-domain rate pressure" tone="muted">
-                      <LazyMarketRates />
-                    </OpsField>
-                    <OpsField
-                      title="Live operations map"
-                      detail="Flights, fires, quakes, and theater context"
-                    >
-                      <LazyOpsMap />
-                    </OpsField>
-                  </ShellGrid>
-                  <OpsField title="Alpha Earth" detail="Specialist world-state evidence" tone="muted">
-                    <AlphaEarthCard />
-                  </OpsField>
-                </ShellStack>
-              </OpsRail>
-            </ShellStack>
-          </div>
-        )}
-
-        {seg === "markets" && (
-          <div id="intel-markets" style={{ scrollMarginTop: "120px" }}>
-            <OpsWorkplane className={intelLayout.workplaneClass}>
-              <ShellGrid columns="minmax(0, 1.1fr) minmax(320px, 0.9fr)" gap="12px" align="start">
-                <OpsField title="Prediction markets" detail="What changed in market consensus">
-                  <LazyPolymarketFeed />
-                </OpsField>
-                <OpsRail className={intelLayout.railClass}>
-                  <OpsField title="Macro rate context" detail="What to monitor next" tone="muted">
-                  <LazyMarketRates />
-                  </OpsField>
-                </OpsRail>
-              </ShellGrid>
-            </OpsWorkplane>
-          </div>
-        )}
-
-        {seg === "sweeps" && (
-          <div id="intel-sweeps" style={{ scrollMarginTop: "120px" }}>
-            <OpsWorkplane className={intelLayout.workplaneClass}>
-              <OpsField
-                title="Sweep engine"
-                detail="Crucix-style bundle runs plus before-and-after evidence"
-              >
-                <LazySweepEnginePanel />
-              </OpsField>
-            </OpsWorkplane>
-          </div>
-        )}
+        {seg !== "news" ? (
+          <LazyIntelDeferredSegment
+            segment={seg}
+            workplaneClass={intelLayout.workplaneClass}
+            railClass={intelLayout.railClass}
+          />
+        ) : null}
       </ShellStack>
     </ShellPage>
   );

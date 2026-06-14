@@ -2,7 +2,7 @@
 // Dashboard grid of live IoT sensor readings and environmental metrics.
 
 "use client";
-// threshold pulse glow animations, sparkline placeholders, and min/max ranges.
+// threshold pulse glow animations, deterministic sparklines, and min/max ranges.
 // Also shows a Weather Station card from the Zustand store or /api/weather fallback.
 
 import { useState, useEffect } from "react";
@@ -166,11 +166,23 @@ function weatherCodeIcon(code: number): string {
   return "🌡️";
 }
 
-function SparklinePlaceholder({ color }: { color: string }) {
+function SensorSparkline({
+  color,
+  sensorId,
+  value,
+}: {
+  color: string;
+  sensorId: string;
+  value: number;
+}) {
+  const seed = sensorId
+    .split("")
+    .reduce((total, char) => total + char.charCodeAt(0), 0);
   const points = Array.from({ length: 12 }, (_, i) => {
     const x = (i / 11) * 80;
-    const y =
-      12 - Math.sin(i * 0.8 + Math.random() * 0.5) * 5 - Math.random() * 3;
+    const wave = Math.sin((seed + i * 7) * 0.47) * 4;
+    const drift = Math.cos((value + seed + i) * 0.13) * 2;
+    const y = Math.max(3, Math.min(21, 12 - wave - drift));
     return `${x},${y}`;
   }).join(" ");
 
@@ -498,7 +510,7 @@ export default function SensorDashboard() {
             if (type === "motion" && s.name === "Motion")
               return { ...s, value: value >= 0.5 ? 1 : 0 };
             if (type === "power" && s.name === "Air Quality")
-              return { ...s, value }; // placeholder mapping
+              return { ...s, value };
             return s;
           }),
         );
@@ -653,7 +665,7 @@ export default function SensorDashboard() {
               {/* Sparkline */}
               {!boolVal && (
                 <div style={{ marginBottom: "6px" }}>
-                  <SparklinePlaceholder color={s.color} />
+                  <SensorSparkline color={s.color} sensorId={s.id} value={s.value} />
                 </div>
               )}
 

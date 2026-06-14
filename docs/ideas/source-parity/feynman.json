@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "id": "feynman",
+  "name": "Feynman",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/companion-inc/feynman",
+    "version": "0.2.58",
+    "reviewedAt": "2026-06-07",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/companion-inc/feynman/blob/main/README.md",
+      "https://github.com/companion-inc/feynman/blob/main/AGENTS.md",
+      "https://github.com/companion-inc/feynman/tree/main/skills",
+      "https://github.com/companion-inc/feynman/tree/main/extensions/research-tools",
+      "https://github.com/companion-inc/feynman/tree/main/.feynman/agents"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "workflow-command-family",
+      "title": "Deep research, literature review, peer review, audit, replicate, recipe, compare, draft, autoresearch, watch, and outputs commands",
+      "sourceEvidence": "README.md Workflows",
+      "disposition": "implemented",
+      "proof": [
+        "components/home/office/workflowCommands.ts",
+        "scripts/check-feynman-runtime.mjs"
+      ]
+    },
+    {
+      "id": "four-stage-agent-pipeline",
+      "title": "Researcher, Writer, Verifier, and Reviewer stages",
+      "sourceEvidence": "README.md Agents and .feynman/agents",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanResearch.ts",
+        "scripts/check-feynman-runtime.mjs"
+      ]
+    },
+    {
+      "id": "direct-source-ledger",
+      "title": "Direct source evidence ledger with read/not-read accounting",
+      "sourceEvidence": ".feynman/agents/researcher.md",
+      "disposition": "implemented",
+      "proof": [
+        "lib/feynmanResearch.ts",
+        "scripts/check-feynman-runtime.mjs"
+      ]
+    },
+    {
+      "id": "claim-verification-review",
+      "title": "Claim-level verification and severity-graded adversarial review",
+      "sourceEvidence": ".feynman/agents/verifier.md and reviewer.md",
+      "disposition": "implemented",
+      "proof": [
+        "lib/feynmanResearch.ts",
+        "scripts/check-feynman-runtime.mjs"
+      ]
+    },
+    {
+      "id": "web-search",
+      "title": "Multi-source web search with direct URL reads",
+      "sourceEvidence": "README.md Skills & Tools",
+      "disposition": "adapted",
+      "proof": [
+        "app/api/tools/route.ts",
+        "lib/security/toolCapabilityPolicy.ts"
+      ]
+    },
+    {
+      "id": "vault-output-index",
+      "title": "Browse durable research artifacts",
+      "sourceEvidence": "extensions/research-tools/project.ts outputs command",
+      "disposition": "adapted",
+      "proof": [
+        "app/api/memory/pages/route.ts",
+        "lib/memoryPagesStore.ts",
+        "app/api/tools/route.ts"
+      ]
+    },
+    {
+      "id": "safe-runtime-boundary",
+      "title": "Local runtime and approval boundary",
+      "sourceEvidence": "README.md Installation and local models",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/secure-runtime-gate.mjs",
+        "lib/security/toolCapabilityPolicy.ts"
+      ]
+    },
+    {
+      "id": "parallel-progressive-research",
+      "title": "Parallel researchers, wide-to-narrow querying, recency/domain filters, and minimum evidence coverage",
+      "sourceEvidence": ".feynman/agents/researcher.md Search strategy and Output contract",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanProgressiveResearch.ts",
+        "lib/feynmanResearch.ts",
+        "scripts/check-feynman-progressive-research-runtime.mjs"
+      ]
+    },
+    {
+      "id": "paper-search-read-ask-annotate-code",
+      "title": "Semantic paper search, full paper/section reads, paper Q&A, local annotations, and paper-repository code reads",
+      "sourceEvidence": "extensions/research-tools/alpha.ts",
+      "disposition": "pending",
+      "reason": "Current Nexus paper search is a daily-paper signal and lacks the complete paper inspection tool family."
+    },
+    {
+      "id": "hugging-face-inspection",
+      "title": "Hugging Face dataset metadata, repo file listing, and bounded small-file reads",
+      "sourceEvidence": "extensions/research-tools/huggingface.ts",
+      "disposition": "adapted",
+      "proof": [
+        "lib/huggingFaceInspection.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-hugging-face-runtime.mjs"
+      ]
+    },
+    {
+      "id": "workflow-specific-output-contracts",
+      "title": "Specialized behavioral contracts for literature review, paper-code audit, replication, recipes, comparison, drafts, and review",
+      "sourceEvidence": "skills and prompts workflow trees",
+      "disposition": "pending",
+      "reason": "Current workflows share one generalized engine and command-specific purpose text rather than fully specialized execution and artifact contracts."
+    },
+    {
+      "id": "paper-code-audit",
+      "title": "Line-by-line paper claim versus public codebase audit",
+      "sourceEvidence": "skills/paper-code-audit/SKILL.md and alpha_read_code",
+      "disposition": "pending",
+      "reason": "Current audit mode performs generic source synthesis and does not resolve a paper's repository or compare claims to implementation artifacts."
+    },
+    {
+      "id": "local-replication-execution",
+      "title": "Operator-selected local or virtual-environment replication with scripts and result artifacts",
+      "sourceEvidence": "skills/replication/SKILL.md",
+      "disposition": "pending",
+      "reason": "Current replicate mode produces a plan only; safe local execution, scripts, logs, and results remain unimplemented."
+    },
+    {
+      "id": "docker-isolated-experiments",
+      "title": "Docker-isolated experiment execution",
+      "sourceEvidence": "README.md Skills & Tools and skills/docker",
+      "disposition": "pending",
+      "reason": "Nexus has isolation policy scaffolding but no Feynman replication executor backed by an approved Docker sandbox."
+    },
+    {
+      "id": "paid-cloud-gpu-compute",
+      "title": "Modal and RunPod cloud GPU execution",
+      "sourceEvidence": "README.md Skills & Tools",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "Nexus is free/local and Mario explicitly does not want paid services. Local approved execution remains required."
+    },
+    {
+      "id": "autoresearch-loop",
+      "title": "Measured experiment loop that tries variants, keeps improvements, and records JSONL history",
+      "sourceEvidence": "skills/autoresearch/SKILL.md",
+      "disposition": "pending",
+      "reason": "Current autoresearch mode returns a bounded plan and does not execute or score an approved experiment loop."
+    },
+    {
+      "id": "recurring-research-watch",
+      "title": "Baseline survey plus operator-approved recurring material-change checks",
+      "sourceEvidence": "skills/watch/SKILL.md",
+      "disposition": "pending",
+      "reason": "Current watch mode returns a scheduler template but does not create, enable, run, or reconcile a real approved recurring watch."
+    },
+    {
+      "id": "session-search-resume",
+      "title": "Search prior research sessions and resume relevant work",
+      "sourceEvidence": "skills/session-search/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanContinuity.ts",
+        "lib/feynmanContinuityStore.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-continuity-runtime.mjs"
+      ]
+    },
+    {
+      "id": "session-log-lab-notebook",
+      "title": "Chronological lab notebook and session logs for long-running research",
+      "sourceEvidence": "AGENTS.md Workspace changelog and skills/session-log",
+      "disposition": "implemented",
+      "proof": [
+        "lib/feynmanResearch.ts",
+        "lib/feynmanContinuityStore.ts",
+        "scripts/check-feynman-continuity-runtime.mjs"
+      ]
+    },
+    {
+      "id": "externalized-plan-and-intermediate-artifacts",
+      "title": "Progressive file-based plans and intermediate research artifacts with collision-safe slugs",
+      "sourceEvidence": "AGENTS.md Output conventions and file naming",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanContinuity.ts",
+        "lib/feynmanContinuityStore.ts",
+        "scripts/check-feynman-continuity-runtime.mjs"
+      ]
+    },
+    {
+      "id": "provenance-sidecar",
+      "title": "Separate provenance sidecar for deep research and literature review outputs",
+      "sourceEvidence": "AGENTS.md Provenance and verification",
+      "disposition": "implemented",
+      "proof": [
+        "lib/feynmanContinuityStore.ts",
+        "app/api/feynman/artifacts/route.ts",
+        "scripts/check-feynman-continuity-runtime.mjs"
+      ]
+    },
+    {
+      "id": "preview-and-pdf-export",
+      "title": "Browser preview and local PDF export for research artifacts",
+      "sourceEvidence": "skills/preview/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanContinuity.ts",
+        "app/api/feynman/artifacts/route.ts",
+        "lib/security/routePolicy.ts",
+        "scripts/check-feynman-continuity-runtime.mjs"
+      ]
+    },
+    {
+      "id": "capability-discovery",
+      "title": "Discover commands, tools, and capability inventory",
+      "sourceEvidence": "extensions/research-tools/discovery.ts",
+      "disposition": "adapted",
+      "proof": [
+        "lib/agent.ts",
+        "components/home/office/workflowCommands.ts",
+        "app/api/tools/route.ts"
+      ]
+    },
+    {
+      "id": "standalone-terminal-runtime",
+      "title": "Separate Feynman terminal runtime, installer, auth store, and Pi package manager",
+      "sourceEvidence": "README.md Installation and package.json",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is the host product. Duplicating a second terminal runtime and auth store would fragment the existing secure agent architecture without adding a missing research capability."
+    }
+  ]
+}

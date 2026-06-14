@@ -162,6 +162,16 @@ export const SURFACE_BRANDING: Record<string, SurfaceBranding> = {
     ariaLabel: "Vehicle operations lab",
     note: "Internal mobility systems should inherit the same tactical shell language as the rest of the room.",
   },
+  iot: {
+    visibleLabel: "IOT",
+    functionalLabel: "Sensor desk",
+    heroTitle: "IOT",
+    heroKicker: "Sensor operations lab",
+    surfaceArtKey: "iot",
+    accentPalette: ["#4fd5ff", "#dff7ea"],
+    ariaLabel: "IoT sensor operations lab",
+    note: "Internal sensor, device, and automation work should inherit the same tactical shell language as the rest of the room.",
+  },
   resources: {
     visibleLabel: "RESOURCES",
     functionalLabel: "Reference desk",

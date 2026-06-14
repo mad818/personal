@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "id": "obliteratus",
+  "name": "OBLITERATUS",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/elder-plinius/OBLITERATUS",
+    "version": "0.1.2",
+    "reviewedAt": "2026-06-13",
+    "license": "AGPL-3.0-or-later",
+    "primaryEvidence": [
+      "https://github.com/elder-plinius/OBLITERATUS/blob/main/README.md",
+      "https://github.com/elder-plinius/OBLITERATUS/blob/main/SECURITY.md",
+      "https://github.com/elder-plinius/OBLITERATUS/blob/main/pyproject.toml",
+      "https://github.com/elder-plinius/OBLITERATUS/tree/main/obliteratus",
+      "https://github.com/elder-plinius/OBLITERATUS/tree/main/tests"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "passive-safety-evaluation",
+      "title": "Passive refusal consistency, policy robustness, coherence, and harmless-helpfulness evaluation",
+      "sourceEvidence": "README evaluation suite and analysis metrics",
+      "disposition": "implemented",
+      "proof": ["lib/modelSafetyEvaluation.ts", "app/api/model-lab/route.ts", "scripts/check-codewhale-obliteratus-runtime.mjs"]
+    },
+    {
+      "id": "defense-robustness",
+      "title": "Defense robustness comparison across pressure families",
+      "sourceEvidence": "README defense robustness analysis",
+      "disposition": "adapted",
+      "proof": ["lib/modelSafetyEvaluation.ts", "components/skills/BlacksiteLab.tsx"]
+    },
+    {
+      "id": "reproducible-study-manifests",
+      "title": "Reproducible local experiment manifests and retained results",
+      "sourceEvidence": "README reproducible YAML studies and metrics",
+      "disposition": "adapted",
+      "proof": ["lib/modelSafetyEvaluation.ts", "lib/assimilation/storage.ts", "lib/assimilation/types.ts"]
+    },
+    {
+      "id": "ab-comparison",
+      "title": "A/B comparison without modified-model execution",
+      "sourceEvidence": "README original versus modified model comparison",
+      "disposition": "adapted",
+      "proof": ["app/api/model-lab/route.ts", "components/skills/BlacksiteLab.tsx"]
+    },
+    {
+      "id": "results-dashboard",
+      "title": "Local result visualization and history",
+      "sourceEvidence": "README benchmark visualizations and results dashboard",
+      "disposition": "adapted",
+      "proof": ["components/skills/BlacksiteLab.tsx", "lib/assimilation/storage.ts"]
+    },
+    {
+      "id": "weight-projection",
+      "title": "Permanent model-weight projection",
+      "sourceEvidence": "README refusal removal by weight projection",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus does not modify model weights or reproduce safeguard-removal behavior."
+    },
+    {
+      "id": "steering-vectors",
+      "title": "Inference-time steering-vector application",
+      "sourceEvidence": "README reversible inference-time steering",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus records passive evaluation evidence only and never applies vectors intended to disable safeguards."
+    },
+    {
+      "id": "refusal-removal-presets",
+      "title": "Basic through nuclear refusal-removal presets",
+      "sourceEvidence": "README removal presets",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Disabling safeguards directly conflicts with Nexus runtime security and model-governance invariants."
+    },
+    {
+      "id": "modified-model-export",
+      "title": "Export, upload, or publish modified models",
+      "sourceEvidence": "README model modification workflow",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus does not create, upload, or publish guardrail-removed models."
+    },
+    {
+      "id": "cross-layer-alignment",
+      "title": "Cross-layer alignment and refusal logit-lens inspection",
+      "sourceEvidence": "README analysis modules",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus evaluates approved model behavior at the system boundary and does not inspect or alter internal model layers."
+    },
+    {
+      "id": "whitened-svd",
+      "title": "Whitened SVD and concept-cone geometry",
+      "sourceEvidence": "README analysis modules",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Internal representation surgery is outside Nexus's operator-dashboard purpose."
+    },
+    {
+      "id": "activation-probing",
+      "title": "Activation probing, residual-stream decomposition, and linear probes",
+      "sourceEvidence": "README analysis modules",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus keeps the safe, passive behavioral evaluation layer and does not require internal activation access."
+    },
+    {
+      "id": "sparse-surgery-causal-tracing",
+      "title": "Sparse surgery and causal tracing",
+      "sourceEvidence": "README analysis modules",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Model surgery used to remove safeguards is intentionally outside the Nexus security boundary."
+    },
+    {
+      "id": "cross-model-transfer",
+      "title": "Cross-model transfer of refusal-removal directions",
+      "sourceEvidence": "README analysis modules",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus compares approved model behavior but does not transfer safeguard-removal mechanisms."
+    },
+    {
+      "id": "multi-token-refusal-analysis",
+      "title": "Multi-token refusal-position analysis and alignment imprint detection",
+      "sourceEvidence": "README analysis modules",
+      "disposition": "adapted",
+      "proof": ["lib/modelSafetyEvaluation.ts", "app/api/model-lab/route.ts"]
+    },
+    {
+      "id": "remote-telemetry-leaderboard",
+      "title": "Remote telemetry, community aggregate, and leaderboard",
+      "sourceEvidence": "README telemetry and community results",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "Nexus keeps Model Lab evidence local and sends no evaluation telemetry or operator results to a remote leaderboard."
+    },
+    {
+      "id": "hugging-face-spaces",
+      "title": "Cloud or Hugging Face Spaces execution workflow",
+      "sourceEvidence": "README hosted demo workflow",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "The Nexus adaptation is local-only and requires no hosted compute or cloud service."
+    },
+    {
+      "id": "remote-model-code",
+      "title": "Remote model code and automatic model downloads",
+      "sourceEvidence": "README supported architectures and pyproject dependencies",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus does not execute remote model code or automatically download model runtimes through Model Lab."
+    },
+    {
+      "id": "agpl-runtime-boundary",
+      "title": "Keep OBLITERATUS AGPL implementation outside Nexus MIT source",
+      "sourceEvidence": "LICENSE and pyproject.toml",
+      "disposition": "implemented",
+      "proof": ["specs/features/codewhale-obliteratus-native-assimilation.md", "lib/modelSafetyEvaluation.ts"]
+    }
+  ]
+}

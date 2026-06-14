@@ -29,6 +29,7 @@ import type {
   ResearchSourceType,
   WorkflowPackId,
 } from "@/lib/researchSources";
+import { turboVecUpsert } from "@/lib/localAcceleration";
 
 export type CompiledMemoryPageSource = "workflow" | "manual" | "scheduler";
 
@@ -217,7 +218,14 @@ function defaultLayerForWorkflow(workflowId?: string): MemoryLayer {
   if (
     workflowId === "deepresearch" ||
     workflowId === "lit-review" ||
+    workflowId === "review" ||
+    workflowId === "audit" ||
+    workflowId === "replicate" ||
+    workflowId === "recipe" ||
     workflowId === "compare" ||
+    workflowId === "draft" ||
+    workflowId === "autoresearch" ||
+    workflowId === "watch" ||
     workflowId === "vuln-review" ||
     workflowId === "repo-assimilation" ||
     workflowId === "repo-compare" ||
@@ -390,6 +398,33 @@ export async function listCompiledMemoryPages(options?: {
 export async function getCompiledMemoryPageById(id: string) {
   const pages = await readPages();
   return pages.find((page) => page.id === id) ?? null;
+}
+
+export async function indexCompiledMemoryPage(page: CompiledMemoryPage) {
+  if (page.visibility === "restricted") return false;
+  try {
+    await turboVecUpsert([
+      {
+        id: page.id,
+        text: [
+          page.title,
+          page.summary,
+          page.content,
+          page.tags.join(" "),
+        ].join("\n"),
+        metadata: {
+          route: page.route ?? "",
+          domain: page.domain,
+          layer: page.layer,
+          source: page.source,
+          createdAt: page.createdAt,
+        },
+      },
+    ]);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function createCompiledMemoryPage(input: {
@@ -571,6 +606,7 @@ export async function createCompiledMemoryPage(input: {
   const pages = await readPages();
   const next = [page, ...pages].slice(0, 160);
   await writePages(next);
+  await indexCompiledMemoryPage(page);
   return page;
 }
 

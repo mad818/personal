@@ -123,12 +123,12 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
     upgradeActions: [
       { label: "Open runtime focus", href: "/command?focus=runtime-efficiency", detail: "Start on the panel that best shows runtime waste, tool-pack drift, and verification posture." },
       { label: "Open agent health", href: "/command?focus=agent-health", detail: "Jump directly into the panel that catches COMMAND regressions fastest." },
-      { label: "Open hallucination audit", href: "/resources?view=playbooks&playbook=hallucination-hardening", detail: "Use the shared AI-quality workflow before tightening high-risk answer surfaces." },
+      { label: "Open finalize loop", href: "/resources?view=playbooks&playbook=runtime-finalize-loop", detail: "Use the browser/runtime proof lane before calling visual or shell changes done." },
     ],
     jumpActions: [
       { label: "Open COMMAND", href: "/command", detail: "Land on the main decision-support board." },
       { label: "Open runtime focus", href: "/command?focus=runtime-efficiency", detail: "Start with prompt/tool efficiency and drift posture." },
-      { label: "Open system map", href: "/resources?view=system&system=ai-runtime-boundary", detail: "Review the runtime boundary before deeper changes." },
+      { label: "Open finalize loop", href: "/resources?view=playbooks&playbook=runtime-finalize-loop", detail: "Run the update proof loop before trusting the live shell." },
     ],
   },
   {
@@ -413,6 +413,50 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
     ],
   },
   {
+    id: "iot",
+    title: "IOT",
+    route: "/iot",
+    category: "internal",
+    tagline: "Sensor posture, device registry, and automation review",
+    mission:
+      "Use IOT when the task is about local sensors, device health, MQTT posture, and automation rules that should remain operator-owned and visible before anything touches the physical world.",
+    strongestAbilities: [
+      "Keeps live sensor posture, device registry, and automation rules in one internal workbench.",
+      "Useful for Homefront perimeter thinking because it separates signal intake from response authority.",
+      "Makes retained device state readable when live adapters or external services are offline.",
+    ],
+    bestFor: [
+      "Checking sensor and device readiness before automating anything.",
+      "Reviewing MQTT and local automation posture.",
+      "Staging future camera/perimeter integrations without widening response authority.",
+    ],
+    subsections: [
+      { label: "MQTT posture", detail: "Broker availability and adapter readiness.", href: "/iot?focus=iot-mqtt" },
+      { label: "Sensor grid", detail: "Temperature, motion, weather, and status telemetry.", href: "/iot?focus=iot-sensors" },
+      { label: "Device matrix", detail: "Local device registry and health posture.", href: "/iot?focus=iot-devices" },
+      { label: "Automation review", detail: "Rules stay visible and operator-owned.", href: "/iot?focus=iot-automation" },
+    ],
+    costPosture:
+      "Internal and local-first. No paid device cloud or remote service is required for the current workbench.",
+    offlinePosture:
+      "Retained device and rule state should remain readable offline; live telemetry should clearly degrade when adapters are unavailable.",
+    upgradePriorities: [
+      "Move remaining old panel chrome into shared shell primitives.",
+      "Add exact focus anchors for MQTT, device registry, and automation rules.",
+      "Keep physical-world automation review-gated and visible.",
+    ],
+    upgradeActions: [
+      { label: "Open MQTT", href: "/iot?focus=iot-mqtt", detail: "Start with broker and adapter posture before device work." },
+      { label: "Open device matrix", href: "/iot?focus=iot-devices", detail: "Review local device health and registry state." },
+      { label: "Open automation", href: "/iot?focus=iot-automation", detail: "Check rule posture before enabling or expanding automations." },
+    ],
+    jumpActions: [
+      { label: "Open IOT", href: "/iot", detail: "Land on the internal sensor operations workbench." },
+      { label: "Open device matrix", href: "/iot?focus=iot-devices", detail: "Go directly to the device registry posture." },
+      { label: "Open automation review", href: "/iot?focus=iot-automation", detail: "Go directly to local automation review." },
+    ],
+  },
+  {
     id: "resources",
     title: "RESOURCES",
     route: "/resources",
@@ -436,8 +480,9 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
     subsections: [
       { label: "Finder", detail: "Fast local search across exact sessions, specs, playbooks, systems, and surfaces.", href: "/resources?view=finder" },
       { label: "Field manual", detail: "Curated external references and study material.", href: "/resources?view=manual" },
+      { label: "Source intelligence", detail: "Govern external repos, posts, and tooling ideas before promotion.", href: "/resources?view=sources" },
       { label: "Surfaces", detail: "Cross-tab capability and upgrade audit for the live product.", href: "/resources?view=surfaces" },
-      { label: "Playbooks", detail: "Repeatable engineering workflows with jump-offs.", href: "/resources?view=playbooks" },
+      { label: "Playbooks", detail: "Repeatable engineering workflows with jump-offs, including the runtime finalize loop.", href: "/resources?view=playbooks" },
       { label: "Specs", detail: "Spec-first starters with problem, constraints, acceptance, and verification.", href: "/resources?view=specs" },
       { label: "System design", detail: "Subsystem maps, boundaries, and guardrails.", href: "/resources?view=system" },
       { label: "Impact", detail: "Local-only blast radius, graph, hotspots, ownership, and security workbench.", href: "/resources?view=impact" },
@@ -454,21 +499,25 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Add more panel-level deep links so playbooks and surface audits can land inside exact in-page sections.",
       "Keep using compact cards instead of long prose so this route stays like a control surface, not a document dump.",
       "Expand the capability lane as more support/internal surfaces become first-class.",
+      "Keep source intelligence native to Resources so outside ideas are mapped before they become dependencies.",
     ],
     upgradeActions: [
       { label: "Open finder", href: "/resources?view=finder", detail: "Jump straight into fast exact-session lookup when you already know the shape of the work." },
+      { label: "Open source intelligence", href: "/resources?view=sources", detail: "Map outside repos, posts, and tooling ideas into guarded local work before implementation." },
       { label: "Open specs lane", href: "/resources?view=specs", detail: "Start risky work from a reusable spec starter before opening broad code surfaces." },
       { label: "Open surfaces audit", href: "/resources?view=surfaces", detail: "Start from the cross-tab capability map when deciding what to improve next." },
       { label: "Open playbooks", href: "/resources?view=playbooks", detail: "Use the workflow lane when a diagnosis should become a repeatable session." },
+      { label: "Open finalize loop", href: "/resources?view=playbooks&playbook=runtime-finalize-loop", detail: "Use the bug-check route before pushing, transferring, or calling a visual pass done." },
       { label: "Open system design", href: "/resources?view=system", detail: "Anchor improvements in subsystem ownership and failure modes before editing." },
       { label: "Open Voice Lab", href: "/resources?view=voice-lab", detail: "Stage local dictation, profiles, and audio projects in one lane." },
     ],
     jumpActions: [
       { label: "Open Resources", href: "/resources", detail: "Land on the workbench route." },
       { label: "Open Finder", href: "/resources?view=finder", detail: "Go directly to the fast local session finder." },
+      { label: "Open Source Intelligence", href: "/resources?view=sources", detail: "Go directly to the governed external-idea intake lane." },
       { label: "Open Specs", href: "/resources?view=specs", detail: "Go directly to the spec-first starters." },
       { label: "Open surfaces audit", href: "/resources?view=surfaces", detail: "Go directly to the cross-tab capability map." },
-      { label: "Open playbooks", href: "/resources?view=playbooks", detail: "Start a structured engineering workflow." },
+      { label: "Open finalize loop", href: "/resources?view=playbooks&playbook=runtime-finalize-loop", detail: "Start the proven type/verify/build/route/browser-probe loop." },
       { label: "Open Voice Lab", href: "/resources?view=voice-lab", detail: "Go directly to the local voice workflow lane." },
     ],
   },

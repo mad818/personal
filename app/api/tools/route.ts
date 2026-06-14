@@ -7,11 +7,34 @@ import * as path from "path";
 import { getBrandServiceName } from "@/lib/brand";
 import { resolveInternalServiceOrigin } from "@/lib/authSession";
 import {
-  buildDeepResearchSynthesisPrompt,
-  runDeepResearch,
-  type DeepResearchPipelineInput,
-} from "@/lib/deepResearch";
+  runFeynmanResearch,
+  type FeynmanWorkflowId,
+} from "@/lib/feynmanResearch";
+import {
+  formatHuggingFaceInspection,
+  inspectHuggingFaceRepository,
+  inspectHuggingFaceTopic,
+  normalizeHuggingFaceReference,
+  readHuggingFaceTextFile,
+  type HuggingFaceRepoType,
+} from "@/lib/huggingFaceInspection";
+import {
+  buildFeynmanResumeContext,
+  isFeynmanContinuityArtifactKind,
+  type FeynmanContinuitySession,
+} from "@/lib/feynmanContinuity";
+import {
+  appendFeynmanNotebookEntry,
+  completeFeynmanContinuitySession,
+  degradeFeynmanContinuitySession,
+  getFeynmanContinuitySession,
+  listFeynmanContinuitySessions,
+  readFeynmanContinuityArtifact,
+  searchFeynmanContinuitySessions,
+  startFeynmanContinuitySession,
+} from "@/lib/feynmanContinuityStore";
 import { callInternalAi } from "@/lib/internalAi";
+import { listCompiledMemoryPages } from "@/lib/memoryPagesStore";
 import {
   buildRepoCompareSynthesisPrompt,
   runRepoCompare,
@@ -825,43 +848,224 @@ async function compareRepos(
   }
 }
 
-async function deepResearch(
+const FEYNMAN_WORKFLOWS = new Set<FeynmanWorkflowId>([
+  "deepresearch",
+  "lit-review",
+  "review",
+  "audit",
+  "replicate",
+  "recipe",
+  "compare",
+  "draft",
+  "autoresearch",
+  "watch",
+]);
+
+async function callFeynmanStage(
+  origin: string,
+  task: string,
+  prompt: string,
+  maxTokens: number,
+) {
+  const aiResult = await callInternalAi({
+    origin,
+    task,
+    maxTokens,
+    timeoutMs: 60_000,
+    messages: [{ role: "user", content: prompt }],
+  });
+  if (!aiResult.ok || !aiResult.text.trim()) {
+    throw new Error(`${task} failed.`);
+  }
+  return aiResult.text;
+}
+
+async function feynmanResearch(
+  rawWorkflow: string,
   topic: string,
   origin: string,
 ): Promise<ToolResult> {
-  const normalizedTopic = topic.trim();
-  if (!normalizedTopic) {
-    return withToolResult("deep_research: topic is required.");
+  const workflow = rawWorkflow.trim().toLowerCase() as FeynmanWorkflowId;
+  if (!FEYNMAN_WORKFLOWS.has(workflow)) {
+    return withToolResult(
+      `feynman_research: workflow must be one of ${Array.from(FEYNMAN_WORKFLOWS).join(", ")}.`,
+    );
+  }
+  if (!topic.trim()) {
+    return withToolResult("feynman_research: topic or artifact is required.");
   }
 
-  const result = await runDeepResearch(normalizedTopic, {
-    hfPapersSearch: hfPapersSearch,
-    webSearch: webSearch,
-    rssFetch: rssFetch,
-    fetchUrl: fetchUrl,
-    synthesize: async (input: DeepResearchPipelineInput) => {
-      const aiResult = await callInternalAi({
-        origin,
-        task: "deep_research",
-        maxTokens: 900,
-        timeoutMs: 45_000,
-        messages: [
-          {
-            role: "user",
-            content: buildDeepResearchSynthesisPrompt(input),
-          },
-        ],
-      });
+  let continuitySession: FeynmanContinuitySession | null = null;
+  try {
+    continuitySession = await startFeynmanContinuitySession({ workflow, topic });
+  } catch {
+    // Research remains available when local continuity storage is unavailable.
+  }
 
-      if (!aiResult.ok || !aiResult.text.trim()) {
-        throw new Error("Deep research synthesis failed.");
+  try {
+    const result = await runFeynmanResearch(workflow, topic, {
+      searchPapers: hfPapersSearch,
+      webSearch,
+      fetchUrl,
+      inspectHuggingFace: inspectHuggingFaceTopic,
+      write: (prompt) =>
+        callFeynmanStage(origin, "feynman_writer", prompt, 1_800),
+      verify: (prompt) =>
+        callFeynmanStage(origin, "feynman_verifier", prompt, 1_300),
+      review: (prompt) =>
+        callFeynmanStage(origin, "feynman_reviewer", prompt, 1_100),
+      progress: continuitySession
+        ? (event) =>
+            appendFeynmanNotebookEntry(continuitySession.id, {
+              ...event,
+              at: new Date().toISOString(),
+            })
+        : undefined,
+    });
+    let completedSession: FeynmanContinuitySession | null = null;
+    if (continuitySession) {
+      try {
+        completedSession = await completeFeynmanContinuitySession(
+          continuitySession.id,
+          result,
+        );
+      } catch {
+        // Preserve the primary research result if continuity finalization fails.
       }
+    }
+    return withToolResult(
+      completedSession
+        ? [
+            result.report,
+            "",
+            "## Research Continuity",
+            `- Session: ${completedSession.id}`,
+            `- Resume: use feynman_outputs action "resume" with session_id "${completedSession.id}".`,
+            `- Notebook: /api/feynman/artifacts?sessionId=${encodeURIComponent(completedSession.id)}&artifact=notebook`,
+            `- Preview: /api/feynman/artifacts?sessionId=${encodeURIComponent(completedSession.id)}&artifact=preview`,
+            `- PDF: /api/feynman/artifacts?sessionId=${encodeURIComponent(completedSession.id)}&artifact=pdf`,
+          ].join("\n")
+        : result.report,
+    );
+  } catch (error) {
+    if (continuitySession) {
+      try {
+        await degradeFeynmanContinuitySession(
+          continuitySession.id,
+          error instanceof Error ? error.message : "Feynman research workflow failed.",
+        );
+      } catch {
+        // Preserve the original workflow failure.
+      }
+    }
+    return withToolResult(
+      error instanceof Error
+        ? error.message
+        : "Feynman research workflow failed.",
+    );
+  }
+}
 
-      return aiResult.text;
-    },
-  });
+async function deepResearch(topic: string, origin: string): Promise<ToolResult> {
+  return feynmanResearch("deepresearch", topic, origin);
+}
 
-  return withToolResult(result);
+function formatFeynmanSessionIndex(sessions: FeynmanContinuitySession[]) {
+  if (sessions.length === 0) return "No local Feynman continuity sessions exist yet.";
+  return sessions
+    .map(
+      (session, index) =>
+        `${index + 1}. **${session.title}**\n   Session: ${session.id} · Workflow: ${session.workflow} · Status: ${session.status} · Updated: ${session.updatedAt}\n   Preview: /api/feynman/artifacts?sessionId=${encodeURIComponent(session.id)}&artifact=preview · PDF: /api/feynman/artifacts?sessionId=${encodeURIComponent(session.id)}&artifact=pdf`,
+    )
+    .join("\n");
+}
+
+async function feynmanOutputs(input: Record<string, string> = {}): Promise<ToolResult> {
+  const action = (input.action ?? "list").trim().toLowerCase();
+  try {
+    switch (action) {
+      case "search": {
+        const query = input.query?.trim() ?? "";
+        if (!query) {
+          return withToolResult("feynman_outputs search requires query.");
+        }
+        const sessions = await searchFeynmanContinuitySessions(query, { limit: 20 });
+        return withToolResult(
+          [`# Feynman Session Search · ${query}`, "", formatFeynmanSessionIndex(sessions)].join(
+            "\n",
+          ),
+        );
+      }
+      case "resume": {
+        const session = input.session_id?.trim()
+          ? await getFeynmanContinuitySession(input.session_id.trim())
+          : (await searchFeynmanContinuitySessions(input.query ?? "", { limit: 1 }))[0];
+        if (!session) {
+          return withToolResult("No matching Feynman continuity session was found.");
+        }
+        return withToolResult(buildFeynmanResumeContext(session));
+      }
+      case "export": {
+        const sessionId = input.session_id?.trim() ?? "";
+        const artifact = (input.format ?? "pdf").trim().toLowerCase();
+        if (!sessionId) {
+          return withToolResult("feynman_outputs export requires session_id.");
+        }
+        if (!isFeynmanContinuityArtifactKind(artifact)) {
+          return withToolResult(
+            "feynman_outputs export format must be plan, notebook, report, evidence, claims, review, provenance, preview, or pdf.",
+          );
+        }
+        const exportArtifact = await readFeynmanContinuityArtifact(sessionId, artifact);
+        return withToolResult(
+          [
+            `# Feynman ${artifact} export`,
+            "",
+            `- Session: ${sessionId}`,
+            `- File: ${exportArtifact.fileName}`,
+            `- Open: /api/feynman/artifacts?sessionId=${encodeURIComponent(sessionId)}&artifact=${artifact}`,
+          ].join("\n"),
+        );
+      }
+      case "list":
+        break;
+      default:
+        return withToolResult(
+          "feynman_outputs action must be list, search, resume, or export.",
+        );
+    }
+
+    const sessions = await listFeynmanContinuitySessions({ limit: 20 });
+    const pages = await listCompiledMemoryPages({ limit: 80 });
+    const researchPages = pages
+      .filter(
+        (page) =>
+          FEYNMAN_WORKFLOWS.has(page.workflowId as FeynmanWorkflowId) ||
+          page.tags.includes("feynman-native"),
+      )
+      .slice(0, 20);
+    if (researchPages.length === 0 && sessions.length === 0) {
+      return withToolResult(
+        "No Feynman-native VAULT outputs exist yet. Run /deepresearch, /lit, /review, /audit, /replicate, /recipe, /compare, /draft, /autoresearch, or /watch first.",
+      );
+    }
+    return withToolResult(
+      [
+        "# Feynman Outputs",
+        "",
+        "## Continuity Sessions",
+        formatFeynmanSessionIndex(sessions),
+        "",
+        "## VAULT Compiled Pages",
+        ...researchPages.map(
+          (page, index) =>
+            `${index + 1}. **${page.title}**\n   Workflow: ${page.workflowId ?? "research"} · Updated: ${new Date(page.updatedAt).toISOString()} · Sources: ${page.researchSignals.sourceCount} · Citations: ${page.researchSignals.citationCount}\n   Open: /vault?focus=vault-compiled-pages&pageId=${encodeURIComponent(page.id)}${page.workflowId ? `&workflowId=${encodeURIComponent(page.workflowId)}` : ""}`,
+        ),
+      ].join("\n"),
+    );
+  } catch {
+    return withToolResult("Could not read Feynman outputs from the local VAULT.");
+  }
 }
 
 async function rssFetch(feedUrl: string, limit: string): Promise<string> {
@@ -985,6 +1189,45 @@ async function hfPapersSearch(query: string, limit: string): Promise<string> {
     return text;
   } catch {
     return "Could not reach HuggingFace papers API.";
+  }
+}
+
+async function huggingFaceInspect(
+  input: Record<string, string> = {},
+): Promise<string> {
+  const action = (input.action || "inspect").trim().toLowerCase();
+  const rawRepoType = input.repo_type?.trim().toLowerCase();
+  const repoType =
+    rawRepoType === "dataset" || rawRepoType === "model"
+      ? (rawRepoType as HuggingFaceRepoType)
+      : undefined;
+  try {
+    const reference = normalizeHuggingFaceReference(
+      input.reference ?? input.repo_id ?? "",
+      repoType,
+    );
+    if (action === "inspect") {
+      return formatHuggingFaceInspection(
+        await inspectHuggingFaceRepository(reference),
+      );
+    }
+    if (action === "read_file") {
+      const file = await readHuggingFaceTextFile(reference, input.path ?? "");
+      return [
+        "Hugging Face bounded text-file read",
+        `Source: ${file.url}`,
+        `Repository: ${file.repoId}`,
+        `Path: ${file.path}`,
+        `Bytes: ${file.bytes}`,
+        "",
+        file.content || "File returned no readable text.",
+      ].join("\n");
+    }
+    return "huggingface_inspect: action must be inspect or read_file.";
+  } catch (error) {
+    return error instanceof Error
+      ? `huggingface_inspect: ${error.message}`
+      : "huggingface_inspect failed.";
   }
 }
 
@@ -1405,11 +1648,32 @@ export async function POST(req: NextRequest) {
           meta = toolResult.meta;
         }
         break;
+      case "feynman_research":
+        {
+          const toolResult = await feynmanResearch(
+            input.workflow ?? "deepresearch",
+            input.topic ?? input.question ?? input.artifact ?? "",
+            resolveInternalServiceOrigin(),
+          );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "feynman_outputs":
+        {
+          const toolResult = await feynmanOutputs(input);
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
       case "rss_fetch":
         result = await rssFetch(input.url ?? "", input.limit ?? "10");
         break;
       case "hf_papers_search":
         result = await hfPapersSearch(input.query ?? "", input.limit ?? "5");
+        break;
+      case "huggingface_inspect":
+        result = await huggingFaceInspect(input);
         break;
       case "open_meteo_weather":
         result = await openMeteoWeather(

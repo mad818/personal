@@ -20,6 +20,7 @@ import {
   type VehicleRadarProcessingStage,
   type VehicleRenderBriefTarget,
 } from "@/lib/vehicle/hardwareReadiness"
+import { DEFAULT_VEHICLE_REPLAY_SCENARIO } from "@/lib/vehicle/flightReplayScenarios"
 import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry"
 import { useStore } from "@/store/useStore"
 
@@ -77,6 +78,7 @@ function stringifyVehicleFlightSessionBundle(bundle: VehicleFlightSessionBundle)
 
 export default function VehicleArtifactManifestCard() {
   const router = useRouter()
+  const replayScenario = DEFAULT_VEHICLE_REPLAY_SCENARIO
   const { activeFrame, bridgeStatus, history } = useVehicleTelemetry()
   const benchChecklistState = useStore((state) => state.settings.vehicleBenchChecklist ?? {})
   const firstHardwareDayChecklist = useStore(
@@ -474,6 +476,33 @@ export default function VehicleArtifactManifestCard() {
             Radar readiness attached: {bundle.radar.modeLabel} · {VEHICLE_RADAR_PROCESSING_STAGE_LABELS[bundle.radar.processingStage]}.
           </div>
         ) : null}
+      </div>
+
+      <div
+        data-testid="vehicle-replay-vault-package"
+        style={{
+          background: "rgba(147,197,253,0.08)",
+          border: "1px solid rgba(147,197,253,0.2)",
+          borderRadius: "var(--rs)",
+          padding: "10px 12px",
+        }}
+      >
+        <div style={{ fontSize: "9px", color: "#93c5fd", textTransform: "uppercase", letterSpacing: "0.8px", fontWeight: 800 }}>
+          Replay package preview
+        </div>
+        <div style={{ fontSize: "12px", color: "var(--text)", fontWeight: 800, marginTop: "5px" }}>
+          {replayScenario.vaultPackage.title}
+        </div>
+        <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.55, marginTop: "5px" }}>
+          {replayScenario.summary} Incident type: {replayScenario.vaultPackage.incidentType.replace(/_/g, " ")}.
+        </div>
+        <div className="nexus-shell-inline-list" aria-label="Replay package tags" style={{ marginTop: "8px" }}>
+          {replayScenario.vaultPackage.tags.map((tag) => (
+            <span key={tag} className="nexus-shell-inline-chip">
+              {tag}
+            </span>
+          ))}
+        </div>
       </div>
 
       <div

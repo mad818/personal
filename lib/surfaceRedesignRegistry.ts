@@ -63,6 +63,7 @@ export interface SurfaceRedesignSpec {
 export type ResourcesWorkbenchView =
   | "finder"
   | "manual"
+  | "sources"
   | "study"
   | "surfaces"
   | "playbooks"
@@ -70,6 +71,7 @@ export type ResourcesWorkbenchView =
   | "system"
   | "registry"
   | "kits"
+  | "escape"
   | "impact"
   | "voice-lab"
   | "wins";
@@ -604,6 +606,14 @@ export const SURFACE_REDESIGN_REGISTRY: Record<
         role: "workspace",
       },
       {
+        id: "source-intelligence",
+        title: "Source intelligence",
+        detail: "Govern outside ideas before implementation",
+        summary:
+          "Map external repos, posts, and tooling references into local lanes, guardrails, and promotion state before anything becomes a dependency.",
+        role: "workspace",
+      },
+      {
         id: "learn-review-practice",
         title: "Learn, review, and practice",
         detail: "Guided learning without adding a new tab",
@@ -652,6 +662,7 @@ export const SURFACE_REDESIGN_REGISTRY: Record<
       entry("Finder posture", "merged", "find-right-lane", "Finder posture becomes a job-led orientation block."),
       entry("Session finder", "merged", "open-exact-session", "Finder output leads toward exact-session opening."),
       entry("Developer field manual", "merged", "supporting-utilities", "Manual remains available as a supporting utility."),
+      entry("Source intelligence", "primary", "source-intelligence", "External idea intake becomes a native Resources chamber with guardrails and promotion state."),
       entry("Playbook posture", "merged", "start-safely", "Playbook posture belongs with safe starts."),
       entry("Engineering playbooks", "merged", "start-safely", "Playbooks stay in the safe-start lane."),
       entry("Spec posture", "merged", "start-safely", "Spec posture belongs with safe starts."),
@@ -694,6 +705,14 @@ export const RESOURCES_WORKBENCH_JOBS: ResourcesWorkbenchJobSpec[] = [
     summary:
       "Use the study lane when you want to learn a concept, review prior work, practice with a quiz, or open the exact memory compartment behind the assistant.",
     recommendedView: "study",
+  },
+  {
+    id: "source-intelligence",
+    title: "Govern source intake",
+    detail: "Turn outside links into local work without vendoring drift",
+    summary:
+      "Use Source Intelligence when repos, posts, and tooling ideas need to be mapped into Nexus lanes, risks, and promotion gates before implementation.",
+    recommendedView: "sources",
   },
   {
     id: "understand-system",
@@ -748,6 +767,18 @@ export const RESOURCES_WORKBENCH_VIEW_SPECS: Record<
     panelDetail: "Searchable free/open reference deck",
     panelSummary:
       "Keep external references close, but secondary to the assistant-led internal workbench.",
+  },
+  sources: {
+    view: "sources",
+    jobId: "source-intelligence",
+    introTitle: "Govern source intake",
+    introDetail: "Map first, build second",
+    introSummary:
+      "Use Source Intelligence when a repo, X post, or tooling reference needs lane mapping, risks, and a promotion gate before touching product code.",
+    panelTitle: "Source intelligence",
+    panelDetail: "External idea intake, lane mapping, and guardrails",
+    panelSummary:
+      "Source intelligence should keep outside inspiration useful without vendoring code, weakening security posture, or exposing private RPG work.",
   },
   study: {
     view: "study",
@@ -868,6 +899,18 @@ export const RESOURCES_WORKBENCH_VIEW_SPECS: Record<
     panelDetail: "Reusable operator bundles",
     panelSummary:
       "Kits stay supporting and should not compete with the first-view problem-solving paths.",
+  },
+  escape: {
+    view: "escape",
+    jobId: "supporting-utilities",
+    introTitle: "Cut subscriptions",
+    introDetail: "MacBook-hosted local replacements",
+    introSummary:
+      "Use Escape when recurring subscriptions need a safe local, free, open-source, or BYOK replacement plan before cancellation.",
+    panelTitle: "Subscription Escape",
+    panelDetail: "Tailscale access, safety checks, and replacement map",
+    panelSummary:
+      "Subscription replacement should prove data export, backup, recovery, and private access before any cancellation step.",
   },
 };
 

@@ -4,90 +4,108 @@
 "use client";
 // Device management, sensor networks, and home automation
 
+import dynamic from "next/dynamic";
 import MQTTStatus from "@/components/iot/MQTTStatus";
-import SensorDashboard from "@/components/iot/SensorDashboard";
-import DeviceRegistry from "@/components/iot/DeviceRegistry";
-import AutomationRules from "@/components/iot/AutomationRules";
 import SensorGauges from "@/components/iot/SensorGauges";
-import WeatherTimeline from "@/components/iot/WeatherTimeline";
-import DeviceStatusMatrix from "@/components/iot/DeviceStatusMatrix";
-import PageTransition from "@/components/ui/PageTransition";
+import {
+  SectionLabel,
+  ShellGrid,
+  ShellPage,
+  ShellPanel,
+  ShellStack,
+} from "@/components/ui/shell";
+
+const AutomationRules = dynamic(
+  () => import("@/components/iot/AutomationRules"),
+  { ssr: false },
+);
+const DeviceRegistry = dynamic(() => import("@/components/iot/DeviceRegistry"), {
+  ssr: false,
+});
+const DeviceStatusMatrix = dynamic(
+  () => import("@/components/iot/DeviceStatusMatrix"),
+  { ssr: false },
+);
+const SensorDashboard = dynamic(
+  () => import("@/components/iot/SensorDashboard"),
+  { ssr: false },
+);
+const EspectreWifiViewer = dynamic(
+  () => import("@/components/iot/EspectreWifiViewer"),
+  { ssr: false },
+);
+const WeatherTimeline = dynamic(
+  () => import("@/components/iot/WeatherTimeline"),
+  { ssr: false },
+);
 
 export default function IoTPage() {
   return (
-    <PageTransition>
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "18px 16px 40px",
-        }}
-      >
-        <div style={{ fontSize: "18px", fontWeight: 900 }}>
-          📡 IoT COMMAND CENTER
-        </div>
-        <div
-          style={{
-            fontSize: "12px",
-            color: "var(--text2)",
-            marginTop: "2px",
-            marginBottom: "16px",
-          }}
-        >
-          Device management, sensor networks, and home automation
-        </div>
+    <ShellPage
+      eyebrow="Internal sensor operations"
+      surface="iot"
+      title="Sensor Desk"
+      description="Device health, sensor telemetry, MQTT posture, and automation rules stay inside the same operator-owned Homefront shell."
+      width="wide"
+      heroDensity="compact"
+    >
+      <ShellStack gap="16px">
+        <ShellPanel tone="hero">
+          <SectionLabel detail="Broker and adapter posture">
+            MQTT status
+          </SectionLabel>
+          <MQTTStatus />
+        </ShellPanel>
 
-        {/* MQTT status bar — top of page */}
-        <MQTTStatus />
+        <ShellGrid columns="minmax(0, 0.9fr) minmax(320px, 1.1fr)" gap="16px">
+          <ShellPanel>
+            <SectionLabel detail="Live gauge plane">Sensor gauges</SectionLabel>
+            <SensorGauges />
+          </ShellPanel>
+          <ShellPanel>
+            <SectionLabel detail="Weather and local context">
+              Weather timeline
+            </SectionLabel>
+            <WeatherTimeline />
+          </ShellPanel>
+        </ShellGrid>
 
-        {/* Sensor Gauges — animated SVG semicircles */}
-        <SensorGauges />
+        <ShellPanel>
+          <SectionLabel detail="Device readiness matrix">
+            Device status
+          </SectionLabel>
+          <DeviceStatusMatrix />
+        </ShellPanel>
 
-        {/* Weather Timeline — 24h forecast */}
-        <WeatherTimeline />
+        <ShellGrid columns="minmax(0, 1fr) minmax(0, 1fr)" gap="16px">
+          <ShellPanel>
+            <SectionLabel detail="Sensor intake">
+              Sensor dashboard
+            </SectionLabel>
+            <SensorDashboard />
+          </ShellPanel>
+          <ShellPanel>
+            <SectionLabel detail="Local device inventory">
+              Device registry
+            </SectionLabel>
+            <DeviceRegistry />
+          </ShellPanel>
+        </ShellGrid>
 
-        {/* Device Status Matrix */}
-        <DeviceStatusMatrix />
+        <ShellPanel>
+          <SectionLabel detail="Consent-aware ESPectre telemetry">
+            WiFi sensing
+          </SectionLabel>
+          <EspectreWifiViewer />
+        </ShellPanel>
 
-        {/* Sensor grid — existing */}
-        <div
-          style={{
-            background: "var(--surf)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--r)",
-            padding: "16px",
-            marginBottom: "16px",
-            marginTop: "16px",
-          }}
-        >
-          <SensorDashboard />
-        </div>
-
-        {/* Device list — middle */}
-        <div
-          style={{
-            background: "var(--surf)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--r)",
-            padding: "16px",
-            marginBottom: "16px",
-          }}
-        >
-          <DeviceRegistry />
-        </div>
-
-        {/* Automation rules — bottom */}
-        <div
-          style={{
-            background: "var(--surf)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--r)",
-            padding: "16px",
-          }}
-        >
+        <ShellPanel tone="muted">
+          <SectionLabel detail="Review before physical-world automation">
+            Automation rules
+          </SectionLabel>
           <AutomationRules />
-        </div>
-      </div>
-    </PageTransition>
+        </ShellPanel>
+      </ShellStack>
+    </ShellPage>
   );
 }

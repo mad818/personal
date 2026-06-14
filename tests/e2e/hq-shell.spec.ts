@@ -82,6 +82,17 @@ test("hq shell stays interactive without hydration regressions", async ({
   await expect(
     page.locator('.nexus-shell-stage--hq[data-cinematic-ia="cinematic-ia-v1"]'),
   ).toBeVisible();
+  await expect(page.getByTestId("homefront-visual-parity")).toBeVisible();
+  await expect(page.getByTestId("homefront-visual-parity")).toHaveAttribute(
+    "data-surface",
+    "hq",
+  );
+  await expect(page.getByTestId("homefront-visual-parity")).toHaveAttribute(
+    "data-interior-polish",
+    "true",
+  );
+  await expect(page.getByTestId("homefront-surface-module")).toBeVisible();
+  await expect(page.getByTestId("homefront-workplane-summary")).toHaveCount(0);
   await waitForCanonicalUrl(page, (url) => {
     expect(url.pathname).toBe("/hq");
   });
@@ -111,6 +122,19 @@ test("hq arpg room exposes a playable reliquary loop without blocking command in
   await expect(page.getByTestId("arpg-phaser-game")).toBeVisible();
   await expect(page.getByTestId("arpg-phaser-canvas")).toBeVisible();
   await expect(page.getByTestId("arpg-hud")).toBeVisible();
+  await expect(
+    page
+      .getByTestId("arpg-room")
+      .locator('[data-testid="homefront-visual-parity"]'),
+  ).toHaveCount(0);
+  await expect(
+    page
+      .getByTestId("arpg-room")
+      .locator('[data-testid="homefront-workplane-summary"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.getByTestId("arpg-room").locator('[data-interior-polish="true"]'),
+  ).toHaveCount(0);
   await expect(page.getByTestId("arpg-hud")).toHaveAttribute("data-density", "compact");
   await expect(page.getByTestId("arpg-stage-size-controls")).toBeVisible();
   await page.getByTestId("arpg-size-compact").click();
@@ -335,6 +359,15 @@ test("hq arpg room exposes a playable reliquary loop without blocking command in
   );
   await expect(page.getByTestId("arpg-production-readiness")).toContainText(
     "Release flows 19",
+  );
+  await expect(page.getByTestId("arpg-production-readiness")).toContainText(
+    "Fallback proof 4",
+  );
+  await expect(page.getByTestId("arpg-fallback-proof-matrix")).toContainText(
+    "Fallback proof matrix",
+  );
+  await expect(page.getByTestId("arpg-fallback-proof-browser-fallback-route-proof")).toContainText(
+    "Browser fallback route proof",
   );
   await expect(page.getByTestId("arpg-presentation-readiness")).toContainText(
     "Presentation 6",
@@ -746,6 +779,17 @@ test("hq arpg systems foundation exposes map, travel, armory, and people loops",
   await page.getByTestId("arpg-bellroot-reading-bellroot-reading-root-under-bell").click();
   await expect(page.getByTestId("arpg-journal-drawer")).toBeVisible();
   await expect(page.getByTestId("arpg-bellroot-lamp-readings")).toContainText("Root Under the Bell");
+  await page.getByTestId("arpg-map-toggle").click();
+  await page.getByTestId("arpg-veyrhold-district-node-veyrhold-pilgrim-rows").click();
+  await expect(page.getByTestId("arpg-veyrhold-district-node-veyrhold-pilgrim-rows")).toContainText("visited");
+  await expect(page.getByTestId("arpg-pilgrim-rows-runtime")).toContainText("Lamp Checkpoint");
+  await page.getByTestId("arpg-pilgrim-rest-pilgrim-rest-lamp-checkpoint").click();
+  await expect(page.getByTestId("arpg-inventory-drawer")).toBeVisible();
+  await expect(page.getByTestId("arpg-pilgrim-kit-rest")).toContainText("road prep");
+  await page.getByTestId("arpg-map-toggle").click();
+  await page.getByTestId("arpg-pilgrim-rumor-pilgrim-rumor-north-gate-blink").click();
+  await expect(page.getByTestId("arpg-journal-drawer")).toBeVisible();
+  await expect(page.getByTestId("arpg-pilgrim-road-rumors")).toContainText("North Gate Blink");
   await page.getByTestId("arpg-map-toggle").click();
   await expect(page.getByTestId("arpg-veyrhold-town-services")).toContainText("Bellroot Anvil");
   await expect(page.getByTestId("arpg-veyrhold-miniquests")).toContainText("The Ledger That Would Not Close");

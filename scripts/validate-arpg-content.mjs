@@ -759,6 +759,50 @@ if (!townServicesContent) {
     }
   }
 
+  if ((townServicesContent.pilgrimRowsRestOptions ?? []).length < 3) {
+    fail("townServicesContent.pilgrimRowsRestOptions", "at least three Pilgrim Rows rest options are required");
+  }
+  const pilgrimRestIds = new Set();
+  for (const rest of townServicesContent.pilgrimRowsRestOptions ?? []) {
+    const owner = rest?.id ?? "pilgrimRowsRestOption";
+    for (const field of ["id", "label", "serviceId", "npcId", "restRole", "summary", "storyFlag", "outcomeCopy"]) {
+      requireString(owner, field, rest?.[field]);
+    }
+    if (pilgrimRestIds.has(rest?.id)) fail(owner, `duplicate Pilgrim Rows rest option id ${rest?.id}`);
+    pilgrimRestIds.add(rest?.id);
+    if (!serviceIds.has(rest?.serviceId)) fail(owner, `serviceId must reference a Veyrhold service: ${rest?.serviceId}`);
+    if (!npcIds.has(rest?.npcId)) fail(owner, `npcId must reference a Veyrhold NPC: ${rest?.npcId}`);
+    requireStringArray(owner, "rewardItemIds", rest?.rewardItemIds, 1);
+    requireStringArray(owner, "roadPrepTags", rest?.roadPrepTags, 1);
+    for (const itemId of rest?.rewardItemIds ?? []) {
+      if (!itemIds.has(itemId)) fail(owner, `rewardItemId is not defined in ARPG_ITEMS: ${itemId}`);
+    }
+  }
+
+  if ((townServicesContent.pilgrimRowsRoadRumors ?? []).length < 3) {
+    fail("townServicesContent.pilgrimRowsRoadRumors", "at least three Pilgrim Rows road rumors are required");
+  }
+  const pilgrimRumorIds = new Set();
+  for (const rumor of townServicesContent.pilgrimRowsRoadRumors ?? []) {
+    const owner = rumor?.id ?? "pilgrimRowsRoadRumor";
+    for (const field of ["id", "label", "npcId", "districtId", "rumorHook", "routeHint", "storyFlag", "outcomeCopy"]) {
+      requireString(owner, field, rumor?.[field]);
+    }
+    if (pilgrimRumorIds.has(rumor?.id)) fail(owner, `duplicate Pilgrim Rows road rumor id ${rumor?.id}`);
+    pilgrimRumorIds.add(rumor?.id);
+    if (!npcIds.has(rumor?.npcId)) fail(owner, `npcId must reference a Veyrhold NPC: ${rumor?.npcId}`);
+    if (!veyrholdSubCityIds.has(rumor?.districtId)) {
+      fail(owner, `districtId must reference a Veyrhold sub-city: ${rumor?.districtId}`);
+    }
+    requireStringArray(owner, "rewardItemIds", rumor?.rewardItemIds, 1);
+    if (!Number.isFinite(rumor?.reputationDelta) || rumor.reputationDelta < 1) {
+      fail(owner, "reputationDelta must be a positive number");
+    }
+    for (const itemId of rumor?.rewardItemIds ?? []) {
+      if (!itemIds.has(itemId)) fail(owner, `rewardItemId is not defined in ARPG_ITEMS: ${itemId}`);
+    }
+  }
+
   if ((townServicesContent.districtHooks ?? []).length !== 4) {
     fail("townServicesContent.districtHooks", "exactly four Veyrhold district hooks are required");
   }

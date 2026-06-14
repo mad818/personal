@@ -9,6 +9,16 @@ test.beforeEach(async ({ page }) => {
   await seedAuthenticatedShell(page);
 });
 
+const WORKPLANE_SUMMARY_SURFACES = new Set([
+  "command",
+  "intel",
+  "alpha",
+  "cyber",
+  "recon",
+  "vault",
+  "resources",
+]);
+
 async function waitForShell(
   page: Page,
   testInfo: TestInfo,
@@ -74,9 +84,62 @@ async function expectCinematicIA(page: Page, surface: string) {
       .locator(`[data-cinematic-zone="lead"], [data-cinematic-zone="canvas"]`)
       .first(),
   ).toBeVisible();
+  await expect(page.getByTestId("shell-bootstrap-recovery")).toHaveCount(0);
   if (surface !== "hq") {
     const threshold = page.getByTestId("homefront-command-threshold");
     await expect(page.getByTestId("homefront-doctrine-strip")).toBeVisible();
+    await expect(
+      page.getByTestId("homefront-operating-contract"),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("homefront-operating-contract").getByText("Lead"),
+    ).toBeVisible();
+    await expect(page.getByTestId("homefront-action-control")).toBeVisible();
+    await expect(page.getByTestId("homefront-action-control")).toContainText(
+      "Purpose + actions",
+    );
+    await expect(page.getByTestId("homefront-visual-parity")).toBeVisible();
+    await expect(page.getByTestId("homefront-visual-parity")).toHaveAttribute(
+      "data-interior-polish",
+      "true",
+    );
+    await expect(page.getByTestId("homefront-visual-parity")).toHaveAttribute(
+      "data-support-density",
+      /compact|balanced|deep/,
+    );
+    await expect(page.getByTestId("homefront-surface-module")).toBeVisible();
+    await expect(page.getByTestId("homefront-surface-module")).toHaveAttribute(
+      "data-interior-polish",
+      "true",
+    );
+    await expect(page.getByTestId("homefront-data-rail")).toBeVisible();
+    await expect(page.getByTestId("homefront-media-panel")).toBeVisible();
+    await expect(page.getByTestId("homefront-media-panel")).toHaveAttribute(
+      "data-media-moment",
+      /.+/,
+    );
+    await expect(page.getByTestId("homefront-action-dock")).toBeVisible();
+    await expect(page.getByTestId("homefront-action-dock")).toHaveAttribute(
+      "data-active-label",
+      /.+/,
+    );
+    await expect(page.getByTestId("homefront-route-tabs")).toBeVisible();
+    await expect(page.getByTestId("homefront-route-tabs")).toHaveAttribute(
+      "data-active-label",
+      /.+/,
+    );
+    await expect(
+      page.locator(
+        '[data-testid="homefront-route-tabs"] [data-active="true"]',
+      ),
+    ).toBeVisible();
+    await expect(page.getByTestId("homefront-source-intake")).toBeVisible();
+    await expect(page.getByTestId("homefront-source-intake")).toContainText(
+      "No vendoring",
+    );
+    await expect(page.getByTestId("homefront-source-intake")).toContainText(
+      "Passive-first",
+    );
     await expect(threshold).toBeVisible();
     await expect(threshold).toHaveAttribute("data-live-state", /.+/);
     await expect(
@@ -88,10 +151,23 @@ async function expectCinematicIA(page: Page, surface: string) {
       page.getByTestId("homefront-live-vision-strip").getByText("Image plane"),
     ).toBeVisible();
     await expect(
-      page
-        .getByTestId("homefront-live-vision-strip")
-        .getByText("RPG separate"),
+      page.getByTestId("homefront-live-vision-strip").getByText("RPG separate"),
     ).toBeVisible();
+    if (WORKPLANE_SUMMARY_SURFACES.has(surface)) {
+      await expect(page.getByTestId("homefront-workplane-summary")).toBeVisible();
+      await expect(page.getByTestId("homefront-workplane-summary")).toHaveAttribute(
+        "data-interior-polish",
+        "true",
+      );
+      await expect(page.getByTestId("homefront-workplane-summary")).toContainText(
+        "Next best action",
+      );
+      await expect(page.getByTestId("homefront-workplane-summary")).toContainText(
+        "Proof",
+      );
+    } else {
+      await expect(page.getByTestId("homefront-workplane-summary")).toHaveCount(0);
+    }
   }
 }
 
@@ -188,6 +264,30 @@ test("ga tabs resolve data states without hanging on dead loading copy", async (
   await expect(
     page.getByText("Focused session: project memory", { exact: true }),
   ).toBeVisible();
+
+  await gotoSurface(page, "/labs/security");
+  await waitForShell(page, testInfo, { anchorText: "Security controls" });
+  await expectCinematicIA(page, "security");
+  await expect(
+    page.getByText("Physical ops preserved", { exact: true }),
+  ).toBeVisible();
+
+  await gotoSurface(page, "/internal/skills");
+  await waitForShell(page, testInfo, { anchorText: "Workflow labs" });
+  await expectCinematicIA(page, "skills");
+  await expect(
+    page.getByText("Workflow Forge", { exact: true }).first(),
+  ).toBeVisible();
+
+  await gotoSurface(page, "/internal/vehicle");
+  await waitForShell(page, testInfo, { anchorText: "Systems lab" });
+  await expectCinematicIA(page, "vehicle");
+  await expect(page.getByLabel("Vehicle readiness phases")).toBeVisible();
+
+  await gotoSurface(page, "/internal/iot");
+  await waitForShell(page, testInfo, { anchorText: "Sensor Desk" });
+  await expectCinematicIA(page, "iot");
+  await expect(page.getByText("Device status", { exact: true })).toBeVisible();
 });
 
 test("resources hides external export helpers behind disclosure panels", async ({
@@ -205,6 +305,14 @@ test("resources hides external export helpers behind disclosure panels", async (
   await page.locator("summary", { hasText: "Use outside Nexus" }).click();
   await expect(page.getByRole("button", { name: "Copy brief" })).toBeVisible();
 
+  await gotoSurface(
+    page,
+    "/resources?view=playbooks&playbook=runtime-finalize-loop",
+  );
+  await waitForShell(page, testInfo, { anchorText: "Start safely" });
+  await expect(page.getByText("Runtime Finalize Loop")).toBeVisible();
+  await expect(page.getByText("Browser probe")).toBeVisible();
+
   await gotoSurface(page, "/resources?view=specs");
   await waitForShell(page, testInfo, { anchorText: "Start safely" });
   await expectCinematicIA(page, "resources");
@@ -214,6 +322,38 @@ test("resources hides external export helpers behind disclosure panels", async (
   await expect(
     page.getByRole("button", { name: "Copy starter" }),
   ).toBeVisible();
+});
+
+test("resources exposes source intelligence as a native intake lane", async ({
+  page,
+}, testInfo) => {
+  await gotoSurface(page, "/resources?view=sources");
+  await waitForShell(page, testInfo, { anchorText: "Source intelligence" });
+  await expectCinematicIA(page, "resources");
+
+  await expect(page.getByTestId("resources-source-intelligence")).toBeVisible();
+  await expect(page.getByTestId("resources-source-intelligence")).toContainText(
+    "No vendoring",
+  );
+  await expect(page.getByTestId("resources-source-intelligence")).toContainText(
+    "Passive-first",
+  );
+  await expect(page.getByTestId("resources-source-intelligence")).toContainText(
+    "APTS + AgentShield",
+  );
+  await expect(page.getByTestId("resources-source-intelligence")).toContainText(
+    "Private art tooling",
+  );
+  await expect(page.getByTestId("resources-source-ledger")).toBeVisible();
+  await expect(page.getByTestId("resources-source-ledger")).toContainText(
+    "OWASP APTS",
+  );
+  await expect(page.getByTestId("resources-source-ledger")).toContainText(
+    "hackingtool",
+  );
+  await expect(page.getByTestId("resources-source-ledger")).toContainText(
+    "Private lane",
+  );
 });
 
 test("resources exposes massive win planning as a native command lane", async ({

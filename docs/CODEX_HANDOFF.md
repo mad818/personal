@@ -35,10 +35,9 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 
 ### What’s next (from `tasks/todo.md`)
 
-- MW6-ARPG-FULL-GAME-PRODUCTION — Expand `Aether Reliquary` from the MW5 Phaser vertical slice into a complete browser RPG inside `/hq`, not a single chapter: target one playable protagonist with race/class/subclass customization, 12 major cities with 4...
-- MW6 child tracks — 4 follow-up tracks are queued in `tasks/todo.md`; expand there when implementing.
-- UXA3 — After acceptance on merged `main`, retire the older replay worktree queue only once we no longer need side-by-side rollback or visual-reference inspection.
-- Retire the older M2/M3/M4 review queue only after UXA3 is accepted on merged `main` and there is no remaining need for replay-era rollback/reference worktrees.
+- CI-GREEN-NODE-RUNTIME — Align GitHub Actions with the supported Node runtime, rerun the full local verification lane, push the committed fixes, and confirm every PR #47 workflow is green.
+- FREE-LOCAL-PHONE-ACCEPTANCE — Desktop LAN runtime proof, the phone checklist, the protected receipt lane, assistant receipt bridge, live receipt status, capture-status artifact, direct-HQ QR handoff, `npm run ops:preflight`, `npm run...
+- LOCAL-AI-OFFLINE-OPERATIONS — Authenticated desktop proof remains captured from the local session: Free Local Readiness returned `ready`, `isolated`, paid APIs `blocked`, Ollama `reachable`, resolved model `gemma4:latest`, agent health `100%`,...
 - Full queue: `tasks/todo.md` -> `## Next Up`.
 
 ### Where to look

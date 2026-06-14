@@ -13,6 +13,7 @@ export type SurfaceMotionSurface =
   | "vault"
   | "resources"
   | "vehicle"
+  | "iot"
   | "security"
   | "skills";
 
@@ -303,6 +304,20 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
       "linear-gradient(135deg, transparent 0%, rgba(56,189,248,.08) 28%, transparent 50%), linear-gradient(315deg, transparent 0%, rgba(245,158,11,.08) 28%, transparent 48%)",
     mobileOpacity: 0.56,
   },
+  iot: {
+    surface: "iot",
+    haze:
+      "radial-gradient(circle at 18% 18%, rgba(79,213,255,.13), transparent 24%), radial-gradient(circle at 82% 14%, rgba(132,204,22,.1), transparent 24%), radial-gradient(circle at 50% 88%, rgba(255,255,255,.04), transparent 20%)",
+    grid:
+      "linear-gradient(90deg, rgba(79,213,255,.05) 0, rgba(79,213,255,.05) 1px, transparent 1px, transparent 154px), linear-gradient(180deg, rgba(132,204,22,.04) 0, rgba(132,204,22,.04) 1px, transparent 1px, transparent 118px)",
+    sweep:
+      "linear-gradient(90deg, transparent 0%, rgba(79,213,255,.16) 48%, rgba(132,204,22,.1) 54%, transparent 100%)",
+    signals:
+      "radial-gradient(circle at 20% 28%, rgba(79,213,255,.18) 0 2px, transparent 3px), radial-gradient(circle at 78% 18%, rgba(132,204,22,.14) 0 2px, transparent 3px), radial-gradient(circle at 60% 74%, rgba(255,255,255,.08) 0 1.5px, transparent 3px)",
+    ornament:
+      "linear-gradient(135deg, transparent 0%, rgba(79,213,255,.08) 28%, transparent 50%), linear-gradient(315deg, transparent 0%, rgba(132,204,22,.08) 28%, transparent 48%)",
+    mobileOpacity: 0.56,
+  },
   security: {
     surface: "security",
     haze:
@@ -429,6 +444,16 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     composition: "tactical",
     posterLayering: "stacked",
     thumbPosture: "rail",
+    badgeMood: "signal",
+    accentBeam: "cool",
+    vignette: "command",
+    frameStyle: "campaign",
+  },
+  iot: {
+    surface: "iot",
+    composition: "tactical",
+    posterLayering: "stacked",
+    thumbPosture: "grid-tight",
     badgeMood: "signal",
     accentBeam: "cool",
     vignette: "command",
@@ -596,6 +621,20 @@ const ATMOSPHERE_SPECS: Record<SurfaceMotionSurface, SurfaceAtmosphereSpec> = {
     sweepDurationSec: 12,
     spotlight:
       "radial-gradient(circle at 24% 24%, rgba(120,146,222,.1), transparent 22%), radial-gradient(circle at 74% 18%, rgba(202,166,96,.06), transparent 18%)",
+  },
+  iot: {
+    surface: "iot",
+    chamberTone: "tactical",
+    focusBias: "right",
+    worldOpacity: 0.2,
+    veilOpacity: 0.92,
+    frameOpacity: 0.34,
+    hazeDurationSec: 22,
+    gridDurationSec: 28,
+    ornamentDurationSec: 24,
+    sweepDurationSec: 12,
+    spotlight:
+      "radial-gradient(circle at 28% 24%, rgba(104,192,214,.1), transparent 22%), radial-gradient(circle at 74% 18%, rgba(132,204,22,.06), transparent 18%)",
   },
   security: {
     surface: "security",
@@ -872,6 +911,31 @@ const SEQUENCE_PRESETS: Record<SurfaceMotionSurface, SurfaceSequencePreset> = {
     continuityDelayMs: 214,
     settleMs: 220,
   },
+  iot: {
+    surface: "iot",
+    ingress: {
+      kind: "tactical",
+      initial: {
+        opacity: 0,
+        y: 12,
+        x: 6,
+        scale: 0.992,
+        filter: "blur(6px)",
+      },
+      exit: {
+        opacity: 0,
+        y: -4,
+        scale: 1.002,
+        filter: "blur(3px)",
+      },
+      baseDuration: 0.34,
+    },
+    heroDelayMs: 28,
+    primaryDelayMs: 92,
+    supportDelayMs: 156,
+    continuityDelayMs: 220,
+    settleMs: 226,
+  },
   security: {
     surface: "security",
     ingress: {
@@ -1001,6 +1065,14 @@ const SIGNAL_MOTION_SPECS: Record<SurfaceMotionSurface, SurfaceSignalMotionSpec>
     doctrineRelightMs: 560,
     toastMs: 230,
   },
+  iot: {
+    surface: "iot",
+    navBeamMs: 2420,
+    alertStampMs: 380,
+    ribbonPulseMs: 1010,
+    doctrineRelightMs: 570,
+    toastMs: 230,
+  },
   security: {
     surface: "security",
     navBeamMs: 2480,
@@ -1072,6 +1144,8 @@ export function resolveSurfaceMotionSurface(
       return "skills";
     case "vehicle":
       return "vehicle";
+    case "iot":
+      return "iot";
     default:
       return "default";
   }

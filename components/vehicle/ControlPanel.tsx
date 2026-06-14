@@ -115,7 +115,7 @@ export default function ControlPanel() {
             color: "var(--text3)",
           }}
         >
-          192.168.1.200
+          {"<LAN-IP>"}
         </span>
         <button
           onClick={() => setPiConnected((v) => !v)}

@@ -22,13 +22,21 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/metrics/runtime-eval", routeClass: "local_only", public: false },
   { prefix: "/api/agent-health", routeClass: "local_only", public: false },
   { prefix: "/api/agent-learnings", routeClass: "local_only", public: false },
+  { prefix: "/api/free-local-readiness", routeClass: "local_only", public: false },
+  { prefix: "/api/phone-acceptance/receipt", routeClass: "local_only", public: false },
+  { prefix: "/api/privacy-shield/preview", routeClass: "local_only", public: false },
+  { prefix: "/api/feynman/artifacts", routeClass: "local_only", public: false },
   { prefix: "/api/token", routeClass: "local_only", public: true },
   { prefix: "/api/health", routeClass: "local_only", public: true },
   { prefix: "/api/auth-diagnostics", routeClass: "local_only", public: true },
   { prefix: "/api/network-health/check", routeClass: "local_only", public: false },
+  { prefix: "/api/espectre", routeClass: "local_only", public: false },
+  { prefix: "/api/masterdnsvpn/readiness", routeClass: "local_only", public: false },
+  { prefix: "/api/windows-optimization-advisor", routeClass: "local_only", public: false },
   { prefix: "/api/status", routeClass: "local_only", public: false },
   { prefix: "/api/project", routeClass: "local_only", public: false },
   { prefix: "/api/ollama/catalog", routeClass: "local_only", public: false },
+  { prefix: "/api/local-acceleration", routeClass: "local_only", public: false },
   { prefix: "/api/assistant/retrieve", routeClass: "connector_opt_in", public: false },
   { prefix: "/api/settings", routeClass: "local_only", public: false },
   { prefix: "/api/verify", routeClass: "local_only", public: false },
@@ -44,6 +52,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/workflows", routeClass: "local_only", public: false },
   { prefix: "/api/workflow-runs", routeClass: "local_only", public: false },
   { prefix: "/api/registry", routeClass: "local_only", public: false },
+  { prefix: "/api/subscription-escape", routeClass: "local_only", public: false },
   { prefix: "/api/security/scenarios", routeClass: "local_only", public: false },
   { prefix: "/api/security/runs", routeClass: "local_only", public: false },
   { prefix: "/api/model-lab", routeClass: "local_only", public: false },
@@ -85,8 +94,8 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/vault-synthesis", routeClass: "high_risk", public: false },
   { prefix: "/api/ai/batches/[batchId]", routeClass: "high_risk", public: false },
   { prefix: "/api/ai/batches", routeClass: "high_risk", public: false },
-  { prefix: "/api/ai", routeClass: "connector_opt_in", public: false },
-  { prefix: "/api/tools", routeClass: "high_risk", public: false },
+  { prefix: "/api/ai", routeClass: "local_only", public: false },
+  { prefix: "/api/tools", routeClass: "local_only", public: false },
   { prefix: "/api/mqtt", routeClass: "high_risk", public: false },
   { prefix: "/api/telegram", routeClass: "high_risk", public: false },
   { prefix: "/api/agent-reach", routeClass: "high_risk", public: false },
@@ -114,6 +123,7 @@ export function readNetworkMode(): NetworkMode {
   const raw = (
     process.env.NEXUS_NETWORK_MODE ?? getDefaultNetworkMode()
   ).toLowerCase();
+  if (raw === "isolated") return raw;
   if (raw === "internal" || raw === "connected") return raw;
   return getDefaultNetworkMode();
 }

@@ -1,12 +1,14 @@
 # NEXUS PRIME
 
 ## What this is
+
 **Product invariant:** Nexus Prime is **free (MIT)** — **no in-app charges**, subscriptions, or Nexus-side billing. Optional keys are BYOK. See `lib/productGuarantees.ts` and `assertNexusDoesNotChargeUsers()` in `app/layout.tsx`.
 
 Nexus Prime is a unified React/Next.js 14 intelligence dashboard at `localhost:3000`, with a native **desktop app for Windows and macOS** via Tauri (`desktop/`).
 The legacy HTML app (`nexus-final.html`) has been archived to `archive/`. Do not restore it or reference it in new code — all development happens in the React app.
 
 ## Commands
+
 ```
 npm run dev      # start dev server (localhost:3000)
 npm run verify   # type-check + lint + path safety (same as CI)
@@ -18,18 +20,19 @@ npm run desktop:start-runtime  # run at 127.0.0.1:3000
 npm run desktop:tauri:dev      # open Tauri dev shell
 ```
 
-## Handoff (Cursor, Codex, Codex, or any editor — same rules)
+## Handoff (Codex-first; Cursor or any editor can follow the same rules)
 
 There is **one canonical handoff document**: `docs/AGENT_HANDOFF.md`. It is **not** chat history. It is **rebuilt from the repo** (`tasks/todo.md` “what’s next” + committed supplement + stable project context). **Old text is replaced** every time it is regenerated.
 
 For tool compatibility, the same generated content is also written to:
-- `docs/CLAUDE_HANDOFF.md`
+
 - `docs/CODEX_HANDOFF.md`
 - `docs/CURSOR_HANDOFF.md`
+- `docs/CLAUDE_HANDOFF.md` (legacy compatibility pointer only)
 
-**When you open this project (any machine, Cursor / Codex / Codex):** run `npm run handoff:pull` (same as `git pull`) so your disk matches GitHub and you read the latest handoff.
+**When you open this project (any machine, Codex / Cursor / editor):** run `npm run handoff:pull` (same as `git pull`) so your disk matches GitHub and you read the latest handoff.
 
-**When you finish work:** commit your changes, then `git push`. A **git hook** runs `npm run handoff:sync` before the push so the handoff on GitHub stays current. **Same commands in Cursor and in Codex** — same folder, same git, same GitHub.
+**When you finish work:** commit your changes, then `git push`. A **git hook** runs `npm run handoff:sync` before the push so the handoff on GitHub stays current. **Same commands in Codex and Cursor** — same folder, same git, same GitHub.
 
 **If “what to do next” should change:** edit `tasks/todo.md` (section `## Next Up`). The next `handoff:write` / push will pull that into the handoff.
 
@@ -40,6 +43,7 @@ git add / git commit / git push   # end of session — push updates handoff via 
 ```
 
 ## React app structure
+
 ```
 app/[tab]/page.tsx        ← one route per tab
 components/[tab]/         ← one folder per tab
@@ -61,15 +65,16 @@ app/api/                  ← Next.js server routes
 </important>
 
 ## Tab map (React app)
-| Label | Route | Page file |
-|-------|-------|-----------|
-| 🤖 HQ | /home | `app/home/page.tsx` |
+
+| Label      | Route    | Page file              |
+| ---------- | -------- | ---------------------- |
+| 🤖 HQ      | /home    | `app/home/page.tsx`    |
 | ⚡ COMMAND | /command | `app/command/page.tsx` |
-| 📡 INTEL | /intel | `app/intel/page.tsx` |
-| 🎯 ALPHA | /alpha | `app/alpha/page.tsx` |
-| 🔒 CYBER | /cyber | `app/cyber/page.tsx` |
-| 🕵️ RECON | /recon | `app/recon/page.tsx` |
-| 🗂 VAULT | /vault | `app/vault/page.tsx` |
+| 📡 INTEL   | /intel   | `app/intel/page.tsx`   |
+| 🎯 ALPHA   | /alpha   | `app/alpha/page.tsx`   |
+| 🔒 CYBER   | /cyber   | `app/cyber/page.tsx`   |
+| 🕵️ RECON   | /recon   | `app/recon/page.tsx`   |
+| 🗂 VAULT   | /vault   | `app/vault/page.tsx`   |
 
 <important if="making any code change">
 ## Operating principles
@@ -82,24 +87,27 @@ app/api/                  ← Next.js server routes
 </important>
 
 ## Skills (read before starting the relevant work)
-| Skill | Trigger |
-|-------|---------|
-| @.Codex/skills/add-feature/SKILL.md | New feature in nexus-final.html |
-| @.Codex/skills/add-tab/SKILL.md | New top-level tab |
-| @.Codex/skills/add-api/SKILL.md | New external data source or API key |
-| @.Codex/skills/fix-bug/SKILL.md | Any bug in nexus-final.html |
+
+| Skill                               | Trigger                             |
+| ----------------------------------- | ----------------------------------- |
+| @.Codex/skills/add-feature/SKILL.md | New feature in nexus-final.html     |
+| @.Codex/skills/add-tab/SKILL.md     | New top-level tab                   |
+| @.Codex/skills/add-api/SKILL.md     | New external data source or API key |
+| @.Codex/skills/fix-bug/SKILL.md     | Any bug in nexus-final.html         |
 
 **External ecosystem (ideas only, not copied code):** `docs/ideas/assimilated-ecosystem.md` — maps other OSS projects (PM workflows, Coolify, autoresearch, routers, etc.) to Nexus patterns.
 
 **Handoff supplement (optional, committed):** `docs/handoff-supplement.md` — narrative + `blob/main` links merged into `docs/AGENT_HANDOFF.md` and its compatibility copies by `scripts/generate-handoff.js`.
 
 ## Rules (auto-loaded by path — do not repeat here)
+
 @.Codex/rules/security.md
 @.Codex/rules/architecture.md
 @.Codex/rules/html-app.md
 @.Codex/rules/agents.md
 
 ## Project files
+
 ```
 tasks/todo.md       — active task list
 tasks/lessons.md    — correction log and rules

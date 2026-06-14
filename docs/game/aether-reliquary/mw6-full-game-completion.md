@@ -46,6 +46,8 @@ Operator review now adds a hard visual-quality guardrail: flat SVG/glyph sheets 
 
 `MW6FR7-ARPG-BELLROOT-COMMONS-ALCHEMY-MYSTERY-RUNTIME` deepens the soft-support district into a playable first-town alchemy and story loop. Bellroot Commons now has three safe brews for recovery, focus, and early condition-cleanse language plus three Ilo-led oath-lamp readings that record durable mystery flags; `/hq` Map exposes the Lamp Still and readings after visiting the district, `/hq` Kit mirrors the brew list, and `/hq` Journal tracks the lamp clues.
 
+`MW6FR9-ARPG-PILGRIM-ROWS-REST-ROAD-RUNTIME` completes the fourth Veyrhold district loop. Pilgrim Rows now has three rest/checkpoint options and three road-rumor choices tied to Sister Vael, local-first recovery rewards, route-prep story flags, and Veyrhold reputation; `/hq` Map exposes the Pilgrim Rows runtime card after visiting the district, `/hq` Kit mirrors the rest options, and `/hq` Journal tracks road rumors beside the Bellroot mystery row.
+
 `MW6V-ARPG-ART-AUDIO-VFX` has started with first-town presentation cues rather than fake final art. `lib/arpgFirstTownPresentationContent.json/.ts` defines six Bellroot and Veyrhold cues with ambient copy, VFX intent, audio staging intent, approved runtime asset references, UI proof surfaces, and reduced-motion alternatives. `/hq` Adventure, Map, and Production now surface those cues while the rejected prologue glyph sheets remain reference-only and blocked from production preview.
 
 `MW6V/W-ARPG-ARSENAL-VISUAL-ITEMIZATION` is the current weapon-system slice. It adds `lib/arpgArsenalContent.json`, project-original illustrated weapon sheets, seven quality overlays, eight named weapon cards, twelve drop/upgrade VFX frames, quality-specific upgrade caps, deterministic affix assignment, weapon drops, and compact `/hq` Kit/Gear proof for comparison, equip, upgrade, and salvage.
@@ -61,6 +63,8 @@ The next arsenal expansion should apply the same item-quality escalation to helm
 `MW6Y` is now closed for content tooling. The dedicated `arpg:tools:check` gate validates the content-tooling registry, 12 expansion registries, authoring helpers, fixture save map, progression checks, and dev-only debug posture; `/hq` Production shows the tooling summary so future city, quest, map, enemy, item, vendor, companion, dialogue, and flag work starts from validated contracts.
 
 `MW6Z` is now closed for balance and playtest fixtures. `lib/arpgBalancePlaytestContent.json` plus `lib/arpgBalancePlaytestContent.ts` validate XP/session pacing, loot cadence, boss timing, potion pressure, all class and lineage viability rows, +1 through +5 upgrade economy, browser performance budgets, and a playtest checklist for the prologue, Acts I-V, The Hollow Regent finale, postgame, and all 12 major city hubs. `/hq` Production shows the balance summary and proof chips.
+
+`MW6AA` now has an explicit fallback proof matrix for Windows browser-worker instability. `lib/arpgProductionReadinessContent.json` tracks static release gates, deterministic gameplay validators, browser fallback route proof, and ARPG isolation. `npm run arpg:release:check` validates that matrix so `spawn EPERM` cannot be confused with a product regression, while `/hq` browser acceptance remains the preferred proof when the local browser runner is available.
 
 ## Gates
 

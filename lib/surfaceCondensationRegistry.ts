@@ -30,6 +30,7 @@ export type VaultChamberId = "archive" | "relations" | "publish";
 export type ResourcesChamberId =
   | "finder"
   | "start"
+  | "sources"
   | "study"
   | "system"
   | "launch"
@@ -157,12 +158,14 @@ export const SURFACE_CONDENSATION_REGISTRY: Record<
       manual: "start",
       playbooks: "start",
       specs: "start",
+      sources: "sources",
       surfaces: "system",
       system: "system",
       impact: "launch",
       "voice-lab": "launch",
       registry: "utilities",
       kits: "utilities",
+      escape: "utilities",
       wins: "wins",
     },
   },
@@ -199,14 +202,21 @@ export function resolveAlphaChamber(view?: string | null): AlphaChamberId {
   return "watchlist";
 }
 
-export function resolveAlphaTapeView(view?: string | null): "prices" | "charts" {
+export function resolveAlphaTapeView(
+  view?: string | null,
+): "prices" | "charts" {
   return view === "charts" ? "charts" : "prices";
 }
 
 export function resolveCyberChamber(view?: string | null): CyberChamberId {
   if (!view) return "triage";
   if (CYBER_EVIDENCE_VIEWS.has(view)) return "evidence";
-  if (view === "triage" || view === "vuln-review" || view === "matrix" || view === "drone") {
+  if (
+    view === "triage" ||
+    view === "vuln-review" ||
+    view === "matrix" ||
+    view === "drone"
+  ) {
     if (view === "vuln-review") return "review";
     return view;
   }
@@ -228,8 +238,11 @@ export function resolveVaultChamber(view?: string | null): VaultChamberId {
   return "archive";
 }
 
-export function resolveResourcesChamber(view?: string | null): ResourcesChamberId {
+export function resolveResourcesChamber(
+  view?: string | null,
+): ResourcesChamberId {
   if (!view || view === "finder") return "finder";
+  if (view === "sources") return "sources";
   if (view === "study") return "study";
   if (view === "manual" || view === "playbooks" || view === "specs") {
     return "start";
@@ -240,7 +253,7 @@ export function resolveResourcesChamber(view?: string | null): ResourcesChamberI
   if (view === "impact" || view === "voice-lab") {
     return "launch";
   }
-  if (view === "registry" || view === "kits") {
+  if (view === "registry" || view === "kits" || view === "escape") {
     return "utilities";
   }
   if (view === "wins") {
@@ -254,6 +267,7 @@ export function resolveResourcesViewForChamber(
   currentView?: string | null,
 ) {
   if (chamber === "finder") return "finder" as const;
+  if (chamber === "sources") return "sources" as const;
   if (chamber === "study") return "study" as const;
   if (chamber === "wins") return "wins" as const;
   if (chamber === "launch") {
@@ -276,7 +290,11 @@ export function resolveResourcesViewForChamber(
     }
     return "system" as const;
   }
-  if (currentView === "registry" || currentView === "kits") {
+  if (
+    currentView === "registry" ||
+    currentView === "kits" ||
+    currentView === "escape"
+  ) {
     return currentView;
   }
   return "registry" as const;

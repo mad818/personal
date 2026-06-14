@@ -47,6 +47,32 @@ export interface VehicleReadinessProgress {
   nextIncompleteLabel: string | null
 }
 
+export type VehicleBenchBridgeGateId =
+  | "props-off-power"
+  | "native-gcs-first"
+  | "orientation-rc-modes"
+  | "gps-home-failsafes"
+  | "passive-bridge-only"
+  | "vault-session-package"
+
+export interface VehicleBenchBridgeGate {
+  id: VehicleBenchBridgeGateId
+  label: string
+  detail: string
+  complete: boolean
+  proof: string
+}
+
+export interface VehicleBenchBridgeReadiness {
+  reviewPosture: "blocked" | "ready_for_passive_bridge"
+  completedCount: number
+  totalCount: number
+  percent: number
+  nextAction: string
+  proofChips: string[]
+  gates: VehicleBenchBridgeGate[]
+}
+
 export interface VehicleRadarSessionSummary {
   modeLabel: string
   processingStage: VehicleRadarProcessingStage
@@ -396,6 +422,104 @@ export function getVehicleFirstHardwareDayProgress(
   checklistState: Record<string, boolean>,
 ) {
   return buildChecklistProgress(VEHICLE_FIRST_HARDWARE_DAY_CHECKLIST, checklistState)
+}
+
+export function buildVehicleBenchBridgeReadiness({
+  benchChecklistState,
+  firstHardwareDayChecklistState = {},
+  connectorProfile,
+}: {
+  benchChecklistState: Record<string, boolean>
+  firstHardwareDayChecklistState?: Record<string, boolean>
+  connectorProfile?: VehicleConnectorProfile | null
+}): VehicleBenchBridgeReadiness {
+  const profile = normalizeVehicleConnectorProfile(connectorProfile)
+  const bench = (id: string) => Boolean(benchChecklistState[id])
+  const firstDay = (id: string) => Boolean(firstHardwareDayChecklistState[id])
+  const readOnlyBridge = profile.authority === "read_only"
+
+  const gates: VehicleBenchBridgeGate[] = [
+    {
+      id: "props-off-power",
+      label: "Props-off power is boring",
+      detail: "Frame power, battery restraint, and first-day props-off posture are confirmed before any bridge work.",
+      complete:
+        bench("props-removed") &&
+        bench("battery-restraint") &&
+        firstDay("props-off-arrival"),
+      proof: "Props removed + battery restrained + first hardware day stays props-off.",
+    },
+    {
+      id: "native-gcs-first",
+      label: "Ground station proves heartbeat first",
+      detail: "Mission Planner or QGroundControl sees the aircraft before Nexus is allowed to observe it.",
+      complete: firstDay("gcs-first-heartbeat"),
+      proof: "Native GCS heartbeat recorded before Nexus bridge ingest.",
+    },
+    {
+      id: "orientation-rc-modes",
+      label: "Orientation and radio mapping are sane",
+      detail: "IMU axes, compass, RC channels, and mode switches match the ground station.",
+      complete:
+        bench("imu-orientation") &&
+        bench("compass-calibration") &&
+        bench("rc-mapping") &&
+        bench("mode-switches"),
+      proof: "FC orientation, compass, RC mapping, and mode transitions checked.",
+    },
+    {
+      id: "gps-home-failsafes",
+      label: "GPS, home, and failsafes are reviewed",
+      detail: "Home point, GPS quality, radio failsafe, and battery failsafe are understood before field work.",
+      complete:
+        bench("gps-lock") &&
+        bench("home-point") &&
+        bench("radio-failsafe") &&
+        bench("battery-failsafe"),
+      proof: "3D GPS, believable home, radio failsafe, and battery threshold reviewed.",
+    },
+    {
+      id: "passive-bridge-only",
+      label: "Bridge cannot become flight authority",
+      detail: "The saved connector profile and first-day checklist both keep Nexus in observer mode.",
+      complete:
+        readOnlyBridge &&
+        firstDay("observer-only-bridge") &&
+        firstDay("first-minute-watch"),
+      proof: "Nexus does not arm, steer, or mode-switch the aircraft.",
+    },
+    {
+      id: "vault-session-package",
+      label: "First session becomes a Vault artifact",
+      detail: "The first telemetry session is exported and filed before later tuning changes the baseline.",
+      complete:
+        firstDay("export-first-session") &&
+        firstDay("file-vault-summary"),
+      proof: "Session bundle exported and filed for replayable continuity.",
+    },
+  ]
+
+  const completedCount = gates.filter((gate) => gate.complete).length
+  const totalCount = gates.length
+  const nextIncompleteGate = gates.find((gate) => !gate.complete)
+
+  return {
+    reviewPosture:
+      completedCount === totalCount ? "ready_for_passive_bridge" : "blocked",
+    completedCount,
+    totalCount,
+    percent: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
+    nextAction:
+      nextIncompleteGate?.label ??
+      "Ready for passive bridge observation with native flight authority unchanged.",
+    proofChips: [
+      "props-off",
+      readOnlyBridge ? "read-only bridge" : "authority review needed",
+      `${profile.transport} @ ${profile.baudRate}`,
+      "Vault package next",
+    ],
+    gates,
+  }
 }
 
 export function buildVehicleBridgeStubCommand(profile: VehicleConnectorProfile) {

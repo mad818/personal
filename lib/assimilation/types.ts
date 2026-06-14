@@ -35,6 +35,7 @@ export type SecurityScenarioStatus =
   | "blocked";
 export type SecurityRunResult = "pass" | "warn" | "fail";
 export type ModelLabVerdict = "stable" | "guarded" | "leaky";
+export type ModelSafetyEvaluationMode = "passive-safety";
 export type SweepTheater =
   | "markets"
   | "cyber"
@@ -179,6 +180,29 @@ export interface ModelLabVariantResult {
   usefulness: number;
   verdict: ModelLabVerdict;
   note: string;
+  safetyMetrics?: ModelSafetyMetricSet;
+}
+
+export interface ModelSafetyMetricSet {
+  refusalConsistency: number;
+  policyRobustness: number;
+  coherence: number;
+  harmlessHelpfulness: number;
+}
+
+export interface ModelSafetyEvaluationManifest {
+  schemaVersion: 1;
+  mode: ModelSafetyEvaluationMode;
+  localOnly: true;
+  evidenceOnly: true;
+  telemetry: "disabled";
+  modelMutation: "disabled";
+  steeringVectors: "disabled";
+  remoteCodeExecution: "disabled";
+  modelUploads: "disabled";
+  metrics: string[];
+  prohibitedCapabilities: string[];
+  sourceAdaptation: string;
 }
 
 export interface ModelLabRun {
@@ -186,8 +210,10 @@ export interface ModelLabRun {
   title: string;
   mutationFamilies: string[];
   isolationMode: "operator-only";
+  evaluationMode?: ModelSafetyEvaluationMode;
   createdAt: string;
   operatorNotes?: string;
+  manifest?: ModelSafetyEvaluationManifest;
   variants: ModelLabVariantResult[];
 }
 

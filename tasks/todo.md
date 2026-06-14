@@ -27,6 +27,7 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [ ] CI-GREEN-NODE-RUNTIME — Align GitHub Actions with the supported Node runtime, rerun the full local verification lane, push the committed fixes, and confirm every PR #47 workflow is green.
 - [x] SOURCE-PARITY-CONTRACT — Replace partial-pattern assimilation with exhaustive primary-source parity accounting for GitHub/X ideas.
   - Current pass: define a machine-checkable source capability matrix, require source version/license/evidence, distinguish implemented/adapted/excluded/pending capabilities, prevent completion while useful capabilities remain pending, and reopen Feynman against the actual `companion-inc/feynman` source.
   - Guardrail: adapt capabilities into Nexus architecture instead of blindly vendoring upstream code; exclude only for documented security, legal, licensing, free/local, or product-purpose conflicts; do not claim parity from command labels, prompts, plans, or placeholder UI.

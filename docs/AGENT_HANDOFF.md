@@ -35,9 +35,9 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 
 ### What’s next (from `tasks/todo.md`)
 
+- CI-GREEN-NODE-RUNTIME — Align GitHub Actions with the supported Node runtime, rerun the full local verification lane, push the committed fixes, and confirm every PR #47 workflow is green.
 - FREE-LOCAL-PHONE-ACCEPTANCE — Desktop LAN runtime proof, the phone checklist, the protected receipt lane, assistant receipt bridge, live receipt status, capture-status artifact, direct-HQ QR handoff, `npm run ops:preflight`, `npm run...
 - LOCAL-AI-OFFLINE-OPERATIONS — Authenticated desktop proof remains captured from the local session: Free Local Readiness returned `ready`, `isolated`, paid APIs `blocked`, Ollama `reachable`, resolved model `gemma4:latest`, agent health `100%`,...
-- DEPENDABOT-SECURITY-AUDIT — Triage the GitHub Dependabot alert set without broad package churn. Latest sanitized paginated imported-alert artifact `docs/metrics/dependabot-security-audit-2026-05-25T05-52-26-760Z.json` classified 108 exported...
 - Full queue: `tasks/todo.md` -> `## Next Up`.
 
 ### Where to look

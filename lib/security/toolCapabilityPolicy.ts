@@ -73,6 +73,7 @@ const TOOL_CAPABILITY_REGISTRY: Record<string, ToolCapabilityClass> = {
   feynman_outputs: "read",
   rss_fetch: "networked",
   hf_papers_search: "networked",
+  huggingface_inspect: "networked",
   open_meteo_weather: "networked",
   sec_edgar_search: "networked",
   log_lesson: "mutate",

@@ -77,6 +77,7 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   deep_research: "tier0",
   feynman_research: "tier0",
   feynman_outputs: "tier0",
+  huggingface_inspect: "tier0",
   compare_repos: "tier0",
   assimilate_repo: "tier0",
   read_file: "tier0",
@@ -245,6 +246,39 @@ export const AGENT_TOOLS = [
         },
       },
       required: [],
+    },
+  },
+  {
+    name: "huggingface_inspect",
+    description:
+      "Inspect one public Hugging Face model or dataset repository through a bounded read-only lane. Returns public metadata, access posture, bounded top-level files, and dataset split/schema information. It can also read one explicitly requested allowlisted small text file. Never use it for private/gated access attempts, inference, training, repository cloning, model weights, or binary downloads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        action: {
+          type: "string",
+          enum: ["inspect", "read_file"],
+          description:
+            "Inspect public repository metadata and structure, or read one bounded text file.",
+        },
+        reference: {
+          type: "string",
+          description:
+            'Public Hugging Face reference as "repo", "owner/repo", "datasets/owner/repo", or a full huggingface.co URL.',
+        },
+        repo_type: {
+          type: "string",
+          enum: ["model", "dataset"],
+          description:
+            "Required only when an owner/repo reference is ambiguous; defaults to model.",
+        },
+        path: {
+          type: "string",
+          description:
+            "Safe relative text-file path used only for read_file, such as README.md or config.json.",
+        },
+      },
+      required: ["action", "reference"],
     },
   },
   {
@@ -612,6 +646,8 @@ const FEYNMAN_WORKFLOW_INTENT_RE =
   /\bfeynman_research\b|(?:^|\s)\/(?:deepresearch|deep-research|lit|lit-review|literature-review|review|audit|replicate|recipe|compare|draft|autoresearch|watch)\b|\b(?:deep research|literature review|peer review|paper audit|claim audit|experiment replication|replication plan|implementation recipe|research recipe|comparison matrix|paper draft|research watch|autoresearch)\b/i;
 const FEYNMAN_OUTPUTS_INTENT_RE =
   /\bfeynman_outputs\b|(?:^|\s)\/outputs\b|\bfeynman outputs\b|\b(?:search|find|resume|continue|preview|export|pdf)\b.{0,40}\b(?:feynman|research session|research output)\b|\b(?:feynman|research session|research output)\b.{0,40}\b(?:search|find|resume|continue|preview|export|pdf)\b/i;
+const HUGGING_FACE_INTENT_RE =
+  /\bhugging\s*face\b|\bhuggingface_inspect\b|https:\/\/huggingface\.co\/(?:datasets\/)?[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)?/i;
 
 function pickAgentTools(names: Iterable<string>): AgentToolDefinition[] {
   return Array.from(names)
@@ -658,6 +694,7 @@ export function getAgentToolCatalog(
   const deepResearchIntent = hasDeepResearchIntent(userMessage);
   const feynmanWorkflowIntent = FEYNMAN_WORKFLOW_INTENT_RE.test(userMessage);
   const feynmanOutputsIntent = FEYNMAN_OUTPUTS_INTENT_RE.test(userMessage);
+  const huggingFaceIntent = HUGGING_FACE_INTENT_RE.test(userMessage);
   const repoCompareIntent = hasRepoCompareSignal(userMessage);
   const repoAssimilationIntent = hasRepoAssimilationSignal(userMessage);
   const delegateIntent = DELEGATE_INTENT_RE.test(userMessage);
@@ -692,6 +729,14 @@ export function getAgentToolCatalog(
   ) {
     groups.add("feynman_outputs");
     names.add("feynman_outputs");
+  }
+
+  if (
+    huggingFaceIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("huggingface_inspection");
+    names.add("huggingface_inspect");
   }
 
   if (

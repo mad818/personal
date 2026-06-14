@@ -110,8 +110,12 @@
       "id": "hugging-face-inspection",
       "title": "Hugging Face dataset metadata, repo file listing, and bounded small-file reads",
       "sourceEvidence": "extensions/research-tools/huggingface.ts",
-      "disposition": "pending",
-      "reason": "Current Nexus only exposes a daily papers search and does not inspect dataset cards, splits, schemas, access status, or Hub repository files."
+      "disposition": "adapted",
+      "proof": [
+        "lib/huggingFaceInspection.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-hugging-face-runtime.mjs"
+      ]
     },
     {
       "id": "workflow-specific-output-contracts",

@@ -59,6 +59,9 @@ export interface FeynmanProgressiveResearchDeps {
   searchPapers: (query: string, limit: string) => Promise<string>;
   webSearch: (query: string) => Promise<string>;
   fetchUrl: (url: string) => Promise<string>;
+  inspectHuggingFace?: (
+    topic: string,
+  ) => Promise<{ url: string; content: string } | null>;
   progress?: (note: string) => Promise<void> | void;
 }
 
@@ -485,11 +488,17 @@ export async function runFeynmanProgressiveResearch(input: {
     `Initial research wave started with ${initialQueries.length} varied web lanes plus one paper lane.`,
   );
 
-  const initialSettled = await Promise.allSettled([
-    input.deps.searchPapers(input.topic, "6"),
-    ...initialQueries.map((query) =>
-      input.deps.webSearch(renderFeynmanResearchQuery(query, now)),
-    ),
+  const huggingFaceInspectionPromise = input.deps.inspectHuggingFace
+    ? input.deps.inspectHuggingFace(input.topic)
+    : Promise.resolve(null);
+  const [initialSettled, huggingFaceInspectionSettled] = await Promise.all([
+    Promise.allSettled([
+      input.deps.searchPapers(input.topic, "6"),
+      ...initialQueries.map((query) =>
+        input.deps.webSearch(renderFeynmanResearchQuery(query, now)),
+      ),
+    ]),
+    Promise.allSettled([huggingFaceInspectionPromise]),
   ]);
   let paperSignal = "";
   const paperEntry = initialSettled[0];
@@ -527,17 +536,39 @@ export async function runFeynmanProgressiveResearch(input: {
     });
   });
 
-  const attemptedUrls = new Set<string>();
+  const huggingFaceSources: Array<{ url: string; content: string }> = [];
+  const huggingFaceEntry = huggingFaceInspectionSettled[0];
+  if (
+    huggingFaceEntry?.status === "fulfilled" &&
+    huggingFaceEntry.value?.url &&
+    huggingFaceEntry.value.content.trim()
+  ) {
+    huggingFaceSources.push(huggingFaceEntry.value);
+  } else if (huggingFaceEntry?.status === "rejected") {
+    failures.push("Hugging Face repository inspection failed.");
+  }
+
+  const attemptedUrls = new Set<string>(
+    huggingFaceSources.map((source) => source.url),
+  );
   const initialUrls = prioritizeFeynmanCandidateUrls([
     ...extractUrls(paperSignal),
     ...webResults.flatMap((result) => extractUrls(result.result)),
-  ]).slice(0, policy.maximumDirectReads);
+  ])
+    .filter((url) => !attemptedUrls.has(url))
+    .slice(
+      0,
+      Math.max(0, policy.maximumDirectReads - huggingFaceSources.length),
+    );
   initialUrls.forEach((url) => attemptedUrls.add(url));
-  const fetchedSources = await readCandidateUrls({
-    urls: initialUrls,
-    deps: input.deps,
-    failures,
-  });
+  const fetchedSources = [
+    ...huggingFaceSources,
+    ...(await readCandidateUrls({
+      urls: initialUrls,
+      deps: input.deps,
+      failures,
+    })),
+  ];
   let coverage = assessFeynmanCoverage({
     paperSignal,
     webResults,

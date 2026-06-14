@@ -11,6 +11,14 @@ import {
   type FeynmanWorkflowId,
 } from "@/lib/feynmanResearch";
 import {
+  formatHuggingFaceInspection,
+  inspectHuggingFaceRepository,
+  inspectHuggingFaceTopic,
+  normalizeHuggingFaceReference,
+  readHuggingFaceTextFile,
+  type HuggingFaceRepoType,
+} from "@/lib/huggingFaceInspection";
+import {
   buildFeynmanResumeContext,
   isFeynmanContinuityArtifactKind,
   type FeynmanContinuitySession,
@@ -899,6 +907,7 @@ async function feynmanResearch(
       searchPapers: hfPapersSearch,
       webSearch,
       fetchUrl,
+      inspectHuggingFace: inspectHuggingFaceTopic,
       write: (prompt) =>
         callFeynmanStage(origin, "feynman_writer", prompt, 1_800),
       verify: (prompt) =>
@@ -1180,6 +1189,45 @@ async function hfPapersSearch(query: string, limit: string): Promise<string> {
     return text;
   } catch {
     return "Could not reach HuggingFace papers API.";
+  }
+}
+
+async function huggingFaceInspect(
+  input: Record<string, string> = {},
+): Promise<string> {
+  const action = (input.action || "inspect").trim().toLowerCase();
+  const rawRepoType = input.repo_type?.trim().toLowerCase();
+  const repoType =
+    rawRepoType === "dataset" || rawRepoType === "model"
+      ? (rawRepoType as HuggingFaceRepoType)
+      : undefined;
+  try {
+    const reference = normalizeHuggingFaceReference(
+      input.reference ?? input.repo_id ?? "",
+      repoType,
+    );
+    if (action === "inspect") {
+      return formatHuggingFaceInspection(
+        await inspectHuggingFaceRepository(reference),
+      );
+    }
+    if (action === "read_file") {
+      const file = await readHuggingFaceTextFile(reference, input.path ?? "");
+      return [
+        "Hugging Face bounded text-file read",
+        `Source: ${file.url}`,
+        `Repository: ${file.repoId}`,
+        `Path: ${file.path}`,
+        `Bytes: ${file.bytes}`,
+        "",
+        file.content || "File returned no readable text.",
+      ].join("\n");
+    }
+    return "huggingface_inspect: action must be inspect or read_file.";
+  } catch (error) {
+    return error instanceof Error
+      ? `huggingface_inspect: ${error.message}`
+      : "huggingface_inspect failed.";
   }
 }
 
@@ -1623,6 +1671,9 @@ export async function POST(req: NextRequest) {
         break;
       case "hf_papers_search":
         result = await hfPapersSearch(input.query ?? "", input.limit ?? "5");
+        break;
+      case "huggingface_inspect":
+        result = await huggingFaceInspect(input);
         break;
       case "open_meteo_weather":
         result = await openMeteoWeather(

@@ -72,11 +72,13 @@ for (const workflow of [
 
 requireText(tools, "feynman_research", "tools route");
 requireText(tools, "feynman_outputs", "tools route");
+requireText(tools, "huggingface_inspect", "tools route");
 requireText(tools, "runFeynmanResearch", "tools route engine wiring");
 requireText(agent, 'feynman_research: "tier0"', "agent risk map");
 requireText(agent, 'feynman_outputs: "tier0"', "agent risk map");
 requireText(agent, 'name: "feynman_research"', "agent tool catalog");
 requireText(agent, 'name: "feynman_outputs"', "agent tool catalog");
+requireText(agent, 'name: "huggingface_inspect"', "agent tool catalog");
 requireText(postRun, "claim-audit", "durable artifact tags");
 requireText(memoryPages, 'workflowId === "audit"', "memory knowledge layer");
 requireText(memoryPagesRoute, "listCompiledMemoryPages", "compiled pages API read");
@@ -84,6 +86,7 @@ requireText(memoryPagesRoute, "createCompiledMemoryPage", "compiled pages API wr
 requireText(memoryPagesRoute, "toCompiledMemoryPageSummary", "compiled pages API visibility");
 requireText(toolPolicy, 'feynman_research: "networked"', "network policy");
 requireText(toolPolicy, 'feynman_outputs: "read"', "local output policy");
+requireText(toolPolicy, 'huggingface_inspect: "networked"', "network policy");
 requireText(spec, "No silent execution", "feature guardrail");
 if (parity.status !== "in_progress") {
   console.error("x feynman-native: source parity must remain in_progress while useful capabilities are pending");
@@ -96,7 +99,7 @@ if (!parity.capabilities?.some((capability) => capability.disposition === "pendi
 
 if (
   packageJson.scripts?.["feynman:check"] !==
-  "node scripts/validate-feynman-native-assimilation.mjs && npm run feynman:runtime:check && npm run feynman:continuity:check && npm run feynman:progressive:check"
+  "node scripts/validate-feynman-native-assimilation.mjs && npm run feynman:runtime:check && npm run feynman:continuity:check && npm run feynman:progressive:check && npm run feynman:huggingface:check"
 ) {
   console.error("x feynman-native: package.json is missing feynman:check");
   process.exit(1);

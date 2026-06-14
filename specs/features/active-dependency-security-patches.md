@@ -25,12 +25,14 @@ pretending retired archive manifests are live application dependencies.
 - Do not commit raw Dependabot exports.
 - Do not use `npm audit fix --force`.
 
-## Deferred Compatibility Finding
+## Linux-Only Non-Release Finding
 
 `glib 0.18.5` remains in the cross-platform Tauri lockfile through the GTK3
 Linux dependency tree. The published advisory fix requires `glib 0.20.0`, which
-is not compatible with that current GTK3 chain. Keep this visible as a deferred
-desktop/Linux migration item rather than forcing an invalid lockfile.
+is not compatible with that current GTK3 chain. Nexus releases desktop bundles
+for Windows and macOS only, and `npm run security:tauri` rejects Linux bundle
+targets. Classify this advisory as `not_used` rather than forcing an invalid
+lockfile; re-open it before adding Linux release support.
 
 ## Verification
 

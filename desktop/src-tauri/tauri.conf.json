@@ -24,7 +24,7 @@
   "bundle": {
     "active": true,
     "icon": ["icons/icon.ico"],
-    "targets": ["app", "dmg", "msi", "appimage"],
+    "targets": ["app", "dmg", "msi"],
     "macOS": {
       "signingIdentity": null
     },

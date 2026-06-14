@@ -3,6 +3,9 @@
 This folder is the landing zone for the desktop host layer (Tauri-first) described in:
 `docs/plans/desktop-app-secure-migration-map.md`.
 
+Supported release platforms are Windows and macOS. Linux bundles are intentionally
+disabled until their dependency chain and signing strategy are separately approved.
+
 ## Current bootstrap
 
 - Build standalone runtime:

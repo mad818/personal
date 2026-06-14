@@ -23,7 +23,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["app", "dmg", "msi", "appimage"],
+    "targets": ["app", "dmg", "msi"],
     "macOS": {
       "signingIdentity": null
     },

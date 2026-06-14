@@ -5,6 +5,12 @@ import path from 'path';
 const root = process.cwd();
 const capPath = path.join(root, 'desktop', 'src-tauri', 'capabilities', 'default.json');
 const confPath = path.join(root, 'desktop', 'src-tauri', 'tauri.conf.json');
+const secureTemplatePath = path.join(
+  root,
+  'desktop',
+  'tauri-template',
+  'tauri.conf.secure.example.json',
+);
 
 function fail(msg) {
   console.error(`❌ tauri-security: ${msg}`);
@@ -13,6 +19,7 @@ function fail(msg) {
 
 if (!fs.existsSync(capPath)) fail('missing capabilities/default.json');
 if (!fs.existsSync(confPath)) fail('missing tauri.conf.json');
+if (!fs.existsSync(secureTemplatePath)) fail('missing secure Tauri config template');
 
 const capabilities = JSON.parse(fs.readFileSync(capPath, 'utf8'));
 const permissions = Array.isArray(capabilities.permissions) ? capabilities.permissions : [];
@@ -29,4 +36,24 @@ if (typeof csp !== 'string' || !csp.includes("default-src 'self'")) {
   fail('CSP missing strict default-src self');
 }
 
-console.log('✅ tauri-security: capability + CSP checks passed');
+const requiredTargets = ['app', 'dmg', 'msi'];
+function validateBundleTargets(label, config) {
+  const bundleTargets = Array.isArray(config?.bundle?.targets) ? config.bundle.targets : [];
+  const unsupportedTargets = bundleTargets.filter((target) => !requiredTargets.includes(target));
+  if (unsupportedTargets.length) {
+    fail(`${label} has unsupported bundle targets: ${unsupportedTargets.join(', ')}`);
+  }
+
+  const missingTargets = requiredTargets.filter((target) => !bundleTargets.includes(target));
+  if (missingTargets.length) {
+    fail(`${label} is missing required Windows/macOS bundle targets: ${missingTargets.join(', ')}`);
+  }
+}
+
+validateBundleTargets('tauri.conf.json', conf);
+validateBundleTargets(
+  'tauri.conf.secure.example.json',
+  JSON.parse(fs.readFileSync(secureTemplatePath, 'utf8')),
+);
+
+console.log('✅ tauri-security: capability + CSP + Windows/macOS release-scope checks passed');

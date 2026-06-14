@@ -81,6 +81,9 @@ for (const workflow of workflows) {
     assert.ok(result.report.includes(heading), `${workflow} missing ${heading}`);
   }
   assert.equal(result.claims[0]?.verdict, "supported");
+  assert.ok(result.report.includes("- Query waves:"));
+  assert.ok(result.report.includes("- Coverage sufficient:"));
+  assert.ok(result.coverage.queryWaves >= 1 && result.coverage.queryWaves <= 2);
   assert.equal(
     result.approvalRequired,
     ["replicate", "autoresearch", "watch"].includes(workflow),
@@ -113,6 +116,7 @@ assert.equal(degraded.stageStatus.researcher, "degraded");
 assert.equal(degraded.stageStatus.writer, "degraded");
 assert.equal(degraded.stageStatus.verifier, "degraded");
 assert.equal(degraded.stageStatus.reviewer, "degraded");
+assert.equal(degraded.coverage.sufficient, false);
 assert.ok(degraded.report.includes("No directly read source was available"));
 assert.match(degraded.report, /explicit operator approval/i);
 

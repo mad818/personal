@@ -92,8 +92,12 @@
       "id": "parallel-progressive-research",
       "title": "Parallel researchers, wide-to-narrow querying, recency/domain filters, and minimum evidence coverage",
       "sourceEvidence": ".feynman/agents/researcher.md Search strategy and Output contract",
-      "disposition": "pending",
-      "reason": "Current Nexus collection uses a bounded mostly sequential generic query pass and does not enforce the source researcher's full search strategy."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanProgressiveResearch.ts",
+        "lib/feynmanResearch.ts",
+        "scripts/check-feynman-progressive-research-runtime.mjs"
+      ]
     },
     {
       "id": "paper-search-read-ask-annotate-code",

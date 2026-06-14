@@ -1,3 +1,10 @@
+import {
+  buildInitialFeynmanResearchQueries,
+  runFeynmanProgressiveResearch,
+  type FeynmanProgressiveCoverage,
+  type FeynmanProgressiveWebResult,
+} from "./feynmanProgressiveResearch.ts";
+
 export type FeynmanWorkflowId =
   | "deepresearch"
   | "lit-review"
@@ -63,8 +70,9 @@ export interface FeynmanResearchInput {
   workflow: FeynmanWorkflowId;
   topic: string;
   paperSignal: string;
-  webResults: Array<{ query: string; result: string }>;
+  webResults: FeynmanProgressiveWebResult[];
   fetchedSources: Array<{ url: string; content: string }>;
+  coverage: FeynmanProgressiveCoverage;
   failures: string[];
 }
 
@@ -86,6 +94,7 @@ export interface FeynmanResearchResult {
   sources: FeynmanSource[];
   claims: FeynmanClaimAudit[];
   reviewFindings: FeynmanReviewFinding[];
+  coverage: FeynmanProgressiveCoverage;
   failures: string[];
   stageStatus: Record<FeynmanAgentStage, "complete" | "degraded">;
   approvalRequired: boolean;
@@ -157,12 +166,6 @@ function extractJsonObject(value: string) {
   return match?.[0] ?? "";
 }
 
-function isToolFailure(value: string) {
-  return /^(?:could not|search failed|no results found\.?|unknown tool:|.* returned http \d+)/i.test(
-    value.trim(),
-  );
-}
-
 function inferSourceKind(url: string): FeynmanSourceKind {
   const lower = url.toLowerCase();
   if (/arxiv\.org|doi\.org|pubmed|semanticscholar|huggingface\.co\/papers/.test(lower)) {
@@ -219,24 +222,9 @@ function workflowPurpose(workflow: FeynmanWorkflowId) {
 }
 
 export function buildFeynmanQueries(workflow: FeynmanWorkflowId, topic: string) {
-  const normalized = topic.trim();
-  const workflowQuery =
-    workflow === "lit-review"
-      ? `${normalized} literature review papers`
-      : workflow === "audit"
-        ? `${normalized} evidence criticism limitations`
-        : workflow === "replicate"
-          ? `${normalized} methodology code dataset benchmark`
-          : workflow === "recipe"
-            ? `${normalized} implementation method dataset repository`
-            : workflow === "review"
-              ? `${normalized} peer review criticism methodology`
-              : `${normalized} primary sources`;
-  return uniqueStrings([
-    normalized,
-    workflowQuery,
-    `${normalized} counter evidence limitations`,
-  ]).slice(0, 3);
+  return buildInitialFeynmanResearchQueries(workflow, topic).map(
+    (query) => query.query,
+  );
 }
 
 function buildSourceLedger(input: FeynmanResearchInput): FeynmanSource[] {
@@ -285,7 +273,7 @@ function fallbackWriter(input: FeynmanResearchInput, sources: FeynmanSource[]): 
             .join("\n")
         : "- No directly read source was available. Treat this output as a research plan, not a conclusion.",
     methodology:
-      `The Researcher ran a paper sweep and ${input.webResults.length} web angle${input.webResults.length === 1 ? "" : "s"}, then attempted direct reads before synthesis.`,
+      `The Researcher ran ${input.coverage.queryWaves} bounded query wave${input.coverage.queryWaves === 1 ? "" : "s"}, one paper sweep, and ${input.webResults.length} successful web angle${input.webResults.length === 1 ? "" : "s"}, then attempted parallel direct reads before synthesis.`,
     disagreements:
       input.failures.length > 0
         ? `Collection gaps: ${input.failures.join(" | ")}`
@@ -426,6 +414,9 @@ export function buildFeynmanSynthesisPrompt(
     "",
     "COLLECTION FAILURES:",
     input.failures.length > 0 ? input.failures.join(" | ") : "None.",
+    "",
+    "COVERAGE RECEIPT:",
+    JSON.stringify(input.coverage),
   ]
     .filter(Boolean)
     .join("\n");
@@ -615,8 +606,14 @@ export function formatFeynmanReport(input: {
     input.writer.openQuestions || "No open questions were supplied.",
     "",
     "## Coverage Status",
-    `- Sources discovered: ${input.sources.length}`,
+    `- Coverage sufficient: ${input.research.coverage.sufficient ? "yes" : "no"}`,
+    `- Query waves: ${input.research.coverage.queryWaves} (${input.research.coverage.initialQueries} initial; ${input.research.coverage.refinementQueries} refinement)`,
+    `- Refinement required: ${input.research.coverage.refinementRequired ? "yes" : "no"}`,
+    `- Sources discovered: ${input.research.coverage.discoveredSources}`,
     `- Sources read directly: ${acceptedCount}`,
+    `- High-confidence sources read directly: ${input.research.coverage.highConfidenceDirectSources}`,
+    `- Minimum evidence: ${input.research.coverage.thresholds.discoveredSources} discovered; ${input.research.coverage.thresholds.directlyReadSources} directly read; ${input.research.coverage.thresholds.highConfidenceDirectSources} high-confidence directly read`,
+    `- Coverage gaps: ${input.research.coverage.gaps.length > 0 ? input.research.coverage.gaps.join(" | ") : "none"}`,
     `- Sources not read/rejected: ${rejectedCount}`,
     `- Collection failures: ${input.research.failures.length > 0 ? input.research.failures.join(" | ") : "none"}`,
     "",
@@ -661,56 +658,36 @@ export async function runFeynmanResearch(
     failures.push("No research topic or artifact was provided.");
   }
 
-  let paperSignal = "";
-  try {
-    paperSignal = await deps.searchPapers(normalizedTopic, "6");
-    if (isToolFailure(paperSignal)) {
-      failures.push(`paper search returned: ${cleanInline(paperSignal, 120)}`);
-      paperSignal = "";
-    }
-  } catch {
-    failures.push("paper search failed");
-  }
+  const collection = await runFeynmanProgressiveResearch({
+    workflow,
+    topic: normalizedTopic,
+    deps: {
+      searchPapers: deps.searchPapers,
+      webSearch: deps.webSearch,
+      fetchUrl: deps.fetchUrl,
+      progress: (note) =>
+        emitProgress(deps, {
+          stage: "researcher",
+          status: "started",
+          note,
+        }),
+    },
+  });
+  failures.push(...collection.failures);
+  const {
+    paperSignal,
+    webResults,
+    fetchedSources,
+    coverage,
+  } = collection;
 
-  const webResults: FeynmanResearchInput["webResults"] = [];
-  for (const query of buildFeynmanQueries(workflow, normalizedTopic)) {
-    try {
-      const result = await deps.webSearch(query);
-      if (isToolFailure(result)) {
-        failures.push(`web search returned: ${cleanInline(result, 120)}`);
-      } else {
-        webResults.push({ query, result });
-      }
-    } catch {
-      failures.push(`web search failed for "${query}"`);
-    }
-  }
-
-  const candidateUrls = uniqueStrings([
-    ...extractUrls(paperSignal),
-    ...webResults.flatMap((result) => extractUrls(result.result)),
-  ]).slice(0, 6);
-  const fetchedSources: FeynmanResearchInput["fetchedSources"] = [];
-  for (const url of candidateUrls) {
-    try {
-      const content = await deps.fetchUrl(url);
-      if (isToolFailure(content)) {
-        failures.push(`source read returned: ${cleanInline(content, 120)}`);
-      } else {
-        fetchedSources.push({ url, content });
-      }
-    } catch {
-      failures.push(`source read failed for ${url}`);
-    }
-  }
-
-  if (webResults.length === 0 && !paperSignal && fetchedSources.length === 0) {
+  if (!coverage.sufficient) {
     stageStatus.researcher = "degraded";
   }
   await emitProgress(deps, {
     stage: "researcher",
     status: stageStatus.researcher,
-    note: `Researcher finished with ${webResults.length} web results and ${fetchedSources.length} directly read sources.`,
+    note: `Researcher finished after ${coverage.queryWaves} query wave${coverage.queryWaves === 1 ? "" : "s"} with ${coverage.discoveredSources} discovered sources, ${coverage.directlyReadSources} directly read sources, and ${coverage.highConfidenceDirectSources} high-confidence directly read sources.`,
   });
 
   const research: FeynmanResearchInput = {
@@ -719,6 +696,7 @@ export async function runFeynmanResearch(
     paperSignal,
     webResults,
     fetchedSources,
+    coverage,
     failures,
   };
   const sources = buildSourceLedger(research);
@@ -829,6 +807,7 @@ export async function runFeynmanResearch(
     sources,
     claims,
     reviewFindings,
+    coverage,
     failures,
     stageStatus,
     approvalRequired:

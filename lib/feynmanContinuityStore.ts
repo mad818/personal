@@ -193,6 +193,7 @@ export async function completeFeynmanContinuitySession(
     topic: result.topic,
     generatedAt: updatedAt,
     stageStatus: result.stageStatus,
+    coverage: result.coverage,
     approvalRequired: result.approvalRequired,
     failures: result.failures,
     sources: result.sources,

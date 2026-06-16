@@ -5,7 +5,7 @@
 - [mad818/experimentalbot](https://github.com/mad818/experimentalbot)
 - [mad818/sanity-next-js-personal-website](https://github.com/mad818/sanity-next-js-personal-website)
 
-**Access note:** These URLs currently return **404** to unauthenticated/API checks (likely **private** or renamed). This doc is built from what still exists **inside Nexus**: the **`archive/`** tree (StockBot-style Next app) plus `tasks/FIXES-FOR-CLAUDE.md` references to `experimentalbot-main`.
+**Access note:** These URLs currently return **404** to unauthenticated/API checks (likely **private** or renamed). This doc is built from what still exists **inside Nexus**: the **`archive/`** tree (StockBot-style Next app) plus current project-relative runtime docs.
 
 **To recover “lost” GitHub/X ideas:** clone those repos locally (or export issues/README), then paste bullets into a new section below — we can triage into specs.
 

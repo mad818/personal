@@ -7,6 +7,12 @@ import { basename, extname, join } from "node:path";
 
 const root = process.cwd();
 const maxScanBytes = 2 * 1024 * 1024;
+const boundaryContractPath = join(
+  root,
+  "docs",
+  "repo-hygiene",
+  "cloud-local-file-boundary.json",
+);
 
 function runGitLsFiles() {
   const result = spawnSync("git", ["ls-files", "-z"], {
@@ -26,6 +32,66 @@ function runGitLsFiles() {
 
 function normalizePath(file) {
   return file.replace(/\\/g, "/");
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[|\\{}()[\]^$+?.]/g, "\\$&");
+}
+
+function globToRegExp(pattern) {
+  const normalized = normalizePath(pattern).replace(/^\.?\//, "");
+  let source = "";
+  for (let index = 0; index < normalized.length; index += 1) {
+    const char = normalized[index];
+    if (char === "*" && normalized[index + 1] === "*") {
+      source += ".*";
+      index += 1;
+      continue;
+    }
+    if (char === "*") {
+      source += "[^/]*";
+      continue;
+    }
+    source += escapeRegExp(char);
+  }
+  return new RegExp(`^${source}$`, "i");
+}
+
+function pathMatchesPattern(file, pattern) {
+  const normalizedFile = normalizePath(file).replace(/^\.?\//, "");
+  const normalizedPattern = normalizePath(pattern).replace(/^\.?\//, "");
+
+  if (normalizedPattern.endsWith("/**")) {
+    const prefix = normalizedPattern.slice(0, -3);
+    return (
+      normalizedFile === prefix.replace(/\/$/, "") ||
+      normalizedFile.startsWith(prefix)
+    );
+  }
+
+  if (normalizedPattern.endsWith("/")) {
+    return normalizedFile.startsWith(normalizedPattern);
+  }
+
+  if (!normalizedPattern.includes("/")) {
+    return globToRegExp(normalizedPattern).test(basename(normalizedFile));
+  }
+
+  return globToRegExp(normalizedPattern).test(normalizedFile);
+}
+
+function readBoundaryContract() {
+  try {
+    return JSON.parse(readFileSync(boundaryContractPath, "utf8"));
+  } catch (error) {
+    throw new Error(
+      `Unable to read cloud/local file boundary contract: ${error.message}`,
+    );
+  }
+}
+
+function normalizeGitignoreLine(line) {
+  return line.trim().replace(/\\/g, "/");
 }
 
 function isBinary(buffer) {
@@ -146,10 +212,79 @@ function addFinding(findings, file, line, rule, message) {
   findings.push({ file, line, rule, message });
 }
 
-function scanPath(file, findings) {
+function scanBoundaryContract(contract, findings) {
+  if (contract?.schemaVersion !== 1) {
+    addFinding(
+      findings,
+      "docs/repo-hygiene/cloud-local-file-boundary.json",
+      1,
+      "invalid-boundary-contract",
+      "Cloud/local file boundary contract must use schemaVersion 1.",
+    );
+    return;
+  }
+
+  const denyPatterns = contract?.localOnly?.trackedDenyPatterns;
+  const requiredIgnores = contract?.localOnly?.requiredGitignorePatterns;
+
+  if (!Array.isArray(denyPatterns) || denyPatterns.length === 0) {
+    addFinding(
+      findings,
+      "docs/repo-hygiene/cloud-local-file-boundary.json",
+      1,
+      "invalid-boundary-contract",
+      "Cloud/local file boundary contract must list localOnly.trackedDenyPatterns.",
+    );
+  }
+
+  if (!Array.isArray(requiredIgnores) || requiredIgnores.length === 0) {
+    addFinding(
+      findings,
+      "docs/repo-hygiene/cloud-local-file-boundary.json",
+      1,
+      "invalid-boundary-contract",
+      "Cloud/local file boundary contract must list localOnly.requiredGitignorePatterns.",
+    );
+  }
+}
+
+function scanRequiredIgnores(contract, findings) {
+  const requiredIgnores = contract?.localOnly?.requiredGitignorePatterns ?? [];
+  const gitignore = readFileSync(join(root, ".gitignore"), "utf8")
+    .split(/\r?\n/)
+    .map(normalizeGitignoreLine)
+    .filter((line) => line && !line.startsWith("#"));
+  const gitignoreSet = new Set(gitignore);
+
+  for (const pattern of requiredIgnores) {
+    if (gitignoreSet.has(pattern)) continue;
+    addFinding(
+      findings,
+      ".gitignore",
+      1,
+      "missing-local-only-ignore",
+      `Missing required local-only ignore pattern: ${pattern}`,
+    );
+  }
+}
+
+function scanPath(file, findings, contract) {
   const normalized = normalizePath(file);
   const base = basename(normalized);
   const extension = extname(normalized).toLowerCase();
+  const denyPatterns = contract?.localOnly?.trackedDenyPatterns ?? [];
+
+  for (const entry of denyPatterns) {
+    if (!entry?.pattern) continue;
+    if (!pathMatchesPattern(normalized, entry.pattern)) continue;
+    addFinding(
+      findings,
+      normalized,
+      1,
+      "local-only-tracked-path",
+      `Local-only path must stay off GitHub: ${entry.reason ?? entry.pattern}`,
+    );
+  }
 
   if (base === ".env.local" || /^\.env\..*\.local$/i.test(base)) {
     addFinding(
@@ -236,9 +371,13 @@ function scanText(file, src, findings) {
 function main() {
   const files = runGitLsFiles();
   const findings = [];
+  const boundaryContract = readBoundaryContract();
+
+  scanBoundaryContract(boundaryContract, findings);
+  scanRequiredIgnores(boundaryContract, findings);
 
   for (const file of files) {
-    scanPath(file, findings);
+    scanPath(file, findings, boundaryContract);
 
     let buffer;
     try {
@@ -253,7 +392,7 @@ function main() {
 
   if (findings.length === 0) {
     console.log(
-      "Publication safety OK (tracked files contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata).",
+      "Publication safety OK (tracked files respect cloud/local boundary and contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata).",
     );
     return;
   }

@@ -12,10 +12,13 @@ tmp-codex-runtime/
 .turbo/
 out/
 dist/
+.worktrees/
 data/subscription-escape*.json
 data/subscription-escape*.json.enc
 data/subscription-escape-assets/
 data/phone-acceptance-receipts*.json
+docs/metrics/dependabot-alerts-source.json
+docs/metrics/dependabot-security-audit-2026-05-24T22-43-47-493Z.json
 *.log
 .nexus-runtime-identity.json
 .nexus-runtime.pid

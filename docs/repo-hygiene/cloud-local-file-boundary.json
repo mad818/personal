@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Classify files that are safe for the public/cloud repo versus files that must stay on the operator machine.",
+  "cloudSafe": {
+    "principle": "Tracked files may be source code, public docs, sanitized metrics, placeholder config, generated app assets, and reproducible manifests.",
+    "examples": [
+      ".env.example",
+      "app/",
+      "components/",
+      "lib/",
+      "scripts/",
+      "specs/",
+      "docs/",
+      "docs/metrics/desktop-sbom.cdx.json",
+      "docs/metrics/dependency-risk-posture-*.json",
+      "public/images/",
+      "package.json",
+      "package-lock.json"
+    ]
+  },
+  "localOnly": {
+    "principle": "Secrets, private runtime state, raw operator proof, personal worktrees, generated research sessions, private media, and key material stay local.",
+    "trackedDenyPatterns": [
+      {
+        "pattern": ".env.local",
+        "reason": "Contains real operator token and provider keys."
+      },
+      {
+        "pattern": ".env.*.local",
+        "reason": "Machine-specific environment files can contain real credentials."
+      },
+      {
+        "pattern": ".env.development",
+        "reason": "Runtime environment values must stay local unless represented as placeholders in .env.example."
+      },
+      {
+        "pattern": ".env.production",
+        "reason": "Production environment values must stay local unless represented as placeholders in .env.example."
+      },
+      {
+        "pattern": ".env.test",
+        "reason": "Test secrets or host values must stay local unless represented as placeholders in .env.example."
+      },
+      {
+        "pattern": ".nexus/**",
+        "reason": "Private backups, runtime state, local acceleration vectors, and recovery bundles are host-local."
+      },
+      {
+        "pattern": ".worktrees/**",
+        "reason": "Replay/recovery checkouts can contain stale env files and old build artifacts."
+      },
+      {
+        "pattern": ".git-push-*/**",
+        "reason": "Temporary push bundles are local operator artifacts."
+      },
+      {
+        "pattern": "tmp-codex-runtime/**",
+        "reason": "Temporary runtime output is not repo source."
+      },
+      {
+        "pattern": "data/subscription-escape*.json",
+        "reason": "Local media/library state can contain private titles, links, and operator metadata."
+      },
+      {
+        "pattern": "data/subscription-escape*.json.enc",
+        "reason": "Encrypted private state still belongs to local recovery, not public git."
+      },
+      {
+        "pattern": "data/subscription-escape-assets/**",
+        "reason": "Private media covers and intake assets stay local."
+      },
+      {
+        "pattern": "data/phone-acceptance-receipts*.json",
+        "reason": "Phone/iPad acceptance receipts are local proof artifacts."
+      },
+      {
+        "pattern": "docs/metrics/dependabot-alerts-source*.json",
+        "reason": "Raw GitHub export metadata stays local; only sanitized audit summaries are cloud-safe."
+      },
+      {
+        "pattern": "agent-workspace/feynman/sessions/**",
+        "reason": "Generated research notebooks, provenance sidecars, previews, and PDFs are local working artifacts."
+      },
+      {
+        "pattern": "agent-workspace/feynman/tmp/**",
+        "reason": "Temporary research scratch output is local-only."
+      },
+      {
+        "pattern": "assets/arpg/intake/raw/**",
+        "reason": "Raw asset intake is not cloud-safe until license, provenance, and manifest checks pass."
+      },
+      {
+        "pattern": "assets/arpg/intake/work/**",
+        "reason": "Intermediate asset work files are not cloud-safe until normalized and manifest-tracked."
+      },
+      {
+        "pattern": "*.pem",
+        "reason": "Certificate/private key material must never be tracked."
+      },
+      {
+        "pattern": "*.key",
+        "reason": "Key material must never be tracked."
+      },
+      {
+        "pattern": "*.p12",
+        "reason": "Certificate bundle material must never be tracked."
+      },
+      {
+        "pattern": "*.pfx",
+        "reason": "Certificate bundle material must never be tracked."
+      },
+      {
+        "pattern": "*.log",
+        "reason": "Logs can contain local paths, tokens, hostnames, and runtime details."
+      }
+    ],
+    "requiredGitignorePatterns": [
+      ".env.local",
+      ".env.*.local",
+      ".env.development",
+      ".env.production",
+      ".env.test",
+      ".nexus/",
+      ".worktrees/",
+      ".git-push-*/",
+      "tmp-codex-runtime/",
+      "data/subscription-escape*.json",
+      "data/subscription-escape*.json.enc",
+      "data/subscription-escape-assets/",
+      "data/phone-acceptance-receipts*.json",
+      "docs/metrics/dependabot-alerts-source*.json",
+      "agent-workspace/feynman/sessions/",
+      "agent-workspace/feynman/tmp/",
+      "assets/arpg/intake/raw/",
+      "assets/arpg/intake/work/",
+      "*.pem",
+      "*.key",
+      "*.p12",
+      "*.pfx",
+      "*.log"
+    ]
+  }
+}

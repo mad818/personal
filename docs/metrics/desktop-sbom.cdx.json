@@ -1,7 +1,7 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:ddea6c54-a2f9-8405-0976-d2d25ce2c25a",
+  "serialNumber": "urn:uuid:222a004a-d156-315e-c9f8-e934eba000de",
   "version": 1,
   "metadata": {
     "component": {
@@ -21,7 +21,7 @@
       },
       {
         "name": "nexus:lock-digest-sha256",
-        "value": "ddea6c54a2f984050976d2d25ce2c25ac3f9ed6f78e25e3e94cc783058e04816"
+        "value": "222a004ad156315ec9f8e934eba000de1ebd75fa24c749cb3541f888306f490e"
       },
       {
         "name": "nexus:network-required",
@@ -26688,7 +26688,7 @@
         },
         {
           "name": "nexus:npm-scope",
-          "value": "development"
+          "value": "runtime"
         }
       ],
       "hashes": [
@@ -28060,7 +28060,7 @@
         },
         {
           "name": "nexus:npm-scope",
-          "value": "development"
+          "value": "runtime"
         }
       ],
       "hashes": [

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "id": "l1b3rt4s",
+  "name": "L1B3RT4S",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/elder-plinius/L1B3RT4S",
+    "version": "main",
+    "reviewedAt": "2026-06-16",
+    "license": "AGPL-3.0-or-later",
+    "primaryEvidence": [
+      "https://github.com/elder-plinius/L1B3RT4S/blob/main/README.md",
+      "https://github.com/elder-plinius/L1B3RT4S"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "obfuscated-text-taxonomy",
+      "title": "Detect encoded, leetspeak, and obfuscated prompt pressure without copying examples",
+      "sourceEvidence": "README describes jailbreak prompt variants and obfuscation techniques",
+      "disposition": "implemented",
+      "proof": ["lib/promptThreatTaxonomy.ts", "scripts/check-plinius-safety-runtime.mjs"]
+    },
+    {
+      "id": "invisible-unicode-detection",
+      "title": "Detect invisible Unicode and suspicious Unicode markers in prompt input",
+      "sourceEvidence": "README references invisible and special Unicode prompt variants",
+      "disposition": "implemented",
+      "proof": ["lib/promptThreatTaxonomy.ts", "scripts/check-plinius-safety-runtime.mjs"]
+    },
+    {
+      "id": "safe-pressure-family-ui",
+      "title": "Expose sanitized pressure labels in Model Lab instead of raw jailbreak prompts",
+      "sourceEvidence": "Prompt-family variety is useful for defensive evaluation but raw prompts are not",
+      "disposition": "adapted",
+      "proof": ["components/skills/BlacksiteLab.tsx", "lib/modelSafetyEvaluation.ts"]
+    },
+    {
+      "id": "agent-injection-summary",
+      "title": "Summarize obfuscation and reset families in the shared agent prompt guard",
+      "sourceEvidence": "Source material shows why agent prompts need a stable injection boundary",
+      "disposition": "adapted",
+      "proof": ["components/home/office/prompts.ts", "lib/promptThreatTaxonomy.ts"]
+    },
+    {
+      "id": "raw-jailbreak-prompt-corpus",
+      "title": "Vendor, display, or distribute raw jailbreak prompts",
+      "sourceEvidence": "Repository is a jailbreak prompt corpus",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus keeps only neutral classifier labels and benign unit examples, not usable jailbreak text."
+    },
+    {
+      "id": "jailbreak-generation-workflow",
+      "title": "Generate new jailbreak prompts or bypass variants for operators",
+      "sourceEvidence": "Repository focus is bypass-prompt content",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus implements defensive detection and passive evaluation only."
+    },
+    {
+      "id": "agpl-source-vendoring",
+      "title": "Copy AGPL prompt assets or implementation into Nexus",
+      "sourceEvidence": "Repository license is AGPL-family",
+      "disposition": "excluded",
+      "conflict": "license",
+      "reason": "Nexus uses independently written defensive taxonomy code and source-parity notes only."
+    }
+  ]
+}

@@ -5,7 +5,7 @@ import fs from "fs";
 import path from "path";
 
 const distDir = process.env.NEXUS_NEXT_DIST_DIR ?? ".next";
-const root = path.resolve("C:/Users/mario/Desktop/personal");
+const root = path.resolve(process.cwd());
 const target = path.resolve(process.cwd(), distDir);
 const relativeTarget = path.relative(root, target);
 

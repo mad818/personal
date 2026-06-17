@@ -178,6 +178,8 @@ function buildGuide(parsedArgs) {
   const manualFallbackCommand =
     "npm run phone:acceptance:capture -- --phone-opened --phone-login --ping-receipt --local-ai-receipt --pwa-installed";
   const desktopCommands = [
+    "npm run phone:acceptance:session",
+    "npm run phone:acceptance:desktop-proof",
     "npm run phone:lan:start",
     "npm run phone:acceptance:capture",
     "npm run phone:acceptance:report",
@@ -193,9 +195,11 @@ function buildGuide(parsedArgs) {
   ];
   const nextAction = acceptanceReady
     ? "Phone/iPad acceptance is complete in the latest sanitized artifact."
-    : runtimeBlocked
-      ? "Start the LAN runtime with npm run phone:lan:start, then use a phone/iPad to complete the checklist."
-      : "Complete the missing phone/iPad checklist items, rerun capture, then rerun report and ops:first-three.";
+    : !artifact
+      ? "Run npm run phone:acceptance:session to start the LAN runtime and complete the phone/iPad checklist."
+      : runtimeBlocked
+        ? "Run npm run phone:acceptance:session to refresh desktop-side runtime proof and complete the phone/iPad checklist."
+      : "Run npm run phone:acceptance:session, complete the missing phone/iPad checklist items, then rerun report and ops:first-three.";
 
   return {
     ok: true,
@@ -236,8 +240,14 @@ function printGuide(guide) {
   }
   console.log("");
 
-  console.log("Desktop start command:");
+  console.log("Recommended live session command:");
   console.log(`  ${guide.desktopCommands[0]}`);
+  console.log("");
+  console.log("Desktop proof command:");
+  console.log(`  ${guide.desktopCommands[1]}`);
+  console.log("");
+  console.log("Manual LAN start command:");
+  console.log(`  ${guide.desktopCommands[2]}`);
   console.log("");
   console.log(`Desktop HQ URL: ${guide.urls.desktopHqUrl}`);
   if (guide.urls.lanHqUrls.length) {
@@ -256,7 +266,7 @@ function printGuide(guide) {
   console.log("");
 
   console.log("After the phone/iPad steps, run:");
-  for (const command of guide.desktopCommands.slice(1)) console.log(`  ${command}`);
+  for (const command of guide.desktopCommands.slice(3)) console.log(`  ${command}`);
   console.log("");
   console.log("Manual fallback only if you actually completed every phone/iPad step:");
   console.log(`  ${guide.manualFallbackCommand}`);

@@ -8,6 +8,10 @@ import { apiFetch } from "@/lib/apiFetch";
 import type { ModelLabRun } from "@/lib/assimilation/types";
 import type { InternalWorkbenchMeta } from "@/lib/assimilation/contracts";
 import {
+  PROMPT_THREAT_SOURCE_FAMILIES,
+  SAFE_MODEL_LAB_THREAT_FAMILIES,
+} from "@/lib/promptThreatTaxonomy";
+import {
   parseRuntimeExperimentPayload,
   summarizeRuntimeExperiment,
   type RuntimeExperimentCategory,
@@ -16,14 +20,12 @@ import {
   type RuntimeExperimentVariantKind,
 } from "@/lib/runtimeExperimentContracts";
 
-const MUTATION_FAMILIES = [
-  "boundary inversion",
-  "authority spoofing",
-  "encoded prompts",
-  "obfuscated trigger words",
-  "prompt compression",
-  "nested instructions",
-];
+const MUTATION_FAMILIES = SAFE_MODEL_LAB_THREAT_FAMILIES.map((family) => family.id);
+
+const SOURCE_FAMILIES = PROMPT_THREAT_SOURCE_FAMILIES.map((family) => ({
+  id: family,
+  label: family.toUpperCase(),
+}));
 
 const MODELS = ["claude-opus", "local-qwen", "openrouter-stack", "groq-fast"];
 
@@ -102,6 +104,13 @@ export default function BlacksiteLab() {
     "boundary inversion",
     "authority spoofing",
   ]);
+  const [selectedSourceFamilies, setSelectedSourceFamilies] = useState<string[]>([
+    "cl4r1t4s",
+    "l1b3rt4s",
+    "g0dm0d3",
+    "v3sp3r",
+    "obliteratus",
+  ]);
   const [selectedModels, setSelectedModels] = useState<string[]>([
     "claude-opus",
     "local-qwen",
@@ -170,7 +179,13 @@ export default function BlacksiteLab() {
     const term = deferredFilter.trim().toLowerCase();
     if (!term) return runs;
     return runs.filter((run) =>
-      [run.title, run.mutationFamilies.join(" "), run.operatorNotes ?? ""]
+      [
+        run.title,
+        run.mutationFamilies.join(" "),
+        run.sourceFamilies?.join(" ") ?? "",
+        run.manifest?.threatAssessment?.families.join(" ") ?? "",
+        run.operatorNotes ?? "",
+      ]
         .join(" ")
         .toLowerCase()
         .includes(term),
@@ -217,6 +232,14 @@ export default function BlacksiteLab() {
           models: selectedModels,
           promptLabel,
           operatorNotes: notes,
+          sourceFamilies: selectedSourceFamilies,
+          threatProbe: [
+            title,
+            promptLabel,
+            notes,
+            selectedFamilies.join(" "),
+            selectedSourceFamilies.join(" "),
+          ].join("\n"),
         }),
       });
       if (!response.ok) throw new Error("Failed to run model lab.");
@@ -385,6 +408,40 @@ export default function BlacksiteLab() {
                 }}
               >
                 {family}
+              </button>
+            ))}
+          </div>
+
+          <SectionLabel detail={`${selectedSourceFamilies.length} active`}>
+            Source families
+          </SectionLabel>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
+            {SOURCE_FAMILIES.map((family) => (
+              <button
+                key={family.id}
+                type="button"
+                onClick={() =>
+                  toggleItem(
+                    selectedSourceFamilies,
+                    family.id,
+                    setSelectedSourceFamilies,
+                  )
+                }
+                style={{
+                  padding: "8px 10px",
+                  borderRadius: "999px",
+                  border: selectedSourceFamilies.includes(family.id)
+                    ? "1px solid rgba(251, 191, 36, 0.66)"
+                    : "1px solid var(--border)",
+                  background: selectedSourceFamilies.includes(family.id)
+                    ? "rgba(120, 53, 15, 0.28)"
+                    : "rgba(10, 15, 30, 0.58)",
+                  color: "var(--text)",
+                  cursor: "pointer",
+                  fontSize: "11px",
+                }}
+              >
+                {family.label}
               </button>
             ))}
           </div>
@@ -788,6 +845,20 @@ export default function BlacksiteLab() {
               <p style={{ margin: "10px 0 0", fontSize: "12px", color: "var(--text2)", lineHeight: 1.6 }}>
                 {latestRun.operatorNotes}
               </p>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
+                {(latestRun.sourceFamilies ?? latestRun.manifest?.sourceFamilies ?? []).map(
+                  (family) => (
+                    <ShellBadge key={family} tone="muted">
+                      {family}
+                    </ShellBadge>
+                  ),
+                )}
+                {latestRun.threatAssessment ? (
+                  <ShellBadge tone="accent">
+                    Threat risk: {latestRun.threatAssessment.risk}
+                  </ShellBadge>
+                ) : null}
+              </div>
 
               <div
                 style={{

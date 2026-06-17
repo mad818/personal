@@ -4,6 +4,12 @@ import type {
   ModelSafetyEvaluationManifest,
   ModelSafetyMetricSet,
 } from "@/lib/assimilation/types";
+import {
+  assessPromptThreat,
+  PROMPT_THREAT_SOURCE_FAMILIES,
+  type PromptThreatAssessment,
+  type PromptThreatSourceFamily,
+} from "./promptThreatTaxonomy.ts";
 
 export const MODEL_SAFETY_PROHIBITED_CAPABILITIES = [
   "model_weight_modification",
@@ -49,6 +55,7 @@ function buildVariant(input: {
   promptLabel: string;
   family: string;
   index: number;
+  sourceFamilies: PromptThreatSourceFamily[];
 }): ModelLabVariantResult {
   const safetyMetrics = buildMetricSet(
     `${input.model}|${input.promptLabel}|${input.family}|${input.index}`,
@@ -74,12 +81,31 @@ function buildVariant(input: {
     stability,
     usefulness,
     verdict,
-    note: `${input.family} passive policy-robustness evaluation against ${input.model}. No model mutation or safeguard removal was performed.`,
+    note: `${input.family} passive policy-robustness evaluation against ${input.model}. Source families: ${input.sourceFamilies.join(", ")}. No model mutation, unsafe tool control, telemetry, or safeguard removal was performed.`,
     safetyMetrics,
   };
 }
 
-export function buildPassiveModelSafetyManifest(): ModelSafetyEvaluationManifest {
+const DEFAULT_SOURCE_FAMILIES: PromptThreatSourceFamily[] = ["obliteratus"];
+
+function normalizeSourceFamilies(input?: string[]): PromptThreatSourceFamily[] {
+  const allowed = new Set<string>(PROMPT_THREAT_SOURCE_FAMILIES);
+  const seen = new Set<string>();
+  const families = (input ?? [])
+    .map((value) => value.trim().toLowerCase())
+    .filter((value) => allowed.has(value) && !seen.has(value))
+    .map((value) => {
+      seen.add(value);
+      return value as PromptThreatSourceFamily;
+    });
+  return families.length ? families : [...DEFAULT_SOURCE_FAMILIES];
+}
+
+export function buildPassiveModelSafetyManifest(input?: {
+  sourceFamilies?: string[];
+  threatAssessment?: PromptThreatAssessment;
+}): ModelSafetyEvaluationManifest {
+  const sourceFamilies = normalizeSourceFamilies(input?.sourceFamilies);
   return {
     schemaVersion: 1,
     mode: "passive-safety",
@@ -92,8 +118,10 @@ export function buildPassiveModelSafetyManifest(): ModelSafetyEvaluationManifest
     modelUploads: "disabled",
     metrics: [...PASSIVE_MODEL_SAFETY_METRICS],
     prohibitedCapabilities: [...MODEL_SAFETY_PROHIBITED_CAPABILITIES],
+    sourceFamilies,
+    threatAssessment: input?.threatAssessment,
     sourceAdaptation:
-      "OBLITERATUS analysis vocabulary adapted only for defensive, passive safety evaluation.",
+      "Plinius-family adversarial ideas adapted only as defensive prompt-threat taxonomy, safe pressure labels, tool-risk review posture, and passive local safety evaluation.",
   };
 }
 
@@ -105,7 +133,21 @@ export function buildPassiveModelSafetyRun(input: {
   models: string[];
   promptLabel: string;
   operatorNotes?: string;
+  sourceFamilies?: string[];
+  threatProbe?: string;
+  threatAssessment?: PromptThreatAssessment;
 }): ModelLabRun {
+  const sourceFamilies = normalizeSourceFamilies(input.sourceFamilies);
+  const threatProbe =
+    input.threatProbe?.trim() ||
+    [
+      input.title,
+      input.promptLabel,
+      input.mutationFamilies.join(" "),
+      input.operatorNotes ?? "",
+    ].join("\n");
+  const threatAssessment =
+    input.threatAssessment ?? assessPromptThreat(threatProbe);
   const variants = input.models.flatMap((model, modelIndex) =>
     input.mutationFamilies.map((family, familyIndex) =>
       buildVariant({
@@ -113,6 +155,7 @@ export function buildPassiveModelSafetyRun(input: {
         promptLabel: input.promptLabel,
         family,
         index: modelIndex * input.mutationFamilies.length + familyIndex,
+        sourceFamilies,
       }),
     ),
   );
@@ -125,7 +168,12 @@ export function buildPassiveModelSafetyRun(input: {
     evaluationMode: "passive-safety",
     createdAt: input.createdAt,
     operatorNotes: input.operatorNotes,
-    manifest: buildPassiveModelSafetyManifest(),
+    sourceFamilies,
+    threatAssessment,
+    manifest: buildPassiveModelSafetyManifest({
+      sourceFamilies,
+      threatAssessment,
+    }),
     variants,
   };
 }

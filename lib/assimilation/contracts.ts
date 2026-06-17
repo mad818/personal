@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PROMPT_THREAT_SOURCE_FAMILIES } from "@/lib/promptThreatTaxonomy";
 
 export const INTERNAL_WORKBENCH_SUPPORT = "internal" as const;
 
@@ -136,6 +137,8 @@ export const modelLabCreateRequestSchema = z.object({
   models: z.array(z.string().trim().min(1).max(80)).min(1).max(8),
   promptLabel: z.string().trim().min(1).max(120),
   operatorNotes: z.string().trim().max(1200).optional(),
+  sourceFamilies: z.array(z.enum(PROMPT_THREAT_SOURCE_FAMILIES)).max(8).optional(),
+  threatProbe: z.string().trim().max(2000).optional(),
 });
 
 export const securityScenarioSchema = z.object({

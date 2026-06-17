@@ -9,12 +9,15 @@ const metricsDir = path.join(root, "docs", "metrics");
 const args = process.argv.slice(2);
 const jsonOutput = args.includes("--json");
 const checkOnly = args.includes("--check");
+const jsYamlFloor = "4.1.1";
+const glibFloor = "0.20.0";
+const linuxBundleTargets = ["appimage", "deb", "rpm"];
 const PRIVATE_LAN_IP_RE =
   /\b(?:10(?:\.\d{1,3}){3}|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2}|192\.168(?:\.\d{1,3}){2})\b/g;
 const WINDOWS_HOME_RE = /\b[A-Za-z]:\\Users\\[^\\\s`"']+(?:\\[^\s`"']*)?/g;
 
 export const FIRST_THREE_OPERATIONAL_CLOSURE_FIELDS = [
-  "dependabotPostcss",
+  "dependabotOpenAlerts",
   "phoneAcceptance",
   "localAiOffline",
   "externalIdeasIntake",
@@ -42,6 +45,18 @@ function readJson(relativeOrAbsolutePath) {
     : path.join(root, relativeOrAbsolutePath);
   try {
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function readText(relativeOrAbsolutePath) {
+  if (!relativeOrAbsolutePath) return null;
+  const filePath = path.isAbsolute(relativeOrAbsolutePath)
+    ? relativeOrAbsolutePath
+    : path.join(root, relativeOrAbsolutePath);
+  try {
+    return fs.readFileSync(filePath, "utf8");
   } catch {
     return null;
   }
@@ -115,86 +130,116 @@ function currentLockVersion(packageName, pkg, lock) {
   return null;
 }
 
-function runtimeAlerts(audit) {
-  const queue = audit?.upgradeQueue?.runtimeCritical;
-  if (Array.isArray(queue)) return queue;
-
-  const classified = audit?.classification?.runtimeCritical?.alerts;
-  return Array.isArray(classified) ? classified : [];
+function cargoPackageVersion(cargoLock, packageName) {
+  if (typeof cargoLock !== "string") return null;
+  const pattern = new RegExp(
+    String.raw`\[\[package\]\]\r?\nname = "${packageName}"\r?\nversion = "([^"]+)"`,
+  );
+  return cargoLock.match(pattern)?.[1] ?? null;
 }
 
-function installFlag(group) {
-  if (group === "dependencies") return "--save";
-  if (group === "optionalDependencies") return "--save-optional";
-  return "--save-dev";
+function bundleTargets(config) {
+  return Array.isArray(config?.bundle?.targets)
+    ? config.bundle.targets.map((target) => String(target))
+    : [];
 }
 
-function postcssClosure() {
-  const auditPath = latestMetric("dependabot-security-audit-");
-  const audit = readJson(auditPath);
+function dependabotOpenAlertClosure() {
   const pkg = readJson("package.json");
   const lock = readJson("package-lock.json");
-  const alert = runtimeAlerts(audit).find(
-    (item) =>
-      item?.ecosystem === "npm" &&
-      item?.packageName === "postcss" &&
-      item?.retiredManifest !== true,
+  const cargoLock = readText("desktop/src-tauri/Cargo.lock");
+  const tauriConfig = readJson("desktop/src-tauri/tauri.conf.json");
+  const secureTemplate = readJson("desktop/tauri-template/tauri.conf.secure.example.json");
+
+  const jsYamlVersion = currentLockVersion("js-yaml", pkg, lock);
+  const jsYamlOverride = pkg?.overrides?.["js-yaml"] ?? null;
+  const jsYamlReady =
+    Boolean(jsYamlVersion) &&
+    compareVersions(jsYamlVersion, jsYamlFloor) >= 0 &&
+    jsYamlOverride === jsYamlFloor;
+
+  const glibVersion = cargoPackageVersion(cargoLock, "glib");
+  const releaseTargets = bundleTargets(tauriConfig);
+  const secureTemplateTargets = bundleTargets(secureTemplate);
+  const activeLinuxTargets = releaseTargets.filter((target) =>
+    linuxBundleTargets.includes(target),
   );
-  const currentVersion = currentLockVersion("postcss", pkg, lock);
-  const patchedFloor = alert?.firstPatchedVersion ?? "8.5.10";
-  const patched =
-    Boolean(currentVersion) && compareVersions(currentVersion, patchedFloor) >= 0;
-  const installCommand = `npm install postcss@${patchedFloor} ${installFlag(
-    alert?.directDependencyGroup,
-  )} --no-audit --no-fund --legacy-peer-deps --cache .npm-cache`;
+  const templateLinuxTargets = secureTemplateTargets.filter((target) =>
+    linuxBundleTargets.includes(target),
+  );
+  const vulnerableGlib =
+    Boolean(glibVersion) && compareVersions(glibVersion, glibFloor) < 0;
+  const glibReleaseScopeSafe =
+    Boolean(glibVersion) &&
+    (!vulnerableGlib ||
+      (activeLinuxTargets.length === 0 && templateLinuxTargets.length === 0));
+  const blocked = [];
 
   if (!pkg || !lock) {
-    return {
-      id: "DEPENDABOT-POSTCSS-RUNTIME-PATCH",
-      status: "blocked_evidence_missing",
-      blockerClass: "local_package_metadata_missing",
-      proofSource: "package.json / package-lock.json",
-      currentVersion,
-      patchedFloor,
-      nextAction: "Restore readable package metadata, then rerun this command.",
-    };
+    blocked.push("Root package metadata is missing.");
+  }
+  if (!jsYamlReady) {
+    blocked.push(
+      `js-yaml must be package-lock >= ${jsYamlFloor} and package.json override ${jsYamlFloor}.`,
+    );
+  }
+  if (!cargoLock || !tauriConfig || !secureTemplate) {
+    blocked.push("Desktop Tauri release metadata is missing.");
+  }
+  if (!glibReleaseScopeSafe) {
+    blocked.push(
+      `glib ${glibVersion ?? "missing"} is below ${glibFloor} while Linux bundle targets are enabled.`,
+    );
   }
 
-  if (!audit || !alert) {
-    return {
-      id: "DEPENDABOT-POSTCSS-RUNTIME-PATCH",
-      status: patched ? "complete" : "blocked_evidence_missing",
-      blockerClass: patched ? "none" : "dependabot_audit_missing",
-      proofSource: relativePath(auditPath) ?? "none",
-      currentVersion,
-      patchedFloor,
-      nextAction: patched
-        ? "Postcss is at or above the patched floor. Run the Dependabot classifier after GitHub rescans."
-        : "Run npm run dependabot:audit:classify with the sanitized Dependabot alert export, then rerun this command.",
-    };
-  }
+  const locallyReady = blocked.length === 0;
 
   return {
-    id: "DEPENDABOT-POSTCSS-RUNTIME-PATCH",
-    status: patched ? "complete" : "blocked_external",
-    blockerClass: patched ? "none" : "package_registry_or_normal_shell_required",
-    proofSource: relativePath(auditPath),
-    alertNumber: alert.alertNumber ?? null,
-    currentVersion,
-    patchedFloor,
-    installCommand,
+    id: "DEPENDABOT-OPEN-ALERT-CLOSURE",
+    status: locallyReady ? "ready_external" : "blocked_local_fix_required",
+    blockerClass: locallyReady
+      ? "github_rescan_or_alert_dismissal_required"
+      : "local_manifest_or_release_scope_fix_required",
+    proofSource: [
+      "package.json",
+      "package-lock.json",
+      "desktop/src-tauri/Cargo.lock",
+      "desktop/src-tauri/tauri.conf.json",
+      "desktop/tauri-template/tauri.conf.secure.example.json",
+    ],
+    openAlertStatus: locallyReady
+      ? "ready_for_github_rescan_or_dismissal"
+      : "blocked_local_fix_required",
+    jsYaml: {
+      alertNumber: 124,
+      lockVersion: jsYamlVersion,
+      requiredFloor: jsYamlFloor,
+      packageOverride: jsYamlOverride,
+      localStatus: jsYamlReady ? "patched_locally" : "needs_local_patch",
+    },
+    glib: {
+      alertNumber: 77,
+      lockVersion: glibVersion,
+      requiredFloor: glibFloor,
+      releaseTargets,
+      secureTemplateTargets,
+      linuxBundleTargetsPresent: [...activeLinuxTargets, ...templateLinuxTargets],
+      localStatus: glibReleaseScopeSafe
+        ? "release_scope_safe_not_used"
+        : "needs_local_release_scope_or_dependency_patch",
+    },
+    blocked,
     proofCommands: [
-      "npm run dependabot:audit:classify -- --alerts=docs\\metrics\\dependabot-alerts-source.json",
+      "npm run dependabot:open:closure",
+      "npm run dependabot:open:closure:check",
       "npm run dependency:risk:check",
-      "npm run dependabot:audit:check",
       "npm run validate:infra-hardening",
       "npx tsc --noEmit",
       "npm run verify",
-      "npm run build",
     ],
-    nextAction: patched
-      ? "Postcss is patched locally. Run the proof commands and wait for GitHub Dependabot to rescan."
-      : `Run from normal PowerShell: ${installCommand}`,
+    nextAction: locallyReady
+      ? "Run npm run dependabot:open:closure, push the local package metadata so GitHub rescans js-yaml, then dismiss glib #77 as not_used while Linux desktop bundles remain out of scope."
+      : "Fix the listed local manifest or desktop release-scope blockers, then rerun npm run dependabot:open:closure.",
   };
 }
 
@@ -215,7 +260,7 @@ function phoneClosure() {
       acceptanceReady: false,
       missing: ["Sanitized phone acceptance capture artifact"],
       nextAction:
-        "Run npm run phone:lan:start, complete the phone/iPad flow, then run npm run phone:acceptance:capture.",
+        "Run npm run phone:acceptance:desktop-proof to capture desktop-side runtime proof, then complete the phone/iPad flow.",
     };
   }
 
@@ -247,7 +292,7 @@ function phoneClosure() {
     nextAction: ready
       ? "Phone/iPad acceptance is complete in the latest sanitized artifact."
       : hasRouteBlocker
-        ? "Run npm run phone:acceptance:guide, start the LAN runtime with npm run phone:lan:start, rerun capture, then rerun npm run phone:acceptance:report."
+        ? "Run npm run phone:acceptance:desktop-proof to refresh desktop-side runtime proof, then rerun npm run phone:acceptance:report."
         : "Run npm run phone:acceptance:guide, then from the phone/iPad: open HQ, log in, send ping, ask one local AI prompt, install the PWA, rerun capture, then rerun npm run phone:acceptance:report.",
   };
 }
@@ -265,15 +310,26 @@ function getReadinessSummary(rollup, phoneEvidence) {
 }
 
 function localDesktopReady(summary) {
+  return localDesktopBaseReady(summary) && (browserSessionReady(summary) || protectedCliReady(summary));
+}
+
+function localDesktopBaseReady(summary) {
   if (!summary) return false;
   return (
     summary.freeInvariant?.chargesEndUsers === false &&
     summary.networkMode?.mode === "isolated" &&
     summary.paidApisAllowed?.allowed === false &&
     summary.ollama?.reachable === true &&
-    Boolean(summary.resolvedModel?.resolvedModel) &&
-    summary.session?.authenticated === true
+    Boolean(summary.resolvedModel?.resolvedModel)
   );
+}
+
+function browserSessionReady(summary) {
+  return summary?.session?.authenticated === true;
+}
+
+function protectedCliReady(summary) {
+  return summary?.session?.tokenConfigured === true;
 }
 
 function localAiClosure() {
@@ -291,8 +347,11 @@ function localAiClosure() {
 
   if (!rollup) blocked.push("Readiness rollup artifact is missing.");
   if (!summary) blocked.push("Desktop readiness summary is missing.");
-  if (summary && !desktopReady) {
+  if (summary && !localDesktopBaseReady(summary)) {
     blocked.push("Desktop local/free AI posture is not fully proven.");
+  }
+  if (summary && localDesktopBaseReady(summary) && !browserSessionReady(summary) && !protectedCliReady(summary)) {
+    blocked.push("Desktop protected route proof is missing.");
   }
   if (!proof) blocked.push("Phone-side local AI proof is missing.");
   if (proof && !phoneAiReady) blocked.push("Phone proof missing: local AI receipt.");
@@ -338,11 +397,11 @@ function externalIdeasIntake() {
 }
 
 function buildClosure() {
-  const dependabotPostcss = postcssClosure();
+  const dependabotOpenAlerts = dependabotOpenAlertClosure();
   const phoneAcceptance = phoneClosure();
   const localAiOffline = localAiClosure();
   const externalIdeas = externalIdeasIntake();
-  const openItems = [dependabotPostcss, phoneAcceptance, localAiOffline].filter(
+  const openItems = [dependabotOpenAlerts, phoneAcceptance, localAiOffline].filter(
     (item) => item.status !== "complete",
   );
 
@@ -351,7 +410,7 @@ function buildClosure() {
     generatedAt: new Date().toISOString(),
     overallStatus: openItems.length === 0 ? "complete" : "blocked_or_manual",
     lanes: {
-      dependabotPostcss,
+      dependabotOpenAlerts,
       phoneAcceptance,
       localAiOffline,
       externalIdeasIntake: externalIdeas,
@@ -377,6 +436,21 @@ function printLane(lane) {
     console.log(
       `  Version: ${lane.currentVersion ?? "unknown"} -> ${lane.patchedFloor ?? "unknown"}`,
     );
+  }
+  if (lane.openAlertStatus) {
+    console.log(`  Open alert status: ${lane.openAlertStatus}`);
+  }
+  if (lane.jsYaml) {
+    console.log(
+      `  js-yaml #${lane.jsYaml.alertNumber}: ${lane.jsYaml.lockVersion ?? "missing"} -> ${lane.jsYaml.requiredFloor}; ${lane.jsYaml.localStatus}`,
+    );
+  }
+  if (lane.glib) {
+    const linuxTargets = lane.glib.linuxBundleTargetsPresent.join(", ") || "none";
+    console.log(
+      `  glib #${lane.glib.alertNumber}: ${lane.glib.lockVersion ?? "missing"} -> ${lane.glib.requiredFloor}; ${lane.glib.localStatus}`,
+    );
+    console.log(`  Linux bundle targets present: ${linuxTargets}`);
   }
   if (lane.acceptanceReady !== undefined) {
     console.log(`  Acceptance ready: ${lane.acceptanceReady ? "true" : "false"}`);
@@ -407,7 +481,7 @@ function printClosure(closure) {
   console.log(`Overall: ${closure.overallStatus}`);
   console.log("");
 
-  printLane(closure.lanes.dependabotPostcss);
+  printLane(closure.lanes.dependabotOpenAlerts);
   printLane(closure.lanes.phoneAcceptance);
   printLane(closure.lanes.localAiOffline);
   printLane(closure.lanes.externalIdeasIntake);

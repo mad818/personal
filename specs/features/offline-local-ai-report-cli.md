@@ -10,11 +10,13 @@ Make the remaining local-AI/offline acceptance state visible from one terminal c
 - Read the latest sanitized `docs/metrics/readiness-rollup-*.json` and `docs/metrics/phone-local-acceptance-*.json` artifacts by default.
 - Support explicit `--rollup=`, `--phone=`, and `--dir=` paths for reviewing specific sanitized artifacts.
 - Print desktop local/free posture, phone local-AI receipt posture, blockers, and next action.
+- Distinguish browser-session authentication from protected CLI token readiness so desktop proof can be marked locally ready when the protected readiness route is reachable with token configured, even if a browser session is not active.
+- When protected CLI desktop proof is already ready, suppress the inherited phone-acceptance "Free Local Readiness is not fully local/free" blocker from the local-AI report so the remaining action stays focused on phone/iPad local-AI receipt proof.
 - Add `offline:local:report:check` and wire it into `offline:local:check`.
 
 ## Guardrails
 
-- No network calls, runtime launch, provider calls, receipt API calls, GitHub calls, cloud calls, dependency install, file writes, branch changes, secrets/env reads, raw receipt storage reads, or ARPG work.
+- No network calls, runtime launch, provider calls, receipt API calls, GitHub calls, cloud calls, dependency install, file writes, branch changes, secrets/env reads, raw receipt storage reads, phone-proof simulation, or ARPG work.
 - Do not store or print token values, cookies, auth headers, raw LAN IP proof, full user-agent strings, screenshots, prompt text, response text, transcripts, file contents, or account/payment proof.
 - If no artifact exists, exit successfully with the next safe command instead of blocking verification.
 

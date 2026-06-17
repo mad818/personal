@@ -121,8 +121,12 @@
       "id": "workflow-specific-output-contracts",
       "title": "Specialized behavioral contracts for literature review, paper-code audit, replication, recipes, comparison, drafts, and review",
       "sourceEvidence": "skills and prompts workflow trees",
-      "disposition": "pending",
-      "reason": "Current workflows share one generalized engine and command-specific purpose text rather than fully specialized execution and artifact contracts."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanWorkflowContracts.ts",
+        "lib/feynmanResearch.ts",
+        "scripts/check-feynman-workflow-contracts-runtime.mjs"
+      ]
     },
     {
       "id": "paper-code-audit",

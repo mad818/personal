@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "g0dm0d3",
+  "name": "G0DM0D3",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/elder-plinius/G0DM0D3",
+    "version": "main",
+    "reviewedAt": "2026-06-16",
+    "license": "AGPL-3.0-or-later",
+    "primaryEvidence": [
+      "https://github.com/elder-plinius/G0DM0D3/blob/main/README.md",
+      "https://github.com/elder-plinius/G0DM0D3/blob/main/api/README.md",
+      "https://github.com/elder-plinius/G0DM0D3"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "multi-model-racing-taxonomy",
+      "title": "Detect multi-model bypass racing as a defensive prompt-threat family",
+      "sourceEvidence": "README describes multi-model GODMODE and ULTRAPLINIAN evaluation/racing patterns",
+      "disposition": "implemented",
+      "proof": ["lib/promptThreatTaxonomy.ts", "scripts/check-plinius-safety-runtime.mjs"]
+    },
+    {
+      "id": "obfuscation-family-adaptation",
+      "title": "Adapt Parseltongue-style obfuscation concepts into safe normalization and detection",
+      "sourceEvidence": "README describes leetspeak, Unicode substitution, morse, braille, and related obfuscation modes",
+      "disposition": "adapted",
+      "proof": ["lib/promptThreatTaxonomy.ts", "scripts/check-plinius-safety-runtime.mjs"]
+    },
+    {
+      "id": "safe-model-lab-pressure-families",
+      "title": "Represent model pressure tests as sanitized local-only evidence families",
+      "sourceEvidence": "README describes model comparison and prompt pressure workflows",
+      "disposition": "adapted",
+      "proof": ["components/skills/BlacksiteLab.tsx", "lib/modelSafetyEvaluation.ts"]
+    },
+    {
+      "id": "autotune-as-runtime-variant",
+      "title": "Use evidence-only runtime variant comparison instead of live jailbreak AutoTune",
+      "sourceEvidence": "README describes parameter tuning and comparative runs",
+      "disposition": "adapted",
+      "proof": ["components/skills/BlacksiteLab.tsx", "lib/runtimeExperimentContracts.ts"]
+    },
+    {
+      "id": "openrouter-remote-runtime",
+      "title": "Depend on OpenRouter or remote multi-provider runtime for safety tests",
+      "sourceEvidence": "README and API docs describe OpenRouter-compatible provider usage",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "Nexus Model Lab remains local-only/passive and does not add a provider dependency or bypass `lib/ai.ts`."
+    },
+    {
+      "id": "public-dataset-telemetry",
+      "title": "Publish prompts or evaluation results to a public dataset or remote API",
+      "sourceEvidence": "README/API docs describe public dataset and telemetry-style collection paths",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "Nexus stores Model Lab evidence locally and sends no telemetry, prompts, or results to public datasets."
+    },
+    {
+      "id": "raw-godmode-prompts",
+      "title": "Vendor raw GODMODE prompt content or bypass templates",
+      "sourceEvidence": "README describes bypass prompt families",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus uses neutral family labels and classifier tests only, not usable bypass prompts."
+    },
+    {
+      "id": "agpl-source-vendoring",
+      "title": "Copy AGPL single-file implementation into Nexus",
+      "sourceEvidence": "Repository license is AGPL-family",
+      "disposition": "excluded",
+      "conflict": "license",
+      "reason": "Nexus implements its own defensive TypeScript helper and local Model Lab integration."
+    }
+  ]
+}

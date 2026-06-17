@@ -12,6 +12,7 @@ Make phone/iPad acceptance easier to execute by turning the latest sanitized acc
 - Print local LAN/HQ URL candidates from local network interfaces so the phone/iPad has a direct target before the UI QR is visible.
 - Print each required phone proof item as done, missing, or unknown.
 - Print the safest next command sequence:
+  - `npm run phone:acceptance:desktop-proof`
   - `npm run phone:lan:start`
   - `npm run phone:acceptance:capture`
   - `npm run phone:acceptance:report`
@@ -23,7 +24,7 @@ Make phone/iPad acceptance easier to execute by turning the latest sanitized acc
 
 - No network calls, runtime launch, receipt API calls, provider calls, file writes, `.env.local` reads, raw receipt storage reads, branch changes, dependency installs, UI changes, public route changes, or ARPG work.
 - Do not read, store, or print token values, cookies, auth headers, raw receipt contents, screenshots, prompt text, response text, transcripts, file contents, or account/payment proof.
-- Do not simulate proof. Manual capture flags are shown only as an operator fallback command to run after the real phone/iPad actions are complete.
+- Do not simulate proof. `phone:acceptance:desktop-proof` may prove desktop-side runtime reachability only; manual capture flags are shown only as an operator fallback command to run after the real phone/iPad actions are complete.
 
 ## Acceptance
 

@@ -116,19 +116,34 @@ function getProof(phoneEvidence) {
 }
 
 function localDesktopReady(summary) {
+  return localDesktopBaseReady(summary) && (browserSessionReady(summary) || protectedCliReady(summary));
+}
+
+function localDesktopBaseReady(summary) {
   if (!summary) return false;
   return (
     summary.freeInvariant?.chargesEndUsers === false &&
     summary.networkMode?.mode === "isolated" &&
     summary.paidApisAllowed?.allowed === false &&
     summary.ollama?.reachable === true &&
-    Boolean(summary.resolvedModel?.resolvedModel) &&
-    summary.session?.authenticated === true
+    Boolean(summary.resolvedModel?.resolvedModel)
   );
+}
+
+function browserSessionReady(summary) {
+  return summary?.session?.authenticated === true;
+}
+
+function protectedCliReady(summary) {
+  return summary?.session?.tokenConfigured === true;
 }
 
 function localAiReceiptReady(proof) {
   return proof?.localAiReceipt === true;
+}
+
+function shouldSkipPhoneLocalReadinessBlocker(text, summary) {
+  return /free local readiness is not fully local\/free/i.test(text) && localDesktopReady(summary);
 }
 
 function printArtifacts(paths) {
@@ -160,7 +175,12 @@ function printDesktop(summary) {
     )}`,
   );
   console.log(`  Resolved model: ${statusLabel(summary.resolvedModel?.resolvedModel)}`);
-  console.log(`  Session authenticated: ${boolLabel(summary.session?.authenticated)}`);
+  console.log(`  Browser session: ${boolLabel(browserSessionReady(summary))}`);
+  console.log(
+    `  Protected CLI route: ${boolLabel(protectedCliReady(summary))} / token configured ${boolLabel(
+      summary.session?.tokenConfigured,
+    )}`,
+  );
   console.log(`  Phone LAN enabled: ${boolLabel(summary.phoneLan?.enabled)}`);
 }
 
@@ -183,8 +203,10 @@ function collectBlocked(rollup, phoneEvidence, summary, proof) {
 
   if (!summary) {
     blocked.push("Desktop readiness summary is missing from the latest sanitized artifacts.");
-  } else if (!localDesktopReady(summary)) {
+  } else if (!localDesktopBaseReady(summary)) {
     blocked.push("Desktop local/free AI posture is not fully proven in the latest artifact.");
+  } else if (!browserSessionReady(summary) && !protectedCliReady(summary)) {
+    blocked.push("Desktop protected route proof is missing from the latest artifact.");
   }
 
   if (!proof) {
@@ -200,6 +222,7 @@ function collectBlocked(rollup, phoneEvidence, summary, proof) {
   const phoneBlocked = Array.isArray(phoneEvidence?.blocked) ? phoneEvidence.blocked : [];
   for (const item of phoneBlocked) {
     const text = String(item);
+    if (shouldSkipPhoneLocalReadinessBlocker(text, summary)) continue;
     if (/local ai|free local readiness|phone proof/i.test(text)) {
       blocked.push(sanitizeText(text));
     }
@@ -224,9 +247,16 @@ function printNextAction(blocked, summary, proof) {
     return;
   }
 
-  if (!summary || !localDesktopReady(summary)) {
+  if (!summary || !localDesktopBaseReady(summary)) {
     console.log(
       "Next action: start the local runtime, confirm Ollama is reachable, then rerun phone acceptance capture and this report.",
+    );
+    return;
+  }
+
+  if (!browserSessionReady(summary) && !protectedCliReady(summary)) {
+    console.log(
+      "Next action: run npm run phone:acceptance:desktop-proof to prove the protected local route, then rerun this report.",
     );
     return;
   }

@@ -51,11 +51,64 @@ function readRuntimeRecord() {
   }
 }
 
-function waitForExit(child) {
+function runProcess(command, args) {
   return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd: root,
+      stdio: ["ignore", "ignore", "ignore"],
+    });
+
     child.on("exit", (code) => resolve(code ?? 0));
     child.on("error", reject);
   });
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitUntilGone(pid, timeoutMs = 5000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    if (!pidIsAlive(pid)) {
+      return true;
+    }
+    await sleep(250);
+  }
+  return !pidIsAlive(pid);
+}
+
+async function stopWindowsRuntimePid(pid) {
+  const taskkillExit = await runProcess("taskkill", ["/PID", String(pid), "/T", "/F"]);
+  if (taskkillExit === 0 || !pidIsAlive(pid)) {
+    return;
+  }
+
+  const stopProcessExit = await runProcess("powershell.exe", [
+    "-NoProfile",
+    "-NonInteractive",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-Command",
+    `Stop-Process -Id ${pid} -Force`,
+  ]);
+
+  if (stopProcessExit === 0 || !pidIsAlive(pid)) {
+    return;
+  }
+
+  throw new Error(
+    `failed to stop pid ${pid} (taskkill exit ${taskkillExit}; Stop-Process exit ${stopProcessExit})`,
+  );
+}
+
+async function stopPosixRuntimePid(pid) {
+  const exitCode = await runProcess("kill", ["-TERM", String(pid)]);
+  if (exitCode === 0 || !pidIsAlive(pid)) {
+    return;
+  }
+
+  throw new Error(`failed to stop pid ${pid} (kill exit ${exitCode})`);
 }
 
 async function main() {
@@ -74,20 +127,23 @@ async function main() {
 
   log(`stopping managed runtime pid ${runtime.pid}${runtime.baseUrl ? ` (${runtime.baseUrl})` : ""}`);
 
-  const child =
-    process.platform === "win32"
-      ? spawn("taskkill", ["/PID", String(runtime.pid), "/T", "/F"], {
-          cwd: root,
-          stdio: "ignore",
-        })
-      : spawn("kill", ["-TERM", String(runtime.pid)], {
-          cwd: root,
-          stdio: "ignore",
-        });
+  try {
+    if (process.platform === "win32") {
+      await stopWindowsRuntimePid(runtime.pid);
+    } else {
+      await stopPosixRuntimePid(runtime.pid);
+    }
+  } catch (error) {
+    if (await waitUntilGone(runtime.pid)) {
+      rmSync(pidPath, { force: true });
+      log("managed runtime already stopped during shutdown");
+      return;
+    }
+    throw error;
+  }
 
-  const exitCode = await waitForExit(child);
-  if (exitCode !== 0) {
-    fail(`failed to stop pid ${runtime.pid} (exit ${exitCode})`);
+  if (!(await waitUntilGone(runtime.pid))) {
+    fail(`failed to stop pid ${runtime.pid}`);
   }
 
   rmSync(pidPath, { force: true });

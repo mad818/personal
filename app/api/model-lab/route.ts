@@ -24,6 +24,7 @@ export async function GET() {
       warnings: [
         "Model Lab never modifies model weights or applies steering vectors.",
         "No telemetry, model upload, or remote code execution is permitted.",
+        "No raw jailbreak prompts, leaked system prompts, or public datasets are stored.",
       ],
       timestamp: Date.now(),
     },
@@ -52,6 +53,8 @@ export async function POST(req: NextRequest) {
     promptLabel: parsed.data.promptLabel,
     createdAt: new Date().toISOString(),
     operatorNotes: parsed.data.operatorNotes,
+    sourceFamilies: parsed.data.sourceFamilies,
+    threatProbe: parsed.data.threatProbe,
   });
   await saveModelLabRun(run);
   return NextResponse.json({ run });

@@ -4,11 +4,22 @@
 import { closeSync, existsSync, openSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { join } from "path";
 import { spawn } from "child_process";
+import http from "http";
 
 const root = process.cwd();
 const host = process.env.NEXUS_RUNTIME_HOST ?? "127.0.0.1";
+const healthHost = process.env.NEXUS_RUNTIME_HEALTH_HOST ?? host;
 const port = process.env.NEXUS_RUNTIME_PORT ?? "3100";
-const baseUrl = `http://${host}:${port}`;
+const baseUrl = `http://${healthHost}:${port}`;
+const bindUrl = `http://${host}:${port}`;
+const parsedStableHealthMs = Number.parseInt(
+  process.env.NEXUS_RUNTIME_STABLE_HEALTH_MS ?? "2500",
+  10,
+);
+const stableHealthMs =
+  Number.isFinite(parsedStableHealthMs) && parsedStableHealthMs > 0
+    ? parsedStableHealthMs
+    : 2500;
 const pidPath = join(root, ".nexus-runtime.pid");
 const stdoutPath = join(root, ".nexus-runtime.out");
 const stderrPath = join(root, ".nexus-runtime.err");
@@ -82,18 +93,38 @@ function writeRuntimeRecord(pid) {
 }
 
 async function readHealth() {
-  try {
-    const response = await fetch(`${baseUrl}/api/health`, {
-      cache: "no-store",
-    });
-    if (!response.ok) {
-      return null;
-    }
+  return new Promise((resolve) => {
+    const request = http.get(`${baseUrl}/api/health`, { timeout: 5000 }, (response) => {
+      if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 300) {
+        response.resume();
+        resolve(null);
+        return;
+      }
 
-    return response.json().catch(() => ({}));
-  } catch {
-    return null;
-  }
+      let body = "";
+      response.setEncoding("utf8");
+      response.on("data", (chunk) => {
+        body += chunk;
+        if (body.length > 1024 * 1024) {
+          request.destroy();
+          resolve(null);
+        }
+      });
+      response.on("end", () => {
+        try {
+          resolve(body ? JSON.parse(body) : {});
+        } catch {
+          resolve({});
+        }
+      });
+    });
+
+    request.on("timeout", () => {
+      request.destroy();
+      resolve(null);
+    });
+    request.on("error", () => resolve(null));
+  });
 }
 
 async function waitForHealth(pid, timeoutMs = 45_000) {
@@ -102,6 +133,11 @@ async function waitForHealth(pid, timeoutMs = 45_000) {
   while (Date.now() - started < timeoutMs) {
     const payload = await readHealth();
     if (payload) {
+      if (!pidIsAlive(pid)) {
+        throw new Error(
+          `runtime pid ${pid} exited while ${baseUrl} first reported healthy. Check ${stderrPath}`,
+        );
+      }
       return payload;
     }
 
@@ -117,6 +153,46 @@ async function waitForHealth(pid, timeoutMs = 45_000) {
   throw new Error(
     `runtime never became healthy on ${baseUrl}. Check ${stdoutPath} and ${stderrPath}`,
   );
+}
+
+async function waitForStableHealth(pid, durationMs = stableHealthMs) {
+  const deadline = Date.now() + durationMs;
+  let payload = null;
+
+  while (Date.now() < deadline) {
+    if (!pidIsAlive(pid)) {
+      throw new Error(
+        `runtime pid ${pid} exited during the ${durationMs}ms stable-health window. Check ${stderrPath}`,
+      );
+    }
+
+    payload = await readHealth();
+    if (!payload) {
+      throw new Error(
+        `runtime lost health during the ${durationMs}ms stable-health window on ${baseUrl}. Check ${stdoutPath} and ${stderrPath}`,
+      );
+    }
+
+    const remainingMs = deadline - Date.now();
+    if (remainingMs > 0) {
+      await sleep(Math.min(500, remainingMs));
+    }
+  }
+
+  if (!pidIsAlive(pid)) {
+    throw new Error(
+      `runtime pid ${pid} exited after the ${durationMs}ms stable-health window. Check ${stderrPath}`,
+    );
+  }
+
+  payload = await readHealth();
+  if (!payload) {
+    throw new Error(
+      `runtime was not healthy after the ${durationMs}ms stable-health window on ${baseUrl}. Check ${stdoutPath} and ${stderrPath}`,
+    );
+  }
+
+  return payload;
 }
 
 async function waitForExit(child) {
@@ -224,8 +300,20 @@ async function main() {
   const existingRecord = readRuntimeRecord();
 
   if (existingRecord?.pid && pidIsAlive(existingRecord.pid) && existingHealth) {
-    log(`managed runtime already healthy on ${baseUrl} (pid ${existingRecord.pid})`);
-    return;
+    try {
+      await waitForStableHealth(existingRecord.pid);
+      log(
+        `managed runtime already healthy and stable on ${baseUrl} (pid ${existingRecord.pid})`,
+      );
+      return;
+    } catch (error) {
+      log(
+        `existing managed runtime failed stability check: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      await stopRuntime(existingRecord.pid);
+    }
   }
 
   if (existingRecord?.pid) {
@@ -240,7 +328,7 @@ async function main() {
 
   rmSync(pidPath, { force: true });
 
-  log(`launching root-main review runtime on ${baseUrl}`);
+  log(`launching root-main review runtime on ${bindUrl}`);
   const pid =
     process.platform === "win32"
       ? await launchWindowsRuntime()
@@ -250,14 +338,22 @@ async function main() {
 
   try {
     const payload = await waitForHealth(pid);
-    const bootId = payload?.runtime?.bootId ?? "unknown";
-    log(`runtime healthy on ${baseUrl} (pid ${pid}, boot ${bootId})`);
+    const stablePayload = await waitForStableHealth(pid);
+    const bootId =
+      stablePayload?.runtime?.bootId ?? payload?.runtime?.bootId ?? "unknown";
+    log(
+      `runtime healthy and stable on ${baseUrl} (pid ${pid}, boot ${bootId}, window ${stableHealthMs}ms)`,
+    );
   } catch (error) {
     await stopRuntime(pid).catch(() => undefined);
     throw error;
   }
 }
 
-main().catch((error) => {
-  fail(error instanceof Error ? error.message : String(error));
-});
+main()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    fail(error instanceof Error ? error.message : String(error));
+  });

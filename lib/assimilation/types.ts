@@ -1,3 +1,5 @@
+import type { PromptThreatAssessment } from "@/lib/promptThreatTaxonomy";
+
 export type WorkflowNodeType =
   | "source"
   | "agent"
@@ -202,6 +204,8 @@ export interface ModelSafetyEvaluationManifest {
   modelUploads: "disabled";
   metrics: string[];
   prohibitedCapabilities: string[];
+  sourceFamilies?: string[];
+  threatAssessment?: PromptThreatAssessment;
   sourceAdaptation: string;
 }
 
@@ -213,6 +217,8 @@ export interface ModelLabRun {
   evaluationMode?: ModelSafetyEvaluationMode;
   createdAt: string;
   operatorNotes?: string;
+  sourceFamilies?: string[];
+  threatAssessment?: PromptThreatAssessment;
   manifest?: ModelSafetyEvaluationManifest;
   variants: ModelLabVariantResult[];
 }

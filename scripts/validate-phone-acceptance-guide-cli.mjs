@@ -38,6 +38,7 @@ const packageJson = JSON.parse(packageJsonText);
 
 assertIncludes(spec, "PHONE-ACCEPTANCE-GUIDE-CLI", "feature spec");
 assertIncludes(spec, "phone:acceptance:guide", "feature spec");
+assertIncludes(spec, "phone:acceptance:desktop-proof", "feature spec");
 assertIncludes(spec, "No network calls", "feature spec");
 assertIncludes(spec, "Do not simulate proof", "feature spec");
 
@@ -47,6 +48,7 @@ assertIncludes(runner, "networkInterfaces", "guide runner");
 assertIncludes(runner, "lanHqUrls", "guide runner");
 assertIncludes(runner, "proofChecklist", "guide runner");
 assertIncludes(runner, "manualFallbackCommand", "guide runner");
+assertIncludes(runner, "npm run phone:acceptance:desktop-proof", "guide runner");
 assertIncludes(runner, "npm run phone:lan:start", "guide runner");
 assertIncludes(runner, "npm run phone:acceptance:capture", "guide runner");
 assertIncludes(runner, "npm run phone:acceptance:report", "guide runner");

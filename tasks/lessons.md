@@ -96,6 +96,8 @@
 83. Complete upstream assimilation means every useful capability is adapted and proven inside Nexus, not that Nexus reproduces or installs the entire upstream project. Track optional upstream runtime readiness separately and never let an unavailable optional runtime block Nexus integration completion or appear live.
 84. JavaScript chunk budgets must distinguish a production `.next` build with `BUILD_ID` from unminified development output; keep source-level performance boundaries active in development and enforce byte budgets only against production chunks.
 85. Preserve the Next development cache between normal development starts, but detect `.next/BUILD_ID` and clear incompatible production output before launching `next dev`; reusing a production build can force first-interaction dynamic imports to reload the page and lose UI state.
+86. Managed runtime launch proof must check stable health and shutdown, not only first `/api/health`; record the pid for the durable server process, keep a ref'd lifetime handle open, and give Windows shutdown a direct `Stop-Process` fallback when `taskkill` fails.
+87. In the Codex shell harness, background runtimes left open after a tool call can be reaped even if `runtime:launch:3100` was healthy; use one-command launch/capture/stop proof inside Codex, and reserve `--no-wait` live runtime handoff for normal operator PowerShell.
 
 ---
 

@@ -6,7 +6,7 @@
   "source": {
     "url": "https://github.com/elder-plinius/OBLITERATUS",
     "version": "0.1.2",
-    "reviewedAt": "2026-06-13",
+    "reviewedAt": "2026-06-16",
     "license": "AGPL-3.0-or-later",
     "primaryEvidence": [
       "https://github.com/elder-plinius/OBLITERATUS/blob/main/README.md",
@@ -29,7 +29,7 @@
       "title": "Defense robustness comparison across pressure families",
       "sourceEvidence": "README defense robustness analysis",
       "disposition": "adapted",
-      "proof": ["lib/modelSafetyEvaluation.ts", "components/skills/BlacksiteLab.tsx"]
+      "proof": ["lib/modelSafetyEvaluation.ts", "components/skills/BlacksiteLab.tsx", "lib/promptThreatTaxonomy.ts"]
     },
     {
       "id": "reproducible-study-manifests",

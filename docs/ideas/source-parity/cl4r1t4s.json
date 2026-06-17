@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "id": "cl4r1t4s",
+  "name": "CL4R1T4S",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/elder-plinius/CL4R1T4S",
+    "version": "main",
+    "reviewedAt": "2026-06-16",
+    "license": "AGPL-3.0-or-later",
+    "primaryEvidence": [
+      "https://github.com/elder-plinius/CL4R1T4S/blob/main/README.md",
+      "https://github.com/elder-plinius/CL4R1T4S"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "system-prompt-extraction-taxonomy",
+      "title": "Detect attempts to extract system, developer, hidden, or internal prompts",
+      "sourceEvidence": "README describes extracted system prompts and disclosure pressure as the source material",
+      "disposition": "implemented",
+      "proof": ["lib/promptThreatTaxonomy.ts", "scripts/check-plinius-safety-runtime.mjs"]
+    },
+    {
+      "id": "authority-disclosure-guardrail",
+      "title": "Harden agent instructions against claims of higher authority and instruction disclosure",
+      "sourceEvidence": "README positions hidden instructions as the primary object of attack and inspection",
+      "disposition": "adapted",
+      "proof": ["components/home/office/prompts.ts", "lib/promptThreatTaxonomy.ts"]
+    },
+    {
+      "id": "source-parity-intake",
+      "title": "Track the source as adversarial reference material with explicit safe dispositions",
+      "sourceEvidence": "Repository is a source catalog rather than a reusable Nexus runtime",
+      "disposition": "implemented",
+      "proof": ["docs/ideas/source-parity/cl4r1t4s.json", "scripts/validate-plinius-safety-assimilation.mjs"]
+    },
+    {
+      "id": "model-lab-safe-pressure-labels",
+      "title": "Use sanitized pressure-family labels without storing leaked prompt material",
+      "sourceEvidence": "Repository theme is prompt/system-instruction leakage pressure",
+      "disposition": "adapted",
+      "proof": ["components/skills/BlacksiteLab.tsx", "lib/modelSafetyEvaluation.ts"]
+    },
+    {
+      "id": "raw-leaked-system-prompts",
+      "title": "Vendor or publish extracted system prompts and leaked instruction corpora",
+      "sourceEvidence": "README and repository purpose center on extracted model and agent instructions",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus does not copy leaked prompts or train operators on raw extraction material in the public repo."
+    },
+    {
+      "id": "prompt-disclosure-playbooks",
+      "title": "Operationalize prompt-disclosure playbooks",
+      "sourceEvidence": "Repository includes adversarial disclosure framing",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus adapts only detection and defensive guardrails; it does not provide instructions for successful prompt extraction."
+    },
+    {
+      "id": "agpl-source-vendoring",
+      "title": "Copy AGPL source content into the MIT Nexus application",
+      "sourceEvidence": "Repository license is AGPL-family",
+      "disposition": "excluded",
+      "conflict": "license",
+      "reason": "Nexus records source-parity analysis and implements independent defensive code only."
+    }
+  ]
+}

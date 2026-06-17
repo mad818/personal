@@ -47,6 +47,9 @@ if (packageJson?.overrides?.postcss !== "$postcss") {
 if (packageJson?.overrides?.prismjs !== "1.30.0") {
   fail("package.json must override transitive prismjs to 1.30.0");
 }
+if (packageJson?.overrides?.["js-yaml"] !== "4.1.1") {
+  fail("package.json must override transitive js-yaml to 4.1.1");
+}
 if (
   packageJson?.overrides?.["minimatch@10.2.5"]?.["brace-expansion"] !== "5.0.6"
 ) {
@@ -56,6 +59,7 @@ if (
 const npmFloors = new Map([
   ["postcss", "8.5.10"],
   ["prismjs", "1.30.0"],
+  ["js-yaml", "4.1.1"],
 ]);
 
 for (const [path, metadata] of Object.entries(packages)) {
@@ -128,7 +132,7 @@ if (process.exitCode) {
 }
 
 console.log(
-  `ok active-dependency-security (postcss>=8.5.10, prismjs>=1.30.0, brace-expansion 5.x>=5.0.6, tauri>=2.11.1${
+  `ok active-dependency-security (postcss>=8.5.10, prismjs>=1.30.0, js-yaml>=4.1.1, brace-expansion 5.x>=5.0.6, tauri>=2.11.1${
     glib ? `; Linux-only non-release glib=${glib.version}` : ""
   })`,
 );

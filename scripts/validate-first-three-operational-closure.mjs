@@ -38,20 +38,33 @@ const packageJson = JSON.parse(packageJsonText);
 
 assertIncludes(spec, "FIRST-THREE-OPERATIONAL-CLOSURE", "feature spec");
 assertIncludes(spec, "ops:first-three", "feature spec");
+assertIncludes(spec, "js-yaml", "feature spec");
+assertIncludes(spec, "glib", "feature spec");
+assertIncludes(spec, "phone:acceptance:desktop-proof", "feature spec");
+assertIncludes(spec, "protected CLI desktop proof", "feature spec");
 assertIncludes(spec, "No package installs", "feature spec");
 assertIncludes(spec, "Do not claim", "feature spec");
 
 assertIncludes(runner, "FIRST_THREE_OPERATIONAL_CLOSURE_FIELDS", "closure runner");
-assertIncludes(runner, "DEPENDABOT-POSTCSS-RUNTIME-PATCH", "closure runner");
+assertIncludes(runner, "DEPENDABOT-OPEN-ALERT-CLOSURE", "closure runner");
 assertIncludes(runner, "FREE-LOCAL-PHONE-ACCEPTANCE", "closure runner");
 assertIncludes(runner, "LOCAL-AI-OFFLINE-OPERATIONS", "closure runner");
 assertIncludes(runner, "EXTERNAL-IDEAS-INTAKE", "closure runner");
-assertIncludes(runner, "dependabot-security-audit-", "closure runner");
+assertIncludes(runner, "dependabotOpenAlertClosure", "closure runner");
+assertIncludes(runner, "dependabot:open:closure", "closure runner");
 assertIncludes(runner, "phone-local-acceptance-", "closure runner");
+assertIncludes(runner, "phone:acceptance:desktop-proof", "closure runner");
 assertIncludes(runner, "readiness-rollup-", "closure runner");
 assertIncludes(runner, "package-lock.json", "closure runner");
-assertIncludes(runner, "postcss", "closure runner");
+assertIncludes(runner, "desktop/src-tauri/Cargo.lock", "closure runner");
+assertIncludes(runner, "desktop/src-tauri/tauri.conf.json", "closure runner");
+assertIncludes(runner, "desktop/tauri-template/tauri.conf.secure.example.json", "closure runner");
+assertIncludes(runner, "js-yaml", "closure runner");
+assertIncludes(runner, "glib", "closure runner");
+assertIncludes(runner, "ready_for_github_rescan_or_dismissal", "closure runner");
 assertIncludes(runner, "physical_phone_or_ipad", "closure runner");
+assertIncludes(runner, "protectedCliReady", "closure runner");
+assertIncludes(runner, "tokenConfigured", "closure runner");
 assertIncludes(runner, "docs/ideas/external-links-mapping.md", "closure runner");
 assertIncludes(runner, "docs/plans/nexus-ideas-assimilation-master-backlog.md", "closure runner");
 assertIncludes(runner, "No network calls are made", "closure runner");
@@ -82,6 +95,8 @@ for (const unsafe of [
 ]) {
   assertExcludes(runner, unsafe, "closure runner");
 }
+
+assertExcludes(runner, "DEPENDABOT-POSTCSS-RUNTIME-PATCH", "closure runner");
 
 if (packageJson.scripts?.["ops:first-three"] !== "node scripts/first-three-operational-closure.mjs") {
   fail("package.json is missing ops:first-three");

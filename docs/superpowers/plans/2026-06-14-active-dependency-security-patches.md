@@ -45,4 +45,5 @@ existing Dependabot classification tooling.
 - [x] Run full project verification.
 - [x] Publish the active dependency patches through PR 47.
 - [ ] Complete the GitHub Dependabot rescan and mark the Linux-only glib alert
-      `not_used`.
+      `not_used`; local closure proof is now available with
+      `npm run dependabot:open:closure`.

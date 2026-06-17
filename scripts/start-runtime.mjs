@@ -6,6 +6,7 @@ import { cpSync, existsSync, mkdirSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { randomUUID } from "crypto";
 import { spawn } from "child_process";
+import { createRequire } from "module";
 
 loadEnv({ path: ".env.local" });
 
@@ -64,32 +65,50 @@ console.log(
     : `[runtime] standalone server missing; falling back to next ${fallbackMode} on http://${env.HOSTNAME}:${env.PORT}`,
 );
 
-const child = spawn(
-  process.execPath,
-  useStandalone
-    ? [standaloneServer]
-    : [nextCli, fallbackMode, "-H", env.HOSTNAME, "-p", env.PORT],
-  {
-    cwd: useStandalone ? standaloneRoot : root,
-    env,
-    stdio: "inherit",
-  },
-);
+async function runStandaloneRuntime() {
+  Object.assign(process.env, env);
+  process.chdir(standaloneRoot);
 
-const forwardSignal = (signal) => {
-  if (!child.killed) child.kill(signal);
-};
-const onSigint = () => forwardSignal("SIGINT");
-const onSigterm = () => forwardSignal("SIGTERM");
-process.once("SIGINT", onSigint);
-process.once("SIGTERM", onSigterm);
+  const require = createRequire(import.meta.url);
+  require(standaloneServer);
 
-child.on("exit", (code, signal) => {
-  process.off("SIGINT", onSigint);
-  process.off("SIGTERM", onSigterm);
-  if (signal) {
-    process.exitCode = signal === "SIGINT" ? 130 : 143;
-    return;
-  }
-  process.exit(code ?? 0);
-});
+  const keepAliveInterval = setInterval(() => undefined, 60_000);
+  process.once("exit", () => clearInterval(keepAliveInterval));
+  await new Promise(() => undefined);
+}
+
+function runFallbackRuntime() {
+  const child = spawn(
+    process.execPath,
+    [nextCli, fallbackMode, "-H", env.HOSTNAME, "-p", env.PORT],
+    {
+      cwd: root,
+      env,
+      stdio: "inherit",
+    },
+  );
+
+  const forwardSignal = (signal) => {
+    if (!child.killed) child.kill(signal);
+  };
+  const onSigint = () => forwardSignal("SIGINT");
+  const onSigterm = () => forwardSignal("SIGTERM");
+  process.once("SIGINT", onSigint);
+  process.once("SIGTERM", onSigterm);
+
+  child.on("exit", (code, signal) => {
+    process.off("SIGINT", onSigint);
+    process.off("SIGTERM", onSigterm);
+    if (signal) {
+      process.exitCode = signal === "SIGINT" ? 130 : 143;
+      return;
+    }
+    process.exit(code ?? 0);
+  });
+}
+
+if (useStandalone) {
+  await runStandaloneRuntime();
+} else {
+  runFallbackRuntime();
+}

@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "id": "v3sp3r",
+  "name": "V3SP3R",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/elder-plinius/V3SP3R",
+    "version": "main",
+    "reviewedAt": "2026-06-16",
+    "license": "GPL-3.0-only",
+    "primaryEvidence": [
+      "https://github.com/elder-plinius/V3SP3R/blob/main/README.md",
+      "https://github.com/elder-plinius/V3SP3R/blob/main/app/src/main/java/com/plinius/vesper/VesperAgent.kt",
+      "https://github.com/elder-plinius/V3SP3R/blob/main/app/src/main/java/com/plinius/vesper/FlipperToolExecutor.kt",
+      "https://github.com/elder-plinius/V3SP3R"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "risk-tiered-tool-policy",
+      "title": "Preserve read-only low risk, write review, and blocked destructive/exec tool posture",
+      "sourceEvidence": "README and executor design describe permission/risk tiers before tool execution",
+      "disposition": "adapted",
+      "proof": ["lib/security/toolCapabilityPolicy.ts", "lib/runtimeAuthority.ts", "lib/agent.ts"]
+    },
+    {
+      "id": "audit-log-pattern",
+      "title": "Keep tool execution evidence and operator-readable run artifacts",
+      "sourceEvidence": "VesperAgent and executor patterns retain tool execution state and audit outcomes",
+      "disposition": "adapted",
+      "proof": ["lib/agent.ts", "lib/assimilation/storage.ts"]
+    },
+    {
+      "id": "unsafe-tool-intent-taxonomy",
+      "title": "Classify unsafe hardware and tool-control intent as blocked safety evidence",
+      "sourceEvidence": "Flipper-oriented tool execution makes hardware-control intent a useful defensive family",
+      "disposition": "implemented",
+      "proof": ["lib/promptThreatTaxonomy.ts", "scripts/check-plinius-safety-runtime.mjs"]
+    },
+    {
+      "id": "harmless-simulation-boundary",
+      "title": "Represent destructive, exec, or hardware-control style ideas only as harmless simulation labels",
+      "sourceEvidence": "V3SP3R's control path is useful only as a risk-engine reference for Nexus",
+      "disposition": "adapted",
+      "proof": ["lib/modelSafetyEvaluation.ts", "components/skills/BlacksiteLab.tsx"]
+    },
+    {
+      "id": "flipper-hardware-control",
+      "title": "Control Flipper Zero, BLE, RF, NFC, RFID, or Sub-GHz hardware",
+      "sourceEvidence": "README and FlipperToolExecutor describe hardware control",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus does not implement hardware attack control or radio/NFC/RFID operations."
+    },
+    {
+      "id": "payload-generation-and-execution",
+      "title": "Generate or execute payloads, HID scripts, BadUSB, or offensive tool actions",
+      "sourceEvidence": "Executor source describes payload save and execution paths",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus blocks destructive/exec/hardware-control behavior and allows only harmless defensive simulation labels."
+    },
+    {
+      "id": "android-ble-runtime",
+      "title": "Bundle the Android BLE application runtime",
+      "sourceEvidence": "Repository is an Android/Kotlin app",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a Next.js/Tauri dashboard and does not need a separate Android hardware-control runtime."
+    },
+    {
+      "id": "gpl-source-vendoring",
+      "title": "Copy GPL implementation code into the MIT Nexus application",
+      "sourceEvidence": "Repository license is GPL-family",
+      "disposition": "excluded",
+      "conflict": "license",
+      "reason": "Nexus keeps only independent defensive policy and taxonomy implementations."
+    }
+  ]
+}

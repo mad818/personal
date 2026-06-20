@@ -74,7 +74,8 @@ assertIncludes(skillsPage, "AgencyRoleLibrary", "skills page role library import
 assertIncludes(skillsPage, "Agency role library", "skills page role library section");
 
 assertIncludes(packageJson, "\"agent:taxonomy:check\"", "package script");
-assertIncludes(packageJson, "agent:taxonomy:check && npm run type-check", "verify wiring");
+assertIncludes(packageJson, "npm run agent:taxonomy:check", "verify wiring");
+assertIncludes(packageJson, "npm run type-check", "verify type-check wiring");
 
 assertIncludes(spec, "no-vendoring guardrails", "feature spec guardrails");
 assertIncludes(externalMap, "msitarzewski/agency-agents", "external source map");

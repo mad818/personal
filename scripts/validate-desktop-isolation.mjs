@@ -81,12 +81,12 @@ assert(
   "secure-runtime-gate must export buildSecureRuntimeProfile",
 );
 
-const STRONG_FIXTURE_TOKEN = "cp2-isolation-fixture-token-1234567890";
+const strongFixtureValue = "cp2-isolation-fixture-value-1234567890";
 
 // Local profile: verify isolation posture
 const localProfile = runtime.buildSecureRuntimeProfile({
   profile: "local",
-  token: STRONG_FIXTURE_TOKEN,
+  token: strongFixtureValue,
   port: "3000",
 });
 
@@ -101,7 +101,7 @@ assert(localProfile.privateNetworkBinding === false, "local profile must not bin
 // Tailnet: must require --confirm-private-network
 let tailnetWithoutConfirmBlocked = false;
 try {
-  runtime.buildSecureRuntimeProfile({ profile: "tailnet", token: STRONG_FIXTURE_TOKEN });
+  runtime.buildSecureRuntimeProfile({ profile: "tailnet", token: strongFixtureValue });
 } catch {
   tailnetWithoutConfirmBlocked = true;
 }
@@ -110,7 +110,7 @@ assert(tailnetWithoutConfirmBlocked, "tailnet profile without --confirm-private-
 // Tailnet with confirmation: still isolated network mode, just different host binding
 const tailnetProfile = runtime.buildSecureRuntimeProfile({
   profile: "tailnet",
-  token: STRONG_FIXTURE_TOKEN,
+  token: strongFixtureValue,
   confirmPrivateNetwork: true,
   port: "3000",
 });

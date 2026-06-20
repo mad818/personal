@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "id": "blackbird",
+  "name": "Blackbird",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/p1ngul1n0/blackbird",
+    "version": "2.x",
+    "reviewedAt": "2026-06-20",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/p1ngul1n0/blackbird/blob/main/README.md",
+      "https://github.com/p1ngul1n0/blackbird/blob/main/src/modules/username/username.py",
+      "https://github.com/p1ngul1n0/blackbird/blob/main/src/modules/whatsmyname/whatsmyname.py",
+      "https://github.com/p1ngul1n0/blackbird/blob/main/data/whatsmyname.json"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "username-search-multi-site",
+      "title": "Fan-out username search across 700+ sites from WhatsMyName manifest",
+      "sourceEvidence": "src/modules/username/username.py + data/whatsmyname.json",
+      "disposition": "adapted",
+      "proof": [
+        "lib/recon/whatsMyNameSites.json",
+        "lib/recon/usernameEnum.ts",
+        "app/api/recon/username-enum/route.ts",
+        "scripts/check-recon-username-enum-runtime.mjs"
+      ],
+      "adaptationNotes": "Pinned 30 high-signal sites instead of the full 700+ manifest to keep scans bounded and server-side costs predictable. Detection logic (status_code + message modes) mirrors WhatsMyName conventions."
+    },
+    {
+      "id": "email-search-multi-site",
+      "title": "Fan-out email search across breach and social sites",
+      "sourceEvidence": "src/modules/email/email.py",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Email lookups are already covered by emailrep.io and HIBP integrations in ReconLookup. A separate email-fan-out adds OSINT overlap without new signal for the current feature set."
+    },
+    {
+      "id": "ai-based-enrichment",
+      "title": "AI-powered profile enrichment and cross-site correlation",
+      "sourceEvidence": "README.md — AI features section",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "AI enrichment requires paid inference at query time. Nexus is free/local; all OSINT checks use only free public endpoints. AI analysis can be initiated manually via the HQ agent on found results."
+    },
+    {
+      "id": "python-cli-runtime",
+      "title": "Python 3 CLI and pip install flow",
+      "sourceEvidence": "README.md Installation",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a TypeScript/Next.js product. Vendoring a Python runtime for a scan sub-feature adds a heavyweight dependency. The scan logic is re-implemented in TypeScript without vendoring any Blackbird source code."
+    },
+    {
+      "id": "html-pdf-report-export",
+      "title": "Local HTML/PDF report export for scan results",
+      "sourceEvidence": "README.md — reports section",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus VAULT tab already provides artifact export. Username scan results are display-only in the RECON panel; promoting them to persistent reports is a separate feature outside this assimilation scope."
+    },
+    {
+      "id": "concurrent-bounded-fetch",
+      "title": "Bounded concurrent HTTP requests with timeout per site",
+      "sourceEvidence": "src/modules/username/username.py fetch loop",
+      "disposition": "adapted",
+      "proof": [
+        "lib/recon/usernameEnum.ts"
+      ],
+      "adaptationNotes": "Max concurrency 5, per-site timeout 8 s, total guard 30 s. Concurrency pool implemented in TypeScript without the asyncio/semaphore pattern from the Python source."
+    },
+    {
+      "id": "whatsmyname-detection-modes",
+      "title": "status_code and message-based detection types from WhatsMyName spec",
+      "sourceEvidence": "data/whatsmyname.json schema",
+      "disposition": "adapted",
+      "proof": [
+        "lib/recon/whatsMyNameSites.json",
+        "lib/recon/usernameEnum.ts"
+      ],
+      "adaptationNotes": "Implements the two WhatsMyName detection modes: HTTP status comparison and response body string matching. URI template uses {account} placeholder per WhatsMyName convention."
+    }
+  ]
+}

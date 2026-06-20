@@ -567,6 +567,28 @@ export function buildRagContextBlock(query: string): string {
   );
 }
 
+export function boostRagConfidenceWithEntities(
+  query: string,
+  savedArticles?: ArticleReasoningSource[],
+): { boostedConfidence: number; entityHits: string[] } {
+  const base = routeQuery(query);
+  if (!savedArticles || savedArticles.length === 0) {
+    return { boostedConfidence: base.confidence, entityHits: [] };
+  }
+
+  const allEntities = savedArticles.flatMap((article) =>
+    getArticleReasoningEntities(article),
+  );
+  const q = query.toLowerCase();
+  const entityHits = Array.from(
+    new Set(allEntities.filter((entity) => entity && q.includes(entity.toLowerCase()))),
+  );
+
+  const entityBoost = Math.min(0.2, entityHits.length * 0.05);
+  const boostedConfidence = Math.min(1, base.confidence + entityBoost);
+  return { boostedConfidence, entityHits };
+}
+
 export async function buildRagContextBlockAsync(
   query: string,
   options: RagContextBuildOptions = {},

@@ -32,4 +32,4 @@ Keep these on the machine and out of GitHub:
 
 ## Operator Rule
 
-Before adding a file to GitHub, ask: “Could this reveal a real token, account, device, host, receipt, path, private media item, raw export, or machine-only state?” If yes, keep it local and add a sanitized placeholder, summary, or runbook instead.
+Before adding a file to GitHub, ask: "Could this reveal a real token, account, device, host, receipt, path, private media item, raw export, or machine-only state?" If yes, keep it local and add a sanitized placeholder, summary, or runbook instead.

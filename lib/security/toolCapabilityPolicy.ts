@@ -74,10 +74,16 @@ const TOOL_CAPABILITY_REGISTRY: Record<string, ToolCapabilityClass> = {
   rss_fetch: "networked",
   hf_papers_search: "networked",
   huggingface_inspect: "networked",
+  paper_inspect: "networked",
+  paper_code_audit: "networked",
   open_meteo_weather: "networked",
   sec_edgar_search: "networked",
   log_lesson: "mutate",
   n8n_run_workflow: "exec",
+  feynman_autoresearch: "mutate",
+  feynman_watch: "mutate",
+  feynman_replicate_run: "exec",
+  feynman_docker_experiment: "exec",
 };
 
 export function getToolCapabilityClass(tool: string): ToolCapabilityClass {

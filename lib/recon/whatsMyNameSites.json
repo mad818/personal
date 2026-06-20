@@ -1,0 +1,242 @@
+[
+  {
+    "name": "GitHub",
+    "uri_check": "https://github.com/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "dev"
+  },
+  {
+    "name": "GitLab",
+    "uri_check": "https://gitlab.com/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "dev"
+  },
+  {
+    "name": "Bitbucket",
+    "uri_check": "https://bitbucket.org/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "dev"
+  },
+  {
+    "name": "npm",
+    "uri_check": "https://www.npmjs.com/~{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "dev"
+  },
+  {
+    "name": "PyPI",
+    "uri_check": "https://pypi.org/user/{account}/",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "dev"
+  },
+  {
+    "name": "Codepen",
+    "uri_check": "https://codepen.io/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "dev"
+  },
+  {
+    "name": "SourceHut",
+    "uri_check": "https://sr.ht/~{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "dev"
+  },
+  {
+    "name": "DockerHub",
+    "uri_check": "https://hub.docker.com/u/{account}/",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "dev"
+  },
+  {
+    "name": "HuggingFace",
+    "uri_check": "https://huggingface.co/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "dev"
+  },
+  {
+    "name": "Kaggle",
+    "uri_check": "https://www.kaggle.com/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "dev"
+  },
+  {
+    "name": "Replit",
+    "uri_check": "https://replit.com/@{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "dev"
+  },
+  {
+    "name": "Reddit",
+    "uri_check": "https://www.reddit.com/user/{account}/",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "social"
+  },
+  {
+    "name": "Keybase",
+    "uri_check": "https://keybase.io/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "social"
+  },
+  {
+    "name": "Mastodon.social",
+    "uri_check": "https://mastodon.social/@{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "social"
+  },
+  {
+    "name": "Fosstodon",
+    "uri_check": "https://fosstodon.org/@{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "social"
+  },
+  {
+    "name": "Gravatar",
+    "uri_check": "https://en.gravatar.com/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "social"
+  },
+  {
+    "name": "Product Hunt",
+    "uri_check": "https://www.producthunt.com/@{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "social"
+  },
+  {
+    "name": "Indie Hackers",
+    "uri_check": "https://www.indiehackers.com/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "social"
+  },
+  {
+    "name": "Medium",
+    "uri_check": "https://medium.com/@{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "blog"
+  },
+  {
+    "name": "Dev.to",
+    "uri_check": "https://dev.to/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "blog"
+  },
+  {
+    "name": "Hashnode",
+    "uri_check": "https://hashnode.com/@{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "blog"
+  },
+  {
+    "name": "Substack",
+    "uri_check": "https://{account}.substack.com",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "blog"
+  },
+  {
+    "name": "HackerNews",
+    "uri_check": "https://news.ycombinator.com/user?id={account}",
+    "detection": "message",
+    "found_string": "karma",
+    "miss_string": "No such user.",
+    "category": "forum"
+  },
+  {
+    "name": "Lobste.rs",
+    "uri_check": "https://lobste.rs/u/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "forum"
+  },
+  {
+    "name": "Speakerdeck",
+    "uri_check": "https://speakerdeck.com/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "creative"
+  },
+  {
+    "name": "Patreon",
+    "uri_check": "https://www.patreon.com/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "creative"
+  },
+  {
+    "name": "Ko-fi",
+    "uri_check": "https://ko-fi.com/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "creative"
+  },
+  {
+    "name": "SoundCloud",
+    "uri_check": "https://soundcloud.com/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "creative"
+  },
+  {
+    "name": "Twitch",
+    "uri_check": "https://www.twitch.tv/{account}",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "creative"
+  },
+  {
+    "name": "Itch.io",
+    "uri_check": "https://{account}.itch.io",
+    "detection": "status_code",
+    "found_code": 200,
+    "miss_code": 404,
+    "category": "creative"
+  }
+]

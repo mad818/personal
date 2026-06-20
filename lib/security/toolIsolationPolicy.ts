@@ -32,7 +32,11 @@ export type ToolIsolationDescriptor = {
 const PROJECT_ROOT = resolveRuntimeProjectRoot();
 const TOOL_ISOLATION_RUNNER = join(PROJECT_ROOT, "scripts", "tool-isolation-runner.mjs");
 
-const SANDBOX_APPROVED_EXEC_TOOLS = ["n8n_run_workflow"] as const;
+const SANDBOX_APPROVED_EXEC_TOOLS = [
+  "n8n_run_workflow",
+  "feynman_replicate_run",
+  "feynman_docker_experiment",
+] as const;
 
 export function getToolIsolationRequirement(
   tool: string,

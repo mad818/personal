@@ -85,6 +85,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   { prefix: "/api/recon/lookup", routeClass: "connector_opt_in", public: false },
   { prefix: "/api/recon/passive-dns", routeClass: "connector_opt_in", public: false },
   { prefix: "/api/recon/tor-check", routeClass: "connector_opt_in", public: false },
+  { prefix: "/api/recon/username-enum", routeClass: "connector_opt_in", public: false },
   { prefix: "/api/repo-intel", routeClass: "connector_opt_in", public: false },
   { prefix: "/api/sweeps", routeClass: "connector_opt_in", public: false },
   { prefix: "/api/events/sweeps", routeClass: "connector_opt_in", public: false },

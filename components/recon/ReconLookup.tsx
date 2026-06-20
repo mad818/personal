@@ -5,9 +5,10 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useStore } from "@/store/useStore";
 import { sanitizeHtml } from "@/lib/security/sanitizeHtml";
+import { buildUsernameCasefileDraft, type UsernameEnumSummary } from "@/lib/recon/usernameCasefileSeed";
 
 // ── types ─────────────────────────────────────────────────────────────────────
 type TargetType =
@@ -425,16 +426,22 @@ async function fetchEmailRep(email: string): Promise<string> {
   }
 }
 
-async function fetchUsername(username: string): Promise<string> {
+async function fetchUsername(username: string): Promise<{ html: string; enumPayload: UsernameEnumSummary | null }> {
   try {
-    // GitHub public API — no key needed
-    const [ghRes, gravatarRes] = await Promise.allSettled([
+    const [ghRes, gravatarRes, enumRes] = await Promise.allSettled([
       fetch(
         `https://api.github.com/users/${encodeURIComponent(username)}`,
       ).then((r) => r.json()),
       fetch(
         `https://www.gravatar.com/${encodeURIComponent(username)}.json`,
       ).then((r) => r.json()),
+      fetch("/api/recon/username-enum", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ username }),
+        signal: AbortSignal.timeout(30_000),
+      }).then((r) => (r.ok ? r.json() : null)),
     ]);
 
     let html = "";
@@ -481,11 +488,42 @@ async function fetchUsername(username: string): Promise<string> {
       if (gRows.length) html += table(gRows);
     }
 
-    return (
-      html || '<span style="color:var(--text3)">No public profiles found</span>'
-    );
+    let enumPayload: UsernameEnumSummary | null = null;
+
+    if (
+      enumRes.status === "fulfilled" &&
+      enumRes.value &&
+      typeof (enumRes.value as { html?: string }).html === "string"
+    ) {
+      const raw = enumRes.value as {
+        html: string;
+        checked?: number;
+        found?: number;
+        results?: Array<{ name: string; uri: string; found: boolean }>;
+      };
+      const enumHtml = raw.html;
+      html += `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">`;
+      html += enumHtml;
+      html += `</div>`;
+      if (
+        typeof raw.checked === "number" &&
+        typeof raw.found === "number" &&
+        Array.isArray(raw.results)
+      ) {
+        enumPayload = {
+          checked: raw.checked,
+          found: raw.found,
+          results: raw.results,
+        };
+      }
+    }
+
+    return {
+      html: html || '<span style="color:var(--text3)">No public profiles found</span>',
+      enumPayload,
+    };
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return { html: `<span style="color:var(--flo)">${esc(String(e))}</span>`, enumPayload: null };
   }
 }
 
@@ -753,6 +791,8 @@ export default function ReconLookup() {
   const [loading, setLoading] = useState(false);
   const [panels, setPanels] = useState<PanelState>(EMPTY_PANELS);
   const [loadingMap, setLoadingMap] = useState<LoadingMap>(EMPTY_LOADING);
+  const lastEnumRef = useRef<{ username: string; payload: UsernameEnumSummary } | null>(null);
+  const [seedCopied, setSeedCopied] = useState(false);
 
   const set = useCallback((key: PanelKey, val: string) => {
     setPanels((p) => ({ ...p, [key]: val }));
@@ -833,7 +873,14 @@ export default function ReconLookup() {
     // ── Username lookups ────────────────────────────────────────────────────
     if (isUsername || isDomain) {
       const uname = isUsername ? raw : raw.split(".")[0];
-      tasks.push(fetchUsername(uname).then((v) => set("username", v)));
+      tasks.push(
+        fetchUsername(uname).then(({ html, enumPayload }) => {
+          set("username", html);
+          if (enumPayload) {
+            lastEnumRef.current = { username: uname, payload: enumPayload };
+          }
+        }),
+      );
     } else {
       placeholder("username", "Username or domain targets only");
     }
@@ -866,6 +913,21 @@ export default function ReconLookup() {
     setTarget("");
     setPanels(EMPTY_PANELS);
     setLoadingMap(EMPTY_LOADING);
+  }
+
+  function seedCasefile() {
+    const enumSnapshot = lastEnumRef.current;
+    if (!enumSnapshot) return;
+    try {
+      const draft = buildUsernameCasefileDraft(enumSnapshot.username, enumSnapshot.payload);
+      window.dispatchEvent(
+        new CustomEvent("nexus-osint-casefile-seed", { detail: draft }),
+      );
+      setSeedCopied(true);
+      window.setTimeout(() => setSeedCopied(false), 2000);
+    } catch {
+      // silent
+    }
   }
 
   const INPUT: React.CSSProperties = {
@@ -938,6 +1000,20 @@ export default function ReconLookup() {
         >
           Clear
         </button>
+        {lastEnumRef.current ? (
+          <button
+            onClick={seedCasefile}
+            title="Seed an OSINT casefile from the username enum results"
+            style={{
+              ...BTN,
+              background: seedCopied ? "#10b981" : "var(--surf3)",
+              color: seedCopied ? "#fff" : "var(--accent)",
+              border: "1px solid var(--border)",
+            }}
+          >
+            {seedCopied ? "Casefile seeded ✓" : "Seed casefile"}
+          </button>
+        ) : null}
       </div>
 
       {/* Detected type hint */}

@@ -118,6 +118,12 @@ export interface FeynmanResearchDeps {
   inspectHuggingFace?: (
     topic: string,
   ) => Promise<{ url: string; content: string } | null>;
+  inspectPaper?: (
+    topic: string,
+  ) => Promise<{ url: string; content: string } | null>;
+  inspectPaperCodeAudit?: (
+    topic: string,
+  ) => Promise<{ url: string; content: string } | null>;
   write: (prompt: string) => Promise<string>;
   verify: (prompt: string) => Promise<string>;
   review: (prompt: string) => Promise<string>;
@@ -688,6 +694,11 @@ export async function runFeynmanResearch(
       webSearch: deps.webSearch,
       fetchUrl: deps.fetchUrl,
       inspectHuggingFace: deps.inspectHuggingFace,
+      inspectPaper: deps.inspectPaper,
+      inspectPaperCodeAudit:
+        workflow === "audit" || workflow === "replicate"
+          ? deps.inspectPaperCodeAudit
+          : undefined,
       progress: (note) =>
         emitProgress(deps, {
           stage: "researcher",

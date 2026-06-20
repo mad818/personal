@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "feynman",
   "name": "Feynman",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/companion-inc/feynman",
     "version": "0.2.58",
@@ -103,8 +103,12 @@
       "id": "paper-search-read-ask-annotate-code",
       "title": "Semantic paper search, full paper/section reads, paper Q&A, local annotations, and paper-repository code reads",
       "sourceEvidence": "extensions/research-tools/alpha.ts",
-      "disposition": "pending",
-      "reason": "Current Nexus paper search is a daily-paper signal and lacks the complete paper inspection tool family."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperInspection.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-paper-inspection-runtime.mjs"
+      ]
     },
     {
       "id": "hugging-face-inspection",
@@ -132,22 +136,38 @@
       "id": "paper-code-audit",
       "title": "Line-by-line paper claim versus public codebase audit",
       "sourceEvidence": "skills/paper-code-audit/SKILL.md and alpha_read_code",
-      "disposition": "pending",
-      "reason": "Current audit mode performs generic source synthesis and does not resolve a paper's repository or compare claims to implementation artifacts."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperCodeAudit.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-paper-code-audit-runtime.mjs"
+      ]
     },
     {
       "id": "local-replication-execution",
       "title": "Operator-selected local or virtual-environment replication with scripts and result artifacts",
       "sourceEvidence": "skills/replication/SKILL.md",
-      "disposition": "pending",
-      "reason": "Current replicate mode produces a plan only; safe local execution, scripts, logs, and results remain unimplemented."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanLocalReplication.ts",
+        "app/api/tools/route.ts",
+        "lib/security/toolCapabilityPolicy.ts",
+        "lib/security/toolIsolationPolicy.ts",
+        "scripts/check-feynman-local-replication-runtime.mjs"
+      ]
     },
     {
       "id": "docker-isolated-experiments",
       "title": "Docker-isolated experiment execution",
       "sourceEvidence": "README.md Skills & Tools and skills/docker",
-      "disposition": "pending",
-      "reason": "Nexus has isolation policy scaffolding but no Feynman replication executor backed by an approved Docker sandbox."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanDockerExperiments.ts",
+        "app/api/tools/route.ts",
+        "lib/security/toolCapabilityPolicy.ts",
+        "lib/security/toolIsolationPolicy.ts",
+        "scripts/check-feynman-docker-experiments-runtime.mjs"
+      ]
     },
     {
       "id": "paid-cloud-gpu-compute",
@@ -161,15 +181,23 @@
       "id": "autoresearch-loop",
       "title": "Measured experiment loop that tries variants, keeps improvements, and records JSONL history",
       "sourceEvidence": "skills/autoresearch/SKILL.md",
-      "disposition": "pending",
-      "reason": "Current autoresearch mode returns a bounded plan and does not execute or score an approved experiment loop."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanAutoresearchLoop.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-autoresearch-loop-runtime.mjs"
+      ]
     },
     {
       "id": "recurring-research-watch",
       "title": "Baseline survey plus operator-approved recurring material-change checks",
       "sourceEvidence": "skills/watch/SKILL.md",
-      "disposition": "pending",
-      "reason": "Current watch mode returns a scheduler template but does not create, enable, run, or reconcile a real approved recurring watch."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanResearchWatch.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-research-watch-runtime.mjs"
+      ]
     },
     {
       "id": "session-search-resume",

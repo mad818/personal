@@ -19,10 +19,45 @@ import {
   type HuggingFaceRepoType,
 } from "@/lib/huggingFaceInspection";
 import {
+  annotatePaper,
+  fetchPaperMetadata,
+  formatPaperInspection,
+  normalizePaperReference,
+  readPaperSection,
+  searchPapers,
+  extractPaperCodeReferences,
+  inspectPaperTopic,
+} from "@/lib/feynmanPaperInspection";
+import {
+  formatPaperCodeAuditReport,
+  inspectPaperCodeAuditTopic,
+  runPaperCodeAudit,
+} from "@/lib/feynmanPaperCodeAudit";
+import {
+  runAutoresearchLoop,
+  normalizeVariantDefinitions,
+} from "@/lib/feynmanAutoresearchLoop";
+import {
+  createResearchWatch,
+  listResearchWatches,
+  setResearchWatchStatus,
+  runResearchWatchCheck,
+  formatWatchList,
+  formatWatchCheckResult,
+} from "@/lib/feynmanResearchWatch";
+import {
   buildFeynmanResumeContext,
   isFeynmanContinuityArtifactKind,
   type FeynmanContinuitySession,
 } from "@/lib/feynmanContinuity";
+import {
+  formatReplicationResult,
+  runReplicationScript,
+} from "@/lib/feynmanLocalReplication";
+import {
+  formatDockerManifest,
+  runDockerExperiment,
+} from "@/lib/feynmanDockerExperiments";
 import {
   appendFeynmanNotebookEntry,
   completeFeynmanContinuitySession,
@@ -908,6 +943,8 @@ async function feynmanResearch(
       webSearch,
       fetchUrl,
       inspectHuggingFace: inspectHuggingFaceTopic,
+      inspectPaper: inspectPaperTopic,
+      inspectPaperCodeAudit: inspectPaperCodeAuditTopic,
       write: (prompt) =>
         callFeynmanStage(origin, "feynman_writer", prompt, 1_800),
       verify: (prompt) =>
@@ -1384,6 +1421,164 @@ async function n8nRunWorkflow(
   });
 }
 
+// ── Paper inspection ──────────────────────────────────────────────────────────
+async function paperInspect(
+  input: Record<string, string> = {},
+): Promise<string> {
+  const action = (input.action || "search").trim().toLowerCase();
+  try {
+    if (action === "search") {
+      const query = input.query?.trim() ?? "";
+      if (!query) return "paper_inspect: search requires query.";
+      const limit = Math.min(
+        parseInt(input.limit ?? "5", 10) || 5,
+        10,
+      );
+      const results = await searchPapers(query, limit);
+      if (!results.length) return "No papers found for that query.";
+      return results
+        .map(
+          (p, i) =>
+            `${i + 1}. ${p.title}\n` +
+            `   Authors: ${p.authors.slice(0, 3).map((a) => a.name).join(", ")}\n` +
+            `   ${p.abstract.slice(0, 200)}…\n` +
+            `   🔗 ${p.sourceUrl}`,
+        )
+        .join("\n\n");
+    }
+    if (action === "read") {
+      const reference = normalizePaperReference(input.reference ?? input.arxiv_id ?? "");
+      const sectionKind =
+        input.section === "full" ? ("full" as const) : ("abstract" as const);
+      const metadata = await fetchPaperMetadata(reference);
+      const section = readPaperSection(metadata, sectionKind);
+      const codeReferences = extractPaperCodeReferences(metadata);
+      const receipt = formatPaperInspection({
+        ...metadata,
+        section,
+        codeReferences,
+        warnings: [],
+      });
+      return receipt;
+    }
+    if (action === "annotate") {
+      const reference = normalizePaperReference(input.reference ?? input.arxiv_id ?? "");
+      const note = input.note?.trim() ?? "";
+      if (!note) return "paper_inspect: annotate requires note.";
+      const annotation = annotatePaper(reference, note);
+      return [
+        "Paper annotation",
+        `Source: ${annotation.sourceUrl}`,
+        `ArXiv ID: ${annotation.arxivId ?? "unknown"}`,
+        `Note: ${annotation.note}`,
+        `Annotated: ${annotation.annotatedAt}`,
+      ].join("\n");
+    }
+    return "paper_inspect: action must be search, read, or annotate.";
+  } catch (error) {
+    return error instanceof Error
+      ? `paper_inspect: ${error.message}`
+      : "paper_inspect failed.";
+  }
+}
+
+// ── Feynman autoresearch loop ─────────────────────────────────────────────────
+async function feynmanAutoresearch(
+  input: Record<string, unknown>,
+): Promise<string> {
+  const action = (String(input.action ?? "run")).trim().toLowerCase();
+  const topic = String(input.topic ?? "").trim();
+  if (!topic) return "feynman_autoresearch: topic is required.";
+
+  try {
+    if (action === "run") {
+      const rawVariants = input.variants ?? [];
+      const variants = normalizeVariantDefinitions(rawVariants);
+      const result = await runAutoresearchLoop(topic, variants, WORKSPACE);
+      return result.receipt;
+    }
+    return "feynman_autoresearch: action must be run or history.";
+  } catch (error) {
+    return error instanceof Error
+      ? `feynman_autoresearch: ${error.message}`
+      : "feynman_autoresearch failed.";
+  }
+}
+
+// ── Feynman research watch ────────────────────────────────────────────────────
+async function feynmanWatch(
+  input: Record<string, unknown>,
+): Promise<string> {
+  const action = (String(input.action ?? "list")).trim().toLowerCase();
+  try {
+    switch (action) {
+      case "create": {
+        const id = String(input.id ?? "").trim();
+        const label = String(input.label ?? "").trim();
+        const topic = String(input.topic ?? "").trim();
+        if (!id) return "feynman_watch create: id is required.";
+        if (!label) return "feynman_watch create: label is required.";
+        if (!topic) return "feynman_watch create: topic is required.";
+        const watch = await createResearchWatch(id, label, topic, WORKSPACE);
+        return [
+          "Research watch created",
+          `id: ${watch.id}`,
+          `label: ${watch.label}`,
+          `topic: ${watch.topic}`,
+          `status: ${watch.status}`,
+          `createdAt: ${watch.createdAt}`,
+        ].join("\n");
+      }
+      case "list": {
+        const watches = await listResearchWatches(WORKSPACE);
+        return formatWatchList(watches);
+      }
+      case "enable": {
+        const id = String(input.id ?? "").trim();
+        if (!id) return "feynman_watch enable: id is required.";
+        const watch = await setResearchWatchStatus(id, "enabled", WORKSPACE);
+        return `Watch "${watch.id}" enabled.`;
+      }
+      case "disable": {
+        const id = String(input.id ?? "").trim();
+        if (!id) return "feynman_watch disable: id is required.";
+        const watch = await setResearchWatchStatus(id, "disabled", WORKSPACE);
+        return `Watch "${watch.id}" disabled.`;
+      }
+      case "run_check": {
+        const id = String(input.id ?? "").trim();
+        if (!id) return "feynman_watch run_check: id is required.";
+        const result = await runResearchWatchCheck(id, WORKSPACE);
+        return formatWatchCheckResult(result);
+      }
+      default:
+        return "feynman_watch: action must be create, list, enable, disable, or run_check.";
+    }
+  } catch (error) {
+    return error instanceof Error
+      ? `feynman_watch: ${error.message}`
+      : "feynman_watch failed.";
+  }
+}
+
+// ── Paper code audit ──────────────────────────────────────────────────────────
+async function paperCodeAudit(
+  input: Record<string, string> = {},
+): Promise<string> {
+  try {
+    const reference = normalizePaperReference(
+      input.reference ?? input.arxiv_id ?? "",
+    );
+    const metadata = await fetchPaperMetadata(reference);
+    const report = await runPaperCodeAudit(metadata);
+    return formatPaperCodeAuditReport(report);
+  } catch (error) {
+    return error instanceof Error
+      ? `paper_code_audit: ${error.message}`
+      : "paper_code_audit failed.";
+  }
+}
+
 // ── Route handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   const rateLimitConfig = {
@@ -1675,6 +1870,18 @@ export async function POST(req: NextRequest) {
       case "huggingface_inspect":
         result = await huggingFaceInspect(input);
         break;
+      case "paper_inspect":
+        result = await paperInspect(input);
+        break;
+      case "paper_code_audit":
+        result = await paperCodeAudit(input);
+        break;
+      case "feynman_autoresearch":
+        result = await feynmanAutoresearch(input as Record<string, unknown>);
+        break;
+      case "feynman_watch":
+        result = await feynmanWatch(input as Record<string, unknown>);
+        break;
       case "open_meteo_weather":
         result = await openMeteoWeather(
           input.lat ?? "",
@@ -1699,6 +1906,34 @@ export async function POST(req: NextRequest) {
         const toolResult = await n8nRunWorkflow(input.workflow_id ?? "", payload);
         result = toolResult.result;
         meta = toolResult.meta;
+        break;
+      }
+      case "feynman_replicate_run": {
+        const replicationResult = await runReplicationScript({
+          approve: input.approve === "true",
+          scriptRelPath: input.script_rel_path ?? "",
+          args: input.args ? (JSON.parse(input.args) as string[]) : [],
+          timeoutMs: input.timeout_ms ? parseInt(input.timeout_ms, 10) : undefined,
+        });
+        result = formatReplicationResult(replicationResult);
+        break;
+      }
+      case "feynman_docker_experiment": {
+        const dockerEnvVars = input.env_vars
+          ? (JSON.parse(input.env_vars) as Record<string, string>)
+          : undefined;
+        const dockerCommand = input.command
+          ? (JSON.parse(input.command) as string[])
+          : undefined;
+        const dockerManifest = await runDockerExperiment({
+          approve: input.approve === "true",
+          image: input.image ?? "",
+          command: dockerCommand,
+          workDir: input.work_dir,
+          envVars: dockerEnvVars,
+          timeoutMs: input.timeout_ms ? parseInt(input.timeout_ms, 10) : undefined,
+        });
+        result = formatDockerManifest(dockerManifest);
         break;
       }
       default:

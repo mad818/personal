@@ -78,6 +78,8 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   feynman_research: "tier0",
   feynman_outputs: "tier0",
   huggingface_inspect: "tier0",
+  paper_inspect: "tier0",
+  paper_code_audit: "tier0",
   compare_repos: "tier0",
   assimilate_repo: "tier0",
   read_file: "tier0",
@@ -88,6 +90,9 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   recall: "tier0",
   read_current_tab: "tier0",
   analyze_repo: "tier0",
+
+  feynman_autoresearch: "tier1",
+  feynman_watch: "tier1",
 
   // Tier 1: local/browser/session side-effects
   remember: "tier1",
@@ -249,6 +254,71 @@ export const AGENT_TOOLS = [
     },
   },
   {
+    name: "feynman_autoresearch",
+    description:
+      "Run a bounded autoresearch experiment loop: score operator-defined variants for a topic, keep the best-scoring variant, and append JSONL history under agent-workspace/feynman/autoresearch/. Use for explicit /autoresearch requests where variants and a scoring metric are provided. Never runs external code or paid APIs.",
+    input_schema: {
+      type: "object",
+      properties: {
+        action: {
+          type: "string",
+          enum: ["run", "history"],
+          description:
+            "run: score variants and record history; history: read recent history entries for a topic.",
+        },
+        topic: {
+          type: "string",
+          description: "The research topic or experiment question.",
+        },
+        variants: {
+          type: "array",
+          description:
+            "Array of variant definitions. Each must have id, label, and optionally hypothesis and parameters. Maximum 8 variants per run.",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              label: { type: "string" },
+              hypothesis: { type: "string" },
+            },
+            required: ["id", "label"],
+          },
+        },
+      },
+      required: ["action", "topic"],
+    },
+  },
+  {
+    name: "feynman_watch",
+    description:
+      "Create, list, enable, disable, or run a material-change check for an operator-approved research watch stored in agent-workspace/feynman/watches.json. run_check compares a sanitized snapshot hash to detect changes — no background cron. Use for explicit /watch requests.",
+    input_schema: {
+      type: "object",
+      properties: {
+        action: {
+          type: "string",
+          enum: ["create", "list", "enable", "disable", "run_check"],
+          description:
+            "create: add a new watch; list: show all watches; enable/disable: change status; run_check: compare snapshot hash.",
+        },
+        id: {
+          type: "string",
+          description:
+            "Watch id (lowercase alphanumeric with hyphens, max 64 chars). Required for create, enable, disable, run_check.",
+        },
+        label: {
+          type: "string",
+          description: "Human-readable label for the watch. Required for create.",
+        },
+        topic: {
+          type: "string",
+          description: "Research topic to monitor. Required for create.",
+        },
+      },
+      required: ["action"],
+    },
+  },
+  {
     name: "huggingface_inspect",
     description:
       "Inspect one public Hugging Face model or dataset repository through a bounded read-only lane. Returns public metadata, access posture, bounded top-level files, and dataset split/schema information. It can also read one explicitly requested allowlisted small text file. Never use it for private/gated access attempts, inference, training, repository cloning, model weights, or binary downloads.",
@@ -279,6 +349,65 @@ export const AGENT_TOOLS = [
         },
       },
       required: ["action", "reference"],
+    },
+  },
+  {
+    name: "paper_inspect",
+    description:
+      "Search arxiv papers by keyword or inspect a specific arxiv/DOI paper through a bounded read-only lane. Returns paper metadata, abstract, optional code references, and an evidence receipt. Supports search (keyword query), read (fetch metadata and sections for a specific arxiv ID or URL), and annotate (pure function — returns a note envelope without writing to disk). Never use it for PDF downloads, full-text scraping, code execution, or paid-API access.",
+    input_schema: {
+      type: "object",
+      properties: {
+        action: {
+          type: "string",
+          enum: ["search", "read", "annotate"],
+          description:
+            "search: keyword query against arxiv; read: fetch metadata and section for one paper; annotate: attach a note to a paper reference.",
+        },
+        query: {
+          type: "string",
+          description:
+            "Keyword search query. Used with search action only.",
+        },
+        reference: {
+          type: "string",
+          description:
+            "Paper reference as an arxiv abs URL (https://arxiv.org/abs/NNNN.NNNNN), bare arxiv ID (NNNN.NNNNN), or DOI URL (https://doi.org/10.xxx/yyy). Used with read and annotate actions.",
+        },
+        section: {
+          type: "string",
+          enum: ["abstract", "full"],
+          description:
+            "Section depth for read action. abstract returns only the abstract; full adds metadata comments. Defaults to abstract.",
+        },
+        note: {
+          type: "string",
+          description:
+            "Annotation text to attach to the paper. Used with annotate action only.",
+        },
+        limit: {
+          type: "string",
+          description:
+            "Maximum number of search results to return. Bounded to 10. Used with search action only.",
+        },
+      },
+      required: ["action"],
+    },
+  },
+  {
+    name: "paper_code_audit",
+    description:
+      "Resolve a paper's public GitHub repository from its arxiv abstract or metadata, fetch a bounded README and up to 3 claim-aligned code snippets, and return a structured diff report of paper abstract claims versus code evidence. Use for explicit paper-code audit, claim verification, or implementation audit requests. Never executes code, never accesses private repos.",
+    input_schema: {
+      type: "object",
+      properties: {
+        reference: {
+          type: "string",
+          description:
+            "Paper reference as an arxiv abs URL (https://arxiv.org/abs/NNNN.NNNNN) or bare arxiv ID (NNNN.NNNNN).",
+        },
+      },
+      required: ["reference"],
     },
   },
   {
@@ -648,6 +777,10 @@ const FEYNMAN_OUTPUTS_INTENT_RE =
   /\bfeynman_outputs\b|(?:^|\s)\/outputs\b|\bfeynman outputs\b|\b(?:search|find|resume|continue|preview|export|pdf)\b.{0,40}\b(?:feynman|research session|research output)\b|\b(?:feynman|research session|research output)\b.{0,40}\b(?:search|find|resume|continue|preview|export|pdf)\b/i;
 const HUGGING_FACE_INTENT_RE =
   /\bhugging\s*face\b|\bhuggingface_inspect\b|https:\/\/huggingface\.co\/(?:datasets\/)?[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)?/i;
+const PAPER_INSPECT_INTENT_RE =
+  /\bpaper_inspect\b|https?:\/\/arxiv\.org\/(?:abs|pdf)\/\d{4}\.\d{4,5}|https?:\/\/doi\.org\/10\.[^\s/]+\/[^\s]+|\barxiv\b.*\bpaper\b|\bpaper\b.*\barxiv\b/i;
+const PAPER_CODE_AUDIT_INTENT_RE =
+  /\bpaper_code_audit\b|\b(?:paper\s+code\s+audit|code\s+audit|paper\s+vs\.?\s+code|claim\s+verification|implementation\s+audit)\b/i;
 
 function pickAgentTools(names: Iterable<string>): AgentToolDefinition[] {
   return Array.from(names)
@@ -695,6 +828,8 @@ export function getAgentToolCatalog(
   const feynmanWorkflowIntent = FEYNMAN_WORKFLOW_INTENT_RE.test(userMessage);
   const feynmanOutputsIntent = FEYNMAN_OUTPUTS_INTENT_RE.test(userMessage);
   const huggingFaceIntent = HUGGING_FACE_INTENT_RE.test(userMessage);
+  const paperInspectIntent = PAPER_INSPECT_INTENT_RE.test(userMessage);
+  const paperCodeAuditIntent = PAPER_CODE_AUDIT_INTENT_RE.test(userMessage);
   const repoCompareIntent = hasRepoCompareSignal(userMessage);
   const repoAssimilationIntent = hasRepoAssimilationSignal(userMessage);
   const delegateIntent = DELEGATE_INTENT_RE.test(userMessage);
@@ -737,6 +872,22 @@ export function getAgentToolCatalog(
   ) {
     groups.add("huggingface_inspection");
     names.add("huggingface_inspect");
+  }
+
+  if (
+    paperInspectIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("paper_inspection");
+    names.add("paper_inspect");
+  }
+
+  if (
+    paperCodeAuditIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("paper_code_audit");
+    names.add("paper_code_audit");
   }
 
   if (

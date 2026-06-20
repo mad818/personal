@@ -7,6 +7,14 @@
 - `tasks/todo.md` — active queue; use `## Next Up` as the work selector.
 - `tasks/lessons.md` — corrections and rules from past sessions.
 
+**Operator workflow (2026-06-20)**
+
+- Codex and Cursor are **interchangeable** on the main PC — run `npm run handoff:pull`, read `## Next Up`, ship one slice, `npm run verify`, `handoff:write` when the queue changes.
+- **Out of scope unless Mario explicitly raises priority:** phone/LAN/PWA acceptance, private RPG (`/hq`, all `MW6*` / `lib/arpg*`), and staged-host release proof (FD2 / CP2.1).
+- **Shipped (2026-06-20):** Feynman source parity complete (`docs/ideas/source-parity/feynman.json` → `complete`); RECON Blackbird/WhatsMyName username enum (`/api/recon/username-enum`); CP2 local gates (`desktop:isolation:check`, `cp2:local:launch-gate:check`); merge conflict resolved in `docs/repo-hygiene/cloud-local-file-boundary.md`.
+- **Active queue:** `CI-GREEN-NODE-RUNTIME` → `DEPENDABOT-SECURITY-AUDIT` → `CP2.3-PACKAGED-ARTIFACTS` (local agent proof done for first two; Mario push/GitHub dismiss + optional Tauri build remain).
+- **Deferred:** phone, local-AI acceptance, and RPG sections at the bottom of `tasks/todo.md`.
+
 **Private RPG lane**
 
 - `Aether Reliquary` is a personal/private RPG world currently housed inside `/hq`; do not frame it as public Nexus Prime positioning.

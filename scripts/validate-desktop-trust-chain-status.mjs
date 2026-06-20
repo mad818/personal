@@ -60,7 +60,7 @@ if (
 
 const result = spawnSync(
   process.execPath,
-  ["scripts/desktop-trust-chain-status.mjs", "--check"],
+  ["scripts/desktop-trust-chain-status.mjs", "--json", "--no-write"],
   {
     cwd: root,
     encoding: "utf8",
@@ -70,6 +70,60 @@ const result = spawnSync(
 if (result.status !== 0) {
   process.stdout.write(result.stdout ?? "");
   process.stderr.write(result.stderr ?? "");
+  fail("desktop trust-chain check runner failed");
+}
+
+// ── CP2.3 — Honest missing artifact disclosure ────────────────────────────
+// Parse the JSON status record and surface missing packaged artifacts clearly
+// so CI and operators understand what remains before full CP2.3 sign-off.
+let trustChainRecord = null;
+try {
+  trustChainRecord = JSON.parse(result.stdout);
+} catch {
+  // JSON parse failed — fall back to a simpler runner check
+}
+
+if (trustChainRecord) {
+  const checksums = trustChainRecord.checksums ?? {};
+  const emptyDist =
+    checksums.status === "missing_artifact_dir" || checksums.status === "missing_artifacts";
+
+  if (emptyDist) {
+    console.log(
+      "note desktop-trust-chain (CP2.3): packaged Tauri artifacts not yet built — desktop/dist is empty.",
+    );
+    console.log(
+      "  SHA256SUMS.txt checksums cannot exist until artifacts are built.",
+    );
+    console.log(
+      "  Remaining CP2.3 work: npm run desktop:tauri:build → npm run release:checksums → configure signing.",
+    );
+  }
+
+  if (!trustChainRecord.releaseReady) {
+    const blockers = trustChainRecord.blockers ?? [];
+    if (blockers.length > 0) {
+      console.log("  CP2.3 blockers (expected pre-release):");
+      for (const blocker of blockers) {
+        console.log(`    - ${blocker}`);
+      }
+    }
+  }
+}
+
+// Validate using --check mode now that we have the JSON for diagnostics
+const checkResult = spawnSync(
+  process.execPath,
+  ["scripts/desktop-trust-chain-status.mjs", "--check"],
+  {
+    cwd: root,
+    encoding: "utf8",
+  },
+);
+
+if (checkResult.status !== 0) {
+  process.stdout.write(checkResult.stdout ?? "");
+  process.stderr.write(checkResult.stderr ?? "");
   fail("desktop trust-chain check runner failed");
 }
 

@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Maps checklist sections from docs/regression-memory-checklist.md to npm script owners.",
+  "sections": {
+    "auth-and-session": {
+      "heading": "Auth and session",
+      "scripts": ["auth:e2e", "auth:regression"],
+      "description": "Auth path, token validation, session persistence"
+    },
+    "runtime-freshness": {
+      "heading": "Runtime freshness",
+      "scripts": ["runtime:consistency", "runtime:fresh-proof", "runtime:lifetime:check"],
+      "description": "One live runtime, matching bundle, clean build lanes"
+    },
+    "hydration-and-rendering": {
+      "heading": "Hydration and rendering",
+      "scripts": ["type-check", "hq:e2e"],
+      "description": "No hydration mismatch, deterministic render"
+    },
+    "pointer-overlay-interaction": {
+      "heading": "Pointer, overlay, and interaction safety",
+      "scripts": ["smoothness:check", "surface:polish:check"],
+      "description": "Click-through decoratives, inert closed overlays, z-index intent"
+    },
+    "route-and-support-contract": {
+      "heading": "Route and support contract",
+      "scripts": ["route:integrity", "route:e2e"],
+      "description": "/ → /hq, /home → /hq, no deprecated GA links"
+    },
+    "whole-app-visual-integrity": {
+      "heading": "Whole-app visual integrity",
+      "scripts": ["smoothness:check", "surface:polish:check", "vehicle:readiness:check"],
+      "description": "Cinematic shell consistency, empty/loading/degraded states"
+    },
+    "free-first-product-contract": {
+      "heading": "Free-first product contract",
+      "scripts": ["publication:safety:check"],
+      "description": "GA tabs useful without paid providers, BYOK optional"
+    },
+    "release-sign-off": {
+      "heading": "Release sign-off",
+      "scripts": [
+        "type-check",
+        "lint",
+        "verify",
+        "route:integrity",
+        "eval:agent-runtime:ci",
+        "release:smoke",
+        "auth:e2e",
+        "hq:e2e",
+        "route:e2e",
+        "runtime:consistency",
+        "runtime:fresh-proof"
+      ],
+      "description": "Full release gate suite"
+    }
+  }
+}

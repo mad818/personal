@@ -62,6 +62,12 @@ export interface FeynmanProgressiveResearchDeps {
   inspectHuggingFace?: (
     topic: string,
   ) => Promise<{ url: string; content: string } | null>;
+  inspectPaper?: (
+    topic: string,
+  ) => Promise<{ url: string; content: string } | null>;
+  inspectPaperCodeAudit?: (
+    topic: string,
+  ) => Promise<{ url: string; content: string } | null>;
   progress?: (note: string) => Promise<void> | void;
 }
 
@@ -491,7 +497,18 @@ export async function runFeynmanProgressiveResearch(input: {
   const huggingFaceInspectionPromise = input.deps.inspectHuggingFace
     ? input.deps.inspectHuggingFace(input.topic)
     : Promise.resolve(null);
-  const [initialSettled, huggingFaceInspectionSettled] = await Promise.all([
+  const paperInspectionPromise = input.deps.inspectPaper
+    ? input.deps.inspectPaper(input.topic)
+    : Promise.resolve(null);
+  const paperCodeAuditInspectionPromise = input.deps.inspectPaperCodeAudit
+    ? input.deps.inspectPaperCodeAudit(input.topic)
+    : Promise.resolve(null);
+  const [
+    initialSettled,
+    huggingFaceInspectionSettled,
+    paperInspectionSettled,
+    paperCodeAuditInspectionSettled,
+  ] = await Promise.all([
     Promise.allSettled([
       input.deps.searchPapers(input.topic, "6"),
       ...initialQueries.map((query) =>
@@ -499,6 +516,8 @@ export async function runFeynmanProgressiveResearch(input: {
       ),
     ]),
     Promise.allSettled([huggingFaceInspectionPromise]),
+    Promise.allSettled([paperInspectionPromise]),
+    Promise.allSettled([paperCodeAuditInspectionPromise]),
   ]);
   let paperSignal = "";
   const paperEntry = initialSettled[0];
@@ -548,9 +567,40 @@ export async function runFeynmanProgressiveResearch(input: {
     failures.push("Hugging Face repository inspection failed.");
   }
 
-  const attemptedUrls = new Set<string>(
-    huggingFaceSources.map((source) => source.url),
-  );
+  const paperSources: Array<{ url: string; content: string }> = [];
+  const paperInspectionEntry = paperInspectionSettled[0];
+  if (
+    paperInspectionEntry?.status === "fulfilled" &&
+    paperInspectionEntry.value?.url &&
+    paperInspectionEntry.value.content.trim()
+  ) {
+    paperSources.push(paperInspectionEntry.value);
+  } else if (paperInspectionEntry?.status === "rejected") {
+    failures.push("Paper inspection failed.");
+  }
+
+  const paperCodeAuditSources: Array<{ url: string; content: string }> = [];
+  const paperCodeAuditEntry = paperCodeAuditInspectionSettled[0];
+  if (
+    paperCodeAuditEntry?.status === "fulfilled" &&
+    paperCodeAuditEntry.value?.url &&
+    paperCodeAuditEntry.value.content.trim()
+  ) {
+    paperCodeAuditSources.push(paperCodeAuditEntry.value);
+  } else if (paperCodeAuditEntry?.status === "rejected") {
+    failures.push("Paper code audit inspection failed.");
+  }
+
+  const attemptedUrls = new Set<string>([
+    ...huggingFaceSources.map((source) => source.url),
+    ...paperSources.map((source) => source.url),
+    ...paperCodeAuditSources.map((source) => source.url),
+  ]);
+  const specialSources = [
+    ...huggingFaceSources,
+    ...paperSources,
+    ...paperCodeAuditSources,
+  ];
   const initialUrls = prioritizeFeynmanCandidateUrls([
     ...extractUrls(paperSignal),
     ...webResults.flatMap((result) => extractUrls(result.result)),
@@ -558,11 +608,11 @@ export async function runFeynmanProgressiveResearch(input: {
     .filter((url) => !attemptedUrls.has(url))
     .slice(
       0,
-      Math.max(0, policy.maximumDirectReads - huggingFaceSources.length),
+      Math.max(0, policy.maximumDirectReads - specialSources.length),
     );
   initialUrls.forEach((url) => attemptedUrls.add(url));
   const fetchedSources = [
-    ...huggingFaceSources,
+    ...specialSources,
     ...(await readCandidateUrls({
       urls: initialUrls,
       deps: input.deps,

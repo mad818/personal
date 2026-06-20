@@ -175,6 +175,7 @@ import {
   findRelevantCorrectionMemories,
   type UnfinishedSessionArtifactClass,
 } from "@/lib/assistantSessionMemory";
+import FeynmanToolQuickRef from "./FeynmanToolQuickRef";
 
 function classifyUnfinishedArtifactClass(input: {
   intent: HQAssistantIntent;
@@ -2443,6 +2444,9 @@ export default function OfficeCommandCenter() {
             onOpenMemory={() => setMemoryOpen(true)}
             onOpenScheduler={() => setSchedulerOpen(true)}
           />
+          <div style={{ marginTop: "12px" }}>
+            <FeynmanToolQuickRef />
+          </div>
         </div>
         ) : null}
       </div>

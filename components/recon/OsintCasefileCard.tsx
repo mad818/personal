@@ -104,6 +104,31 @@ export default function OsintCasefileCard({
     };
   }, []);
 
+  useEffect(() => {
+    const handleSeed = (event: Event) => {
+      try {
+        const incoming = (event as CustomEvent<OsintCasefileDraft>).detail;
+        if (!incoming || typeof incoming !== "object") return;
+        setDraft((current) => ({
+          subject: incoming.subject || current.subject,
+          goal: incoming.goal || current.goal,
+          passiveFindings: incoming.passiveFindings || current.passiveFindings,
+          pivotOpportunities: incoming.pivotOpportunities || current.pivotOpportunities,
+          evidenceGaps: incoming.evidenceGaps || current.evidenceGaps,
+          nextReviewedMove: incoming.nextReviewedMove || current.nextReviewedMove,
+          pivots: Array.isArray(incoming.pivots) && incoming.pivots.length > 0
+            ? incoming.pivots
+            : current.pivots,
+        }));
+        setStatus("idle");
+      } catch {
+        // silent
+      }
+    };
+    window.addEventListener("nexus-osint-casefile-seed", handleSeed);
+    return () => window.removeEventListener("nexus-osint-casefile-seed", handleSeed);
+  }, []);
+
   const scopedPages = useMemo(() => {
     const byRoute = pages.filter((page) => page.route === route);
     return byRoute.length > 0 ? byRoute : pages;

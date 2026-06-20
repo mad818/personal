@@ -88,21 +88,46 @@ requireText(toolPolicy, 'feynman_research: "networked"', "network policy");
 requireText(toolPolicy, 'feynman_outputs: "read"', "local output policy");
 requireText(toolPolicy, 'huggingface_inspect: "networked"', "network policy");
 requireText(spec, "No silent execution", "feature guardrail");
-if (parity.status !== "in_progress") {
-  console.error("x feynman-native: source parity must remain in_progress while useful capabilities are pending");
+
+const pendingCapabilities = (parity.capabilities ?? []).filter(
+  (capability) => capability.disposition === "pending",
+);
+if (parity.status === "complete") {
+  if (pendingCapabilities.length > 0) {
+    console.error(
+      "x feynman-native: source parity cannot be complete while capabilities remain pending",
+    );
+    process.exit(1);
+  }
+} else if (parity.status !== "in_progress") {
+  console.error("x feynman-native: source parity status must be in_progress or complete");
   process.exit(1);
-}
-if (!parity.capabilities?.some((capability) => capability.disposition === "pending")) {
-  console.error("x feynman-native: source parity matrix must honestly track pending capabilities");
+} else if (pendingCapabilities.length === 0) {
+  console.error(
+    "x feynman-native: source parity has no pending capabilities; set status to complete",
+  );
   process.exit(1);
 }
 
-if (
-  packageJson.scripts?.["feynman:check"] !==
-  "node scripts/validate-feynman-native-assimilation.mjs && npm run feynman:runtime:check && npm run feynman:continuity:check && npm run feynman:progressive:check && npm run feynman:huggingface:check && npm run feynman:workflow-contracts:check"
-) {
-  console.error("x feynman-native: package.json is missing feynman:check");
-  process.exit(1);
+const feynmanCheck = packageJson.scripts?.["feynman:check"] ?? "";
+for (const script of [
+  "validate-feynman-native-assimilation.mjs",
+  "feynman:runtime:check",
+  "feynman:continuity:check",
+  "feynman:progressive:check",
+  "feynman:huggingface:check",
+  "feynman:paper:check",
+  "feynman:workflow-contracts:check",
+  "feynman:autoresearch:check",
+  "feynman:watch:check",
+  "feynman:replication:check",
+  "feynman:docker:check",
+  "feynman:paper-code-audit:check",
+]) {
+  if (!feynmanCheck.includes(script)) {
+    console.error(`x feynman-native: package.json feynman:check is missing ${script}`);
+    process.exit(1);
+  }
 }
 if (
   packageJson.scripts?.["feynman:runtime:check"] !==
@@ -114,4 +139,8 @@ if (
 requireText(packageJson.scripts?.verify ?? "", "npm run feynman:check", "verify wiring");
 requireText(packageJson.scripts?.verify ?? "", "npm run source:parity:check", "source parity wiring");
 
-console.log("ok feynman-native-foundation (workflow family, audit contract, tool and Vault wiring; source parity remains open)");
+console.log(
+  parity.status === "complete"
+    ? "ok feynman-native-foundation (workflow family, audit contract, tool and Vault wiring; source parity complete)"
+    : "ok feynman-native-foundation (workflow family, audit contract, tool and Vault wiring; source parity remains open)",
+);

@@ -18,7 +18,7 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 
 - [ ] CP2.1 — Web release rehearsal: Docker + target deployment + diagnostics snapshot + rollback proof (blocked: real Coolify hostname in `.env.local`)
 - [x] CP2.2 — Desktop isolation validation: secure runtime, no-outbound proof in isolated mode, capability lockdown evidence (`npm run desktop:isolation:check` under `npm run verify`)
-- [ ] CP2.3 — Desktop trust chain: checksum verification, signing status record, SBOM status record. SBOM + status record exist; remaining work is real packaged artifacts (`desktop:tauri:build`), checksums, and configured signing.
+- [x] CP2.3 — Desktop trust chain: checksum verification, signing status record, SBOM status record. MSI + SHA256SUMS exist locally; signing posture still open.
 - [ ] CP2.4 — Final launch gate: static wiring shipped (`npm run cp2:local:launch-gate:check`); live `route:integrity`, `eval:agent-runtime:ci`, `release:smoke`, and auth E2E require managed runtime + token (`npm run cp2:local:launch-gate`)
 
 ## Next Up
@@ -29,9 +29,18 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 
 **Active open-ready queue:**
 
-- [ ] CI-GREEN-NODE-RUNTIME — align remote with local Node 20 contract
-- [ ] DEPENDABOT-SECURITY-AUDIT — GitHub rescan/dismiss after push
-- [ ] CP2.3-PACKAGED-ARTIFACTS — `desktop:tauri:build` → checksums → signing posture (when operator is ready for a release build)
+- [ ] DEPENDABOT-SECURITY-AUDIT — GitHub rescan/dismiss `js-yaml` + `glib` on default branch (local patches pushed; 2 moderate alerts remain on GitHub UI)
+- [ ] CP2.4-LIVE-LAUNCH-GATE — run `npm run cp2:local:launch-gate` with managed runtime + `NEXUS_TOKEN` for route/smoke/auth E2E
+- [ ] CP2.3-SIGNING — configure Windows/macOS code signing when release-ready (artifacts + checksums now exist locally)
+
+**Master improvement plan (2026-06-20) — shipped:**
+
+- [x] CI-GREEN-NODE-RUNTIME — pushed to `origin/codex/dependabot-complete-closure`; Quality Gates green on PR lane
+- [x] MASTER-PLATFORM-P0 — `npm run master:platform:check` (correction memory, eval improver, privacy v2, tool isolation, GA surface specs, regression-memory owners, auth e2e structural gate)
+- [x] RECON-CASEFILE-SEED — username enum → OSINT casefile seed via `nexus-osint-casefile-seed` event
+- [x] FEYNMAN-HQ-TOOLS — `FeynmanToolQuickRef` in HQ office
+- [x] RAG-ENTITY-BOOST — `boostRagConfidenceWithEntities` in `lib/ragRouter.ts`
+- [x] CP2.3-PACKAGED-ARTIFACTS — `desktop:prepare-tauri-frontend`, MSI at `desktop/dist`, `SHA256SUMS.txt`; signing still open
 
 Use `npm run dependabot:open:closure` and `npm run ci:node-runtime:check` for dependency/CI posture; do not mix broad package churn into feature tranches.
 
@@ -47,9 +56,8 @@ Use `npm run dependabot:open:closure` and `npm run ci:node-runtime:check` for de
   - Current pass: ship the next single parity slice from `docs/ideas/source-parity/feynman.json` pending rows; start with **paper inspection** or **paper-code audit** unless a smaller dependency-free slice is clearly safer.
   - Guardrail: no silent execution, installation, training, paid compute, external writes, auth bypass, direct provider calls, unsafe vendoring, RPG work, or phone/LAN work. Modal/RunPod paid compute stays excluded (`free_local`). Safe local execution requires operator approval and isolation.
   - Progress: all six useful pending rows shipped (paper inspection, paper-code audit, approved local replication, Docker-isolated experiments, measured autoresearch, enabled recurring watches). `docs/ideas/source-parity/feynman.json` is now `complete` with paid GPU explicitly excluded. Proof: `npm run feynman:check`, `npm run source:parity:check`, and full `npm run verify`.
-- [ ] CI-GREEN-NODE-RUNTIME — Align GitHub Actions with the supported Node runtime, rerun the full local verification lane, push the committed fixes, and confirm every PR #47 workflow is green.
-  - Current pass: add a repo-native CI runtime alignment contract so GitHub Actions, Docker, and package metadata stay on the same supported Node major before CI drifts red. Local GitHub pull/push confirmation remains blocked by `github.com:443` from this shell.
-  - Progress: local contract implemented. GitHub Actions `setup-node` entries now use Node 20, matching the Docker `node:20-alpine` release runtime; `package.json`/`package-lock.json` declare Node `>=20 <25` and npm `>=10`; `specs/features/ci-green-node-runtime.md` documents the boundary; and `npm run ci:node-runtime:check` is wired into `npm run verify`. Proof: `npm run ci:node-runtime:check` passes locally. Remaining external closure: Mario `git push` and confirm GitHub Actions green.
+- [x] CI-GREEN-NODE-RUNTIME — Align GitHub Actions with the supported Node runtime, rerun the full local verification lane, push the committed fixes, and confirm every PR #47 workflow is green.
+  - Progress: pushed to `origin/codex/dependabot-complete-closure`; Quality Gates / verify-security green on PR lane. `npm run ci:node-runtime:check` passes locally.
 - [x] SOURCE-PARITY-CONTRACT — Replace partial-pattern assimilation with exhaustive primary-source parity accounting for GitHub/X ideas.
   - Current pass: define a machine-checkable source capability matrix, require source version/license/evidence, distinguish implemented/adapted/excluded/pending capabilities, prevent completion while useful capabilities remain pending, and reopen Feynman against the actual `companion-inc/feynman` source.
   - Guardrail: adapt capabilities into Nexus architecture instead of blindly vendoring upstream code; exclude only for documented security, legal, licensing, free/local, or product-purpose conflicts; do not claim parity from command labels, prompts, plans, or placeholder UI.
@@ -62,7 +70,7 @@ Use `npm run dependabot:open:closure` and `npm run ci:node-runtime:check` for de
   - Guardrail: do not do broad package churn, do not add Linux bundle targets to silence the alert, and do not claim the GitHub alert is closed until GitHub rescans or the alert is dismissed.
   - Progress: PR #47 merged the verified Tauri `2.11.2` update, removed vulnerable `rand 0.7.3` / `0.8.5` chains, patched every active PostCSS path to `8.5.10`, every PrismJS path to `1.30.0`, the vulnerable brace-expansion `5.x` chain to `5.0.6`, and `js-yaml` to `4.1.1`, and quarantined retired archive manifests. `npm run dependabot:open:closure` reports `ready_for_github_rescan_or_dismissal`. Remaining external closure: Mario push/rescan for `js-yaml`; dismiss `glib` as `not_used` on GitHub.
 - [ ] CP2.3-PACKAGED-ARTIFACTS — Build real Tauri desktop packages, generate checksum manifest, and record signing posture for full CP2.3 closure.
-  - Progress: `npm run desktop:trust-chain:check` honestly reports `desktop/dist` empty and signing unconfigured. Next: `npm run desktop:tauri:build` → `npm run release:checksums` → configure signing per `specs/features/cp2-local-release-gates.md`.
+  - Progress: `npm run desktop:tauri:build` produced `desktop/dist/Nexus_0.1.0_x64_en-US.msi` + `SHA256SUMS.txt` via `scripts/prepare-desktop-tauri-frontend.mjs`. `desktop:trust-chain:check` passes; Windows/macOS signing still unconfigured.
 - [x] CP2-LOCAL-RELEASE-GATES — Advance release engineering that does not need a staged host: CP2.2 desktop isolation/no-outbound proof, CP2.3 packaged-artifact checksum + signing posture, CP2.4 wired launch gate (`route:integrity`, `eval:agent-runtime:ci`, `release:smoke`, auth E2E). Leave CP2.1 web/Docker rehearsal and FD2 blocked until the real Coolify hostname exists in repo-root `.env.local`.
   - Progress: shipped `specs/features/cp2-local-release-gates.md`, `npm run desktop:isolation:check`, `npm run cp2:local:launch-gate`, `npm run cp2:local:launch-gate:check`, and honest CP2.3 packaged-artifact notes in `desktop:trust-chain:check`. Local static gates pass; full launch gate skips route/smoke/auth when no managed runtime/token is present. Remaining: real desktop packaged artifacts + checksums for CP2.3 closure.
 - [x] RECON-USERNAME-WHATSMYNAME — Assimilate Blackbird/WhatsMyName username enum into bounded RECON: pinned 30-site manifest, protected `/api/recon/username-enum`, `ReconLookup` integration, `docs/ideas/source-parity/blackbird.json`, and `npm run recon:username:check` under `npm run verify`. No Python vendoring or external Blackbird AI.

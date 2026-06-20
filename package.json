@@ -188,6 +188,7 @@
     "handoff:sync": "node scripts/sync-handoff-loop.js",
     "handoff:pull": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-with-acl-repair.ps1 pull",
     "desktop:build-runtime": "node scripts/clean-next.mjs && next build",
+    "desktop:prepare-tauri-frontend": "npm run desktop:build-runtime && node scripts/prepare-desktop-tauri-frontend.mjs",
     "desktop:start-runtime": "node scripts/start-runtime.mjs",
     "desktop:tauri:dev": "node scripts/ensure-tauri-icon.mjs && cd desktop/src-tauri && npx --yes --package @tauri-apps/cli tauri dev",
     "desktop:tauri:build": "node scripts/ensure-tauri-icon.mjs && cd desktop/src-tauri && npx --yes --package @tauri-apps/cli tauri build",

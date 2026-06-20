@@ -4,9 +4,9 @@
   "identifier": "com.nexus.desktop",
   "build": {
     "beforeDevCommand": "npm run desktop:build-runtime && npm run desktop:start-runtime",
-    "beforeBuildCommand": "npm run desktop:build-runtime",
+    "beforeBuildCommand": "npm run desktop:prepare-tauri-frontend",
     "devUrl": "http://127.0.0.1:3000",
-    "frontendDist": "../../.next/standalone"
+    "frontendDist": "../frontend-dist"
   },
   "app": {
     "security": {
@@ -31,6 +31,9 @@
     "windows": {
       "digestAlgorithm": "sha256",
       "timestampUrl": "http://timestamp.digicert.com"
+    },
+    "resources": {
+      "../packaged-runtime/": "packaged-runtime/"
     }
   }
 }

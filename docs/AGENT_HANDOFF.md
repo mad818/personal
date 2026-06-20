@@ -35,10 +35,10 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 
 ### What’s next (from `tasks/todo.md`)
 
-- CI-GREEN-NODE-RUNTIME — align remote with local Node 20 contract
-- CI-GREEN-NODE-RUNTIME child tracks — 1 follow-up tracks are queued in `tasks/todo.md`; expand there when implementing.
-- DEPENDABOT-SECURITY-AUDIT — GitHub rescan/dismiss after push
-- CP2.3-PACKAGED-ARTIFACTS — `desktop:tauri:build` → checksums → signing posture (when operator is ready for a release build)
+- DEPENDABOT-SECURITY-AUDIT — GitHub rescan/dismiss `js-yaml` + `glib` on default branch (local patches pushed; 2 moderate alerts remain on GitHub UI)
+- DEPENDABOT-SECURITY-AUDIT child tracks — 1 follow-up tracks are queued in `tasks/todo.md`; expand there when implementing.
+- CP2.4-LIVE-LAUNCH-GATE — run `npm run cp2:local:launch-gate` with managed runtime + `NEXUS_TOKEN` for route/smoke/auth E2E
+- CP2.3-SIGNING — configure Windows/macOS code signing when release-ready (artifacts + checksums now exist locally)
 - Full queue: `tasks/todo.md` -> `## Next Up`.
 
 ### Where to look

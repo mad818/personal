@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-06-20",
+  "owner": "nexus-assimilation",
+  "notes": "Machine-readable queue of external ideas — Wave 1–6 shipped. New links go to pending-links.json (Wave 22 intake lane).",
+  "items": [
+    {
+      "id": "ai_osint",
+      "source": "https://github.com/7WaySecurity/ai_osint",
+      "lane": "wave2-osint-cyber",
+      "priority": "high",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/ai-osint.json"
+    },
+    {
+      "id": "agentshield",
+      "source": "https://github.com/affaan-m/agentshield",
+      "lane": "wave2-osint-cyber",
+      "priority": "high",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/agentshield.json"
+    },
+    {
+      "id": "owasp-apts",
+      "source": "https://github.com/OWASP/APTS",
+      "lane": "wave2-osint-cyber",
+      "priority": "high",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/owasp-apts.json"
+    },
+    {
+      "id": "exploitation-course",
+      "source": "https://github.com/ashemery/exploitation-course",
+      "lane": "wave2-osint-cyber",
+      "priority": "medium",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/exploitation-course.json"
+    },
+    {
+      "id": "magika",
+      "source": "https://github.com/google/magika",
+      "lane": "wave5-vault-artifacts",
+      "priority": "high",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/magika.json"
+    },
+    {
+      "id": "homelable",
+      "source": "https://github.com/Pouzor/homelable",
+      "lane": "wave4-ops-geo-network",
+      "priority": "high",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/homelable.json"
+    },
+    {
+      "id": "geodeep",
+      "source": "https://github.com/uav4geo/GeoDeep",
+      "lane": "wave4-ops-geo-network",
+      "priority": "high",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/geodeep.json"
+    },
+    {
+      "id": "lightrag",
+      "source": "https://github.com/hkuds/lightrag",
+      "lane": "wave3-research-rag",
+      "priority": "high",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/lightrag.json"
+    },
+    {
+      "id": "mcporter",
+      "source": "https://github.com/steipete/mcporter",
+      "lane": "wave6-missions-mcp",
+      "priority": "medium",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/mcporter.json"
+    },
+    {
+      "id": "aeon",
+      "source": "https://github.com/aaronjmars/aeon",
+      "lane": "wave6-missions-mcp",
+      "priority": "medium",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/aeon.json"
+    },
+    {
+      "id": "claude-mem",
+      "source": "https://github.com/thedotmack/claude-mem",
+      "lane": "wave1-agent-platform-depth",
+      "priority": "medium",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/claude-mem.json"
+    },
+    {
+      "id": "context-optimizer",
+      "source": "https://github.com/egorfedorov/claude-context-optimizer",
+      "lane": "wave1-agent-platform-depth",
+      "priority": "medium",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/context-optimizer.json",
+      "note": "Query-aware dynamic context assembly + session read cache shipped"
+    },
+    {
+      "id": "trafficlab-3d",
+      "source": "https://github.com/duy-phamduc68/TrafficLab-3D",
+      "lane": "wave4-ops-geo-network",
+      "priority": "medium",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/trafficlab-3d.json"
+    },
+    {
+      "id": "geocoding-playground",
+      "source": "https://github.com/walkthru-earth/geocoding-playground",
+      "lane": "wave4-ops-geo-network",
+      "priority": "medium",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/geocoding-playground.json"
+    },
+    {
+      "id": "gnhf",
+      "source": "https://github.com/kunchenguid/gnhf",
+      "lane": "wave6-missions-mcp",
+      "priority": "low",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/gnhf.json"
+    },
+    {
+      "id": "openevolve",
+      "source": "https://github.com/algorithmicsuperintelligence/openevolve",
+      "lane": "wave1-agent-platform-depth",
+      "priority": "low",
+      "status": "shipped",
+      "targetMatrix": "docs/ideas/source-parity/openevolve.json"
+    }
+  ]
+}

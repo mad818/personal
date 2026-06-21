@@ -1,0 +1,2445 @@
+{
+  "capturedAt": "2026-06-20T20:25:31.264Z",
+  "rollupName": "WIDE-STABILIZATION-READINESS-ROLLUP",
+  "artifacts": {
+    "phoneAcceptance": {
+      "file": "docs/metrics/phone-local-acceptance-2026-06-20T19-48-30-188Z.json",
+      "capturedAt": "2026-06-20T19:48:30.188Z"
+    },
+    "releaseDiagnostics": {
+      "file": "docs/metrics/release-diagnostics-2026-06-20T19-29-37-871Z.json",
+      "capturedAt": "2026-06-20T19:29:37.871Z"
+    },
+    "dependencyAudit": {
+      "file": "docs/metrics/dependabot-security-audit-2026-05-25T05-52-26-760Z.json",
+      "capturedAt": "2026-05-25T05:52:26.760Z"
+    },
+    "dependencyPosture": {
+      "file": "docs/metrics/dependency-risk-posture-2026-05-25T05-52-21-853Z.json",
+      "capturedAt": "2026-05-25T05:52:21.853Z"
+    },
+    "infraHardening": {
+      "file": "docs/metrics/infra-hardening-2026-05-09T22-28-42-970Z.json",
+      "capturedAt": "2026-05-09T22:28:42.970Z"
+    },
+    "agentRuntime": {
+      "file": "docs/metrics/agent-runtime-latest.json",
+      "capturedAt": null
+    },
+    "runtimeExperiment": {
+      "file": "docs/metrics/runtime-experiment-latest.json",
+      "capturedAt": null
+    }
+  },
+  "posture": {
+    "publicationSafety": {
+      "command": "node scripts/validate-publication-safety.mjs",
+      "ok": true,
+      "exitCode": 0,
+      "summary": "Publication safety OK (tracked files respect cloud/local boundary and contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
+    },
+    "phoneAcceptanceReady": false,
+    "desktopLocalFreeReady": true,
+    "desktopLocalAiReady": true,
+    "desktopLocalAiOfflineReady": true,
+    "localAiOfflineReady": false,
+    "releaseDiagnosticsReady": false,
+    "dependencyAuditReady": true,
+    "dependencyRiskReady": true,
+    "infraHardeningReady": true
+  },
+  "latestEvidence": {
+    "phoneAcceptance": {
+      "baseUrl": "http://127.0.0.1:3100",
+      "routes": [
+        {
+          "route": "/api/health",
+          "ok": true,
+          "status": 200,
+          "redirected": false,
+          "contentType": "application/json",
+          "durationMs": 10
+        },
+        {
+          "route": "/hq?focus=hq-chronicle",
+          "ok": true,
+          "status": 200,
+          "redirected": false,
+          "contentType": "text/html; charset=utf-8",
+          "durationMs": 87
+        },
+        {
+          "route": "/command",
+          "ok": true,
+          "status": 200,
+          "redirected": false,
+          "contentType": "text/html; charset=utf-8",
+          "durationMs": 38
+        },
+        {
+          "route": "/api/free-local-readiness",
+          "ok": true,
+          "status": 200,
+          "redirected": false,
+          "contentType": "application/json",
+          "durationMs": 57
+        },
+        {
+          "route": "/api/phone-acceptance/receipt",
+          "ok": true,
+          "status": 200,
+          "redirected": false,
+          "contentType": "application/json",
+          "durationMs": 11
+        }
+      ],
+      "readinessSummary": {
+        "overallStatus": "ready",
+        "freeInvariant": {
+          "status": "ready",
+          "chargesEndUsers": false,
+          "value": "Free — no in-app charges"
+        },
+        "networkMode": {
+          "status": "ready",
+          "mode": "isolated",
+          "value": "isolated"
+        },
+        "paidApisAllowed": {
+          "status": "ready",
+          "allowed": false,
+          "value": "blocked"
+        },
+        "ollama": {
+          "status": "ready",
+          "reachable": true,
+          "installedCount": 5,
+          "runningCount": 0,
+          "value": "reachable"
+        },
+        "resolvedModel": {
+          "status": "ready",
+          "resolvedModel": "gemma4:latest",
+          "value": "gemma4:latest",
+          "resolutionReason": "recommended_fallback"
+        },
+        "agentHealth": {
+          "status": "ready",
+          "passRate": 1,
+          "passCount": 4,
+          "failCount": 0,
+          "lastRun": "2026-04-01T15:45:01.853Z"
+        },
+        "session": {
+          "status": "ready",
+          "authenticated": true,
+          "tokenConfigured": true,
+          "remainingSeconds": 43200
+        },
+        "toolPosture": {
+          "status": "ready",
+          "highRiskEnabled": false,
+          "settingsWrites": "revalidate",
+          "verification": "revalidate",
+          "mutateExecTools": "network_locked",
+          "networkedTools": "network_locked",
+          "value": "review-gated"
+        },
+        "phoneLan": {
+          "status": "ready",
+          "enabled": true,
+          "tokenRequired": true,
+          "pwaReady": true,
+          "preferredLanUrl": "http://100.116.64.77:3100",
+          "preferredHqLanUrl": "http://100.116.64.77:3100/hq?focus=hq-chronicle",
+          "lanUrlCount": 2,
+          "hqLanUrlCount": 2,
+          "firewallStatus": "Allow Node/Next on this port through Windows Firewall before using phone LAN access.",
+          "tailscaleOptional": "Optional free private tunnel: use Tailscale personal/free tier if LAN is not available."
+        }
+      },
+      "manualPhoneProof": {
+        "phoneOpened": false,
+        "phoneLogin": false,
+        "pingReceipt": false,
+        "localAiReceipt": false,
+        "pwaInstalled": false
+      },
+      "receiptPhoneProof": {
+        "receiptAvailable": true,
+        "latestAt": null,
+        "receiptCount": 0,
+        "mobileReceiptCount": 0,
+        "phoneOpened": false,
+        "phoneLogin": false,
+        "browserStorageReady": false,
+        "pwaCapable": false,
+        "pingReceipt": false,
+        "localAiReceipt": false,
+        "pwaInstalled": false
+      },
+      "combinedPhoneProof": {
+        "phoneOpened": false,
+        "phoneLogin": false,
+        "pingReceipt": false,
+        "localAiReceipt": false,
+        "pwaInstalled": false,
+        "browserStorageReady": false,
+        "pwaCapable": false,
+        "receiptCount": 0,
+        "mobileReceiptCount": 0,
+        "latestReceiptAt": null
+      },
+      "receiptLiveStatus": {
+        "overallStatus": "blocked",
+        "acceptanceReady": false,
+        "receiptCount": 0,
+        "mobileReceiptCount": 0,
+        "latestAt": null,
+        "items": [
+          {
+            "id": "phoneOpened",
+            "label": "Phone opened",
+            "passed": false,
+            "detail": "Open the LAN HQ URL from the phone or iPad."
+          },
+          {
+            "id": "phoneLogin",
+            "label": "Phone login",
+            "passed": false,
+            "detail": "Log in with NEXUS_TOKEN on the phone."
+          },
+          {
+            "id": "browserStorageReady",
+            "label": "Browser storage",
+            "passed": false,
+            "detail": "Let the Free Local Readiness panel finish loading on the phone."
+          },
+          {
+            "id": "pingReceipt",
+            "label": "Ping receipt",
+            "passed": false,
+            "detail": "Send `ping` from HQ chat on the phone."
+          },
+          {
+            "id": "localAiReceipt",
+            "label": "Local AI receipt",
+            "passed": false,
+            "detail": "Ask the local Ollama proof prompt from the phone."
+          },
+          {
+            "id": "pwaCapable",
+            "label": "PWA capable",
+            "passed": false,
+            "detail": "Use a browser with home-screen install support."
+          },
+          {
+            "id": "pwaInstalled",
+            "label": "PWA installed",
+            "passed": false,
+            "detail": "Install Homefront from the phone browser home-screen flow."
+          }
+        ]
+      },
+      "missingReceiptProofItems": [
+        "Phone opened",
+        "Phone login",
+        "Browser storage",
+        "Ping receipt",
+        "Local AI receipt",
+        "PWA capable",
+        "PWA installed"
+      ],
+      "blocked": [
+        "Phone proof missing: phone or iPad opened the LAN URL.",
+        "Phone proof missing: phone logged in with NEXUS_TOKEN.",
+        "Phone proof missing: HQ ping receipt.",
+        "Phone proof missing: local AI receipt.",
+        "Phone proof missing: PWA install."
+      ],
+      "desktopLocalFreeReady": true,
+      "desktopLocalAiReady": true,
+      "browserSessionReady": true,
+      "acceptanceReady": false
+    },
+    "releaseDiagnostics": {
+      "baseUrl": "http://127.0.0.1:3100",
+      "routes": [
+        {
+          "route": "/api/health",
+          "ok": false,
+          "status": 0,
+          "redirected": false,
+          "contentType": null,
+          "durationMs": 25,
+          "error": "fetch failed"
+        },
+        {
+          "route": "/",
+          "ok": false,
+          "status": 0,
+          "redirected": false,
+          "contentType": null,
+          "durationMs": 1,
+          "error": "fetch failed"
+        },
+        {
+          "route": "/hq?focus=hq-chronicle",
+          "ok": false,
+          "status": 0,
+          "redirected": false,
+          "contentType": null,
+          "durationMs": 1,
+          "error": "fetch failed"
+        },
+        {
+          "route": "/command",
+          "ok": false,
+          "status": 0,
+          "redirected": false,
+          "contentType": null,
+          "durationMs": 1,
+          "error": "fetch failed"
+        },
+        {
+          "route": "/resources",
+          "ok": false,
+          "status": 0,
+          "redirected": false,
+          "contentType": null,
+          "durationMs": 1,
+          "error": "fetch failed"
+        },
+        {
+          "route": "/vehicle",
+          "ok": false,
+          "status": 0,
+          "redirected": false,
+          "contentType": null,
+          "durationMs": 0,
+          "error": "fetch failed"
+        },
+        {
+          "route": "/internal/vehicle",
+          "ok": false,
+          "status": 0,
+          "redirected": false,
+          "contentType": null,
+          "durationMs": 1,
+          "error": "fetch failed"
+        },
+        {
+          "route": "/api/status",
+          "ok": false,
+          "status": 0,
+          "redirected": false,
+          "contentType": null,
+          "durationMs": 1,
+          "error": "fetch failed"
+        },
+        {
+          "route": "/api/diagnostics",
+          "ok": false,
+          "status": 0,
+          "redirected": false,
+          "contentType": null,
+          "durationMs": 0,
+          "error": "fetch failed"
+        }
+      ],
+      "docker": null,
+      "blocked": [
+        "NEXUS_RELEASE_BASE_URL is missing; capture used local fallback.",
+        "Docker CLI is unavailable; local container proof remains blocked."
+      ],
+      "releaseProofReady": false
+    },
+    "dependencyAudit": {
+      "knownWarning": {
+        "source": "github-push-warning",
+        "repository": "mad818/personal",
+        "totalAlerts": 75,
+        "severityCounts": {
+          "critical": 3,
+          "high": 23,
+          "moderate": 39,
+          "low": 10
+        },
+        "note": "Initial push-warning counts are preserved for audit history. Imported Dependabot metadata is the current source of truth for this artifact.",
+        "supersededByImportedMetadata": true
+      },
+      "classification": {
+        "runtimeCritical": {
+          "status": "ready",
+          "count": 14,
+          "description": "Alerts with production/runtime impact by Dependabot scope, direct dependency group, or lockfile ownership.",
+          "alerts": [
+            {
+              "alertNumber": 115,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 113,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 112,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 92,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 91,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 90,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.18",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 87,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 117,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 114,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 111,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 85,
+              "packageName": "postcss",
+              "severity": "moderate",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "devDependencies",
+              "lockfileOwnership": "mixed",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "8.5.10",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 68,
+              "packageName": "prismjs",
+              "severity": "moderate",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": true,
+              "retiredManifest": false,
+              "firstPatchedVersion": "1.30.0",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 119,
+              "packageName": "next",
+              "severity": "low",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 116,
+              "packageName": "next",
+              "severity": "low",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": false,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            }
+          ]
+        },
+        "devOnly": {
+          "status": "ready",
+          "count": 1,
+          "description": "Alerts isolated to development, test, lint, build, or local tooling ownership.",
+          "alerts": [
+            {
+              "alertNumber": 118,
+              "packageName": "brace-expansion",
+              "severity": "moderate",
+              "manifestPath": "package-lock.json",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": false,
+              "firstPatchedVersion": "5.0.6",
+              "blockedReasons": [],
+              "recommendation": "Patch after runtime-impact alerts unless this blocks verification or release tooling."
+            }
+          ]
+        },
+        "transitive": {
+          "status": "ready",
+          "count": 2,
+          "description": "Alerts for packages that are not directly declared in package.json. This can overlap with runtime/dev impact.",
+          "alerts": [
+            {
+              "alertNumber": 68,
+              "packageName": "prismjs",
+              "severity": "moderate",
+              "manifestPath": "package-lock.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": true,
+              "retiredManifest": false,
+              "firstPatchedVersion": "1.30.0",
+              "blockedReasons": [],
+              "recommendation": "Review first; patch in the smallest runtime-safe batch and run full verification."
+            },
+            {
+              "alertNumber": 118,
+              "packageName": "brace-expansion",
+              "severity": "moderate",
+              "manifestPath": "package-lock.json",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": false,
+              "firstPatchedVersion": "5.0.6",
+              "blockedReasons": [],
+              "recommendation": "Patch after runtime-impact alerts unless this blocks verification or release tooling."
+            }
+          ]
+        },
+        "blockedDeferred": {
+          "status": "needs_review",
+          "count": 3,
+          "description": "Alerts missing enough local or Dependabot metadata to select a safe package update.",
+          "alerts": [
+            {
+              "alertNumber": 77,
+              "packageName": "glib",
+              "severity": "moderate",
+              "manifestPath": "desktop/src-tauri/Cargo.lock",
+              "scope": "runtime",
+              "ecosystem": "rust",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": false,
+              "firstPatchedVersion": "0.20.0",
+              "blockedReasons": [
+                "Non-npm alert needs separate ecosystem handling.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Defer until missing Dependabot metadata or lockfile ownership is resolved."
+            },
+            {
+              "alertNumber": 86,
+              "packageName": "tauri",
+              "severity": "moderate",
+              "manifestPath": "desktop/src-tauri/Cargo.lock",
+              "scope": "runtime",
+              "ecosystem": "rust",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": false,
+              "firstPatchedVersion": "2.11.1",
+              "blockedReasons": [
+                "Non-npm alert needs separate ecosystem handling.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Defer until missing Dependabot metadata or lockfile ownership is resolved."
+            },
+            {
+              "alertNumber": 83,
+              "packageName": "rand",
+              "severity": "low",
+              "manifestPath": "desktop/src-tauri/Cargo.lock",
+              "scope": "runtime",
+              "ecosystem": "rust",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": false,
+              "firstPatchedVersion": "0.8.6",
+              "blockedReasons": [
+                "Non-npm alert needs separate ecosystem handling.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Defer until missing Dependabot metadata or lockfile ownership is resolved."
+            }
+          ]
+        },
+        "retiredManifest": {
+          "status": "needs_dependabot_scope_review",
+          "count": 90,
+          "description": "Alerts raised from archive/ manifests. These are not active runtime fixes unless the archived app is intentionally restored.",
+          "alerts": [
+            {
+              "alertNumber": 30,
+              "packageName": "next",
+              "severity": "critical",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.25",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 5,
+              "packageName": "next",
+              "severity": "critical",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.25",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 34,
+              "packageName": "form-data",
+              "severity": "critical",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "4.0.4",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 104,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 103,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 100,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 99,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 94,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 93,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 79,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.15",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 78,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.15",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 47,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.0.8",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 44,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.35",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 43,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.34",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 25,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.15",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 20,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.10",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 15,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.0.8",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 13,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.35",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 12,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.34",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 3,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.15",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 1,
+              "packageName": "next",
+              "severity": "high",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.10",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 22,
+              "packageName": "cross-spawn",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "7.0.5",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 61,
+              "packageName": "flatted",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "3.4.2",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 59,
+              "packageName": "flatted",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "3.4.0",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 42,
+              "packageName": "glob",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "10.5.0",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 57,
+              "packageName": "minimatch",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "3.1.3",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 56,
+              "packageName": "minimatch",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "9.0.7",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 55,
+              "packageName": "minimatch",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "3.1.4",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 54,
+              "packageName": "minimatch",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "9.0.7",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 53,
+              "packageName": "minimatch",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "3.1.3",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 52,
+              "packageName": "minimatch",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "9.0.6",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 64,
+              "packageName": "picomatch",
+              "severity": "high",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "2.3.2",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 24,
+              "packageName": "nanoid",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "mixed",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "3.3.8",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 23,
+              "packageName": "nanoid",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "mixed",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "5.0.9",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 110,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 109,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 102,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 101,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 98,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 97,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 89,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 88,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 62,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.14",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 60,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.13",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 46,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.10",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 37,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.32",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 36,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.31",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 35,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.31",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 26,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.21",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 21,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.7",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 17,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.14",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 16,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.13",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 14,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.10",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 9,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.32",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 8,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.31",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 7,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.31",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 4,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.21",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 2,
+              "packageName": "next",
+              "severity": "moderate",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.7",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 84,
+              "packageName": "postcss",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "devDependencies",
+              "lockfileOwnership": "mixed",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "8.5.10",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 63,
+              "packageName": "yaml",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": "devDependencies",
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "2.8.3",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 29,
+              "packageName": "@babel/runtime",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "7.26.10",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 51,
+              "packageName": "ajv",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "6.14.0",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 67,
+              "packageName": "brace-expansion",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "1.1.13",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 66,
+              "packageName": "brace-expansion",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "2.0.3",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 41,
+              "packageName": "js-yaml",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "4.1.1",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 38,
+              "packageName": "jsondiffpatch",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "0.7.2",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 27,
+              "packageName": "katex",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "0.16.21",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 18,
+              "packageName": "micromatch",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "4.0.8",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 65,
+              "packageName": "picomatch",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "2.3.2",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 28,
+              "packageName": "prismjs",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "1.30.0",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 108,
+              "packageName": "svelte",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "5.55.7",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 107,
+              "packageName": "svelte",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "5.55.7",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 58,
+              "packageName": "svelte",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "5.53.5",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 50,
+              "packageName": "svelte",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "5.51.5",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 49,
+              "packageName": "svelte",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "5.51.5",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 48,
+              "packageName": "svelte",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "5.51.5",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 19,
+              "packageName": "svelte",
+              "severity": "moderate",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "4.2.19",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 106,
+              "packageName": "next",
+              "severity": "low",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 105,
+              "packageName": "next",
+              "severity": "low",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 96,
+              "packageName": "next",
+              "severity": "low",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 95,
+              "packageName": "next",
+              "severity": "low",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "15.5.16",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 39,
+              "packageName": "next",
+              "severity": "low",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.24",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 33,
+              "packageName": "next",
+              "severity": "low",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.30",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 10,
+              "packageName": "next",
+              "severity": "low",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.24",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 6,
+              "packageName": "next",
+              "severity": "low",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": "dependencies",
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": false,
+              "retiredManifest": true,
+              "firstPatchedVersion": "14.2.30",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 40,
+              "packageName": "ai",
+              "severity": "low",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "5.0.52",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 11,
+              "packageName": "ai",
+              "severity": "low",
+              "manifestPath": "archive/package.json",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "absent",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "5.0.52",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime.",
+                "Package is absent from the local package-lock graph."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 32,
+              "packageName": "brace-expansion",
+              "severity": "low",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "1.1.12",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 31,
+              "packageName": "brace-expansion",
+              "severity": "low",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "development",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "dev-only",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "2.0.2",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            },
+            {
+              "alertNumber": 45,
+              "packageName": "diff",
+              "severity": "low",
+              "manifestPath": "archive/pnpm-lock.yaml",
+              "scope": "runtime",
+              "ecosystem": "npm",
+              "directDependencyGroup": null,
+              "lockfileOwnership": "runtime",
+              "transitiveOwnership": true,
+              "retiredManifest": true,
+              "firstPatchedVersion": "5.2.2",
+              "blockedReasons": [
+                "Archived manifest is not part of the active React/Next runtime."
+              ],
+              "recommendation": "Treat as archived-manifest review; do not patch active runtime from this alert."
+            }
+          ]
+        }
+      },
+      "upgradePolicy": {
+        "order": [
+          "Classify runtime-critical alerts first.",
+          "Patch one minimal dependency batch at a time.",
+          "Prefer patched minor/patch ranges before major-version sweeps.",
+          "Run npm run dependency:risk:posture and npm run verify after each batch.",
+          "Regenerate sanitized audit artifacts before committing."
+        ],
+        "blockedUntil": [
+          "GitHub Dependabot metadata identifies package names and patched ranges.",
+          "A rollback point is visible in git status/log.",
+          "Publication safety and security scan pass on the staged state."
+        ],
+        "forbiddenInAuditOnlyPass": [
+          "Package upgrades",
+          "Auth loosening",
+          "Provider bypass",
+          "Public route widening",
+          "Committing private proof values"
+        ]
+      },
+      "metadataSource": {
+        "githubReachable": false,
+        "importedAlertMetadata": true,
+        "alertImportArtifact": "docs/metrics/dependabot-alerts-source.json",
+        "localGraphAvailable": true,
+        "manualMetadataRequired": false,
+        "dependencyPostureArtifact": "docs/metrics/dependency-risk-posture-2026-05-25T05-52-21-853Z.json",
+        "requiredFields": [
+          "package name",
+          "manifest path",
+          "ecosystem",
+          "severity",
+          "vulnerable range",
+          "patched range",
+          "direct or transitive ownership",
+          "runtime or dev-only impact"
+        ]
+      },
+      "blocked": [
+        "90 imported alert(s) target archive/ manifests and need Dependabot scope review before active runtime patching.",
+        "No dependency upgrades were performed in this audit tranche.",
+        "Review the runtimeCritical queue first, then patch one minimal package batch at a time."
+      ],
+      "auditReady": true
+    },
+    "dependencyPosture": {
+      "packageGraph": {
+        "directRuntime": 40,
+        "directDev": 23,
+        "directOptional": 0,
+        "directPeer": 0,
+        "lockfilePackages": 1133,
+        "lockfileRuntimePackages": 365,
+        "lockfileDevPackages": 768,
+        "transitivePackages": 1070
+      },
+      "lifecycleScriptPackageCount": 242,
+      "warnings": [
+        "242 installed package(s) expose lifecycle install scripts and should be reviewed before upgrades."
+      ],
+      "blocked": [],
+      "riskReady": true
+    },
+    "infraHardening": {
+      "checks": [
+        {
+          "id": "publication-safety",
+          "command": "npm run publication:safety:check",
+          "delegatedCommand": "node scripts/validate-publication-safety.mjs",
+          "critical": true,
+          "ok": true,
+          "exitCode": 0,
+          "durationMs": 1080,
+          "summary": [
+            "Publication safety OK (tracked files contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
+          ]
+        },
+        {
+          "id": "security-scan",
+          "command": "npm run security-scan",
+          "delegatedCommand": "node scripts/security-scan.js",
+          "critical": true,
+          "ok": true,
+          "exitCode": 0,
+          "durationMs": 63,
+          "summary": [
+            "✅ security-scan: clean"
+          ]
+        },
+        {
+          "id": "tauri-security",
+          "command": "npm run security:tauri",
+          "delegatedCommand": "node scripts/check-tauri-security.mjs",
+          "critical": false,
+          "ok": true,
+          "exitCode": 0,
+          "durationMs": 35,
+          "summary": [
+            "✅ tauri-security: capability + CSP checks passed"
+          ]
+        },
+        {
+          "id": "security-boundaries",
+          "command": "npm run security:boundaries",
+          "delegatedCommand": "node scripts/validate-security-boundaries.mjs",
+          "critical": false,
+          "ok": true,
+          "exitCode": 0,
+          "durationMs": 37,
+          "summary": [
+            "Security boundary OK (middleware, route policy, protected helpers, high-risk routes, and protected 401/403 posture are wired)."
+          ]
+        },
+        {
+          "id": "dependency-risk-posture",
+          "command": "npm run dependency:risk:posture",
+          "delegatedCommand": "node scripts/dependency-risk-posture.mjs",
+          "critical": false,
+          "ok": true,
+          "exitCode": 0,
+          "durationMs": 145,
+          "summary": [
+            "Dependency risk posture written: docs/metrics/dependency-risk-posture-2026-05-09T22-28-44-321Z.json",
+            "Package graph: 40 runtime direct, 23 dev direct, 1070 transitive lockfile packages.",
+            "Warnings: 1"
+          ]
+        },
+        {
+          "id": "dependabot-audit",
+          "command": "npm run dependabot:audit:classify",
+          "delegatedCommand": "node scripts/dependabot-security-audit.mjs",
+          "critical": false,
+          "ok": true,
+          "exitCode": 0,
+          "durationMs": 41,
+          "summary": [
+            "Dependabot security audit starter written: docs/metrics/dependabot-security-audit-2026-05-09T22-28-44-361Z.json",
+            "Known warning captured: 75 alerts (3 critical, 23 high, 39 moderate, 10 low)."
+          ]
+        },
+        {
+          "id": "phone-lan-static",
+          "command": "npm run phone:lan:check",
+          "delegatedCommand": "node scripts/validate-phone-lan-readiness.mjs",
+          "critical": false,
+          "ok": true,
+          "exitCode": 0,
+          "durationMs": 37,
+          "summary": [
+            "Phone LAN readiness OK (free local runbook, opt-in LAN launcher, env defaults, and readiness surfacing wired)."
+          ]
+        }
+      ],
+      "releasePrerequisites": {
+        "docker": {
+          "dockerfilePresent": true,
+          "dockerCliAvailable": false,
+          "summary": "Docker CLI unavailable from this shell."
+        },
+        "releaseBaseUrlConfiguredInProcess": false,
+        "note": "This audit does not read .env.local; release host/token proof remains operator-local."
+      },
+      "criticalFailures": [],
+      "blocked": [
+        "Docker CLI is unavailable, so container proof remains blocked.",
+        "NEXUS_RELEASE_BASE_URL is not present in the current process; staged-host proof remains blocked."
+      ],
+      "hardeningReady": true
+    }
+  },
+  "blocked": [
+    "Phone/iPad PWA acceptance is still open (desktop local AI and LAN proof are complete).",
+    "Release diagnostics are still blocked by staged-host or Docker proof gaps."
+  ],
+  "releaseCandidateReady": false,
+  "nextCommands": [
+    "npm run git:safe -- push",
+    "npm run phone:lan:start",
+    "npm run phone:acceptance:capture -- --phone-opened --phone-login --ping-receipt --local-ai-receipt --pwa-installed",
+    "npm run release:diagnostics:capture",
+    "npm run dependabot:audit:classify",
+    "npm run dependency:risk:posture",
+    "npm run infra:hardening:audit",
+    "npm run readiness:rollup",
+    "npm run verify"
+  ]
+}

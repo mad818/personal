@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2026-06-20T19:29:37.985Z",
+  "slice": "CP2.1-LOCAL-REHEARSAL",
+  "dockerfilePresent": true,
+  "docker": {
+    "available": false,
+    "version": null
+  },
+  "dockerBuild": {
+    "attempted": false,
+    "passed": false,
+    "skipped": true,
+    "reason": "docker_cli_unavailable"
+  },
+  "stagedHostConfigured": false,
+  "diagnosticsCaptureExitCode": 0,
+  "rollbackChecklist": [
+    "Record deployed image tag or Coolify deployment ID before promote.",
+    "Restore previous Coolify deployment from last known-good snapshot.",
+    "Re-run npm run release:smoke against restored host.",
+    "Verify /api/health, /, /command, and GA tab routes."
+  ],
+  "blockedForFullCp21": [
+    "NEXUS_RELEASE_BASE_URL must point at real Coolify/staged host in .env.local"
+  ],
+  "nextCommands": [
+    "npm run cp2:operational:live-gate",
+    "npm run release:diagnostics:capture",
+    "npm run release:smoke"
+  ]
+}

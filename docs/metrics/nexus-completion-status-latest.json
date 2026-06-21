@@ -1,0 +1,28 @@
+{
+  "generatedAt": "2026-06-20T19:36:42.695Z",
+  "program": "nexus-completion-program-2026",
+  "assimilationWaves": "1-13 shipped; wave14 completion manifest",
+  "activeQueue": "drained",
+  "cp2": {
+    "localLaunchGate": true,
+    "webLocalRehearsal": true,
+    "stagedRehearsalReady": true,
+    "stagedHostConfigured": false,
+    "signingReleaseReady": false
+  },
+  "dependabot": {
+    "localClosureApplied": true,
+    "openAlertsOnGitHub": 0
+  },
+  "deferredByPolicy": [
+    "FREE-LOCAL-PHONE-ACCEPTANCE (physical phone/iPad)",
+    "LOCAL-AI-OFFLINE-OPERATIONS (browser/phone receipt)",
+    "MW6* ARPG production lane",
+    "UXA3 worktree retirement"
+  ],
+  "operatorActions": [
+    "Set NEXUS_RELEASE_BASE_URL in .env.local, then npm run cp2:staged:release:rehearsal",
+    "Set NEXUS_WINDOWS_SIGNING_THUMBPRINT (or macOS identity), then npm run desktop:signing:preflight",
+    "git commit && git push (ship js-yaml@4.2.0 and wave 10–14 changes)"
+  ]
+}

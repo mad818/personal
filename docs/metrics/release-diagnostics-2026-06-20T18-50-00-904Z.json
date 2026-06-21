@@ -1,0 +1,101 @@
+{
+  "capturedAt": "2026-06-20T18:50:00.904Z",
+  "baseUrl": "http://127.0.0.1:3100",
+  "baseUrlSource": "local-fallback",
+  "routes": [
+    {
+      "route": "/api/health",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 28,
+      "error": "fetch failed"
+    },
+    {
+      "route": "/",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 2,
+      "error": "fetch failed"
+    },
+    {
+      "route": "/hq?focus=hq-chronicle",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 1,
+      "error": "fetch failed"
+    },
+    {
+      "route": "/command",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 1,
+      "error": "fetch failed"
+    },
+    {
+      "route": "/resources",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 1,
+      "error": "fetch failed"
+    },
+    {
+      "route": "/vehicle",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 1,
+      "error": "fetch failed"
+    },
+    {
+      "route": "/internal/vehicle",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 1,
+      "error": "fetch failed"
+    },
+    {
+      "route": "/api/status",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 2,
+      "error": "fetch failed"
+    },
+    {
+      "route": "/api/diagnostics",
+      "ok": false,
+      "status": 0,
+      "redirected": false,
+      "contentType": null,
+      "durationMs": 1,
+      "error": "fetch failed"
+    }
+  ],
+  "environment": {
+    "hasReleaseBaseUrl": false,
+    "hasToken": true,
+    "dockerExpected": true,
+    "dockerAvailable": false,
+    "node": "v24.14.0",
+    "platform": "win32"
+  },
+  "blocked": [
+    "NEXUS_RELEASE_BASE_URL is missing; capture used local fallback.",
+    "Docker CLI is unavailable; local container proof remains blocked."
+  ],
+  "releaseProofReady": false
+}

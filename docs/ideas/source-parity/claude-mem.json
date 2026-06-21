@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "claude-mem",
+  "name": "claude-mem",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/thedotmack/claude-mem",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/thedotmack/claude-mem",
+      "https://github.com/thedotmack/claude-mem/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "passive-post-run-memory-capture",
+      "title": "Capture passive session notes after substantive HQ runs",
+      "sourceEvidence": "README describes automatic memory capture after agent runs",
+      "disposition": "adapted",
+      "proof": [
+        "lib/passiveSessionMemory.ts",
+        "components/home/office/OfficeCommandCenter.tsx",
+        "store/useStore.ts",
+        "scripts/validate-passive-session-memory.mjs"
+      ],
+      "adaptationNotes": "Persisted passiveMemoryTrail in client settings instead of a background daemon writing to /.auto-memory/."
+    },
+    {
+      "id": "next-session-memory-injection",
+      "title": "Inject recent passive memory into the next HQ session prompt",
+      "sourceEvidence": "Memory replay into subsequent sessions",
+      "disposition": "adapted",
+      "proof": [
+        "lib/passiveSessionMemory.ts",
+        "lib/liveContext.ts",
+        "components/home/office/OfficeCommandCenter.tsx"
+      ]
+    },
+    {
+      "id": "background-filesystem-daemon",
+      "title": "Run a persistent background daemon that writes memory files outside Nexus state",
+      "sourceEvidence": "Upstream auto-memory filesystem watcher pattern",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus keeps memory capture passive, bounded, and inside existing client settings persistence."
+    }
+  ]
+}

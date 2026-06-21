@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "docusealco-docuseal",
+  "name": "DocuSeal",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/docusealco/docuseal",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "AGPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/docusealco/docuseal",
+      "https://github.com/docusealco/docuseal/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "document-template-creation",
+      "title": "Document template creation: drag-and-drop field placement on PDF/Word documents",
+      "sourceEvidence": "DocuSeal template builder: visual field placement for signature, text, date, checkbox",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is an intelligence dashboard, not a document signing platform. DocuSeal's core product is out of scope."
+    },
+    {
+      "id": "electronic-signature-workflow",
+      "title": "Electronic signature request and collection workflow",
+      "sourceEvidence": "DocuSeal: send, sign, and collect legally-binding e-signatures",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "E-signature workflows are out of scope for Nexus."
+    },
+    {
+      "id": "pdf-field-extraction-pattern",
+      "title": "PDF field extraction: parse form fields and metadata from PDF documents",
+      "sourceEvidence": "DocuSeal PDF processing pipeline: field extraction for template mapping",
+      "disposition": "pending",
+      "reason": "Nexus VAULT could benefit from PDF field extraction patterns for document intelligence; adaptation deferred pending VAULT document feature."
+    },
+    {
+      "id": "self-hosted-document-server",
+      "title": "Self-hosted document processing server with REST API",
+      "sourceEvidence": "DocuSeal self-hosted deployment with REST API",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus does not need a separate self-hosted document server; all features run within the Next.js app."
+    }
+  ]
+}

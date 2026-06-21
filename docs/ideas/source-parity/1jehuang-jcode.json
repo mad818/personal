@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "1jehuang-jcode",
+  "name": "jcode",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/1jehuang/jcode",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/1jehuang/jcode",
+      "https://github.com/1jehuang/jcode/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "code-intelligence-assistant",
+      "title": "Code intelligence assistant: inline code explanation, refactor suggestions, and generation",
+      "sourceEvidence": "jcode: lightweight AI coding assistant with context-aware code actions",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a dashboard, not an IDE plugin or coding assistant. ORBIT handles code edits; a separate code assistant runtime is out of scope."
+    },
+    {
+      "id": "context-window-code-chunking",
+      "title": "Context-window-aware code chunking: split large files into semantic chunks for LLM context",
+      "sourceEvidence": "jcode: file chunking strategy for large codebase LLM context",
+      "disposition": "pending",
+      "reason": "Nexus RECON repo assimilation reads full files; semantic chunking for large file LLM context is a useful pattern to adapt."
+    },
+    {
+      "id": "inline-diff-presentation",
+      "title": "Inline diff presentation: show before/after for suggested code changes",
+      "sourceEvidence": "jcode: diff-first UI for code suggestion review",
+      "disposition": "pending",
+      "reason": "Nexus ORBIT edits files directly; an inline diff UI for change preview in the dashboard is not yet implemented."
+    }
+  ]
+}

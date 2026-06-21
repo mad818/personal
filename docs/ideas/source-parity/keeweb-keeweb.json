@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "keeweb-keeweb",
+  "name": "KeeWeb",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/keeweb/keeweb",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/keeweb/keeweb",
+      "https://github.com/keeweb/keeweb/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "web-based-password-manager",
+      "title": "Web-based KeePass-compatible password manager (offline-first PWA)",
+      "sourceEvidence": "KeeWeb: browser-based KDBX reader with offline-first design",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a password manager. KeeWeb's core product is outside scope."
+    },
+    {
+      "id": "offline-first-pwa-pattern",
+      "title": "Offline-first PWA pattern: full functionality without network access, local-first sync",
+      "sourceEvidence": "KeeWeb offline-first design: works fully in airplane mode, syncs opportunistically",
+      "disposition": "pending",
+      "reason": "Nexus is a PWA; KeeWeb's offline-first sync pattern (service worker + indexed DB caching) is a useful reference for improving Nexus offline capability."
+    },
+    {
+      "id": "webdav-dropbox-sync",
+      "title": "WebDAV and Dropbox sync for vault files across devices",
+      "sourceEvidence": "KeeWeb sync providers: WebDAV, Dropbox, Google Drive",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus data sync uses git; third-party file sync providers are outside scope."
+    },
+    {
+      "id": "plugin-architecture",
+      "title": "Plugin architecture for extending KeeWeb with custom features",
+      "sourceEvidence": "KeeWeb plugins: community-authored capability extensions",
+      "disposition": "pending",
+      "reason": "Nexus skills system is the extension point; a formal plugin architecture with versioned API is pending."
+    }
+  ]
+}

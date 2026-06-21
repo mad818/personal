@@ -123,6 +123,8 @@
     "local:acceleration:acceptance:require-upstream-runtime": "npm run local:acceleration:check && node --no-warnings --experimental-strip-types scripts/local-acceleration-acceptance.mjs --static-verified --write --require-upstream-runtime --execute-turboquant",
     "local:acceleration:check": "node scripts/validate-local-acceleration-plane.mjs && npm run local:acceleration:turbovec:install:check && npm run local:acceleration:turboquant:audit:check && npm run local:acceleration:service:check && npm run local:acceleration:runtime:check && npm run local:acceleration:acceptance:check",
     "source:parity:check": "node scripts/validate-source-assimilation-parity.mjs",
+    "codegraph:build": "node scripts/build-codegraph.mjs",
+    "assimilation:wave23:check": "node scripts/validate-assimilation-wave23.mjs",
     "network:source-integrations:check": "node scripts/check-network-source-integrations.mjs && npm run network:source-integrations:runtime:check",
     "network:source-integrations:runtime:check": "node --no-warnings --experimental-strip-types scripts/check-network-source-integrations-runtime.mjs",
     "source:codewhale-obliteratus:runtime:check": "node --no-warnings --experimental-strip-types scripts/check-codewhale-obliteratus-runtime.mjs",

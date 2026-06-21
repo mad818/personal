@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "id": "soxoj-maigret",
+  "name": "Maigret",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/soxoj/maigret",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/soxoj/maigret",
+      "https://github.com/soxoj/maigret/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "username-osint-multi-site",
+      "title": "Username OSINT across 3000+ sites: check profile existence and extract public metadata",
+      "sourceEvidence": "Maigret core: username search across a curated 3000+ site database",
+      "disposition": "pending",
+      "reason": "Nexus RECON has GeocodingPlaygroundCard and RepoAssimilationQueueCard; username OSINT multi-site sweep is not yet implemented."
+    },
+    {
+      "id": "person-report-generation",
+      "title": "Structured person report: aggregate findings into a profile with confidence levels",
+      "sourceEvidence": "Maigret report output: HTML, PDF, JSON, CSV with cross-platform evidence",
+      "disposition": "pending",
+      "reason": "Nexus RECON does not yet produce structured person intelligence reports."
+    },
+    {
+      "id": "site-database-maintenance",
+      "title": "Site database: maintained JSON definitions for 3000+ platforms with check patterns",
+      "sourceEvidence": "Maigret sites.json: curated platform definitions updated by community",
+      "disposition": "pending",
+      "reason": "A maintained site check database for RECON username enumeration is not yet implemented in Nexus."
+    },
+    {
+      "id": "recursive-username-extraction",
+      "title": "Recursive username extraction: find linked usernames on discovered profiles",
+      "sourceEvidence": "Maigret recursive mode: follow aliases found on profile pages",
+      "disposition": "pending",
+      "reason": "Username recursion (follow-the-alias) not yet implemented."
+    },
+    {
+      "id": "proxy-anonymity-routing",
+      "title": "Route OSINT requests through proxy chains for operational security",
+      "sourceEvidence": "Maigret proxy support: SOCKS5, HTTP proxy chains",
+      "disposition": "pending",
+      "reason": "Nexus does not yet route RECON requests through proxy chains; anonymity routing for OSINT pending."
+    },
+    {
+      "id": "paid-osint-api-integration",
+      "title": "Paid OSINT data broker integration",
+      "sourceEvidence": "Maigret optional paid OSINT API integrations",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "Nexus is BYOK free; paid OSINT data broker subscriptions are excluded."
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "getumbrel-umbrel",
+  "name": "Umbrel",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/getumbrel/umbrel",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "PolyForm Noncommercial 1.0.0",
+    "primaryEvidence": [
+      "https://github.com/getumbrel/umbrel",
+      "https://github.com/getumbrel/umbrel/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "app-store-ux-pattern",
+      "title": "Home server app-store UX: one-click install, uninstall, and update for self-hosted apps",
+      "sourceEvidence": "Umbrel app store: catalog of self-hosted apps with single-click management",
+      "disposition": "pending",
+      "reason": "Nexus COMMAND could adapt app-store UX patterns for managing optional Nexus modules or integrations; design reference pending."
+    },
+    {
+      "id": "self-host-onboarding-ux",
+      "title": "Self-host onboarding UX: guided setup wizard for first-time home server configuration",
+      "sourceEvidence": "Umbrel onboarding: step-by-step setup with network, storage, and app config",
+      "disposition": "pending",
+      "reason": "Nexus desktop app has basic setup; a guided onboarding wizard with progress indicators is not yet implemented."
+    },
+    {
+      "id": "app-health-dashboard",
+      "title": "App health dashboard: per-service status, resource usage, and restart controls",
+      "sourceEvidence": "Umbrel dashboard: CPU, RAM, storage per running service",
+      "disposition": "pending",
+      "reason": "Nexus COMMAND has status panels; a per-service resource usage and health control panel modeled on Umbrel's dashboard is pending."
+    },
+    {
+      "id": "openclaw-runtime-dependency",
+      "title": "OpenClaw container runtime dependency for app management",
+      "sourceEvidence": "Umbrel uses container runtime for app isolation",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "User explicitly excluded OpenClaw runtime dependencies. Umbrel is reference-only for self-host UX patterns; its container runtime is not adopted."
+    },
+    {
+      "id": "bundled-app-catalog",
+      "title": "Bundled catalog of third-party self-hosted applications (Bitwarden, Nextcloud, etc.)",
+      "sourceEvidence": "Umbrel app catalog: 100+ community-curated apps",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a standalone intelligence dashboard, not an app marketplace. Bundling a third-party app catalog is out of scope."
+    }
+  ]
+}

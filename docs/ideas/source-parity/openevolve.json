@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "openevolve",
+  "name": "OpenEvolve",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/algorithmicsuperintelligence/openevolve",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "Apache-2.0",
+    "primaryEvidence": [
+      "https://github.com/algorithmicsuperintelligence/openevolve",
+      "https://github.com/algorithmicsuperintelligence/openevolve/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "benchmark-gated-variant-review",
+      "title": "Review runtime experiment variants with keep/reject/defer operator gates",
+      "sourceEvidence": "AlphaEvolve-style search loops with benchmark-gated promotion",
+      "disposition": "adapted",
+      "proof": [
+        "lib/evolutionImprover.ts",
+        "components/ui/EvolutionImproverActions.tsx",
+        "components/ui/RuntimeEvalTrend.tsx",
+        "scripts/validate-openevolve-assimilation.mjs"
+      ],
+      "adaptationNotes": "Bounded to existing runtime experiment lane; no autonomous self-modifying production runtime."
+    },
+    {
+      "id": "runtime-experiment-comparison",
+      "title": "Compare baseline vs variant eval snapshots with recommendation posture",
+      "sourceEvidence": "Evolutionary improvement requires scored comparisons",
+      "disposition": "adapted",
+      "proof": [
+        "lib/runtimeExperimentContracts.ts",
+        "lib/runtimeExperimentLedger.ts",
+        "scripts/validate-runtime-experiment-improver.mjs"
+      ]
+    },
+    {
+      "id": "autonomous-code-mutation-runtime",
+      "title": "Run autonomous code mutation and deploy loops inside Nexus production",
+      "sourceEvidence": "Upstream evolutionary search modifies candidates automatically",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus keeps improvement loops benchmark-gated, operator-approved, and non-mutating for production paths."
+    }
+  ]
+}

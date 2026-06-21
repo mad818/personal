@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "owasp-apts",
+  "name": "OWASP APTS",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/OWASP/APTS",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "Unknown",
+    "primaryEvidence": [
+      "https://github.com/OWASP/APTS",
+      "https://github.com/OWASP/APTS/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "autonomy-review-vocabulary",
+      "title": "Convert APTS domains into operator review vocabulary for agent autonomy",
+      "sourceEvidence": "APTS governance domains for autonomous testing platforms",
+      "disposition": "adapted",
+      "proof": [
+        "lib/agentAutonomyGovernance.ts",
+        "components/cyber/CyberGovernanceCards.tsx",
+        "lib/homefrontSourceIntelligence.ts",
+        "scripts/validate-ai-exposure-assimilation.mjs"
+      ],
+      "adaptationNotes": "Review language only; Nexus does not claim APTS conformance."
+    },
+    {
+      "id": "conformance-certification",
+      "title": "Claim formal APTS conformance or certification inside the product",
+      "sourceEvidence": "APTS standard positioning",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Conformance requires external assessment; Nexus supplies checklist vocabulary only."
+    }
+  ]
+}

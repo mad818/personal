@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "ai-osint",
+  "name": "AI OSINT",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/7WaySecurity/ai_osint",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "Unknown",
+    "primaryEvidence": [
+      "https://github.com/7WaySecurity/ai_osint",
+      "https://github.com/7WaySecurity/ai_osint/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "ai-exposure-taxonomy-ingest",
+      "title": "Ingest passive AI exposure taxonomy (LLM endpoints, leaked keys, vector DBs, MCP surfaces)",
+      "sourceEvidence": "Repository taxonomy and README category structure",
+      "disposition": "adapted",
+      "proof": [
+        "lib/aiExposureReview.ts",
+        "lib/vulnerabilityReview.ts",
+        "scripts/validate-ai-exposure-assimilation.mjs"
+      ],
+      "adaptationNotes": "Five passive-first exposure packs plus vulnerability-review knowledge card; no offensive automation."
+    },
+    {
+      "id": "passive-review-pack-generation",
+      "title": "Generate passive AI exposure review packs for operators",
+      "sourceEvidence": "Repository guidance focused on reconnaissance patterns and review workflows",
+      "disposition": "adapted",
+      "proof": [
+        "components/recon/AiExposureReviewCard.tsx",
+        "app/cyber/page.tsx",
+        "app/recon/page.tsx",
+        "scripts/check-ai-exposure-assimilation-runtime.mjs"
+      ],
+      "adaptationNotes": "CYBER and RECON triage lanes file advisory reviews to VAULT with workflowId ai-exposure-review."
+    },
+    {
+      "id": "automated-offensive-recon",
+      "title": "Automate offensive active reconnaissance against arbitrary third-party targets",
+      "sourceEvidence": "Recon workflow ideas in source ecosystem",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus remains read-only/advisory and does not ship offensive automation."
+    }
+  ]
+}

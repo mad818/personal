@@ -4,6 +4,10 @@ import {
   type FeynmanProgressiveCoverage,
   type FeynmanProgressiveWebResult,
 } from "./feynmanProgressiveResearch.ts";
+import {
+  parseFeynmanPaperSearchFilters,
+  applyFeynmanPaperSearchFilters,
+} from "./feynmanAcademicFilters.ts";
 
 export type FeynmanWorkflowId =
   | "deepresearch"

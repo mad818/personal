@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "geocoding-playground",
+  "name": "geocoding-playground",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/walkthru-earth/geocoding-playground",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/walkthru-earth/geocoding-playground",
+      "https://github.com/walkthru-earth/geocoding-playground/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "bounded-geocode-proxy",
+      "title": "Proxy bounded forward and reverse geocoding for operator lookup",
+      "sourceEvidence": "README client-side geocoding and coordinate playground",
+      "disposition": "adapted",
+      "proof": [
+        "app/api/geocode/route.ts",
+        "lib/geoCoordinateLookup.ts",
+        "lib/security/routePolicy.ts"
+      ],
+      "adaptationNotes": "Nominatim proxy with cache TTL instead of bundling DuckDB-WASM + Overture Parquet."
+    },
+    {
+      "id": "recon-geocoding-playground-ui",
+      "title": "Surface geocoding playground controls on RECON",
+      "sourceEvidence": "Operator geocoding experimentation for OSINT pivots",
+      "disposition": "adapted",
+      "proof": [
+        "components/recon/GeocodingPlaygroundCard.tsx",
+        "app/recon/page.tsx",
+        "scripts/validate-geocoding-playground-assimilation.mjs"
+      ]
+    },
+    {
+      "id": "client-duckdb-overture-bundle",
+      "title": "Bundle DuckDB-WASM and Overture Parquet parsers inside the web app",
+      "sourceEvidence": "Upstream ships heavy client-side parquet geocoding stack",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus uses a bounded server proxy and RECON playground card instead of vendoring the full WASM data plane."
+    }
+  ]
+}

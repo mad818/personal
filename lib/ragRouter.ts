@@ -613,3 +613,26 @@ export async function buildRagContextBlockAsync(
     `[END RAG ROUTING]\n`
   );
 }
+
+/** Boost RAG confidence by detecting entity hits in query vs saved articles. */
+export function boostRagConfidenceWithEntities(
+  query: string,
+  savedArticles?: { title?: string; content?: string }[],
+): { boostedConfidence: number; entityHits: string[] } {
+  const tokens = query.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length > 3);
+  if (!tokens.length || !savedArticles?.length) {
+    return { boostedConfidence: 0.2, entityHits: [] };
+  }
+  const entityHits: string[] = [];
+  for (const article of savedArticles) {
+    const text = ((article.title ?? "") + " " + (article.content ?? "")).toLowerCase();
+    for (const token of tokens) {
+      if (text.includes(token) && !entityHits.includes(token)) {
+        entityHits.push(token);
+        break;
+      }
+    }
+  }
+  const ratio = entityHits.length / savedArticles.length;
+  return { boostedConfidence: 0.2 + ratio * 0.6, entityHits };
+}

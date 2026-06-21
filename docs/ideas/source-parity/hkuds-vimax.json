@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "hkuds-vimax",
+  "name": "ViMax",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/HKUDS/ViMax",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/HKUDS/ViMax",
+      "https://github.com/HKUDS/ViMax/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "video-multimodal-reasoning",
+      "title": "Video-grounded multimodal reasoning: answer questions with evidence from video frames",
+      "sourceEvidence": "ViMax: video-language model for fine-grained video understanding and Q&A",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "ViMax requires GPU-accelerated video model inference; Nexus free/local invariant and no video intelligence lane currently."
+    },
+    {
+      "id": "fine-grained-temporal-understanding",
+      "title": "Fine-grained temporal reasoning: locate specific events within video timelines",
+      "sourceEvidence": "ViMax temporal grounding: pinpoint event timestamps in long videos",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "GPU-dependent model; excluded pending a local video model lane."
+    },
+    {
+      "id": "multimodal-context-patterns",
+      "title": "Multimodal context fusion patterns: combine video, audio, and text signals for reasoning",
+      "sourceEvidence": "ViMax multimodal fusion architecture",
+      "disposition": "pending",
+      "reason": "If Nexus adds multimodal intelligence beyond images, ViMax fusion architecture patterns are a useful reference."
+    }
+  ]
+}

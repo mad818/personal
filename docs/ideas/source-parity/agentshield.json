@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "agentshield",
+  "name": "AgentShield",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/affaan-m/agentshield",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "Unknown",
+    "primaryEvidence": [
+      "https://github.com/affaan-m/agentshield",
+      "https://github.com/affaan-m/agentshield/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "agent-config-checklist",
+      "title": "Audit agent configuration surfaces with a structured security checklist",
+      "sourceEvidence": "Repository scanner positioning for agent configs and permissions",
+      "disposition": "adapted",
+      "proof": [
+        "lib/agentShieldPosture.ts",
+        "components/cyber/CyberGovernanceCards.tsx",
+        "scripts/validate-ai-exposure-assimilation.mjs"
+      ],
+      "adaptationNotes": "Operator checklist for tool scope, secrets, mutation gates, and audit trail — no bundled scanner runtime."
+    },
+    {
+      "id": "mcp-permission-review",
+      "title": "Review MCP permission posture and risky tool permission combinations",
+      "sourceEvidence": "Repository scanner focus includes MCP servers and permission posture",
+      "disposition": "adapted",
+      "proof": [
+        "lib/agentShieldPosture.ts",
+        "components/cyber/CyberGovernanceCards.tsx"
+      ],
+      "adaptationNotes": "MCP origin trust and connector opt-in items surface in CYBER governance cards."
+    },
+    {
+      "id": "runtime-scanner-dependency",
+      "title": "Bundle source scanner as a required runtime dependency in Nexus",
+      "sourceEvidence": "Repository offers scanner implementation details",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus policy keeps this as optional checklist-first behavior until explicit operator approval."
+    }
+  ]
+}

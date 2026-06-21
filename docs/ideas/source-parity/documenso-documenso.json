@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "documenso-documenso",
+  "name": "Documenso",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/documenso/documenso",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "AGPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/documenso/documenso",
+      "https://github.com/documenso/documenso/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "document-signing-platform",
+      "title": "Open-source document signing platform: upload, place fields, request signatures",
+      "sourceEvidence": "Documenso: self-hosted DocuSign alternative with full signing workflow",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a document signing platform. Documenso's core product is outside scope."
+    },
+    {
+      "id": "next-js-app-router-patterns",
+      "title": "Next.js App Router patterns at scale: multi-tenant, server actions, API routes",
+      "sourceEvidence": "Documenso: full Next.js 14 App Router application with real-world complexity",
+      "disposition": "pending",
+      "reason": "Documenso is a production Next.js 14 app like Nexus; its App Router patterns, server action usage, and multi-step form implementations are a useful reference."
+    },
+    {
+      "id": "pdf-rendering-pipeline",
+      "title": "PDF rendering in browser: react-pdf, PDF.js for document preview",
+      "sourceEvidence": "Documenso: browser-side PDF rendering for signature placement",
+      "disposition": "pending",
+      "reason": "Nexus VAULT or INTEL could use PDF rendering patterns for research paper and document preview."
+    },
+    {
+      "id": "email-action-workflow",
+      "title": "Email-triggered action workflow: link in email → authenticated action in web app",
+      "sourceEvidence": "Documenso: sign-document email flow with single-use token",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus does not send action emails; this workflow is outside scope."
+    }
+  ]
+}

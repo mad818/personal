@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "id": "lightrag",
+  "name": "LightRAG",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/HKUDS/LightRAG",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/HKUDS/LightRAG",
+      "https://github.com/HKUDS/LightRAG/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "hybrid-retrieval-routing",
+      "title": "Route queries to domain-specific retrieval lanes with confidence posture",
+      "sourceEvidence": "LightRAG hybrid graph + vector retrieval pattern",
+      "disposition": "adapted",
+      "proof": [
+        "lib/ragRouter.ts",
+        "scripts/validate-lightrag-assimilation.mjs"
+      ],
+      "adaptationNotes": "Keyword + reasoning fallback routing without vendoring the LightRAG graph store."
+    },
+    {
+      "id": "entity-confidence-boost",
+      "title": "Boost retrieval confidence when saved archive entities match the query",
+      "sourceEvidence": "Graph-aware entity linking in LightRAG-style RAG",
+      "disposition": "adapted",
+      "proof": [
+        "lib/ragRouter.ts",
+        "lib/articleReasoning.ts"
+      ]
+    },
+    {
+      "id": "local-archive-clues",
+      "title": "Inject local saved-article clues into async RAG blocks",
+      "sourceEvidence": "Dual-level retrieval combining local and remote evidence",
+      "disposition": "adapted",
+      "proof": [
+        "lib/ragRouter.ts",
+        "components/home/office/OfficeCommandCenter.tsx"
+      ]
+    },
+    {
+      "id": "lightrag-python-graph-store",
+      "title": "Bundle the upstream LightRAG Python graph database inside Nexus",
+      "sourceEvidence": "Upstream ships a standalone Python graph RAG runtime",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus uses native routing and saved-article entity boost instead of vendoring the graph backend."
+    }
+  ]
+}

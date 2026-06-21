@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "gopasspw-gopass",
+  "name": "gopass",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/gopasspw/gopass",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/gopasspw/gopass",
+      "https://github.com/gopasspw/gopass/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "cli-password-manager",
+      "title": "CLI-first password manager backed by GPG encryption and git version control",
+      "sourceEvidence": "gopass: pass-compatible CLI password manager with git integration",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a web dashboard, not a CLI password manager. GPG-based credential storage is outside product scope."
+    },
+    {
+      "id": "git-as-sync-backend",
+      "title": "Git as the sync and audit backend for encrypted secrets",
+      "sourceEvidence": "gopass: secrets stored as GPG-encrypted files in a git repository",
+      "disposition": "pending",
+      "reason": "Nexus already uses git; the pattern of using git as an auditable encrypted data store for user settings is worth exploring."
+    },
+    {
+      "id": "secret-hierarchy",
+      "title": "Hierarchical secret paths: organize secrets in a Unix-style directory tree",
+      "sourceEvidence": "gopass tree structure: secrets/email/google, secrets/api/openai",
+      "disposition": "pending",
+      "reason": "Nexus API key management is flat; a hierarchical path structure for credential organization is a useful UX reference."
+    },
+    {
+      "id": "gpg-key-requirement",
+      "title": "GPG key requirement for all encryption operations",
+      "sourceEvidence": "gopass: requires GPG key pair for encrypt/decrypt",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus uses browser-native crypto (SubtleCrypto); requiring GPG key management is an unnecessary dependency for the target user."
+    }
+  ]
+}

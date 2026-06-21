@@ -21,6 +21,7 @@ import {
   AI_EVIDENCE_DISCIPLINE_BLOCK,
   AI_TRUTH_BOUNDARY_BLOCK,
 } from "@/lib/aiTruthBoundary";
+import { YAGNI_AGENT_DIRECTIVE } from "@/lib/agentYagniGuardrails";
 import {
   normalizePreferredAIProvider,
   resolveApiAIProvider,
@@ -1012,5 +1013,7 @@ Reasoning standard — operate like a senior analyst:
 
 ${AI_TRUTH_BOUNDARY_BLOCK}
 
-${AI_EVIDENCE_DISCIPLINE_BLOCK}${profile}${liveContext}`;
+${AI_EVIDENCE_DISCIPLINE_BLOCK}
+
+${YAGNI_AGENT_DIRECTIVE}${profile}${liveContext}`;
 }

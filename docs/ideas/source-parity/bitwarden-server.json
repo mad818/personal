@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "bitwarden-server",
+  "name": "Bitwarden Server",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/bitwarden/server",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "AGPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/bitwarden/server",
+      "https://github.com/bitwarden/server/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "vault-sync-api",
+      "title": "REST API for vault sync: encrypted items, folders, collections, and org sharing",
+      "sourceEvidence": "Bitwarden server: complete vault API for all official clients",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a password vault server. Bitwarden server API is outside product scope."
+    },
+    {
+      "id": "send-feature",
+      "title": "Bitwarden Send: end-to-end encrypted file and text sharing with expiration",
+      "sourceEvidence": "Bitwarden Send: ephemeral encrypted sharing links",
+      "disposition": "pending",
+      "reason": "Encrypted ephemeral sharing links are a useful security pattern; could be adapted for Nexus research artifact sharing. Pending."
+    },
+    {
+      "id": "event-log-api",
+      "title": "Event log API: structured audit trail for all vault operations",
+      "sourceEvidence": "Bitwarden server event log: structured JSONL per-action audit",
+      "disposition": "pending",
+      "reason": "Nexus CYBER governance patterns could adapt a structured event log API; pending CYBER audit trail implementation."
+    },
+    {
+      "id": "saas-licensing",
+      "title": "Per-seat SaaS licensing and billing for organizations",
+      "sourceEvidence": "Bitwarden server: license enforcement for organizations",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is MIT-licensed and free; SaaS billing infrastructure is excluded by the product guarantee."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "mattpocock-skills",
+  "name": "mattpocock/skills",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/mattpocock/skills",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/mattpocock/skills",
+      "https://github.com/mattpocock/skills/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "typescript-skill-taxonomy",
+      "title": "Practical TypeScript skill taxonomy: narrowing, generics, inference, branded types, patterns",
+      "sourceEvidence": "mattpocock/skills: curated real-engineer TypeScript skill progression",
+      "disposition": "pending",
+      "reason": "Nexus TypeScript follows standard Next.js/React patterns; a structured skill taxonomy for ORBIT TypeScript discipline is not yet documented."
+    },
+    {
+      "id": "exercise-based-skill-validation",
+      "title": "Exercise-based skill validation: each skill has a failing test that passes when mastered",
+      "sourceEvidence": "mattpocock/skills: test-gated exercises prove skill acquisition",
+      "disposition": "pending",
+      "reason": "Nexus uses tsc --noEmit and lint as gates; exercise-based skill proof system not implemented."
+    },
+    {
+      "id": "progressive-skill-paths",
+      "title": "Progressive skill paths: beginner → intermediate → advanced with dependencies",
+      "sourceEvidence": "mattpocock/skills: skill graph with prerequisite dependencies",
+      "disposition": "pending",
+      "reason": "Nexus agent skills are flat; progressive skill paths with prerequisites not yet structured."
+    },
+    {
+      "id": "real-world-pattern-library",
+      "title": "Real-world pattern library: common TypeScript patterns extracted from production codebases",
+      "sourceEvidence": "mattpocock/skills: patterns from real production TypeScript at scale",
+      "disposition": "pending",
+      "reason": "Nexus ORBIT uses standard patterns; a curated reference library of production TypeScript patterns is not yet assembled."
+    }
+  ]
+}

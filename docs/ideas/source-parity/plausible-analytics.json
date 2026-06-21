@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "plausible-analytics",
+  "name": "Plausible Analytics",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/plausible/analytics",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "AGPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/plausible/analytics",
+      "https://github.com/plausible/analytics/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "privacy-first-analytics",
+      "title": "Privacy-first web analytics: no cookies, no PII, GDPR-compliant pageview tracking",
+      "sourceEvidence": "Plausible core: cookieless tracking with aggregated metrics only",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a personal local dashboard; it does not run a public website requiring visitor analytics."
+    },
+    {
+      "id": "event-tracking-api",
+      "title": "Lightweight event tracking API: single JS snippet, POST endpoint for custom events",
+      "sourceEvidence": "Plausible script.js and /api/event endpoint",
+      "disposition": "pending",
+      "reason": "Nexus could adopt Plausible's lightweight event API pattern for internal usage telemetry (local only, no PII). Pending privacy model review."
+    },
+    {
+      "id": "aggregated-metrics-dashboard",
+      "title": "Aggregated metrics dashboard: unique visitors, pageviews, bounce rate, top pages",
+      "sourceEvidence": "Plausible dashboard: clean aggregated analytics UI",
+      "disposition": "pending",
+      "reason": "Nexus COMMAND could surface local usage metrics (most-used tabs, agent call frequency) using an aggregated dashboard pattern."
+    },
+    {
+      "id": "multi-site-analytics-platform",
+      "title": "Multi-site analytics SaaS platform with team dashboards",
+      "sourceEvidence": "Plausible cloud: multiple sites, team sharing, subscription billing",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a personal tool, not a multi-tenant analytics SaaS."
+    }
+  ]
+}

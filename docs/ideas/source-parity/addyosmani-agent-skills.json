@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "addyosmani-agent-skills",
+  "name": "addyosmani/agent-skills",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/addyosmani/agent-skills",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/addyosmani/agent-skills",
+      "https://github.com/addyosmani/agent-skills/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "production-skill-catalog-reference",
+      "title": "Production engineering skill catalog: review, refactor, debug, test, document, optimize, architect",
+      "sourceEvidence": "README skills list covering real engineering workflows used by Google engineers",
+      "disposition": "pending",
+      "reason": "Nexus .claude/skills/ covers add-feature, add-api, add-tab, fix-bug, analyze-new-repo; gap exists for dedicated review, refactor, optimize, and architect skills."
+    },
+    {
+      "id": "skill-definition-format",
+      "title": "Structured SKILL.md format with trigger conditions, steps, and success criteria",
+      "sourceEvidence": "agent-skills SKILL.md template with explicit trigger/step/success structure",
+      "disposition": "pending",
+      "reason": "Nexus skills have SKILL.md files but lack explicit trigger-condition, step-by-step, and success-criteria sections. Format alignment pending."
+    },
+    {
+      "id": "code-review-skill",
+      "title": "Structured code review skill covering correctness, performance, security, and maintainability",
+      "sourceEvidence": "agent-skills/review/ skill definition",
+      "disposition": "pending",
+      "reason": "Nexus has bugbot and security-review subagents but no reusable SKILL.md-format review skill for ORBIT use."
+    },
+    {
+      "id": "refactor-skill",
+      "title": "Guided refactor skill with scope boundaries and rollback checkpoints",
+      "sourceEvidence": "agent-skills/refactor/ skill definition",
+      "disposition": "pending",
+      "reason": "Nexus has no dedicated refactor skill; ORBIT uses ad-hoc surgical-edit discipline instead."
+    },
+    {
+      "id": "test-generation-skill",
+      "title": "Test-generation skill producing unit, integration, and e2e test scaffolding",
+      "sourceEvidence": "agent-skills/test/ skill definition",
+      "disposition": "pending",
+      "reason": "Nexus has no test-generation skill; type-check and lint are used as acceptance gates instead."
+    },
+    {
+      "id": "multi-skill-orchestration",
+      "title": "Skill chaining: compose multiple skills into a single operator workflow",
+      "sourceEvidence": "agent-skills composable skill chains",
+      "disposition": "pending",
+      "reason": "Nexus skills are currently single-step; multi-skill orchestration patterns not yet implemented."
+    }
+  ]
+}

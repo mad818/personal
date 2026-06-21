@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "keepassxreboot-keepassxc",
+  "name": "KeePassXC",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/keepassxreboot/keepassxc",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "GPL-2.0",
+    "primaryEvidence": [
+      "https://github.com/keepassxreboot/keepassxc",
+      "https://github.com/keepassxreboot/keepassxc/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "keepass-local-encrypted-database",
+      "title": "Local encrypted .kdbx database with AES-256 and ChaCha20 encryption",
+      "sourceEvidence": "KeePassXC: KDBX4 format with Argon2 key derivation",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a password manager. Running a local encrypted KDBX database is outside product scope."
+    },
+    {
+      "id": "argon2-key-derivation",
+      "title": "Argon2 memory-hard key derivation for master password protection",
+      "sourceEvidence": "KeePassXC: Argon2d/Argon2id support for KDBX4",
+      "disposition": "pending",
+      "reason": "Nexus VAULT stores API keys; Argon2-based key derivation for local credential protection is a security pattern worth adapting."
+    },
+    {
+      "id": "yubikey-totp-integration",
+      "title": "YubiKey and TOTP second factor for database unlock",
+      "sourceEvidence": "KeePassXC 2FA: YubiKey challenge-response and TOTP built-in",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus has no hardware key unlock workflow; 2FA for a local database is outside current scope."
+    },
+    {
+      "id": "secure-password-generator",
+      "title": "Configurable password generator: length, character sets, wordlist-based passphrases",
+      "sourceEvidence": "KeePassXC password generator: full-featured entropy-controlled generation",
+      "disposition": "pending",
+      "reason": "Nexus VAULT could expose a secure password/passphrase generator utility; pending VAULT feature planning."
+    },
+    {
+      "id": "browser-extension-autofill",
+      "title": "Browser extension integration for autofill across websites",
+      "sourceEvidence": "KeePassXC-Browser extension: native messaging autofill",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a browser extension and does not perform autofill. Browser integration is out of scope."
+    }
+  ]
+}

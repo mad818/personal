@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "cloakhq-cloakbrowser",
+  "name": "CloakBrowser",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/CloakHQ/CloakBrowser",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/CloakHQ/CloakBrowser",
+      "https://github.com/CloakHQ/CloakBrowser/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "privacy-browser-runtime",
+      "title": "Privacy-hardened browser with fingerprint randomization and tracker blocking",
+      "sourceEvidence": "CloakBrowser: purpose-built browser for anonymous web access",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a dashboard application, not a browser. Shipping an embedded browser runtime is outside product scope."
+    },
+    {
+      "id": "browser-fingerprint-concepts",
+      "title": "Browser fingerprint randomization concepts: canvas, WebGL, audio, font fingerprint spoofing",
+      "sourceEvidence": "CloakBrowser fingerprinting docs: entropy reduction techniques",
+      "disposition": "pending",
+      "reason": "Nexus CYBER lane could document fingerprint threat models; a reference on fingerprint entropy reduction patterns is a useful addition."
+    },
+    {
+      "id": "tracker-blocking-list",
+      "title": "Curated tracker blocking list for OSINT requests",
+      "sourceEvidence": "CloakBrowser tracker block list: maintained deny-list of tracking scripts",
+      "disposition": "pending",
+      "reason": "Nexus RECON OSINT requests could benefit from tracker blocking guidance; reference to be incorporated into privacy model documentation."
+    },
+    {
+      "id": "proxy-rotation-for-osint",
+      "title": "Proxy rotation integrated with browser requests for OSINT anonymity",
+      "sourceEvidence": "CloakBrowser proxy rotation: per-session proxy assignment",
+      "disposition": "pending",
+      "reason": "Nexus RECON OSINT requests run directly; proxy rotation for anonymity is pending alongside maigret integration."
+    }
+  ]
+}

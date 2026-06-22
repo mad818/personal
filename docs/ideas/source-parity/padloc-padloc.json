@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "padloc-padloc",
+  "name": "Padloc",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/padloc/padloc",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "AGPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/padloc/padloc",
+      "https://github.com/padloc/padloc/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "e2e-encrypted-password-manager",
+      "title": "End-to-end encrypted password manager with self-hosted server option",
+      "sourceEvidence": "Padloc: zero-knowledge e2e encrypted vault with cross-platform clients",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a password manager. Padloc's core product is outside scope."
+    },
+    {
+      "id": "srp-authentication",
+      "title": "Secure Remote Password (SRP) authentication: authenticate without sending password",
+      "sourceEvidence": "Padloc: SRP for zero-knowledge auth to self-hosted server",
+      "disposition": "pending",
+      "reason": "SRP is a useful authentication pattern reference for Nexus if a server-authenticated mode is added; deferred pending auth feature."
+    },
+    {
+      "id": "pwa-with-offline",
+      "title": "PWA with full offline capability and background sync",
+      "sourceEvidence": "Padloc PWA: offline-first with background sync on reconnect",
+      "disposition": "pending",
+      "reason": "Nexus is a PWA; Padloc's offline+background sync implementation is a reference for improving Nexus offline resilience."
+    },
+    {
+      "id": "rich-vault-item-types",
+      "title": "Rich vault item types: password, secure note, credit card, identity, custom",
+      "sourceEvidence": "Padloc item types with custom field schema",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus VAULT is for intelligence artifacts, not personal credential types."
+    }
+  ]
+}

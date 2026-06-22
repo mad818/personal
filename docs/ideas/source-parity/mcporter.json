@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "mcporter",
+  "name": "mcporter",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/steipete/mcporter",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/steipete/mcporter",
+      "https://github.com/steipete/mcporter/blob/main/README.md",
+      "docs/agents/mcp-tools.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "jsonc-mcp-server-descriptors",
+      "title": "Document JSONC MCP server descriptors with OAuth-aware posture",
+      "sourceEvidence": "README describes JSONC config, OAuth flows, and structured MCP calls",
+      "disposition": "adapted",
+      "proof": [
+        "lib/mcporterBridgePattern.ts",
+        "lib/externalToolBridge.ts",
+        "docs/agents/mcp-tools.md"
+      ]
+    },
+    {
+      "id": "mcp-bridge-status-surface",
+      "title": "Surface MCP bridge readiness on COMMAND without generic execution",
+      "sourceEvidence": "Operator needs visibility into MCP adapter posture before enabling tools",
+      "disposition": "adapted",
+      "proof": [
+        "components/command/McpBridgeStatusCard.tsx",
+        "app/command/page.tsx",
+        "scripts/validate-mcporter-assimilation.mjs"
+      ]
+    },
+    {
+      "id": "bundled-mcporter-cli-runtime",
+      "title": "Bundle the mcporter CLI and generic /api/mcp execution inside Nexus",
+      "sourceEvidence": "Upstream is a standalone MCP CLI/runtime",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "External MCP stays optional, allowlisted, and descriptor-only until OAuth and sandboxing are proven."
+    }
+  ]
+}

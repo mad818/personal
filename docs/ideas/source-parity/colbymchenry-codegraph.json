@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "colbymchenry-codegraph",
+  "name": "codegraph",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/colbymchenry/codegraph",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/colbymchenry/codegraph",
+      "https://github.com/colbymchenry/codegraph/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "nexus-route-reference",
+      "title": "Nexus routing reference for codegraph integration points",
+      "sourceEvidence": "codegraph: static call-graph + symbol index exported as JSON for agent query-time use",
+      "disposition": "adapted",
+      "proof": [
+        "lib/assimilation/reconCodeIntelBridge.ts"
+      ],
+      "adaptationNotes": "CODEGRAPH_NEXUS_ROUTES documents RepoAssimilationQueueCard and agent.ts as the integration surface."
+    },
+    {
+      "id": "static-call-graph-export",
+      "title": "Pre-indexed call graph: function-level call relationships exported as queryable JSON",
+      "sourceEvidence": "codegraph core: parse source → emit call edges as JSON at index time",
+      "disposition": "adapted",
+      "proof": [
+        "lib/codegraphIndex.ts",
+        "scripts/build-codegraph.mjs",
+        "lib/projectArchitecture.ts"
+      ],
+      "adaptationNotes": "Import/symbol graph via getProjectGraph; function-level call edges deferred."
+    },
+    {
+      "id": "agent-query-api",
+      "title": "Agent-callable API: callers-of, callees-of, definitions-of, usages-of queries",
+      "sourceEvidence": "codegraph query API used by LLM agents to navigate large codebases without reading full files",
+      "disposition": "adapted",
+      "proof": [
+        "lib/codegraphIndex.ts"
+      ],
+      "adaptationNotes": "queryCodegraphNeighbors + buildCodegraphSnapshot; full symbol defs deferred."
+    },
+    {
+      "id": "incremental-reindex",
+      "title": "Incremental re-index on file save to keep graph current during active development",
+      "sourceEvidence": "codegraph watcher mode: file-change events trigger partial re-parse",
+      "disposition": "pending",
+      "reason": "Full graph index not yet implemented; incremental re-index deferred."
+    },
+    {
+      "id": "cross-repo-graph-federation",
+      "title": "Federate call graphs across multiple repositories for polyrepo agent navigation",
+      "sourceEvidence": "codegraph multi-repo mode: merge indexes from multiple repos",
+      "disposition": "pending",
+      "reason": "Nexus is a single-repo product; cross-repo federation deferred until single-repo graph is proven."
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "id": "homelable",
+  "name": "homelable",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/Pouzor/homelable",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "Unknown",
+    "primaryEvidence": [
+      "https://github.com/Pouzor/homelable",
+      "https://github.com/Pouzor/homelable/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "network-health-panel",
+      "title": "Surface bounded network health checks (ping/http/https/tcp) in COMMAND",
+      "sourceEvidence": "Repository health-monitoring and topology capability summary",
+      "disposition": "adapted",
+      "proof": [
+        "lib/networkHealthTargets.ts",
+        "components/command/NetworkHealth.tsx",
+        "app/command/page.tsx",
+        "scripts/validate-homelable-network-health.mjs"
+      ],
+      "adaptationNotes": "Bounded HTTP health probes against Nexus routes plus optional external URLs."
+    },
+    {
+      "id": "topology-visualization",
+      "title": "Render local network topology and host status with read-only posture",
+      "sourceEvidence": "Repository topology canvas and device discovery positioning",
+      "disposition": "adapted",
+      "proof": [
+        "lib/networkTopology.ts",
+        "components/command/NetworkTopologyPanel.tsx",
+        "components/command/NetworkHealth.tsx",
+        "scripts/validate-homelable-network-health.mjs"
+      ],
+      "adaptationNotes": "Read-only hub-and-spoke route topology canvas derived from health probe targets; no LAN discovery or nmap."
+    },
+    {
+      "id": "external-mcp-server-bundle",
+      "title": "Bundle third-party MCP server runtime as part of default Nexus app execution",
+      "sourceEvidence": "Repository includes MCP server support in its own runtime",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus keeps external MCP integrations optional and not bundled into default runtime."
+    }
+  ]
+}

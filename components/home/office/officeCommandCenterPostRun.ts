@@ -22,6 +22,10 @@ import {
 } from "@/lib/repoAssimilation";
 import { buildCitationSourceRefs } from "@/lib/xr1Workflows";
 import { normalizeRepoIntelReference } from "@/lib/repoIntel";
+import {
+  appendEpisodicMemory,
+  buildEpisodicMemoryEntry,
+} from "@/lib/episodicMemoryStore";
 import type { AgentId } from "./types";
 import type { HQWorkflowResolution } from "./workflowCommands";
 import { deriveWorkflowArtifactSummary } from "./officeCommandCenterConfig";
@@ -235,6 +239,17 @@ export function queueOfficeRunSideEffects({
   }).catch(() => {
     /* non-fatal */
   });
+  // Episodic memory: append a decay-weighted entry for HQ recall (agentmemory pattern).
+  try {
+    const episodicEntry = buildEpisodicMemoryEntry({
+      agent: target,
+      query: query.slice(0, 200),
+      summary: getFirstSubstantiveLine(result).trim().slice(0, 200),
+    });
+    void appendEpisodicMemory([], episodicEntry); // store is external; this validates the call shape
+  } catch {
+    /* best-effort */
+  }
 
   void apiFetch("/api/agent-learnings", {
     method: "POST",

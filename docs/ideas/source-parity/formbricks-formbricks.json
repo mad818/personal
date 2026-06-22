@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "formbricks-formbricks",
+  "name": "Formbricks",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/formbricks/formbricks",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "AGPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/formbricks/formbricks",
+      "https://github.com/formbricks/formbricks/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "survey-and-feedback-platform",
+      "title": "Open-source survey and in-app feedback platform",
+      "sourceEvidence": "Formbricks: self-hosted Typeform/SurveyMonkey alternative",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a survey platform. Formbricks' core product is outside scope."
+    },
+    {
+      "id": "conditional-question-logic",
+      "title": "Conditional question logic: show/hide questions based on prior answers",
+      "sourceEvidence": "Formbricks: branching logic engine for survey flows",
+      "disposition": "pending",
+      "reason": "Nexus agent workflows could adopt conditional logic patterns for multi-step agent wizards in HQ or RECON."
+    },
+    {
+      "id": "response-analytics",
+      "title": "Response analytics: completion rates, drop-off analysis, answer distributions",
+      "sourceEvidence": "Formbricks analytics dashboard",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Survey response analytics is outside Nexus scope."
+    },
+    {
+      "id": "nextjs-monorepo-turborepo",
+      "title": "Next.js monorepo with Turborepo: packages, apps, and shared UI components",
+      "sourceEvidence": "Formbricks: large Next.js Turborepo monorepo at production scale",
+      "disposition": "pending",
+      "reason": "Nexus is a single-app repo; Formbricks' Turborepo monorepo structure is a reference if Nexus splits into multiple packages."
+    }
+  ]
+}

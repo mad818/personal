@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "id": "nvidia-skillspector",
+  "name": "NVIDIA SkillSpector",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/NVIDIA/SkillSpector",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "Apache-2.0",
+    "primaryEvidence": [
+      "https://github.com/NVIDIA/SkillSpector",
+      "https://github.com/NVIDIA/SkillSpector/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "skill-capability-policy-table",
+      "title": "Per-capability risk policy table for agent skill definitions",
+      "sourceEvidence": "SkillSpector scans skill manifests for over-privileged capability grants",
+      "disposition": "adapted",
+      "proof": [
+        "lib/skillSpectrumPolicy.ts"
+      ],
+      "adaptationNotes": "SKILL_CAPABILITY_POLICIES table covers filesystem, network, process, secrets, agent-spawn, and memory capabilities with safe/review/blocked levels."
+    },
+    {
+      "id": "skill-capability-evaluator",
+      "title": "Runtime evaluator that flags violations and warnings from declared skill capabilities",
+      "sourceEvidence": "SkillSpector evaluator compares declared tools against policy and returns violation report",
+      "disposition": "adapted",
+      "proof": [
+        "lib/skillSpectrumPolicy.ts",
+        ".claude/hooks/pre-tool-use.mjs",
+        "scripts/validate-skill-capabilities.mjs"
+      ],
+      "adaptationNotes": "evaluateSkillCapabilities() used by CI scanner; blocked capabilities enforced in pre-tool-use hook."
+    },
+    {
+      "id": "yagni-violation-integration",
+      "title": "Integration with YAGNI violation patterns to flag scope-creep in skill plans",
+      "sourceEvidence": "SkillSpector and Ponytail complement: both target over-engineered agent behavior",
+      "disposition": "adapted",
+      "proof": [
+        "lib/skillSpectrumPolicy.ts",
+        "lib/agentYagniGuardrails.ts"
+      ],
+      "adaptationNotes": "YAGNI_VIOLATION_PATTERNS cross-referenced in skill policy documentation."
+    },
+    {
+      "id": "automated-skill-scanner-ci",
+      "title": "CI-integrated automated scanner for all skill manifests in the repository",
+      "sourceEvidence": "SkillSpector designed as a CI gate scanning .skill files pre-merge",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/validate-skill-capabilities.mjs",
+        "npm run assimilation:wave23:check"
+      ],
+      "adaptationNotes": "Scans .claude/skills SKILL.md for capability declarations; fails on blocked capabilities."
+    },
+    {
+      "id": "skill-graph-dependency-analysis",
+      "title": "Dependency graph analysis between skills to detect transitive privilege escalation",
+      "sourceEvidence": "SkillSpector advanced mode traces skill-to-skill calls for privilege chains",
+      "disposition": "pending",
+      "reason": "Nexus skills are currently flat; inter-skill call graph and transitive privilege analysis not implemented."
+    },
+    {
+      "id": "gpu-accelerated-scan-runtime",
+      "title": "NVIDIA GPU-accelerated batch skill scanning for large skill catalogs",
+      "sourceEvidence": "SkillSpector designed for NVIDIA hardware acceleration",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus has a small skill catalog; GPU-accelerated batch scanning adds infrastructure complexity with no benefit."
+    }
+  ]
+}

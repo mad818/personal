@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "buttercup-buttercup-desktop",
+  "name": "Buttercup Desktop",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/buttercup/buttercup-desktop",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/buttercup/buttercup-desktop",
+      "https://github.com/buttercup/buttercup-desktop/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "desktop-password-vault",
+      "title": "Cross-platform desktop password vault with Electron",
+      "sourceEvidence": "Buttercup Desktop: Electron-based GUI for Buttercup vault files",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a password manager. Buttercup Desktop's core product is outside scope."
+    },
+    {
+      "id": "electron-tauri-ux-patterns",
+      "title": "Desktop UX patterns for credential management in Electron/native app",
+      "sourceEvidence": "Buttercup Desktop UX: vault file management, drag-drop, system tray integration",
+      "disposition": "pending",
+      "reason": "Nexus has a Tauri desktop app; credential UX patterns (vault unlock, system tray, secure input) from Buttercup are useful references."
+    },
+    {
+      "id": "vault-file-format",
+      "title": "Buttercup vault file format: AES-256-CBC encrypted JSON vault",
+      "sourceEvidence": "Buttercup vault format spec",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus does not need a standalone vault file format; settings are stored in the app's data layer."
+    },
+    {
+      "id": "entry-history-and-undo",
+      "title": "Entry edit history and undo for credential changes",
+      "sourceEvidence": "Buttercup: entry history with timestamped change log",
+      "disposition": "pending",
+      "reason": "Nexus settings do not have edit history; a change log with undo for sensitive settings is a useful pattern."
+    }
+  ]
+}

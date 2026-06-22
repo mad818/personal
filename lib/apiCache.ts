@@ -4,6 +4,7 @@
 export interface CacheConfig {
   maxEntries: number; // default 200
   defaultTTL: number; // default 300000 (5 min)
+  registryId?: string; // optional cache namespace tag
 }
 
 const DEFAULT_CACHE_CONFIG: CacheConfig = {

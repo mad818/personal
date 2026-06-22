@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "aeon",
+  "name": "aeon",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/aaronjmars/aeon",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/aaronjmars/aeon",
+      "https://github.com/aaronjmars/aeon/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "bounded-background-missions",
+      "title": "Run bounded scheduled missions with explicit scope and approval posture",
+      "sourceEvidence": "README describes long-running autonomous agent missions with guardrails",
+      "disposition": "adapted",
+      "proof": [
+        "lib/schedulerGovernance.ts",
+        "store/useStore.ts",
+        "scripts/validate-aeon-assimilation.mjs"
+      ],
+      "adaptationNotes": "Mission review contracts, expiry, and approval policy via schedulerGovernance instead of unbounded daemons."
+    },
+    {
+      "id": "mission-review-contract",
+      "title": "Persist mission scope, target agent, output target, and re-entry summary",
+      "sourceEvidence": "Aeon mission contract and handoff vocabulary",
+      "disposition": "adapted",
+      "proof": [
+        "lib/schedulerGovernance.ts"
+      ]
+    },
+    {
+      "id": "unbounded-autonomous-runtime",
+      "title": "Allow always-on autonomous agents without operator review or expiry",
+      "sourceEvidence": "Upstream autonomous loop positioning",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus requires bounded missions, approval policy, and scheduler audit exports."
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "geodeep",
+  "name": "GeoDeep",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/uav4geo/GeoDeep",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/uav4geo/GeoDeep",
+      "https://github.com/uav4geo/GeoDeep/blob/main/README.md",
+      "docs/deployment/geodep.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "local-geospatial-detection-service",
+      "title": "Run local AI object detection on geospatial tiles without GPU",
+      "sourceEvidence": "README positions GeoDeep as CPU-friendly geospatial detection",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/geodep-service.py",
+        "docs/deployment/geodep.md"
+      ],
+      "adaptationNotes": "Optional Python sidecar on localhost:5050; not bundled into default Nexus runtime."
+    },
+    {
+      "id": "geo-scan-api-proxy",
+      "title": "Proxy geospatial detections through a bounded Nexus API route",
+      "sourceEvidence": "Nexus assimilation plan calls for /api/geo-scan proxy",
+      "disposition": "implemented",
+      "proof": [
+        "app/api/geo-scan/route.ts",
+        "lib/security/routePolicy.ts",
+        "lib/security/connectorPolicy.ts"
+      ]
+    },
+    {
+      "id": "ops-map-detection-layer",
+      "title": "Render GeoDeep detections on the OPS world map",
+      "sourceEvidence": "Assimilation target: OPS map AI geospatial layer",
+      "disposition": "adapted",
+      "proof": [
+        "components/ops/OpsMap.tsx",
+        "scripts/validate-geodeep-assimilation.mjs"
+      ],
+      "adaptationNotes": "Graceful sample/empty fallback when sidecar is offline."
+    },
+    {
+      "id": "bundled-geotiff-training-runtime",
+      "title": "Ship full GeoDeep training and GeoTIFF ingestion inside the web app bundle",
+      "sourceEvidence": "Upstream is a standalone Python geospatial ML stack",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Detection stays operator-side via optional local service; Nexus only proxies bounded scan results."
+    }
+  ]
+}

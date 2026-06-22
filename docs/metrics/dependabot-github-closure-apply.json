@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-06-20T18:08:29.072Z",
+  "repository": "mad818/personal",
+  "dryRun": false,
+  "localStatus": "ready_for_github_rescan_or_dismissal",
+  "jsYaml": {
+    "alertNumber": 124,
+    "packageName": "js-yaml",
+    "manifestPath": "package-lock.json",
+    "lockVersion": "4.2.0",
+    "requiredFloor": "4.2.0",
+    "packageOverride": "4.2.0",
+    "localStatus": "patched_locally",
+    "externalAction": "Push the package.json override/floor, then wait for GitHub Dependabot to rescan this development alert."
+  },
+  "glib": {
+    "alertNumber": 77,
+    "packageName": "glib",
+    "manifestPath": "desktop/src-tauri/Cargo.lock",
+    "lockVersion": "0.18.5",
+    "requiredFloor": "0.20.0",
+    "releaseTargets": [
+      "app",
+      "dmg",
+      "msi"
+    ],
+    "secureTemplateTargets": [
+      "app",
+      "dmg",
+      "msi"
+    ],
+    "linuxBundleTargetsPresent": [],
+    "localStatus": "release_scope_safe_not_used",
+    "externalAction": "Dismiss the GitHub Dependabot alert as not_used only while Linux desktop bundles remain out of scope; do not add Linux targets until glib is patched."
+  },
+  "openAlertNumbersAfter": [
+    124
+  ]
+}

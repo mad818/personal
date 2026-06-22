@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "trafficlab-3d",
+  "name": "TrafficLab-3D",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/duy-phamduc68/TrafficLab-3D",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/duy-phamduc68/TrafficLab-3D",
+      "https://github.com/duy-phamduc68/TrafficLab-3D/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "dual-view-movement-panel",
+      "title": "Show overview and tactical movement panels on the INTEL map lane",
+      "sourceEvidence": "README dual-panel CCTV + satellite synchronized views",
+      "disposition": "adapted",
+      "proof": [
+        "components/ops/OpsDualViewPanel.tsx",
+        "components/intel/IntelDeferredSegment.tsx",
+        "scripts/validate-trafficlab-assimilation.mjs"
+      ],
+      "adaptationNotes": "Read-only overview + trajectory tactical panel using live flight tracks; no CCTV/YOLO homography pipeline."
+    },
+    {
+      "id": "trajectory-speed-heading-metrics",
+      "title": "Expose speed, heading, and short trajectory vectors for live tracks",
+      "sourceEvidence": "TrafficLab movement metrics and trajectory visualization",
+      "disposition": "adapted",
+      "proof": [
+        "lib/trafficlabTrajectory.ts",
+        "components/ops/OpsDualViewPanel.tsx"
+      ]
+    },
+    {
+      "id": "cctv-yolo-homography-runtime",
+      "title": "Bundle CCTV bounding boxes with YOLO homography projection inside Nexus",
+      "sourceEvidence": "Upstream 3D dual-panel video + satellite homography stack",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus adopts only the dual-view and trajectory metrics pattern on existing free flight layers."
+    }
+  ]
+}

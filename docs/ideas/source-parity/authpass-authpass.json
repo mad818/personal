@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "authpass-authpass",
+  "name": "AuthPass",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/authpass/authpass",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "GPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/authpass/authpass",
+      "https://github.com/authpass/authpass/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "flutter-cross-platform-vault",
+      "title": "Flutter-based cross-platform KeePass-compatible vault (mobile + desktop)",
+      "sourceEvidence": "AuthPass: Flutter app targeting iOS, Android, macOS, Windows, Linux, Web",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a password manager; Flutter-based vault is outside scope."
+    },
+    {
+      "id": "mobile-vault-ux",
+      "title": "Mobile-optimized vault UX: biometric unlock, auto-lock on background",
+      "sourceEvidence": "AuthPass: biometric authentication and auto-lock policies",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus does not have a native mobile app or biometric unlock; mobile vault UX is outside scope."
+    },
+    {
+      "id": "cloud-storage-sync",
+      "title": "Cloud storage sync: Dropbox, Google Drive, OneDrive, WebDAV vault file sync",
+      "sourceEvidence": "AuthPass sync providers",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus syncs via git; third-party cloud storage integration for vault files is out of scope."
+    },
+    {
+      "id": "flutter-dart-architecture",
+      "title": "Flutter/Dart architecture patterns for state management and local persistence",
+      "sourceEvidence": "AuthPass state management and Hive local storage",
+      "disposition": "pending",
+      "reason": "Nexus does not use Flutter; however, state management patterns (BLoC, provider isolation) from AuthPass may inform future Tauri mobile/desktop patterns."
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "hashicorp-vault",
+  "name": "HashiCorp Vault",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/hashicorp/vault",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "BSL-1.1",
+    "primaryEvidence": [
+      "https://github.com/hashicorp/vault",
+      "https://github.com/hashicorp/vault/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "dynamic-secrets",
+      "title": "Dynamic secret generation: generate short-lived credentials on demand for databases, cloud providers",
+      "sourceEvidence": "Vault dynamic secrets engines: PostgreSQL, MySQL, AWS, Azure, GCP credential generation",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a personal intelligence dashboard; dynamic secrets for infrastructure provisioning is enterprise DevOps scope, not Nexus scope."
+    },
+    {
+      "id": "secrets-engine-pattern",
+      "title": "Pluggable secrets engine pattern: mount different secret backends at paths",
+      "sourceEvidence": "Vault secrets engine mount path model",
+      "disposition": "pending",
+      "reason": "Nexus VAULT could adapt the mount-path secrets engine pattern for organizing different credential categories (API keys, local model keys, etc.)."
+    },
+    {
+      "id": "transit-encryption-as-a-service",
+      "title": "Transit encryption: encrypt/decrypt data without storing it, via API",
+      "sourceEvidence": "Vault transit engine: encrypt in transit without key management by caller",
+      "disposition": "pending",
+      "reason": "Nexus could adapt transit-style encryption for sensitive VAULT data operations; deferred pending VAULT crypto model design."
+    },
+    {
+      "id": "audit-log-every-request",
+      "title": "Immutable audit log of every secret access and administrative action",
+      "sourceEvidence": "Vault audit devices: structured JSONL audit trail",
+      "disposition": "pending",
+      "reason": "Nexus CYBER has governance posture; an immutable audit log for all sensitive data access is a useful pattern pending implementation."
+    },
+    {
+      "id": "enterprise-secrets-infra",
+      "title": "Enterprise-grade HA cluster with integrated raft storage and replication",
+      "sourceEvidence": "HashiCorp Vault HA deployment mode",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a single-user personal tool; HA clustering and enterprise replication are out of scope."
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "mautic-mautic",
+  "name": "Mautic",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/mautic/mautic",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "GPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/mautic/mautic",
+      "https://github.com/mautic/mautic/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "marketing-automation-platform",
+      "title": "Marketing automation: email campaigns, lead scoring, nurture workflows, A/B tests",
+      "sourceEvidence": "Mautic: open-source HubSpot alternative with full marketing automation",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a marketing automation platform. Mautic's core product is outside scope."
+    },
+    {
+      "id": "campaign-workflow-builder",
+      "title": "Visual campaign workflow builder: drag-drop multi-step automation canvas",
+      "sourceEvidence": "Mautic campaign builder: visual node-based workflow design",
+      "disposition": "pending",
+      "reason": "Nexus could reference Mautic's visual workflow canvas pattern for an agent orchestration visual builder in COMMAND."
+    },
+    {
+      "id": "contact-segmentation",
+      "title": "Contact segmentation: filter and tag contacts by behavior and attributes",
+      "sourceEvidence": "Mautic segments: rules-based contact grouping",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus has no CRM or contact management; contact segmentation is outside scope."
+    },
+    {
+      "id": "php-symfony-architecture",
+      "title": "PHP/Symfony architecture for large-scale web application",
+      "sourceEvidence": "Mautic: Symfony 5 PHP backend",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a TypeScript/Next.js app; PHP/Symfony infrastructure is not applicable."
+    }
+  ]
+}

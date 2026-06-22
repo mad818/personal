@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "lesspass-lesspass",
+  "name": "LessPass",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/lesspass/lesspass",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "GPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/lesspass/lesspass",
+      "https://github.com/lesspass/lesspass/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "stateless-password-derivation",
+      "title": "Stateless password derivation: generate passwords deterministically from site+login+master",
+      "sourceEvidence": "LessPass core algorithm: PBKDF2 over site+login+counter+master → password, no storage needed",
+      "disposition": "pending",
+      "reason": "Nexus VAULT could offer a stateless passphrase generator using the LessPass algorithm for sites where users don't want to store credentials."
+    },
+    {
+      "id": "no-sync-no-storage",
+      "title": "Zero storage/sync: no database, no cloud sync, passwords reconstructed on demand",
+      "sourceEvidence": "LessPass design: passwords are computed, never stored",
+      "disposition": "pending",
+      "reason": "The zero-storage credential pattern is a useful reference for Nexus API key handling; implement with care around key rotation."
+    },
+    {
+      "id": "open-algorithm-specification",
+      "title": "Open algorithm specification: any client can reproduce the derivation with the same inputs",
+      "sourceEvidence": "LessPass open spec: published algorithm and test vectors",
+      "disposition": "pending",
+      "reason": "A published open algorithm for credential derivation is a good practice to document for any Nexus VAULT crypto feature."
+    }
+  ]
+}

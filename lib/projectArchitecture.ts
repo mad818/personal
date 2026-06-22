@@ -4,7 +4,7 @@ import { dirname, join, relative } from "path";
 import {
   classifyProjectArtifact,
   type ArtifactClassification,
-} from "@/lib/artifactClassification";
+} from "./artifactClassification.ts";
 
 const SOURCE_ROOTS = ["app", "components", "hooks", "lib", "store"] as const;
 const SOURCE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"] as const;

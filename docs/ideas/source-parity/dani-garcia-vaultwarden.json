@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "dani-garcia-vaultwarden",
+  "name": "Vaultwarden",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/dani-garcia/vaultwarden",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "AGPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/dani-garcia/vaultwarden",
+      "https://github.com/dani-garcia/vaultwarden/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "bitwarden-compatible-api",
+      "title": "Bitwarden-compatible REST API for vault sync across clients",
+      "sourceEvidence": "Vaultwarden: implements the full Bitwarden server API for client compatibility",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a password vault server. Running a Bitwarden-compatible API is outside product scope."
+    },
+    {
+      "id": "end-to-end-client-encryption",
+      "title": "End-to-end client-side encryption before vault sync",
+      "sourceEvidence": "Bitwarden/Vaultwarden: data encrypted client-side with PBKDF2 before leaving device",
+      "disposition": "pending",
+      "reason": "Nexus VAULT could adapt client-side encryption patterns for sensitive data stored in VAULT tab; crypto model reference pending."
+    },
+    {
+      "id": "self-hosted-password-server",
+      "title": "Self-hosted Rust password vault server with SQLite/MySQL/PostgreSQL support",
+      "sourceEvidence": "Vaultwarden: lightweight Rust reimplementation of Bitwarden server",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a Next.js dashboard and does not need a separate password server process."
+    },
+    {
+      "id": "organization-vault-sharing",
+      "title": "Shared organization vaults with role-based access control",
+      "sourceEvidence": "Vaultwarden organizations: team vault sharing with admin/manager/member roles",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a personal intelligence tool; organization vault sharing is out of scope."
+    }
+  ]
+}

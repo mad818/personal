@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "supertone-inc-supertonic",
+  "name": "Supertonic",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/supertone-inc/supertonic",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/supertone-inc/supertonic",
+      "https://github.com/supertone-inc/supertonic/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "audio-processing-pipeline",
+      "title": "Audio processing pipeline: noise reduction, enhancement, and format conversion",
+      "sourceEvidence": "Supertonic: high-quality audio processing and enhancement toolkit",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is an intelligence dashboard with no audio processing lane. Audio pipeline tooling is outside product scope."
+    },
+    {
+      "id": "voice-synthesis",
+      "title": "Neural voice synthesis: text-to-speech with controllable pitch, pace, and style",
+      "sourceEvidence": "Supertonic voice synthesis capabilities",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Voice synthesis is outside Nexus product scope; all output is text-based."
+    },
+    {
+      "id": "audio-intelligence-signals",
+      "title": "Extract structured signals from audio: sentiment, topic, speaker diarization",
+      "sourceEvidence": "Supertonic audio intelligence: transcription and signal extraction",
+      "disposition": "pending",
+      "reason": "Audio intelligence signals (e.g., earnings call tone analysis) could extend ALPHA or INTEL; deferred pending an audio ingestion lane."
+    }
+  ]
+}

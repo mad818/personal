@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "ruvnet-ruview",
+  "name": "RuView",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/ruvnet/RuView",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/ruvnet/RuView",
+      "https://github.com/ruvnet/RuView/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "wifi-spatial-sensing",
+      "title": "WiFi-based spatial sensing: use CSI (channel state information) data to infer room occupancy and motion",
+      "sourceEvidence": "RuView: WiFi CSI sensing for passive indoor positioning without cameras",
+      "disposition": "pending",
+      "reason": "Nexus does not have an IoT sensor ingestion lane; WiFi spatial sensing is a candidate for ESPectre/IoT extension pending that lane's maturity."
+    },
+    {
+      "id": "passive-motion-detection",
+      "title": "Passive motion detection without cameras using ambient WiFi signals",
+      "sourceEvidence": "RuView passive detection: no active beacons required",
+      "disposition": "pending",
+      "reason": "IoT lane in Nexus is not yet implemented; passive motion detection via WiFi deferred."
+    },
+    {
+      "id": "csi-data-pipeline",
+      "title": "CSI data pipeline: collect from compatible WiFi adapters, preprocess, and feed ML model",
+      "sourceEvidence": "RuView CSI collection script and preprocessing pipeline",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a software intelligence dashboard; hardware-dependent WiFi CSI data collection requires specific adapters and is out of core product scope."
+    },
+    {
+      "id": "real-time-occupancy-dashboard",
+      "title": "Real-time occupancy visualization dashboard",
+      "sourceEvidence": "RuView dashboard: live room occupancy map from WiFi data",
+      "disposition": "pending",
+      "reason": "If IoT lane is implemented, real-time occupancy data could surface in COMMAND; deferred pending IoT lane."
+    }
+  ]
+}

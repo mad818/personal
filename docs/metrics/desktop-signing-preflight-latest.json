@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-06-20T19:29:36.463Z",
+  "slice": "CP2.3-SIGNING-PREFLIGHT",
+  "windowsThumbprintConfigured": false,
+  "windowsThumbprintValidFormat": false,
+  "windowsCodeSigningCertCount": 0,
+  "windowsThumbprintMatchesStore": false,
+  "suggestedWindowsThumbprint": null,
+  "macosIdentityConfigured": false,
+  "macosSource": "none",
+  "prepared": false,
+  "releaseReady": false,
+  "operatorNext": [
+    "npm run desktop:signing:guide",
+    "Install code-signing cert and set NEXUS_WINDOWS_SIGNING_THUMBPRINT",
+    "Set bundle.macOS.signingIdentity or NEXUS_MACOS_SIGNING_IDENTITY"
+  ]
+}

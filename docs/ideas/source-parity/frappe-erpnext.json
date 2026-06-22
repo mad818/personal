@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "frappe-erpnext",
+  "name": "ERPNext",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/frappe/erpnext",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "GPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/frappe/erpnext",
+      "https://github.com/frappe/erpnext/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "erp-platform",
+      "title": "Full ERP platform: accounting, inventory, HR, CRM, project management, manufacturing",
+      "sourceEvidence": "ERPNext: open-source SAP/NetSuite alternative",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is an intelligence dashboard, not an ERP. ERPNext's core product is entirely outside scope."
+    },
+    {
+      "id": "doctype-driven-form-builder",
+      "title": "DocType-driven form and data model builder: define entities and get CRUD UI automatically",
+      "sourceEvidence": "Frappe framework: DocType system generates forms, APIs, and reports",
+      "disposition": "pending",
+      "reason": "ERPNext's DocType pattern (schema → auto-generated UI) is a useful reference for Nexus settings/configuration form generation."
+    },
+    {
+      "id": "double-entry-accounting",
+      "title": "Double-entry accounting engine with chart of accounts and reporting",
+      "sourceEvidence": "ERPNext accounts module",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Accounting engine is outside Nexus scope."
+    },
+    {
+      "id": "report-builder-pattern",
+      "title": "Dynamic report builder: define report columns, filters, and charts without code",
+      "sourceEvidence": "ERPNext report builder: query reports and script reports",
+      "disposition": "pending",
+      "reason": "Nexus INTEL dashboard building could reference ERPNext's dynamic report builder UX for configurable metric views."
+    }
+  ]
+}

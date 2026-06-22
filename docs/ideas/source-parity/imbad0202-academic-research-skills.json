@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "imbad0202-academic-research-skills",
+  "name": "academic-research-skills",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/Imbad0202/academic-research-skills",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/Imbad0202/academic-research-skills",
+      "https://github.com/Imbad0202/academic-research-skills/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "nexus-route-reference",
+      "title": "Nexus routing reference for academic research skills integration points",
+      "sourceEvidence": "academic-research-skills: structured paper search, citation extraction, methodology critique, reproducibility checks",
+      "disposition": "adapted",
+      "proof": [
+        "lib/assimilation/reconCodeIntelBridge.ts"
+      ],
+      "adaptationNotes": "ACADEMIC_SKILLS_NEXUS_ROUTES maps to feynmanResearch.ts, feynmanWorkflowContracts.ts, and PapersResearchPanel as the integration surface."
+    },
+    {
+      "id": "structured-paper-search-skill",
+      "title": "Structured paper search skill with field, date, citation-count, and methodology filters",
+      "sourceEvidence": "academic-research-skills paper-search SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanAcademicFilters.ts",
+        "lib/feynmanResearch.ts"
+      ],
+      "adaptationNotes": "parseFeynmanPaperSearchFilters + applyFeynmanPaperSearchFilters in buildFeynmanQueries."
+    },
+    {
+      "id": "citation-extraction-skill",
+      "title": "Automated citation extraction from paper body text and reference sections",
+      "sourceEvidence": "academic-research-skills citation-extraction SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanAcademicFilters.ts",
+        "lib/feynmanResearch.ts"
+      ],
+      "adaptationNotes": "extractCitationsFromText wired into buildSourceLedger URL harvest."
+    },
+    {
+      "id": "methodology-critique-skill",
+      "title": "Skill to critique experimental methodology: sample size, confounds, statistical validity",
+      "sourceEvidence": "academic-research-skills methodology-critique SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanAcademicFilters.ts",
+        "lib/feynmanResearch.ts"
+      ],
+      "adaptationNotes": "buildMethodologyCritiqueHints injected into Feynman verifier prompt."
+    },
+    {
+      "id": "reproducibility-check-skill",
+      "title": "Reproducibility assessment: does the paper provide enough detail to replicate?",
+      "sourceEvidence": "academic-research-skills reproducibility-check SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanAcademicFilters.ts",
+        "lib/feynmanResearch.ts"
+      ],
+      "adaptationNotes": "scoreReproducibilityPosture surfaced in verifier stage notes."
+    },
+    {
+      "id": "literature-gap-analysis-skill",
+      "title": "Literature gap analysis: identify unexplored problem areas relative to a paper cluster",
+      "sourceEvidence": "academic-research-skills gap-analysis SKILL.md",
+      "disposition": "pending",
+      "reason": "Nexus literature review synthesizes findings but does not produce a formal gap map."
+    }
+  ]
+}

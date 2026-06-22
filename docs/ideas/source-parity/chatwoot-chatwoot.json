@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "chatwoot-chatwoot",
+  "name": "Chatwoot",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/chatwoot/chatwoot",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/chatwoot/chatwoot",
+      "https://github.com/chatwoot/chatwoot/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "omnichannel-customer-support",
+      "title": "Omnichannel customer support: live chat, email, Twitter/X, WhatsApp in one inbox",
+      "sourceEvidence": "Chatwoot: unified inbox for all customer communication channels",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a personal intelligence dashboard, not a customer support platform. Chatwoot's core product is outside scope."
+    },
+    {
+      "id": "conversation-ui-patterns",
+      "title": "Conversation UI patterns: thread grouping, read status, typing indicators, quick replies",
+      "sourceEvidence": "Chatwoot conversation UX: polished chat interface with real-time updates",
+      "disposition": "pending",
+      "reason": "Nexus HomeChat component could reference Chatwoot's conversation UI patterns for thread grouping, read states, and quick-reply chips."
+    },
+    {
+      "id": "ai-reply-suggestions",
+      "title": "AI-powered reply suggestions and conversation summarization",
+      "sourceEvidence": "Chatwoot AI: suggested replies and conversation summaries via OpenAI",
+      "disposition": "pending",
+      "reason": "Nexus HQ agent already generates responses; AI reply suggestion patterns for conversation UI are a reference for HomeChat improvements."
+    },
+    {
+      "id": "ruby-on-rails-realtime",
+      "title": "Ruby on Rails + ActionCable for real-time conversation updates",
+      "sourceEvidence": "Chatwoot backend: Rails with WebSockets via ActionCable",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a Next.js app; Ruby on Rails infrastructure is not applicable."
+    }
+  ]
+}

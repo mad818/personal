@@ -1,0 +1,425 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-06-21-mario",
+  "registeredAt": "2026-06-21",
+  "assimilatedAt": "2026-06-21",
+  "registeredCount": 48,
+  "sourceFile": "docs/ideas/batches/2026-06-21-mario-link-batch.txt",
+  "assimilationWave": "wave23",
+  "wavePlan": "docs/plans/assimilation-wave23-all-repos.md",
+  "xPostExpansion": {
+    "2067206609277796384": {
+      "author": "@sharbel",
+      "theme": "Self-hosted password managers",
+      "nestedRepos": 10,
+      "fetchStatus": "ok"
+    },
+    "2065700640387436935": {
+      "author": "@sharbel",
+      "theme": "Fastest-growing AI / agent repos",
+      "nestedRepos": 10,
+      "fetchStatus": "mirrored via bittide (X returned 400)"
+    },
+    "2068394914061090871": {
+      "author": "@exploraX_",
+      "theme": "Fastest-growing AI repos (codegraph, agent memory, skills)",
+      "nestedRepos": 10,
+      "fetchStatus": "mirrored via bittide (X returned 400)"
+    },
+    "2068333043853721987": {
+      "author": "@wecraveai",
+      "theme": "Self-hosted SaaS alternatives",
+      "nestedRepos": 10,
+      "fetchStatus": "ok"
+    }
+  },
+  "assimilationStatus": {
+    "matrices_enriched": 44,
+    "matrices_status": "in_progress",
+    "surgical_code_files": [
+      "lib/agentYagniGuardrails.ts",
+      "lib/skillSpectrumPolicy.ts",
+      "lib/assimilation/reconCodeIntelBridge.ts",
+      "scripts/validate-runtime-experiment-improver.mjs"
+    ],
+    "pending_links_updated": true,
+    "all_github_repos_triaged": true
+  },
+  "repoStatus": {
+    "dietrichgebert-ponytail": {
+      "lane": "agent-skills/HQ",
+      "priority": "high",
+      "matrixStatus": "in_progress",
+      "codeWin": "lib/agentYagniGuardrails.ts — YAGNI_AGENT_DIRECTIVE, YAGNI_SELF_CHECK, YAGNI_VIOLATION_PATTERNS",
+      "nextStep": "Wire YAGNI_AGENT_DIRECTIVE into ORBIT system prompt; implement per-step tool budget"
+    },
+    "nvidia-skillspector": {
+      "lane": "CYBER/agent-platform",
+      "priority": "high",
+      "matrixStatus": "in_progress",
+      "codeWin": "lib/skillSpectrumPolicy.ts — SKILL_CAPABILITY_POLICIES table, evaluateSkillCapabilities()",
+      "nextStep": "Wire evaluateSkillCapabilities into pre-tool-use hook; add CI scanner over .claude/skills"
+    },
+    "addyosmani-agent-skills": {
+      "lane": "skills/ORBIT",
+      "priority": "high",
+      "matrixStatus": "in_progress",
+      "nextStep": "Add review, refactor, optimize, and architect skills to .claude/skills/; align SKILL.md format"
+    },
+    "rohitg00-agentmemory": {
+      "lane": "HQ/memory",
+      "priority": "high",
+      "matrixStatus": "in_progress",
+      "codeWin": "lib/assimilation/reconCodeIntelBridge.ts — AGENTMEMORY_NEXUS_ROUTES routing reference",
+      "nextStep": "Implement episodic memory store with recency decay; benchmark vs current memoryPagesStore"
+    },
+    "colbymchenry-codegraph": {
+      "lane": "RECON/ORBIT",
+      "priority": "high",
+      "matrixStatus": "in_progress",
+      "codeWin": "lib/assimilation/reconCodeIntelBridge.ts — CODEGRAPH_NEXUS_ROUTES routing reference",
+      "nextStep": "Implement static call-graph export for Nexus repo; surface symbol index to ORBIT agents"
+    },
+    "imbad0202-academic-research-skills": {
+      "lane": "VAULT/Feynman",
+      "priority": "high",
+      "matrixStatus": "in_progress",
+      "codeWin": "lib/assimilation/reconCodeIntelBridge.ts — ACADEMIC_SKILLS_NEXUS_ROUTES routing reference",
+      "nextStep": "Add structured paper search filters, citation extraction, and methodology critique to Feynman skills"
+    },
+    "humanlayer-12-factor-agents": {
+      "lane": "agent-platform/architecture",
+      "priority": "high",
+      "matrixStatus": "in_progress",
+      "nextStep": "Apply 12-factor principles systematically: typed handoffs, explicit context budget, unified execution state"
+    },
+    "mattpocock-skills": {
+      "lane": "skills/ORBIT",
+      "priority": "high",
+      "matrixStatus": "in_progress",
+      "nextStep": "Curate TypeScript skill taxonomy; add test-gated exercises for ORBIT TypeScript discipline"
+    },
+    "tauricresearch-tradingagents": {
+      "lane": "ALPHA",
+      "priority": "medium",
+      "matrixStatus": "in_progress",
+      "nextStep": "Implement multi-agent trading decomposition in ALPHA: separate analyst, risk, sentiment agents"
+    },
+    "virattt-dexter": {
+      "lane": "ALPHA/INTEL",
+      "priority": "medium",
+      "matrixStatus": "in_progress",
+      "nextStep": "Add autonomous financial research agent: SEC filing reader, earnings transcript analysis"
+    },
+    "soxoj-maigret": {
+      "lane": "RECON/OSINT",
+      "priority": "medium",
+      "matrixStatus": "in_progress",
+      "nextStep": "Implement username OSINT multi-site sweep; integrate with RECON GeocodingPlaygroundCard"
+    },
+    "ruvnet-ruview": {
+      "lane": "IoT/ESPectre",
+      "priority": "medium",
+      "matrixStatus": "in_progress",
+      "nextStep": "Deferred pending IoT lane; document WiFi spatial sensing patterns for ESPectre extension"
+    },
+    "openai-symphony": {
+      "lane": "agent-platform/orchestration",
+      "priority": "medium",
+      "matrixStatus": "in_progress",
+      "nextStep": "Adapt parallel agent execution and typed handoff contract patterns"
+    },
+    "tinyhumansai-openhuman": {
+      "lane": "HQ/agent-persona",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Consider long-term user preference model for agent behavior personalization"
+    },
+    "ruvnet-ruflo": {
+      "lane": "agent-platform/orchestration",
+      "priority": "medium",
+      "matrixStatus": "in_progress",
+      "nextStep": "Adapt conditional branching and retry/backoff patterns for agent workflow orchestration"
+    },
+    "docusealco-docuseal": {
+      "lane": "VAULT/document-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference PDF field extraction patterns for VAULT document intelligence"
+    },
+    "warpdotdev-warp": {
+      "lane": "HQ/command-palette-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Consider command palette UX for HQ tab"
+    },
+    "1jehuang-jcode": {
+      "lane": "ORBIT/code-chunking-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference semantic code chunking for RECON large-file analysis"
+    },
+    "aidc-ai-pixelle-video": {
+      "lane": "multimodal/deferred",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Deferred pending video intelligence lane decision"
+    },
+    "supertone-inc-supertonic": {
+      "lane": "multimodal/deferred",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Deferred; audio intelligence signals possible in ALPHA earnings call analysis lane"
+    },
+    "hkuds-vimax": {
+      "lane": "multimodal/deferred",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Deferred pending video intelligence lane decision"
+    },
+    "cloakhq-cloakbrowser": {
+      "lane": "CYBER/RECON-privacy",
+      "priority": "medium",
+      "matrixStatus": "in_progress",
+      "nextStep": "Add fingerprint threat model to CYBER docs; implement proxy rotation with maigret OSINT"
+    },
+    "varnan-tech-opendirectory": {
+      "lane": "assimilation/taxonomy-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference hierarchical taxonomy for assimilated-ecosystem.md restructure"
+    },
+    "getumbrel-umbrel": {
+      "lane": "deployment/self-host-UX",
+      "priority": "medium",
+      "matrixStatus": "in_progress",
+      "note": "Reference-only for self-host UX; OpenClaw runtime dependency excluded",
+      "nextStep": "Apply app-store UX and health dashboard patterns to COMMAND tab"
+    },
+    "dani-garcia-vaultwarden": {
+      "lane": "VAULT/deployment-reference",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference e2e client-side encryption patterns for VAULT crypto model"
+    },
+    "hashicorp-vault": {
+      "lane": "VAULT/security-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference secrets engine mount-path and transit encryption patterns"
+    },
+    "keepassxreboot-keepassxc": {
+      "lane": "VAULT/crypto-reference",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference Argon2 key derivation and secure password generator patterns"
+    },
+    "bitwarden-server": {
+      "lane": "VAULT/deployment-reference",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference encrypted sharing link (Send) and event log patterns"
+    },
+    "keeweb-keeweb": {
+      "lane": "VAULT/PWA-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference offline-first PWA and plugin architecture patterns"
+    },
+    "gopasspw-gopass": {
+      "lane": "VAULT/crypto-reference",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference git-as-sync-backend and hierarchical secret path patterns"
+    },
+    "lesspass-lesspass": {
+      "lane": "VAULT/stateless-crypto",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Consider stateless passphrase derivation for VAULT utility"
+    },
+    "buttercup-buttercup-desktop": {
+      "lane": "VAULT/desktop-UX",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference Tauri desktop UX patterns for credential management"
+    },
+    "padloc-padloc": {
+      "lane": "VAULT/PWA-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference SRP auth and offline PWA patterns"
+    },
+    "authpass-authpass": {
+      "lane": "VAULT/mobile-reference",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Low priority; Flutter patterns not applicable to Nexus stack"
+    },
+    "calcom-cal-com": {
+      "lane": "COMMAND/webhook-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference webhook event schema patterns for Nexus automation hooks"
+    },
+    "plausible-analytics": {
+      "lane": "COMMAND/telemetry-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Consider lightweight local usage telemetry pattern (no PII)"
+    },
+    "knadh-listmonk": {
+      "lane": "deployment/single-binary-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference single-binary embedding pattern for future desktop runtime"
+    },
+    "documenso-documenso": {
+      "lane": "VAULT/PDF-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference Next.js App Router patterns and PDF rendering for research document preview"
+    },
+    "chatwoot-chatwoot": {
+      "lane": "HQ/chat-UX-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference conversation UI patterns for HomeChat improvements"
+    },
+    "penpot-penpot": {
+      "lane": "design-tokens/SVG-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference SVG-native format and design token export for Nexus theme system"
+    },
+    "formbricks-formbricks": {
+      "lane": "COMMAND/workflow-builder-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference conditional logic patterns for multi-step agent wizards"
+    },
+    "umami-software-umami": {
+      "lane": "COMMAND/telemetry-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference Prisma ORM integration and real-time event pipeline patterns"
+    },
+    "mautic-mautic": {
+      "lane": "COMMAND/workflow-builder-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference visual campaign/workflow canvas for agent orchestration builder"
+    },
+    "frappe-erpnext": {
+      "lane": "INTEL/report-builder-patterns",
+      "priority": "low",
+      "matrixStatus": "in_progress",
+      "nextStep": "Reference DocType-driven form and dynamic report builder for INTEL configurable metrics"
+    }
+  },
+  "nexusTriage": {
+    "P0_agent_platform": [
+      {
+        "repo": "https://github.com/DietrichGebert/ponytail",
+        "why": "YAGNI / minimal-diff agent skill — fits ORBIT prompt guardrails and scope discipline",
+        "nexusLane": "agent-skills / HQ",
+        "codeWin": "lib/agentYagniGuardrails.ts"
+      },
+      {
+        "repo": "https://github.com/NVIDIA/SkillSpector",
+        "why": "Skill security scanner — extends CYBER + agent tool policy (pairs with agentshield)",
+        "nexusLane": "CYBER / agent platform",
+        "codeWin": "lib/skillSpectrumPolicy.ts"
+      },
+      {
+        "repo": "https://github.com/addyosmani/agent-skills",
+        "why": "Production engineering skills catalog — reference for .claude/skills parity",
+        "nexusLane": "skills / ORBIT"
+      },
+      {
+        "repo": "https://github.com/rohitg00/agentmemory",
+        "why": "Persistent agent memory benchmarks — extends claude-mem / passive trail",
+        "nexusLane": "HQ memory",
+        "codeWin": "lib/assimilation/reconCodeIntelBridge.ts"
+      },
+      {
+        "repo": "https://github.com/colbymchenry/codegraph",
+        "why": "Pre-indexed code knowledge graph for agents — RECON/repo intel acceleration",
+        "nexusLane": "RECON / ORBIT",
+        "codeWin": "lib/assimilation/reconCodeIntelBridge.ts"
+      },
+      {
+        "repo": "https://github.com/Imbad0202/academic-research-skills",
+        "why": "Academic research skill pack — Feynman workflow extension",
+        "nexusLane": "VAULT / Feynman",
+        "codeWin": "lib/assimilation/reconCodeIntelBridge.ts"
+      },
+      {
+        "repo": "https://github.com/humanlayer/12-factor-agents",
+        "why": "Production LLM agent principles — architecture reference",
+        "nexusLane": "agent platform docs"
+      },
+      {
+        "repo": "https://github.com/mattpocock/skills",
+        "why": "Real-engineer skill patterns — prompt taxonomy reference",
+        "nexusLane": "skills"
+      }
+    ],
+    "P1_markets_recon": [
+      {
+        "repo": "https://github.com/TauricResearch/TradingAgents",
+        "why": "Multi-agent trading framework — ALPHA lane patterns",
+        "nexusLane": "ALPHA"
+      },
+      {
+        "repo": "https://github.com/virattt/dexter",
+        "why": "Autonomous financial research agent — ALPHA + Feynman overlap",
+        "nexusLane": "ALPHA / INTEL"
+      },
+      {
+        "repo": "https://github.com/soxoj/maigret",
+        "why": "Username OSINT across 3000+ sites — RECON enrichment",
+        "nexusLane": "RECON"
+      },
+      {
+        "repo": "https://github.com/ruvnet/RuView",
+        "why": "WiFi spatial sensing — extends ESPectre IoT lane",
+        "nexusLane": "IoT"
+      },
+      {
+        "repo": "https://github.com/openai/symphony",
+        "why": "Agent orchestration patterns — parallel execution, typed handoffs",
+        "nexusLane": "agent platform"
+      },
+      {
+        "repo": "https://github.com/ruvnet/ruflo",
+        "why": "Agent workflow DSL — conditional branching and retry patterns",
+        "nexusLane": "agent platform"
+      },
+      {
+        "repo": "https://github.com/CloakHQ/CloakBrowser",
+        "why": "Privacy patterns for RECON — proxy rotation, fingerprint threat models",
+        "nexusLane": "CYBER / RECON"
+      },
+      {
+        "repo": "https://github.com/getumbrel/umbrel",
+        "why": "Self-host UX reference — app-store onboarding, health dashboard",
+        "nexusLane": "deployment / desktop",
+        "note": "Reference self-host UX; exclude OpenClaw runtime dependency"
+      }
+    ],
+    "P2_low_fit_catalog": {
+      "note": "Password managers and generic SaaS alternatives catalogued with pattern-only value for VAULT/COMMAND reference",
+      "count": 28
+    }
+  },
+  "nextSteps": [
+    "Run npm run source:parity:check — all 44 enriched matrices should pass",
+    "Wire YAGNI_AGENT_DIRECTIVE into ORBIT system prompt (lib/agent.ts)",
+    "Wire evaluateSkillCapabilities into pre-tool-use hook (.claude/hooks/pre-tool-use.mjs)",
+    "Implement username OSINT sweep in RECON using maigret patterns",
+    "Add SEC filing reader and earnings transcript agent to ALPHA (dexter patterns)",
+    "Implement multi-agent trading decomposition in ALPHA (TradingAgents patterns)",
+    "Implement episodic agent memory with recency decay (agentmemory patterns)"
+  ]
+}

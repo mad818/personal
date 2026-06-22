@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "id": "humanlayer-12-factor-agents",
+  "name": "12 Factor Agents",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/humanlayer/12-factor-agents",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/humanlayer/12-factor-agents",
+      "https://github.com/humanlayer/12-factor-agents/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "natural-language-to-tool-calls",
+      "title": "Factor 1: Define behavior as natural language → structured tool calls, not free-form prose",
+      "sourceEvidence": "12-factor-agents factor 1: natural language should produce deterministic tool-call plans",
+      "disposition": "pending",
+      "reason": "Nexus agents produce structured JSON tool calls but do not enforce a declarative tool-plan schema at the boundary."
+    },
+    {
+      "id": "own-your-control-flow",
+      "title": "Factor 2: Own the control flow — orchestration logic lives in code, not in LLM prompts",
+      "sourceEvidence": "12-factor-agents factor 2: put loops, branches, and retries in deterministic code",
+      "disposition": "pending",
+      "reason": "Nexus ORBIT and skill runners handle orchestration in prompts; externalizing control flow to TypeScript is partially done but not systematic."
+    },
+    {
+      "id": "explicit-context-window",
+      "title": "Factor 3: Manage the context window explicitly — inject only what the agent needs",
+      "sourceEvidence": "12-factor-agents factor 3: no unbounded context accumulation",
+      "disposition": "pending",
+      "reason": "Nexus buildLiveContext assembles context but does not enforce a hard budget or trim policy per agent run."
+    },
+    {
+      "id": "tools-are-structured-outputs",
+      "title": "Factor 4: Treat tools as structured outputs — validate schema before execution",
+      "sourceEvidence": "12-factor-agents factor 4: tool arguments are validated, not trusted raw",
+      "disposition": "pending",
+      "reason": "Nexus tool policy validates capability names but does not enforce a JSON schema on tool argument payloads."
+    },
+    {
+      "id": "unified-execution-state",
+      "title": "Factor 5: Keep all agent state in a single structured object (no ambient globals)",
+      "sourceEvidence": "12-factor-agents factor 5: execution state is explicit and serializable",
+      "disposition": "pending",
+      "reason": "Nexus uses Zustand for UI state and separate lib modules for agent state; a unified serializable agent execution record is not implemented."
+    },
+    {
+      "id": "human-in-the-loop-gates",
+      "title": "Factor 6: Pause and ask humans at decision points — approval gates before irreversible actions",
+      "sourceEvidence": "12-factor-agents factor 6: HumanLayer approval gates",
+      "disposition": "pending",
+      "reason": "Nexus has mutation gates in toolCapabilityPolicy.ts and pre-tool-use hook but no structured pause-and-ask workflow for arbitrary agent decisions."
+    },
+    {
+      "id": "stateless-reducers",
+      "title": "Factor 7: Design agent steps as stateless reducers — input + state → output + new state",
+      "sourceEvidence": "12-factor-agents factor 7: pure reducer model for agent steps",
+      "disposition": "pending",
+      "reason": "Nexus agent steps have side effects (API calls, file writes); pure reducer isolation not yet applied."
+    },
+    {
+      "id": "durable-execution-log",
+      "title": "Factor 8: Persist a durable execution log — resume from any checkpoint after failure",
+      "sourceEvidence": "12-factor-agents factor 8: checkpointed execution for long-running agents",
+      "disposition": "pending",
+      "reason": "Nexus feynmanContinuity.ts provides session resume for research agents but not a general agent execution checkpoint."
+    },
+    {
+      "id": "agents-as-functions",
+      "title": "Factor 9: Treat agents as functions — callable, composable, testable units",
+      "sourceEvidence": "12-factor-agents factor 9: agents are pure functions, not global singletons",
+      "disposition": "pending",
+      "reason": "Nexus agent.ts is a singleton; function-style composable agent units not yet adopted."
+    },
+    {
+      "id": "small-focused-agents",
+      "title": "Factor 10: Build small, focused agents — one agent per concern, not monolithic",
+      "sourceEvidence": "12-factor-agents factor 10: agent decomposition principle",
+      "disposition": "pending",
+      "reason": "Nexus skill runner is evolving toward focused agents; formal decomposition policy not yet enforced."
+    },
+    {
+      "id": "trigger-from-anywhere",
+      "title": "Factor 11: Trigger agents from any event source — HTTP, queue, schedule, UI",
+      "sourceEvidence": "12-factor-agents factor 11: event-driven agent invocation",
+      "disposition": "pending",
+      "reason": "Nexus agents are triggered via UI; queue and schedule invocation patterns not yet implemented."
+    },
+    {
+      "id": "meet-users-where-they-are",
+      "title": "Factor 12: Deliver agent output where users already are — Slack, email, web, terminal",
+      "sourceEvidence": "12-factor-agents factor 12: multi-channel output delivery",
+      "disposition": "pending",
+      "reason": "Nexus delivers all output to the dashboard UI; alternative output channels not yet implemented."
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "magika",
+  "name": "Magika",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/google/magika",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "Apache-2.0",
+    "primaryEvidence": [
+      "https://github.com/google/magika",
+      "https://github.com/google/magika/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "artifact-type-classification",
+      "title": "Classify artifacts with type, confidence, parser hint, and sensitivity posture",
+      "sourceEvidence": "README describes AI-powered content-type detection for safer handling",
+      "disposition": "adapted",
+      "proof": [
+        "lib/artifactClassification.ts",
+        "lib/memoryPagesStore.ts",
+        "components/vault/CompiledMemoryPagesPanel.tsx",
+        "scripts/validate-artifact-classification.mjs"
+      ],
+      "adaptationNotes": "Native heuristic classifier mirrors Magika outputs without vendoring the Python model runtime."
+    },
+    {
+      "id": "project-file-triage",
+      "title": "Classify repository files during project inspection",
+      "sourceEvidence": "Repository positions Magika for upload and filesystem triage",
+      "disposition": "adapted",
+      "proof": [
+        "lib/projectArchitecture.ts",
+        "components/resources/ProjectImpactConsole.tsx"
+      ]
+    },
+    {
+      "id": "magika-python-runtime",
+      "title": "Bundle Magika Python inference runtime inside Nexus deployable",
+      "sourceEvidence": "Upstream ships Python/ONNX model execution",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Classification stays optional and off the critical path; external Magika may be used operator-side later."
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "penpot-penpot",
+  "name": "Penpot",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/penpot/penpot",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MPL-2.0",
+    "primaryEvidence": [
+      "https://github.com/penpot/penpot",
+      "https://github.com/penpot/penpot/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "vector-design-tool",
+      "title": "Open-source vector design tool: frames, components, auto-layout, prototyping",
+      "sourceEvidence": "Penpot: self-hosted Figma alternative with SVG-native file format",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a design tool. Penpot's core product is outside scope."
+    },
+    {
+      "id": "svg-native-format",
+      "title": "SVG-native file format: design files are valid SVG, readable without proprietary software",
+      "sourceEvidence": "Penpot: all assets stored as plain SVG with custom extensions",
+      "disposition": "pending",
+      "reason": "Nexus uses SVG for assets; Penpot's SVG-native storage and open format approach is a reference for Nexus asset pipeline decisions."
+    },
+    {
+      "id": "design-token-export",
+      "title": "Design token export: colors, typography, spacing as structured JSON",
+      "sourceEvidence": "Penpot design tokens: CSS variables and JSON export",
+      "disposition": "pending",
+      "reason": "Nexus theming could adopt a design token export format; reference for the theme system (aegis-cosmos, citadel, etc.)."
+    },
+    {
+      "id": "clojurescript-canvas-renderer",
+      "title": "ClojureScript + WebGL canvas renderer for high-performance design canvas",
+      "sourceEvidence": "Penpot frontend: ClojureScript with custom WebGL rendering pipeline",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a TypeScript/React app; ClojureScript rendering infrastructure is not applicable."
+    }
+  ]
+}

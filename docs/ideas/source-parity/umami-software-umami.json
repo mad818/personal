@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "umami-software-umami",
+  "name": "Umami",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/umami-software/umami",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/umami-software/umami",
+      "https://github.com/umami-software/umami/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "web-analytics-platform",
+      "title": "Privacy-respecting web analytics: sessions, pageviews, events, funnels",
+      "sourceEvidence": "Umami: Google Analytics alternative, cookie-free, self-hosted",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a personal dashboard, not a website analytics platform."
+    },
+    {
+      "id": "next-js-prisma-pattern",
+      "title": "Next.js + Prisma ORM pattern for production-grade data layer",
+      "sourceEvidence": "Umami: Next.js App Router + Prisma with multi-database support",
+      "disposition": "pending",
+      "reason": "Nexus does not yet use an ORM; Umami's Prisma integration pattern is a reference for a future structured data persistence layer."
+    },
+    {
+      "id": "real-time-event-pipeline",
+      "title": "Real-time event ingestion pipeline: high-throughput write path with buffering",
+      "sourceEvidence": "Umami: high-frequency event collection optimized for low latency",
+      "disposition": "pending",
+      "reason": "If Nexus adds real-time telemetry, Umami's event ingestion pipeline pattern is a reference."
+    }
+  ]
+}

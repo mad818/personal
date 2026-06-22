@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "ruvnet-ruflo",
+  "name": "Ruflo",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/ruvnet/ruflo",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/ruvnet/ruflo",
+      "https://github.com/ruvnet/ruflo/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "agent-workflow-dsl",
+      "title": "Agent workflow DSL: define multi-step agent flows in a compact declarative syntax",
+      "sourceEvidence": "Ruflo: ruvnet's agentic workflow framework with DSL for composing agent steps",
+      "disposition": "pending",
+      "reason": "Nexus agents are prompt-driven; a declarative workflow DSL for multi-step agent composition is not yet implemented."
+    },
+    {
+      "id": "flow-visualization",
+      "title": "Visual flow diagram for agent workflows: runtime graph showing step progress",
+      "sourceEvidence": "Ruflo flow visualization: live step-progress graph",
+      "disposition": "pending",
+      "reason": "Nexus COMMAND has network topology panel; an agent workflow flow diagram is not yet implemented."
+    },
+    {
+      "id": "conditional-branching",
+      "title": "Conditional branching in agent flows: if/else logic based on agent outputs",
+      "sourceEvidence": "Ruflo: conditional step execution based on prior step outputs",
+      "disposition": "pending",
+      "reason": "Nexus orchestration is sequential; conditional branching based on agent outputs not yet implemented."
+    },
+    {
+      "id": "retry-backoff-policy",
+      "title": "Built-in retry and exponential backoff policy for agent steps",
+      "sourceEvidence": "Ruflo retry policy: configurable per-step retry with backoff",
+      "disposition": "pending",
+      "reason": "Nexus API calls have try/catch but no structured per-step retry policy with configurable backoff."
+    }
+  ]
+}

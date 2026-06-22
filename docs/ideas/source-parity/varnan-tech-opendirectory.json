@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "varnan-tech-opendirectory",
+  "name": "OpenDirectory",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/Varnan-Tech/OpenDirectory",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/Varnan-Tech/OpenDirectory",
+      "https://github.com/Varnan-Tech/OpenDirectory/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "open-directory-listing",
+      "title": "Open directory listing: curated catalog of resources organized by category",
+      "sourceEvidence": "OpenDirectory: structured directory of tools, services, and resources",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is an intelligence dashboard, not a resource directory. Maintaining a public directory is outside product scope."
+    },
+    {
+      "id": "category-taxonomy-pattern",
+      "title": "Category taxonomy pattern: hierarchical category structure for resource classification",
+      "sourceEvidence": "OpenDirectory category schema: multi-level taxonomy for resource classification",
+      "disposition": "pending",
+      "reason": "Nexus assimilation ecosystem (assimilated-ecosystem.md) uses a flat structure; a hierarchical taxonomy pattern for organizing ideas is worth adapting."
+    },
+    {
+      "id": "community-contribution-workflow",
+      "title": "Community contribution workflow: PR-based additions with category validation",
+      "sourceEvidence": "OpenDirectory contribution guide: PR template with required fields",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a personal intelligence tool, not a community-maintained directory."
+    }
+  ]
+}

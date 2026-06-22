@@ -1,0 +1,2799 @@
+{
+  "generatedAt": "2026-06-21T09:40:08.575Z",
+  "nodes": [
+    {
+      "path": "store/useStore.ts",
+      "directImports": 18,
+      "importers": 170,
+      "coupling": 188,
+      "artifactClassification": {
+        "artifactType": "state_store",
+        "confidence": 0.97,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "state store path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/shell.tsx",
+      "directImports": 11,
+      "importers": 82,
+      "coupling": 93,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "component path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/apiFetch.ts",
+      "directImports": 2,
+      "importers": 85,
+      "coupling": 87,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/home/office/types.ts",
+      "directImports": 4,
+      "importers": 61,
+      "coupling": 65,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "component path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/home/office/OfficeCommandCenter.tsx",
+      "directImports": 53,
+      "importers": 2,
+      "coupling": 55,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "component path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/surfacePrimitives.tsx",
+      "directImports": 1,
+      "importers": 41,
+      "coupling": 42,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "app/command/page.tsx",
+      "directImports": 34,
+      "importers": 0,
+      "coupling": 34,
+      "artifactClassification": {
+        "artifactType": "app_surface",
+        "confidence": 0.96,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "app surface entry"
+        ]
+      }
+    },
+    {
+      "path": "lib/chartTheme.ts",
+      "directImports": 0,
+      "importers": 34,
+      "coupling": 34,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "components/home/office/HQTerminalSection.tsx",
+      "directImports": 31,
+      "importers": 1,
+      "coupling": 32,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "lib/ai.ts",
+      "directImports": 10,
+      "importers": 18,
+      "coupling": 28,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/helpers.ts",
+      "directImports": 0,
+      "importers": 28,
+      "coupling": 28,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "lib/agent.ts",
+      "directImports": 14,
+      "importers": 12,
+      "coupling": 26,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/home/arpg/ArpgHud.tsx",
+      "directImports": 24,
+      "importers": 1,
+      "coupling": 25,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "lib/protectedApi.ts",
+      "directImports": 1,
+      "importers": 24,
+      "coupling": 25,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "app/vault/page.tsx",
+      "directImports": 24,
+      "importers": 0,
+      "coupling": 24,
+      "artifactClassification": {
+        "artifactType": "app_surface",
+        "confidence": 0.96,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "app surface entry"
+        ]
+      }
+    },
+    {
+      "path": "app/api/tools/route.ts",
+      "directImports": 23,
+      "importers": 0,
+      "coupling": 23,
+      "artifactClassification": {
+        "artifactType": "route_handler",
+        "confidence": 0.97,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "server route",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/home/office/hqAssistantContext.ts",
+      "directImports": 22,
+      "importers": 1,
+      "coupling": 23,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "component path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/home/office/constants.ts",
+      "directImports": 2,
+      "importers": 20,
+      "coupling": 22,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/resources/ResourcesWorkbench.tsx",
+      "directImports": 21,
+      "importers": 1,
+      "coupling": 22,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "component path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "app/vehicle/page.tsx",
+      "directImports": 21,
+      "importers": 0,
+      "coupling": 21,
+      "artifactClassification": {
+        "artifactType": "app_surface",
+        "confidence": 0.96,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "app surface entry"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/RootLayoutChrome.tsx",
+      "directImports": 20,
+      "importers": 1,
+      "coupling": 21,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/vault/CompiledMemoryPagesPanel.tsx",
+      "directImports": 19,
+      "importers": 2,
+      "coupling": 21,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "app/skills/page.tsx",
+      "directImports": 20,
+      "importers": 0,
+      "coupling": 20,
+      "artifactClassification": {
+        "artifactType": "app_surface",
+        "confidence": 0.96,
+        "parserHint": "tsx",
+        "sensitive": true,
+        "sensitivity": "restricted",
+        "reasons": [
+          "app surface entry",
+          "restricted evidence marker"
+        ]
+      }
+    },
+    {
+      "path": "app/cyber/page.tsx",
+      "directImports": 19,
+      "importers": 0,
+      "coupling": 19,
+      "artifactClassification": {
+        "artifactType": "app_surface",
+        "confidence": 0.96,
+        "parserHint": "tsx",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "app surface entry",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/arpgGame.ts",
+      "directImports": 10,
+      "importers": 9,
+      "coupling": 19,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/nativeAssimilation.ts",
+      "directImports": 13,
+      "importers": 6,
+      "coupling": 19,
+      "artifactClassification": {
+        "artifactType": "workflow_module",
+        "confidence": 0.88,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "workflow-oriented library"
+        ]
+      }
+    },
+    {
+      "path": "app/alpha/page.tsx",
+      "directImports": 18,
+      "importers": 0,
+      "coupling": 18,
+      "artifactClassification": {
+        "artifactType": "app_surface",
+        "confidence": 0.96,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "app surface entry"
+        ]
+      }
+    },
+    {
+      "path": "app/recon/page.tsx",
+      "directImports": 18,
+      "importers": 0,
+      "coupling": 18,
+      "artifactClassification": {
+        "artifactType": "app_surface",
+        "confidence": 0.96,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "app surface entry"
+        ]
+      }
+    },
+    {
+      "path": "lib/assimilation/types.ts",
+      "directImports": 1,
+      "importers": 17,
+      "coupling": 18,
+      "artifactClassification": {
+        "artifactType": "workflow_module",
+        "confidence": 0.88,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "restricted",
+        "reasons": [
+          "workflow-oriented library",
+          "restricted evidence marker"
+        ]
+      }
+    },
+    {
+      "path": "lib/assistantSessionMemory.ts",
+      "directImports": 4,
+      "importers": 14,
+      "coupling": 18,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "lib/researchSources.ts",
+      "directImports": 0,
+      "importers": 18,
+      "coupling": 18,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "components/home/office/officeCommandCenterPostRun.ts",
+      "directImports": 16,
+      "importers": 1,
+      "coupling": 17,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/OperatorReadinessLane.tsx",
+      "directImports": 13,
+      "importers": 4,
+      "coupling": 17,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": true,
+        "sensitivity": "restricted",
+        "reasons": [
+          "component path",
+          "internal runtime or trust surface",
+          "restricted evidence marker"
+        ]
+      }
+    },
+    {
+      "path": "components/vault/vaultGraphPageUtils.ts",
+      "directImports": 3,
+      "importers": 14,
+      "coupling": 17,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "app/security/page.tsx",
+      "directImports": 16,
+      "importers": 0,
+      "coupling": 16,
+      "artifactClassification": {
+        "artifactType": "app_surface",
+        "confidence": 0.96,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "app surface entry"
+        ]
+      }
+    },
+    {
+      "path": "components/home/office/workflowCommands.ts",
+      "directImports": 2,
+      "importers": 14,
+      "coupling": 16,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "component path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "hooks/useSessionHrefAutoHeal.ts",
+      "directImports": 1,
+      "importers": 15,
+      "coupling": 16,
+      "artifactClassification": {
+        "artifactType": "hook_module",
+        "confidence": 0.95,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "hook path"
+        ]
+      }
+    },
+    {
+      "path": "lib/assistantCapabilityRegistry.ts",
+      "directImports": 4,
+      "importers": 12,
+      "coupling": 16,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "lib/exactSessionLinks.ts",
+      "directImports": 1,
+      "importers": 15,
+      "coupling": 16,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "app/api/status/route.ts",
+      "directImports": 15,
+      "importers": 0,
+      "coupling": 15,
+      "artifactClassification": {
+        "artifactType": "route_handler",
+        "confidence": 0.97,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "server route",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/home/office/HQConsoleShellSection.tsx",
+      "directImports": 14,
+      "importers": 1,
+      "coupling": 15,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/ActionSessionCluster.tsx",
+      "directImports": 2,
+      "importers": 13,
+      "coupling": 15,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/CronSchedulerPanel.tsx",
+      "directImports": 14,
+      "importers": 1,
+      "coupling": 15,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/MissionContinuationActions.tsx",
+      "directImports": 3,
+      "importers": 12,
+      "coupling": 15,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "lib/brand.ts",
+      "directImports": 1,
+      "importers": 14,
+      "coupling": 15,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/releaseMatrix.ts",
+      "directImports": 2,
+      "importers": 13,
+      "coupling": 15,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/resourceSessionRegistry.ts",
+      "directImports": 0,
+      "importers": 15,
+      "coupling": 15,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "lib/security/toolCapabilityPolicy.ts",
+      "directImports": 4,
+      "importers": 11,
+      "coupling": 15,
+      "artifactClassification": {
+        "artifactType": "security_module",
+        "confidence": 0.98,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "security library path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/serverEnvRuntime.ts",
+      "directImports": 0,
+      "importers": 15,
+      "coupling": 15,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "components/home/office/HQStrategiumDeck.tsx",
+      "directImports": 10,
+      "importers": 4,
+      "coupling": 14,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "component path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/TrustOperationsRail.tsx",
+      "directImports": 5,
+      "importers": 9,
+      "coupling": 14,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "component path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/authSession.ts",
+      "directImports": 2,
+      "importers": 12,
+      "coupling": 14,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/xr1Workflows.ts",
+      "directImports": 1,
+      "importers": 13,
+      "coupling": 14,
+      "artifactClassification": {
+        "artifactType": "workflow_module",
+        "confidence": 0.88,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "workflow-oriented library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "app/api/settings/route.ts",
+      "directImports": 13,
+      "importers": 0,
+      "coupling": 13,
+      "artifactClassification": {
+        "artifactType": "route_handler",
+        "confidence": 0.97,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "server route",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "app/intel/page.tsx",
+      "directImports": 13,
+      "importers": 0,
+      "coupling": 13,
+      "artifactClassification": {
+        "artifactType": "app_surface",
+        "confidence": 0.96,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "app surface entry"
+        ]
+      }
+    },
+    {
+      "path": "components/home/office/officeCommandCenterConfig.ts",
+      "directImports": 4,
+      "importers": 9,
+      "coupling": 13,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/nav/Nav.tsx",
+      "directImports": 12,
+      "importers": 1,
+      "coupling": 13,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/CommandBar.tsx",
+      "directImports": 12,
+      "importers": 1,
+      "coupling": 13,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/DataLoader.tsx",
+      "directImports": 7,
+      "importers": 6,
+      "coupling": 13,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "lib/assistantDispatch.ts",
+      "directImports": 9,
+      "importers": 4,
+      "coupling": 13,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "lib/designTokens.ts",
+      "directImports": 0,
+      "importers": 13,
+      "coupling": 13,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/memorySpine.ts",
+      "directImports": 4,
+      "importers": 9,
+      "coupling": 13,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/home/HomeChat.tsx",
+      "directImports": 12,
+      "importers": 0,
+      "coupling": 12,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/recon/RepoIntelPanel.tsx",
+      "directImports": 11,
+      "importers": 1,
+      "coupling": 12,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/FreeLocalReadinessPanel.tsx",
+      "directImports": 10,
+      "importers": 2,
+      "coupling": 12,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "component path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/ui/SurfaceFocusStrip.tsx",
+      "directImports": 1,
+      "importers": 11,
+      "coupling": 12,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "components/vault/VaultGraphFocusPanel.tsx",
+      "directImports": 11,
+      "importers": 1,
+      "coupling": 12,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "lib/memoryPagesStore.ts",
+      "directImports": 7,
+      "importers": 5,
+      "coupling": 12,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "lib/repoAssimilation.ts",
+      "directImports": 3,
+      "importers": 9,
+      "coupling": 12,
+      "artifactClassification": {
+        "artifactType": "workflow_module",
+        "confidence": 0.88,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "workflow-oriented library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/security/rateLimit.ts",
+      "directImports": 0,
+      "importers": 12,
+      "coupling": 12,
+      "artifactClassification": {
+        "artifactType": "security_module",
+        "confidence": 0.98,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "security library path",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/home/arpg/ArpgRoom3D.tsx",
+      "directImports": 10,
+      "importers": 1,
+      "coupling": 11,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "component path"
+        ]
+      }
+    },
+    {
+      "path": "hooks/useSurfaceFocusScroll.ts",
+      "directImports": 0,
+      "importers": 11,
+      "coupling": 11,
+      "artifactClassification": {
+        "artifactType": "hook_module",
+        "confidence": 0.95,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "hook path"
+        ]
+      }
+    },
+    {
+      "path": "lib/assistantChatActions.ts",
+      "directImports": 2,
+      "importers": 9,
+      "coupling": 11,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/liveContext.ts",
+      "directImports": 7,
+      "importers": 4,
+      "coupling": 11,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/opsLayoutRegistry.ts",
+      "directImports": 0,
+      "importers": 11,
+      "coupling": 11,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "lib/repoCompare.ts",
+      "directImports": 4,
+      "importers": 7,
+      "coupling": 11,
+      "artifactClassification": {
+        "artifactType": "workflow_module",
+        "confidence": 0.88,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "workflow-oriented library"
+        ]
+      }
+    },
+    {
+      "path": "lib/schedulerGovernance.ts",
+      "directImports": 1,
+      "importers": 10,
+      "coupling": 11,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "shared library",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "lib/surfaceMotion.ts",
+      "directImports": 1,
+      "importers": 10,
+      "coupling": 11,
+      "artifactClassification": {
+        "artifactType": "shared_library",
+        "confidence": 0.84,
+        "parserHint": "typescript",
+        "sensitive": false,
+        "sensitivity": "safe",
+        "reasons": [
+          "shared library"
+        ]
+      }
+    },
+    {
+      "path": "app/api/free-local-readiness/route.ts",
+      "directImports": 10,
+      "importers": 0,
+      "coupling": 10,
+      "artifactClassification": {
+        "artifactType": "route_handler",
+        "confidence": 0.97,
+        "parserHint": "typescript",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "server route",
+          "internal runtime or trust surface"
+        ]
+      }
+    },
+    {
+      "path": "components/home/office/HQPreludePostureSection.tsx",
+      "directImports": 9,
+      "importers": 1,
+      "coupling": 10,
+      "artifactClassification": {
+        "artifactType": "react_component",
+        "confidence": 0.95,
+        "parserHint": "tsx",
+        "sensitive": true,
+        "sensitivity": "internal",
+        "reasons": [
+          "component path",
+          "internal runtime or trust surface"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/alpha/BuyBot.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/alpha/ForecastLabCard.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/alpha/MarketReviewCard.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/alpha/MomentumScanner.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/alpha/PositionSizer.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/alpha/PriceGrid.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/alpha/PriceSparklines.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/alpha/TradingViewMarkets.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/alpha/WatchlistManager.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/ui/DataLoader.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/ui/shell.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "components/ui/SurfaceFocusStrip.tsx"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "hooks/useSessionHrefAutoHeal.ts"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "hooks/useSurfaceFocusScroll.ts"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "lib/opsLayoutRegistry.ts"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "lib/surfaceCondensationRegistry.ts"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "lib/surfaceRedesignRegistry.ts"
+    },
+    {
+      "source": "app/alpha/page.tsx",
+      "target": "store/useStore.ts"
+    },
+    {
+      "source": "app/api/agent-health/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/agent-health/route.ts",
+      "target": "lib/security/rateLimit.ts"
+    },
+    {
+      "source": "app/api/agent-health/route.ts",
+      "target": "lib/serverEnvRuntime.ts"
+    },
+    {
+      "source": "app/api/ai/route.ts",
+      "target": "lib/aiModelRouting.ts"
+    },
+    {
+      "source": "app/api/ai/route.ts",
+      "target": "lib/brand.ts"
+    },
+    {
+      "source": "app/api/ai/route.ts",
+      "target": "lib/localAcceleration.ts"
+    },
+    {
+      "source": "app/api/ai/route.ts",
+      "target": "lib/ollamaModelResolver.ts"
+    },
+    {
+      "source": "app/api/ai/route.ts",
+      "target": "lib/privacyShieldServer.ts"
+    },
+    {
+      "source": "app/api/ai/route.ts",
+      "target": "lib/security/rateLimit.ts"
+    },
+    {
+      "source": "app/api/ai/route.ts",
+      "target": "lib/security/toolCapabilityPolicy.ts"
+    },
+    {
+      "source": "app/api/auth-diagnostics/route.ts",
+      "target": "lib/authSession.ts"
+    },
+    {
+      "source": "app/api/auth-diagnostics/route.ts",
+      "target": "lib/externalToolBridge.ts"
+    },
+    {
+      "source": "app/api/auth-diagnostics/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/auth-diagnostics/route.ts",
+      "target": "lib/releaseMatrix.ts"
+    },
+    {
+      "source": "app/api/auth-diagnostics/route.ts",
+      "target": "lib/runtimeIdentity.ts"
+    },
+    {
+      "source": "app/api/auth-diagnostics/route.ts",
+      "target": "lib/security/localDataPolicy.ts"
+    },
+    {
+      "source": "app/api/auth-diagnostics/route.ts",
+      "target": "lib/security/toolCapabilityPolicy.ts"
+    },
+    {
+      "source": "app/api/auth-diagnostics/route.ts",
+      "target": "lib/security/toolIsolationPolicy.ts"
+    },
+    {
+      "source": "app/api/cves/route.ts",
+      "target": "lib/apiCache.ts"
+    },
+    {
+      "source": "app/api/diagnostics/route.ts",
+      "target": "lib/brand.ts"
+    },
+    {
+      "source": "app/api/diagnostics/route.ts",
+      "target": "lib/experiments.ts"
+    },
+    {
+      "source": "app/api/diagnostics/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/diagnostics/route.ts",
+      "target": "lib/releaseMatrix.ts"
+    },
+    {
+      "source": "app/api/diagnostics/route.ts",
+      "target": "lib/runtimeIdentity.ts"
+    },
+    {
+      "source": "app/api/diagnostics/route.ts",
+      "target": "lib/security/connectorPolicy.ts"
+    },
+    {
+      "source": "app/api/diagnostics/route.ts",
+      "target": "lib/security/localDataPolicy.ts"
+    },
+    {
+      "source": "app/api/diagnostics/route.ts",
+      "target": "lib/security/routePolicy.ts"
+    },
+    {
+      "source": "app/api/diagnostics/route.ts",
+      "target": "lib/skillMetadata.ts"
+    },
+    {
+      "source": "app/api/earthquakes/route.ts",
+      "target": "lib/apiCache.ts"
+    },
+    {
+      "source": "app/api/espectre/route.ts",
+      "target": "lib/espectre.ts"
+    },
+    {
+      "source": "app/api/espectre/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/events/sweeps/route.ts",
+      "target": "lib/assimilation/sweep.ts"
+    },
+    {
+      "source": "app/api/events/sweeps/route.ts",
+      "target": "lib/assimilation/types.ts"
+    },
+    {
+      "source": "app/api/events/sweeps/route.ts",
+      "target": "lib/authSession.ts"
+    },
+    {
+      "source": "app/api/events/sweeps/route.ts",
+      "target": "lib/internalFetch.ts"
+    },
+    {
+      "source": "app/api/events/sweeps/route.ts",
+      "target": "lib/security/networkGuards.ts"
+    },
+    {
+      "source": "app/api/events/sweeps/route.ts",
+      "target": "lib/serverEnvRuntime.ts"
+    },
+    {
+      "source": "app/api/fear-greed/route.ts",
+      "target": "lib/apiCache.ts"
+    },
+    {
+      "source": "app/api/feynman/artifacts/route.ts",
+      "target": "lib/feynmanContinuity.ts"
+    },
+    {
+      "source": "app/api/feynman/artifacts/route.ts",
+      "target": "lib/feynmanContinuityStore.ts"
+    },
+    {
+      "source": "app/api/free-local-readiness/route.ts",
+      "target": "lib/aiModelRouting.ts"
+    },
+    {
+      "source": "app/api/free-local-readiness/route.ts",
+      "target": "lib/authSession.ts"
+    },
+    {
+      "source": "app/api/free-local-readiness/route.ts",
+      "target": "lib/freeLocalReadiness.ts"
+    },
+    {
+      "source": "app/api/free-local-readiness/route.ts",
+      "target": "lib/ollamaModelResolver.ts"
+    },
+    {
+      "source": "app/api/free-local-readiness/route.ts",
+      "target": "lib/productGuarantees.ts"
+    },
+    {
+      "source": "app/api/free-local-readiness/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/free-local-readiness/route.ts",
+      "target": "lib/runtimeIdentity.ts"
+    },
+    {
+      "source": "app/api/free-local-readiness/route.ts",
+      "target": "lib/security/rateLimit.ts"
+    },
+    {
+      "source": "app/api/free-local-readiness/route.ts",
+      "target": "lib/security/toolCapabilityPolicy.ts"
+    },
+    {
+      "source": "app/api/free-local-readiness/route.ts",
+      "target": "lib/serverEnvRuntime.ts"
+    },
+    {
+      "source": "app/api/geo-delta/route.ts",
+      "target": "lib/assimilation/storage.ts"
+    },
+    {
+      "source": "app/api/geo-delta/route.ts",
+      "target": "lib/assimilation/types.ts"
+    },
+    {
+      "source": "app/api/geocode/route.ts",
+      "target": "lib/apiCache.ts"
+    },
+    {
+      "source": "app/api/geocode/route.ts",
+      "target": "lib/geoCoordinateLookup.ts"
+    },
+    {
+      "source": "app/api/health/providers/route.ts",
+      "target": "lib/aiModelRouting.ts"
+    },
+    {
+      "source": "app/api/health/providers/route.ts",
+      "target": "lib/aiProviderHealth.ts"
+    },
+    {
+      "source": "app/api/health/providers/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/health/providers/route.ts",
+      "target": "lib/secretReadiness.ts"
+    },
+    {
+      "source": "app/api/health/providers/route.ts",
+      "target": "lib/security/rateLimit.ts"
+    },
+    {
+      "source": "app/api/health/route.ts",
+      "target": "lib/brand.ts"
+    },
+    {
+      "source": "app/api/health/route.ts",
+      "target": "lib/runtimeIdentity.ts"
+    },
+    {
+      "source": "app/api/ideas/intake/route.ts",
+      "target": "lib/ideaLinkIntake.ts"
+    },
+    {
+      "source": "app/api/ideas/intake/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/ideas/intake/route.ts",
+      "target": "lib/security/rateLimit.ts"
+    },
+    {
+      "source": "app/api/local-acceleration/route.ts",
+      "target": "lib/localAcceleration.ts"
+    },
+    {
+      "source": "app/api/masterdnsvpn/readiness/route.ts",
+      "target": "lib/masterDnsVpn.ts"
+    },
+    {
+      "source": "app/api/masterdnsvpn/readiness/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/mcp/gateway/route.ts",
+      "target": "lib/mcpGatewayAdapter.ts"
+    },
+    {
+      "source": "app/api/mcp/gateway/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/memory/ask/route.ts",
+      "target": "lib/memoryAsk.ts"
+    },
+    {
+      "source": "app/api/memory/ask/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/memory/pages/route.ts",
+      "target": "lib/localAcceleration.ts"
+    },
+    {
+      "source": "app/api/memory/pages/route.ts",
+      "target": "lib/memoryPagesStore.ts"
+    },
+    {
+      "source": "app/api/metrics/runtime-eval/route.ts",
+      "target": "lib/runtimeExperimentLedger.ts"
+    },
+    {
+      "source": "app/api/metrics/runtime-eval/route.ts",
+      "target": "lib/serverEnvRuntime.ts"
+    },
+    {
+      "source": "app/api/metrics/runtime-eval/run/route.ts",
+      "target": "lib/serverEnvRuntime.ts"
+    },
+    {
+      "source": "app/api/metrics/runtime-experiments/route.ts",
+      "target": "lib/runtimeExperimentLedger.ts"
+    },
+    {
+      "source": "app/api/metrics/runtime-experiments/run/route.ts",
+      "target": "lib/assimilation/contracts.ts"
+    },
+    {
+      "source": "app/api/metrics/runtime-experiments/run/route.ts",
+      "target": "lib/runtimeExperimentContracts.ts"
+    },
+    {
+      "source": "app/api/metrics/runtime-experiments/run/route.ts",
+      "target": "lib/runtimeExperimentLedger.ts"
+    },
+    {
+      "source": "app/api/metrics/runtime-experiments/run/route.ts",
+      "target": "lib/serverEnvRuntime.ts"
+    },
+    {
+      "source": "app/api/model-lab/route.ts",
+      "target": "lib/assimilation/contracts.ts"
+    },
+    {
+      "source": "app/api/model-lab/route.ts",
+      "target": "lib/assimilation/storage.ts"
+    },
+    {
+      "source": "app/api/model-lab/route.ts",
+      "target": "lib/modelSafetyEvaluation.ts"
+    },
+    {
+      "source": "app/api/network-health/check/route.ts",
+      "target": "lib/internalFetch.ts"
+    },
+    {
+      "source": "app/api/network-health/check/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/network-health/check/route.ts",
+      "target": "lib/security/networkGuards.ts"
+    },
+    {
+      "source": "app/api/network-health/check/route.ts",
+      "target": "lib/security/rateLimit.ts"
+    },
+    {
+      "source": "app/api/network-health/check/route.ts",
+      "target": "lib/security/routePolicy.ts"
+    },
+    {
+      "source": "app/api/ollama/catalog/route.ts",
+      "target": "lib/aiModelRouting.ts"
+    },
+    {
+      "source": "app/api/ollama/catalog/route.ts",
+      "target": "lib/ollamaModelResolver.ts"
+    },
+    {
+      "source": "app/api/ollama/catalog/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/ollama/catalog/route.ts",
+      "target": "lib/security/rateLimit.ts"
+    },
+    {
+      "source": "app/api/papers/route.ts",
+      "target": "lib/apiCache.ts"
+    },
+    {
+      "source": "app/api/papers/route.ts",
+      "target": "lib/papersResearch.ts"
+    },
+    {
+      "source": "app/api/phone-acceptance/receipt/route.ts",
+      "target": "lib/authSession.ts"
+    },
+    {
+      "source": "app/api/phone-acceptance/receipt/route.ts",
+      "target": "lib/phoneAcceptanceReceipts.ts"
+    },
+    {
+      "source": "app/api/phone-acceptance/receipt/route.ts",
+      "target": "lib/phoneAcceptanceStatus.ts"
+    },
+    {
+      "source": "app/api/phone-acceptance/receipt/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/phone-acceptance/receipt/route.ts",
+      "target": "lib/security/toolCapabilityPolicy.ts"
+    },
+    {
+      "source": "app/api/privacy-shield/preview/route.ts",
+      "target": "lib/privacyShieldServer.ts"
+    },
+    {
+      "source": "app/api/privacy-shield/preview/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/project/route.ts",
+      "target": "lib/brand.ts"
+    },
+    {
+      "source": "app/api/project/route.ts",
+      "target": "lib/contextSpine.ts"
+    },
+    {
+      "source": "app/api/project/route.ts",
+      "target": "lib/projectArchitecture.ts"
+    },
+    {
+      "source": "app/api/project/route.ts",
+      "target": "lib/projectImpact.ts"
+    },
+    {
+      "source": "app/api/project/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/project/route.ts",
+      "target": "lib/security/localDataPolicy.ts"
+    },
+    {
+      "source": "app/api/registry/route.ts",
+      "target": "lib/assimilation/storage.ts"
+    },
+    {
+      "source": "app/api/registry/route.ts",
+      "target": "lib/assimilation/types.ts"
+    },
+    {
+      "source": "app/api/security/runs/route.ts",
+      "target": "lib/assimilation/storage.ts"
+    },
+    {
+      "source": "app/api/security/runs/route.ts",
+      "target": "lib/assimilation/types.ts"
+    },
+    {
+      "source": "app/api/security/scenarios/route.ts",
+      "target": "lib/assimilation/contracts.ts"
+    },
+    {
+      "source": "app/api/security/scenarios/route.ts",
+      "target": "lib/assimilation/http.ts"
+    },
+    {
+      "source": "app/api/security/scenarios/route.ts",
+      "target": "lib/assimilation/storage.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/brand.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/releaseMatrix.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/secretReadiness.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/security/connectorPolicy.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/security/localDataPolicy.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/security/protectedActionTelemetry.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/security/rateLimit.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/security/routePolicy.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/security/runtimePolicyCookies.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/security/stepUpAuth.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/security/toolCapabilityPolicy.ts"
+    },
+    {
+      "source": "app/api/settings/route.ts",
+      "target": "lib/serverEnvRuntime.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/aiModelRouting.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/brand.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/experiments.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/externalToolBridge.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/helpers.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/releaseMatrix.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/runtimeExperimentLedger.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/runtimeIdentity.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/security/connectorPolicy.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/security/localDataPolicy.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/security/routePolicy.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/security/toolIsolationPolicy.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/serverEnvRuntime.ts"
+    },
+    {
+      "source": "app/api/status/route.ts",
+      "target": "lib/skillMetadata.ts"
+    },
+    {
+      "source": "app/api/subscription-escape/assets/[file]/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/subscription-escape/assets/[file]/route.ts",
+      "target": "lib/subscriptionEscapeAssets.ts"
+    },
+    {
+      "source": "app/api/subscription-escape/assets/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/subscription-escape/assets/route.ts",
+      "target": "lib/subscriptionEscapeAssets.ts"
+    },
+    {
+      "source": "app/api/subscription-escape/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/subscription-escape/route.ts",
+      "target": "lib/subscriptionEscape.ts"
+    },
+    {
+      "source": "app/api/subscription-escape/route.ts",
+      "target": "lib/subscriptionEscapeStore.ts"
+    },
+    {
+      "source": "app/api/sweeps/route.ts",
+      "target": "lib/assimilation/storage.ts"
+    },
+    {
+      "source": "app/api/sweeps/route.ts",
+      "target": "lib/assimilation/sweep.ts"
+    },
+    {
+      "source": "app/api/sweeps/route.ts",
+      "target": "lib/assimilation/types.ts"
+    },
+    {
+      "source": "app/api/token/route.ts",
+      "target": "lib/authSession.ts"
+    },
+    {
+      "source": "app/api/token/route.ts",
+      "target": "lib/authToken.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/authSession.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/brand.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/externalToolBridge.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/feynmanContinuity.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/feynmanContinuityStore.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/feynmanResearch.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/huggingFaceInspection.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/internalAi.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/memoryPagesStore.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/repoAssimilation.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/repoCompare.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/repoIntel.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/security/localDataPolicy.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/security/networkGuards.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/security/protectedActionTelemetry.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/security/rateLimit.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/security/stepUpAuth.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/security/toolCapabilityPolicy.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/security/toolIsolationPolicy.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/security/toolIsolationRunner.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/security/toolIsolationTelemetry.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/serverRepoCompare.ts"
+    },
+    {
+      "source": "app/api/tools/route.ts",
+      "target": "lib/serverRepoIntel.ts"
+    },
+    {
+      "source": "app/api/vehicle/telemetry/route.ts",
+      "target": "lib/vehicle/types.ts"
+    },
+    {
+      "source": "app/api/verify/route.ts",
+      "target": "lib/internalFetch.ts"
+    },
+    {
+      "source": "app/api/verify/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/verify/route.ts",
+      "target": "lib/security/protectedActionTelemetry.ts"
+    },
+    {
+      "source": "app/api/verify/route.ts",
+      "target": "lib/security/rateLimit.ts"
+    },
+    {
+      "source": "app/api/verify/route.ts",
+      "target": "lib/security/stepUpAuth.ts"
+    },
+    {
+      "source": "app/api/verify/route.ts",
+      "target": "lib/security/toolCapabilityPolicy.ts"
+    },
+    {
+      "source": "app/api/windows-optimization-advisor/route.ts",
+      "target": "lib/protectedApi.ts"
+    },
+    {
+      "source": "app/api/windows-optimization-advisor/route.ts",
+      "target": "lib/security/rateLimit.ts"
+    },
+    {
+      "source": "app/api/windows-optimization-advisor/route.ts",
+      "target": "lib/windowsOptimizationAdvisorServer.ts"
+    },
+    {
+      "source": "app/api/workflow-runs/route.ts",
+      "target": "lib/assimilation/storage.ts"
+    },
+    {
+      "source": "app/api/workflow-runs/route.ts",
+      "target": "lib/assimilation/types.ts"
+    },
+    {
+      "source": "app/api/workflows/route.ts",
+      "target": "lib/assimilation/storage.ts"
+    },
+    {
+      "source": "app/api/workflows/route.ts",
+      "target": "lib/assimilation/types.ts"
+    },
+    {
+      "source": "app/auth/connect/route.ts",
+      "target": "lib/authSession.ts"
+    },
+    {
+      "source": "app/auth/connect/route.ts",
+      "target": "lib/authToken.ts"
+    },
+    {
+      "source": "app/auth/logout/route.ts",
+      "target": "lib/authSession.ts"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/AgentHealthCard.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/AIBriefing.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/BusinessBuilder.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/EfficiencyOpsCard.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/EventRadar.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/FocusPanel.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/JobRiskAnalyzer.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/KPICards.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/MemorySpineStatusCard.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/NetworkHealth.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/PrivacyShieldPreviewPanel.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/ProjectStackCard.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/RuntimeEfficiencyCard.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/SystemStatusRing.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/ThreatHeatmap.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/command/WorldEventMap.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/home/office/OperatorStatusCard.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/home/office/workflowCommands.ts"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/ui/AssistantGuidanceStack.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/ui/DataLoader.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/ui/FreeLocalReadinessPanel.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/ui/MissionHandoffStrip.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/ui/OfflineReadinessCallout.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/ui/OperatorReadinessLane.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/ui/ProviderHealthStrip.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/ui/shell.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/ui/SurfaceFocusStrip.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/ui/TrustOperationsRail.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "components/vault/MemoryAskPanel.tsx"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "hooks/useSessionHrefAutoHeal.ts"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "hooks/useSurfaceFocusScroll.ts"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "lib/assistantGuidance.ts"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "lib/opsLayoutRegistry.ts"
+    },
+    {
+      "source": "app/command/page.tsx",
+      "target": "lib/surfaceRedesignRegistry.ts"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "components/cyber/CyberArticleHeatmap.tsx"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "components/cyber/CyberDeferredChamber.tsx"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "components/cyber/TriageView.tsx"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "components/recon/AiExposureReviewCard.tsx"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "components/recon/OsintCasefileCard.tsx"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "components/ui/DataLoader.tsx"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "components/ui/MissionHandoffStrip.tsx"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "components/ui/shell.tsx"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "components/ui/SurfaceFocusStrip.tsx"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "components/ui/TrustOperationsRail.tsx"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "hooks/useSessionHrefAutoHeal.ts"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "hooks/useSurfaceFocusScroll.ts"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "lib/assistantSessionRegistry.ts"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "lib/governanceCatalog.ts"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "lib/opsLayoutRegistry.ts"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "lib/surfaceCondensationRegistry.ts"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "lib/surfaceRedesignRegistry.ts"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "lib/workflowPacks.ts"
+    },
+    {
+      "source": "app/cyber/page.tsx",
+      "target": "store/useStore.ts"
+    },
+    {
+      "source": "app/home/page.tsx",
+      "target": "components/home/office/OfficeCommandCenter.tsx"
+    },
+    {
+      "source": "app/home/page.tsx",
+      "target": "components/ui/DataLoader.tsx"
+    },
+    {
+      "source": "app/home/page.tsx",
+      "target": "components/ui/shell.tsx"
+    },
+    {
+      "source": "app/hq/page.tsx",
+      "target": "components/home/office/OfficeCommandCenter.tsx"
+    },
+    {
+      "source": "app/hq/page.tsx",
+      "target": "components/ui/shell.tsx"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "components/intel/IntelDeferredSegment.tsx"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "components/ops/ConflictFeed.tsx"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "components/signals/TopicHeatmap.tsx"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "components/ui/AssistantGuidanceStack.tsx"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "components/ui/DataLoader.tsx"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "components/ui/MissionHandoffStrip.tsx"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "components/ui/shell.tsx"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "components/ui/SurfaceFocusStrip.tsx"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "hooks/useSessionHrefAutoHeal.ts"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "hooks/useSurfaceFocusScroll.ts"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "lib/opsLayoutRegistry.ts"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "lib/surfaceRedesignRegistry.ts"
+    },
+    {
+      "source": "app/intel/page.tsx",
+      "target": "store/useStore.ts"
+    },
+    {
+      "source": "app/iot/page.tsx",
+      "target": "components/iot/AutomationRules.tsx"
+    },
+    {
+      "source": "app/iot/page.tsx",
+      "target": "components/iot/DeviceRegistry.tsx"
+    },
+    {
+      "source": "app/iot/page.tsx",
+      "target": "components/iot/DeviceStatusMatrix.tsx"
+    },
+    {
+      "source": "app/iot/page.tsx",
+      "target": "components/iot/EspectreWifiViewer.tsx"
+    },
+    {
+      "source": "app/iot/page.tsx",
+      "target": "components/iot/MQTTStatus.tsx"
+    },
+    {
+      "source": "app/iot/page.tsx",
+      "target": "components/iot/SensorDashboard.tsx"
+    },
+    {
+      "source": "app/iot/page.tsx",
+      "target": "components/iot/SensorGauges.tsx"
+    },
+    {
+      "source": "app/iot/page.tsx",
+      "target": "components/iot/WeatherTimeline.tsx"
+    },
+    {
+      "source": "app/iot/page.tsx",
+      "target": "components/ui/shell.tsx"
+    },
+    {
+      "source": "app/layout.tsx",
+      "target": "components/ui/PersistedShellStateBootScript.tsx"
+    },
+    {
+      "source": "app/layout.tsx",
+      "target": "components/ui/RootLayoutChrome.tsx"
+    },
+    {
+      "source": "app/layout.tsx",
+      "target": "components/ui/SurfaceMotionBootScript.tsx"
+    },
+    {
+      "source": "app/layout.tsx",
+      "target": "lib/authSession.ts"
+    },
+    {
+      "source": "app/layout.tsx",
+      "target": "lib/brand.ts"
+    },
+    {
+      "source": "app/layout.tsx",
+      "target": "lib/productGuarantees.ts"
+    },
+    {
+      "source": "app/layout.tsx",
+      "target": "lib/shellBootstrapGuard.ts"
+    },
+    {
+      "source": "app/page.tsx",
+      "target": "components/landing/LandingPage.tsx"
+    },
+    {
+      "source": "app/page.tsx",
+      "target": "lib/authSession.ts"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/recon/AiExposureReviewCard.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/recon/BinaryTriagePanel.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/recon/BrowserOpsReadinessCard.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/recon/HeadersAudit.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/recon/IdeaLinkIntakePanel.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/recon/MetadataExtractor.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/recon/OpsecPanel.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/recon/OsintCasefileCard.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/recon/PassiveDnsPanel.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/recon/ReconLookup.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/recon/RepoIntelPanel.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/ui/shell.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/ui/SurfaceFocusStrip.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "components/ui/TrustOperationsRail.tsx"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "hooks/useSessionHrefAutoHeal.ts"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "hooks/useSurfaceFocusScroll.ts"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "lib/opsLayoutRegistry.ts"
+    },
+    {
+      "source": "app/recon/page.tsx",
+      "target": "lib/surfaceRedesignRegistry.ts"
+    }
+  ],
+  "circularDependencies": [
+    [
+      "lib/apiFetch.ts",
+      "lib/apiFetch.ts"
+    ],
+    [
+      "lib/memoryStore.ts",
+      "lib/memoryStore.ts"
+    ],
+    [
+      "lib/privacyShieldClient.ts",
+      "store/useStore.ts",
+      "components/home/office/constants.ts",
+      "components/home/office/types.ts",
+      "lib/agent.ts",
+      "lib/privacyShieldClient.ts"
+    ],
+    [
+      "store/useStore.ts",
+      "components/home/office/constants.ts",
+      "components/home/office/types.ts",
+      "lib/agent.ts",
+      "store/useStore.ts"
+    ],
+    [
+      "components/home/office/types.ts",
+      "lib/assistantChatActions.ts",
+      "components/home/office/types.ts"
+    ],
+    [
+      "components/home/office/types.ts",
+      "lib/assistantChatActions.ts",
+      "lib/assistantOperatorWorkflow.ts",
+      "components/home/office/types.ts"
+    ],
+    [
+      "components/home/office/types.ts",
+      "lib/vaultCapture.ts",
+      "components/home/office/types.ts"
+    ],
+    [
+      "lib/arpgGame.ts",
+      "lib/arpgArsenalContent.ts",
+      "lib/arpgGame.ts"
+    ],
+    [
+      "lib/arpgGame.ts",
+      "lib/arpgCharacterContent.ts",
+      "lib/arpgGame.ts"
+    ],
+    [
+      "lib/arpgGame.ts",
+      "lib/arpgCombatContent.ts",
+      "lib/arpgGame.ts"
+    ],
+    [
+      "lib/arpgGame.ts",
+      "lib/arpgGameContent.ts",
+      "lib/arpgGame.ts"
+    ],
+    [
+      "lib/ai.ts",
+      "lib/privacyShieldClient.ts",
+      "store/useStore.ts",
+      "lib/articleReasoning.ts",
+      "lib/ai.ts"
+    ],
+    [
+      "lib/learningMissions.ts",
+      "lib/memoryMining.ts",
+      "lib/memorySpine.ts",
+      "lib/vaultCrossLinker.ts",
+      "components/vault/vaultGraphPageUtils.ts",
+      "lib/artifactContinuity.ts",
+      "lib/learningMissions.ts"
+    ],
+    [
+      "lib/memoryMining.ts",
+      "lib/memorySpine.ts",
+      "lib/vaultCrossLinker.ts",
+      "components/vault/vaultGraphPageUtils.ts",
+      "lib/artifactContinuity.ts",
+      "lib/memoryMining.ts"
+    ],
+    [
+      "store/useStore.ts",
+      "lib/contextPolicy.ts",
+      "lib/learningMissions.ts",
+      "lib/memoryMining.ts",
+      "lib/memorySpine.ts",
+      "lib/vaultCrossLinker.ts",
+      "store/useStore.ts"
+    ],
+    [
+      "store/useStore.ts",
+      "lib/contextPolicy.ts",
+      "lib/learningMissions.ts",
+      "lib/memoryMining.ts",
+      "lib/memorySpine.ts",
+      "store/useStore.ts"
+    ],
+    [
+      "lib/learningMissions.ts",
+      "lib/memoryMining.ts",
+      "lib/workflowPacks.ts",
+      "lib/learningMissions.ts"
+    ],
+    [
+      "lib/liveContext.ts",
+      "lib/liveContext.ts"
+    ],
+    [
+      "lib/security/toolCapabilityPolicy.ts",
+      "lib/security/stepUpAuth.ts",
+      "lib/security/protectedActionTelemetry.ts",
+      "lib/security/toolCapabilityPolicy.ts"
+    ],
+    [
+      "lib/security/toolCapabilityPolicy.ts",
+      "lib/security/stepUpAuth.ts",
+      "lib/security/toolCapabilityPolicy.ts"
+    ],
+    [
+      "lib/feynmanResearch.ts",
+      "lib/feynmanProgressiveResearch.ts",
+      "lib/feynmanResearch.ts"
+    ],
+    [
+      "lib/feynmanResearch.ts",
+      "lib/feynmanWorkflowContracts.ts",
+      "lib/feynmanResearch.ts"
+    ],
+    [
+      "lib/ollama.ts",
+      "lib/ollama.ts"
+    ],
+    [
+      "lib/skillCycle.ts",
+      "lib/skillCycle.ts"
+    ],
+    [
+      "lib/knowledgeGraph.ts",
+      "lib/knowledgeGraph.ts"
+    ],
+    [
+      "lib/plugins.ts",
+      "lib/plugins.ts"
+    ]
+  ],
+  "isolatedFiles": [
+    "app/api/agent-reach/route.ts",
+    "app/api/cisa-kev/route.ts",
+    "app/api/commodities/route.ts",
+    "app/api/conflict/route.ts",
+    "app/api/defi/route.ts",
+    "app/api/fires/route.ts",
+    "app/api/flights/route.ts",
+    "app/api/fx/route.ts",
+    "app/api/gdelt/route.ts",
+    "app/api/geo-scan/route.ts",
+    "app/api/hacker-news/route.ts",
+    "app/api/headers/route.ts",
+    "app/api/maritime/route.ts",
+    "app/api/metals/route.ts",
+    "app/api/mqtt/route.ts",
+    "app/api/news/route.ts",
+    "app/api/polymarket/route.ts",
+    "app/api/prices/route.ts",
+    "app/api/sec-filings/route.ts",
+    "app/api/telegram/route.ts",
+    "app/api/threat-intel/route.ts",
+    "app/api/weather/route.ts",
+    "app/ops/page.tsx",
+    "app/reset/page.tsx"
+  ],
+  "highCouplingFiles": [
+    "store/useStore.ts",
+    "components/ui/shell.tsx",
+    "lib/apiFetch.ts",
+    "components/home/office/types.ts",
+    "components/home/office/OfficeCommandCenter.tsx",
+    "components/ui/surfacePrimitives.tsx",
+    "app/command/page.tsx",
+    "lib/chartTheme.ts",
+    "components/home/office/HQTerminalSection.tsx",
+    "lib/ai.ts",
+    "lib/helpers.ts",
+    "lib/agent.ts"
+  ],
+  "reviewPack": [],
+  "stats": {
+    "scannedFiles": 685,
+    "nodeCount": 685,
+    "edgeCount": 320,
+    "cycleCount": 26
+  }
+}

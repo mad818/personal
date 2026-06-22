@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "warpdotdev-warp",
+  "name": "Warp",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/warpdotdev/warp",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "Apache-2.0",
+    "primaryEvidence": [
+      "https://github.com/warpdotdev/warp",
+      "https://github.com/warpdotdev/warp/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "ai-command-suggestions",
+      "title": "AI-powered command suggestions in terminal context",
+      "sourceEvidence": "Warp AI: natural language to shell command with context awareness",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a Next.js dashboard, not a terminal application. Building a terminal emulator is out of scope."
+    },
+    {
+      "id": "command-palette-ux",
+      "title": "Command palette UX pattern: fuzzy search over available commands with preview",
+      "sourceEvidence": "Warp command palette: Cmd+P style command discovery",
+      "disposition": "pending",
+      "reason": "Nexus HQ chat is the primary command interface; a standalone command palette with fuzzy search is not yet implemented."
+    },
+    {
+      "id": "block-based-terminal-output",
+      "title": "Block-based terminal output: group commands and outputs into navigable blocks",
+      "sourceEvidence": "Warp blocks: collapsible command+output units for readability",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is not a terminal application; block-based output grouping is not applicable."
+    },
+    {
+      "id": "workflow-sharing",
+      "title": "Shareable workflows: save and share multi-step command sequences",
+      "sourceEvidence": "Warp workflows: community workflow sharing",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus skills system serves workflow sharing; a separate workflow sharing platform is out of scope."
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "context-optimizer",
+  "name": "claude-context-optimizer",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/egorfedorov/claude-context-optimizer",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/egorfedorov/claude-context-optimizer",
+      "https://github.com/egorfedorov/claude-context-optimizer/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "query-aware-context-pruning",
+      "title": "Prune live intel sections based on the active operator query",
+      "sourceEvidence": "README allow/deny context shaping by task relevance",
+      "disposition": "adapted",
+      "proof": [
+        "lib/liveContext.ts",
+        "components/home/office/OfficeCommandCenter.tsx",
+        "scripts/validate-dynamic-context-assembly.mjs"
+      ]
+    },
+    {
+      "id": "session-read-cache-hints",
+      "title": "Suppress irrelevant intel sections when the session is anchored on codebase reads",
+      "sourceEvidence": "Context optimizer session cache and allow/deny lists",
+      "disposition": "adapted",
+      "proof": [
+        "lib/contextSessionCache.ts",
+        "lib/liveContext.ts",
+        "components/home/office/OfficeCommandCenter.tsx",
+        "scripts/validate-context-session-cache.mjs"
+      ]
+    },
+    {
+      "id": "agent-scoped-live-context",
+      "title": "Filter live intel to agent-relevant sections",
+      "sourceEvidence": "Per-agent context budgeting in optimizer workflows",
+      "disposition": "adapted",
+      "proof": [
+        "lib/liveContext.ts",
+        "scripts/validate-dynamic-context-assembly.mjs"
+      ]
+    },
+    {
+      "id": "external-optimizer-cli-daemon",
+      "title": "Bundle the upstream optimizer CLI as a required Nexus daemon",
+      "sourceEvidence": "Upstream ships a standalone optimizer tool",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Optimization is native to liveContext and session cache helpers; no external daemon required."
+    }
+  ]
+}

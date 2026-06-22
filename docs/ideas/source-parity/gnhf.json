@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "gnhf",
+  "name": "gnhf",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/kunchenguid/gnhf",
+    "version": "main",
+    "reviewedAt": "2026-06-20",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/kunchenguid/gnhf",
+      "https://github.com/kunchenguid/gnhf/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "overnight-mission-handoff-brief",
+      "title": "Summarize armed overnight missions with morning re-entry guidance",
+      "sourceEvidence": "README good-night-have-fun autonomous continuation pattern",
+      "disposition": "adapted",
+      "proof": [
+        "lib/overnightMissionHandoff.ts",
+        "components/command/OvernightMissionCard.tsx",
+        "app/command/page.tsx",
+        "scripts/validate-gnhf-assimilation.mjs"
+      ],
+      "adaptationNotes": "Requires bounded mission review contracts from scheduler governance; no unbounded daemon."
+    },
+    {
+      "id": "mission-review-reentry-summary",
+      "title": "Persist mission scope, expiry, and re-entry summary on scheduled jobs",
+      "sourceEvidence": "Overnight work needs explicit handoff context",
+      "disposition": "adapted",
+      "proof": [
+        "lib/schedulerGovernance.ts",
+        "components/ui/CronSchedulerComposerSection.tsx"
+      ]
+    },
+    {
+      "id": "unbounded-overnight-autonomy",
+      "title": "Allow always-on overnight agents without review contracts or expiry",
+      "sourceEvidence": "Upstream continues work after operator steps away",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus requires mission review contracts, approval policy, and scheduler audit exports."
+    }
+  ]
+}

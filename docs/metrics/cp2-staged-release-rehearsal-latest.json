@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2026-06-20T19:29:38.772Z",
+  "slice": "CP2.1-STAGED-REHEARSAL",
+  "envLocalPresent": true,
+  "baseUrl": null,
+  "stagedHostDetected": false,
+  "tokenConfigured": true,
+  "smoke": {
+    "attempted": false,
+    "passed": false,
+    "exitCode": null
+  },
+  "diagnostics": {
+    "attempted": false,
+    "passed": false,
+    "exitCode": null
+  },
+  "rollbackProof": {
+    "checklist": [
+      "Record Coolify deployment ID and image digest before promote.",
+      "Export current env vars from Coolify UI.",
+      "Redeploy previous known-good commit on rollback.",
+      "Run npm run release:smoke against restored host.",
+      "Run npm run release:diagnostics:capture and archive artifact."
+    ],
+    "captured": false
+  },
+  "blocked": [
+    "Set NEXUS_RELEASE_BASE_URL to real Coolify/staged hostname in repo-root .env.local"
+  ]
+}

@@ -67,6 +67,10 @@ import {
   buildRuntimeAuthorityPromptBlock,
   buildRuntimeContinuityReceipt,
 } from "@/lib/runtimeAuthority";
+import {
+  YAGNI_AGENT_DIRECTIVE,
+  YAGNI_MAX_TOOL_CALLS_PER_RUN,
+} from "@/lib/agentYagniGuardrails";
 
 type ToolRiskTier = "tier0" | "tier1" | "tier2";
 
@@ -1999,7 +2003,8 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   // ── Auto-recall: inject relevant memories into system prompt ─────────────
   const memoryContext = await buildMemoryContext(userMessage);
   const enrichedPrompt =
-    systemPrompt + buildRuntimeAuthorityPromptBlock() + memoryContext;
+    systemPrompt + buildRuntimeAuthorityPromptBlock() + memoryContext +
+    `\n\n${YAGNI_AGENT_DIRECTIVE}\n\nTool budget: aim to complete this run in ${YAGNI_MAX_TOOL_CALLS_PER_RUN} tool calls or fewer.`;
   const contextChars = enrichedPrompt.length;
   const contextCompacted =
     Boolean(efficiencyHint?.liveContextCompacted) ||

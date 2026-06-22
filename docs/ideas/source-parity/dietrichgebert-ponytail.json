@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "id": "dietrichgebert-ponytail",
+  "name": "Ponytail",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/DietrichGebert/ponytail",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/DietrichGebert/ponytail",
+      "https://github.com/DietrichGebert/ponytail/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "yagni-agent-directive",
+      "title": "YAGNI discipline directive injected into agent system prompts",
+      "sourceEvidence": "Ponytail's core principle: agents do less, better; minimal-diff scaffolding by design",
+      "disposition": "adapted",
+      "proof": [
+        "lib/agentYagniGuardrails.ts",
+        "lib/ai.ts",
+        "lib/agent.ts"
+      ],
+      "adaptationNotes": "YAGNI_AGENT_DIRECTIVE injected into HQ and agent runtime prompts."
+    },
+    {
+      "id": "yagni-self-check-questions",
+      "title": "Pre-tool-call self-check questions to enforce minimal-diff behavior",
+      "sourceEvidence": "Ponytail step-by-step constraint: ask 'is this needed now?' before each action",
+      "disposition": "adapted",
+      "proof": [
+        "lib/agentYagniGuardrails.ts"
+      ],
+      "adaptationNotes": "YAGNI_SELF_CHECK array available for pre-tool-use hook and ORBIT skill runner."
+    },
+    {
+      "id": "yagni-violation-pattern-detection",
+      "title": "Named pattern catalog for detecting YAGNI violations in agent traces",
+      "sourceEvidence": "Ponytail anti-pattern list: speculative refactors, whole-file reads, scaffolding creep",
+      "disposition": "adapted",
+      "proof": [
+        "lib/agentYagniGuardrails.ts",
+        ".claude/hooks/pre-tool-use.mjs"
+      ],
+      "adaptationNotes": "YAGNI_VIOLATION_PATTERNS enforced in pre-tool-use hook."
+    },
+    {
+      "id": "minimal-diff-agent-runtime",
+      "title": "Dedicated minimal-diff agent runtime with enforced step budgets",
+      "sourceEvidence": "Ponytail ships its own orchestration loop with hard step limits",
+      "disposition": "pending",
+      "reason": "Nexus ORBIT follows YAGNI via prompt directives; a dedicated step-budget runtime loop has not been implemented."
+    },
+    {
+      "id": "ponytail-plugin-registry",
+      "title": "Pluggable tool registry with per-tool enable/disable flags",
+      "sourceEvidence": "Ponytail plugin system for selective tool access",
+      "disposition": "pending",
+      "reason": "Nexus uses toolCapabilityPolicy.ts for tool governance; full per-tool enable/disable registry not yet implemented."
+    }
+  ]
+}

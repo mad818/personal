@@ -1,0 +1,9 @@
+{
+  "generatedAt": "2026-06-20T19:15:21.367Z",
+  "baseUrl": "http://127.0.0.1:3100",
+  "tokenConfigured": true,
+  "launchExitCode": 0,
+  "gateExitCode": 0,
+  "passed": true,
+  "tokenInitReason": "already-strong"
+}

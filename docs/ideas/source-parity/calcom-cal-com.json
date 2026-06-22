@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "calcom-cal-com",
+  "name": "Cal.com",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/calcom/cal.com",
+    "version": "main-2026-06-21",
+    "reviewedAt": "2026-06-21",
+    "license": "AGPL-3.0",
+    "primaryEvidence": [
+      "https://github.com/calcom/cal.com",
+      "https://github.com/calcom/cal.com/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "scheduling-platform",
+      "title": "Open-source scheduling platform: booking pages, availability management, calendar sync",
+      "sourceEvidence": "Cal.com: self-hosted Calendly alternative with full scheduling workflow",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is an intelligence dashboard, not a scheduling platform. Cal.com's core product is outside scope."
+    },
+    {
+      "id": "booking-flow-ux",
+      "title": "Booking flow UX patterns: time slot selection, confirmation emails, rescheduling",
+      "sourceEvidence": "Cal.com booking UI",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Scheduling UX is outside Nexus product scope."
+    },
+    {
+      "id": "availability-api-pattern",
+      "title": "Availability computation API: given a schedule and existing events, find open slots",
+      "sourceEvidence": "Cal.com availability engine: IANA timezone-aware slot calculation",
+      "disposition": "pending",
+      "reason": "Nexus COMMAND could use availability computation patterns for agent scheduling or task time-blocking; deferred pending scheduling feature."
+    },
+    {
+      "id": "webhook-event-system",
+      "title": "Webhook event system: emit booking, cancellation, and rescheduling events to external systems",
+      "sourceEvidence": "Cal.com webhooks: configurable event-driven integrations",
+      "disposition": "pending",
+      "reason": "Nexus automation hooks could adopt Cal.com's webhook event schema patterns; deferred pending Nexus automation lane."
+    }
+  ]
+}

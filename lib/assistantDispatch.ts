@@ -60,6 +60,7 @@ export interface AssistantDispatchPlan {
 export interface AssistantDispatchOptions {
   forceAnswerHere?: boolean;
   forceRouteAction?: boolean;
+  localInferenceDegraded?: boolean;
 }
 
 const WORKSPACE_ACTION_RE =
@@ -230,6 +231,7 @@ export function resolveAssistantDispatch(
     capabilityId: capabilityMatch.capability.id,
     preparedWorkspace,
     toolCatalog,
+    localInferenceDegraded: options.localInferenceDegraded,
   });
   const actionModel = buildAssistantChatActionModel({
     answerMode,

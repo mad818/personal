@@ -30,7 +30,6 @@ const LOCAL_FIELDS: {
     label: "Local LLM Endpoint",
     placeholder: "http://localhost:11434/v1/...",
   },
-  { key: "localModel", label: "Local Model Name", placeholder: "qwen3:8b" },
   { key: "localApiKey", label: "Local / OpenRouter Key", type: "password" },
   { key: "userName", label: "Your Name" },
   { key: "userGoals", label: "Goals", placeholder: "SaaS, $4K/mo, freelance…" },
@@ -197,9 +196,18 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
     useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>(null);
 
+  const [advancedConfirmed, setAdvancedConfirmed] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState("");
+  const [ollamaCatalog, setOllamaCatalog] = useState<{
+    reachable: boolean;
+    models: { name: string }[];
+    resolvedModel: string | null;
+    resolutionReason: string;
+    requestedModel: string;
+  } | null>(null);
+  const [ollamaCatalogLoading, setOllamaCatalogLoading] = useState(false);
   const primaryProviders = AI_PROVIDER_BRANDING.filter(
     (provider) => provider.surface === "primary",
   );
@@ -230,6 +238,30 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
         /* non-fatal */
       });
   }, [open]);
+
+  const refreshOllamaCatalog = useCallback(async () => {
+    setOllamaCatalogLoading(true);
+    try {
+      const response = await apiFetch(
+        `/api/ollama/catalog?model=${encodeURIComponent(settings.localModel || "")}`,
+      );
+      if (!response.ok) {
+        setOllamaCatalog(null);
+        return;
+      }
+      const payload = (await response.json()) as typeof ollamaCatalog;
+      setOllamaCatalog(payload);
+    } catch {
+      setOllamaCatalog(null);
+    } finally {
+      setOllamaCatalogLoading(false);
+    }
+  }, [settings.localModel]);
+
+  useEffect(() => {
+    if (!open) return;
+    void refreshOllamaCatalog();
+  }, [open, refreshOllamaCatalog]);
 
   const handleSensitiveChange = (envKey: string, value: string) => {
     setSensitiveEdits((prev) => ({ ...prev, [envKey]: value }));
@@ -672,21 +704,61 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
               </span>
             </label>
 
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={securityConfig.NEXUS_ALLOW_PAID_APIS === "true"}
-                onChange={(e) =>
-                  setSecurityConfig((prev) => ({
-                    ...prev,
-                    NEXUS_ALLOW_PAID_APIS: e.target.checked ? "true" : "false",
-                  }))
-                }
-              />
-              <span style={{ fontSize: 12, color: "var(--text)" }}>
-                Unlock advanced paid-compatible AI lanes
-              </span>
-            </label>
+            {/* Advanced provider unlock — requires explicit operator confirmation */}
+            {securityConfig.NEXUS_ALLOW_PAID_APIS !== "true" && !advancedConfirmed ? (
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  background: "rgba(245,158,11,0.08)",
+                  border: "1px solid rgba(245,158,11,0.28)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                }}
+              >
+                <span style={{ fontSize: 11, color: "#f59e0b", fontWeight: 700 }}>
+                  Advanced lanes hidden (Ollama-first posture)
+                </span>
+                <span style={{ fontSize: 11, color: "var(--text3)", lineHeight: 1.45 }}>
+                  Paid-compatible providers (Groq, OpenAI, Anthropic, Google, MiniMax) stay off by default. Enabling them routes inference to third-party APIs using your BYOK keys — Nexus never charges you.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setAdvancedConfirmed(true)}
+                  style={{
+                    alignSelf: "flex-start",
+                    background: "rgba(245,158,11,0.15)",
+                    border: "1px solid rgba(245,158,11,0.4)",
+                    borderRadius: 6,
+                    color: "#f59e0b",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: "5px 10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  I understand — show advanced lanes
+                </button>
+              </div>
+            ) : (
+              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={securityConfig.NEXUS_ALLOW_PAID_APIS === "true"}
+                  onChange={(e) => {
+                    setSecurityConfig((prev) => ({
+                      ...prev,
+                      NEXUS_ALLOW_PAID_APIS: e.target.checked ? "true" : "false",
+                    }));
+                    if (!e.target.checked) setAdvancedConfirmed(false);
+                  }}
+                />
+                <span style={{ fontSize: 12, color: "var(--text)" }}>
+                  Unlock advanced paid-compatible AI lanes
+                </span>
+              </label>
+            )}
 
             <label
               style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 10 }}
@@ -879,6 +951,95 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
             <div
               style={{ display: "flex", flexDirection: "column", gap: "12px" }}
             >
+              <label
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    color: "var(--text3)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Local Model Name
+                </span>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  <input
+                    type="text"
+                    value={settings.localModel}
+                    placeholder="qwen3:8b"
+                    onChange={(e) =>
+                      updateSettings({ localModel: e.target.value })
+                    }
+                    style={{
+                      background: "var(--surf2)",
+                      border: "1px solid var(--border2)",
+                      borderRadius: "6px",
+                      color: "var(--text)",
+                      fontSize: "12px",
+                      padding: "7px 10px",
+                      outline: "none",
+                      flex: "1 1 160px",
+                      minWidth: 0,
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void refreshOllamaCatalog()}
+                    disabled={ollamaCatalogLoading}
+                    style={{
+                      background: "var(--surf3)",
+                      border: "1px solid var(--border2)",
+                      borderRadius: "6px",
+                      color: "var(--text)",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      padding: "7px 10px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {ollamaCatalogLoading ? "Refreshing…" : "Refresh from Ollama"}
+                  </button>
+                </div>
+                {ollamaCatalog?.models?.length ? (
+                  <select
+                    value={settings.localModel}
+                    onChange={(e) =>
+                      updateSettings({ localModel: e.target.value })
+                    }
+                    style={{
+                      background: "var(--surf2)",
+                      border: "1px solid var(--border2)",
+                      borderRadius: "6px",
+                      color: "var(--text)",
+                      fontSize: "12px",
+                      padding: "7px 10px",
+                      outline: "none",
+                      width: "100%",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    {ollamaCatalog.models.map((model) => (
+                      <option key={model.name} value={model.name}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
+                {ollamaCatalog ? (
+                  <span style={{ fontSize: "11px", color: "var(--text3)" }}>
+                    {ollamaCatalog.reachable
+                      ? `Resolved: ${ollamaCatalog.resolvedModel ?? "none"} (${ollamaCatalog.resolutionReason})`
+                      : "Ollama not reachable at the configured endpoint."}
+                  </span>
+                ) : null}
+              </label>
               {LOCAL_FIELDS.map(({ key, label, type, placeholder }) => {
                 const val = settings[key];
                 if (Array.isArray(val) || typeof val === "object") return null;

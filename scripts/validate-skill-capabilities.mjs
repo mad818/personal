@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 import fs from "node:fs";
 import path from "node:path";
-import { evaluateSkillCapabilities } from "../lib/skillSpectrumPolicy.ts";
+import { evaluateSkillCapabilities, detectCssHiddenPromptSmuggling } from "../lib/skillSpectrumPolicy.ts";
 
 const root = process.cwd();
 const skillsDir = path.join(root, ".claude", "skills");
@@ -17,7 +17,7 @@ function walk(dir, output = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full, output);
-    else if (entry.name === "SKILL.md") output.push(full);
+    else if (entry.name === "SKILL.md" || entry.name === "GUIDE.md") output.push(full);
   }
   return output;
 }
@@ -27,9 +27,17 @@ const capabilityRe =
 
 let scanned = 0;
 let blocked = 0;
+let cssScanned = 0;
 
 for (const skillFile of walk(skillsDir)) {
   const text = fs.readFileSync(skillFile, "utf8");
+  cssScanned += 1;
+  const cssFindings = detectCssHiddenPromptSmuggling(text);
+  if (cssFindings.length) {
+    fail(
+      `${path.relative(root, skillFile)} has CSS-hidden prompt smuggling (line ${cssFindings[0].line}): ${cssFindings[0].excerpt}`,
+    );
+  }
   const declared = [...new Set(text.match(capabilityRe) ?? [])];
   if (!declared.length) continue;
   scanned += 1;
@@ -45,5 +53,5 @@ for (const skillFile of walk(skillsDir)) {
 }
 
 console.log(
-  `ok skill-capabilities (${scanned} skill file(s) with capability declarations, ${blocked} blocked)`,
+  `ok skill-capabilities (${cssScanned} skill markdown file(s) CSS-scanned, ${scanned} with capability declarations, ${blocked} blocked)`,
 );

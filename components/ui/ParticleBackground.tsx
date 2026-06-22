@@ -74,6 +74,7 @@ export default function ParticleBackground() {
 
       <div
         aria-hidden="true"
+        className="nexus-particle-background"
         style={{
           position: "fixed",
           inset: 0,

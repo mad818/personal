@@ -84,3 +84,104 @@ export function evaluateSkillCapabilities(declared: string[]): {
 
   return { violations, warnings };
 }
+
+/**
+ * CSS-hidden prompt injection patterns — adversarial reference test.
+ *
+ * Source: dmore/agency-ai-agents-crafted-personali-danger-hidden-content-via-CSS
+ * Nexus does NOT implement this technique; these patterns are used only as
+ * adversarial test inputs to detect if third-party skill/agent markdown has
+ * smuggled hidden instructions via CSS (display:none, visibility:hidden,
+ * opacity:0, font-size:0, color:transparent, etc.).
+ *
+ * Nexus policy: any match is a BLOCKED finding — the skill must be rejected
+ * and reviewed before it can be loaded into the agent runtime.
+ */
+export interface CssHiddenPromptFinding {
+  line: number;
+  pattern: string;
+  excerpt: string;
+}
+
+const CSS_HIDDEN_PATTERNS: RegExp[] = [
+  /display\s*:\s*none/i,
+  /visibility\s*:\s*hidden/i,
+  /opacity\s*:\s*0(?:\.0+)?\b/i,
+  /font-size\s*:\s*0(?:px|em|rem|pt)?/i,
+  /color\s*:\s*(?:transparent|#0{3,8}|rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\))/i,
+  /position\s*:\s*absolute[^}]*(?:left|top)\s*:\s*-\d{4,}/i,
+  /height\s*:\s*0\s*;[^}]*overflow\s*:\s*hidden/i,
+  /width\s*:\s*0\s*;[^}]*overflow\s*:\s*hidden/i,
+];
+
+/** Inline hidden HTML with substantial smuggled body text (not doc backtick examples). */
+const CSS_HIDDEN_SMUGGLE_RE =
+  /<(?:div|span|p|section)[^>]*style\s*=\s*["'][^"']*(?:display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0)[^"']*["'][^>]*>([^<]{40,})<\//i;
+
+/**
+ * Scan markdown/text content for CSS-hidden prompt injection patterns.
+ * Returns an array of findings; an empty array means clean.
+ *
+ * Use this in CIPHER/SkillSpector review of any third-party skill or
+ * agent markdown before loading it into the Nexus runtime.
+ */
+export function detectCssHiddenPromptPatterns(content: string): CssHiddenPromptFinding[] {
+  const findings: CssHiddenPromptFinding[] = [];
+  const lines = content.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const smuggle = line.match(CSS_HIDDEN_SMUGGLE_RE);
+    if (smuggle) {
+      findings.push({
+        line: i + 1,
+        pattern: "hidden-html-smuggle",
+        excerpt: line.slice(0, 120),
+      });
+      continue;
+    }
+    if (line.includes("`")) continue;
+    for (const re of CSS_HIDDEN_PATTERNS) {
+      if (re.test(line)) {
+        findings.push({
+          line: i + 1,
+          pattern: re.source,
+          excerpt: line.slice(0, 120),
+        });
+        break;
+      }
+    }
+  }
+  return findings;
+}
+
+/**
+ * Stricter smuggling scan for CI — flags hidden HTML bodies and style blocks only.
+ */
+export function detectCssHiddenPromptSmuggling(content: string): CssHiddenPromptFinding[] {
+  const findings: CssHiddenPromptFinding[] = [];
+  const styleBlocks = content.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+  for (const match of styleBlocks) {
+    const body = match[1] ?? "";
+    for (const re of CSS_HIDDEN_PATTERNS) {
+      if (re.test(body)) {
+        findings.push({
+          line: 0,
+          pattern: `style-block:${re.source}`,
+          excerpt: body.slice(0, 120),
+        });
+        break;
+      }
+    }
+  }
+  const lines = content.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!CSS_HIDDEN_SMUGGLE_RE.test(line)) continue;
+    findings.push({
+      line: i + 1,
+      pattern: "hidden-html-smuggle",
+      excerpt: line.slice(0, 120),
+    });
+  }
+  return findings;
+}

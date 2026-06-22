@@ -16524,6 +16524,34 @@ html[data-nexus-motion-profile="reduced"] .nexus-homefront-mediaPanel__video {
   padding: 0 10px 10px;
 }
 
+.nexus-intel-only-gate {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.nexus-intel-only-gate--compact {
+  margin-bottom: 6px;
+}
+
+.nexus-intel-only-gate__copy p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.nexus-intel-only-gate__model {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.nexus-intel-only-gate__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 @media (max-width: 720px) {
   .nexus-operational-lights--panel .nexus-operational-lights__groups {
     grid-template-columns: 1fr;
@@ -16610,4 +16638,171 @@ html[data-nexus-motion-profile="reduced"] .nexus-homefront-mediaPanel__video {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* Phone / PWA compact posture — chat-first HQ, less nav chrome */
+
+html[data-nexus-phone-posture="compact"] {
+  --shell-gutter: 10px;
+  --nexus-ambient-mobile-opacity: 0.22;
+}
+
+html[data-nexus-phone-posture="compact"] body {
+  -webkit-text-size-adjust: 100%;
+}
+
+html[data-nexus-phone-posture="compact"] #particle-background-animations,
+html[data-nexus-phone-posture="compact"] .nexus-particle-background {
+  display: none !important;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-toprail {
+  padding-top: 6px;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-command-header__inner {
+  gap: 8px;
+  padding: 8px 10px 10px;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-command-header__context,
+html[data-nexus-phone-posture="compact"] .nexus-command-header__railMeta,
+html[data-nexus-phone-posture="compact"] .nexus-command-header__utilityNote,
+html[data-nexus-phone-posture="compact"] .nexus-command-header__statusAux,
+html[data-nexus-phone-posture="compact"] .nexus-trust-posture-strip,
+html[data-nexus-phone-posture="compact"] .nexus-operational-lights--toprail {
+  display: none !important;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-command-header__mission {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-command-header__brandTag {
+  display: none;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-command-header__utilityCore {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-command-header__status {
+  display: none;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-command-header__tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 6px;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-command-header__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-command-header__link {
+  min-width: 72px;
+  flex: 0 0 auto;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-command-header__linkIndex {
+  display: none;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-shell-stage,
+html[data-nexus-phone-posture="compact"] .nexus-shell-page {
+  padding-left: var(--shell-gutter);
+  padding-right: var(--shell-gutter);
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-root-main {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html[data-nexus-phone-posture="compact"] [data-nexus-command-dock="true"] {
+  display: none !important;
+}
+
+html[data-nexus-phone-posture="compact"] #hq-console-shell,
+html[data-nexus-phone-posture="compact"] .nexus-hq-tacticalRail,
+html[data-nexus-phone-posture="compact"] .nexus-surface-focus-strip {
+  display: none !important;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-hq-commandTable,
+html[data-nexus-phone-posture="compact"] .nexus-hq-commandTable__workspace,
+html[data-nexus-phone-posture="compact"] .nexus-hq-console {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - var(--top-rail-height, 112px) - 12px);
+}
+
+html[data-nexus-phone-posture="compact"] #hq-chronicle {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-hq-chronicle-shell {
+  min-height: min(52dvh, 420px);
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-hq-composer__topline,
+html[data-nexus-phone-posture="compact"] .nexus-hq-composer__council,
+html[data-nexus-phone-posture="compact"] .nexus-hq-composer__routeDebug,
+html[data-nexus-phone-posture="compact"] .nexus-hq-assistant-readiness,
+html[data-nexus-phone-posture="compact"] .nexus-hq-composer__dock {
+  display: none !important;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-hq-free-local-readiness {
+  display: none !important;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-hq-phone-setup {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 10, 18, 0.98) 0%,
+    rgba(6, 10, 18, 0.92) 72%,
+    rgba(6, 10, 18, 0) 100%
+  );
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-free-local-readiness--mobile-lane {
+  margin: 0;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-hq-composer__topline,
+html[data-nexus-phone-posture="compact"] .nexus-persisted-shell-notice {
+  display: none !important;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-hq-chronicle__prompts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-hq-chronicle__bubble {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-hq-composer__input {
+  font-size: 16px;
 }

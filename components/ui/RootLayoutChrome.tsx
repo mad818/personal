@@ -27,6 +27,7 @@ import {
 } from "@/lib/cinematicIA";
 import { getDefaultEntrypoint } from "@/lib/releaseMatrix";
 import ShellBackgroundServices from "@/components/ui/ShellBackgroundServices";
+import PhonePostureSync from "@/components/ui/PhonePostureSync";
 
 const CommandBar = dynamic(() => import("@/components/ui/CommandBar"), {
   ssr: false,
@@ -104,6 +105,7 @@ export default function RootLayoutChrome({
   return (
     <>
       <ParticleBackground />
+      <PhonePostureSync />
       <AuthGate initiallyAuthed={initiallyAuthed}>
         <RuntimePolicyCookieSync />
         <ShellHydrationBeacon />

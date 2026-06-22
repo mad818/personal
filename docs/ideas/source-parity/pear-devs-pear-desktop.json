@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "id": "pear-devs-pear-desktop",
+  "name": "pear-devs/pear-desktop",
+  "status": "foundation",
+  "source": {
+    "url": "https://github.com/pear-devs/pear-desktop",
+    "version": "master-2026-06-22",
+    "reviewedAt": "2026-06-22",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/pear-devs/pear-desktop",
+      "https://api.github.com/repos/pear-devs/pear-desktop"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "desktop-music-player-shell",
+      "title": "Electron desktop music player with extension ecosystem",
+      "sourceEvidence": "GitHub topics: electron, music-player, desktop-app; MIT license",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is an intelligence dashboard, not a standalone music client; no Pear fork planned."
+    },
+    {
+      "id": "music-library-local-playback",
+      "title": "Local library scanning, playlists, and playback controls",
+      "sourceEvidence": "pear-desktop music player extension model",
+      "disposition": "pending",
+      "reason": "Resources subscription-escape covers books/movies/music metadata; Pear-style playback engine not integrated."
+    },
+    {
+      "id": "desktop-electron-patterns",
+      "title": "Electron packaging, auto-update, and cross-platform desktop distribution",
+      "sourceEvidence": "TypeScript Electron app with Windows/macOS/Linux topics",
+      "disposition": "adapted",
+      "proof": [
+        "desktop/",
+        "npm run desktop:tauri:dev"
+      ],
+      "adaptationNotes": "Nexus ships Tauri desktop instead of Electron; distribution patterns are reference-only."
+    },
+    {
+      "id": "youtube-music-extension-bridge",
+      "title": "Extension bridge enriching a streaming music web client",
+      "sourceEvidence": "Repository description: extension for music player",
+      "disposition": "excluded",
+      "conflict": "legal",
+      "reason": "Streaming client extensions risk ToS conflicts; Nexus documents lawful local media only in Resources."
+    }
+  ]
+}

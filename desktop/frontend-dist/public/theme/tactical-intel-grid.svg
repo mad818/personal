@@ -1,0 +1,27 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#050910"/>
+  <rect x="48" y="48" width="1504" height="804" rx="18" stroke="#27313D" stroke-width="2"/>
+  <path d="M124 160C326 138 482 194 646 242C808 290 1016 344 1240 326C1344 318 1428 290 1480 262" stroke="#D9E2EB" stroke-width="4"/>
+  <path d="M124 256C306 244 486 298 646 344C826 396 1004 440 1240 432C1350 428 1430 402 1480 368" stroke="#8A9BAA" stroke-width="3"/>
+  <path d="M124 352C332 344 486 382 666 430C860 482 1018 540 1240 530C1344 524 1428 500 1480 472" stroke="#506171" stroke-width="3" stroke-dasharray="12 12"/>
+  <path d="M180 610H1420" stroke="#17212B" stroke-width="2"/>
+  <path d="M180 682H1420" stroke="#17212B" stroke-width="2"/>
+  <path d="M180 754H1420" stroke="#17212B" stroke-width="2"/>
+  <path d="M280 150V792" stroke="#17212B" stroke-width="2"/>
+  <path d="M520 150V792" stroke="#17212B" stroke-width="2"/>
+  <path d="M760 150V792" stroke="#17212B" stroke-width="2"/>
+  <path d="M1000 150V792" stroke="#17212B" stroke-width="2"/>
+  <path d="M1240 150V792" stroke="#17212B" stroke-width="2"/>
+  <rect x="164" y="594" width="354" height="194" rx="18" fill="#081019" stroke="#32404E" stroke-width="2"/>
+  <rect x="562" y="594" width="354" height="194" rx="18" fill="#081019" stroke="#32404E" stroke-width="2"/>
+  <rect x="960" y="594" width="476" height="194" rx="18" fill="#081019" stroke="#32404E" stroke-width="2"/>
+  <text x="198" y="642" fill="#AEBBC8" font-family="Arial, sans-serif" font-size="22" letter-spacing="5">SIGNAL DENSITY</text>
+  <text x="198" y="694" fill="#E5EEF6" font-family="Arial, sans-serif" font-size="52" font-weight="700">84%</text>
+  <text x="596" y="642" fill="#AEBBC8" font-family="Arial, sans-serif" font-size="22" letter-spacing="5">WORLD PICTURE</text>
+  <text x="596" y="694" fill="#E5EEF6" font-family="Arial, sans-serif" font-size="52" font-weight="700">13 FEEDS</text>
+  <text x="994" y="642" fill="#AEBBC8" font-family="Arial, sans-serif" font-size="22" letter-spacing="5">REFERENCE TRACE</text>
+  <text x="994" y="694" fill="#E5EEF6" font-family="Arial, sans-serif" font-size="52" font-weight="700">DOSSIER OPEN</text>
+  <circle cx="646" cy="242" r="12" fill="#E5EEF6"/>
+  <circle cx="1240" cy="326" r="12" fill="#BBC8D4"/>
+  <circle cx="860" cy="482" r="12" fill="#95A8B8"/>
+</svg>

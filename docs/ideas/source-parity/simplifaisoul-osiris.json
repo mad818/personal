@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "simplifaisoul-osiris",
+  "name": "simplifaisoul/osiris",
+  "status": "foundation",
+  "source": {
+    "url": "https://github.com/simplifaisoul/osiris",
+    "version": "master-2026-06-22",
+    "reviewedAt": "2026-06-22",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/simplifaisoul/osiris",
+      "https://api.github.com/repos/simplifaisoul/osiris"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "global-osint-dashboard",
+      "title": "Real-time global OSINT dashboard with multi-source intelligence panels",
+      "sourceEvidence": "Repository description: Open Source Global Intelligence Platform / Real-Time OSINT Dashboard",
+      "disposition": "pending",
+      "reason": "Nexus INTEL/RECON/OPS tabs overlap conceptually; connector-level parity not inventoried against Osiris modules."
+    },
+    {
+      "id": "unified-map-and-event-layers",
+      "title": "Map-centric fusion of events, entities, and live feeds",
+      "sourceEvidence": "OSINT dashboard products typically ship geospatial event layers (homepage osirisai.live)",
+      "disposition": "adapted",
+      "proof": [
+        "components/intel/LiveEventFusionStrip.tsx",
+        "app/intel/page.tsx"
+      ],
+      "adaptationNotes": "Nexus-native geo-fused event strip on INTEL links conflict feed critical/high events to their region and includes an OPS map deep-link. No Osiris code vendored; pattern adapted as a minimal fused strip."
+    },
+    {
+      "id": "palantir-style-workbench",
+      "title": "Analyst workbench for linking entities, timelines, and investigations",
+      "sourceEvidence": "Positioned as a Palantir alternative in repository metadata",
+      "disposition": "pending",
+      "reason": "RECON casefile and VAULT hooks are partial; full analyst graph workbench not built."
+    },
+    {
+      "id": "vendoring-osiris-runtime",
+      "title": "Embed or vendor the Osiris application inside Nexus",
+      "sourceEvidence": "Standalone TypeScript intelligence platform repository",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus stays one MIT app; Osiris remains a complementary reference, not a merged codebase."
+    },
+    {
+      "id": "token-promo-metadata",
+      "title": "Cryptocurrency promotion strings in upstream metadata",
+      "sourceEvidence": "GitHub API description includes pump.fun referral text",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "Nexus does not promote trading tokens or referral rails; ignore upstream promo metadata."
+    }
+  ]
+}

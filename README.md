@@ -244,7 +244,7 @@ ollama pull qwen3:8b
 # ollama serve  (listens on :11434 by default)
 ```
 
-In the app: **Settings** → **Provider: Local** → endpoint `http://localhost:11434/v1/chat/completions` → model e.g. `qwen3:8b`. Optional per-task model mapping: `lib/aiModelRouting.ts`. Map/news layers still use the public internet unless you avoid those features.
+In the app: **Settings** → **Provider: Local** → endpoint `http://localhost:11434/v1/chat/completions` → model e.g. `qwen3:8b`. Optional per-task model mapping: `lib/aiModelRouting.ts`. Full HF → Ollama guide: [`docs/deployment/ollama-huggingface-local.md`](docs/deployment/ollama-huggingface-local.md). Map/news layers still use the public internet unless you avoid those features.
 
 ---
 

@@ -22,6 +22,9 @@ import type {
   PhoneAcceptanceLiveStatusItem,
 } from "@/lib/phoneAcceptanceStatus";
 import { buildPhoneHandoffQrMatrix } from "@/lib/phoneHandoffQr";
+import { promptForPhoneAcceptanceAction, type PhoneAcceptanceActionId } from "@/lib/phoneAcceptanceActions";
+import { usePhonePosture } from "@/hooks/usePhonePosture";
+import PhoneAcceptanceActionBar from "@/components/ui/PhoneAcceptanceActionBar";
 import { useStore } from "@/store/useStore";
 import { ShellBadge, ShellButton } from "@/components/ui/shell";
 import OperationalLightGrid from "@/components/ui/OperationalLightGrid";
@@ -174,9 +177,13 @@ function PhoneHandoffQr({
 
 export default function FreeLocalReadinessPanel({
   compact = false,
+  mobileLane = false,
+  onPhoneSendPrompt,
 }: {
   surface?: "hq" | "command";
   compact?: boolean;
+  mobileLane?: boolean;
+  onPhoneSendPrompt?: (prompt: string) => void | Promise<void>;
 }) {
   const settings = useStore((s) => s.settings);
   const [snapshot, setSnapshot] = useState<FreeLocalReadinessSnapshot | null>(
@@ -191,7 +198,10 @@ export default function FreeLocalReadinessPanel({
   const [browserStorage, setBrowserStorage] =
     useState<BrowserStorageStatus>("checking");
   const [copiedTarget, setCopiedTarget] = useState<string | null>(null);
+  const [phoneActionBusy, setPhoneActionBusy] = useState(false);
   const receiptPingedRef = useRef(false);
+  const phonePosture = usePhonePosture();
+  const useMobileLane = mobileLane || phonePosture;
 
   useEffect(() => {
     try {
@@ -332,23 +342,20 @@ export default function FreeLocalReadinessPanel({
     };
   }, [refreshPhoneAcceptanceStatus, snapshot]);
 
-  useEffect(() => {
-    if (!snapshot || browserStorage === "checking" || receiptPingedRef.current) {
-      return;
-    }
-
-    receiptPingedRef.current = true;
-    const route = getCurrentInternalRoute();
-    const receiptKey = `nexus-phone-acceptance-receipt:${route}`;
-
-    const run = async () => {
-      try {
+  const postPhoneReceipt = useCallback(
+    async (force = false) => {
+      if (!snapshot) return;
+      const route = getCurrentInternalRoute();
+      const receiptKey = `nexus-phone-acceptance-receipt:${route}`;
+      if (!force) {
         try {
           if (window.sessionStorage.getItem(receiptKey)) return;
         } catch {
-          // Session storage can be blocked on phone browsers; the receipt still helps.
+          // Session storage can be blocked on phone browsers.
         }
+      }
 
+      try {
         const pwaDisplayMode = getPwaDisplayMode();
         const response = await apiFetch("/api/phone-acceptance/receipt", {
           method: "POST",
@@ -364,33 +371,69 @@ export default function FreeLocalReadinessPanel({
               "serviceWorker" in navigator,
           }),
         });
-
         if (!response.ok) {
           receiptPingedRef.current = false;
           return;
         }
-
         try {
           const payload = (await response.json()) as {
             status?: PhoneAcceptanceLiveStatus;
           };
           if (payload.status) setPhoneAcceptanceStatus(payload.status);
         } catch {
-          // Silent: the receipt itself succeeded, live status can refresh later.
+          // Silent: receipt succeeded.
         }
-
         try {
           window.sessionStorage.setItem(receiptKey, "1");
         } catch {
-          // Silent: receipt already reached the local API.
+          // Silent.
         }
       } catch {
         receiptPingedRef.current = false;
       }
-    };
+    },
+    [browserStorage, snapshot],
+  );
 
-    void run();
-  }, [browserStorage, snapshot]);
+  const handlePhoneAction = useCallback(
+    async (actionId: PhoneAcceptanceActionId) => {
+      setPhoneActionBusy(true);
+      try {
+        if (actionId === "refreshReceipt") {
+          receiptPingedRef.current = false;
+          await postPhoneReceipt(true);
+          await refreshPhoneAcceptanceStatus();
+          return;
+        }
+        if (actionId === "installPwa") {
+          window.alert(
+            "iPhone: tap Share, then Add to Home Screen.\nAndroid: tap Install app or Add to Home screen.\nThen reopen from your home screen.",
+          );
+          await refreshPhoneAcceptanceStatus();
+          return;
+        }
+        const prompt = promptForPhoneAcceptanceAction(actionId);
+        if (prompt && onPhoneSendPrompt) {
+          await onPhoneSendPrompt(prompt);
+          window.setTimeout(() => {
+            void refreshPhoneAcceptanceStatus();
+          }, 1200);
+        }
+      } finally {
+        setPhoneActionBusy(false);
+      }
+    },
+    [onPhoneSendPrompt, postPhoneReceipt, refreshPhoneAcceptanceStatus],
+  );
+
+  useEffect(() => {
+    if (!snapshot || browserStorage === "checking" || receiptPingedRef.current) {
+      return;
+    }
+
+    receiptPingedRef.current = true;
+    void postPhoneReceipt(false);
+  }, [browserStorage, postPhoneReceipt, snapshot]);
 
   const rows = useMemo(() => {
     if (!snapshot) return [];
@@ -462,6 +505,22 @@ export default function FreeLocalReadinessPanel({
       ))}
     </div>
   ) : null;
+
+  if (useMobileLane) {
+    return (
+      <div
+        data-testid="free-local-readiness-panel"
+        className="nexus-free-local-readiness nexus-free-local-readiness--mobile-lane"
+      >
+        <PhoneAcceptanceActionBar
+          status={phoneAcceptanceStatus}
+          sessionAuthenticated={Boolean(snapshot?.session.authenticated)}
+          busy={phoneActionBusy || phoneAcceptanceStatusLoading}
+          onAction={(actionId) => void handlePhoneAction(actionId)}
+        />
+      </div>
+    );
+  }
 
   return (
     <SurfaceCallout
@@ -546,7 +605,9 @@ export default function FreeLocalReadinessPanel({
                 <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--text2)]">
                   Desktop stays on, phone stays on the same network, and{" "}
                   {snapshot.phoneLan.tokenRequired
-                    ? "NEXUS_TOKEN is required before protected routes open."
+                    ? snapshot.phoneLan.phoneTokenConfigured
+                      ? "Use NEXUS_PHONE_TOKEN on the phone (or NEXUS_TOKEN for full access)."
+                      : "NEXUS_TOKEN is required before protected routes open."
                     : "this local runtime is not requiring a token."}
                 </p>
               </div>

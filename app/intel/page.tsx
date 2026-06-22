@@ -38,6 +38,10 @@ const LazyIntelDeferredSegment = dynamic(
   () => import("@/components/intel/IntelDeferredSegment"),
   { ssr: false },
 );
+const LazyLiveEventFusionStrip = dynamic(
+  () => import("@/components/intel/LiveEventFusionStrip"),
+  { ssr: false },
+);
 
 type Segment = "news" | "world" | "markets" | "sweeps";
 const SEGMENTS: { id: Segment; label: string }[] = [
@@ -196,6 +200,10 @@ export default function IntelPage() {
               </ShellGrid>
             </OpsWorkplane>
           </div>
+        )}
+
+        {(seg === "news" || seg === "world") && (
+          <LazyLiveEventFusionStrip />
         )}
 
         {seg !== "news" ? (

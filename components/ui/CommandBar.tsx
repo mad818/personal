@@ -28,6 +28,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import AssistantOperatorWorkflowPanel from "@/components/assistant/AssistantOperatorWorkflowPanel";
 import AssistantTurnReceipt from "@/components/assistant/AssistantTurnReceipt";
+import IntelOnlyAgentGate from "@/components/ui/IntelOnlyAgentGate";
+import { usePhonePosture } from "@/hooks/usePhonePosture";
 import ClientStyleMount from "@/components/ui/ClientStyleMount";
 import { buildSystemPrompt } from "@/lib/ai";
 import { runAgent, type AgentStep } from "@/lib/agent";
@@ -643,6 +645,9 @@ export default function CommandBar() {
     (s) => s.settings.scheduledJobs?.filter((job) => job.enabled).length ?? 0,
   );
   const lastSessionSummary = useStore((s) => s.settings.lastSessionSummary);
+  const phonePosture = usePhonePosture();
+  const hideOnPhoneHq =
+    phonePosture && (pathname === "/home" || pathname === "/hq");
 
   const systemPrompt = useMemo(() => buildSystemPrompt(settings), [settings]);
 
@@ -1081,10 +1086,11 @@ export default function CommandBar() {
     [send],
   );
 
-  if (!visible) return null;
+  if (!visible || hideOnPhoneHq) return null;
 
   return (
     <div
+      data-nexus-command-dock="true"
       style={{
         position: "fixed",
         bottom: "12px",
@@ -1610,6 +1616,13 @@ export default function CommandBar() {
               background: "var(--surf2)",
             }}
           >
+            <IntelOnlyAgentGate
+              surface="command"
+              compact
+              onCheckLocalAi={(prompt) => {
+                void send({ overrideText: prompt });
+              }}
+            />
             {/* Routing preview */}
             {input.trim() && (
               <div

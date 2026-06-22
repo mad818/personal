@@ -58,6 +58,10 @@ const LazyRepoIntelPanel = dynamic(
   () => import("@/components/recon/RepoIntelPanel"),
   { ssr: false },
 );
+const LazyIdeaLinkIntakePanel = dynamic(
+  () => import("@/components/recon/IdeaLinkIntakePanel"),
+  { ssr: false },
+);
 const LazyAiExposureReviewCard = dynamic(
   () => import("@/components/recon/AiExposureReviewCard"),
   { ssr: false },
@@ -253,6 +257,14 @@ export default function ReconPage() {
                 compact
               >
                 <LazyRepoIntelPanel />
+              </OpsField>
+              <OpsField
+                title="Idea link intake"
+                detail="Register GitHub/X links for assimilation triage"
+                tone="muted"
+                compact
+              >
+                <LazyIdeaLinkIntakePanel />
               </OpsField>
             </OpsWorkplane>
           </div>

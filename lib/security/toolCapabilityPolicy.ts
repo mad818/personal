@@ -123,6 +123,17 @@ export function resolveProtectedActionStatus(
 ): ProtectedActionStatus {
   if (!context.sessionAuthenticated) return "session_required";
 
+  const phoneTierSession = context.session?.authTier === "phone";
+  if (
+    phoneTierSession &&
+    (action === "settings_writes" ||
+      action === "verification" ||
+      action === "tools_mutate_exec" ||
+      action === "tools_networked")
+  ) {
+    return "blocked_policy";
+  }
+
   if (action === "settings_writes" || action === "verification") {
     return context.stepUpActive ? "ready" : "revalidate";
   }
@@ -139,6 +150,7 @@ export function resolveProtectedActionStatus(
 
 export function resolveProtectedActionBlockedReason(
   status: ProtectedActionStatus,
+  options: { phoneTokenLimited?: boolean } = {},
 ) {
   switch (status) {
     case "revalidate":
@@ -152,7 +164,7 @@ export function resolveProtectedActionBlockedReason(
     case "connector_limited":
       return "connector_limited";
     case "blocked_policy":
-      return "blocked_policy";
+      return options.phoneTokenLimited ? "phone_token_limited" : "blocked_policy";
     default:
       return undefined;
   }
@@ -168,7 +180,11 @@ export function resolveProtectedActionDescriptor(
 ): ProtectedActionDescriptor {
   const status = resolveProtectedActionStatus(action, context);
   const blockedReason =
-    options.blockedReason ?? resolveProtectedActionBlockedReason(status);
+    options.blockedReason ??
+    resolveProtectedActionBlockedReason(status, {
+      phoneTokenLimited:
+        context.session?.authTier === "phone" && status === "blocked_policy",
+    });
 
   return {
     action,

@@ -71,6 +71,10 @@ import {
   YAGNI_AGENT_DIRECTIVE,
   YAGNI_MAX_TOOL_CALLS_PER_RUN,
 } from "@/lib/agentYagniGuardrails";
+import {
+  buildLocalInferenceRecoveryMessage,
+  shouldAllowCloudEscalation,
+} from "@/lib/localInferencePosture";
 
 type ToolRiskTier = "tier0" | "tier1" | "tier2";
 
@@ -2176,14 +2180,31 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     } catch (error) {
       const localFailure =
         error instanceof Error && error.message ? error.message : "";
-      // Ollama not running — silently fall through to free cloud auto-chain.
-      // The chain tries up to 19 free providers (Groq, Cerebras, SambaNova…)
-      // before surfacing any error, so the user sees a response regardless.
+      const cloudEscalationAllowed = shouldAllowCloudEscalation({
+        networkMode: "isolated",
+        paidApisAllowed: false,
+        aiMode: storeAiMode,
+        aiProvider: s.aiProvider,
+      });
+      if (!cloudEscalationAllowed) {
+        const recovery = buildLocalInferenceRecoveryMessage();
+        const err = isMissingOllamaModelError(localFailure)
+          ? `${localFailure} ${recovery.message}`
+          : recovery.message;
+        finalizeRunState(false);
+        finishDiagnostics({
+          ok: false,
+          failureCause: err,
+          finalAnswer: err,
+        });
+        onStep({ type: "answer", content: err });
+        return err;
+      }
       onStep({
         type: "thinking",
         content: isMissingOllamaModelError(localFailure)
-          ? `${localFailure} Trying free cloud providers…`
-          : "Ollama not available — trying free cloud providers…",
+          ? `${localFailure} Trying hosted providers…`
+          : "Ollama not available — trying hosted providers…",
       });
       try {
         const cloudMessages = messages.map((m) => ({
@@ -2193,7 +2214,6 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
         const cloudRes = await apiFetch("/api/ai", {
           method: "POST",
           body: JSON.stringify({
-            // No provider = auto-chain through all 19 free providers in score order.
             max_tokens: 4096,
             system: enrichedPrompt,
             messages: cloudMessages,
@@ -2232,11 +2252,8 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
           return err;
         }
       } catch { /* ignore — fall through to final error below */ }
-      // All providers failed
-      const err =
-        "No AI providers are responding. " +
-        "Start Ollama locally (`ollama serve`) or add a free cloud key in Settings " +
-        "(Groq, Cerebras, or SambaNova are free and take 30 seconds to set up).";
+      const recovery = buildLocalInferenceRecoveryMessage();
+      const err = recovery.message;
       finalizeRunState(false);
       finishDiagnostics({ ok: false, failureCause: err, finalAnswer: err });
       onStep({ type: "answer", content: err });

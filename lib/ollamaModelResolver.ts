@@ -1,4 +1,5 @@
 import { DEFAULT_LOCAL_MODEL, TASK_MODELS, type AITask } from "@/lib/aiModelRouting";
+import { normalizeOllamaEndpoint } from "@/lib/localInferencePosture";
 
 export interface OllamaRuntimeModel {
   name: string;
@@ -113,11 +114,12 @@ function deriveOllamaEndpointUrl(
       : DEFAULT_OLLAMA_TAGS_URL;
   }
   try {
-    const url = new URL(normalized);
-    url.pathname = pathname;
-    url.search = "";
-    url.hash = "";
-    return url.toString();
+    const url = normalizeOllamaEndpoint(normalized);
+    const parsed = new URL(url);
+    parsed.pathname = pathname;
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString();
   } catch {
     return pathname === "/api/ps"
       ? DEFAULT_OLLAMA_PS_URL

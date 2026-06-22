@@ -129,7 +129,9 @@ export function buildPhoneAcceptanceBrief(
     `Phone home: ${phoneHome}`,
     `Direct HQ: ${directHq}`,
     "Keep the desktop runtime and Ollama running.",
-    "Log in with NEXUS_TOKEN on the phone; never paste token values into chat, docs, or screenshots.",
+    snapshot?.phoneLan.phoneTokenConfigured
+      ? "Log in on the phone with NEXUS_PHONE_TOKEN (or NEXUS_TOKEN); never paste token values into chat, docs, or screenshots."
+      : "Log in with NEXUS_TOKEN on the phone; never paste token values into chat, docs, or screenshots.",
     `HQ fast-path prompt: ${FREE_LOCAL_ASSISTANT_TURN_PROOF.localFastPathPrompt}`,
     `Local AI prompt: ${FREE_LOCAL_ASSISTANT_TURN_PROOF.localModelPrompt}`,
     `Expected receipt: ${FREE_LOCAL_ASSISTANT_TURN_PROOF.expectedProof}`,
@@ -185,7 +187,9 @@ export function buildPhoneAcceptanceChecklist(
       label: "Log in with token",
       status: sessionReady ? "done" : "manual",
       detail: snapshot?.phoneLan.tokenRequired
-        ? "Enter NEXUS_TOKEN on the phone before protected routes open."
+        ? snapshot.phoneLan.phoneTokenConfigured
+          ? "Enter NEXUS_PHONE_TOKEN on the phone, or NEXUS_TOKEN for full desktop privileges."
+          : "Enter NEXUS_TOKEN on the phone before protected routes open."
         : "The current local runtime is not requiring a token.",
       proof: "HQ opens without returning to the access gate.",
     },

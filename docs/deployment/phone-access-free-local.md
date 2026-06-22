@@ -21,6 +21,8 @@ Keep the free local defaults:
 
 ```env
 NEXUS_TOKEN=<long-random-password>
+# Optional easier phone-only login (must differ from NEXUS_TOKEN):
+# NEXUS_PHONE_TOKEN=<shorter-phone-password>
 NEXUS_DEPLOYMENT_PROFILE=local-dev
 NEXUS_NETWORK_MODE=isolated
 NEXUS_ALLOW_PAID_APIS=false
@@ -61,7 +63,7 @@ If Windows asks for firewall permission, allow Node/Next on the private network 
 2. Put the phone on the same Wi-Fi, or connect through Tailscale if LAN is unavailable.
 3. Open one printed LAN URL, or copy the direct HQ URL from the **Free Local Readiness** panel.
    Use **Copy acceptance steps** when you want the phone URL, prompts, proof target, and placeholder-only evidence note in one local clipboard brief.
-4. Log in with `NEXUS_TOKEN`.
+4. Log in with `NEXUS_PHONE_TOKEN` if configured, otherwise `NEXUS_TOKEN`.
 5. Open `/hq?focus=hq-chronicle`.
 6. Send `ping`; it should answer quickly.
 7. Ask a real local AI prompt; Provider Health should show Ollama/local posture.

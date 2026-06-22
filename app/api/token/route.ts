@@ -11,6 +11,8 @@ import {
   getConfiguredNexusToken,
   getNexusSessionState,
   getNexusStepUpState,
+  isNexusPhoneTokenConfigured,
+  resolveConfiguredLoginToken,
   NEXUS_SESSION_COOKIE,
   NEXUS_STEP_UP_COOKIE,
   setNexusSessionCookie,
@@ -78,6 +80,7 @@ export async function GET(req: NextRequest) {
   const response = NextResponse.json({
     ok: true,
     authEnabled,
+    phoneTokenConfigured: isNexusPhoneTokenConfigured(),
     authenticated: authEnabled ? Boolean(sessionState) : true,
     stepUpActive: authEnabled ? Boolean(stepUpState) : true,
     sessionAgeSeconds: sessionState?.ageSeconds ?? null,
@@ -144,7 +147,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!serverToken || !token || token !== serverToken) {
+    const login = resolveConfiguredLoginToken(token);
+    if (!login.ok || !token) {
       const active =
         prev && now <= prev.resetAt
           ? { count: prev.count + 1, resetAt: prev.resetAt }
@@ -158,10 +162,26 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
+    if (elevate && login.tier === "phone") {
+      return tokenJson(
+        {
+          ok: false,
+          code: "bad_request",
+          retryable: false,
+          error:
+            "Phone token sessions cannot step up. Log in with NEXUS_TOKEN for protected actions.",
+        },
+        403,
+      );
+    }
+
     TOKEN_ATTEMPTS.delete(clientId);
     const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? "";
     const existingSession = await getNexusSessionState(sessionCookie);
-    const session = existingSession ?? (await createNexusSession());
+    const session =
+      existingSession && existingSession.authTier === login.tier
+        ? existingSession
+        : (await createNexusSession(login.tier));
     if (!session) {
       return tokenJson(
         {

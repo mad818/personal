@@ -25,6 +25,10 @@ import {
   readLocalAccelerationConfig,
   validateLocalAccelerationEndpoint,
 } from "@/lib/localAcceleration";
+import {
+  normalizeOllamaEndpoint,
+  resolveProviderChainForTask,
+} from "@/lib/localInferencePosture";
 
 /**
  * Multi-provider AI proxy with task-based model routing.
@@ -349,6 +353,27 @@ export async function POST(req: NextRequest) {
     const trustContext = await readProtectedActionContext(req);
     const localOnlyMode = trustContext.networkMode === "isolated";
 
+    let validatedLocalEndpoint: string | undefined;
+    if (typeof localEndpoint === "string" && localEndpoint.trim()) {
+      try {
+        validatedLocalEndpoint = normalizeOllamaEndpoint(localEndpoint);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Ollama endpoint is invalid.";
+        return NextResponse.json(
+          {
+            error: {
+              code: "ollama_endpoint_blocked",
+              message,
+              recoveryAction:
+                "Use a loopback Ollama endpoint such as http://localhost:11434/v1/chat/completions.",
+            },
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     // Determine provider chain
     let chain: string[];
     let resolvedModel: string | undefined;
@@ -386,12 +411,15 @@ export async function POST(req: NextRequest) {
       // Explicit provider requested
       chain = [provider];
       resolvedModel = model ?? PROVIDERS[provider].model;
-    } else if (task === "research") {
-      chain = RESEARCH_CHAIN;
-      resolvedModel = model;
     } else {
-      // Auto chain — use task model for ollama, default for cloud
-      chain = AUTO_CHAIN;
+      chain = resolveProviderChainForTask({
+        task: typeof task === "string" ? task : undefined,
+        localOnlyMode,
+        paidApisAllowed: ALLOW_PAID_APIS,
+        explicitProvider: null,
+        autoChain: AUTO_CHAIN,
+        researchChain: RESEARCH_CHAIN,
+      });
       resolvedModel = taskModel ?? model;
     }
 
@@ -435,7 +463,7 @@ export async function POST(req: NextRequest) {
             ? (task as AITask)
             : "default";
         const resolution = await resolveInstalledOllamaModel({
-          endpoint: typeof localEndpoint === "string" ? localEndpoint : undefined,
+          endpoint: validatedLocalEndpoint,
           apiKey:
             typeof localApiKey === "string" && localApiKey.trim()
               ? localApiKey.trim()
@@ -489,7 +517,7 @@ export async function POST(req: NextRequest) {
         protectedPayload.toolChoice,
         providerName === "ollama"
           ? {
-              url: typeof localEndpoint === "string" ? localEndpoint : undefined,
+              url: validatedLocalEndpoint,
               key:
                 typeof localApiKey === "string" && localApiKey.trim()
                   ? localApiKey.trim()

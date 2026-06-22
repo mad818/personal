@@ -3,6 +3,7 @@ import {
   applyAuthNoStoreHeaders,
   getConfiguredNexusToken,
   isNexusAuthEnabled,
+  isNexusPhoneTokenConfigured,
 } from "@/lib/authSession";
 import { getDefaultEntrypoint, RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
 import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
@@ -43,6 +44,7 @@ export async function GET(req: NextRequest) {
     },
     auth: {
       tokenConfigured: Boolean(configuredToken),
+      phoneTokenConfigured: isNexusPhoneTokenConfigured(),
       authenticated: authEnabled ? trustContext.sessionAuthenticated : true,
       stepUpActive: authEnabled ? trustContext.stepUpActive : true,
       sessionRemainingSeconds: trustContext.session?.remainingSeconds ?? null,

@@ -28,6 +28,7 @@ import {
 import { loadAssistantRuntimeReceipt } from "@/lib/assistantRuntimeReceipt";
 import { detectRouteFromTool } from "@/lib/chatCapabilityRouting";
 import { getTabFromHref } from "@/lib/missionHandoff";
+import { useIntelOnlyPosture } from "@/hooks/useIntelOnlyPosture";
 import HomeAmbient from "./HomeAmbient";
 
 const QUICK_CHIPS = [
@@ -445,6 +446,7 @@ export default function HomeChat() {
   const router = useRouter();
   const pathname = usePathname();
   const settings = useStore((s) => s.settings);
+  const { posture: intelPosture } = useIntelOnlyPosture();
   const chatHistory = useStore((s) => s.chatHistory);
   const addMsg = useStore((s) => s.addChatMessage);
   const setTab = useStore((s) => s.setTab);
@@ -485,7 +487,10 @@ export default function HomeChat() {
       options: { forceAnswerHere?: boolean; forceRouteAction?: boolean } = {},
     ) => {
       if (!text.trim() || loading) return;
-      const dispatchPlan = resolveAssistantDispatch(text, options);
+      const dispatchPlan = resolveAssistantDispatch(text, {
+        ...options,
+        localInferenceDegraded: intelPosture.degraded,
+      });
 
       if (dispatchPlan.operatorChoiceNeeded && dispatchPlan.preparedWorkspace) {
         const choiceText = `I can answer here, or open ${dispatchPlan.preparedWorkspace.label.replace(/^Open\s+/i, "")} so the workspace is in front. Which is better for this move?`;
@@ -697,7 +702,7 @@ export default function HomeChat() {
         setLiveSteps([]);
       }
     },
-    [loading, settings, chatHistory, addMsg, pathname, router, setTab],
+    [loading, settings, chatHistory, addMsg, pathname, router, setTab, intelPosture.degraded],
   );
 
   const handleChatAction = useCallback(

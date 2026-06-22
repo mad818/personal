@@ -131,7 +131,7 @@ function buildProofChecklist(artifact) {
     },
     {
       id: "phone-login",
-      label: "Log in on the phone/iPad with your Nexus token",
+      label: "Log in on the phone/iPad with your Nexus or phone token",
       state: proofState(proof?.phoneLogin ?? lookupLive(["phoneLogin"])?.passed),
     },
     {
@@ -186,7 +186,7 @@ function buildGuide(parsedArgs) {
   ];
   const phoneActions = [
     "Open the HQ LAN URL on the phone or iPad.",
-    "Log in with the configured Nexus token; do not paste the token into chat.",
+    "Log in with the configured phone token or Nexus token; do not paste the token into chat.",
     "Send ping from HQ or COMMAND.",
     "Ask one local AI prompt so the Ollama receipt can be recorded.",
     "Install the PWA from the browser menu.",

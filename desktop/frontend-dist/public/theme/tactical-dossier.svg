@@ -1,0 +1,27 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#05090F"/>
+  <rect x="64" y="52" width="1472" height="796" rx="24" stroke="#27313C" stroke-width="2"/>
+  <rect x="138" y="132" width="516" height="620" rx="18" fill="#081019" stroke="#33404C" stroke-width="2"/>
+  <rect x="716" y="132" width="746" height="620" rx="18" fill="#081019" stroke="#33404C" stroke-width="2"/>
+  <path d="M196 204H596" stroke="#17202A" stroke-width="2"/>
+  <path d="M196 292H596" stroke="#17202A" stroke-width="2"/>
+  <path d="M196 380H596" stroke="#17202A" stroke-width="2"/>
+  <path d="M196 468H596" stroke="#17202A" stroke-width="2"/>
+  <path d="M196 556H596" stroke="#17202A" stroke-width="2"/>
+  <path d="M196 644H596" stroke="#17202A" stroke-width="2"/>
+  <path d="M770 198H1408" stroke="#17202A" stroke-width="2"/>
+  <path d="M770 276H1408" stroke="#17202A" stroke-width="2"/>
+  <path d="M770 354H1408" stroke="#17202A" stroke-width="2"/>
+  <path d="M770 432H1408" stroke="#17202A" stroke-width="2"/>
+  <path d="M770 510H1408" stroke="#17202A" stroke-width="2"/>
+  <path d="M770 588H1408" stroke="#17202A" stroke-width="2"/>
+  <circle cx="1088" cy="438" r="158" stroke="#33404C" stroke-width="2"/>
+  <circle cx="1088" cy="438" r="102" stroke="#26313C" stroke-width="2"/>
+  <path d="M1088 280V596" stroke="#17202A" stroke-width="2" stroke-dasharray="12 10"/>
+  <path d="M930 438H1246" stroke="#17202A" stroke-width="2" stroke-dasharray="12 10"/>
+  <path d="M824 620L968 506L1088 438L1238 370L1358 286" stroke="#DDE7EE" stroke-width="4"/>
+  <rect x="180" y="170" width="230" height="84" rx="12" fill="#0B121A" stroke="#33404C" stroke-width="2"/>
+  <text x="212" y="220" fill="#AAB9C7" font-family="Arial, sans-serif" font-size="26" letter-spacing="5">ARCHIVE NOTE</text>
+  <rect x="770" y="662" width="430" height="54" rx="10" fill="#0B121A" stroke="#27313C" stroke-width="2"/>
+  <text x="798" y="696" fill="#8FA0AE" font-family="Arial, sans-serif" font-size="18" letter-spacing="4">DOSSIER · RELATIONS · COMPILED MEMORY · BACKLINKS</text>
+</svg>

@@ -4,6 +4,7 @@ import {
   clearNexusSessionCookie,
   createNexusSession,
   getConfiguredNexusToken,
+  resolveConfiguredLoginToken,
   setNexusSessionCookie,
   sanitizeAuthReturnPath,
 } from "@/lib/authSession";
@@ -26,7 +27,8 @@ export async function POST(req: NextRequest) {
     return response;
   }
 
-  if (!submittedToken || submittedToken !== configuredToken) {
+  const login = resolveConfiguredLoginToken(submittedToken);
+  if (!login.ok) {
     const url = buildSafeAuthRedirectUrl(req, failurePath);
     url.searchParams.set("authError", "invalid");
     const response = NextResponse.redirect(url, 303);
@@ -35,7 +37,7 @@ export async function POST(req: NextRequest) {
   }
 
   const response = NextResponse.redirect(buildSafeAuthRedirectUrl(req, nextPath), 303);
-  const session = await createNexusSession();
+  const session = await createNexusSession(login.tier);
   if (!session) {
     const url = buildSafeAuthRedirectUrl(req, failurePath);
     url.searchParams.set("authError", "server");

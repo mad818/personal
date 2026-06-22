@@ -20,6 +20,7 @@ import CronSchedulerPanel from "@/components/ui/CronSchedulerPanel";
 import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
+import { usePhonePosture } from "@/hooks/usePhonePosture";
 import { runAgent, type AgentStep } from "@/lib/agent";
 import { mergeAssistantGuidance } from "@/lib/assistantGuidance";
 import { buildSystemPrompt } from "@/lib/ai";
@@ -392,6 +393,8 @@ export default function OfficeCommandCenter() {
     "cinematic") as OfficeCameraPreset;
   const officeSplitHeightPx = settings.officeSplitHeightPx ?? 0;
   const hqConsoleFocusMode = settings.hqConsoleFocusMode ?? "game";
+  const phonePosture = usePhonePosture();
+  const effectiveHqFocusMode = phonePosture ? "chat" : hqConsoleFocusMode;
   const officeOperationalMode = settings.officeOperationalMode ?? "normal";
   const officeVfxQuality = (settings.officeVfxQuality ?? "low") as
     | "off"
@@ -664,6 +667,13 @@ export default function OfficeCommandCenter() {
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [addNotification, addLog]);
+
+  useEffect(() => {
+    if (!phonePosture) return;
+    if (hqConsoleFocusMode !== "chat") {
+      updateSettings({ hqConsoleFocusMode: "chat" });
+    }
+  }, [phonePosture, hqConsoleFocusMode, updateSettings]);
 
   useEffect(() => {
     const onResize = () => {
@@ -2209,10 +2219,11 @@ export default function OfficeCommandCenter() {
 
         <div
           className="nexus-hq-commandTable"
-          data-hq-focus-mode={hqConsoleFocusMode}
+          data-hq-focus-mode={effectiveHqFocusMode}
         >
           <div className="nexus-hq-commandTable__workspace">
             <div className="nexus-hq-console">
+              {!phonePosture ? (
               <div
                 id="hq-console-shell"
                 style={{ scrollMarginTop: "120px", flexShrink: 0 }}
@@ -2270,6 +2281,7 @@ export default function OfficeCommandCenter() {
                   onSetShowSplitMore={setShowSplitMore}
                 />
               </div>
+              ) : null}
 
               <MemoryPanel open={memoryOpen} onClose={() => setMemoryOpen(false)} />
               <CronSchedulerPanel
@@ -2278,7 +2290,7 @@ export default function OfficeCommandCenter() {
                 onClose={() => setSchedulerOpen(false)}
               />
 
-              {hqConsoleFocusMode === "chat" ? (
+              {effectiveHqFocusMode === "chat" ? (
                 <div
                   id="hq-chronicle"
                   data-testid="hq-chat-panel"
@@ -2356,7 +2368,7 @@ export default function OfficeCommandCenter() {
             </div>
           </div>
 
-        {hqConsoleFocusMode === "chat" ? (
+        {effectiveHqFocusMode === "chat" ? (
         <HQPreludePostureSection
             eyebrow="Sector rail"
             title="Live sector."
@@ -2414,7 +2426,7 @@ export default function OfficeCommandCenter() {
         ) : null}
         </div>
 
-        {hqConsoleFocusMode === "chat" ? (
+        {effectiveHqFocusMode === "chat" ? (
         <div id="hq-strategium" style={{ scrollMarginTop: "120px" }}>
           <HQStrategiumDeck
             operationalMode={officeOperationalMode}

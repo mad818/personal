@@ -15,6 +15,8 @@ import AssistantGuidanceStack from "@/components/ui/AssistantGuidanceStack";
 import DictationButton from "@/components/ui/DictationButton";
 import EvidencePosturePanel from "@/components/ui/EvidencePosturePanel";
 import FreeLocalReadinessPanel from "@/components/ui/FreeLocalReadinessPanel";
+import { usePhonePosture } from "@/hooks/usePhonePosture";
+import IntelOnlyAgentGate from "@/components/ui/IntelOnlyAgentGate";
 import { SpeakButton } from "@/components/ui/SpeakButton";
 import VoiceProjectButton from "@/components/ui/VoiceProjectButton";
 import { FileBackButton } from "@/components/home/office/FileBackButton";
@@ -33,6 +35,7 @@ import {
 } from "@/lib/surfaceMotion";
 import { apiFetch } from "@/lib/apiFetch";
 import { resolveAssistantDispatch } from "@/lib/assistantDispatch";
+import { useIntelOnlyPosture } from "@/hooks/useIntelOnlyPosture";
 import type { AssistantChatActionModel } from "@/lib/assistantChatActions";
 import {
   shouldShowAssistantOperatorWorkflow,
@@ -125,11 +128,16 @@ export default function HQTerminalSection({
     ? Object.entries(debug.scores).sort(([, a], [, b]) => b - a)
     : [];
   const settings = useStore((s) => s.settings);
+  const phonePosture = usePhonePosture();
   const agentRuntime = useStore((s) => s.agentRuntime);
   const setTab = useStore((s) => s.setTab);
+  const { posture: intelPosture } = useIntelOnlyPosture();
   const readinessPlan = useMemo(
-    () => resolveAssistantDispatch(input.trim() || "What can you do?"),
-    [input],
+    () =>
+      resolveAssistantDispatch(input.trim() || "What can you do?", {
+        localInferenceDegraded: intelPosture.degraded,
+      }),
+    [input, intelPosture.degraded],
   );
   const readinessToolGroups = readinessPlan.toolCatalog.id
     .split("+")
@@ -306,6 +314,16 @@ export default function HQTerminalSection({
         ref={scrollViewportRef}
         className="nexus-hq-chronicle__scroll"
       >
+        {phonePosture ? (
+          <div className="nexus-hq-phone-setup">
+            <FreeLocalReadinessPanel
+              surface="hq"
+              compact
+              mobileLane
+              onPhoneSendPrompt={(prompt) => void onQuickSend(prompt)}
+            />
+          </div>
+        ) : null}
         {messages.length === 0 ? (
           <div className="nexus-hq-chronicle__empty">
             <CompactOperatorNote
@@ -716,7 +734,16 @@ export default function HQTerminalSection({
           </div>
         ) : null}
         <div className="nexus-hq-free-local-readiness">
-          <FreeLocalReadinessPanel surface="hq" compact />
+          {!phonePosture ? (
+            <>
+              <IntelOnlyAgentGate
+                surface="hq"
+                compact
+                onCheckLocalAi={(prompt) => void onQuickSend(prompt)}
+              />
+              <FreeLocalReadinessPanel surface="hq" compact />
+            </>
+          ) : null}
         </div>
         <div className="nexus-hq-assistant-readiness">
           <span className="nexus-hq-assistant-readiness__label">

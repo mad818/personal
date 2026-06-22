@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "fainir-most-capable-agent-system-prompt",
+  "name": "fainir/most-capable-agent-system-prompt",
+  "status": "foundation",
+  "source": {
+    "url": "https://github.com/fainir/most-capable-agent-system-prompt",
+    "version": "main-2026-06-22",
+    "reviewedAt": "2026-06-22",
+    "license": "unknown",
+    "primaryEvidence": [
+      "https://github.com/fainir/most-capable-agent-system-prompt",
+      "https://github.com/fainir/most-capable-agent-system-prompt/blob/main/README.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "meta-agent-os-scaffold",
+      "title": "Meta-prompt that scaffolds a full self-improving agent operating system",
+      "sourceEvidence": "README: build harness or greenfield agent OS with measurable milestones",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is a shipped intelligence dashboard, not a generator for separate agent OS repos; extract patterns only."
+    },
+    {
+      "id": "reader-contract-and-build-order",
+      "title": "Reader contract, build order, and first-milestone discipline for long prompts",
+      "sourceEvidence": "README NON-NEGOTIABLE RULES, BUILD ORDER, FIRST MILESTONE DEFINITION",
+      "disposition": "adapted",
+      "proof": [
+        "lib/agentYagniGuardrails.ts",
+        "lib/ai.ts"
+      ],
+      "adaptationNotes": "Nexus-native 5-rule reader contract injected into every agent system prompt via buildSystemPrompt. Covers profile-first read, explicit build order, first-milestone naming, blocker surfacing, and milestone confirmation."
+    },
+    {
+      "id": "reliability-math-harness",
+      "title": "Reliability math, verification gates, and harness engineering requirements",
+      "sourceEvidence": "README RELIABILITY MATH AND HARNESS ENGINEERING section",
+      "disposition": "adapted",
+      "proof": [
+        "lib/runtimeAuthority.ts",
+        "scripts/eval-agent-runtime.js",
+        "npm run verify"
+      ],
+      "adaptationNotes": "Nexus uses eval-agent-runtime, verify gates, and runtime authority receipts instead of vendoring the meta-prompt."
+    },
+    {
+      "id": "transparent-state-memory",
+      "title": "Transparent durable state instead of hidden memory tricks",
+      "sourceEvidence": "README design bet: transparent state model over hidden memory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/episodicMemoryStore.ts",
+        "lib/memoryStore.ts",
+        "docs/AGENT_HANDOFF.md"
+      ],
+      "adaptationNotes": "Handoff, episodic memory, and IndexedDB memory are explicit operator-visible stores."
+    },
+    {
+      "id": "multi-surface-computer-automation",
+      "title": "Unified loop for browser, desktop, research, and long-horizon projects",
+      "sourceEvidence": "README target task list spanning browser, desktop, research, and operations",
+      "disposition": "pending",
+      "reason": "Nexus covers intel tabs + local agent tools; full desktop/browser company-ops automation is out of current scope."
+    }
+  ]
+}

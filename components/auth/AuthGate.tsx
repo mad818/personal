@@ -30,6 +30,7 @@ type AuthDiagnostics = {
   };
   auth: {
     tokenConfigured?: boolean;
+    phoneTokenConfigured?: boolean;
     authenticated?: boolean;
   };
   release?: {
@@ -83,6 +84,7 @@ export default function AuthGate({
   const [runtimeBootId, setRuntimeBootId] = useState("");
   const [runtimeAgeSeconds, setRuntimeAgeSeconds] = useState<number | null>(null);
   const [tokenConfigured, setTokenConfigured] = useState<boolean | null>(null);
+  const [phoneTokenConfigured, setPhoneTokenConfigured] = useState(false);
   const destinationBase = pathname === "/" ? getDefaultEntrypoint() : pathname;
   const destinationQuery = searchParams.toString();
   const destination = destinationQuery
@@ -127,7 +129,11 @@ export default function AuthGate({
 
       setSubmitting(false);
       if (status === "invalid") {
-        setTransientStatus("Invalid token. Check your .env.local NEXUS_TOKEN.");
+        setTransientStatus(
+          phoneTokenConfigured
+            ? "Invalid token. Use NEXUS_PHONE_TOKEN or NEXUS_TOKEN from .env.local."
+            : "Invalid token. Check your .env.local NEXUS_TOKEN.",
+        );
         return;
       }
       if (status === "rate_limited") {
@@ -144,7 +150,7 @@ export default function AuthGate({
       setTokenRouteWarm("failed");
       setTransientStatus("Runtime validation is unreachable. Check the local server.");
     },
-    [],
+    [phoneTokenConfigured],
   );
 
   useEffect(() => {
@@ -183,6 +189,7 @@ export default function AuthGate({
           : null,
       );
       setTokenConfigured(Boolean(payload.auth.tokenConfigured));
+      setPhoneTokenConfigured(Boolean(payload.auth.phoneTokenConfigured));
       if (payload.auth.authenticated) {
         setAuthed(true);
         setRuntimeOnline(true);
@@ -219,6 +226,7 @@ export default function AuthGate({
             : null,
         );
         setTokenConfigured(Boolean(payload.auth.tokenConfigured));
+        setPhoneTokenConfigured(Boolean(payload.auth.phoneTokenConfigured));
         setTransientStatus("Runtime diagnostics refreshed.");
       }
     } finally {
@@ -272,7 +280,9 @@ export default function AuthGate({
   const authErrorCode = searchParams.get("authError");
   const authErrorMessage =
     authErrorCode === "invalid"
-      ? "Invalid token. Check your .env.local NEXUS_TOKEN."
+      ? phoneTokenConfigured
+        ? "Invalid token. Use NEXUS_PHONE_TOKEN or NEXUS_TOKEN from .env.local."
+        : "Invalid token. Check your .env.local NEXUS_TOKEN."
       : authErrorCode === "server"
         ? "Token validation is not configured on the server."
         : "";
@@ -623,7 +633,11 @@ export default function AuthGate({
                 required
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value)}
-                placeholder="Paste your NEXUS_TOKEN…"
+                placeholder={
+                  phoneTokenConfigured
+                    ? "Paste NEXUS_PHONE_TOKEN or NEXUS_TOKEN…"
+                    : "Paste your NEXUS_TOKEN…"
+                }
                 autoFocus
                 disabled={submitting}
                 style={{

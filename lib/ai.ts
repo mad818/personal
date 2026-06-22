@@ -21,7 +21,10 @@ import {
   AI_EVIDENCE_DISCIPLINE_BLOCK,
   AI_TRUTH_BOUNDARY_BLOCK,
 } from "@/lib/aiTruthBoundary";
-import { YAGNI_AGENT_DIRECTIVE } from "@/lib/agentYagniGuardrails";
+import {
+  FAINIR_READER_CONTRACT_BLOCK,
+  YAGNI_AGENT_DIRECTIVE,
+} from "@/lib/agentYagniGuardrails";
 import {
   normalizePreferredAIProvider,
   resolveApiAIProvider,
@@ -1011,9 +1014,11 @@ Reasoning standard — operate like a senior analyst:
 - When coding, read the file first, understand context, then patch surgically
 - Never give generic answers when live data is available — use it
 
-${AI_TRUTH_BOUNDARY_BLOCK}
+  ${AI_TRUTH_BOUNDARY_BLOCK}
 
 ${AI_EVIDENCE_DISCIPLINE_BLOCK}
+
+${FAINIR_READER_CONTRACT_BLOCK}
 
 ${YAGNI_AGENT_DIRECTIVE}${profile}${liveContext}`;
 }

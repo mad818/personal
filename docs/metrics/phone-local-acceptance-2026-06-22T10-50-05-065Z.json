@@ -1,0 +1,203 @@
+{
+  "capturedAt": "2026-06-22T10:50:05.065Z",
+  "baseUrl": "http://127.0.0.1:3100",
+  "routes": [
+    {
+      "route": "/api/health",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "application/json",
+      "durationMs": 61
+    },
+    {
+      "route": "/hq?focus=hq-chronicle",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "text/html; charset=utf-8",
+      "durationMs": 62
+    },
+    {
+      "route": "/command",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "text/html; charset=utf-8",
+      "durationMs": 4550
+    },
+    {
+      "route": "/api/free-local-readiness",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "application/json",
+      "durationMs": 1156
+    },
+    {
+      "route": "/api/phone-acceptance/receipt",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "application/json",
+      "durationMs": 361
+    }
+  ],
+  "readinessSummary": {
+    "overallStatus": "blocked",
+    "freeInvariant": {
+      "status": "ready",
+      "chargesEndUsers": false,
+      "value": "Free — no in-app charges"
+    },
+    "networkMode": {
+      "status": "ready",
+      "mode": "isolated",
+      "value": "isolated"
+    },
+    "paidApisAllowed": {
+      "status": "ready",
+      "allowed": false,
+      "value": "blocked"
+    },
+    "ollama": {
+      "status": "ready",
+      "reachable": true,
+      "installedCount": 5,
+      "runningCount": 0,
+      "value": "reachable"
+    },
+    "resolvedModel": {
+      "status": "ready",
+      "resolvedModel": "gemma4:latest",
+      "value": "gemma4:latest",
+      "resolutionReason": "recommended_fallback"
+    },
+    "agentHealth": {
+      "status": "ready",
+      "passRate": 1,
+      "passCount": 4,
+      "failCount": 0,
+      "lastRun": "2026-04-01T15:45:01.853Z"
+    },
+    "session": {
+      "status": "blocked",
+      "authenticated": false,
+      "tokenConfigured": true,
+      "remainingSeconds": null
+    },
+    "toolPosture": {
+      "status": "ready",
+      "highRiskEnabled": false,
+      "settingsWrites": "session_required",
+      "verification": "session_required",
+      "mutateExecTools": "session_required",
+      "networkedTools": "session_required",
+      "value": "review-gated"
+    },
+    "phoneLan": {
+      "status": "ready",
+      "enabled": true,
+      "tokenRequired": true,
+      "pwaReady": true,
+      "preferredLanUrl": "http://100.116.64.77:3100",
+      "preferredHqLanUrl": "http://100.116.64.77:3100/hq?focus=hq-chronicle",
+      "lanUrlCount": 2,
+      "hqLanUrlCount": 2,
+      "firewallStatus": "Allow Node/Next on this port through Windows Firewall before using phone LAN access.",
+      "tailscaleOptional": "Optional free private tunnel: use Tailscale personal/free tier if LAN is not available."
+    }
+  },
+  "manualPhoneProof": {
+    "phoneOpened": false,
+    "phoneLogin": false,
+    "pingReceipt": false,
+    "localAiReceipt": false,
+    "pwaInstalled": false
+  },
+  "receiptPhoneProof": {
+    "receiptAvailable": true,
+    "latestAt": "2026-06-22T10:36:17.812Z",
+    "receiptCount": 4,
+    "mobileReceiptCount": 4,
+    "phoneOpened": true,
+    "phoneLogin": true,
+    "browserStorageReady": true,
+    "pwaCapable": false,
+    "pingReceipt": true,
+    "localAiReceipt": true,
+    "pwaInstalled": false
+  },
+  "combinedPhoneProof": {
+    "phoneOpened": true,
+    "phoneLogin": true,
+    "pingReceipt": true,
+    "localAiReceipt": true,
+    "pwaInstalled": false,
+    "browserStorageReady": true,
+    "pwaCapable": false,
+    "receiptCount": 4,
+    "mobileReceiptCount": 4,
+    "latestReceiptAt": "2026-06-22T10:36:17.812Z"
+  },
+  "receiptLiveStatus": {
+    "overallStatus": "warning",
+    "acceptanceReady": false,
+    "receiptCount": 4,
+    "mobileReceiptCount": 4,
+    "latestAt": "2026-06-22T10:36:17.812Z",
+    "items": [
+      {
+        "id": "phoneOpened",
+        "label": "Phone opened",
+        "passed": true,
+        "detail": "A recent mobile receipt exists."
+      },
+      {
+        "id": "phoneLogin",
+        "label": "Phone login",
+        "passed": true,
+        "detail": "The mobile receipt shows protected access."
+      },
+      {
+        "id": "browserStorageReady",
+        "label": "Browser storage",
+        "passed": true,
+        "detail": "Phone browser storage accepted the local probe."
+      },
+      {
+        "id": "pingReceipt",
+        "label": "Ping receipt",
+        "passed": true,
+        "detail": "The phone recorded the local fast-path assistant receipt."
+      },
+      {
+        "id": "localAiReceipt",
+        "label": "Local AI receipt",
+        "passed": true,
+        "detail": "The phone recorded a local/free AI receipt."
+      },
+      {
+        "id": "pwaCapable",
+        "label": "PWA capable",
+        "passed": false,
+        "detail": "Use a browser with home-screen install support."
+      },
+      {
+        "id": "pwaInstalled",
+        "label": "PWA installed",
+        "passed": false,
+        "detail": "Install Homefront from the phone browser home-screen flow."
+      }
+    ]
+  },
+  "missingReceiptProofItems": [
+    "PWA capable",
+    "PWA installed"
+  ],
+  "blocked": [
+    "Free Local Readiness is not fully local/free for phone acceptance.",
+    "Phone proof missing: PWA install."
+  ],
+  "acceptanceReady": false
+}

@@ -79,6 +79,7 @@ import {
   buildExternalToolResultEnvelope,
   type ExternalToolResultEnvelope,
 } from "@/lib/externalToolBridge";
+import { parseToolsPostBody } from "@/lib/toolsRequestSchema";
 
 const TOOL_USER_AGENT = `${getBrandServiceName()}/1.0`;
 
@@ -1411,10 +1412,29 @@ export async function POST(req: NextRequest) {
 
   try {
     const runId = req.headers.get("x-nexus-run-id") ?? "anon";
-    const { tool, input } = (await req.json()) as {
-      tool: string;
-      input: Record<string, string>;
-    };
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return NextResponse.json(
+        {
+          result: "Tool execution blocked.",
+          error: "Invalid or empty JSON body.",
+        },
+        { status: 400 },
+      );
+    }
+    const parsedBody = parseToolsPostBody(rawBody);
+    if (!parsedBody.ok) {
+      return NextResponse.json(
+        {
+          result: "Tool execution blocked.",
+          error: parsedBody.error,
+        },
+        { status: 400 },
+      );
+    }
+    const { tool, input } = parsedBody.data;
 
     const capability = getToolCapabilityClass(tool);
     toolCapability = capability;

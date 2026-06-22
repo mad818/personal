@@ -29,6 +29,7 @@ export interface PhoneLanReadinessSnapshot {
   preferredLanUrl: string | null;
   preferredHqLanUrl: string | null;
   tokenRequired: boolean;
+  phoneTokenConfigured: boolean;
   pwaReady: boolean;
   firewallStatus: string;
   tailscaleOptional: string;

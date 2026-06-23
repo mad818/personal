@@ -22,7 +22,7 @@ function itemPassed(
 
 export function buildPhoneAcceptancePendingActions(
   status: PhoneAcceptanceLiveStatus | null,
-  options: { sessionAuthenticated: boolean },
+  options: { sessionAuthenticated: boolean; canInstallPwa?: boolean },
 ): PhoneAcceptanceAction[] {
   if (status?.acceptanceReady) return [];
 
@@ -68,11 +68,14 @@ export function buildPhoneAcceptancePendingActions(
     });
   }
 
-  if (!itemPassed(status, "pwaInstalled")) {
+  // Only show PWA install if the browser supports it. Brave on iOS and non-Safari
+  // iOS browsers cannot install PWAs — showing the button there is confusing.
+  const pwaCapable = options.canInstallPwa !== false;
+  if (pwaCapable && !itemPassed(status, "pwaInstalled")) {
     actions.push({
       id: "installPwa",
       label: "Install app",
-      detail: "iPhone: Share → Add to Home Screen. Android: Install app.",
+      detail: "iPhone Safari: Share → Add to Home Screen. Android Chrome: Install app.",
     });
   }
 

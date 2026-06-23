@@ -6,6 +6,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { useStore } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
+import {
+  formatIntelRegionLabel,
+  matchesIntelRegion,
+} from "@/lib/intelRegionFilter";
 
 interface ConflictItem {
   title: string;
@@ -98,7 +102,11 @@ function scoreImpact(title: string): ConflictItem["impact"] {
   return "low";
 }
 
-export default function ConflictFeed() {
+export default function ConflictFeed({
+  regionFilter = null,
+}: {
+  regionFilter?: string | null;
+}) {
   const gdeltEvents = useStore((s) => s.gdeltEvents);
   const [items, setItems] = useState<ConflictItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -200,7 +208,11 @@ export default function ConflictFeed() {
 
   const visible =
     filter === "all" ? items : items.filter((i) => i.impact === filter);
+  const regionFiltered = regionFilter
+    ? visible.filter((item) => matchesIntelRegion(item.title, regionFilter))
+    : visible;
   const FILTERS = ["all", "critical", "high", "medium", "low"];
+  const regionLabel = regionFilter ? formatIntelRegionLabel(regionFilter) : "";
 
   return (
     <div>
@@ -278,6 +290,26 @@ export default function ConflictFeed() {
         </div>
       )}
 
+      {regionFilter ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginBottom: "8px",
+            flexWrap: "wrap",
+            fontSize: "11px",
+            color: "var(--text2)",
+          }}
+        >
+          <span>
+            Region filter: <strong style={{ color: "var(--text)" }}>{regionLabel}</strong>
+            {" · "}
+            {regionFiltered.length} headline{regionFiltered.length === 1 ? "" : "s"}
+          </span>
+        </div>
+      ) : null}
+
       {!items.length && !loading && !error && (
         <div
           style={{
@@ -303,8 +335,21 @@ export default function ConflictFeed() {
         </div>
       )}
 
+      {items.length > 0 && regionFilter && regionFiltered.length === 0 && !loading ? (
+        <div
+          style={{
+            padding: "24px",
+            textAlign: "center",
+            color: "var(--text3)",
+            fontSize: "12px",
+          }}
+        >
+          No current headlines match {regionLabel}. Try Show all or refresh the feed.
+        </div>
+      ) : null}
+
       <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
-        {visible.map((item, i) => {
+        {regionFiltered.map((item, i) => {
           const col = IMPACT_COLORS[item.impact];
           return (
             <a

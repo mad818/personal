@@ -20,6 +20,7 @@ import {
   pruneUnfinishedSessions,
   touchUnfinishedSession,
 } from '@/lib/assistantSessionMemory'
+import { pruneBotHistory } from '@/lib/persistPrune'
 import { normalizePreparedWorkspaceTarget } from '@/lib/assistantSessionRegistry'
 import { sanitizeClientSettingsForPersistence } from '@/lib/clientSettingsBoundary'
 import {
@@ -460,6 +461,7 @@ export const DEFAULT_SETTINGS = {
   officeSplitHeightPx: 0,
   arpgViewportSize: 'standard' as ArpgViewportSize,
   hqConsoleFocusMode: 'game' as HqConsoleFocusMode,
+  hqCompactOperatorLayout: true,
   officeCameraPreset: 'cinematic' as 'cinematic' | 'closeOps' | 'wallReadability',
   officeOperationalMode: 'normal' as 'normal' | 'war' | 'nightOps',
   officeVfxQuality: 'low' as 'off' | 'low' | 'high',
@@ -778,6 +780,7 @@ interface NexusState {
   signals:       { fg: { value: number; label: string } | null }
   cves:          unknown[]
   cvesLoaded:    boolean
+  cveFetchError: string
   pricesLoaded:  boolean
   otxPulses:     OTXPulse[]
   worldRisk:     number
@@ -986,6 +989,7 @@ interface NexusState {
   setSignals:        (signals: NexusState['signals']) => void
   setCves:           (cves: unknown[]) => void
   setCvesLoaded:     (loaded: boolean) => void
+  setCveFetchError:  (error: string) => void
   setPricesLoaded:   (loaded: boolean) => void
   setOtxPulses:      (pulses: OTXPulse[]) => void
   addChatMessage:    (msg: { role: string; content: string }) => void
@@ -1134,6 +1138,7 @@ function normalizePersistedNexusState(persisted: unknown): Partial<NexusState> {
   next.settings.hqConsoleFocusMode = normalizeHqConsoleFocusMode(
     next.settings.hqConsoleFocusMode,
   )
+  next.settings.botHistory = pruneBotHistory(next.settings.botHistory)
   if (!next.intelView) next.intelView = 'news'
   if (!next.marketsView) next.marketsView = 'watchlist'
   if (!next.cyberView) next.cyberView = 'triage'
@@ -1238,6 +1243,7 @@ export const useStore = create<NexusState>()(
       signals:       { fg: null },
       cves:          [],
       cvesLoaded:    false,
+      cveFetchError: "",
       pricesLoaded:  false,
       otxPulses:     [],
       worldRisk:     0,
@@ -1734,6 +1740,7 @@ export const useStore = create<NexusState>()(
       setSignals:    (signals)    => set({ signals }),
       setCves:       (cves)       => set({ cves }),
       setCvesLoaded: (cvesLoaded) => set({ cvesLoaded }),
+      setCveFetchError: (cveFetchError) => set({ cveFetchError }),
       setOtxPulses:  (otxPulses)  => set({ otxPulses }),
       addChatMessage: (msg) =>
         set((s) => ({ chatHistory: [...s.chatHistory, msg] })),

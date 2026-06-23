@@ -21,6 +21,61 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 - [ ] CP2.3 — Desktop trust chain: checksum verification, signing status record, SBOM status record. The status-record command and canonical SBOM now exist; remaining release work is real packaged artifacts, checksums for those artifacts, and configured signing strategy.
 - [ ] CP2.4 — Final launch gate: `type-check`, `lint`, `verify`, `route:integrity`, `eval:agent-runtime:ci`, `release:smoke`, auth E2E
 
+## Security ideas (next)
+
+Concrete hardening items for future sprints — surgical, scoped, ordered by impact:
+
+1. ~~**SSRF via DNS rebinding**~~ — **shipped 2026-06-22:** `lib/security/privateNetwork.ts` + post-DNS check in `api/headers`.
+2. **Rate-limit in-memory is per-process** — `lib/security/rateLimit.ts` resets on every dev-server restart. For LAN-exposed deployments, back the rate-limit store with a lightweight persistent file or SQLite ledger so abuse windows survive restarts.
+3. **CSP `unsafe-inline` on scripts** — Remove `'unsafe-inline'` from `script-src` by migrating to nonce-based CSP. Next.js 14 supports `nonce` via middleware; inject it into `<Script>` tags and the inline hydration block.
+4. **Subresource Integrity (SRI) on TradingView embeds** — `s3.tradingview.com` scripts are whitelisted in CSP without SRI hashes. Add `integrity` + `crossorigin` attributes so supply-chain tampering is caught by the browser.
+5. ~~**Cookie `SameSite=Strict` audit**~~ — **shipped 2026-06-22:** `nexus_session_token` now uses `SameSite=Strict` (logout clear cookie aligned).
+6. **Phone-tier route audit** — Audit every `/api/*` route for phone-token tier bypass. `requireMasterSessionForAction()` added in `lib/security/masterSession.ts`; wire to any route that only checks step-up today.
+7. ~~**`X-Forwarded-For` spoofing in rate limiter**~~ — **shipped 2026-06-22:** `getRequestIdentity` ignores `X-Forwarded-For` unless `NEXUS_TRUST_PROXY=true`.
+8. ~~**`writeEnvFile` path traversal hardening**~~ — **shipped 2026-06-22:** `assertAnchoredRuntimeEnvFilePath()` guards settings env writes.
+
+## Audit backlog (2026-06-22)
+
+**Must (operational)**
+- Restart LAN server with `npm run phone:lan:start` when Next.js memory-restarts; compact HQ reduces load.
+- Desktop local AI proof: one Ollama prompt on PC HQ → `npm run offline:local:report`.
+- CI green: `npm run verify` + push Node runtime alignment (`CI-GREEN-NODE-RUNTIME`).
+
+**Should (security / quality)**
+- Nonce-based CSP (remove `unsafe-inline` on scripts).
+- Persistent rate-limit store for LAN-exposed installs.
+- Wire `requireMasterSessionForAction` to settings mutations and any high-risk `/api/*` routes missing phone-tier checks.
+- Dependabot: merge postcss/prismjs fixes to `main` and wait for GitHub rescan.
+
+**Could (later, non-RPG)**
+- SRI on TradingView embeds.
+- Host-header / DNS rebinding guard on other server-side fetch proxies (if any beyond `api/headers`).
+- Default `hqCompactOperatorLayout` onboarding hint for users who want the RPG playfield back (Settings toggle exists).
+- Playwright `hq:e2e` on Windows (spawn EPERM) — fix worker permissions or document WSL lane.
+
+## Expanded backlog (2026-06-22)
+
+**Must** (manual verify)
+- INTEL `/intel?view=sweeps` — run a theater sweep on desktop; confirm geo snapshot + source cards.
+- VAULT / COMMAND — run one Memory Ask query; confirm citations when local memory exists.
+
+**Should** (remaining)
+- TradingView SRI hashes when TradingView publishes stable embed hashes (lazy load + `crossOrigin` shipped).
+- Windows Playwright `spawn EPERM` — document WSL lane or fix worker spawn for `hq:e2e`.
+- Desktop Tauri: one-click restart runtime tray action.
+
+**Shipped this pass**
+- [x] INTEL `region` query param wired — auto-opens world view, filters ConflictFeed, banner with Show all theaters.
+- [x] VAULT `VaultLibrarianPanel` surfaces librarian audit-page load failures.
+- [x] Skills forge `SkillSpectrumValidatorStrip` — SkillSpector safe/review/blocked summary on Workflow Forge.
+- [x] CYBER `CVEFeed` reads `cveFetchError` from store when NVD fetch fails.
+- [x] MQTT `MQTTStatus` + `SensorDashboard` stream error surfacing and cleanup.
+- [x] `api/sweeps` GET/POST rate limit + desktop session gate for connector sweeps.
+- [x] `pruneBotHistory` on Zustand hydrate (cap 120).
+- [x] RECON `RepoIntelPanel` memory-pages load failures surfaced.
+- [x] `LiveEventFusionStrip` links to `/intel?view=world` with `region` param + separate Source link.
+- [x] ALPHA TradingView lazy IntersectionObserver load + `crossOrigin` on embed scripts.
+
 ## Next Up
 
 Active open-ready queue:

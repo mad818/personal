@@ -1127,6 +1127,51 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                     textTransform: "uppercase",
                   }}
                 >
+                  HQ Layout
+                </span>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 8,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={Boolean(settings.hqCompactOperatorLayout)}
+                    onChange={(e) =>
+                      updateSettings({
+                        hqCompactOperatorLayout: e.target.checked,
+                        ...(e.target.checked
+                          ? { hqConsoleFocusMode: "chat" }
+                          : {}),
+                      } as Partial<Settings>)
+                    }
+                  />
+                  <span style={{ fontSize: 12, color: "var(--text)", lineHeight: 1.45 }}>
+                    Compact HQ (chat-first) — hide RPG playfield, sector rail,
+                    strategium deck, and full readiness checklists. Phone always
+                    uses compact layout.
+                  </span>
+                </label>
+              </label>
+
+              <label
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                  marginBottom: 10,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    color: "var(--text3)",
+                    textTransform: "uppercase",
+                  }}
+                >
                   Office VFX Quality
                 </span>
                 <select

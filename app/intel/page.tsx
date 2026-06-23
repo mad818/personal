@@ -23,6 +23,7 @@ import {
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
 import { getOpsLayoutDescriptor } from "@/lib/opsLayoutRegistry";
+import { formatIntelRegionLabel } from "@/lib/intelRegionFilter";
 import { getSurfaceModuleSpec } from "@/lib/surfaceRedesignRegistry";
 import { useStore } from "@/store/useStore";
 
@@ -74,11 +75,22 @@ export default function IntelPage() {
     return null;
   }, [focus]);
 
+  const regionFilter = useMemo(() => {
+    const raw = normalizedParams.get("region")?.trim();
+    return raw ? raw : null;
+  }, [normalizedParams]);
+
   useEffect(() => {
-    const nextSeg = focusSeg ?? urlSeg;
+    const nextSeg = focusSeg ?? urlSeg ?? (regionFilter ? "world" : null);
     if (!nextSeg) return;
     setSeg(nextSeg);
-  }, [focusSeg, setSeg, urlSeg]);
+  }, [focusSeg, regionFilter, setSeg, urlSeg]);
+
+  const clearRegionFilter = () => {
+    const params = new URLSearchParams(normalizedParams.toString());
+    params.delete("region");
+    router.replace(`/intel?${params.toString()}`);
+  };
 
   const handleSegmentChange = (nextSeg: Segment) => {
     setSeg(nextSeg);
@@ -181,6 +193,48 @@ export default function IntelPage() {
           />
         ) : null}
 
+        {regionFilter ? (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              flexWrap: "wrap",
+              padding: "8px 12px",
+              borderRadius: "10px",
+              border: "1px solid rgba(96, 165, 250, 0.2)",
+              background: "rgba(8, 18, 31, 0.5)",
+              fontSize: "11px",
+              color: "var(--text2)",
+            }}
+          >
+            <span>
+              Theater filter:{" "}
+              <strong style={{ color: "var(--text)" }}>
+                {formatIntelRegionLabel(regionFilter)}
+              </strong>
+            </span>
+            <button
+              type="button"
+              onClick={clearRegionFilter}
+              style={{
+                marginLeft: "auto",
+                height: "24px",
+                padding: "0 10px",
+                borderRadius: "6px",
+                fontSize: "10.5px",
+                fontWeight: 700,
+                border: "1px solid var(--border2)",
+                background: "transparent",
+                color: "var(--text2)",
+                cursor: "pointer",
+              }}
+            >
+              Show all theaters
+            </button>
+          </div>
+        ) : null}
+
         <ShellSegmentedTabs items={SEGMENTS} active={seg} onChange={handleSegmentChange} />
 
         {intelGuidance.length ? <AssistantGuidanceStack items={intelGuidance} /> : null}
@@ -194,7 +248,7 @@ export default function IntelPage() {
                 </OpsField>
                 <OpsRail className={intelLayout.railClass}>
                   <OpsField title="Conflict feed" detail="Why it matters in live reporting" tone="muted">
-                  <LazyConflictFeed />
+                  <LazyConflictFeed regionFilter={regionFilter} />
                   </OpsField>
                 </OpsRail>
               </ShellGrid>
@@ -211,6 +265,7 @@ export default function IntelPage() {
             segment={seg}
             workplaneClass={intelLayout.workplaneClass}
             railClass={intelLayout.railClass}
+            regionFilter={regionFilter}
           />
         ) : null}
       </ShellStack>

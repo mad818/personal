@@ -27,6 +27,12 @@ process.env.HOSTNAME = "0.0.0.0";
 process.env.NEXUS_RUNTIME_PORT = port;
 process.env.PORT = port;
 
+// Raise V8 heap limit to prevent OOM restarts from Next.js dev watcher.
+// The watcher can spike well past the 512 MB default when many files are watched.
+// Override via NODE_OPTIONS in .env.local if you need a different value.
+process.env.NODE_OPTIONS =
+  process.env.NODE_OPTIONS ?? "--max-old-space-size=4096";
+
 const urls = readLanAddresses().map((address) => `http://${address}:${port}`);
 const hqUrls = urls.map((url) => `${url}/hq?focus=hq-chronicle`);
 console.log("phone:lan:start — free local phone access");

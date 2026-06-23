@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SectionLabel, ShellBadge, ShellButton } from "@/components/ui/shell";
 import GeoDeltaPanel from "@/components/intel/GeoDeltaPanel";
+import { apiFetch } from "@/lib/apiFetch";
 import type { SweepBundle, SweepTheater } from "@/lib/assimilation/types";
 
 const THEATERS: Array<{ id: SweepTheater; label: string }> = [
@@ -28,7 +29,15 @@ export default function SweepEnginePanel() {
   const [events, setEvents] = useState<SweepStreamEvent[]>([]);
   const [latestSweep, setLatestSweep] = useState<SweepBundle | null>(null);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const sourceRef = useRef<EventSource | null>(null);
+
+  useEffect(() => {
+    return () => {
+      sourceRef.current?.close();
+      sourceRef.current = null;
+    };
+  }, []);
 
   const successCount = useMemo(
     () => events.filter((event) => event.ok).length,
@@ -43,25 +52,44 @@ export default function SweepEnginePanel() {
   async function runSweep() {
     stopStream();
     setBusy(true);
+    setError(null);
     setEvents([]);
     const source = new EventSource(`/api/events/sweeps?theater=${theater}`);
     sourceRef.current = source;
     source.addEventListener("source", (event) => {
-      const payload = JSON.parse((event as MessageEvent<string>).data) as SweepStreamEvent;
-      setEvents((current) => [...current, payload]);
+      try {
+        const payload = JSON.parse((event as MessageEvent<string>).data) as SweepStreamEvent;
+        setEvents((current) => [...current, payload]);
+      } catch {
+        // Silent: malformed stream chunk.
+      }
     });
     source.addEventListener("complete", () => {
       stopStream();
     });
+    source.onerror = () => {
+      setError("Sweep stream disconnected before all sources reported.");
+      stopStream();
+    };
 
     try {
-      const response = await fetch("/api/sweeps", {
+      const response = await apiFetch("/api/sweeps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ theater, persistSnapshot: true }),
       });
-      const payload = (await response.json()) as { sweep: SweepBundle };
-      setLatestSweep(payload.sweep);
+      if (!response.ok) {
+        setError(`Sweep failed with HTTP ${response.status}.`);
+        return;
+      }
+      const payload = (await response.json()) as { sweep?: SweepBundle };
+      if (payload.sweep) {
+        setLatestSweep(payload.sweep);
+      } else {
+        setError("Sweep returned no bundle.");
+      }
+    } catch {
+      setError("Sweep could not reach the local assimilation route.");
     } finally {
       setBusy(false);
     }
@@ -79,10 +107,26 @@ export default function SweepEnginePanel() {
             {option.label}
           </ShellButton>
         ))}
-        <ShellButton onClick={() => void runSweep()}>
+        <ShellButton onClick={() => void runSweep()} disabled={busy}>
           {busy ? "Sweeping..." : "Run sweep"}
         </ShellButton>
       </div>
+
+      {error ? (
+        <p
+          style={{
+            margin: 0,
+            padding: "10px 12px",
+            borderRadius: "8px",
+            border: "1px solid rgba(239, 68, 68, 0.35)",
+            background: "rgba(239, 68, 68, 0.08)",
+            fontSize: "12px",
+            color: "var(--text2)",
+          }}
+        >
+          {error}
+        </p>
+      ) : null}
 
       <div
         style={{

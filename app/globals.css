@@ -16734,6 +16734,7 @@ html[data-nexus-phone-posture="compact"] [data-nexus-command-dock="true"] {
   display: none !important;
 }
 
+html[data-nexus-hq-compact-operator="true"] #hq-console-shell,
 html[data-nexus-phone-posture="compact"] #hq-console-shell,
 html[data-nexus-phone-posture="compact"] .nexus-hq-tacticalRail,
 html[data-nexus-phone-posture="compact"] .nexus-surface-focus-strip {
@@ -16765,10 +16766,49 @@ html[data-nexus-phone-posture="compact"] .nexus-hq-composer__dock {
   display: none !important;
 }
 
+html[data-nexus-hq-compact-operator="true"] #hq-strategium,
+html[data-nexus-hq-compact-operator="true"] .nexus-hq-prelude,
+html[data-nexus-phone-posture="compact"] #hq-strategium,
+html[data-nexus-phone-posture="compact"] .nexus-hq-prelude {
+  display: none !important;
+}
+
+html[data-nexus-hq-compact-operator="true"] .nexus-hq-composer__compactToggle,
+html[data-nexus-phone-posture="compact"] .nexus-hq-composer__compactToggle {
+  display: none !important;
+}
+
+html[data-nexus-hq-compact-operator="true"] .nexus-hq-composer__topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nexus-hq-composer__compactToggle {
+  flex: 0 0 auto;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
+}
+
+.nexus-hq-composer__compactToggle:hover {
+  color: var(--text);
+  border-color: rgba(125, 211, 252, 0.45);
+}
+
+html[data-nexus-hq-compact-operator="true"] .nexus-hq-free-local-readiness,
 html[data-nexus-phone-posture="compact"] .nexus-hq-free-local-readiness {
   display: none !important;
 }
 
+html[data-nexus-hq-compact-operator="true"] .nexus-hq-phone-setup,
 html[data-nexus-phone-posture="compact"] .nexus-hq-phone-setup {
   position: sticky;
   top: 0;

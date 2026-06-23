@@ -105,6 +105,9 @@ export default function RepoIntelPanel() {
     RepoAssimilationPage[]
   >([]);
   const [comparePages, setComparePages] = useState<RepoComparePage[]>([]);
+  const [memoryPagesLoadIssue, setMemoryPagesLoadIssue] = useState<string | null>(
+    null,
+  );
 
   const normalized = useMemo(
     () => normalizeRepoIntelReference(repoInput),
@@ -119,15 +122,27 @@ export default function RepoIntelPanel() {
         const response = await apiFetch(
           "/api/memory/pages?limit=16&workflowId=repo-assimilation",
         );
-        if (!response.ok) return;
+        if (!response.ok) {
+          if (!cancelled) {
+            setMemoryPagesLoadIssue(
+              "Assimilation history could not load from local memory.",
+            );
+          }
+          return;
+        }
         const payload = (await response.json()) as {
           pages?: RepoAssimilationPage[];
         };
         if (!cancelled && Array.isArray(payload.pages)) {
           setAssimilationPages(payload.pages);
+          setMemoryPagesLoadIssue(null);
         }
       } catch {
-        // silent
+        if (!cancelled) {
+          setMemoryPagesLoadIssue(
+            "Assimilation history is unavailable until local memory responds.",
+          );
+        }
       }
     };
 
@@ -150,15 +165,27 @@ export default function RepoIntelPanel() {
         const response = await apiFetch(
           "/api/memory/pages?limit=16&workflowId=repo-compare",
         );
-        if (!response.ok) return;
+        if (!response.ok) {
+          if (!cancelled) {
+            setMemoryPagesLoadIssue(
+              "Compare history could not load from local memory.",
+            );
+          }
+          return;
+        }
         const payload = (await response.json()) as {
           pages?: RepoComparePage[];
         };
         if (!cancelled && Array.isArray(payload.pages)) {
           setComparePages(payload.pages);
+          setMemoryPagesLoadIssue(null);
         }
       } catch {
-        // silent
+        if (!cancelled) {
+          setMemoryPagesLoadIssue(
+            "Compare history is unavailable until local memory responds.",
+          );
+        }
       }
     };
 
@@ -454,6 +481,22 @@ export default function RepoIntelPanel() {
             {normalized.ok
               ? `Normalized repo: ${normalized.normalizedRepoId}`
               : normalized.error}
+          </div>
+        ) : null}
+
+        {memoryPagesLoadIssue ? (
+          <div
+            style={{
+              fontSize: "11px",
+              color: "var(--text2)",
+              lineHeight: 1.45,
+              padding: "8px 10px",
+              borderRadius: "8px",
+              border: "1px solid rgba(245, 158, 11, 0.35)",
+              background: "rgba(245, 158, 11, 0.08)",
+            }}
+          >
+            {memoryPagesLoadIssue}
           </div>
         ) : null}
 

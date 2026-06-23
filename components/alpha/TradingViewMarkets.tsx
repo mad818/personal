@@ -3,7 +3,7 @@
 // ── TradingView embeds (from legacy StockBot / sanity-next era in archive/) ──
 // Free widget scripts — dark theme to match Nexus. Requires CSP allowlist in next.config.js.
 
-import { useEffect, useRef, memo } from "react";
+import { useEffect, useMemo, useRef, memo, type RefObject } from "react";
 
 const TV_SCRIPT_BASE = "https://s3.tradingview.com/external-embedding";
 
@@ -17,6 +17,7 @@ function appendWidgetScript(
   script.src = src;
   script.type = "text/javascript";
   script.async = true;
+  script.crossOrigin = "anonymous";
   script.innerHTML = JSON.stringify(config);
   container.appendChild(script);
   return () => {
@@ -28,30 +29,58 @@ function appendWidgetScript(
   };
 }
 
+function useLazyTradingViewWidget(
+  ref: React.RefObject<HTMLDivElement | null>,
+  src: string,
+  config: Record<string, unknown>,
+) {
+  useEffect(() => {
+    const container = ref.current;
+    if (!container) return;
+
+    let cleanup = () => {};
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        cleanup = appendWidgetScript(container, src, config);
+        observer.disconnect();
+      },
+      { rootMargin: "120px" },
+    );
+    observer.observe(container);
+    return () => {
+      observer.disconnect();
+      cleanup();
+    };
+  }, [config, ref, src]);
+}
+
 /** Horizontal tape — crypto + majors (legacy experimentalbot defaults, crypto-tilted). */
 export const TradingViewTickerTape = memo(function TradingViewTickerTape() {
   const ref = useRef<HTMLDivElement>(null);
+  const config = useMemo(
+    () => ({
+      symbols: [
+        { proName: "BITSTAMP:BTCUSD", title: "Bitcoin" },
+        { proName: "BITSTAMP:ETHUSD", title: "Ethereum" },
+        { proName: "COINBASE:SOLUSD", title: "Solana" },
+        { proName: "FOREXCOM:SPXUSD", title: "S&P 500" },
+        { proName: "FX_IDC:EURUSD", title: "EUR/USD" },
+      ],
+      showSymbolLogo: true,
+      isTransparent: false,
+      displayMode: "adaptive",
+      colorTheme: "dark",
+      locale: "en",
+    }),
+    [],
+  );
 
-  useEffect(() => {
-    return appendWidgetScript(
-      ref.current,
-      `${TV_SCRIPT_BASE}/embed-widget-ticker-tape.js`,
-      {
-        symbols: [
-          { proName: "BITSTAMP:BTCUSD", title: "Bitcoin" },
-          { proName: "BITSTAMP:ETHUSD", title: "Ethereum" },
-          { proName: "COINBASE:SOLUSD", title: "Solana" },
-          { proName: "FOREXCOM:SPXUSD", title: "S&P 500" },
-          { proName: "FX_IDC:EURUSD", title: "EUR/USD" },
-        ],
-        showSymbolLogo: true,
-        isTransparent: false,
-        displayMode: "adaptive",
-        colorTheme: "dark",
-        locale: "en",
-      },
-    );
-  }, []);
+  useLazyTradingViewWidget(
+    ref as RefObject<HTMLDivElement | null>,
+    `${TV_SCRIPT_BASE}/embed-widget-ticker-tape.js`,
+    config,
+  );
 
   return (
     <div style={{ marginBottom: "14px" }}>
@@ -92,30 +121,32 @@ export const TradingViewTickerTape = memo(function TradingViewTickerTape() {
 /** Advanced chart — default BTC/USD. */
 export const TradingViewBtcChart = memo(function TradingViewBtcChart() {
   const ref = useRef<HTMLDivElement>(null);
+  const config = useMemo(
+    () => ({
+      autosize: true,
+      symbol: "BITSTAMP:BTCUSD",
+      interval: "240",
+      timezone: "Etc/UTC",
+      theme: "dark",
+      style: "1",
+      locale: "en",
+      enable_publishing: false,
+      hide_top_toolbar: false,
+      hide_legend: false,
+      save_image: false,
+      calendar: false,
+      support_host: "https://www.tradingview.com",
+      backgroundColor: "rgba(14, 11, 12, 1)",
+      gridColor: "rgba(42, 38, 40, 1)",
+    }),
+    [],
+  );
 
-  useEffect(() => {
-    return appendWidgetScript(
-      ref.current,
-      `${TV_SCRIPT_BASE}/embed-widget-advanced-chart.js`,
-      {
-        autosize: true,
-        symbol: "BITSTAMP:BTCUSD",
-        interval: "240",
-        timezone: "Etc/UTC",
-        theme: "dark",
-        style: "1",
-        locale: "en",
-        enable_publishing: false,
-        hide_top_toolbar: false,
-        hide_legend: false,
-        save_image: false,
-        calendar: false,
-        support_host: "https://www.tradingview.com",
-        backgroundColor: "rgba(14, 11, 12, 1)",
-        gridColor: "rgba(42, 38, 40, 1)",
-      },
-    );
-  }, []);
+  useLazyTradingViewWidget(
+    ref as RefObject<HTMLDivElement | null>,
+    `${TV_SCRIPT_BASE}/embed-widget-advanced-chart.js`,
+    config,
+  );
 
   return (
     <div

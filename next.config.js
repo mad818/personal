@@ -151,6 +151,11 @@ module.exports = {
             key: 'Content-Security-Policy',
             value: buildCsp(),
           },
+          // Prevent tab-napping and Spectre-class cross-origin leaks
+          { key: 'Cross-Origin-Opener-Policy',   value: 'same-origin' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
+          // Instruct crawlers not to index local dashboard instances
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
         ],
       },
     ]

@@ -28,6 +28,7 @@ import {
 import { getDefaultEntrypoint } from "@/lib/releaseMatrix";
 import ShellBackgroundServices from "@/components/ui/ShellBackgroundServices";
 import PhonePostureSync from "@/components/ui/PhonePostureSync";
+import HqOperatorLayoutSync from "@/components/ui/HqOperatorLayoutSync";
 
 const CommandBar = dynamic(() => import("@/components/ui/CommandBar"), {
   ssr: false,
@@ -106,6 +107,7 @@ export default function RootLayoutChrome({
     <>
       <ParticleBackground />
       <PhonePostureSync />
+      <HqOperatorLayoutSync />
       <AuthGate initiallyAuthed={initiallyAuthed}>
         <RuntimePolicyCookieSync />
         <ShellHydrationBeacon />

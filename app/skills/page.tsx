@@ -62,6 +62,10 @@ const WorkflowForge = dynamic(
   () => import("@/components/skills/WorkflowForge"),
   { ssr: false },
 );
+const SkillSpectrumValidatorStrip = dynamic(
+  () => import("@/components/skills/SkillSpectrumValidatorStrip"),
+  { ssr: false },
+);
 
 type View = "forge" | "blacksite" | "brain" | "library";
 
@@ -295,7 +299,10 @@ export default function SkillsPage() {
             animate={{ opacity: 1, y: 0 }}
             style={{ scrollMarginTop: "120px" }}
           >
-            <WorkflowForge />
+            <ShellStack gap="12px">
+              <SkillSpectrumValidatorStrip />
+              <WorkflowForge />
+            </ShellStack>
           </motion.div>
         )}
 

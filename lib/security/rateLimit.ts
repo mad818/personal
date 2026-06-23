@@ -19,16 +19,36 @@ function hashValue(value: string) {
   return createHash("sha256").update(value).digest("hex");
 }
 
+function trustForwardedClientIp() {
+  return process.env.NEXUS_TRUST_PROXY === "true";
+}
+
+function getDirectClientIp(req: NextRequest) {
+  const forwarded = req.headers.get("x-forwarded-for") ?? "";
+  const fromForwarded = forwarded.split(",")[0]?.trim();
+  if (trustForwardedClientIp() && fromForwarded) {
+    return fromForwarded;
+  }
+
+  const realIp = req.headers.get("x-real-ip")?.trim();
+  if (trustForwardedClientIp() && realIp) {
+    return realIp;
+  }
+
+  const cfIp = req.headers.get("cf-connecting-ip")?.trim();
+  if (trustForwardedClientIp() && cfIp) {
+    return cfIp;
+  }
+
+  // Direct LAN clients must not spoof X-Forwarded-For into unique buckets.
+  return "direct";
+}
+
 export function getRequestIdentity(
   req: NextRequest,
   { includeBearerToken = false }: Pick<RateLimitConfig, "includeBearerToken"> = {},
 ) {
-  const xff = req.headers.get("x-forwarded-for") ?? "";
-  const ip =
-    xff.split(",")[0]?.trim() ||
-    req.headers.get("x-real-ip") ||
-    req.headers.get("cf-connecting-ip") ||
-    "unknown";
+  const ip = getDirectClientIp(req);
   const authHeader = req.headers.get("authorization") ?? "";
   const bearer =
     includeBearerToken && authHeader.startsWith("Bearer ")

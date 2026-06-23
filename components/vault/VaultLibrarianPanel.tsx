@@ -52,6 +52,7 @@ export function VaultLibrarianPanel({
   const [filingAudit, setFilingAudit]     = useState(false);
   const [auditFiled, setAuditFiled]       = useState(false);
   const [latestAuditPages, setLatestAuditPages] = useState<CompiledMemoryPageSummary[]>([]);
+  const [auditPagesError, setAuditPagesError] = useState("");
 
   const nodeCount    = graph?.nodes.length ?? 0;
   const orphanCount  = graph?.orphans.length ?? 0;
@@ -124,13 +125,17 @@ export function VaultLibrarianPanel({
       const response = await apiFetch(
         "/api/memory/pages?limit=8&workflowId=vault-librarian",
       );
-      if (!response.ok) return;
+      if (!response.ok) {
+        setAuditPagesError("Could not load librarian audit pages.");
+        return;
+      }
       const payload = (await response.json()) as {
         pages?: CompiledMemoryPageSummary[];
       };
       setLatestAuditPages(Array.isArray(payload.pages) ? payload.pages : []);
+      setAuditPagesError("");
     } catch {
-      // silent
+      setAuditPagesError("Could not load librarian audit pages.");
     }
   }, []);
 
@@ -463,6 +468,11 @@ export function VaultLibrarianPanel({
             <div style={{ fontSize: "10px", color: "var(--text2)", fontWeight: "bold", marginBottom: "6px" }}>
               DURABLE AUDIT BRIEF
             </div>
+            {auditPagesError ? (
+              <div style={{ fontSize: "11px", color: "var(--flo)", lineHeight: 1.5, marginBottom: "6px" }}>
+                {auditPagesError}
+              </div>
+            ) : null}
             <button
               onClick={() => void fileAuditBrief()}
               disabled={filingAudit || !synthesis || !lint}

@@ -43,6 +43,15 @@ function isFuseable(
   return null;
 }
 
+function regionMapHref(region: string) {
+  const query = new URLSearchParams({
+    view: "world",
+    focus: "intel-world",
+    region: region.toLowerCase(),
+  });
+  return `/intel?${query.toString()}`;
+}
+
 export default function LiveEventFusionStrip() {
   const [events, setEvents] = useState<FusedEvent[]>([]);
   const [loading, setLoading] = useState(false);
@@ -106,27 +115,23 @@ export default function LiveEventFusionStrip() {
         </span>
         <span style={{ fontSize: 10, color: "var(--text3)", marginLeft: "auto" }}>
           <a
-            href="/ops?focus=map"
+            href="/intel?view=world&focus=intel-world"
             style={{ color: "var(--accent)", textDecoration: "none" }}
           >
-            Open OPS map →
+            Open world map →
           </a>
         </span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {events.map((ev, i) => (
-          <a
+          <div
             key={i}
-            href={ev.url}
-            target="_blank"
-            rel="noopener noreferrer"
             style={{
               display: "grid",
-              gridTemplateColumns: "auto minmax(0, 1fr) auto",
+              gridTemplateColumns: "auto minmax(0, 1fr) auto auto",
               gap: 8,
               alignItems: "center",
               padding: "6px 10px",
-              textDecoration: "none",
               borderTop: i > 0 ? "1px solid rgba(255,255,255,0.04)" : undefined,
               background: "transparent",
             }}
@@ -143,17 +148,19 @@ export default function LiveEventFusionStrip() {
             >
               {ev.impact}
             </span>
-            <span
+            <a
+              href={regionMapHref(ev.region)}
               style={{
                 fontSize: 11,
                 color: "var(--text2)",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
+                textDecoration: "none",
               }}
             >
               {ev.title}
-            </span>
+            </a>
             <span
               style={{
                 fontSize: 10,
@@ -166,7 +173,20 @@ export default function LiveEventFusionStrip() {
             >
               {ev.region}
             </span>
-          </a>
+            <a
+              href={ev.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontSize: 10,
+                color: "var(--accent)",
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Source
+            </a>
+          </div>
         ))}
       </div>
     </div>

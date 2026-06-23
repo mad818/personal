@@ -1,11 +1,32 @@
 "use client";
 
+import { useMemo } from "react";
 import { ShellButton } from "@/components/ui/shell";
 import {
   buildPhoneAcceptancePendingActions,
   type PhoneAcceptanceActionId,
 } from "@/lib/phoneAcceptanceActions";
 import type { PhoneAcceptanceLiveStatus } from "@/lib/phoneAcceptanceStatus";
+
+/**
+ * Returns true only when the browser genuinely supports PWA installation.
+ * Brave on iOS and all non-Safari iOS browsers cannot install PWAs, so we
+ * hide the "Install app" step rather than showing a button that does nothing.
+ */
+function detectPwaCapable(): boolean {
+  if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+  if (!("serviceWorker" in navigator)) return false;
+  const ua = navigator.userAgent;
+  const isIos = /iphone|ipad|ipod/i.test(ua);
+  if (!isIos) return true;
+  // On iOS, only Safari supports PWA install. Brave's UA still contains Safari
+  // but also exposes navigator.brave. Chrome/Firefox/Brave on iOS cannot install.
+  const isSafariOnIos =
+    /safari/i.test(ua) &&
+    !/crios|fxios|brave|chrome/i.test(ua) &&
+    !("brave" in navigator);
+  return isSafariOnIos;
+}
 
 type Props = {
   status: PhoneAcceptanceLiveStatus | null;
@@ -20,8 +41,10 @@ export default function PhoneAcceptanceActionBar({
   busy = false,
   onAction,
 }: Props) {
+  const canInstallPwa = useMemo(() => detectPwaCapable(), []);
   const actions = buildPhoneAcceptancePendingActions(status, {
     sessionAuthenticated,
+    canInstallPwa,
   });
 
   if (status?.acceptanceReady) {

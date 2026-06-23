@@ -157,6 +157,26 @@ function CVSSBar({ score, severity }: { score: number; severity: string }) {
 export default function CVEFeed() {
   const cves = useStore((s) => s.cves) as CVE[];
   const cvesLoaded = useStore((s) => s.cvesLoaded);
+  const cveFetchError = useStore((s) => s.cveFetchError);
+
+  if (cveFetchError && !cves.length) {
+    return (
+      <div
+        style={{
+          padding: "40px",
+          textAlign: "center",
+          color: "var(--text3)",
+          fontSize: "13px",
+        }}
+      >
+        <div style={{ fontSize: "32px", marginBottom: "10px" }}>🔒</div>
+        <div style={{ color: "var(--flo)", marginBottom: "8px" }}>{cveFetchError}</div>
+        <div style={{ fontSize: "11px", color: "var(--text3)" }}>
+          Check network access or add an NVD API key in Settings, then refresh CYBER.
+        </div>
+      </div>
+    );
+  }
 
   if (!cves.length && !cvesLoaded)
     return (
@@ -197,6 +217,11 @@ export default function CVEFeed() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      {cveFetchError ? (
+        <div style={{ fontSize: "11px", color: "var(--flo)", lineHeight: 1.5 }}>
+          {cveFetchError}
+        </div>
+      ) : null}
       {cves.map((c) => (
         <CVECard key={c.id} cve={c} />
       ))}

@@ -21,6 +21,7 @@ import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
 import { usePhonePosture } from "@/hooks/usePhonePosture";
+import { resolveHqCompactOperator } from "@/lib/hqOperatorLayout";
 import { runAgent, type AgentStep } from "@/lib/agent";
 import { mergeAssistantGuidance } from "@/lib/assistantGuidance";
 import { buildSystemPrompt } from "@/lib/ai";
@@ -394,7 +395,12 @@ export default function OfficeCommandCenter() {
   const officeSplitHeightPx = settings.officeSplitHeightPx ?? 0;
   const hqConsoleFocusMode = settings.hqConsoleFocusMode ?? "game";
   const phonePosture = usePhonePosture();
-  const effectiveHqFocusMode = phonePosture ? "chat" : hqConsoleFocusMode;
+  const hqCompactOperator = resolveHqCompactOperator({
+    phonePosture,
+    hqCompactOperatorLayout: settings.hqCompactOperatorLayout,
+  });
+  const effectiveHqFocusMode = hqCompactOperator ? "chat" : hqConsoleFocusMode;
+  const showHqPlayfield = !hqCompactOperator;
   const officeOperationalMode = settings.officeOperationalMode ?? "normal";
   const officeVfxQuality = (settings.officeVfxQuality ?? "low") as
     | "off"
@@ -669,11 +675,11 @@ export default function OfficeCommandCenter() {
   }, [addNotification, addLog]);
 
   useEffect(() => {
-    if (!phonePosture) return;
+    if (!hqCompactOperator) return;
     if (hqConsoleFocusMode !== "chat") {
       updateSettings({ hqConsoleFocusMode: "chat" });
     }
-  }, [phonePosture, hqConsoleFocusMode, updateSettings]);
+  }, [hqCompactOperator, hqConsoleFocusMode, updateSettings]);
 
   useEffect(() => {
     const onResize = () => {
@@ -2223,7 +2229,7 @@ export default function OfficeCommandCenter() {
         >
           <div className="nexus-hq-commandTable__workspace">
             <div className="nexus-hq-console">
-              {!phonePosture ? (
+              {!showHqPlayfield ? null : (
               <div
                 id="hq-console-shell"
                 style={{ scrollMarginTop: "120px", flexShrink: 0 }}
@@ -2281,7 +2287,7 @@ export default function OfficeCommandCenter() {
                   onSetShowSplitMore={setShowSplitMore}
                 />
               </div>
-              ) : null}
+              )}
 
               <MemoryPanel open={memoryOpen} onClose={() => setMemoryOpen(false)} />
               <CronSchedulerPanel
@@ -2368,7 +2374,7 @@ export default function OfficeCommandCenter() {
             </div>
           </div>
 
-        {effectiveHqFocusMode === "chat" ? (
+        {effectiveHqFocusMode === "chat" && !hqCompactOperator ? (
         <HQPreludePostureSection
             eyebrow="Sector rail"
             title="Live sector."
@@ -2426,7 +2432,7 @@ export default function OfficeCommandCenter() {
         ) : null}
         </div>
 
-        {effectiveHqFocusMode === "chat" ? (
+        {effectiveHqFocusMode === "chat" && !hqCompactOperator ? (
         <div id="hq-strategium" style={{ scrollMarginTop: "120px" }}>
           <HQStrategiumDeck
             operationalMode={officeOperationalMode}

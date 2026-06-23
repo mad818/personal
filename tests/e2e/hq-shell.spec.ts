@@ -2,11 +2,13 @@ import { expect, test, type Page, type Route, type TestInfo } from "@playwright/
 import {
   gotoShell,
   seedAuthenticatedShell,
+  seedFullHqLayout,
   waitForCanonicalUrl,
   waitForAuthenticatedShell,
 } from "@/tests/e2e/support/authenticatedShell";
 
 test.beforeEach(async ({ page }) => {
+  await seedFullHqLayout(page);
   await seedAuthenticatedShell(page);
 });
 

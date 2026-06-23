@@ -33,7 +33,7 @@ import {
   summarizeSurfaceTiers,
 } from "@/lib/releaseMatrix";
 import { protectedJson } from "@/lib/protectedApi";
-import { getRuntimeEnvFilePath } from "@/lib/serverEnvRuntime";
+import { getRuntimeEnvFilePath, assertAnchoredRuntimeEnvFilePath } from "@/lib/serverEnvRuntime";
 import { isConfiguredSecretValue } from "@/lib/secretReadiness";
 import { readLocalDataPolicySummary } from "@/lib/security/localDataPolicy";
 import { requireStepUpForAction } from "@/lib/security/stepUpAuth";
@@ -101,7 +101,7 @@ const BROWSER_MUTATION_BLOCKED_KEYS = new Set([
   "NEXUS_DEPLOYMENT_PROFILE",
 ]);
 
-const ENV_FILE = getRuntimeEnvFilePath();
+const ENV_FILE = assertAnchoredRuntimeEnvFilePath(getRuntimeEnvFilePath());
 const SETTINGS_RATE_LIMIT = {
   bucket: "api-settings",
   windowMs: 60_000,
@@ -140,6 +140,7 @@ async function readEnvFile(): Promise<Record<string, string>> {
 }
 
 async function writeEnvFile(env: Record<string, string>): Promise<void> {
+  const anchoredPath = assertAnchoredRuntimeEnvFilePath(ENV_FILE);
   // Preserve the original file structure — only update/add value lines
   let content = "";
   try {
@@ -161,7 +162,7 @@ async function writeEnvFile(env: Record<string, string>): Promise<void> {
     }
   }
 
-  await fs.writeFile(ENV_FILE, content, "utf-8");
+  await fs.writeFile(anchoredPath, content, "utf-8");
 }
 
 function normalizeConfigValue(key: string, value: string): string {

@@ -16,6 +16,7 @@ import DictationButton from "@/components/ui/DictationButton";
 import EvidencePosturePanel from "@/components/ui/EvidencePosturePanel";
 import FreeLocalReadinessPanel from "@/components/ui/FreeLocalReadinessPanel";
 import { usePhonePosture } from "@/hooks/usePhonePosture";
+import { resolveHqCompactOperator } from "@/lib/hqOperatorLayout";
 import IntelOnlyAgentGate from "@/components/ui/IntelOnlyAgentGate";
 import { SpeakButton } from "@/components/ui/SpeakButton";
 import VoiceProjectButton from "@/components/ui/VoiceProjectButton";
@@ -128,7 +129,12 @@ export default function HQTerminalSection({
     ? Object.entries(debug.scores).sort(([, a], [, b]) => b - a)
     : [];
   const settings = useStore((s) => s.settings);
+  const updateSettings = useStore((s) => s.updateSettings);
   const phonePosture = usePhonePosture();
+  const hqCompactOperator = resolveHqCompactOperator({
+    phonePosture,
+    hqCompactOperatorLayout: settings.hqCompactOperatorLayout,
+  });
   const agentRuntime = useStore((s) => s.agentRuntime);
   const setTab = useStore((s) => s.setTab);
   const { posture: intelPosture } = useIntelOnlyPosture();
@@ -314,7 +320,7 @@ export default function HQTerminalSection({
         ref={scrollViewportRef}
         className="nexus-hq-chronicle__scroll"
       >
-        {phonePosture ? (
+        {hqCompactOperator ? (
           <div className="nexus-hq-phone-setup">
             <FreeLocalReadinessPanel
               surface="hq"
@@ -734,7 +740,7 @@ export default function HQTerminalSection({
           </div>
         ) : null}
         <div className="nexus-hq-free-local-readiness">
-          {!phonePosture ? (
+          {!hqCompactOperator ? (
             <>
               <IntelOnlyAgentGate
                 surface="hq"
@@ -745,6 +751,7 @@ export default function HQTerminalSection({
             </>
           ) : null}
         </div>
+        {!hqCompactOperator ? (
         <div className="nexus-hq-assistant-readiness">
           <span className="nexus-hq-assistant-readiness__label">
             Assistant readiness
@@ -762,8 +769,27 @@ export default function HQTerminalSection({
           <span>{readinessToolGroups || "base tools"}</span>
           <span>{liveReadiness.blockedReason}</span>
         </div>
+        ) : null}
         <div className="nexus-hq-composer__topline">
           <PersonaModeBar />
+          {!phonePosture ? (
+            <button
+              type="button"
+              className="nexus-hq-composer__compactToggle"
+              onClick={() =>
+                updateSettings({
+                  hqCompactOperatorLayout: !settings.hqCompactOperatorLayout,
+                  ...(settings.hqCompactOperatorLayout
+                    ? {}
+                    : { hqConsoleFocusMode: "chat" }),
+                })
+              }
+            >
+              {settings.hqCompactOperatorLayout
+                ? "Show full HQ"
+                : "Compact HQ"}
+            </button>
+          ) : null}
         </div>
         <div className="nexus-hq-composer__council">
           <CouncilResultsPanel

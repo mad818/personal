@@ -39,6 +39,7 @@ function parseSeverity(metrics: any): { severity: CVE['severity']; score: number
 export function useCVEs() {
   const setCves         = useStore((s) => s.setCves)
   const setCvesLoaded   = useStore((s) => s.setCvesLoaded)
+  const setCveFetchError = useStore((s) => s.setCveFetchError)
   const addNotification = useStore((s) => s.addNotification)
 
   const [loading, setLoading] = useState(false)
@@ -49,6 +50,7 @@ export function useCVEs() {
   const fetchCVEs = useCallback(async () => {
     setLoading(true)
     setError('')
+    setCveFetchError('')
     try {
       // Proxied through Next.js server route — NVD blocks direct browser fetches (CORS)
       const r = await apiFetch('/api/cves', { signal: AbortSignal.timeout(55000) })
@@ -91,12 +93,14 @@ export function useCVEs() {
       setLocalCves(raw)
       setCves(raw)
     } catch {
-      setError('Could not fetch CVE data.')
+      const message = 'Could not fetch CVE data.'
+      setError(message)
+      setCveFetchError(message)
     } finally {
       setLoading(false)
       setCvesLoaded(true) // mark done regardless of outcome
     }
-  }, [setCves, setCvesLoaded, addNotification])
+  }, [setCves, setCvesLoaded, setCveFetchError, addNotification])
 
   return { fetchCVEs, cves, loading, error }
 }

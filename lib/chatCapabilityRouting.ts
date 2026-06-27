@@ -164,6 +164,15 @@ const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
   {
     route: "/internal/skills",
     keywords: [
+      "lyra",
+      "prompt optimizer",
+      "prompt optimization",
+      "optimize prompt",
+      "optimize this prompt",
+      "improve prompt",
+      "improve my prompt",
+      "rewrite prompt",
+      "prompt forge",
       "skill",
       "learning",
       "knowledge graph",

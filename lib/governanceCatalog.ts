@@ -9,6 +9,7 @@ export type GovernanceContinuationMode =
 export type AssistantCapabilityId =
   | "conversation-general"
   | "guided-learning"
+  | "prompt-optimization"
   | "memory-palace"
   | "product-navigation"
   | "repo-engineering"
@@ -259,6 +260,18 @@ const ASSISTANT_CAPABILITY_GOVERNANCE: Record<AssistantCapabilityId, GovernanceP
         "Teach first, then offer one compact checkpoint or study continuation only if it helps.",
       continuationMode: "read_only_jump",
     },
+    "prompt-optimization": {
+      riskTier: "tier0",
+      approvalRequired: false,
+      domainTags: ["prompts", "skills", "transformation", "session-only"],
+      operatorOnly: false,
+      automationEligible: false,
+      exactSessionTarget: "skills-prompt-forge",
+      surfaceIds: ["skills", "hq"],
+      nextMove:
+        "Open LYRA Prompt Forge and keep optimization content transient, copy-only, and separate from execution.",
+      continuationMode: "read_only_jump",
+    },
     "memory-palace": {
       riskTier: "tier1",
       approvalRequired: false,
@@ -477,6 +490,18 @@ const EXACT_SESSION_GOVERNANCE: Record<string, GovernanceProfile> = {
     nextMove:
       "Keep market-review work decision-support only and reopen the strongest prior thesis note before adding another durable page.",
     continuationMode: "reviewed_action",
+  },
+  "skills-prompt-forge": {
+    riskTier: "tier0",
+    approvalRequired: false,
+    domainTags: ["skills", "prompts", "session-only", "transformation"],
+    operatorOnly: false,
+    automationEligible: false,
+    exactSessionTarget: "skills-prompt-forge",
+    surfaceIds: ["skills", "hq"],
+    nextMove:
+      "Optimize and copy the prompt without saving or automatically executing it.",
+    continuationMode: "read_only_jump",
   },
   "hq-scheduler-governance": {
     riskTier: "tier1",

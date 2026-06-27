@@ -769,7 +769,7 @@ interface NexusState {
   intelView:     'news' | 'world' | 'markets' | 'sweeps'
   marketsView:   'watchlist' | 'signals' | 'scanner' | 'sizer' | 'prices' | 'charts'
   cyberView:     'triage' | 'matrix' | 'cves' | 'otx' | 'cisa' | 'drone' | 'vuln-review'
-  skillsWorkbenchView: 'forge' | 'blacksite' | 'brain' | 'library'
+  skillsWorkbenchView: 'forge' | 'prompts' | 'blacksite' | 'brain' | 'library'
   resourcesWorkbenchView: 'finder' | 'manual' | 'sources' | 'study' | 'surfaces' | 'playbooks' | 'specs' | 'system' | 'impact' | 'registry' | 'kits' | 'escape' | 'voice-lab' | 'wins'
   securityWorkbenchView: 'doctrine' | 'physical' | 'ai'
   prices:        Record<string, PriceData>

@@ -31,6 +31,20 @@ requireText(recipes, "PROMPT_RECIPES", "promptRecipes.ts");
 requireText(recipes, "buildPromptRecipeBlock", "promptRecipes.ts");
 requireText(recipes, "recipesForAgent", "promptRecipes.ts");
 requireText(recipes, "constraint-cage", "promptRecipes.ts");
-requireText(liveContext, "buildPromptRecipeBlock", "liveContext.ts");
+requireText(
+  liveContext,
+  'import { buildPromptRecipeBlock } from "@/lib/promptRecipes";',
+  "liveContext.ts import",
+);
+requireText(
+  liveContext,
+  "const promptRecipeBlock = buildPromptRecipeBlock(",
+  "liveContext.ts invocation",
+);
+requireText(
+  liveContext,
+  "${rolePackBlock}${promptRecipeBlock}",
+  "liveContext.ts output",
+);
 
-console.log("ok prompt-recipes (registry + live-context wiring)");
+console.log("Prompt recipes OK (registry, invocation, and live-context output wired).");

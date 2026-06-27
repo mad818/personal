@@ -19,6 +19,7 @@
 
 import type { AgentStats } from "@/store/useStore";
 import { buildAgencyRoleTaxonomyBlock } from "@/lib/agentRoleTaxonomy";
+import { buildPromptRecipeBlock } from "@/lib/promptRecipes";
 import { buildStackContextBlock } from "@/lib/projectContext";
 import { buildLearningsBlock } from "@/lib/agentLearnings";
 import type { CorrectionMemoryEntry } from "@/lib/assistantSessionMemory";
@@ -574,6 +575,9 @@ export function buildCapabilitiesBlock(agentId: string): string {
   };
   const block = cap[agentId] ?? cap.jansky;
   const rolePackBlock = buildAgencyRoleTaxonomyBlock(agentId);
+  const promptRecipeBlock = buildPromptRecipeBlock(
+    agentId.toLowerCase() as import("@/components/home/office/types").AgentId,
+  );
   // The role pack appends a compact [AGENCY ROLE PACK ...] block per agent.
-  return `\n\n[AGENT CAPABILITIES & REASONING STYLE]\n${block}\n[END CAPABILITIES]\n${rolePackBlock}`;
+  return `\n\n[AGENT CAPABILITIES & REASONING STYLE]\n${block}\n[END CAPABILITIES]\n${rolePackBlock}${promptRecipeBlock}`;
 }

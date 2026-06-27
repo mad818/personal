@@ -74,7 +74,16 @@ assertIncludes(skillsPage, "AgencyRoleLibrary", "skills page role library import
 assertIncludes(skillsPage, "Agency role library", "skills page role library section");
 
 assertIncludes(packageJson, "\"agent:taxonomy:check\"", "package script");
-assertIncludes(packageJson, "agent:taxonomy:check && npm run type-check", "verify wiring");
+const packageData = JSON.parse(packageJson);
+const verifyScript = String(packageData.scripts?.verify ?? "");
+assertIncludes(verifyScript, "npm run agent:taxonomy:check", "verify taxonomy wiring");
+assertIncludes(verifyScript, "npm run type-check", "verify type-check wiring");
+if (
+  verifyScript.indexOf("npm run agent:taxonomy:check") >
+  verifyScript.indexOf("npm run type-check")
+) {
+  fail("verify must run agent taxonomy before type-check");
+}
 
 assertIncludes(spec, "no-vendoring guardrails", "feature spec guardrails");
 assertIncludes(externalMap, "msitarzewski/agency-agents", "external source map");

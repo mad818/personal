@@ -117,9 +117,10 @@ export const CANONICAL_SEGMENTED_ROUTE_RULES: Record<
   },
   "/skills": {
     defaultView: "forge",
-    allowedViews: ["forge", "blacksite", "brain", "library"],
+    allowedViews: ["forge", "prompts", "blacksite", "brain", "library"],
     focusToView: {
       "skills-forge": "forge",
+      "skills-prompt-forge": "prompts",
       "skills-blacksite": "blacksite",
       "skills-brain": "brain",
       "skills-library": "library",

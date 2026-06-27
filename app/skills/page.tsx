@@ -48,6 +48,10 @@ const LearningProgressRing = dynamic(
   () => import("@/components/skills/LearningProgressRing"),
   { ssr: false },
 );
+const LyraPromptForge = dynamic(
+  () => import("@/components/skills/LyraPromptForge"),
+  { ssr: false },
+);
 const SkillLibrary = dynamic(() => import("@/components/skills/SkillLibrary"), {
   ssr: false,
 });
@@ -67,10 +71,11 @@ const SkillSpectrumValidatorStrip = dynamic(
   { ssr: false },
 );
 
-type View = "forge" | "blacksite" | "brain" | "library";
+type View = "forge" | "prompts" | "blacksite" | "brain" | "library";
 
 const VIEWS: Array<{ id: View; label: string }> = [
   { id: "forge", label: "Workflow Forge" },
+  { id: "prompts", label: "LYRA Prompt Forge" },
   { id: "blacksite", label: "Blacksite Lab" },
   { id: "brain", label: "System Brain" },
   { id: "library", label: "Skill Library" },
@@ -187,6 +192,7 @@ export default function SkillsPage() {
   const urlView = useMemo(() => {
     const value = (normalizedParams.get("view") ?? "").toLowerCase();
     return value === "forge" ||
+      value === "prompts" ||
       value === "blacksite" ||
       value === "brain" ||
       value === "library"
@@ -196,6 +202,7 @@ export default function SkillsPage() {
 
   const focusView = useMemo(() => {
     if (focus === "skills-forge") return "forge";
+    if (focus === "skills-prompt-forge") return "prompts";
     if (focus === "skills-blacksite") return "blacksite";
     if (focus === "skills-brain") return "brain";
     if (focus === "skills-library") return "library";
@@ -218,6 +225,8 @@ export default function SkillsPage() {
   const focusTargetId =
     focus === "skills-forge"
       ? "skills-forge"
+      : focus === "skills-prompt-forge"
+        ? "skills-prompt-forge"
       : focus === "skills-blacksite"
         ? "skills-blacksite"
         : focus === "skills-brain"
@@ -264,6 +273,13 @@ export default function SkillsPage() {
           />
         ) : null}
 
+        {focus === "skills-prompt-forge" ? (
+          <SurfaceFocusStrip
+            title="Focused session: LYRA Prompt Forge"
+            description="Prompt optimization opens first and keeps all prompt content session-only."
+          />
+        ) : null}
+
         {focus === "skills-blacksite" ? (
           <SurfaceFocusStrip
             title="Focused session: Blacksite Lab"
@@ -303,6 +319,17 @@ export default function SkillsPage() {
               <SkillSpectrumValidatorStrip />
               <WorkflowForge />
             </ShellStack>
+          </motion.div>
+        )}
+
+        {view === "prompts" && (
+          <motion.div
+            id="skills-prompt-forge"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ scrollMarginTop: "120px" }}
+          >
+            <LyraPromptForge />
           </motion.div>
         )}
 

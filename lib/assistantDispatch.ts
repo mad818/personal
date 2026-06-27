@@ -73,6 +73,8 @@ const LOCAL_REPLY_RE =
   /^(?:hi|hello|hey|yo|sup|what'?s up|good (?:morning|afternoon|evening)|ping|test|testing|ok|okay|k|thanks|thank you|thx)[!. ]*$/i;
 const LOCAL_SIGNAL_RE = /^(?:ping|test|testing)[!. ]*$/i;
 const LOCAL_ACK_RE = /^(?:ok|okay|k|thanks|thank you|thx)[!. ]*$/i;
+const PROMPT_OPTIMIZATION_RE =
+  /\b(?:lyra|prompt optimizer|prompt optimization|prompt forge|optimi[sz]e (?:this |my )?prompt|improve (?:this |my )?prompt|rewrite (?:this |my )?prompt)\b/i;
 
 function resolveIntent(style: HQAnswerStyle, routeHint: NexusRoute | null): HQAssistantIntent {
   if (style === "learning") return "learning";
@@ -90,6 +92,7 @@ function resolveAnswerMode(
   options: AssistantDispatchOptions = {},
 ) {
   if (!routeHint) return "direct" as const;
+  if (PROMPT_OPTIMIZATION_RE.test(input)) return "route_action" as const;
   if (options.forceRouteAction) return "route_action" as const;
   if (options.forceAnswerHere) return "direct_with_route" as const;
   if (WORKSPACE_ACTION_RE.test(input)) return "route_action" as const;
@@ -152,6 +155,12 @@ function resolvePreparedWorkspace(
   if (routeHint === "/intel" && /deep research|sweep|research/.test(lower)) {
     return getAssistantWorkspace("intel-sweeps");
   }
+  if (
+    routeHint === "/internal/skills" &&
+    PROMPT_OPTIMIZATION_RE.test(input)
+  ) {
+    return getAssistantWorkspace("skills-prompt-forge");
+  }
   return resolveAssistantWorkspaceForRoute(routeHint, intent);
 }
 
@@ -203,7 +212,7 @@ export function resolveAssistantDispatch(
   const routeHint = detectRouteFromPrompt(cleanInput);
   const answerStylePlan = resolveHQAnswerStylePlan(cleanInput);
   const detectedAgent = detectAgent(cleanInput);
-  const agent = resolveHQTargetAgent(answerStylePlan, detectedAgent);
+  const candidateAgent = resolveHQTargetAgent(answerStylePlan, detectedAgent);
   const intent = resolveIntent(answerStylePlan.style, routeHint);
   const capabilityMatch = detectAssistantCapability({
     input: cleanInput,
@@ -211,6 +220,10 @@ export function resolveAssistantDispatch(
     answerStyle: answerStylePlan.style,
     routeHint,
   });
+  const agent: AgentId =
+    capabilityMatch.capability.id === "prompt-optimization"
+      ? "jansky"
+      : candidateAgent;
   const answerMode = resolveAnswerMode(
     cleanInput,
     routeHint,
@@ -319,5 +332,12 @@ export const ASSISTANT_DISPATCH_CHECKS = [
     prompt: "Fix this component",
     expectedIntent: "repo_work",
     expectedWorkflowPhase: "review",
+  },
+  {
+    prompt: "Use Lyra to optimize this prompt",
+    expectedRoute: "/skills?view=prompts&focus=skills-prompt-forge",
+    expectedMode: "route_action",
+    expectedAgent: "jansky",
+    expectedCapability: "prompt-optimization",
   },
 ] as const;

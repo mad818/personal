@@ -42,6 +42,7 @@ export type AssistantWorkspaceId =
   | "vehicle-artifact-convention"
   | "security-doctrine"
   | "security-ai-surface"
+  | "skills-prompt-forge"
   | "skills-forge"
   | "skills-brain";
 
@@ -346,6 +347,14 @@ const ASSISTANT_WORKSPACES: AssistantWorkspaceEntry[] = [
     label: "Open AI surface audit",
     detail:
       "Prepared the AI-surface review lane so prompt, retrieval, and persistence posture are ready first.",
+  },
+  {
+    id: "skills-prompt-forge",
+    route: "/skills",
+    href: "/skills?view=prompts&focus=skills-prompt-forge",
+    label: "Open LYRA Prompt Forge",
+    detail:
+      "Prepared the session-only prompt optimizer so target shaping, clarification, and copyable output are ready without durable prompt storage.",
   },
   {
     id: "skills-forge",

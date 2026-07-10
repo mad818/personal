@@ -1,7 +1,7 @@
 # Ideas
 
 ## External links
-- `SAVED-GITHUB-REPOS.md` — easy-to-find bookmark list of GitHub repositories saved for future review
+- `SAVED-GITHUB-REPOS.md` — easy-to-find bookmark list of GitHub repositories and organization/profile links saved for future review
 - `external-links-mapping.md` — maps ALL provided links to Nexus Prime files/folders and whether to implement
 - `legacy-phases-mad818.md` — **experimentalbot** + **sanity-next-js-personal-website**: what survived in `archive/`, what’s implemented in Nexus, TradingView assimilation
 - `assimilated-ecosystem.md` — **assimilated** GitHub projects (PM Skills, Coolify, autoresearch, Onyx, Sentrux, etc.): how each idea maps to Nexus **without** vendoring those repos

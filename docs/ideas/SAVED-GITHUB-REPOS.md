@@ -1,6 +1,6 @@
 # Saved GitHub Links
 
-Bookmark list for future Nexus research. These GitHub repositories and organization/profile links are saved only; they have not yet been reviewed, approved, or selected for assimilation.
+Bookmark list for future Nexus research. Unless a note says otherwise, these GitHub repositories and organization/profile links are saved only; they have not yet been reviewed, approved, or selected for assimilation.
 
 Saved on 2026-06-27:
 
@@ -18,5 +18,6 @@ Saved on 2026-07-10:
 - [mco-org/squad](https://github.com/mco-org/squad)
 - [tinyhumansai/OpenHuman](https://github.com/tinyhumansai/OpenHuman)
 - [nousresearch](https://github.com/nousresearch)
+- [itsfatduck/optimizerDuck](https://github.com/itsfatduck/optimizerDuck) — already referenced in Nexus notes for the Windows Optimization Advisor; saved here as an easy bookmark.
 
 Note: `mudler/locate-anything.cpp` was already saved in the 2026-06-27 batch, so it is not duplicated here.

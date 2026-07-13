@@ -5,42 +5,36 @@
   "status": "in_progress",
   "source": {
     "url": "https://github.com/mattpocock/skills",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "1.1.0 plus main PR #505 merged 2026-07-10",
+    "reviewedAt": "2026-07-13",
     "license": "MIT",
     "primaryEvidence": [
-      "https://github.com/mattpocock/skills",
-      "https://github.com/mattpocock/skills/blob/main/README.md"
+      "https://github.com/mattpocock/skills/blob/main/README.md",
+      "https://github.com/mattpocock/skills/blob/main/package.json",
+      "https://github.com/mattpocock/skills/pull/505",
+      "https://github.com/mattpocock/skills/blob/main/LICENSE"
     ]
   },
   "capabilities": [
-    {
-      "id": "typescript-skill-taxonomy",
-      "title": "Practical TypeScript skill taxonomy: narrowing, generics, inference, branded types, patterns",
-      "sourceEvidence": "mattpocock/skills: curated real-engineer TypeScript skill progression",
-      "disposition": "pending",
-      "reason": "Nexus TypeScript follows standard Next.js/React patterns; a structured skill taxonomy for ORBIT TypeScript discipline is not yet documented."
-    },
-    {
-      "id": "exercise-based-skill-validation",
-      "title": "Exercise-based skill validation: each skill has a failing test that passes when mastered",
-      "sourceEvidence": "mattpocock/skills: test-gated exercises prove skill acquisition",
-      "disposition": "pending",
-      "reason": "Nexus uses tsc --noEmit and lint as gates; exercise-based skill proof system not implemented."
-    },
-    {
-      "id": "progressive-skill-paths",
-      "title": "Progressive skill paths: beginner → intermediate → advanced with dependencies",
-      "sourceEvidence": "mattpocock/skills: skill graph with prerequisite dependencies",
-      "disposition": "pending",
-      "reason": "Nexus agent skills are flat; progressive skill paths with prerequisites not yet structured."
-    },
-    {
-      "id": "real-world-pattern-library",
-      "title": "Real-world pattern library: common TypeScript patterns extracted from production codebases",
-      "sourceEvidence": "mattpocock/skills: patterns from real production TypeScript at scale",
-      "disposition": "pending",
-      "reason": "Nexus ORBIT uses standard patterns; a curated reference library of production TypeScript patterns is not yet assembled."
-    }
+    { "id": "selective-cross-host-install", "title": "Select and install individual skills across supported coding-agent hosts", "sourceEvidence": "README Quickstart", "disposition": "pending", "reason": "Nexus records the optional Codex path but does not run the external installer." },
+    { "id": "repository-skill-setup", "title": "Configure issue tracker, triage labels, and documentation layout for the engineering workflows", "sourceEvidence": "README setup-matt-pocock-skills", "disposition": "pending", "reason": "Nexus already has canonical task and documentation systems; any setup adaptation requires a conflict review." },
+    { "id": "user-and-model-invocation-layers", "title": "Separate user-invoked orchestration skills from model-invoked reusable discipline", "sourceEvidence": "README Reference invocation model", "disposition": "pending", "reason": "Nexus has routing and capability registries but has not proved parity with this complete invocation contract." },
+    { "id": "grill-me", "title": "Interview the operator until a plan or design decision tree is resolved", "sourceEvidence": "README Productivity user-invoked skills", "disposition": "pending", "reason": "No source-specific interview loop was adapted in this tranche." },
+    { "id": "grill-with-docs", "title": "Interview while building shared domain language, CONTEXT documentation, and ADRs", "sourceEvidence": "README engineering alignment sections", "disposition": "pending", "reason": "Nexus file-first context is authoritative and must not be rewritten by an imported workflow without explicit approval." },
+    { "id": "triage", "title": "Move issues through a configured state machine of triage roles", "sourceEvidence": "README Engineering user-invoked skills", "disposition": "pending", "reason": "External issue-tracker reads and writes require separate authorization and connector design." },
+    { "id": "architecture-improvement-report", "title": "Scan a codebase for deepening opportunities and present a visual HTML report before selection", "sourceEvidence": "README improve-codebase-architecture", "disposition": "pending", "reason": "Nexus has architecture diagnostics but no verified parity with this report and interrogation workflow." },
+    { "id": "to-spec", "title": "Synthesize conversation context into a specification and optionally publish it to an issue tracker", "sourceEvidence": "README Engineering user-invoked skills", "disposition": "pending", "reason": "Nexus already requires local specs; tracker publication remains explicit and unimplemented here." },
+    { "id": "to-tickets", "title": "Break a plan into tracer-bullet tickets with explicit blocking edges", "sourceEvidence": "README Engineering user-invoked skills", "disposition": "pending", "reason": "Nexus task planning does not yet prove this dependency-aware ticket contract." },
+    { "id": "implement", "title": "Implement from specs/tickets through TDD seams and code review before commit", "sourceEvidence": "README Engineering user-invoked skills", "disposition": "pending", "reason": "Nexus has related discipline but no source-parity proof for the composed workflow." },
+    { "id": "wayfinder", "title": "Decompose work larger than one session into issue-tracker investigation tickets", "sourceEvidence": "README Engineering user-invoked skills", "disposition": "pending", "reason": "Nexus keeps bounded local plans and does not implement this issue-tracker exploration flow." },
+    { "id": "prototype", "title": "Build throwaway state or UI prototypes to answer a design question", "sourceEvidence": "README Engineering model-invoked skills", "disposition": "pending", "reason": "Prototype isolation and disposal behavior need a dedicated Nexus contract and proof." },
+    { "id": "diagnosing-bugs", "title": "Use reproduce, minimise, hypothesise, instrument, fix, and regression-test diagnosis", "sourceEvidence": "README diagnosing-bugs description", "disposition": "pending", "reason": "Nexus has debugging rules but has not adapted this exact reusable skill with proof." },
+    { "id": "primary-source-research", "title": "Research against high-trust primary sources and save a cited repository document", "sourceEvidence": "README research skill", "disposition": "pending", "reason": "NOVA/Feynman cover related work; importing another durable write path would duplicate authority." },
+    { "id": "tdd", "title": "Drive red-green-refactor one vertical slice at a time", "sourceEvidence": "README tdd skill", "disposition": "pending", "reason": "Related Nexus discipline exists, but source-specific parity has not been established." },
+    { "id": "domain-modeling", "title": "Challenge domain terms with edge cases and update context and ADR files", "sourceEvidence": "README domain-modeling skill", "disposition": "pending", "reason": "Automatic edits to human-owned context require explicit project authorization." },
+    { "id": "codebase-design", "title": "Provide shared deep-module, interface, seam, and testability vocabulary", "sourceEvidence": "README codebase-design skill", "disposition": "pending", "reason": "Nexus has architecture rules but has not reconciled this vocabulary with current module seams." },
+    { "id": "two-axis-code-review", "title": "Review a diff independently against standards and the originating specification", "sourceEvidence": "README code-review skill", "disposition": "pending", "reason": "Nexus has review gates but not this independently proven two-axis workflow." },
+    { "id": "handoff-teach-and-skill-writing", "title": "Provide conversation handoff, stateful teaching, and skill-authoring workflows", "sourceEvidence": "README Productivity skills", "disposition": "pending", "reason": "Nexus already has canonical handoff and skill systems; individual gaps must be selected rather than bulk-adapted." },
+    { "id": "setup-ts-deep-modules", "title": "Install dependency-cruiser and enforce root entry points, private subfolders, test boundaries, and no cycles with pass-fail-pass proof", "sourceEvidence": "Merged PR #505 final files and validation steps", "disposition": "pending", "reason": "The upstream skill remains in-progress and excluded from its plugin/router; Nexus needs a separate architecture fit assessment before dependency or structure changes." }
   ]
 }

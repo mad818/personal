@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "davidondrej-skills",
+  "name": "davidondrej/skills",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/davidondrej/skills",
+    "version": "main snapshot reviewed 2026-07-13; no tagged release",
+    "reviewedAt": "2026-07-13",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/davidondrej/skills/blob/main/README.md",
+      "https://github.com/davidondrej/skills/tree/main/skills",
+      "https://github.com/davidondrej/skills/tree/main/hooks",
+      "https://github.com/davidondrej/skills/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    { "id": "agent-self-scheduling", "title": "Let agents schedule and continue their own work", "sourceEvidence": "skills/agent-orchestration/agent-self-scheduling", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus scheduling remains operator-configured and bounded; imported agents cannot silently create autonomous schedules." },
+    { "id": "cmux-agent-control", "title": "Coordinate agent work through cmux terminal workflows", "sourceEvidence": "skills/agent-orchestration/cmux", "disposition": "pending", "reason": "This external terminal/runtime dependency needs an explicit need and platform review." },
+    { "id": "codex-subagent", "title": "Invoke Codex subagents for bounded work", "sourceEvidence": "skills/agent-orchestration/codex-subagent", "disposition": "pending", "reason": "Nexus has bounded specialist delegation; source-specific behavior has not been reviewed or adapted." },
+    { "id": "delegating-to-agents", "title": "Structure delegation and agent-to-agent handoffs", "sourceEvidence": "skills/agent-orchestration/delegating-to-agents", "disposition": "pending", "reason": "MAX orchestration remains authoritative and duplicate delegation paths are not added during intake." },
+    { "id": "fable-safe-prompt", "title": "Apply a safety-oriented prompt workflow", "sourceEvidence": "skills/agent-orchestration/fable-safe-prompt", "disposition": "pending", "reason": "The named skill requires content-level review against current Nexus prompt-security boundaries." },
+    { "id": "goal-loop", "title": "Run iterative agent work against a goal loop", "sourceEvidence": "skills/agent-orchestration/goal-loop", "disposition": "pending", "reason": "Nexus goal/run lifecycle controls must remain authoritative." },
+    { "id": "handoff", "title": "Create reusable agent handoffs", "sourceEvidence": "skills/agent-orchestration/handoff", "disposition": "pending", "reason": "Nexus already has a canonical generated handoff and will not add a competing authority without a selected gap." },
+    { "id": "run-deep-swe", "title": "Run a deeper software-engineering agent workflow", "sourceEvidence": "skills/agent-orchestration/run-deep-swe", "disposition": "pending", "reason": "Commands, providers, and mutation scope require focused review." },
+    { "id": "skill-distribution", "title": "Distribute a skill to multiple agent hosts", "sourceEvidence": "skills/skill-authoring/distribute-skill-to-all-agents", "disposition": "pending", "reason": "Nexus does not bulk-write host configuration during source intake." },
+    { "id": "effective-agent-skills", "title": "Guide effective Agent Skill design", "sourceEvidence": "skills/skill-authoring/effective-agent-skills", "disposition": "pending", "reason": "Potential overlap with the existing Codex skill-creator must be reviewed first." },
+    { "id": "folder-context-files", "title": "Create folder-specific CLAUDE.md and AGENTS.md context", "sourceEvidence": "skills/skill-authoring/folder-specific-claude-and-agents-md", "disposition": "pending", "reason": "Nexus is Codex-first and human-maintained context files cannot be rewritten automatically." },
+    { "id": "push-skill-to-github", "title": "Publish a skill repository to GitHub", "sourceEvidence": "skills/skill-authoring/push-skill-to-github", "disposition": "pending", "reason": "GitHub writes remain explicit operator-authorized release actions." },
+    { "id": "browser-harness", "title": "Use a browser automation harness for web tasks", "sourceEvidence": "skills/research-and-web/browser-harness", "disposition": "pending", "reason": "Nexus already has controlled browser/testing paths; upstream commands require review." },
+    { "id": "deep-research", "title": "Run a multi-step deep research workflow", "sourceEvidence": "skills/research-and-web/deep-research", "disposition": "pending", "reason": "NOVA/Feynman remain the canonical research systems and no duplicate runtime is added." },
+    { "id": "deepapi", "title": "Research and use APIs through a dedicated workflow", "sourceEvidence": "skills/research-and-web/deepapi", "disposition": "pending", "reason": "Every Nexus external API requires protected-route and credential review." },
+    { "id": "online-shopping", "title": "Research products and online purchases", "sourceEvidence": "skills/research-and-web/online-shopping", "disposition": "pending", "reason": "Recommendation and commerce behavior requires live-source, privacy, and affiliate-neutrality review." },
+    { "id": "pi-web-search", "title": "Search the web through a Pi-oriented workflow", "sourceEvidence": "skills/research-and-web/pi-web-search", "disposition": "pending", "reason": "Provider/tool assumptions have not been reviewed for Nexus." },
+    { "id": "research-prompt", "title": "Create a structured research prompt", "sourceEvidence": "skills/research-and-web/research-prompt", "disposition": "pending", "reason": "Potential overlap with LYRA and NOVA requires focused comparison." },
+    { "id": "youtube-transcript", "title": "Retrieve and work with YouTube transcripts", "sourceEvidence": "skills/research-and-web/youtube-transcript", "disposition": "pending", "reason": "Source terms, fetch path, transcript provenance, and retention need review." },
+    { "id": "brain-to-docs", "title": "Interview the operator and turn ideas into structured documents", "sourceEvidence": "skills/thinking-and-docs/brain-to-docs", "disposition": "pending", "reason": "Writes to human-owned documents need explicit destination and approval." },
+    { "id": "learning-and-teaching", "title": "Support level-up and multi-step teaching workflows", "sourceEvidence": "skills/thinking-and-docs/level-up and teach", "disposition": "pending", "reason": "No selected Nexus learning surface or persistence contract exists for this catalog." },
+    { "id": "prompt-remind-and-short", "title": "Prompt the user, create reminders, and produce intentionally concise output", "sourceEvidence": "skills/thinking-and-docs/prompt-me, remind, and short", "disposition": "pending", "reason": "These are separate capabilities with existing Nexus/ChatGPT equivalents that need gap selection before adaptation." },
+    { "id": "read-all-adrs", "title": "Read architectural decision records before project work", "sourceEvidence": "skills/thinking-and-docs/read-all-adrs", "disposition": "pending", "reason": "Nexus uses scoped file-first context and should not load every ADR indiscriminately." },
+    { "id": "anti-sleep", "title": "Prevent a machine from sleeping during agent work", "sourceEvidence": "skills/ops-and-setup/anti-sleep", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus source intake does not mutate host power behavior or keep machines awake." },
+    { "id": "readonly-database-role", "title": "Create a restricted read-only database role", "sourceEvidence": "skills/ops-and-setup/create-readonly-db-role", "disposition": "pending", "reason": "Database-specific commands and credentials require a separately authorized target." },
+    { "id": "cyber-audit-and-safe-browsing", "title": "Run cyber-audit and Google Safe Browsing workflows", "sourceEvidence": "skills/ops-and-setup/cyber-audit and google-safe-browsing", "disposition": "pending", "reason": "CIPHER boundaries, keys, target authorization, and read-only posture require focused review." },
+    { "id": "global-agent-guardrails", "title": "Install global agent safety guardrails", "sourceEvidence": "skills/ops-and-setup/global-agent-guardrails", "disposition": "pending", "reason": "Nexus will not overwrite global host policy from an external catalog during intake." },
+    { "id": "custom-model-and-setup", "title": "Configure Pi custom models and setup assistance", "sourceEvidence": "skills/ops-and-setup/pi-custom-model and setup-help", "disposition": "pending", "reason": "All model/provider configuration must remain behind Nexus local/provider policy." },
+    { "id": "vps-server-management", "title": "Manage a VPS through agent instructions", "sourceEvidence": "skills/ops-and-setup/vps-server-management", "disposition": "pending", "reason": "External host mutation requires explicit target, credentials, approvals, rollback, and audit evidence." },
+    { "id": "dangerous-command-hooks", "title": "Deny dangerous shell patterns through repository hooks and test fixtures", "sourceEvidence": "hooks/dangerous-patterns.txt, deny-dangerous.sh, and test-guard.sh", "disposition": "pending", "reason": "The Unix shell hooks are not automatically portable to Windows and must be compared against existing Nexus security gates." }
+  ]
+}

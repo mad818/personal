@@ -3,8 +3,11 @@ import { buildCompanyMissionBrief, COMPANY_SKILL_SOURCES, getCompanyMapSummary, 
 
 const departmentIds = new Set();
 const sourceIds = new Set(COMPANY_SKILL_SOURCES.map((source) => source.id));
+const sourceUrls = new Set(COMPANY_SKILL_SOURCES.map((source) => source.url));
 assert.equal(NEXUS_COMPANY_DEPARTMENTS.length, 7);
 assert.ok(COMPANY_SKILL_SOURCES.length >= 10);
+assert.equal(sourceIds.size, COMPANY_SKILL_SOURCES.length, "duplicate source id");
+assert.equal(sourceUrls.size, COMPANY_SKILL_SOURCES.length, "duplicate source URL");
 
 for (const department of NEXUS_COMPANY_DEPARTMENTS) {
   assert.ok(!departmentIds.has(department.id), `duplicate department ${department.id}`);
@@ -35,6 +38,32 @@ assert.ok(emilDesignSkills);
 assert.equal(emilDesignSkills.posture, "review_first");
 assert.match(emilDesignSkills.codexPath, /Nexus taste contract/i);
 assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "design")?.sourceIds.includes(emilDesignSkills.id));
+assert.equal(COMPANY_SKILL_SOURCES.filter((source) => source.url === "https://github.com/emilkowalski/skills").length, 1);
+
+const frontendSlides = COMPANY_SKILL_SOURCES.find((source) => source.id === "frontend-slides");
+assert.ok(frontendSlides);
+assert.equal(frontendSlides.posture, "review_first");
+assert.match(frontendSlides.codexPath, /approval/i);
+assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "design")?.sourceIds.includes(frontendSlides.id));
+assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "marketing-social")?.sourceIds.includes(frontendSlides.id));
+
+const mattSkills = COMPANY_SKILL_SOURCES.find((source) => source.id === "mattpocock-skills");
+assert.ok(mattSkills);
+assert.equal(mattSkills.posture, "review_first");
+assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "command-operations")?.sourceIds.includes(mattSkills.id));
+assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "engineering")?.sourceIds.includes(mattSkills.id));
+
+const deepModules = COMPANY_SKILL_SOURCES.find((source) => source.id === "mattpocock-deep-modules-pr");
+assert.ok(deepModules);
+assert.equal(deepModules.kind, "reference");
+assert.match(deepModules.purpose, /in-progress/i);
+assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "engineering")?.sourceIds.includes(deepModules.id));
+
+const davidSkills = COMPANY_SKILL_SOURCES.find((source) => source.id === "davidondrej-skills");
+assert.ok(davidSkills);
+assert.equal(davidSkills.posture, "review_first");
+assert.match(davidSkills.codexPath, /never inherit/i);
+assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "research-knowledge")?.sourceIds.includes(davidSkills.id));
 
 const summary = getCompanyMapSummary();
 assert.equal(summary.departmentCount, NEXUS_COMPANY_DEPARTMENTS.length);

@@ -97,7 +97,7 @@
       "lane": "skills/ORBIT",
       "priority": "high",
       "matrixStatus": "in_progress",
-      "nextStep": "Curate TypeScript skill taxonomy; add test-gated exercises for ORBIT TypeScript discipline"
+      "nextStep": "Select current engineering workflows by demonstrated Nexus gap; separately assess merged in-progress PR #505 against the real Nexus module graph before any dependency-cruiser adoption"
     },
     "tauricresearch-tradingagents": {
       "lane": "ALPHA",

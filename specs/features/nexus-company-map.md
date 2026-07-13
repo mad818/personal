@@ -19,6 +19,10 @@ Translate the supplied “turn an AI into a company” skill chart into the exis
 - Graphify is treated accurately as a local-first knowledge-graph tool with Codex support, not as the company/org-chart engine.
 - Last30Days is treated as an optional Codex-compatible recent-signal research skill; Nexus does not inherit its external account, browser-session, API-key, or direct-provider behavior.
 - Emil Kowalski's design-engineering skills are treated as review-first animation and interface references under the existing Nexus taste contract, not as a replacement design system.
+- Frontend Slides is treated as an optional presentation-production workflow; browser artifacts remain local by default and deployment/export requires an explicit operator decision.
+- Matt Pocock's engineering pack is selected skill-by-skill, and merged PR #505 remains a separate in-progress architecture reference rather than an install-ready Nexus boundary migration.
+- David Ondrej's broad catalog is reviewed per skill; shell hooks, self-scheduling, server changes, and other mutating workflows are never inherited automatically.
+- Repeated source URLs are deduplicated so a repository already present in the Company Map is not added twice.
 
 ## In scope
 

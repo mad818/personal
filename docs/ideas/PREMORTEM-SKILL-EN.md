@@ -5,7 +5,7 @@ description: "Runs a premortem on any plan, launch, product, hire, strategy, or 
 
 # Premortem
 
-English translation of the attached Spanish `pre-mortem skill.md`, saved as a reference only. This file is not installed as an active Codex skill.
+English translation of the attached Spanish `pre-mortem skill.md`. A condensed, install-ready Codex skill bundle is saved at `docs/ideas/skills/premortem`; this full translation remains the source reference.
 
 A premortem is the opposite of a postmortem. Instead of figuring out what went wrong after something fails, you imagine that it has already failed and figure out why before you start.
 

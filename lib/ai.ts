@@ -32,6 +32,7 @@ import {
 import { NEXUS_AGENT_NO_BILLING_RULE } from "@/lib/productGuarantees";
 import { readPrivacyShieldStatusFromHeaders } from "@/lib/privacyShieldClient";
 import { getNavProductSurfaces, summarizeSurfaceTiers } from "@/lib/releaseMatrix";
+import { buildPersonalAIProfilePromptBlock } from "@/lib/personalAIProfile";
 
 function getSettings(): Settings {
   // BUG-04 fix: read from the in-memory Zustand store, not localStorage.
@@ -188,17 +189,6 @@ export function buildCachedSystemPrompt(s: Settings, liveContext = ""): string {
   return prompt;
 }
 
-function buildDirectCallProfileBlock(s: Settings): string {
-  const parts: string[] = [];
-  if (s.userGoals) parts.push(`Goals: ${s.userGoals}`);
-  if (s.userSkills) parts.push(`Building: ${s.userSkills}`);
-  if (s.userLearning) parts.push(`Learning: ${s.userLearning}`);
-  if (s.userContext) parts.push(`Context: ${s.userContext}`);
-  if (!parts.length) return "";
-  const name = s.userName || "Mario";
-  return `\n\n== ${name.toUpperCase()}'S PROFILE ==\n${parts.join("\n")}\n== END PROFILE ==`;
-}
-
 export function buildDirectCallSystemPrompt(s: Settings): string {
   const name = s.userName || "Mario";
   return `You are Homefront AI — ${name}'s direct analysis and drafting lane.
@@ -211,7 +201,7 @@ ${AI_TRUTH_BOUNDARY_BLOCK}
 
 ${AI_NO_IMPLICIT_TOOLING_BLOCK}
 
-${AI_EVIDENCE_DISCIPLINE_BLOCK}${buildDirectCallProfileBlock(s)}`;
+${AI_EVIDENCE_DISCIPLINE_BLOCK}${buildPersonalAIProfilePromptBlock(s)}`;
 }
 
 export function buildScheduledMissionPromptParts(
@@ -972,14 +962,7 @@ export function buildSystemPrompt(s: Settings, liveContext = ""): string {
     .map((surface) => surface.href.replace("/", ""))
     .join(", ");
   const surfaceSummary = summarizeSurfaceTiers().counts;
-  const parts: string[] = [];
-  if (s.userGoals) parts.push(`Goals: ${s.userGoals}`);
-  if (s.userSkills) parts.push(`Building: ${s.userSkills}`);
-  if (s.userLearning) parts.push(`Learning: ${s.userLearning}`);
-  if (s.userContext) parts.push(`Context: ${s.userContext}`);
-  const profile = parts.length
-    ? `\n\n== ${name.toUpperCase()}'S PROFILE ==\n${parts.join("\n")}\n== END PROFILE ==`
-    : "";
+  const profile = buildPersonalAIProfilePromptBlock(s);
   return `You are Homefront AI — ${name}'s personal intelligence system, advisor, and developer agent. You are direct, sharp, and technical. You adapt to whatever ${name} needs: market analysis, research, trading signals, or coding and editing the Homefront website itself.
 
 ${NEXUS_AGENT_NO_BILLING_RULE}

@@ -9,4 +9,5 @@
 - Self-hosting steps: [`../deployment/coolify.md`](../deployment/coolify.md)
 
 ## Saved references
-- `PREMORTEM-SKILL-EN.md` — English translation of the pasted premortem skill, saved for future review
+- `PREMORTEM-SKILL-EN.md` — full English translation of the pasted premortem skill
+- `skills/premortem/` — validated, install-ready Codex skill bundle derived from that translation; copy into `.agents/skills/premortem` when the protected skill directory is writable

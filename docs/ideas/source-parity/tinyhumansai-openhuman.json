@@ -1,47 +1,252 @@
 {
   "schemaVersion": 1,
   "id": "tinyhumansai-openhuman",
-  "name": "OpenHuman",
+  "name": "tinyhumansai/OpenHuman",
   "status": "in_progress",
   "source": {
     "url": "https://github.com/tinyhumansai/openhuman",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
-    "license": "MIT",
+    "version": "main-2026-07-13",
+    "reviewedAt": "2026-07-13",
+    "license": "GPL-3.0",
     "primaryEvidence": [
-      "https://github.com/tinyhumansai/openhuman",
-      "https://github.com/tinyhumansai/openhuman/blob/main/README.md"
+      "https://github.com/tinyhumansai/openhuman/blob/main/README.md",
+      "https://github.com/tinyhumansai/openhuman/blob/main/LICENSE",
+      "https://github.com/tinyhumansai/openhuman/blob/main/package.json",
+      "https://github.com/tinyhumansai/openhuman/blob/main/Cargo.toml"
     ]
   },
   "capabilities": [
     {
-      "id": "open-human-agent-persona",
-      "title": "Open human-like agent persona: persistent character, tone, and behavioral profile",
-      "sourceEvidence": "OpenHuman: framework for building AI agents with stable, human-like personas",
+      "id": "persistent-local-memory-tree",
+      "title": "Compress personal data into scored local memory trees backed by durable storage",
+      "sourceEvidence": "README.md The brain and Context in minutes sections",
       "disposition": "pending",
-      "reason": "Nexus agents use system prompts for persona but do not have a structured persistent persona profile object."
+      "reason": "Nexus has durable memory records and compiled pages but not a scored hierarchical memory tree with explicit compression and lineage."
     },
     {
-      "id": "personality-trait-config",
-      "title": "Configurable personality traits: curiosity, assertiveness, caution, empathy levels",
-      "sourceEvidence": "OpenHuman personality config: trait sliders that affect agent response style",
+      "id": "operator-editable-memory-wiki",
+      "title": "Mirror durable memory into an operator-editable Markdown wiki",
+      "sourceEvidence": "README.md Memory Tree plus Obsidian Wiki description",
       "disposition": "pending",
-      "reason": "Nexus has no personality trait configuration system for agents."
+      "reason": "VAULT exposes compiled memory pages, but an editable bidirectional Markdown wiki with conflict handling is not yet present."
     },
     {
-      "id": "emotional-state-modeling",
-      "title": "Emotional state modeling: agent tracks and expresses simulated emotional state",
-      "sourceEvidence": "OpenHuman emotion module: valence/arousal state that influences tone",
+      "id": "explicit-personal-ai-profile",
+      "title": "Give the AI immediate operator-controlled context about goals, work, learning, skills, and constraints",
+      "sourceEvidence": "README.md SuperContext and Context in minutes sections",
+      "disposition": "adapted",
+      "proof": [
+        "lib/personalAIProfile.ts",
+        "lib/ai.ts",
+        "components/settings/SettingsDrawer.tsx",
+        "scripts/check-personal-ai-profile-runtime.mjs"
+      ]
+    },
+    {
+      "id": "durable-goals-and-todos",
+      "title": "Maintain long-term goals and durable task state",
+      "sourceEvidence": "README.md Goals and Todos",
+      "disposition": "adapted",
+      "proof": [
+        "store/useStore.ts",
+        "components/settings/SettingsDrawer.tsx",
+        "tasks/todo.md"
+      ]
+    },
+    {
+      "id": "connector-catalog",
+      "title": "Connect external services and tool servers through governed integrations",
+      "sourceEvidence": "README.md OAuth integrations, MCP servers, and Skills",
+      "disposition": "adapted",
+      "proof": [
+        "lib/security/connectorPolicy.ts",
+        "lib/liveContext.ts",
+        "docs/agents/mcp-tools.md"
+      ]
+    },
+    {
+      "id": "automatic-twenty-minute-ingestion",
+      "title": "Continuously ingest connected accounts into personal memory on a background schedule",
+      "sourceEvidence": "README.md Auto-fetch description",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Silent account-wide ingestion conflicts with Nexus connector opt-in, data minimization, and operator-controlled memory boundaries."
+    },
+    {
+      "id": "subconscious-background-loop",
+      "title": "Continuously diff personal data, advance goals, and write briefings after the operator stops typing",
+      "sourceEvidence": "README.md A subconscious",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "An opaque always-on loop that modifies goals or memory would bypass Nexus review gates and explicit scheduling controls."
+    },
+    {
+      "id": "tool-output-compression",
+      "title": "Compress tool output before model ingestion while preserving useful information",
+      "sourceEvidence": "README.md TokenJuice",
+      "disposition": "pending",
+      "reason": "Nexus bounds context and tool output, but a measured semantic compression stage with quality acceptance is not yet proven."
+    },
+    {
+      "id": "agent-proposed-review-gated-workflows",
+      "title": "Let the AI propose workflows that the operator reviews before saving or executing",
+      "sourceEvidence": "README.md Workflows you can see",
+      "disposition": "adapted",
+      "proof": [
+        "components/skills/WorkflowForge.tsx",
+        "lib/workflowPacks.ts",
+        "app/api/workflow-runs/route.ts"
+      ]
+    },
+    {
+      "id": "checkpointed-resumable-agent-graphs",
+      "title": "Persist graph runs so they pause for humans, survive restarts, resume, and expose root causes",
+      "sourceEvidence": "README.md orchestrator and harness sections",
+      "disposition": "pending",
+      "reason": "The Nexus runtime records artifacts and bounded handoffs but does not yet resume an interrupted multi-agent graph from a durable checkpoint."
+    },
+    {
+      "id": "fast-reflex-and-deep-reasoning-routing",
+      "title": "Route simple inbound work quickly and delegate complex work to deeper reasoning",
+      "sourceEvidence": "README.md A split brain, always on",
+      "disposition": "adapted",
+      "proof": [
+        "lib/assistantDispatch.ts",
+        "lib/aiModelRouting.ts",
+        "lib/agent.ts"
+      ]
+    },
+    {
+      "id": "bounded-specialist-fleets",
+      "title": "Use a central orchestrator to delegate bounded specialist missions and consolidate results",
+      "sourceEvidence": "README.md An orchestrator, not a chatbot",
+      "disposition": "adapted",
+      "proof": [
+        "lib/centralOrchestrator.ts",
+        "lib/teamOrchestration.ts",
+        "app/api/tools/route.ts"
+      ]
+    },
+    {
+      "id": "encrypted-agent-economy-and-payments",
+      "title": "Coordinate external agents through encrypted identities, bounties, payments, and trading",
+      "sourceEvidence": "README.md An agent economy",
       "disposition": "excluded",
       "conflict": "product_purpose",
-      "reason": "Nexus is an intelligence dashboard, not a companion app. Emotional state simulation is out of scope and could mislead users about AI nature."
+      "reason": "Payments and trading conflict with the Nexus free/no-billing product invariant and add unnecessary financial and identity risk."
     },
     {
-      "id": "long-term-relationship-memory",
-      "title": "Long-term relationship memory: remember user preferences and history across many sessions",
-      "sourceEvidence": "OpenHuman long-term memory: user model updated across sessions",
+      "id": "pre-query-super-context",
+      "title": "Select relevant local memory, files, and live context before the model receives a request",
+      "sourceEvidence": "README.md SuperContext",
+      "disposition": "adapted",
+      "proof": [
+        "lib/liveContext.ts",
+        "lib/ragRouter.ts",
+        "lib/agent.ts"
+      ]
+    },
+    {
+      "id": "deep-research-and-doer-tools",
+      "title": "Provide research, web, browser, and coding tools behind one agent runtime",
+      "sourceEvidence": "README.md The deep researcher and doer",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanResearch.ts",
+        "lib/agent.ts",
+        "app/api/tools/route.ts"
+      ]
+    },
+    {
+      "id": "model-routing-with-local-inference",
+      "title": "Select models per workload and support a local-only inference posture",
+      "sourceEvidence": "README.md Model routing and Privacy Mode",
+      "disposition": "implemented",
+      "proof": [
+        "lib/aiModelRouting.ts",
+        "lib/localInferencePosture.ts",
+        "app/api/ai/route.ts"
+      ]
+    },
+    {
+      "id": "meeting-participant-agents",
+      "title": "Join video meetings, transcribe live speech, answer by name, and file action items",
+      "sourceEvidence": "README.md Meeting agents",
       "disposition": "pending",
-      "reason": "Nexus memoryPagesStore.ts has session memory; a user-preference model that persists across sessions and shapes agent behavior is pending."
+      "reason": "Nexus has voice tooling but no consent-aware meeting attendance, calendar join, participant disclosure, or transcript retention workflow."
+    },
+    {
+      "id": "multi-channel-messaging-and-email",
+      "title": "Reach the operator through many messaging channels and native email",
+      "sourceEvidence": "README.md messaging channels",
+      "disposition": "pending",
+      "reason": "Nexus has bounded channel integrations but not a unified consent, identity, delivery, and retention layer for the claimed channel breadth."
+    },
+    {
+      "id": "native-media-generation",
+      "title": "Generate and edit images and videos directly into the workspace",
+      "sourceEvidence": "README.md Image and video generation",
+      "disposition": "pending",
+      "reason": "Nexus has governed asset-generation workflows, but a unified in-app image and video generation surface is not proven as part of the AI runtime."
+    },
+    {
+      "id": "ui-first-desktop-app",
+      "title": "Provide a local desktop UI instead of requiring terminal-only operation",
+      "sourceEvidence": "README.md Human, private, yours",
+      "disposition": "implemented",
+      "proof": [
+        "desktop/",
+        "app/home/page.tsx",
+        "docs/deployment/tauri-security-checklist.md"
+      ]
+    },
+    {
+      "id": "encrypted-local-store-and-os-keyring",
+      "title": "Encrypt local personal data and keep secrets in the operating-system keyring",
+      "sourceEvidence": "README.md Privacy and security",
+      "disposition": "pending",
+      "reason": "Nexus protects secrets and local access, but comprehensive at-rest encryption plus OS-keyring proof for every personal-memory record is not yet documented."
+    },
+    {
+      "id": "one-switch-local-only-privacy-mode",
+      "title": "Enforce a runtime mode in which inference and protected data do not leave the machine",
+      "sourceEvidence": "README.md Privacy Mode",
+      "disposition": "adapted",
+      "proof": [
+        "lib/localInferencePosture.ts",
+        "scripts/secure-runtime-gate.mjs",
+        "docs/deployment/desktop-isolated-acceptance.md"
+      ]
+    },
+    {
+      "id": "mascot-emotional-companion",
+      "title": "Present a speaking, reacting mascot that remembers the operator as a human-like companion",
+      "sourceEvidence": "README.md Human, private, yours",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus agents may have clear working styles, but simulated emotion or relationship framing would misrepresent the system and distract from the intelligence-dashboard purpose."
+    },
+    {
+      "id": "theme-studio-json-export",
+      "title": "Edit visual themes and export them as reusable JSON",
+      "sourceEvidence": "README.md Themes and Theme Studio",
+      "disposition": "pending",
+      "reason": "Nexus supports theme preferences but does not expose a full token editor with validated JSON import and export."
+    },
+    {
+      "id": "replayable-run-journal-and-costs",
+      "title": "Replay agent runs and inspect per-call cost accounting",
+      "sourceEvidence": "README.md comparison table Observability row",
+      "disposition": "pending",
+      "reason": "Nexus captures run artifacts and evaluation history, but deterministic replay and complete per-call cost journals are not yet proven."
+    },
+    {
+      "id": "gpl-runtime-vendoring",
+      "title": "Reuse the OpenHuman Rust and TypeScript implementation directly",
+      "sourceEvidence": "LICENSE and repository license metadata",
+      "disposition": "excluded",
+      "conflict": "license",
+      "reason": "Nexus adapts capability patterns without copying GPL-3.0 implementation code into its MIT runtime."
     }
   ]
 }

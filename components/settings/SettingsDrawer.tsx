@@ -13,6 +13,7 @@ import {
   BRAND_NAME,
 } from "@/lib/brand";
 import { RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
+import { compilePersonalAIProfile } from "@/lib/personalAIProfile";
 
 // ── Non-sensitive fields — stored in Zustand / localStorage ──────────────────
 const LOCAL_FIELDS: {
@@ -182,6 +183,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
   // Zustand will only re-render this component when `settings` itself changes.
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
+  const personalAIProfile = compilePersonalAIProfile(settings);
 
   // Track local edits to sensitive fields before save (never stored in Zustand)
   const [sensitiveEdits, setSensitiveEdits] = useState<Record<string, string>>(
@@ -1086,6 +1088,58 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                   </label>
                 );
               })}
+              <div
+                data-testid="personal-ai-profile-status"
+                style={{
+                  padding: "10px 12px",
+                  border: "1px solid var(--border2)",
+                  borderRadius: 8,
+                  background: personalAIProfile.active
+                    ? "rgba(16,185,129,0.07)"
+                    : "var(--surf2)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: personalAIProfile.active
+                        ? "var(--fhi)"
+                        : "var(--text3)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                    }}
+                  >
+                    Personal AI Profile
+                  </span>
+                  <span style={{ fontSize: 10, color: "var(--text3)" }}>
+                    {personalAIProfile.activeSectionCount}/
+                    {personalAIProfile.totalSectionCount} active
+                  </span>
+                </div>
+                <span style={{ fontSize: 11, color: "var(--text2)", lineHeight: 1.45 }}>
+                  {personalAIProfile.active
+                    ? `Available to MAX and the specialist runtime: ${personalAIProfile.sections
+                        .map((section) => section.label)
+                        .join(", ")}.`
+                    : "Add goals, skills, learning, or working context to activate consistent personalization."}
+                </span>
+                <span style={{ fontSize: 10, color: "var(--text3)", lineHeight: 1.4 }}>
+                  Uses only what you enter here. It cannot grant tool access, approve actions,
+                  or infer emotions and personal traits.
+                </span>
+              </div>
             </div>
 
             {/* Operational profiles: auto-jobs controls */}

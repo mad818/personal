@@ -2,6 +2,7 @@
 set -eu
 
 npm run handoff:check
+npm run release:gate:check
 npm run design:check
 npm run publication:safety:check
 npm run security-scan

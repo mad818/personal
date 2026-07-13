@@ -21,3 +21,12 @@ Saved on 2026-07-10:
 - [itsfatduck/optimizerDuck](https://github.com/itsfatduck/optimizerDuck) — already referenced in Nexus notes for the Windows Optimization Advisor; saved here as an easy bookmark.
 
 Note: `mudler/locate-anything.cpp` was already saved in the 2026-06-27 batch, so it is not duplicated here.
+
+## Nexus status as of 2026-07-12
+
+- `itsfatduck/optimizerDuck` — Nexus integration complete as the protected, read-only Windows Optimization Advisor; exhaustive parity is recorded in `source-parity/optimizerduck.json`.
+- `vllm-project/vllm` — related local inference/provider patterns are operational through Nexus's Ollama/vLLM and local-acceleration architecture; the full upstream vLLM repository has not been claimed as source parity.
+- `mukul975/Anthropic-Cybersecurity-Skills` — defensive framework taxonomy is referenced by CIPHER; the full 817-skill upstream library has not been assimilated.
+- `tinyhumansai/OpenHuman` — inventoried in `source-parity/tinyhumansai-openhuman.json`; useful persona and long-term preference capabilities remain pending.
+- `kunchenguid/no-mistakes` — first native release-gate tranche implemented; exhaustive parity remains `in_progress` in `source-parity/no-mistakes.json` with worktree isolation, mechanical auto-fixes, and durable evidence pending.
+- All other links in this file remain saved research candidates until a bounded tranche is selected and source-parity inventory is created.

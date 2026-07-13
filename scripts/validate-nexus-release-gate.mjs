@@ -61,7 +61,9 @@ for (const needle of [
   "parseReleaseGateArgs",
   "classifyReleaseReadiness",
   "collectGitState",
-  'args: ["run", "verify"]',
+  'npmCheck("verify")',
+  'process.env.ComSpec || "cmd.exe"',
+  '["/d", "/s", "/c", `npm.cmd run ${script}`]',
   "intentCharacters",
   "remote_ci_confirmation_required",
   "readyForOperatorPush",
@@ -90,6 +92,7 @@ requireText(runtime, "blocked_unknown_upstream", "runtime validator");
 requireText(context, "disposable worktree", "repo context");
 requireText(todo, "NO-MISTAKES-RELEASE-GATE", "todo queue");
 requireText(prePush, "npm run release:gate:check", "pre-push hook");
+forbidText(runner, 'command: "npm.cmd"', "release gate runner");
 
 if (matrix.status !== "in_progress") fail("source parity status must remain in_progress");
 if (matrix.source?.version !== "v1.34.0") fail("source parity must pin v1.34.0");

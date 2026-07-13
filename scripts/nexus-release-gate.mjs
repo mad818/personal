@@ -6,7 +6,18 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { performance } from "node:perf_hooks";
 
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+function npmCheck(script) {
+  if (process.platform === "win32") {
+    return {
+      command: process.env.ComSpec || "cmd.exe",
+      args: ["/d", "/s", "/c", `npm.cmd run ${script}`],
+    };
+  }
+  return {
+    command: "npm",
+    args: ["run", script],
+  };
+}
 
 export const RELEASE_GATE_CHECKS = [
   {
@@ -18,20 +29,17 @@ export const RELEASE_GATE_CHECKS = [
   {
     id: "handoff",
     label: "Canonical handoff",
-    command: npmCommand,
-    args: ["run", "handoff:check"],
+    ...npmCheck("handoff:check"),
   },
   {
     id: "operator-preflight",
     label: "Operator preflight",
-    command: npmCommand,
-    args: ["run", "ops:preflight"],
+    ...npmCheck("ops:preflight"),
   },
   {
     id: "full-verify",
     label: "Full Nexus verification",
-    command: npmCommand,
-    args: ["run", "verify"],
+    ...npmCheck("verify"),
     fullOnly: true,
   },
 ];

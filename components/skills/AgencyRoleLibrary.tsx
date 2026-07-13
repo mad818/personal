@@ -54,6 +54,7 @@ export default function AgencyRoleLibrary() {
   return (
     <section
       data-testid="agency-role-library"
+      className="nexus-agency-role-library"
       style={{
         display: "grid",
         gap: "14px",
@@ -263,7 +264,7 @@ export default function AgencyRoleLibrary() {
         </aside>
       </div>
 
-      <div style={{ borderTop: "1px solid var(--border)", paddingTop: "14px" }}>
+      <div className="nexus-agency-role-library__company-map" style={{ borderTop: "1px solid var(--border)", paddingTop: "14px" }}>
         <NexusCompanyMap />
       </div>
     </section>

@@ -32,6 +32,14 @@ Translate the supplied “turn an AI into a company” skill chart into the exis
 - Scoped analysis and source-parity records for newly supplied repositories before any installation or deeper adaptation.
 - A deterministic mission brief builder and focused runtime/static validation.
 
+## Polish slice
+
+- Present department selection as a compact operational rail with a clear active marker, lead-agent orientation, and source count.
+- Give the selected mission the dominant workplane while sources read as a quieter evidence rail instead of a second competing card.
+- Preserve compact utility copy, existing shell tokens, responsive stacking, and reduced-motion behavior.
+- Make keyboard focus visible and return explicit live feedback for ChatGPT copy attempts.
+- Keep department/source data, HQ prompt routing, external-link behavior, and copy-only ChatGPT output unchanged.
+
 ## Out of scope
 
 - New durable agents, worker daemons, autonomous departments, or a new top-level route.
@@ -45,4 +53,7 @@ Translate the supplied “turn an AI into a company” skill chart into the exis
 - The company map exposes every department with a valid lead and at least one source.
 - Every source has an explicit compatibility kind and honest install posture.
 - HQ handoff stays inside existing routing and ChatGPT output is copy-only.
+- The active department is unambiguous by text and shape, not color alone; keyboard focus remains visible.
+- Department changes use restrained motion that is disabled by reduced-motion preferences.
+- Mission and source columns collapse cleanly without horizontal overflow on narrow viewports.
 - `npm run company-map:check`, `npm run source:parity:check`, `npx tsc --noEmit`, `npm run lint`, and `npm run verify` pass.

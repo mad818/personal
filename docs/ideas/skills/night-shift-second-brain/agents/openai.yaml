@@ -1,0 +1,4 @@
+interface:
+  display_name: "Night Shift Second Brain"
+  short_description: "Refine local notes with source-locked review gates"
+  default_prompt: "Use $night-shift-second-brain to process this capture into a source-traced second-brain proposal."

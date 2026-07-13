@@ -273,6 +273,7 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
     if (!template) return;
     setName(template.label);
     setPrompt(template.prompt);
+    if (template.cron) setCron(template.cron);
     setOutputTarget(template.outputTarget);
     setApprovalPolicy(template.approvalPolicy);
     setMissionScope(template.scope);

@@ -367,7 +367,9 @@ export async function POST(req: NextRequest) {
           error: {
             code: "second_brain_unavailable",
             message:
-              "The canonical Human Editor skill file is unavailable. Restore it or check the file status in VAULT before rewriting.",
+              resolvedSecondBrainMode === "human-editor"
+                ? "The canonical Human Editor skill file is unavailable. Restore it or check the file status in VAULT before rewriting."
+                : "The canonical Night Shift skill or house rules are unavailable. Restore the tracked contract before refining second-brain material.",
           },
         },
         {

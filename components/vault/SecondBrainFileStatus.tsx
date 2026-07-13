@@ -5,7 +5,7 @@ import { apiFetch } from "@/lib/apiFetch";
 import { ShellBadge, ShellButton } from "@/components/ui/shell";
 
 interface SecondBrainFileRow {
-  id: "index" | "human-editor";
+  id: "index" | "human-editor" | "night-shift-skill" | "night-shift-rules";
   path: string;
   required: boolean;
   present: boolean;

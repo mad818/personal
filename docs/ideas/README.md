@@ -12,3 +12,4 @@
 - `PREMORTEM-SKILL-EN.md` — full English translation of the pasted premortem skill
 - `skills/premortem/` — validated, install-ready Codex skill bundle derived from that translation; copy into `.agents/skills/premortem` when the protected skill directory is writable
 - `skills/human-editor/` — canonical file-backed Human Editor protocol used by Codex project sessions and the Nexus writing workbench
+- `skills/night-shift-second-brain/` — source-locked Markdown refinery skill with staged proposals, friction flags, human-gated promotion, and report-only audits

@@ -19,10 +19,14 @@ If two sources conflict, surface the conflict. Do not silently merge them. Newer
 - `tasks/todo.md` — active queue and next work
 - `tasks/lessons.md` — rules created from corrections
 - `docs/ideas/skills/human-editor/SKILL.md` — natural-writing and rewrite protocol
+- `docs/ideas/skills/night-shift-second-brain/SKILL.md` — capture, refinement, friction, promotion, and audit protocol
+- `docs/ideas/second-brain-night-shift/house-rules.md` — tracked charter copied into the private live vault
 - `docs/ideas/skills/premortem/SKILL.md` — prospective failure-analysis workflow
 - `docs/ideas/source-parity/` — honest external-source capability accounting
 
 Load only the files relevant to the current task. Do not dump the entire archive into a prompt.
+
+The live Obsidian-ready vault is `data/second-brain/`. It is local and ignored by Git. Never move its private contents into tracked project files unless Mario explicitly selects a sanitized item for publication.
 
 ## File over AI
 
@@ -32,6 +36,8 @@ Load only the files relevant to the current task. Do not dump the entire archive
 - Preserve attribution: human-authored facts, verified runtime facts, and AI inference are different things.
 - Keep private or secret material out of tracked files. Use existing protected local storage for sensitive data.
 - Preserve exact output contracts. File-first context must not add commentary to JSON-only or schema-bound responses.
+- For second-brain refinement, no source means no durable note. Automatic work may stage proposals and write report-only audits; only an explicit human approval may promote atoms, threads, or final briefings.
+- Preserve contradictions as `[FRICTION]` until Mario resolves them. Never make two conflicting beliefs look consistent by rewriting either one.
 
 ## Writing protocol
 

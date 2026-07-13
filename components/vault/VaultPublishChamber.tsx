@@ -16,6 +16,7 @@ import SavedArticles from "@/components/vault/SavedArticles";
 import VaultExport from "@/components/vault/VaultExport";
 import VaultStewardshipPanel from "@/components/vault/VaultStewardshipPanel";
 import SecondBrainFileStatus from "@/components/vault/SecondBrainFileStatus";
+import SecondBrainNightShiftWorkbench from "@/components/vault/SecondBrainNightShiftWorkbench";
 import type { CompiledMemoryPageSummary } from "@/components/vault/vaultGraphPageUtils";
 
 interface VaultPublishChamberProps {
@@ -120,6 +121,9 @@ export default function VaultPublishChamber({
             >
               <div className="nexus-shell-copy nexus-shell-copy--compact">
                 Promote, repair, and reuse durable archive outputs without leaving the active publishing lane.
+              </div>
+              <div style={{ marginTop: "14px" }}>
+                <SecondBrainNightShiftWorkbench />
               </div>
               <div style={{ marginTop: "14px" }}>
                 <SecondBrainFileStatus />

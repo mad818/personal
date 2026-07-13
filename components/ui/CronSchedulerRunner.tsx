@@ -11,6 +11,12 @@ import {
 } from "@/lib/autoOpsJobs";
 import { apiFetch } from "@/lib/apiFetch";
 import { registerScheduledMissionReviewRun } from "@/lib/schedulerGovernance";
+import {
+  NIGHT_SHIFT_AUDIT_TEMPLATE_ID,
+  NIGHT_SHIFT_REFINERY_TEMPLATE_ID,
+  runNightShiftAuditClient,
+  stagePreparedNightShift,
+} from "@/lib/secondBrainNightShiftClient";
 
 function fieldMatches(expr: string, value: number): boolean {
   const part = expr.trim();
@@ -214,14 +220,25 @@ export default function CronSchedulerRunner() {
           let summary = "Completed.";
           try {
             const systemPrompt = buildCachedSystemPrompt(settings);
-            const result = await callNonInteractiveAI({
-              systemPrompt,
-              userPrompt: `${profile.promptPrefix}\n\n[Scheduled Task]\n${job.prompt}`,
-              maxTokens: 300,
-              task: "fast",
-              singleFlightKey: `scheduled:${job.id}:${Math.floor(Date.now() / 60000)}`,
-            });
-            summary = (result || "Completed with no output.").slice(0, 200);
+            if (job.templateId === NIGHT_SHIFT_REFINERY_TEMPLATE_ID) {
+              const result = await stagePreparedNightShift({
+                baseSystemPrompt: systemPrompt,
+                singleFlightKey: `scheduled:${job.id}:${Math.floor(Date.now() / 60000)}`,
+              });
+              summary = result.summary.slice(0, 200);
+            } else if (job.templateId === NIGHT_SHIFT_AUDIT_TEMPLATE_ID) {
+              const result = await runNightShiftAuditClient();
+              summary = `Report-only audit wrote ${result.audit.filename} with ${result.audit.findings} finding(s).`.slice(0, 200);
+            } else {
+              const result = await callNonInteractiveAI({
+                systemPrompt,
+                userPrompt: `${profile.promptPrefix}\n\n[Scheduled Task]\n${job.prompt}`,
+                maxTokens: 300,
+                task: "fast",
+                singleFlightKey: `scheduled:${job.id}:${Math.floor(Date.now() / 60000)}`,
+              });
+              summary = (result || "Completed with no output.").slice(0, 200);
+            }
           } catch (e) {
             status = "error";
             summary =

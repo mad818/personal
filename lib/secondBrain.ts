@@ -5,14 +5,15 @@ export type SecondBrainMode =
   | "off"
   | "auto"
   | "file-first"
-  | "human-editor";
+  | "human-editor"
+  | "night-shift";
 export type ResolvedSecondBrainMode = Exclude<SecondBrainMode, "auto">;
 
 export const SECOND_BRAIN_MAX_FILE_CHARS = 12_000;
 export const SECOND_BRAIN_MAX_TOTAL_CHARS = 20_000;
 
 interface SecondBrainFileDefinition {
-  id: "index" | "human-editor";
+  id: "index" | "human-editor" | "night-shift-skill" | "night-shift-rules";
   relativePath: string;
   required: boolean;
   stripFrontmatter?: boolean;
@@ -40,10 +41,16 @@ export function isSecondBrainModeReady(
   mode: ResolvedSecondBrainMode,
   loadedFiles: SecondBrainFileStatus[],
 ): boolean {
-  if (mode !== "human-editor") return true;
-  return loadedFiles.some(
-    (file) => file.id === "human-editor" && file.present,
-  );
+  if (mode === "human-editor") {
+    return loadedFiles.some(
+      (file) => file.id === "human-editor" && file.present,
+    );
+  }
+  if (mode === "night-shift") {
+    const ids = new Set(loadedFiles.filter((file) => file.present).map((file) => file.id));
+    return ids.has("night-shift-skill") && ids.has("night-shift-rules");
+  }
+  return true;
 }
 
 interface LoadedSecondBrainFile extends SecondBrainFileStatus {
@@ -61,6 +68,17 @@ const SECOND_BRAIN_FILES: SecondBrainFileDefinition[] = [
     relativePath: "docs/ideas/skills/human-editor/SKILL.md",
     required: true,
     stripFrontmatter: true,
+  },
+  {
+    id: "night-shift-skill",
+    relativePath: "docs/ideas/skills/night-shift-second-brain/SKILL.md",
+    required: true,
+    stripFrontmatter: true,
+  },
+  {
+    id: "night-shift-rules",
+    relativePath: "docs/ideas/second-brain-night-shift/house-rules.md",
+    required: true,
   },
 ];
 
@@ -142,7 +160,8 @@ function readUserMessageText(messages: unknown[]): string {
 export function normalizeSecondBrainMode(value: unknown): SecondBrainMode {
   return value === "off" ||
     value === "file-first" ||
-    value === "human-editor"
+    value === "human-editor" ||
+    value === "night-shift"
     ? value
     : "auto";
 }
@@ -186,7 +205,10 @@ async function loadFilesForMode(
 ): Promise<LoadedSecondBrainFile[]> {
   if (mode === "off") return [];
   const selected = SECOND_BRAIN_FILES.filter(
-    (file) => file.id === "index" || mode === "human-editor",
+    (file) =>
+      file.id === "index" ||
+      (mode === "human-editor" && file.id === "human-editor") ||
+      (mode === "night-shift" && file.id.startsWith("night-shift-")),
   );
   const loaded = await Promise.all(selected.map(loadSecondBrainFile));
   let remaining = SECOND_BRAIN_MAX_TOTAL_CHARS;

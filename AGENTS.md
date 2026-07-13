@@ -8,6 +8,8 @@ For prose rewrites or reader-facing writing, read and follow `docs/ideas/skills/
 
 Do not update second-brain files from background memory or inference. Write them only when Mario's current request authorizes the edit, and surface contradictions instead of silently merging them.
 
+For second-brain capture, refinement, briefings, atom/thread maintenance, or audits, read `docs/ideas/skills/night-shift-second-brain/SKILL.md`. Treat `data/second-brain/0-raw/` and `data/second-brain/sources/` as immutable evidence. Stage derived work first; promote it only after explicit human approval. Never put private live-vault content into tracked files by default.
+
 ## What this is
 
 **Product invariant:** Nexus Prime is **free (MIT)** — **no in-app charges**, subscriptions, or Nexus-side billing. Optional keys are BYOK. See `lib/productGuarantees.ts` and `assertNexusDoesNotChargeUsers()` in `app/layout.tsx`.

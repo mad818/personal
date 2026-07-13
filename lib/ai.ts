@@ -506,7 +506,7 @@ async function callLocalModel(
     max_tokens: number;
     messages: { role: string; content: string }[];
     task?: string;
-    secondBrainMode?: "off" | "auto" | "file-first" | "human-editor";
+    secondBrainMode?: "off" | "auto" | "file-first" | "human-editor" | "night-shift";
   },
 ) {
   const requestedModel = body.task
@@ -567,7 +567,7 @@ interface DirectAiRequestOptions {
   task?: string;
   provider?: string;
   model?: string;
-  secondBrainMode?: "off" | "auto" | "file-first" | "human-editor";
+  secondBrainMode?: "off" | "auto" | "file-first" | "human-editor" | "night-shift";
 }
 
 async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
@@ -651,6 +651,7 @@ async function callNonInteractiveAIInternal(opts: {
   task?: string;
   singleFlightKey?: string;
   promptParts?: NonInteractivePromptParts;
+  secondBrainMode?: "off" | "auto" | "file-first" | "human-editor" | "night-shift";
 }): Promise<NonInteractiveAIResult> {
   const {
     systemPrompt,
@@ -659,6 +660,7 @@ async function callNonInteractiveAIInternal(opts: {
     task = "fast",
     singleFlightKey,
     promptParts,
+    secondBrainMode,
   } = opts;
   const existing = singleFlightKey
     ? NON_INTERACTIVE_SINGLE_FLIGHT.get(singleFlightKey)
@@ -708,6 +710,7 @@ async function callNonInteractiveAIInternal(opts: {
           messages: anthropicMessages,
           task,
           non_interactive: true,
+          secondBrainMode,
         }),
       });
       syncPrivacyShieldStatus(res);
@@ -721,6 +724,7 @@ async function callNonInteractiveAIInternal(opts: {
               { role: "user", content: userPrompt },
             ],
             task,
+            secondBrainMode,
           });
           return {
             content,
@@ -748,6 +752,7 @@ async function callNonInteractiveAIInternal(opts: {
         { role: "user", content: userPrompt },
       ],
       task,
+      secondBrainMode,
     });
     return {
       content,
@@ -774,6 +779,7 @@ export async function callNonInteractiveAI(opts: {
   task?: string;
   singleFlightKey?: string;
   promptParts?: NonInteractivePromptParts;
+  secondBrainMode?: "off" | "auto" | "file-first" | "human-editor" | "night-shift";
 }): Promise<string> {
   const result = await callNonInteractiveAIInternal(opts);
   return result.content;
@@ -786,6 +792,7 @@ export async function callNonInteractiveAIWithMeta(opts: {
   task?: string;
   singleFlightKey?: string;
   promptParts?: NonInteractivePromptParts;
+  secondBrainMode?: "off" | "auto" | "file-first" | "human-editor" | "night-shift";
 }): Promise<NonInteractiveAIResult> {
   return callNonInteractiveAIInternal(opts);
 }

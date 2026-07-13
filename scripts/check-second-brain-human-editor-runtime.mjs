@@ -70,7 +70,11 @@ assert.doesNotMatch(editorBlock.block, /@NextGenAi5|5:55 AM|1,733|Views/);
 const status = await readSecondBrainStatus();
 assert.equal(status.posture, "ready");
 assert.equal(status.aiWriteAuthority, false);
-assert.equal(status.files.length, 2);
+assert.equal(status.files.length, 4);
+const nightShiftBlock = await buildSecondBrainSystemBlock("night-shift");
+assert.equal(nightShiftBlock.loadedFiles.length, 3);
+assert.equal(isSecondBrainModeReady("night-shift", nightShiftBlock.loadedFiles), true);
+assert.match(nightShiftBlock.block, /No source, no note/);
 assert.equal(
   appendSecondBrainSystemPrompt("BASE", "BRAIN"),
   "BASE\n\nBRAIN",

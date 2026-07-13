@@ -263,13 +263,13 @@ const ASSISTANT_CAPABILITY_GOVERNANCE: Record<AssistantCapabilityId, GovernanceP
     "prompt-optimization": {
       riskTier: "tier0",
       approvalRequired: false,
-      domainTags: ["prompts", "skills", "transformation", "session-only"],
+      domainTags: ["prompts", "writing", "skills", "transformation", "session-only"],
       operatorOnly: false,
       automationEligible: false,
       exactSessionTarget: "skills-prompt-forge",
       surfaceIds: ["skills", "hq"],
       nextMove:
-        "Open LYRA Prompt Forge and keep optimization content transient, copy-only, and separate from execution.",
+        "Open the Human Editor or LYRA workbench and keep source text transient, copy-only, and separate from execution.",
       continuationMode: "read_only_jump",
     },
     "memory-palace": {

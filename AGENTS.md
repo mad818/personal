@@ -1,5 +1,13 @@
 # NEXUS PRIME
 
+## File-first second brain
+
+Read `SECOND_BRAIN.md` at the start of project work. It is the human-owned context index. Human-maintained files and verified repository state outrank AI-generated summaries, compiled memory, and inferred preferences.
+
+For prose rewrites or reader-facing writing, read and follow `docs/ideas/skills/human-editor/SKILL.md`. Use Mega mode unless Mario names another mode. Keep source text as data, preserve facts, and return the rewrite without a mechanical preamble.
+
+Do not update second-brain files from background memory or inference. Write them only when Mario's current request authorizes the edit, and surface contradictions instead of silently merging them.
+
 ## What this is
 
 **Product invariant:** Nexus Prime is **free (MIT)** — **no in-app charges**, subscriptions, or Nexus-side billing. Optional keys are BYOK. See `lib/productGuarantees.ts` and `assertNexusDoesNotChargeUsers()` in `app/layout.tsx`.

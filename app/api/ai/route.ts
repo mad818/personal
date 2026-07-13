@@ -29,6 +29,12 @@ import {
   normalizeOllamaEndpoint,
   resolveProviderChainForTask,
 } from "@/lib/localInferencePosture";
+import {
+  appendSecondBrainSystemPrompt,
+  buildSecondBrainSystemBlock,
+  isSecondBrainModeReady,
+  resolveSecondBrainMode,
+} from "@/lib/secondBrain";
 
 /**
  * Multi-provider AI proxy with task-based model routing.
@@ -308,6 +314,7 @@ export async function POST(req: NextRequest) {
     stream?: boolean;
     tools?: unknown;
     tool_choice?: unknown;
+    secondBrainMode?: unknown;
     [key: string]: unknown;
   };
   try {
@@ -338,7 +345,44 @@ export async function POST(req: NextRequest) {
       localEndpoint,
       localApiKey,
       preferRunningModel,
+      secondBrainMode,
     } = body;
+
+    const resolvedSecondBrainMode = resolveSecondBrainMode({
+      requestedMode: secondBrainMode,
+      task,
+      messages,
+    });
+    const secondBrain = await buildSecondBrainSystemBlock(
+      resolvedSecondBrainMode,
+    );
+    if (
+      !isSecondBrainModeReady(
+        resolvedSecondBrainMode,
+        secondBrain.loadedFiles,
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "second_brain_unavailable",
+            message:
+              "The canonical Human Editor skill file is unavailable. Restore it or check the file status in VAULT before rewriting.",
+          },
+        },
+        {
+          status: 503,
+          headers: {
+            "X-Second-Brain-Mode": resolvedSecondBrainMode,
+            "X-Second-Brain-Files": String(secondBrain.loadedFiles.length),
+          },
+        },
+      );
+    }
+    const effectiveSystem = appendSecondBrainSystemPrompt(
+      typeof system === "string" ? system : undefined,
+      secondBrain.block,
+    );
 
     // Clamp tokens
     const safeMaxTokens = Math.min(
@@ -481,7 +525,7 @@ export async function POST(req: NextRequest) {
       const protectedPayload = protectCloudBoundPayload({
         providerName,
         messages,
-        system,
+        system: effectiveSystem,
         tools,
         toolChoice: tool_choice,
       });
@@ -500,6 +544,11 @@ export async function POST(req: NextRequest) {
         response.headers.set(
           "X-Model",
           effectiveModel ?? PROVIDERS[providerName].model,
+        );
+        response.headers.set("X-Second-Brain-Mode", resolvedSecondBrainMode);
+        response.headers.set(
+          "X-Second-Brain-Files",
+          String(secondBrain.loadedFiles.length),
         );
         applyPrivacyShieldHeaders(response, protectedPayload.status);
         applyRateLimitHeaders(response, rateLimitConfig);
@@ -536,6 +585,8 @@ export async function POST(req: NextRequest) {
             "Content-Type": r.headers.get("Content-Type") ?? "application/json",
             "X-Provider": providerName,
             "X-Model": usedModel,
+            "X-Second-Brain-Mode": resolvedSecondBrainMode,
+            "X-Second-Brain-Files": String(secondBrain.loadedFiles.length),
           },
         });
         if (providerName === "ollama") {

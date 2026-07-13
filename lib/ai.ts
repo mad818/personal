@@ -506,6 +506,7 @@ async function callLocalModel(
     max_tokens: number;
     messages: { role: string; content: string }[];
     task?: string;
+    secondBrainMode?: "off" | "auto" | "file-first" | "human-editor";
   },
 ) {
   const requestedModel = body.task
@@ -522,6 +523,9 @@ async function callLocalModel(
         messages: body.messages,
         preferRunningModel,
         ...(body.task ? { task: body.task } : {}),
+        ...(body.secondBrainMode
+          ? { secondBrainMode: body.secondBrainMode }
+          : {}),
         ...(s.localEndpoint ? { localEndpoint: s.localEndpoint } : {}),
         ...(s.localApiKey ? { localApiKey: s.localApiKey } : {}),
       }),
@@ -563,6 +567,7 @@ interface DirectAiRequestOptions {
   task?: string;
   provider?: string;
   model?: string;
+  secondBrainMode?: "off" | "auto" | "file-first" | "human-editor";
 }
 
 async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
@@ -587,6 +592,9 @@ async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
         system: opts.systemPrompt,
         messages: opts.messages,
         ...(opts.task ? { task: opts.task } : {}),
+        ...(opts.secondBrainMode
+          ? { secondBrainMode: opts.secondBrainMode }
+          : {}),
       }),
     });
     syncPrivacyShieldStatus(res);
@@ -599,6 +607,7 @@ async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
             ? [{ role: "system", content: opts.systemPrompt }, ...opts.messages]
             : opts.messages,
           task: opts.task,
+          secondBrainMode: opts.secondBrainMode,
         });
       }
       throw new Error(data?.error?.message ?? `API error ${res.status}`);
@@ -612,6 +621,7 @@ async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
       ? [{ role: "system", content: opts.systemPrompt }, ...opts.messages]
       : opts.messages,
     task: opts.task,
+    secondBrainMode: opts.secondBrainMode,
   });
 }
 

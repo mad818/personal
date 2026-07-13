@@ -80,7 +80,7 @@ const LOCAL_REPLY_RE =
 const LOCAL_SIGNAL_RE = /^(?:ping|test|testing)[!. ]*$/i;
 const LOCAL_ACK_RE = /^(?:ok|okay|k|thanks|thank you|thx)[!. ]*$/i;
 const PROMPT_OPTIMIZATION_RE =
-  /\b(?:lyra|prompt optimizer|prompt optimization|prompt forge|optimi[sz]e (?:this |my )?prompt|improve (?:this |my )?prompt|rewrite (?:this |my )?prompt)\b/i;
+  /\b(?:lyra|prompt optimizer|prompt optimization|prompt forge|optimi[sz]e (?:this |my )?prompt|improve (?:this |my )?prompt|rewrite (?:this |my )?prompt|human editor(?: mode)?|natural thought flow|ai pattern breaker|ban the fluff(?: words)?|reader-first rewrite|mega prompt|humanize (?:this |my )?(?:text|post|copy|writing)|rewrite (?:this |my )?(?:text|post|tweet|thread|caption|email|message|article|paragraph|bio|description|draft))\b/i;
 
 function resolveIntent(style: HQAnswerStyle, routeHint: NexusRoute | null): HQAssistantIntent {
   if (style === "learning") return "learning";

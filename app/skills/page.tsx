@@ -52,6 +52,10 @@ const LyraPromptForge = dynamic(
   () => import("@/components/skills/LyraPromptForge"),
   { ssr: false },
 );
+const HumanEditorWorkbench = dynamic(
+  () => import("@/components/skills/HumanEditorWorkbench"),
+  { ssr: false },
+);
 const SkillLibrary = dynamic(() => import("@/components/skills/SkillLibrary"), {
   ssr: false,
 });
@@ -329,7 +333,10 @@ export default function SkillsPage() {
             animate={{ opacity: 1, y: 0 }}
             style={{ scrollMarginTop: "120px" }}
           >
-            <LyraPromptForge />
+            <ShellStack gap="12px">
+              <HumanEditorWorkbench />
+              <LyraPromptForge />
+            </ShellStack>
           </motion.div>
         )}
 

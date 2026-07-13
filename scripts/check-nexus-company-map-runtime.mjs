@@ -23,6 +23,19 @@ assert.ok(graphify);
 assert.match(graphify.purpose, /not the company org chart/i);
 assert.equal(COMPANY_SKILL_SOURCES.find((source) => source.id === "claude-business-plugins")?.posture, "translation_required");
 
+const last30days = COMPANY_SKILL_SOURCES.find((source) => source.id === "last30days-skill");
+assert.ok(last30days);
+assert.equal(last30days.posture, "review_first");
+assert.match(last30days.codexPath, /preflight/i);
+assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "research-knowledge")?.sourceIds.includes(last30days.id));
+assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "marketing-social")?.sourceIds.includes(last30days.id));
+
+const emilDesignSkills = COMPANY_SKILL_SOURCES.find((source) => source.id === "emilkowalski-skills");
+assert.ok(emilDesignSkills);
+assert.equal(emilDesignSkills.posture, "review_first");
+assert.match(emilDesignSkills.codexPath, /Nexus taste contract/i);
+assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "design")?.sourceIds.includes(emilDesignSkills.id));
+
 const summary = getCompanyMapSummary();
 assert.equal(summary.departmentCount, NEXUS_COMPANY_DEPARTMENTS.length);
 assert.equal(summary.sourceCount, COMPANY_SKILL_SOURCES.length);

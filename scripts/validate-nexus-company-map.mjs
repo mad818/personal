@@ -17,7 +17,7 @@ const graphifyContext = read("docs/ideas/repo-analysis/graphify/REPO_CONTEXT.md"
 if (!registry || !component || !spec) fail("required company-map files are missing");
 
 for (const department of ["Command & Operations", "Engineering", "Design", "Research & Knowledge", "Marketing & Social", "Finance & Business", "Legal & Trust"]) requireText(registry, department, `department ${department}`);
-for (const source of ["Graphify", "Superpowers", "Context7", "Anthropic skills collection", "Claude-Mem", "UI/UX Pro Max", "Taste Skill", "Marketing Skills", "Social Media Skills"]) requireText(registry, source, `source ${source}`);
+for (const source of ["Graphify", "Superpowers", "Context7", "Anthropic skills collection", "Claude-Mem", "UI/UX Pro Max", "Taste Skill", "Emil's Design Engineering Skills", "Last30Days", "Marketing Skills", "Social Media Skills"]) requireText(registry, source, `source ${source}`);
 
 requireText(registry, "not the company org chart", "Graphify correction");
 requireText(registry, "translation_required", "translation boundary");
@@ -26,6 +26,8 @@ requireText(component, "queueHQPrompt", "HQ handoff");
 requireText(component, "navigator.clipboard.writeText", "ChatGPT copy path");
 requireText(library, "NexusCompanyMap", "Agency Role Library mount");
 requireText(graphifyContext, "not an AI-company", "Graphify analysis boundary");
+requireText(read("docs/ideas/repo-analysis/last30days-skill/REPO_CONTEXT.md"), "external research runtime", "Last30Days analysis boundary");
+requireText(read("docs/ideas/repo-analysis/emilkowalski-skills/REPO_CONTEXT.md"), "not an application runtime or a replacement", "design skills analysis boundary");
 
 const scripts = JSON.parse(packageJson).scripts ?? {};
 requireText(String(scripts["company-map:runtime:check"] ?? ""), "check-nexus-company-map-runtime", "focused runtime gate");

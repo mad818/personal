@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "last30days-skill",
+  "name": "mvanhorn/last30days-skill",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/mvanhorn/last30days-skill",
+    "version": "3.14.0",
+    "reviewedAt": "2026-07-13",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/mvanhorn/last30days-skill/blob/main/README.md",
+      "https://github.com/mvanhorn/last30days-skill/blob/main/pyproject.toml",
+      "https://github.com/mvanhorn/last30days-skill/blob/main/skills/last30days/SKILL.md",
+      "https://github.com/mvanhorn/last30days-skill/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    { "id": "recent-multi-source-research", "title": "Research a topic across social, community, market, code, paper, news, and web sources within a recent time window", "sourceEvidence": "README overview and skills/last30days/SKILL.md source inventory", "disposition": "pending", "reason": "Nexus has deep-research and live-intel lanes, but this tranche only records the external source and does not prove equivalent connector breadth or recent-window behavior." },
+    { "id": "parallel-source-collection", "title": "Run source searches in parallel and normalize heterogeneous results into one evidence set", "sourceEvidence": "README positioning and runtime skill workflow", "disposition": "pending", "reason": "No Last30Days runtime, adapter, or equivalent cross-source normalization has been installed or added to Nexus." },
+    { "id": "engagement-aware-ranking", "title": "Rank source material using upvotes, likes, comments, views, market participation, and relevance", "sourceEvidence": "README engagement-scoring description and v3 capability notes", "disposition": "pending", "reason": "Nexus does not yet have a proven cross-platform engagement normalization contract equivalent to this source." },
+    { "id": "agent-judge-brief", "title": "Use an agent judge to synthesize ranked evidence into one grounded, renderer-aware cited brief", "sourceEvidence": "README overview and First-class on OpenAI Codex section", "disposition": "pending", "reason": "Nexus research briefs use existing AI and evidence contracts; no Last30Days judge or renderer-aware citation path was adapted in this tranche." },
+    { "id": "keyless-source-baseline", "title": "Provide useful keyless coverage for Reddit, Hacker News, Polymarket, GitHub, arXiv, Techmeme, and other supported public sources", "sourceEvidence": "README quickstart and What's new free-source sections", "disposition": "pending", "reason": "Connector behavior, upstream terms, reliability, and rate limits need source-by-source review through Nexus protected routes." },
+    { "id": "optional-authenticated-sources", "title": "Unlock additional social sources through API keys, account tokens, browser sessions, and optional CLIs", "sourceEvidence": "skills/last30days/SKILL.md environment inventory and README setup notes", "disposition": "pending", "reason": "Any useful source must be separately authorized and routed through Nexus BYOK, privacy, protected-route, and retention policies." },
+    { "id": "comments-and-transcripts", "title": "Collect comments, ranked community takes, and video transcripts as first-class research evidence", "sourceEvidence": "README The best comments in every brief section", "disposition": "pending", "reason": "Nexus has not proved equivalent transcript/comment collection, provenance, or platform-policy handling." },
+    { "id": "person-aware-source-lanes", "title": "Separate a person's own posts from discussion about them and disambiguate person-focused subqueries", "sourceEvidence": "README X search rebuilt section", "disposition": "pending", "reason": "This is useful for RECON and research, but no person-aware source-ranking adaptation exists yet." },
+    { "id": "preflight-and-doctor", "title": "Report config sources, planned writes, optional commands, missing keys, expired sessions, and source health before or during research", "sourceEvidence": "README Codex preflight and One doctor command sections", "disposition": "pending", "reason": "Nexus should adapt this diagnostic discipline before any external-skill execution, but the current slice only documents the requirement." },
+    { "id": "cross-host-agent-skill", "title": "Install and run through Codex and many Agent Skills hosts with host-specific manifests", "sourceEvidence": "README install and Codex sections plus .codex-plugin metadata", "disposition": "pending", "reason": "The Company Map exposes an honest optional Codex path but intentionally does not run an external installer." },
+    { "id": "mcp-and-host-packaging", "title": "Package the research engine for MCP and other supported desktop or plugin hosts", "sourceEvidence": "README install variants and mcp directory", "disposition": "pending", "reason": "A ChatGPT or Nexus integration would need an explicitly reviewed app/MCP boundary, authentication model, and runtime acceptance proof." },
+    { "id": "direct-provider-routing", "title": "Allow the external skill to call several model/search providers directly from its own environment", "sourceEvidence": "skills/last30days/SKILL.md optional provider environment variables", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus requires every AI call to pass through lib/ai.ts and will not add a duplicate provider-routing authority." },
+    { "id": "automatic-browser-session-use", "title": "Reuse browser cookies or account sessions to broaden source access", "sourceEvidence": "README setup and preflight browser-cookie plan plus skill environment inventory", "disposition": "excluded", "conflict": "security", "reason": "The Nexus runtime will not silently extract or reuse browser sessions; any future authenticated source needs explicit, source-specific operator consent and protected storage." }
+  ]
+}

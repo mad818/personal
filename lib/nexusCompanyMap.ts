@@ -137,6 +137,26 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
     chatgptPath: "Share selected examples as visual references in a design conversation.",
   },
   {
+    id: "emilkowalski-skills",
+    label: "Emil's Design Engineering Skills",
+    url: "https://github.com/emilkowalski/skills",
+    kind: "codex_skill",
+    posture: "review_first",
+    purpose: "Animation decisions, strict motion review, audit planning, and precise design vocabulary.",
+    codexPath: "Review selected skills under the Nexus taste contract; install only after an explicit operator decision.",
+    chatgptPath: "Attach a selected design brief or expose a reviewed design-review app workflow; normal chat does not inherit local skills.",
+  },
+  {
+    id: "last30days-skill",
+    label: "Last30Days",
+    url: "https://github.com/mvanhorn/last30days-skill",
+    kind: "codex_skill",
+    posture: "review_first",
+    purpose: "Recent cross-source social, community, market, code, paper, news, and web research with engagement-aware ranking.",
+    codexPath: "Pin and review the optional Codex skill, then run its preflight before any source access, credentials, or research.",
+    chatgptPath: "Use a copied recent-research brief or a reviewed app/MCP integration; normal chat does not inherit its external source access.",
+  },
+  {
     id: "marketing-skills",
     label: "Marketing Skills",
     url: "https://github.com/coreyhaines31/marketingskills",
@@ -199,7 +219,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
     mission: "Turn product intent into a coherent interface that follows the approved Nexus visual contract.",
     deliverables: ["design direction", "interaction specification", "visual QA"],
     exampleMission: "Design and review a focused Nexus interface with deliberate hierarchy, motion, accessibility, and brand fit.",
-    sourceIds: ["ui-ux-pro-max", "taste-skill", "transitions", "anthropic-skills"],
+    sourceIds: ["ui-ux-pro-max", "taste-skill", "transitions", "emilkowalski-skills", "anthropic-skills"],
     boundary: "References inform the work; the Nexus taste contract and current product shell remain authoritative.",
   },
   {
@@ -210,7 +230,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
     mission: "Collect current evidence, separate fact from inference, and file reusable knowledge through existing lanes.",
     deliverables: ["source ledger", "evidence brief", "knowledge handoff"],
     exampleMission: "Research a decision with current primary sources, identify uncertainty, and produce a reusable Nexus brief.",
-    sourceIds: ["graphify", "context7", "claude-mem", "nexus-native"],
+    sourceIds: ["last30days-skill", "graphify", "context7", "claude-mem", "nexus-native"],
     boundary: "Graphify is optional repo intelligence; durable knowledge follows Nexus source and retention controls.",
   },
   {
@@ -221,7 +241,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
     mission: "Research audiences, shape credible campaigns, and measure content without automatic publishing.",
     deliverables: ["campaign brief", "content package", "measurement plan"],
     exampleMission: "Create a source-backed launch campaign and social package for Nexus with clear metrics and human approval before publishing.",
-    sourceIds: ["marketing-skills", "social-media-skills", "anthropic-skills"],
+    sourceIds: ["last30days-skill", "marketing-skills", "social-media-skills", "anthropic-skills"],
     boundary: "No surprise posting, impersonation, purchased engagement, or claims that cannot be supported.",
   },
   {

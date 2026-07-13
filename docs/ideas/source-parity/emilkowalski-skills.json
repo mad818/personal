@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "emilkowalski-skills",
+  "name": "emilkowalski/skills",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/emilkowalski/skills",
+    "version": "main snapshot reviewed 2026-07-13; no tagged release",
+    "reviewedAt": "2026-07-13",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/emilkowalski/skills/blob/main/README.md",
+      "https://github.com/emilkowalski/skills/tree/main/skills",
+      "https://github.com/emilkowalski/skills/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    { "id": "design-engineering-guidance", "title": "Guide UI implementation and review with detailed animation, interaction, and visual-polish rules", "sourceEvidence": "README reference list and skills/emil-design-eng/SKILL.md", "disposition": "pending", "reason": "The Company Map links the source, but Nexus has not yet reconciled its complete rule set against the authoritative Nexus taste contract." },
+    { "id": "animation-decision-framework", "title": "Decide whether an interaction should animate based on frequency and purpose before choosing motion", "sourceEvidence": "skills/emil-design-eng/SKILL.md Animation Decision Framework", "disposition": "pending", "reason": "Nexus has motion guidance but lacks focused proof that this complete frequency-and-purpose framework is encoded and enforced." },
+    { "id": "strict-animation-review", "title": "Review animations against explicit easing, duration, origin, physicality, accessibility, and performance rules", "sourceEvidence": "README review-animations entry and skills/review-animations/SKILL.md", "disposition": "pending", "reason": "No source-specific review command or acceptance proof was added in this tranche." },
+    { "id": "whole-codebase-animation-audit", "title": "Recon and audit all interactive UI across eight motion categories with evidence-backed severity", "sourceEvidence": "README improve-animations section and skills/improve-animations/SKILL.md", "disposition": "pending", "reason": "A real Nexus audit must confirm findings against current files and interaction frequency before claiming this capability." },
+    { "id": "review-gated-plan-writing", "title": "Pause after vetted findings, then write self-contained implementation plans only for selected items without touching source code", "sourceEvidence": "skills/improve-animations/SKILL.md phases 3 and 4", "disposition": "pending", "reason": "This review-gated planning pattern is compatible with Nexus, but no dedicated animation-plan workflow was implemented." },
+    { "id": "animation-vocabulary", "title": "Map vague motion descriptions to precise animation terms for better design and AI instructions", "sourceEvidence": "README animation-vocabulary entry and skills/animation-vocabulary/SKILL.md", "disposition": "pending", "reason": "Nexus does not yet expose or validate this glossary as a project-owned capability." },
+    { "id": "apple-inspired-web-motion", "title": "Translate responsive, physical, interruptible, velocity-aware, and reduced-motion interaction principles to web interfaces", "sourceEvidence": "skills/apple-design/SKILL.md", "disposition": "pending", "reason": "Useful rules require selective review against Nexus product identity, accessibility, performance, and existing motion conventions." },
+    { "id": "cross-host-skill-install", "title": "Install the full Markdown skill collection through the cross-host skills CLI", "sourceEvidence": "README Install section", "disposition": "pending", "reason": "Nexus records the Codex-compatible path but intentionally does not bulk-install external skill packs." }
+  ]
+}

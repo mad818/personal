@@ -17,12 +17,15 @@ Translate the supplied “turn an AI into a company” skill chart into the exis
 - A normal ChatGPT conversation receives a copied mission brief; live ChatGPT integrations require an app or MCP-backed tool surface.
 - Claude plugin pages and Claude-only install commands are not presented as directly installable in ChatGPT or Nexus.
 - Graphify is treated accurately as a local-first knowledge-graph tool with Codex support, not as the company/org-chart engine.
+- Last30Days is treated as an optional Codex-compatible recent-signal research skill; Nexus does not inherit its external account, browser-session, API-key, or direct-provider behavior.
+- Emil Kowalski's design-engineering skills are treated as review-first animation and interface references under the existing Nexus taste contract, not as a replacement design system.
 
 ## In scope
 
 - Command and operations, engineering, design, research and knowledge, marketing and social, finance and business, and legal and trust departments.
 - Mapping each department to MAX plus the narrowest existing Nexus specialist.
 - Source status and compatibility language for the links supplied in the request.
+- Scoped analysis and source-parity records for newly supplied repositories before any installation or deeper adaptation.
 - A deterministic mission brief builder and focused runtime/static validation.
 
 ## Out of scope

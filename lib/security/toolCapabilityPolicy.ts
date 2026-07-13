@@ -59,6 +59,7 @@ const TOOL_CAPABILITY_REGISTRY: Record<string, ToolCapabilityClass> = {
   remember: "mutate",
   recall: "read",
   ask_max: "analyze",
+  delegate_specialist: "analyze",
   read_project_file: "read",
   list_project_files: "read",
   patch_project_file: "mutate",

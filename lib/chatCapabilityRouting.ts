@@ -242,6 +242,7 @@ const TOOL_TO_ROUTE: Record<string, NexusRoute | null> = {
   create_project_file: "/internal/skills",
   propose_project_edit: "/internal/skills",
   ask_max: "/hq",
+  delegate_specialist: "/hq",
   navigate_to: "/hq",
   read_current_tab: "/hq",
   click_element: "/hq",

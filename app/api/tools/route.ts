@@ -80,6 +80,14 @@ import {
   type ExternalToolResultEnvelope,
 } from "@/lib/externalToolBridge";
 import { parseToolsPostBody } from "@/lib/toolsRequestSchema";
+import {
+  CENTRAL_ORCHESTRATOR_MAX_WORKERS,
+  buildFailedSpecialistHandoff,
+  buildSpecialistWorkerMessages,
+  formatSpecialistHandoff,
+  normalizeSpecialistMission,
+  parseSpecialistHandoff,
+} from "@/lib/centralOrchestrator";
 
 const TOOL_USER_AGENT = `${getBrandServiceName()}/1.0`;
 
@@ -416,6 +424,92 @@ async function askMax(message: string): Promise<string> {
     return `Max says: ${text}`;
   } catch {
     return "Could not reach Max (OpenClaw). Make sure OpenClaw is running: run `openclaw gateway run` in your terminal.";
+  }
+}
+
+// ── Nexus central orchestrator specialist delegation ────────────────────────
+const specialistDelegationRuns = new Map<
+  string,
+  { count: number; touchedAt: number }
+>();
+
+function claimSpecialistDelegationSlot(runId: string) {
+  const now = Date.now();
+  const key =
+    runId && runId !== "anon"
+      ? runId
+      : `anon-${Math.floor(now / 60_000).toString(36)}`;
+  const current = specialistDelegationRuns.get(key) ?? {
+    count: 0,
+    touchedAt: now,
+  };
+  if (current.count >= CENTRAL_ORCHESTRATOR_MAX_WORKERS) return false;
+
+  specialistDelegationRuns.set(key, {
+    count: current.count + 1,
+    touchedAt: now,
+  });
+  if (specialistDelegationRuns.size > 256) {
+    const oldest = [...specialistDelegationRuns.entries()].sort(
+      (left, right) => left[1].touchedAt - right[1].touchedAt,
+    )[0]?.[0];
+    if (oldest) specialistDelegationRuns.delete(oldest);
+  }
+  return true;
+}
+
+async function delegateSpecialist(
+  input: Record<string, string>,
+  runId: string,
+): Promise<string> {
+  const mission = normalizeSpecialistMission({
+    worker: input.worker,
+    taskId: input.task_id,
+    mission: input.mission,
+    context: input.context,
+    expectedOutput: input.expected_output,
+  });
+  if (!mission) {
+    return "Specialist delegation blocked: choose orbit, nova, cipher, or flux and provide a non-empty bounded mission.";
+  }
+
+  if (!claimSpecialistDelegationSlot(runId)) {
+    return formatSpecialistHandoff({
+      ...buildFailedSpecialistHandoff(
+        mission,
+        `Delegation cap reached: MAX may use at most ${CENTRAL_ORCHESTRATOR_MAX_WORKERS} workers per run.`,
+      ),
+      status: "blocked",
+      nextAction: "MAX should synthesize the handoffs already received.",
+    });
+  }
+
+  try {
+    const aiResult = await callInternalAi({
+      origin: resolveInternalServiceOrigin(),
+      task: "central_orchestrator_worker",
+      maxTokens: 1_200,
+      timeoutMs: 45_000,
+      messages: buildSpecialistWorkerMessages(mission),
+    });
+    if (!aiResult.ok || !aiResult.text.trim()) {
+      return formatSpecialistHandoff(
+        buildFailedSpecialistHandoff(
+          mission,
+          `Specialist provider failed with status ${aiResult.status}.`,
+        ),
+      );
+    }
+    return formatSpecialistHandoff(
+      parseSpecialistHandoff(aiResult.text, mission),
+    );
+  } catch {
+    return formatSpecialistHandoff(
+      buildFailedSpecialistHandoff(
+        mission,
+        "Specialist worker could not be reached.",
+      ),
+    );
   }
 }
 
@@ -1572,6 +1666,9 @@ export async function POST(req: NextRequest) {
         break;
       case "ask_max":
         result = await askMax(input.message ?? "");
+        break;
+      case "delegate_specialist":
+        result = await delegateSpecialist(input, runId);
         break;
       case "read_project_file":
         {

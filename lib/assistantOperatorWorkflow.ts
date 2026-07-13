@@ -215,6 +215,14 @@ function buildSkillInvocations(options: {
       source: "tool_catalog",
     });
   }
+  if (hasTool(options.toolCatalog, "delegate_specialist")) {
+    entries.push({
+      id: "central-orchestrator-workers",
+      label: "Bounded specialist handoffs",
+      status: "planned",
+      source: "tool_catalog",
+    });
+  }
 
   return entries;
 }

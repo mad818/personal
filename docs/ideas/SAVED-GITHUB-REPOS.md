@@ -28,5 +28,6 @@ Note: `mudler/locate-anything.cpp` was already saved in the 2026-06-27 batch, so
 - `vllm-project/vllm` — related local inference/provider patterns are operational through Nexus's Ollama/vLLM and local-acceleration architecture; the full upstream vLLM repository has not been claimed as source parity.
 - `mukul975/Anthropic-Cybersecurity-Skills` — defensive framework taxonomy is referenced by CIPHER; the full 817-skill upstream library has not been assimilated.
 - `tinyhumansai/OpenHuman` — inventoried in `source-parity/tinyhumansai-openhuman.json`; useful persona and long-term preference capabilities remain pending.
+- `mco-org/squad` — first native central-orchestrator tranche implemented: MAX routes cross-domain work to at most three advisory specialists and synthesizes typed handoffs; durable task history, requeue/leases, heartbeat recovery, and cross-worker messaging remain `in_progress` in `source-parity/mco-squad.json`.
 - `kunchenguid/no-mistakes` — first native release-gate tranche implemented; exhaustive parity remains `in_progress` in `source-parity/no-mistakes.json` with worktree isolation, mechanical auto-fixes, and durable evidence pending.
 - All other links in this file remain saved research candidates until a bounded tranche is selected and source-parity inventory is created.

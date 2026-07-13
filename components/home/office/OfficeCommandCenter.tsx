@@ -106,6 +106,7 @@ import {
 import { resolveHQAssistantContext } from "./hqAssistantContext";
 import HQConsoleShellSection from "./HQConsoleShellSection";
 import HQTerminalSection from "./HQTerminalSection";
+import TeamOrchestrationStrip from "./TeamOrchestrationStrip";
 import HQPreludePostureSection from "./HQPreludePostureSection";
 import {
   resolveHQWorkflowCommand,
@@ -2303,10 +2304,15 @@ export default function OfficeCommandCenter() {
                   style={{
                     scrollMarginTop: "120px",
                     display: "flex",
+                    flexDirection: "column",
                     flex: "1 1 auto",
                     minHeight: 0,
                   }}
                 >
+                  <TeamOrchestrationStrip
+                    query={input}
+                    activeAgent={activeAgent}
+                  />
                   <HQTerminalSection
                     messages={messages}
                     activeAgent={activeAgent}

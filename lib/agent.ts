@@ -75,6 +75,7 @@ import {
   buildLocalInferenceRecoveryMessage,
   shouldAllowCloudEscalation,
 } from "@/lib/localInferencePosture";
+import { detectTeamOrchestrationNeed } from "@/lib/teamOrchestration";
 
 type ToolRiskTier = "tier0" | "tier1" | "tier2";
 
@@ -100,6 +101,7 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   // Tier 1: local/browser/session side-effects
   remember: "tier1",
   ask_max: "tier1",
+  delegate_specialist: "tier1",
   navigate_to: "tier1",
   click_element: "tier1",
   type_text: "tier1",
@@ -421,7 +423,7 @@ export const AGENT_TOOLS = [
   {
     name: "ask_max",
     description:
-      "Ask Max (your local OpenClaw AI agent) a question. Max has web search, file access, Notion, and Google Places tools. Use this when you need Max's perspective, want to delegate a task locally, or want a second opinion. Max runs at http://127.0.0.1:18789.",
+      "Ask the separate local OpenClaw Max agent a question. Use only when the operator explicitly requests OpenClaw, external Max, or that second opinion; use delegate_specialist for native Nexus worker delegation. Max runs at http://127.0.0.1:18789.",
     input_schema: {
       type: "object",
       properties: {
@@ -431,6 +433,38 @@ export const AGENT_TOOLS = [
         },
       },
       required: ["message"],
+    },
+  },
+  {
+    name: "delegate_specialist",
+    description:
+      "Delegate one bounded advisory mission to a Nexus specialist worker. Use only when you are MAX coordinating a cross-domain task. The worker has no tools or mutation authority and returns a typed handoff for you to review before answering the operator.",
+    input_schema: {
+      type: "object",
+      properties: {
+        worker: {
+          type: "string",
+          enum: ["orbit", "nova", "cipher", "flux"],
+          description: "Specialist worker: orbit=code, nova=research, cipher=security, flux=markets",
+        },
+        task_id: {
+          type: "string",
+          description: "Short stable task identifier for this handoff",
+        },
+        mission: {
+          type: "string",
+          description: "One bounded specialist mission with a clear done-when condition",
+        },
+        context: {
+          type: "string",
+          description: "Only the file excerpts, evidence, assumptions, or constraints the worker may rely on",
+        },
+        expected_output: {
+          type: "string",
+          description: "What MAX needs back from the worker",
+        },
+      },
+      required: ["worker", "task_id", "mission"],
     },
   },
 
@@ -649,7 +683,9 @@ const BROWSER_INTENT_RE =
 const RESEARCH_INTENT_RE =
   /\b(research|search|find|latest|current|news|read|summarize|verify|look up|cite|source)\b/i;
 const DELEGATE_INTENT_RE =
-  /\b(max|delegate|second opinion|double-check)\b/i;
+  /\b(?:openclaw|ask max|external max|second opinion from max)\b/i;
+const SPECIALIST_DELEGATE_INTENT_RE =
+  /\b(?:delegate|sub-?agent|specialist worker|central orchestrator)\b/i;
 const FEYNMAN_WORKFLOW_INTENT_RE =
   /\bfeynman_research\b|(?:^|\s)\/(?:deepresearch|deep-research|lit|lit-review|literature-review|review|audit|replicate|recipe|compare|draft|autoresearch|watch)\b|\b(?:deep research|literature review|peer review|paper audit|claim audit|experiment replication|replication plan|implementation recipe|research recipe|comparison matrix|paper draft|research watch|autoresearch)\b/i;
 const FEYNMAN_OUTPUTS_INTENT_RE =
@@ -706,6 +742,10 @@ export function getAgentToolCatalog(
   const repoCompareIntent = hasRepoCompareSignal(userMessage);
   const repoAssimilationIntent = hasRepoAssimilationSignal(userMessage);
   const delegateIntent = DELEGATE_INTENT_RE.test(userMessage);
+  const specialistDelegateIntent =
+    normalizedAgent === "jansky" &&
+    (detectTeamOrchestrationNeed(userMessage) ||
+      SPECIALIST_DELEGATE_INTENT_RE.test(userMessage));
   const repoIntelIntent = hasRepoIntelSignal(userMessage);
   const workspaceReadIntent =
     codeIntent || normalizedAgent === "orbit" || normalizedAgent === "jansky";
@@ -803,6 +843,11 @@ export function getAgentToolCatalog(
   if (delegateIntent) {
     groups.add("ops");
     names.add("ask_max");
+  }
+
+  if (specialistDelegateIntent) {
+    groups.add("central_orchestrator");
+    names.add("delegate_specialist");
   }
 
   const tools = pickAgentTools(names);

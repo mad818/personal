@@ -56,6 +56,17 @@ export function listAgentWorkflowDescriptors(): AgentWorkflowDescriptor[] {
         "Native pipeline only — planner/researcher/writer stages map to existing deepResearch + Feynman lanes. No DeerFlow runtime vendored.",
     },
     {
+      id: "central-orchestrator-squad",
+      label: "Squad-style central orchestrator",
+      sourceRepo: "mco-org/squad",
+      sourceUrl: "https://github.com/mco-org/squad",
+      disposition: "adapted",
+      nexusSurface:
+        "MAX dispatch · delegate_specialist · typed worker handoffs · TeamOrchestrationStrip",
+      operatorNote:
+        "MAX owns decomposition and synthesis; at most three temporary advisory workers return typed handoffs. No Squad binary, SQLite bus, or terminal launcher is installed.",
+    },
+    {
       id: "generic-agent-squad",
       label: "GenericAgent / phased squad",
       sourceRepo: "lsdefine/GenericAgent",

@@ -38,6 +38,11 @@ import {
   buildAssistantOperatorWorkflowState,
   type AssistantOperatorWorkflowState,
 } from "@/lib/assistantOperatorWorkflow";
+import {
+  buildTeamOrchestrationPlan,
+  formatTeamOrchestrationBlock,
+  type TeamOrchestrationPlan,
+} from "@/lib/teamOrchestration";
 
 export interface AssistantDispatchPlan {
   input: string;
@@ -52,6 +57,7 @@ export interface AssistantDispatchPlan {
   contextBlock: string;
   actionModel: AssistantChatActionModel;
   operatorWorkflow: AssistantOperatorWorkflowState;
+  orchestrationPlan: TeamOrchestrationPlan | null;
   localReply: string | null;
   operatorChoiceNeeded: boolean;
   routeReason: string | null;
@@ -171,6 +177,7 @@ function buildContextBlock(plan: {
   capabilityTitle: string;
   capabilitySummary: string;
   operatorWorkflow: AssistantOperatorWorkflowState;
+  orchestrationPlan: TeamOrchestrationPlan | null;
 }) {
   const workspace = plan.preparedWorkspace;
   const workflow = plan.operatorWorkflow;
@@ -184,6 +191,9 @@ function buildContextBlock(plan: {
         .map((item) => `${item.label} (${item.status})`)
         .join("; ")
     : "none";
+  const orchestrationBlock = plan.orchestrationPlan
+    ? formatTeamOrchestrationBlock(plan.orchestrationPlan)
+    : "";
   return `
 
 [ASSISTANT DISPATCH PLAN]
@@ -201,6 +211,7 @@ Proposed edit posture: ${proposedEditPosture}
 Visible skills/tools: ${visibleTools}
 Do not claim code was changed unless a tool result proves it. For project edits, propose or stage the diff first and wait for the operator-approved ProposedEditPanel flow before any apply.
 [END OPERATOR WORKFLOW]
+${orchestrationBlock}
 `;
 }
 
@@ -220,8 +231,12 @@ export function resolveAssistantDispatch(
     answerStyle: answerStylePlan.style,
     routeHint,
   });
-  const agent: AgentId =
+  const orchestrationPlan =
     capabilityMatch.capability.id === "prompt-optimization"
+      ? null
+      : buildTeamOrchestrationPlan(cleanInput, candidateAgent);
+  const agent: AgentId =
+    capabilityMatch.capability.id === "prompt-optimization" || orchestrationPlan
       ? "jansky"
       : candidateAgent;
   const answerMode = resolveAnswerMode(
@@ -267,6 +282,7 @@ export function resolveAssistantDispatch(
     toolCatalog,
     actionModel,
     operatorWorkflow,
+    orchestrationPlan,
     localReply,
     contextBlock: buildContextBlock({
       answerMode,
@@ -275,6 +291,7 @@ export function resolveAssistantDispatch(
       capabilityTitle: capabilityMatch.capability.title,
       capabilitySummary: capabilityMatch.capability.summary,
       operatorWorkflow,
+      orchestrationPlan,
     }),
     operatorChoiceNeeded: answerMode === "ask_route_choice",
     routeReason,
@@ -332,6 +349,11 @@ export const ASSISTANT_DISPATCH_CHECKS = [
     prompt: "Fix this component",
     expectedIntent: "repo_work",
     expectedWorkflowPhase: "review",
+  },
+  {
+    prompt: "Research this dependency, implement the adapter, and audit the security boundary",
+    expectedAgent: "jansky",
+    expectedOrchestrator: true,
   },
   {
     prompt: "Use Lyra to optimize this prompt",

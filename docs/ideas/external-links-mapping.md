@@ -650,3 +650,14 @@ These were already flagged as “not wired / mismatched,” and are safe to fix:
 
 3. **SecurityAlerts** now prefers `store.securityAlerts` when present (falls back to demo otherwise)
    - `components/security/SecurityAlerts.tsx`
+
+---
+
+## AI company skill-stack intake — 2026-07-13
+
+- **Primary correction:** `Graphify-Labs/graphify` is a local-first knowledge-graph tool with Codex support, not the company/org-chart engine. It remains optional external tooling with scoped analysis and an `in_progress` source-parity matrix.
+- **Nexus shape:** seven departments route through MAX and the existing EL/DUSTIN/HOPPER/LUCAS specialist bench in `lib/nexusCompanyMap.ts` and `components/skills/NexusCompanyMap.tsx`; no new durable agents were created.
+- **Codex-ready sources:** `obra/superpowers` is already used as process discipline; Graphify can be reviewed as a project-local Codex skill; `upstash/context7` belongs in an optional MCP lane.
+- **Translate before use:** `anthropics/skills`, `coreyhaines31/marketingskills`, `charlie947/social-media-skills`, and the Claude finance/small-business/legal plugin pages are capability sources, not direct ChatGPT/Codex installs.
+- **Already adapted references:** `thedotmack/claude-mem`, `nextlevelbuilder/ui-ux-pro-max-skill`, and `Leonxlnx/taste-skill` map to existing Nexus memory, design-audit, and taste-contract lanes.
+- **ChatGPT path:** copy a bounded department brief for normal chat, or build a focused app/MCP tool when live data or actions are required. No catalog is silently injected into every conversation.

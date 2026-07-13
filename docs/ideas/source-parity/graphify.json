@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "graphify",
+  "name": "Graphify-Labs/graphify",
+  "status": "in_progress",
+  "source": {
+    "url": "https://github.com/Graphify-Labs/graphify",
+    "version": "0.9.14 / v8 branch",
+    "reviewedAt": "2026-07-13",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/Graphify-Labs/graphify/blob/v8/README.md",
+      "https://github.com/Graphify-Labs/graphify/blob/v8/pyproject.toml",
+      "https://github.com/Graphify-Labs/graphify/blob/v8/ARCHITECTURE.md",
+      "https://github.com/Graphify-Labs/graphify/blob/v8/LICENSE"
+    ]
+  },
+  "capabilities": [
+    { "id": "multi-language-ast-extraction", "title": "Extract code structure and cross-file relationships locally with tree-sitter across many languages", "sourceEvidence": "README What it does and pyproject.toml tree-sitter dependency inventory", "disposition": "pending", "reason": "Nexus has repo-intel and codegraph lanes but has not yet proved Graphify-equivalent multi-language AST extraction." },
+    { "id": "document-schema-and-media-graph", "title": "Combine code, documents, SQL schemas, office files, images, audio, and video in one graph", "sourceEvidence": "README overview, optional extras, and supported input sections", "disposition": "pending", "reason": "The company-map tranche records this as optional repo intelligence and does not add new file or media ingestion." },
+    { "id": "extracted-and-inferred-edge-provenance", "title": "Label every graph relationship as extracted or inferred", "sourceEvidence": "README confidence-tag and explain examples", "disposition": "pending", "reason": "The company map preserves the distinction in analysis, but Nexus does not yet generate or validate Graphify-compatible edge provenance." },
+    { "id": "community-and-centrality-analysis", "title": "Detect communities and highly connected concepts without requiring an LLM", "sourceEvidence": "README God nodes and Communities capability rows", "disposition": "pending", "reason": "Existing Nexus graphs are separate product features and have not been validated as Graphify-equivalent code community analysis." },
+    { "id": "query-explain-and-shortest-path", "title": "Query the saved graph, explain a concept, and trace paths between concepts", "sourceEvidence": "README query, explain, and path command examples", "disposition": "pending", "reason": "A protected fixed-command adapter and acceptance proof would be required before Nexus can expose these operations." },
+    { "id": "portable-graph-artifacts", "title": "Write graph.json, GRAPH_REPORT.md, and interactive graph.html artifacts", "sourceEvidence": "README quickstart output tree", "disposition": "pending", "reason": "Nexus has not selected an ignore, retention, privacy, or VAULT filing policy for generated Graphify artifacts." },
+    { "id": "assistant-skill-installers", "title": "Install host-specific assistant skills for Codex and many other coding tools", "sourceEvidence": "README Install and supported platform table", "disposition": "pending", "reason": "Nexus labels the available Codex path but intentionally does not run or reproduce Graphify's external installers in this tranche." },
+    { "id": "query-first-always-on-guidance", "title": "Install hooks or instruction files that direct assistants to query the graph before broad source searches", "sourceEvidence": "README Make your assistant always use the graph", "disposition": "pending", "reason": "Nexus will not let an optional external tool rewrite project instructions or hooks without an explicit reviewed adoption task." },
+    { "id": "mcp-graph-server", "title": "Expose graph queries through an optional MCP server", "sourceEvidence": "README optional mcp extra and pyproject.toml graphify-mcp entry point", "disposition": "pending", "reason": "An MCP integration needs explicit installation, authentication, size limits, and protected runtime proof." },
+    { "id": "external-graph-database-export", "title": "Push graph data to optional Neo4j or FalkorDB backends", "sourceEvidence": "README optional extras and pyproject.toml exporter dependencies", "disposition": "excluded", "conflict": "product_purpose", "reason": "The current Nexus slice is local-first and does not need a second graph database service for the department map." },
+    { "id": "optional-semantic-backends", "title": "Use Ollama, OpenAI-compatible, Anthropic, Gemini, Bedrock, or Azure backends for semantic passes", "sourceEvidence": "README backend extras and pyproject.toml optional dependencies", "disposition": "pending", "reason": "Any future semantic pass must go through Nexus provider policy instead of Graphify calling providers independently." }
+  ]
+}

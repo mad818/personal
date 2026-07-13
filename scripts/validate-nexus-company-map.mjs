@@ -1,0 +1,34 @@
+#!/usr/bin/env node
+/* eslint-disable no-console */
+import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const read = (relativePath) => { try { return fs.readFileSync(path.join(root, relativePath), "utf8"); } catch { return ""; } };
+const fail = (message) => { console.error(`nexus-company-map validation failed: ${message}`); process.exit(1); };
+const requireText = (text, needle, label) => { if (!text.includes(needle)) fail(`${label} missing ${needle}`); };
+
+const registry = read("lib/nexusCompanyMap.ts");
+const component = read("components/skills/NexusCompanyMap.tsx");
+const library = read("components/skills/AgencyRoleLibrary.tsx");
+const packageJson = read("package.json");
+const spec = read("specs/features/nexus-company-map.md");
+const graphifyContext = read("docs/ideas/repo-analysis/graphify/REPO_CONTEXT.md");
+if (!registry || !component || !spec) fail("required company-map files are missing");
+
+for (const department of ["Command & Operations", "Engineering", "Design", "Research & Knowledge", "Marketing & Social", "Finance & Business", "Legal & Trust"]) requireText(registry, department, `department ${department}`);
+for (const source of ["Graphify", "Superpowers", "Context7", "Anthropic skills collection", "Claude-Mem", "UI/UX Pro Max", "Taste Skill", "Marketing Skills", "Social Media Skills"]) requireText(registry, source, `source ${source}`);
+
+requireText(registry, "not the company org chart", "Graphify correction");
+requireText(registry, "translation_required", "translation boundary");
+requireText(component, 'data-testid="nexus-company-map"', "company map test id");
+requireText(component, "queueHQPrompt", "HQ handoff");
+requireText(component, "navigator.clipboard.writeText", "ChatGPT copy path");
+requireText(library, "NexusCompanyMap", "Agency Role Library mount");
+requireText(graphifyContext, "not an AI-company", "Graphify analysis boundary");
+
+const scripts = JSON.parse(packageJson).scripts ?? {};
+requireText(String(scripts["company-map:runtime:check"] ?? ""), "check-nexus-company-map-runtime", "focused runtime gate");
+requireText(String(scripts["company-map:check"] ?? ""), "company-map:runtime:check", "focused check chain");
+requireText(String(scripts.verify ?? ""), "npm run company-map:check", "verify wiring");
+console.log("Nexus company map static validation OK.");

@@ -10,6 +10,7 @@ import {
   type AgencyRoleAgentId,
 } from "@/lib/agentRoleTaxonomy";
 import { ShellBadge, ShellButton, ShellStack } from "@/components/ui/shell";
+import NexusCompanyMap from "@/components/skills/NexusCompanyMap";
 
 const AGENT_ACCENTS: Record<AgencyRoleAgentId, string> = {
   jansky: "var(--accent)",
@@ -260,6 +261,10 @@ export default function AgencyRoleLibrary() {
             </div>
           </ShellStack>
         </aside>
+      </div>
+
+      <div style={{ borderTop: "1px solid var(--border)", paddingTop: "14px" }}>
+        <NexusCompanyMap />
       </div>
     </section>
   );

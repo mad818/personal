@@ -52,6 +52,7 @@ export default function PapersResearchPanel() {
       </div>
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
         <input
+          aria-label="Paper research topic"
           style={{ ...INPUT, flex: 1, minWidth: "180px" }}
           placeholder="Filter by topic (optional)"
           value={query}

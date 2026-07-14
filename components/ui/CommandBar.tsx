@@ -1640,6 +1640,7 @@ export default function CommandBar() {
             )}
             <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
               <input
+                aria-label="Command bar prompt"
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

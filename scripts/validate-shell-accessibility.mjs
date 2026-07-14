@@ -72,6 +72,75 @@ const actionDialogAdopters = [
   ["backup restore", read("components/resources/EscapeAccessBackupPanel.tsx")],
   ["phone install notice", read("components/ui/FreeLocalReadinessPanel.tsx")],
 ];
+const routeEntryControls = [
+  [
+    "global command bar",
+    read("components/ui/CommandBar.tsx"),
+    ['aria-label="Command bar prompt"'],
+  ],
+  [
+    "HQ command entry",
+    read("components/home/office/HQTerminalSection.tsx"),
+    ['aria-label="HQ command input"'],
+  ],
+  [
+    "COMMAND job-risk entry",
+    read("components/command/JobRiskAnalyzer.tsx"),
+    ['aria-label="Job title or role"'],
+  ],
+  [
+    "INTEL paper-research entry",
+    read("components/intel/PapersResearchPanel.tsx"),
+    ['aria-label="Paper research topic"'],
+  ],
+  [
+    "ALPHA watchlist entry",
+    read("components/alpha/WatchlistManager.tsx"),
+    ['aria-label="CoinGecko asset ID"'],
+  ],
+  [
+    "CYBER vulnerability-review entry",
+    read("components/cyber/VulnerabilityReviewWorkbench.tsx"),
+    [
+      'aria-label="Repository file to review"',
+      'aria-label="Vulnerability review goal"',
+    ],
+  ],
+  [
+    "RECON lookup entry",
+    read("components/recon/ReconLookup.tsx"),
+    ['aria-label="Recon target"', 'aria-label="Recon target type"'],
+  ],
+  [
+    "VAULT search entry",
+    read("components/vault/VaultSearch.tsx"),
+    [
+      'aria-label="Search vault"',
+      'aria-label="Vault category"',
+      'aria-label="Vault sort order"',
+    ],
+  ],
+  [
+    "SKILLS task-routing entry",
+    read("components/skills/SkillLibrary.tsx"),
+    ['aria-label="Describe task to route to skills"'],
+  ],
+  [
+    "RESOURCES session-finder entry",
+    read("components/resources/SessionFinderConsole.tsx"),
+    ['aria-label="Search Nexus sessions"'],
+  ],
+  [
+    "IOT device entry",
+    read("components/iot/DeviceRegistry.tsx"),
+    ['aria-label={field.label}', 'aria-label="Device protocol"'],
+  ],
+  [
+    "VEHICLE control entry",
+    read("components/vehicle/ControlPanel.tsx"),
+    ['aria-label="Vehicle speed limit"'],
+  ],
+];
 
 for (const text of [
   "function SkipToMainContent()",
@@ -317,6 +386,12 @@ for (const [label, source] of actionDialogAdopters) {
   requireText(source, "requestActionDialog({", label);
   requireText(source, "<ActionDialog controller={actionDialog} />", label);
 }
+
+for (const [label, source, requiredNames] of routeEntryControls) {
+  for (const accessibleName of requiredNames) {
+    requireText(source, accessibleName, `${label} accessible name`);
+  }
+}
 for (const [label, source] of [
   ["trust operations step-up", trustOperations],
   ["trust posture step-up", trustPosture],
@@ -389,5 +464,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Shell accessibility OK (skip path, route orientation, navigation semantics, modal focus containment, route resilience, toast feedback, product-native action dialogs, and reduced motion).\n",
+  "Shell accessibility OK (skip path, route orientation, navigation semantics, modal focus containment, route resilience, toast feedback, product-native action dialogs, route entry control names, and reduced motion).\n",
 );

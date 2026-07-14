@@ -108,6 +108,7 @@ export default function SessionFinderConsole() {
 
       <div style={{ display: "grid", gap: "8px" }}>
         <input
+          aria-label="Search Nexus sessions"
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}

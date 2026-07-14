@@ -318,6 +318,7 @@ export default function ControlPanel() {
           </div>
         </div>
         <input
+          aria-label="Vehicle speed limit"
           type="range"
           min={0}
           max={30}

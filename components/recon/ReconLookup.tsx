@@ -904,6 +904,7 @@ export default function ReconLookup() {
         }}
       >
         <input
+          aria-label="Recon target"
           style={{ ...INPUT, flex: 1, minWidth: "200px" }}
           placeholder="Domain · IP · Email · Hash · URL · Username"
           value={target}
@@ -913,6 +914,7 @@ export default function ReconLookup() {
           }}
         />
         <select
+          aria-label="Recon target type"
           style={{ ...INPUT, width: "auto", cursor: "pointer" }}
           value={typeVal}
           onChange={(e) => setTypeVal(e.target.value as TargetType)}

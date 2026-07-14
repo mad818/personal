@@ -197,6 +197,7 @@ function AddDeviceModal({ onClose }: { onClose: () => void }) {
               {field.label}
             </div>
             <input
+              aria-label={field.label}
               type={field.type}
               placeholder={field.placeholder}
               style={{
@@ -228,6 +229,7 @@ function AddDeviceModal({ onClose }: { onClose: () => void }) {
             Protocol
           </div>
           <select
+            aria-label="Device protocol"
             style={{
               width: "100%",
               background: "var(--surf2)",

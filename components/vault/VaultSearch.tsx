@@ -106,6 +106,7 @@ export default function VaultSearch({ onChange }: VaultSearchProps) {
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
         <input
+          aria-label="Search vault"
           type="text"
           value={query}
           placeholder="Search vault…"
@@ -132,6 +133,7 @@ export default function VaultSearch({ onChange }: VaultSearchProps) {
       {/* Category dropdown */}
       <div style={{ position: "relative" }}>
         <select
+          aria-label="Vault category"
           value={category}
           onChange={(e) => handleCategory(e.target.value as VaultCategory)}
           style={selectStyle}
@@ -168,6 +170,7 @@ export default function VaultSearch({ onChange }: VaultSearchProps) {
       {/* Sort dropdown */}
       <div style={{ position: "relative" }}>
         <select
+          aria-label="Vault sort order"
           value={sort}
           onChange={(e) => handleSort(e.target.value as VaultSort)}
           style={selectStyle}

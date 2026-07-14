@@ -376,6 +376,164 @@ html[data-nexus-motion-profile="reduced"]
   }
 }
 
+/* Whole-app transient notification feedback */
+
+.nexus-toast-region {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 2000;
+  display: flex;
+  width: min(340px, calc(100vw - (2 * var(--space-4))));
+  align-items: stretch;
+  flex-direction: column-reverse;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.nexus-toast {
+  --nexus-toast-signal: var(--text-subtle);
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--hairline-strong);
+  border-inline-start: 3px solid var(--nexus-toast-signal);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-3) var(--space-4);
+  background: var(--panel);
+  box-shadow: var(--accent-glow);
+  color: var(--text-strong);
+  cursor: default;
+  pointer-events: auto;
+}
+
+.nexus-toast[data-severity="critical"] {
+  --nexus-toast-signal: var(--flo);
+}
+
+.nexus-toast[data-severity="high"] {
+  --nexus-toast-signal: var(--fmd);
+}
+
+.nexus-toast[data-severity="medium"] {
+  --nexus-toast-signal: var(--accent2);
+}
+
+.nexus-toast[data-severity="low"] {
+  --nexus-toast-signal: var(--fhi);
+}
+
+.nexus-toast__header {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.nexus-toast__title {
+  min-width: 0;
+  padding-block: var(--space-1);
+  color: var(--text-strong);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: var(--lh-tight);
+}
+
+.nexus-toast__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.nexus-toast__severity {
+  color: var(--nexus-toast-signal);
+  font-family: "Consolas", "SFMono-Regular", monospace;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.nexus-toast__dismiss {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0;
+  background: transparent;
+  color: var(--text-subtle);
+  cursor: pointer;
+  font-size: var(--fs-lg);
+  line-height: 1;
+  transition:
+    border-color var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.nexus-toast__dismiss:hover {
+  border-color: var(--hairline-strong);
+  color: var(--text-strong);
+}
+
+.nexus-toast__dismiss:focus-visible {
+  border-color: var(--accent2);
+  outline: 2px solid var(--accent2);
+  outline-offset: 2px;
+  color: var(--text-strong);
+}
+
+.nexus-toast__message {
+  max-width: 58ch;
+  margin-top: var(--space-1);
+  padding-inline-end: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-base);
+}
+
+.nexus-toast__progress {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--hairline);
+}
+
+.nexus-toast__progress-fill {
+  width: var(--nexus-toast-progress, 100%);
+  height: 100%;
+  background: var(--nexus-toast-signal);
+  opacity: 0.72;
+  transition: width 50ms linear;
+}
+
+html[data-nexus-motion-profile="reduced"] .nexus-toast__progress-fill {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nexus-toast__dismiss,
+  .nexus-toast__progress-fill {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .nexus-toast-region {
+    right: var(--space-3);
+    bottom: var(--space-3);
+    width: calc(100vw - (2 * var(--space-3)));
+  }
+}
+
 .nexus-root-main[data-cinematic-ga="true"] .nexus-shell-stage {
   min-height: calc(100vh - var(--top-rail-height));
 }

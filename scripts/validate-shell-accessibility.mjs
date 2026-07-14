@@ -27,6 +27,10 @@ const routeError = read("app/error.tsx");
 const globalError = read("app/global-error.tsx");
 const notFound = read("app/not-found.tsx");
 const rootErrorBoundary = read("components/system/ErrorBoundary.tsx");
+const toast = read("components/ui/Toast.tsx");
+const notificationToastBridge = read(
+  "components/ui/NotificationToastBridge.tsx",
+);
 
 for (const text of [
   "function SkipToMainContent()",
@@ -178,6 +182,51 @@ for (const legacyText of [
 }
 
 for (const text of [
+  "useReducedMotion",
+  'role={urgent ? "alert" : "status"}',
+  'aria-live={urgent ? "assertive" : "polite"}',
+  'aria-atomic="true"',
+  "const paused = hovered || focusWithin || documentHidden",
+  'document.addEventListener("visibilitychange", handleVisibilityChange)',
+  "onFocusCapture={() => setFocusWithin(true)}",
+  "aria-label={`Dismiss ${item.title}`}",
+  'className="nexus-toast-region"',
+]) {
+  requireText(toast, text, "shared toast feedback");
+}
+for (const hardcodedColor of ["SEVERITY_COLORS", "rgba(", "#ef4444"]) {
+  if (toast.includes(hardcodedColor)) {
+    errors.push(
+      `shared toast feedback: hardcoded presentation remains: ${hardcodedColor}`,
+    );
+  }
+}
+
+for (const text of [
+  "storePersist?.hasHydrated?.()",
+  "storePersist.onFinishHydration",
+  "if (!seededRef.current)",
+  "notifications.map((notification) => notification.id)",
+]) {
+  requireText(notificationToastBridge, text, "notification toast hydration");
+}
+const toastSeedIndex = notificationToastBridge.indexOf(
+  "if (!seededRef.current)",
+);
+const toastEmitIndex = notificationToastBridge.indexOf(
+  "for (const notification of notifications)",
+);
+if (
+  toastSeedIndex === -1 ||
+  toastEmitIndex === -1 ||
+  toastSeedIndex > toastEmitIndex
+) {
+  errors.push(
+    "notification toast hydration: persisted IDs must seed before new notifications emit",
+  );
+}
+
+for (const text of [
   ".nexus-route-state {",
   '.nexus-route-state[data-main="true"]',
   '.nexus-route-state[data-kind="loading"] .nexus-route-state__signal::after',
@@ -189,6 +238,17 @@ for (const text of [
   requireText(styles, text, "route-state styling");
 }
 
+for (const text of [
+  ".nexus-toast-region {",
+  ".nexus-toast {",
+  '.nexus-toast[data-severity="critical"]',
+  ".nexus-toast__dismiss:focus-visible {",
+  'html[data-nexus-motion-profile="reduced"] .nexus-toast__progress-fill',
+  "@media (prefers-reduced-motion: reduce)",
+]) {
+  requireText(styles, text, "toast feedback styling");
+}
+
 if (errors.length > 0) {
   console.error("Shell accessibility validation failed:");
   for (const error of errors) console.error(`- ${error}`);
@@ -196,5 +256,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Shell accessibility OK (skip path, route orientation, navigation semantics, modal focus containment, route resilience, and reduced motion).\n",
+  "Shell accessibility OK (skip path, route orientation, navigation semantics, modal focus containment, route resilience, toast feedback, and reduced motion).\n",
 );

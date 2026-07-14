@@ -1225,6 +1225,7 @@ export default function CommandBar() {
             <button
               type="button"
               onClick={() => setExpanded(false)}
+              aria-label="Close command bar"
               style={{
                 fontSize: "12px",
                 color: "var(--text2)",
@@ -1665,6 +1666,7 @@ export default function CommandBar() {
                 type="button"
                 onClick={() => void send()}
                 disabled={!input.trim() || !!activeAgent}
+                aria-label="Send command"
                 style={{
                   flexShrink: 0,
                   width: "30px",

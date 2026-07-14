@@ -1872,6 +1872,7 @@ export default function AgentOffice() {
           <button
             onClick={() => void send()}
             disabled={!input.trim() || !!activeAgent}
+            aria-label="Send command"
             style={{
               flexShrink: 0,
               width: "36px",

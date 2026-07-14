@@ -292,6 +292,7 @@ export default function Nav() {
               onFocus={() => setSettingsLoaded(true)}
               className="nexus-toprail__icon-button"
               data-testid="toprail-settings"
+              aria-label="Open settings"
               title="Settings"
               aria-haspopup="dialog"
               aria-expanded={settingsOpen}

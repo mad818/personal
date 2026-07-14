@@ -402,6 +402,7 @@ export default function MemoryPanel({ open, onClose }: MemoryPanelProps) {
 
           <button
             onClick={onClose}
+            aria-label="Close memory panel"
             style={{
               background: "none",
               border: "1px solid #1A2040",

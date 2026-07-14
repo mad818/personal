@@ -143,6 +143,7 @@ function FilingRow({ filing }: { filing: Filing }) {
           href={filing.url}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Open SEC filing in a new tab"
           onClick={(e) => e.stopPropagation()}
           style={{
             fontSize: "10px",

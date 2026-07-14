@@ -1043,6 +1043,7 @@ export default function HomeChat() {
           <button
             onClick={() => send(input)}
             disabled={loading}
+            aria-label="Send message"
             style={{
               width: "46px",
               height: "46px",

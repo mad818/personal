@@ -485,6 +485,7 @@ export default function NetworkHealth() {
                   </div>
                   <button
                     onClick={() => removeTarget(t.id)}
+                    aria-label="Remove network target"
                     style={{
                       background: "none",
                       border: "none",

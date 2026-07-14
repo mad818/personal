@@ -603,6 +603,7 @@ function RouteTaskSearch({
         {query && (
           <button
             onClick={handleClear}
+            aria-label="Clear skill search"
             style={{
               position: "absolute",
               right: "8px",

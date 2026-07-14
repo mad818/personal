@@ -152,6 +152,7 @@ export function PMHealthStrip() {
         <button
           onClick={fetch_}
           disabled={loading}
+          aria-label="Refresh PM health status"
           title="Refresh status"
           style={{
             background: "transparent",

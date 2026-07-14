@@ -835,6 +835,7 @@ export default function HQTerminalSection({
               }}
               data-testid="hq-send"
               disabled={!input.trim() || Boolean(activeAgent)}
+              aria-label="Send HQ prompt"
               className="nexus-hq-composer__action nexus-hq-composer__action--icon is-send"
               title="Send"
             >

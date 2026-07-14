@@ -1086,6 +1086,7 @@ export default function KnowledgeBase() {
         {search && (
           <button
             onClick={() => setSearch("")}
+            aria-label="Clear knowledge search"
             style={{
               position: "absolute",
               right: "8px",

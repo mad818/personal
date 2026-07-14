@@ -757,6 +757,7 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
           </span>
           <button
             onClick={onClose}
+            aria-label="Close cron scheduler"
             style={{
               marginLeft: "auto",
               background: "none",

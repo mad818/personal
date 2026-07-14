@@ -308,6 +308,9 @@ const ArticleCard = memo(function ArticleCard({
         </span>
         <button
           onClick={() => onToggleSave(a)}
+          aria-label={
+            isSaved ? "Remove article from Vault" : "Save article to Vault"
+          }
           title={isSaved ? "Remove from Vault" : "Save to Vault"}
           style={{
             background: "transparent",

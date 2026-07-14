@@ -184,6 +184,7 @@ export default function CISAFeed() {
         <button
           onClick={load}
           disabled={loading}
+          aria-label="Refresh CISA KEV feed"
           style={{
             marginLeft: "auto",
             height: "24px",

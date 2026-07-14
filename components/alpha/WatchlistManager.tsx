@@ -96,6 +96,7 @@ export default function WatchlistManager() {
         </span>
         <button
           onClick={() => setOpen(false)}
+          aria-label="Close crypto watchlist"
           style={{
             background: "none",
             border: "none",

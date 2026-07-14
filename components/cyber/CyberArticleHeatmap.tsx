@@ -274,6 +274,7 @@ function SlidePanel({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close topic articles"
             style={{
               marginLeft: "auto",
               background: "transparent",
@@ -381,6 +382,11 @@ function SlidePanel({
                   </span>
                   <button
                     onClick={() => toggleSaveArticle(a)}
+                    aria-label={
+                      saved
+                        ? "Remove article from Vault"
+                        : "Save article to Vault"
+                    }
                     style={{
                       background: "transparent",
                       border: "none",

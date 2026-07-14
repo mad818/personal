@@ -407,6 +407,7 @@ export default function CameraGrid() {
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
+                  aria-label="Capture camera screenshot"
                   title="Screenshot"
                   style={{
                     fontSize: "12px",
@@ -425,6 +426,9 @@ export default function CameraGrid() {
                     e.stopPropagation();
                     toggleRecording(cam.id);
                   }}
+                  aria-label={
+                    isRec ? "Stop camera recording" : "Start camera recording"
+                  }
                   title="Record"
                   style={{
                     fontSize: "10px",
@@ -522,6 +526,7 @@ export default function CameraGrid() {
                 </span>
                 <button
                   onClick={() => setExpanded(null)}
+                  aria-label="Close expanded camera"
                   style={{
                     marginLeft: "auto",
                     background: "transparent",

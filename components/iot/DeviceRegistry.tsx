@@ -156,6 +156,7 @@ function AddDeviceModal({ onClose }: { onClose: () => void }) {
           </span>
           <button
             onClick={onClose}
+            aria-label="Close add device panel"
             style={{
               marginLeft: "auto",
               background: "transparent",

@@ -331,6 +331,7 @@ export default function CameraArray() {
                 </span>
                 <button
                   onClick={() => setExpanded(null)}
+                  aria-label="Close expanded camera"
                   style={{
                     marginLeft: "auto",
                     background: "transparent",

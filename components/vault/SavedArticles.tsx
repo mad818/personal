@@ -539,6 +539,7 @@ export default function SavedArticles() {
             </span>
             <button
               onClick={() => toggleSaveArticle(a)}
+              aria-label="Remove article from Vault"
               title="Remove from Vault"
               style={{
                 background: "transparent",

@@ -142,6 +142,7 @@ function SlidePanel({ title, subtitle, color, onClose, children }: PanelProps) {
           </div>
           <button
             onClick={onClose}
+            aria-label="Close location details"
             style={{
               background: "transparent",
               border: "none",

@@ -132,9 +132,17 @@ function KnowledgeCard({
     entry.content.slice(0, 140) + (entry.content.length > 140 ? "…" : "");
 
   return (
-    <motion.div
+    <motion.button
+      type="button"
       layout
+      aria-expanded={isExpanded}
+      aria-label={`${isExpanded ? "Collapse" : "Expand"} ${entry.title} knowledge entry`}
       style={{
+        width: "100%",
+        padding: 0,
+        color: "inherit",
+        font: "inherit",
+        textAlign: "left",
         background: "var(--surf)",
         border: `1px solid ${isExpanded ? "var(--border2)" : "var(--border)"}`,
         borderRadius: "10px",
@@ -277,7 +285,7 @@ function KnowledgeCard({
           <RelevanceBar score={entry.relevanceScore} />
         </div>
       </div>
-    </motion.div>
+    </motion.button>
   );
 }
 

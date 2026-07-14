@@ -555,8 +555,11 @@ export default function AgentStatusBar() {
       )}
 
       {/* Agent + crab widget */}
-      <div
+      <button
+        type="button"
         onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        aria-label={`${expanded ? "Hide" : "Show"} ${agentCfg.name} status message`}
         style={{
           display: "flex",
           alignItems: "flex-end",
@@ -570,13 +573,15 @@ export default function AgentStatusBar() {
           boxShadow: `0 4px 24px rgba(0,0,0,.45), 0 0 12px ${agentCfg.color}22`,
           transition: "box-shadow .2s",
           userSelect: "none",
+          color: "inherit",
+          font: "inherit",
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLDivElement).style.boxShadow =
+          (e.currentTarget as HTMLButtonElement).style.boxShadow =
             `0 4px 28px rgba(0,0,0,.55), 0 0 18px ${agentCfg.color}44`;
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLDivElement).style.boxShadow =
+          (e.currentTarget as HTMLButtonElement).style.boxShadow =
             `0 4px 24px rgba(0,0,0,.45), 0 0 12px ${agentCfg.color}22`;
         }}
       >
@@ -614,7 +619,7 @@ export default function AgentStatusBar() {
             flexShrink: 0,
           }}
         />
-      </div>
+      </button>
 
       <ClientStyleMount
         id="agent-status-bar-animations"

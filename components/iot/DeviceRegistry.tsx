@@ -341,10 +341,19 @@ export default function DeviceRegistry() {
               }}
             >
               {/* Main row */}
-              <div
+              <button
+                type="button"
                 onClick={() => setExpanded(isExp ? null : dev.id)}
+                aria-expanded={isExp}
+                aria-label={`${isExp ? "Collapse" : "Expand"} ${dev.name} device details`}
                 style={{
+                  width: "100%",
                   padding: "9px 12px",
+                  border: "none",
+                  background: "transparent",
+                  color: "inherit",
+                  font: "inherit",
+                  textAlign: "left",
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
@@ -439,7 +448,7 @@ export default function DeviceRegistry() {
                 >
                   ›
                 </span>
-              </div>
+              </button>
 
               {/* Expanded detail */}
               <AnimatePresence>

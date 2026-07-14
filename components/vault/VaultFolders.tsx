@@ -26,13 +26,6 @@ const FOLDERS: Array<{
   { id: "Alerts", emoji: "⚡", label: "Alerts", catKey: "alerts" },
 ];
 
-const BOOKMARK_FOLDER = {
-  id: "Bookmarks" as const,
-  emoji: "🔖",
-  label: "Bookmarks",
-  catKey: null,
-};
-
 export default function VaultFolders({ active, onSelect }: VaultFoldersProps) {
   const savedArticles = useStore((s) => s.savedArticles);
 
@@ -49,8 +42,6 @@ export default function VaultFolders({ active, onSelect }: VaultFoldersProps) {
     return savedArticles.filter((a) => keys.includes(a.cat ?? "")).length;
   }
 
-  const allFolders = [...FOLDERS, BOOKMARK_FOLDER];
-
   return (
     <div
       style={{
@@ -60,32 +51,30 @@ export default function VaultFolders({ active, onSelect }: VaultFoldersProps) {
         marginBottom: "16px",
       }}
     >
-      {allFolders.map((folder, i) => {
+      {FOLDERS.map((folder, i) => {
         const isActive = folder.id === active;
-        const count =
-          folder.id === "Bookmarks"
-            ? savedArticles.length
-            : countFor(folder.catKey, folder.id as VaultCategory);
+        const count = countFor(folder.catKey, folder.id);
 
         return (
-          <motion.div
+          <motion.button
+            type="button"
             key={folder.id}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.04, duration: 0.25 }}
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => {
-              if (folder.id !== "Bookmarks") {
-                onSelect(folder.id as VaultCategory);
-              }
-            }}
+            onClick={() => onSelect(folder.id)}
+            aria-pressed={isActive}
             style={{
+              width: "100%",
               background: isActive ? `${CHART.burgundy}44` : CHART.surf2,
               border: `1px solid ${isActive ? CHART.rose : CHART.border2}`,
               borderRadius: "10px",
               padding: "14px 10px",
               textAlign: "center",
+              color: "inherit",
+              font: "inherit",
               cursor: "pointer",
               boxShadow: isActive ? `0 0 12px ${CHART.rose}22` : "none",
               transition: "border-color 0.2s, background 0.2s, box-shadow 0.2s",
@@ -118,7 +107,7 @@ export default function VaultFolders({ active, onSelect }: VaultFoldersProps) {
             >
               {count}
             </div>
-          </motion.div>
+          </motion.button>
         );
       })}
     </div>

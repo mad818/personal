@@ -88,17 +88,25 @@ const ACTION_OPTIONS = [
 
 function ToggleSwitch({
   enabled,
+  label,
   onChange,
 }: {
   enabled: boolean;
+  label: string;
   onChange: () => void;
 }) {
   return (
-    <div
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      aria-label={`${enabled ? "Disable" : "Enable"} ${label} automation`}
       onClick={onChange}
       style={{
         width: "32px",
         height: "18px",
+        padding: 0,
+        border: "none",
         borderRadius: "9px",
         cursor: "pointer",
         flexShrink: 0,
@@ -108,6 +116,7 @@ function ToggleSwitch({
       }}
     >
       <motion.div
+        aria-hidden="true"
         animate={{ left: enabled ? "16px" : "2px" }}
         transition={{ duration: 0.2 }}
         style={{
@@ -119,7 +128,7 @@ function ToggleSwitch({
           background: "#fff",
         }}
       />
-    </div>
+    </button>
   );
 }
 
@@ -459,6 +468,7 @@ export default function AutomationRules() {
               {/* Toggle */}
               <ToggleSwitch
                 enabled={rule.enabled}
+                label={rule.name}
                 onChange={() => toggleRule(rule.id)}
               />
             </div>

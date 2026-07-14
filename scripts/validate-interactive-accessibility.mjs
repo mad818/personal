@@ -7,7 +7,31 @@ const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const interactiveTags = new Set(["button", "a", "Link"]);
+const interactiveTags = new Set([
+  "button",
+  "a",
+  "Link",
+  "motion.button",
+  "motion.a",
+  "ShellButton",
+]);
+const formControlTags = new Set(["input", "select", "textarea"]);
+const pointerContainerTags = new Set([
+  "div",
+  "span",
+  "motion.div",
+  "motion.span",
+]);
+const interactiveRoles = new Set([
+  "button",
+  "checkbox",
+  "link",
+  "menuitem",
+  "option",
+  "radio",
+  "switch",
+  "tab",
+]);
 const privateRpgPrefix = "components/home/arpg/";
 const meaningfulTextPattern = /[\p{L}\p{N}]/u;
 
@@ -218,10 +242,83 @@ function isInteractive(openingElement, sourceFile) {
   if (interactiveTags.has(openingElement.tagName.getText(sourceFile))) {
     return true;
   }
-  return (
+  return interactiveRoles.has(
     getLiteralAttributeValue(
       getJsxAttribute(openingElement, sourceFile, "role"),
-    ) === "button"
+    ),
+  );
+}
+
+function hasLiteralPointerCursor(openingElement, sourceFile) {
+  const style = getJsxAttribute(openingElement, sourceFile, "style");
+  if (
+    !style?.initializer ||
+    !ts.isJsxExpression(style.initializer) ||
+    !style.initializer.expression ||
+    !ts.isObjectLiteralExpression(style.initializer.expression)
+  ) {
+    return false;
+  }
+
+  return style.initializer.expression.properties.some(
+    (property) =>
+      ts.isPropertyAssignment(property) &&
+      property.name.getText(sourceFile) === "cursor" &&
+      ts.isStringLiteralLike(property.initializer) &&
+      property.initializer.text === "pointer",
+  );
+}
+
+function hasCompleteKeyboardFallback(openingElement, sourceFile) {
+  const role = getLiteralAttributeValue(
+    getJsxAttribute(openingElement, sourceFile, "role"),
+  );
+  return (
+    interactiveRoles.has(role) &&
+    Boolean(getJsxAttribute(openingElement, sourceFile, "tabIndex")) &&
+    Boolean(
+      getJsxAttribute(openingElement, sourceFile, "onKeyDown") ||
+      getJsxAttribute(openingElement, sourceFile, "onKeyUp"),
+    )
+  );
+}
+
+function containsNestedInteractiveControl(node, sourceFile) {
+  if (!ts.isJsxElement(node)) return false;
+  let found = false;
+
+  function visit(descendant) {
+    if (found) return;
+    const openingElement = ts.isJsxSelfClosingElement(descendant)
+      ? descendant
+      : ts.isJsxElement(descendant)
+        ? descendant.openingElement
+        : null;
+
+    if (
+      openingElement &&
+      (isInteractive(openingElement, sourceFile) ||
+        formControlTags.has(openingElement.tagName.getText(sourceFile)))
+    ) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(descendant, visit);
+  }
+
+  for (const child of node.children) {
+    visit(child);
+  }
+  return found;
+}
+
+function isDefinitePointerOnlyContainer(node, openingElement, sourceFile) {
+  return (
+    pointerContainerTags.has(openingElement.tagName.getText(sourceFile)) &&
+    Boolean(getJsxAttribute(openingElement, sourceFile, "onClick")) &&
+    hasLiteralPointerCursor(openingElement, sourceFile) &&
+    !hasCompleteKeyboardFallback(openingElement, sourceFile) &&
+    !containsNestedInteractiveControl(node, sourceFile)
   );
 }
 
@@ -270,6 +367,19 @@ function inspectSource(sourceText, relativePath) {
       }
     }
 
+    if (
+      openingElement &&
+      isDefinitePointerOnlyContainer(node, openingElement, sourceFile)
+    ) {
+      const location = sourceFile.getLineAndCharacterOfPosition(
+        openingElement.getStart(sourceFile),
+      );
+      const tagName = openingElement.tagName.getText(sourceFile);
+      violations.push(
+        `${relativePath}:${location.line + 1}:${location.character + 1} <${tagName}> is pointer-only; use a native control or add role, tabIndex, and keyboard activation`,
+      );
+    }
+
     ts.forEachChild(node, visit);
   }
 
@@ -289,13 +399,44 @@ const fixture = inspectSource(
       <button>{active ? "…" : "▶"}</button>
       <span role="button">⚙</span>
       <button><Icon aria-hidden="true" /></button>
+      <motion.button>Review</motion.button>
+      <ShellButton>{actionLabel}</ShellButton>
+      <motion.button>★</motion.button>
+      <ShellButton title="Close">✕</ShellButton>
     </>
   `,
   "interactive-accessibility-fixture.tsx",
 );
 
-if (fixture.namedCount !== 5 || fixture.violations.length !== 4) {
+if (fixture.namedCount !== 7 || fixture.violations.length !== 6) {
   console.error("Interactive accessibility validator self-test failed.");
+  process.exit(1);
+}
+
+const pointerFixture = inspectSource(
+  `
+    <>
+      <div onClick={run} style={{ cursor: "pointer" }}>Open queue</div>
+      <div
+        role="button"
+        tabIndex={0}
+        onKeyDown={handleKey}
+        onClick={run}
+        style={{ cursor: "pointer" }}
+      >
+        Open queue
+      </div>
+      <div onClick={close} style={{ position: "fixed" }} />
+      <div onClick={noop} style={{ cursor: "pointer" }}>
+        <button>Nested action</button>
+      </div>
+    </>
+  `,
+  "pointer-accessibility-fixture.tsx",
+);
+
+if (pointerFixture.namedCount !== 2 || pointerFixture.violations.length !== 1) {
+  console.error("Pointer accessibility validator self-test failed.");
   process.exit(1);
 }
 
@@ -324,5 +465,5 @@ if (violations.length > 0) {
 }
 
 console.log(
-  `Interactive accessibility OK (${namedCount} controls named, private RPG lane excluded).`,
+  `Interactive accessibility OK (${namedCount} controls named, no definite pointer-only containers, private RPG lane excluded).`,
 );

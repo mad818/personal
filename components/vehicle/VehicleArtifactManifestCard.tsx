@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback"
 import { requestTextDownload } from "@/components/ui/downloadFeedback"
+import { takeSelectedFile } from "@/components/ui/fileInput"
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions"
 import { apiFetch } from "@/lib/apiFetch"
 import { buildMissionHref } from "@/lib/missionHandoff"
@@ -359,8 +360,7 @@ export default function VehicleArtifactManifestCard() {
         accept=".json,application/json"
         style={{ display: "none" }}
         onChange={(event) => {
-          const file = event.target.files?.[0]
-          event.currentTarget.value = ""
+          const file = takeSelectedFile(event.currentTarget)
           if (!file) return
           void handleImport(file)
         }}

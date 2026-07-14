@@ -15,6 +15,7 @@ import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 import { ActionDialog } from "@/components/ui/ActionDialog";
 import { requestTextDownload } from "@/components/ui/downloadFeedback";
+import { takeSelectedFile } from "@/components/ui/fileInput";
 import { useActionDialog } from "@/hooks/useActionDialog";
 
 interface EscapeAccessBackupPanelProps {
@@ -179,8 +180,6 @@ export default function EscapeAccessBackupPanel({
       setMessage(`Restore started: ${description}.`);
     } catch {
       setMessage("Backup import failed.");
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
@@ -295,7 +294,7 @@ export default function EscapeAccessBackupPanel({
             type="file"
             accept="application/json,.json"
             onChange={(event) =>
-              void importBackup(event.currentTarget.files?.[0] ?? null)
+              void importBackup(takeSelectedFile(event.currentTarget))
             }
             style={{ display: "none" }}
           />

@@ -1,6 +1,7 @@
 "use client";
 
-import type { ChangeEvent, RefObject } from "react";
+import type { RefObject } from "react";
+import { takeSelectedFile } from "@/components/ui/fileInput";
 import {
   areSchedulerAuditFiltersEqual,
   MAX_SAVED_SCHEDULER_AUDIT_VIEWS,
@@ -25,7 +26,7 @@ interface Props {
   onExportSavedAuditViews: () => void;
   onImportSavedAuditViewsClick: () => void;
   onTogglePasteAuditViews: () => void;
-  onImportSavedAuditViewsFromFile: (event: ChangeEvent<HTMLInputElement>) => void;
+  onImportSavedAuditViewsFromFile: (file: File | null) => void;
   onPastedAuditViewsTextChange: (value: string) => void;
   onPreviewPastedAuditViewsImport: () => void;
   onApplyImportedSavedAuditViews: () => void;
@@ -133,7 +134,11 @@ export default function CronSchedulerSavedViewsSection({
           ref={importSavedViewsInputRef}
           type="file"
           accept=".json,application/json"
-          onChange={onImportSavedAuditViewsFromFile}
+          onChange={(event) =>
+            onImportSavedAuditViewsFromFile(
+              takeSelectedFile(event.currentTarget),
+            )
+          }
           style={{ display: "none" }}
         />
       </div>

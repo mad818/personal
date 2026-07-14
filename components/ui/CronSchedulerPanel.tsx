@@ -577,11 +577,7 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
     setPendingImportedAuditViews(null);
   };
 
-  const importSavedAuditViewsFromFile = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
+  const importSavedAuditViewsFromFile = async (file: File | null) => {
     if (!file) return;
     try {
       const text = await file.text();

@@ -20,6 +20,7 @@ import {
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 import { ActionDialog } from "@/components/ui/ActionDialog";
+import { takeSelectedFile } from "@/components/ui/fileInput";
 import { useActionDialog } from "@/hooks/useActionDialog";
 
 interface MediaEscapeLibraryProps {
@@ -876,7 +877,7 @@ export default function MediaEscapeLibrary({
                 type="file"
                 accept="image/png,image/jpeg,image/gif,image/webp"
                 onChange={(event) =>
-                  void uploadCover(event.currentTarget.files?.[0] ?? null)
+                  void uploadCover(takeSelectedFile(event.currentTarget))
                 }
                 style={controlStyle()}
               />

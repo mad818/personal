@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { takeSelectedFile } from "@/components/ui/fileInput";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions";
 import { apiFetch } from "@/lib/apiFetch";
@@ -130,6 +131,8 @@ function InlineList({
 }
 
 export default function BinaryTriagePanel() {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const analysisInFlightRef = useRef(false);
   const [dragging, setDragging] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
@@ -138,6 +141,8 @@ export default function BinaryTriagePanel() {
   const [report, setReport] = useState<BinaryTriageReport | null>(null);
 
   const handleFile = useCallback(async (file: File) => {
+    if (analysisInFlightRef.current) return;
+    analysisInFlightRef.current = true;
     setAnalyzing(true);
     setDragging(false);
     setError("");
@@ -186,12 +191,13 @@ export default function BinaryTriagePanel() {
           : "Binary triage failed for this file.",
       );
     } finally {
+      analysisInFlightRef.current = false;
       setAnalyzing(false);
     }
   }, []);
 
   const onDrop = useCallback(
-    (event: React.DragEvent<HTMLLabelElement>) => {
+    (event: React.DragEvent<HTMLButtonElement>) => {
       event.preventDefault();
       setDragging(false);
       const file = event.dataTransfer.files[0];
@@ -204,7 +210,7 @@ export default function BinaryTriagePanel() {
 
   const onInput = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
+      const file = takeSelectedFile(event.currentTarget);
       if (file) {
         void handleFile(file);
       }
@@ -271,7 +277,11 @@ export default function BinaryTriagePanel() {
         description="This is a fast local triage lane inspired by reverse-engineering workflows, not a browser decompiler. Files stay in the browser while Nexus extracts hashes, format hints, entropy, strings, and IOC candidates."
       />
 
-      <label
+      <button
+        type="button"
+        aria-busy={analyzing}
+        disabled={analyzing}
+        onClick={() => fileInputRef.current?.click()}
         onDragOver={(event) => {
           event.preventDefault();
           setDragging(true);
@@ -285,21 +295,30 @@ export default function BinaryTriagePanel() {
           borderRadius: "12px",
           border: `2px dashed ${dragging ? "var(--accent)" : "var(--border)"}`,
           background: dragging ? "rgba(56, 122, 255, 0.08)" : "var(--surf2)",
-          cursor: "pointer",
+          color: "inherit",
+          cursor: analyzing ? "progress" : "pointer",
+          font: "inherit",
+          opacity: analyzing ? 0.78 : 1,
+          textAlign: "left",
+          width: "100%",
         }}
       >
-        <input
-          type="file"
-          style={{ display: "none" }}
-          onChange={onInput}
-        />
         <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)" }}>
-          Drop a suspicious file or click to browse
+          {analyzing
+            ? "Analyzing the selected file locally"
+            : "Choose or drop a suspicious file"}
         </div>
         <div style={{ fontSize: "11px", color: "var(--text3)" }}>
           Local-only triage for executables, archives, scripts, and documents. Nothing is uploaded.
         </div>
-      </label>
+      </button>
+      <input
+        aria-label="Choose a file for local binary triage"
+        ref={fileInputRef}
+        type="file"
+        style={{ display: "none" }}
+        onChange={onInput}
+      />
 
       {analyzing ? (
         <SurfaceCallout tone="info" compact>

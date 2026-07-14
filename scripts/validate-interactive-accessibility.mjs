@@ -274,6 +274,67 @@ function hasLiteralPointerCursor(openingElement, sourceFile) {
   );
 }
 
+function hasLiteralStyleValue(openingElement, sourceFile, name, value) {
+  const style = getJsxAttribute(openingElement, sourceFile, "style");
+  if (
+    !style?.initializer ||
+    !ts.isJsxExpression(style.initializer) ||
+    !style.initializer.expression ||
+    !ts.isObjectLiteralExpression(style.initializer.expression)
+  ) {
+    return false;
+  }
+
+  return style.initializer.expression.properties.some(
+    (property) =>
+      ts.isPropertyAssignment(property) &&
+      property.name.getText(sourceFile) === name &&
+      ts.isStringLiteralLike(property.initializer) &&
+      property.initializer.text === value,
+  );
+}
+
+function isFileInput(openingElement, sourceFile) {
+  return (
+    openingElement.tagName.getText(sourceFile) === "input" &&
+    getLiteralAttributeValue(
+      getJsxAttribute(openingElement, sourceFile, "type"),
+    ) === "file"
+  );
+}
+
+function isNestedInsideTag(node, sourceFile, tagName) {
+  let parent = node.parent;
+  while (parent && !ts.isSourceFile(parent)) {
+    if (
+      ts.isJsxElement(parent) &&
+      parent.openingElement.tagName.getText(sourceFile) === tagName
+    ) {
+      return true;
+    }
+    parent = parent.parent;
+  }
+  return false;
+}
+
+function containsCallNamed(node, name) {
+  let found = false;
+  function visit(descendant) {
+    if (found) return;
+    if (
+      ts.isCallExpression(descendant) &&
+      ts.isIdentifier(descendant.expression) &&
+      descendant.expression.text === name
+    ) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(descendant, visit);
+  }
+  visit(node);
+  return found;
+}
+
 function hasCompleteKeyboardFallback(openingElement, sourceFile) {
   const role = getLiteralAttributeValue(
     getJsxAttribute(openingElement, sourceFile, "role"),
@@ -399,6 +460,42 @@ function inspectSource(sourceText, relativePath) {
   );
   const violations = [];
   let namedCount = 0;
+  let fileInputCount = 0;
+  const callableDeclarations = new Map();
+
+  function collectCallableDeclarations(node) {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer
+    ) {
+      callableDeclarations.set(node.name.text, node.initializer);
+    } else if (ts.isFunctionDeclaration(node) && node.name) {
+      callableDeclarations.set(node.name.text, node);
+    }
+    ts.forEachChild(node, collectCallableDeclarations);
+  }
+
+  collectCallableDeclarations(sourceFile);
+
+  function onChangeUsesSelectedFileBoundary(openingElement) {
+    const attribute = getJsxAttribute(openingElement, sourceFile, "onChange");
+    if (
+      !attribute?.initializer ||
+      !ts.isJsxExpression(attribute.initializer) ||
+      !attribute.initializer.expression
+    ) {
+      return false;
+    }
+
+    const expression = attribute.initializer.expression;
+    if (containsCallNamed(expression, "takeSelectedFile")) return true;
+    if (!ts.isIdentifier(expression)) return false;
+    const declaration = callableDeclarations.get(expression.text);
+    return Boolean(
+      declaration && containsCallNamed(declaration, "takeSelectedFile"),
+    );
+  }
 
   function visit(node) {
     const openingElement = ts.isJsxSelfClosingElement(node)
@@ -406,6 +503,26 @@ function inspectSource(sourceText, relativePath) {
       : ts.isJsxElement(node)
         ? node.openingElement
         : null;
+
+    if (openingElement && isFileInput(openingElement, sourceFile)) {
+      fileInputCount += 1;
+      const location = sourceFile.getLineAndCharacterOfPosition(
+        openingElement.getStart(sourceFile),
+      );
+      if (
+        hasLiteralStyleValue(openingElement, sourceFile, "display", "none") &&
+        isNestedInsideTag(node, sourceFile, "label")
+      ) {
+        violations.push(
+          `${relativePath}:${location.line + 1}:${location.character + 1} hidden file input is nested in a label; expose a native focusable trigger instead`,
+        );
+      }
+      if (!onChangeUsesSelectedFileBoundary(openingElement)) {
+        violations.push(
+          `${relativePath}:${location.line + 1}:${location.character + 1} file input bypasses takeSelectedFile(), so selecting the same file may not fire again`,
+        );
+      }
+    }
 
     if (openingElement && isInteractive(openingElement, sourceFile)) {
       const explicitlyNamed =
@@ -475,7 +592,7 @@ function inspectSource(sourceText, relativePath) {
   }
 
   visit(sourceFile);
-  return { violations, namedCount };
+  return { violations, namedCount, fileInputCount };
 }
 
 const fixture = inspectSource(
@@ -550,9 +667,37 @@ if (actionFixture.namedCount !== 4 || actionFixture.violations.length !== 2) {
   process.exit(1);
 }
 
+const fileInputFixture = inspectSource(
+  `
+    <>
+      <label>
+        Browse
+        <input type="file" style={{ display: "none" }} onChange={readDirectly} />
+      </label>
+      <button type="button" onClick={openPicker}>Choose file</button>
+      <input
+        type="file"
+        style={{ display: "none" }}
+        onChange={(event) => upload(takeSelectedFile(event.currentTarget))}
+      />
+      <input type="file" onChange={(event) => upload(event.currentTarget.files?.[0])} />
+    </>
+  `,
+  "file-input-accessibility-fixture.tsx",
+);
+
+if (
+  fileInputFixture.fileInputCount !== 3 ||
+  fileInputFixture.violations.length !== 3
+) {
+  console.error("File-input accessibility validator self-test failed.");
+  process.exit(1);
+}
+
 const files = [...collectTsxFiles("app"), ...collectTsxFiles("components")];
 const violations = [];
 let namedCount = 0;
+let fileInputCount = 0;
 
 for (const file of files) {
   const result = inspectSource(
@@ -561,6 +706,7 @@ for (const file of files) {
   );
   violations.push(...result.violations);
   namedCount += result.namedCount;
+  fileInputCount += result.fileInputCount;
 }
 
 if (violations.length > 0) {
@@ -575,5 +721,5 @@ if (violations.length > 0) {
 }
 
 console.log(
-  `Interactive accessibility OK (${namedCount} controls named, no definite pointer-only containers or dead button actions, private RPG lane excluded).`,
+  `Interactive accessibility OK (${namedCount} controls named, ${fileInputCount} file inputs retryable, no definite pointer-only containers or dead button actions, private RPG lane excluded).`,
 );

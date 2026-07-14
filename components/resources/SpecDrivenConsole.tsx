@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ActionSessionCluster from "@/components/ui/ActionSessionCluster";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import {
   SPEC_DRIVEN_TEMPLATES,
@@ -38,7 +39,7 @@ function listCardStyle() {
 export default function SpecDrivenConsole() {
   const router = useRouter();
   const { normalizedParams } = useSessionHrefAutoHeal();
-  const [briefStatus, setBriefStatus] = useState<"" | "copied" | "downloaded" | "failed">("");
+  const [briefStatus, setBriefStatus] = useState<"" | "copied" | "requested" | "failed">("");
 
   const selectedId = useMemo(() => {
     return normalizedParams.get("spec") ?? DEFAULT_SPEC_TEMPLATE_ID;
@@ -72,23 +73,14 @@ export default function SpecDrivenConsole() {
   };
 
   const handleDownloadBrief = () => {
-    if (typeof window === "undefined") {
-      setBriefStatus("failed");
-      return;
-    }
-
-    try {
-      const blob = new Blob([briefText], { type: "text/plain;charset=utf-8" });
-      const url = window.URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `spec-${selectedTemplate.id}.txt`;
-      anchor.click();
-      window.URL.revokeObjectURL(url);
-      setBriefStatus("downloaded");
-    } catch {
-      setBriefStatus("failed");
-    }
+    const requested = requestTextDownload({
+      filename: `spec-${selectedTemplate.id}.txt`,
+      content: briefText,
+      label: "Spec starter",
+      mimeType: "text/plain;charset=utf-8",
+      announce: false,
+    });
+    setBriefStatus(requested ? "requested" : "failed");
   };
 
   return (
@@ -177,8 +169,8 @@ export default function SpecDrivenConsole() {
               Download starter
             </button>
             {briefStatus === "copied" ? <ShellBadge tone="success">Starter copied</ShellBadge> : null}
-            {briefStatus === "downloaded" ? (
-              <ShellBadge tone="success">Starter downloaded</ShellBadge>
+            {briefStatus === "requested" ? (
+              <ShellBadge tone="success">Download requested</ShellBadge>
             ) : null}
             {briefStatus === "failed" ? (
               <ShellBadge tone="default">Starter export failed</ShellBadge>

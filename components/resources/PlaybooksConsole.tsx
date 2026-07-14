@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ActionSessionCluster from "@/components/ui/ActionSessionCluster";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import {
   ENGINEERING_PLAYBOOKS,
@@ -38,7 +39,7 @@ function listCardStyle() {
 export default function PlaybooksConsole() {
   const router = useRouter();
   const { normalizedParams } = useSessionHrefAutoHeal();
-  const [briefStatus, setBriefStatus] = useState<"" | "copied" | "downloaded" | "failed">("");
+  const [briefStatus, setBriefStatus] = useState<"" | "copied" | "requested" | "failed">("");
 
   const selectedId = useMemo(() => {
     return normalizedParams.get("playbook") ?? DEFAULT_ENGINEERING_PLAYBOOK_ID;
@@ -72,23 +73,14 @@ export default function PlaybooksConsole() {
   };
 
   const handleDownloadBrief = () => {
-    if (typeof window === "undefined") {
-      setBriefStatus("failed");
-      return;
-    }
-
-    try {
-      const blob = new Blob([briefText], { type: "text/plain;charset=utf-8" });
-      const url = window.URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `playbook-${selectedPlaybook.id}.txt`;
-      anchor.click();
-      window.URL.revokeObjectURL(url);
-      setBriefStatus("downloaded");
-    } catch {
-      setBriefStatus("failed");
-    }
+    const requested = requestTextDownload({
+      filename: `playbook-${selectedPlaybook.id}.txt`,
+      content: briefText,
+      label: "Playbook brief",
+      mimeType: "text/plain;charset=utf-8",
+      announce: false,
+    });
+    setBriefStatus(requested ? "requested" : "failed");
   };
 
   return (
@@ -176,8 +168,8 @@ export default function PlaybooksConsole() {
               Download brief
             </button>
             {briefStatus === "copied" ? <ShellBadge tone="success">Brief copied</ShellBadge> : null}
-            {briefStatus === "downloaded" ? (
-              <ShellBadge tone="success">Brief downloaded</ShellBadge>
+            {briefStatus === "requested" ? (
+              <ShellBadge tone="success">Download requested</ShellBadge>
             ) : null}
             {briefStatus === "failed" ? (
               <ShellBadge tone="default">Brief export failed</ShellBadge>

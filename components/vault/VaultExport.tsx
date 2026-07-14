@@ -6,6 +6,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useStore } from "@/store/useStore";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
+import { toast } from "@/components/ui/Toast";
 import { CHART } from "@/lib/chartTheme";
 import type { Article } from "@/store/useStore";
 import {
@@ -29,13 +31,13 @@ export default function VaultExport({
   const [secondBrainMode, setSecondBrainMode] = useState<SecondBrainExportMode>("full");
 
   function downloadBlob(filename: string, content: string, mime: string) {
-    const blob = new Blob([content], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    return requestTextDownload({
+      filename,
+      content,
+      label: "VAULT export",
+      mimeType: mime,
+      announce: false,
+    });
   }
 
   function exportArticles(articles: Article[], label: string) {
@@ -51,7 +53,7 @@ export default function VaultExport({
       null,
       2,
     );
-    downloadBlob(
+    return downloadBlob(
       `nexus-vault-${label}-${new Date().toISOString().slice(0, 10)}.json`,
       json,
       "application/json",
@@ -61,12 +63,26 @@ export default function VaultExport({
   async function handleExport(type: "all" | "filtered") {
     setExporting(type);
     await new Promise((r) => setTimeout(r, 300));
-    if (type === "all") {
-      exportArticles(savedArticles, "all");
-    } else {
-      exportArticles(filtered ?? savedArticles, "filtered");
+    try {
+      const requested =
+        type === "all"
+          ? exportArticles(savedArticles, "all")
+          : exportArticles(filtered ?? savedArticles, "filtered");
+      if (!requested) throw new Error("Download request failed.");
+      toast({
+        title: "VAULT export requested",
+        message: "Check your browser downloads for the JSON export.",
+        severity: "low",
+      });
+    } catch {
+      toast({
+        title: "VAULT export not prepared",
+        message: "The browser could not start this download. Keep VAULT open and retry.",
+        severity: "medium",
+      });
+    } finally {
+      setExporting(null);
     }
-    setExporting(null);
   }
 
   async function handleSecondBrainExport() {
@@ -83,14 +99,26 @@ export default function VaultExport({
         .replace(/\s+/g, "-");
       for (const file of bundle.files) {
         const filename = `nexus-second-brain-${modeLabel}/${file.path}`;
-        downloadBlob(filename, file.content, "text/markdown");
+        if (!downloadBlob(filename, file.content, "text/markdown")) {
+          throw new Error("Download request failed.");
+        }
         // Small delay between files to avoid browser download throttling
         await new Promise((r) => setTimeout(r, 80));
       }
+      toast({
+        title: "Second-brain downloads requested",
+        message: `${bundle.files.length} file requests were sent. Allow multiple downloads if your browser asks.`,
+        severity: "low",
+      });
     } catch {
-      // silent failure — user will see nothing downloaded
+      toast({
+        title: "Second-brain export not prepared",
+        message: "One or more browser download requests failed. Keep VAULT open and retry.",
+        severity: "medium",
+      });
+    } finally {
+      setExporting(null);
     }
-    setExporting(null);
   }
 
   const btnBase: React.CSSProperties = {

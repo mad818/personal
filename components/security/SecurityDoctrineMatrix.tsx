@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
 import { SectionLabel, ShellBadge, ShellButton } from "@/components/ui/shell";
 import { InternalWorkbenchNotice } from "@/components/ui/InternalWorkbenchNotice";
+import { toast } from "@/components/ui/Toast";
 import type {
   SecurityRun,
   SecurityScenario,
@@ -31,6 +32,9 @@ export default function SecurityDoctrineMatrix({ initialSource = "all" }: Props)
   const [scenarioMeta, setScenarioMeta] = useState<InternalWorkbenchMeta | null>(null);
   const [runMeta, setRunMeta] = useState<InternalWorkbenchMeta | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reviewingScenarioId, setReviewingScenarioId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     setSource(initialSource);
@@ -91,23 +95,38 @@ export default function SecurityDoctrineMatrix({ initialSource = "all" }: Props)
   }
 
   async function markReviewed(scenario: SecurityScenario) {
+    if (reviewingScenarioId) return;
     const nextStatus: SecurityScenarioStatus =
       scenario.status === "covered" ? "monitoring" : "covered";
     const updated = {
       ...scenario,
       status: nextStatus,
     };
+    setReviewingScenarioId(scenario.id);
     try {
       const response = await apiFetch("/api/security/scenarios", {
         method: "POST",
         body: JSON.stringify(updated),
       });
-      if (!response.ok) return;
+      if (!response.ok) {
+        throw new Error(`Doctrine update failed (${response.status}).`);
+      }
       setScenarios((current) =>
         current.map((entry) => (entry.id === scenario.id ? updated : entry)),
       );
+      toast({
+        title: "Doctrine status saved",
+        message: `${scenario.title} is now ${nextStatus}.`,
+        severity: "low",
+      });
     } catch {
-      // Preserve the current doctrine view on failure.
+      toast({
+        title: "Doctrine status not saved",
+        message: "The current status is unchanged. Check the security route and retry.",
+        severity: "medium",
+      });
+    } finally {
+      setReviewingScenarioId(null);
     }
   }
 
@@ -183,8 +202,15 @@ export default function SecurityDoctrineMatrix({ initialSource = "all" }: Props)
               </div>
 
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "12px" }}>
-                <ShellButton onClick={() => void markReviewed(scenario)}>
-                  {scenario.status === "covered" ? "Move to monitoring" : "Mark covered"}
+                <ShellButton
+                  onClick={() => void markReviewed(scenario)}
+                  disabled={reviewingScenarioId !== null}
+                >
+                  {reviewingScenarioId === scenario.id
+                    ? "Saving..."
+                    : scenario.status === "covered"
+                      ? "Move to monitoring"
+                      : "Mark covered"}
                 </ShellButton>
                 {scenario.links[0] ? (
                   <a

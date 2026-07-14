@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore, type ScheduledJob } from "@/store/useStore";
 import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import { OFFICE_OPERATIONAL_PROFILES } from "@/components/home/office/constants";
 import { getAutoJobsForMode, isAutoOpsModeEnabled } from "@/lib/autoOpsJobs";
 import CronSchedulerAutoOpsSection from "@/components/ui/CronSchedulerAutoOpsSection";
@@ -340,20 +341,18 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
   };
 
   const exportSchedulerAudit = () => {
-    try {
-      const blob = new Blob([JSON.stringify(schedulerAuditPayload, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `scheduler-audit-${Date.now()}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      setAuditMsg("Scheduler audit exported.");
-    } catch {
-      setAuditMsg("Export failed.");
-    }
+    const requested = requestTextDownload({
+      filename: `scheduler-audit-${Date.now()}.json`,
+      content: JSON.stringify(schedulerAuditPayload, null, 2),
+      label: "Scheduler audit",
+      mimeType: "application/json",
+      announce: false,
+    });
+    setAuditMsg(
+      requested
+        ? "Scheduler audit download requested."
+        : "Scheduler audit download failed.",
+    );
   };
 
   const copyJobAudit = async (job: ScheduledJob) => {
@@ -398,20 +397,18 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
         filters: auditFilters,
       },
     );
-    try {
-      const blob = new Blob([JSON.stringify(payload, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `scheduler-audit-${job.id}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      setAuditMsg(`Exported audit for ${job.name}.`);
-    } catch {
-      setAuditMsg(`Export failed for ${job.name}.`);
-    }
+    const requested = requestTextDownload({
+      filename: `scheduler-audit-${job.id}.json`,
+      content: JSON.stringify(payload, null, 2),
+      label: `${job.name} audit`,
+      mimeType: "application/json",
+      announce: false,
+    });
+    setAuditMsg(
+      requested
+        ? `Audit download requested for ${job.name}.`
+        : `Audit download failed for ${job.name}.`,
+    );
   };
 
   const saveCurrentAuditView = () => {
@@ -460,21 +457,19 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
   };
 
   const exportSavedAuditViews = () => {
-    try {
-      const payload = buildSavedSchedulerAuditViewsExport(savedAuditViews);
-      const blob = new Blob([JSON.stringify(payload, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "scheduler-audit-views.json";
-      a.click();
-      URL.revokeObjectURL(url);
-      setAuditMsg("Exported saved audit views.");
-    } catch {
-      setAuditMsg("Saved audit view export failed.");
-    }
+    const payload = buildSavedSchedulerAuditViewsExport(savedAuditViews);
+    const requested = requestTextDownload({
+      filename: "scheduler-audit-views.json",
+      content: JSON.stringify(payload, null, 2),
+      label: "Saved audit views",
+      mimeType: "application/json",
+      announce: false,
+    });
+    setAuditMsg(
+      requested
+        ? "Saved audit view download requested."
+        : "Saved audit view download failed.",
+    );
   };
 
   const previewImportedSavedAuditViews = (incoming: SavedSchedulerAuditView[]) => {

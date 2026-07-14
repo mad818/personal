@@ -14,6 +14,7 @@ import {
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 import { ActionDialog } from "@/components/ui/ActionDialog";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import { useActionDialog } from "@/hooks/useActionDialog";
 
 interface EscapeAccessBackupPanelProps {
@@ -140,22 +141,23 @@ export default function EscapeAccessBackupPanel({
   const counts = getSubscriptionEscapeAccessCounts(state.access);
 
   function exportBackup() {
+    const filename = getBackupFileName();
     const payload = {
       kind: "nexus-subscription-escape-backup-v1",
       exportedAt: new Date().toISOString(),
       source: "Nexus Prime Escape",
       state,
     };
-    const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], {
-      type: "application/json",
+    const requested = requestTextDownload({
+      filename,
+      content: `${JSON.stringify(payload, null, 2)}\n`,
+      label: "Escape backup",
+      mimeType: "application/json",
+      announce: false,
     });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = getBackupFileName();
-    anchor.click();
-    URL.revokeObjectURL(url);
-    setMessage("Backup downloaded.");
+    setMessage(
+      requested ? "Backup download requested." : "Backup download failed.",
+    );
   }
 
   async function importBackup(file: File | null) {

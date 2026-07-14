@@ -7,6 +7,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import { DEFAULT_KNOWLEDGE, type KnowledgeEntry } from "@/lib/skillEngine";
 import {
   remember,
@@ -731,13 +732,16 @@ export default function KnowledgeBase() {
   const handleExport = useCallback(async () => {
     try {
       const json = await exportMemories();
-      const blob = new Blob([json], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `nexus-memories-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const requested = requestTextDownload({
+        filename: `nexus-memories-${new Date().toISOString().slice(0, 10)}.json`,
+        content: json,
+        label: "Knowledge memory export",
+        mimeType: "application/json",
+        announce: false,
+      });
+      if (!requested) throw new Error("Download request failed.");
+      setImportStatus("Memory download requested");
+      setTimeout(() => setImportStatus(null), 3000);
     } catch {
       setImportStatus("Error exporting memories");
       setTimeout(() => setImportStatus(null), 3000);

@@ -3,6 +3,7 @@
 import type { Article } from "@/store/useStore";
 import type { VaultGraphData } from "@/components/home/office/types";
 import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import TrustOperationsRail from "@/components/ui/TrustOperationsRail";
 import {
   OpsField,
@@ -190,16 +191,12 @@ export default function VaultRelationsChamber({
                     );
                   }}
                   onDownloadVisibleGraphNodes={() => {
-                    const blob = new Blob(
-                      [JSON.stringify(filteredGraph.nodes, null, 2)],
-                      { type: "application/json" },
-                    );
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.download = "vault-visible-nodes.json";
-                    link.click();
-                    URL.revokeObjectURL(url);
+                    requestTextDownload({
+                      filename: "vault-visible-nodes.json",
+                      content: JSON.stringify(filteredGraph.nodes, null, 2),
+                      label: "Visible graph nodes",
+                      mimeType: "application/json",
+                    });
                   }}
                   onResetGraphView={() => {
                     const reset = resetGraphFiltersToBalanced();

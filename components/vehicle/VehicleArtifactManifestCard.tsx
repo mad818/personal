@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback"
+import { requestTextDownload } from "@/components/ui/downloadFeedback"
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions"
 import { apiFetch } from "@/lib/apiFetch"
 import { buildMissionHref } from "@/lib/missionHandoff"
@@ -59,14 +60,13 @@ const RADAR_STAGE_GUIDANCE: Record<VehicleRadarProcessingStage, string> = {
     "Review is the operator checkpoint where passive radar notes are consolidated into a durable advisory summary.",
 }
 
-function downloadTextFile(filename: string, content: string, mimeType = "application/json;charset=utf-8") {
-  const blob = new Blob([content], { type: mimeType })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement("a")
-  anchor.href = url
-  anchor.download = filename
-  anchor.click()
-  window.setTimeout(() => URL.revokeObjectURL(url), 0)
+function downloadTextFile(
+  filename: string,
+  content: string,
+  label: string,
+  mimeType = "application/json;charset=utf-8",
+) {
+  return requestTextDownload({ filename, content, label, mimeType })
 }
 
 function summarizeBundle(bundle: VehicleFlightSessionBundle) {
@@ -421,6 +421,7 @@ export default function VehicleArtifactManifestCard() {
             downloadTextFile(
               `${bundle.manifest.sessionLabel}.bundle.json`,
               stringifyVehicleFlightSessionBundle(bundle),
+              "Flight session JSON",
             )
           }
           className="nexus-shell-button"
@@ -646,6 +647,7 @@ export default function VehicleArtifactManifestCard() {
             downloadTextFile(
               `${bundle.manifest.sessionLabel}.${renderTarget}.brief.md`,
               renderBrief,
+              "Vehicle render brief",
               "text/markdown;charset=utf-8",
             )
           }

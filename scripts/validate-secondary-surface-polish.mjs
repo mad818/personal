@@ -134,6 +134,76 @@ const checks = [
       "if (!response.ok)",
     ],
   },
+  {
+    file: "components/ui/downloadFeedback.ts",
+    forbidden: [],
+    required: [
+      "document.body.appendChild(anchor)",
+      "anchor.click()",
+      "`${label} download requested`",
+      "`${label} not prepared`",
+      "window.setTimeout(() => window.URL.revokeObjectURL(urlToRevoke), 0)",
+    ],
+  },
+  {
+    file: "components/vault/VaultExport.tsx",
+    forbidden: ["silent failure — user will see nothing downloaded"],
+    required: [
+      'title: "VAULT export requested"',
+      'title: "Second-brain downloads requested"',
+      "Allow multiple downloads if your browser asks.",
+    ],
+  },
+  {
+    file: "components/resources/EscapeAccessBackupPanel.tsx",
+    forbidden: ['setMessage("Backup downloaded.")'],
+    required: ["Backup download requested.", "Backup download failed."],
+  },
+  {
+    file: "components/resources/SpecDrivenConsole.tsx",
+    forbidden: ['"downloaded"', "Starter downloaded"],
+    required: ['"requested"', "Download requested"],
+  },
+  {
+    file: "components/resources/PlaybooksConsole.tsx",
+    forbidden: ['"downloaded"', "Brief downloaded"],
+    required: ['"requested"', "Download requested"],
+  },
+  {
+    file: "components/ui/RuntimeEvalTrend.tsx",
+    forbidden: ["Diagnostics exported."],
+    required: [
+      "Diagnostics download requested.",
+      "Diagnostics download failed.",
+    ],
+  },
+  {
+    file: "components/recon/OpsecPanel.tsx",
+    forbidden: [
+      "All checks run locally — nothing leaves your browser",
+      'note: isTor ? "Tor exit node detected — high anonymity"',
+      "check.torproject.org",
+    ],
+    required: [
+      'result: "idle" | "checking" | "ok" | "warn" | "unknown"',
+      'result: "unknown"',
+      "Tor status not queried — Nexus does not send your browser IP to Tor Project",
+      "setScore(Math.round((s / 80) * 100))",
+      "WebRTC contacts Google STUN; Tor status is not sent to Tor Project.",
+      "WebRTC status unknown — the STUN probe did not complete",
+    ],
+  },
+  {
+    file: "components/security/SecurityDoctrineMatrix.tsx",
+    forbidden: ["if (!response.ok) return"],
+    required: [
+      "const [reviewingScenarioId, setReviewingScenarioId]",
+      "if (!response.ok)",
+      'title: "Doctrine status saved"',
+      'title: "Doctrine status not saved"',
+      'reviewingScenarioId === scenario.id\n                    ? "Saving..."',
+    ],
+  },
 ];
 
 const errors = [];
@@ -500,6 +570,77 @@ function getMemberOwner(node) {
   return null;
 }
 
+function isAnchorCreationCall(node) {
+  if (!ts.isCallExpression(node)) return false;
+  const owner = getMemberOwner(node.expression);
+  const tagName = node.arguments[0];
+  return (
+    getStaticMemberName(node.expression) === "createElement" &&
+    owner !== null &&
+    ts.isIdentifier(owner) &&
+    owner.text === "document" &&
+    tagName !== undefined &&
+    ts.isStringLiteralLike(tagName) &&
+    tagName.text.toLowerCase() === "a"
+  );
+}
+
+function findDirectAnchorDownloadClicks(source, relativePath) {
+  const sourceFile = ts.createSourceFile(
+    relativePath,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const anchorNames = new Set();
+  const violations = [];
+
+  function collectAnchors(node) {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer &&
+      isAnchorCreationCall(node.initializer)
+    ) {
+      anchorNames.add(node.name.text);
+    }
+    if (
+      ts.isBinaryExpression(node) &&
+      node.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+      ts.isIdentifier(node.left) &&
+      isAnchorCreationCall(node.right)
+    ) {
+      anchorNames.add(node.left.text);
+    }
+    ts.forEachChild(node, collectAnchors);
+  }
+
+  function visit(node) {
+    if (ts.isCallExpression(node)) {
+      const owner = getMemberOwner(node.expression);
+      if (
+        getStaticMemberName(node.expression) === "click" &&
+        owner !== null &&
+        ((ts.isIdentifier(owner) && anchorNames.has(owner.text)) ||
+          isAnchorCreationCall(owner))
+      ) {
+        const location = sourceFile.getLineAndCharacterOfPosition(
+          node.getStart(sourceFile),
+        );
+        violations.push(
+          `${relativePath}:${location.line + 1}:${location.character + 1} directly clicks a generated download anchor instead of using requestTextDownload`,
+        );
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  collectAnchors(sourceFile);
+  visit(sourceFile);
+  return violations;
+}
+
 function isClipboardWriteCall(node) {
   if (!ts.isCallExpression(node)) return false;
   const writeOwner = getMemberOwner(node.expression);
@@ -693,6 +834,39 @@ if (clipboardFixtureViolations.length !== 3) {
   );
 }
 
+const downloadFixtureViolations = findDirectAnchorDownloadClicks(
+  `
+    function directDownload() {
+      const anchor = document.createElement("a");
+      anchor.click();
+    }
+    function bracketDownload() {
+      const link = document["createElement"]("a");
+      link["click"]();
+    }
+    function assignedDownload() {
+      let link;
+      link = document.createElement("a");
+      link.click();
+    }
+    function chainedDownload() {
+      document.createElement("a").click();
+    }
+    function fileInput(input) {
+      input.click();
+    }
+    function delegatedDownload() {
+      requestTextDownload({ filename: "safe.json", content: "{}", label: "Safe" });
+    }
+  `,
+  "download-feedback-fixture.tsx",
+);
+if (downloadFixtureViolations.length !== 4) {
+  errors.push(
+    "download feedback: AST self-test must reject direct generated-anchor clicks while accepting file-input activation and shared-helper delegation",
+  );
+}
+
 for (const { relativePath, source } of [
   ...collectTsxSources("app"),
   ...collectTsxSources("components"),
@@ -700,6 +874,7 @@ for (const { relativePath, source } of [
   errors.push(...findIgnoredPromiseChains(source, relativePath));
   errors.push(...findUncheckedMutationResponses(source, relativePath));
   errors.push(...findUncheckedClipboardWrites(source, relativePath));
+  errors.push(...findDirectAnchorDownloadClicks(source, relativePath));
 }
 
 if (errors.length > 0) {
@@ -709,5 +884,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Secondary surface polish OK (camera, drone, IoT, voice, client fetch/apiFetch mutation, and clipboard states are explicit).",
+  "Secondary surface polish OK (camera, drone, IoT, voice, client mutation, clipboard, download, and operator-result states are explicit).",
 );

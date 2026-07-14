@@ -16,6 +16,8 @@ import {
   exportMemories,
 } from "@/lib/memoryStore";
 import ClientStyleMount from "@/components/ui/ClientStyleMount";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
+import { toast } from "@/components/ui/Toast";
 
 // ── Read all memories (not exported from memoryStore — inline here) ─────────
 async function listAllMemories(): Promise<Memory[]> {
@@ -300,14 +302,21 @@ export default function MemoryPanel({ open, onClose }: MemoryPanelProps) {
   }, [load]);
 
   const handleExport = useCallback(async () => {
-    const json = await exportMemories();
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `nexus-memories-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const json = await exportMemories();
+      requestTextDownload({
+        filename: `nexus-memories-${new Date().toISOString().slice(0, 10)}.json`,
+        content: json,
+        label: "Memory export",
+        mimeType: "application/json",
+      });
+    } catch {
+      toast({
+        title: "Memory export not prepared",
+        message: "IndexedDB could not prepare the export. Keep Memory open and retry.",
+        severity: "medium",
+      });
+    }
   }, []);
 
   // Filter memories

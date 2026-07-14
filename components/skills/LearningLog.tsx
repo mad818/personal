@@ -7,6 +7,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import { DEFAULT_LEARNING_LOG, type LearningEvent } from "@/lib/skillEngine";
 import { getLearningHistory } from "@/lib/skillCycle";
 
@@ -308,13 +309,12 @@ export default function LearningLog({
 
   const handleExport = useCallback(() => {
     const data = JSON.stringify(events, null, 2);
-    const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `nexus-learning-log-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    requestTextDownload({
+      filename: `nexus-learning-log-${new Date().toISOString().slice(0, 10)}.json`,
+      content: data,
+      label: "Learning log",
+      mimeType: "application/json",
+    });
   }, [events]);
 
   const filtered =

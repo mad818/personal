@@ -402,24 +402,6 @@ export default function CameraGrid() {
                   {isConnected ? "DISCONNECT" : "CONNECT"}
                 </button>
                 <div style={{ flex: 1 }} />
-                {/* Screenshot */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                  aria-label="Capture camera screenshot"
-                  title="Screenshot"
-                  style={{
-                    fontSize: "12px",
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "2px 4px",
-                    opacity: isConnected ? 1 : 0.3,
-                  }}
-                >
-                  📸
-                </button>
                 {/* Record */}
                 <button
                   onClick={(e) => {

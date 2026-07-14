@@ -15,6 +15,11 @@ const interactiveTags = new Set([
   "motion.a",
   "ShellButton",
 ]);
+const actionableButtonTags = new Set([
+  "button",
+  "motion.button",
+  "ShellButton",
+]);
 const formControlTags = new Set(["input", "select", "textarea"]);
 const pointerContainerTags = new Set([
   "div",
@@ -322,6 +327,68 @@ function isDefinitePointerOnlyContainer(node, openingElement, sourceFile) {
   );
 }
 
+function isInsideForm(node, sourceFile) {
+  let parent = node.parent;
+  while (parent && !ts.isSourceFile(parent)) {
+    if (
+      ts.isJsxElement(parent) &&
+      parent.openingElement.tagName.getText(sourceFile) === "form"
+    ) {
+      return true;
+    }
+    parent = parent.parent;
+  }
+  return false;
+}
+
+function isFormSubmitControl(node, openingElement, sourceFile) {
+  const type = getLiteralAttributeValue(
+    getJsxAttribute(openingElement, sourceFile, "type"),
+  );
+  const submitType = !type || type === "submit";
+  return (
+    Boolean(getJsxAttribute(openingElement, sourceFile, "formAction")) ||
+    (submitType &&
+      (isInsideForm(node, sourceFile) ||
+        Boolean(getJsxAttribute(openingElement, sourceFile, "form"))))
+  );
+}
+
+function isSuppressionCall(expression) {
+  return (
+    ts.isCallExpression(expression) &&
+    ts.isPropertyAccessExpression(expression.expression) &&
+    ["preventDefault", "stopImmediatePropagation", "stopPropagation"].includes(
+      expression.expression.name.text,
+    )
+  );
+}
+
+function isSuppressionOnlyClickHandler(attribute) {
+  if (
+    !attribute?.initializer ||
+    !ts.isJsxExpression(attribute.initializer) ||
+    !attribute.initializer.expression ||
+    !ts.isArrowFunction(attribute.initializer.expression)
+  ) {
+    return false;
+  }
+
+  const body = attribute.initializer.expression.body;
+  if (!ts.isBlock(body)) return isSuppressionCall(body);
+  if (body.statements.length === 0) return true;
+
+  return body.statements.every((statement) => {
+    if (ts.isExpressionStatement(statement)) {
+      return isSuppressionCall(statement.expression);
+    }
+    return (
+      ts.isReturnStatement(statement) &&
+      Boolean(statement.expression && isSuppressionCall(statement.expression))
+    );
+  });
+}
+
 function inspectSource(sourceText, relativePath) {
   const sourceFile = ts.createSourceFile(
     relativePath,
@@ -380,6 +447,30 @@ function inspectSource(sourceText, relativePath) {
       );
     }
 
+    if (
+      openingElement &&
+      actionableButtonTags.has(openingElement.tagName.getText(sourceFile))
+    ) {
+      const onClick = getJsxAttribute(openingElement, sourceFile, "onClick");
+      const location = sourceFile.getLineAndCharacterOfPosition(
+        openingElement.getStart(sourceFile),
+      );
+      const tagName = openingElement.tagName.getText(sourceFile);
+
+      if (onClick && isSuppressionOnlyClickHandler(onClick)) {
+        violations.push(
+          `${relativePath}:${location.line + 1}:${location.character + 1} <${tagName}> click handler has no action beyond event suppression`,
+        );
+      } else if (
+        !onClick &&
+        !isFormSubmitControl(node, openingElement, sourceFile)
+      ) {
+        violations.push(
+          `${relativePath}:${location.line + 1}:${location.character + 1} <${tagName}> has no activation path`,
+        );
+      }
+    }
+
     ts.forEachChild(node, visit);
   }
 
@@ -390,19 +481,19 @@ function inspectSource(sourceText, relativePath) {
 const fixture = inspectSource(
   `
     <>
-      <button aria-label="Dismiss">✕</button>
-      <a>Read report</a>
-      <Link>{label}</Link>
-      <button aria-labelledby="fixture-title"><Icon /></button>
-      <button>{loading ? "…" : "Refresh"}</button>
-      <button title="Close">✕</button>
-      <button>{active ? "…" : "▶"}</button>
-      <span role="button">⚙</span>
-      <button><Icon aria-hidden="true" /></button>
-      <motion.button>Review</motion.button>
-      <ShellButton>{actionLabel}</ShellButton>
-      <motion.button>★</motion.button>
-      <ShellButton title="Close">✕</ShellButton>
+      <button aria-label="Dismiss" onClick={run}>✕</button>
+      <a href="/report">Read report</a>
+      <Link href="/report">{label}</Link>
+      <button aria-labelledby="fixture-title" onClick={run}><Icon /></button>
+      <button onClick={run}>{loading ? "…" : "Refresh"}</button>
+      <button title="Close" onClick={run}>✕</button>
+      <button onClick={run}>{active ? "…" : "▶"}</button>
+      <span role="button" onClick={run}>⚙</span>
+      <button onClick={run}><Icon aria-hidden="true" /></button>
+      <motion.button onClick={run}>Review</motion.button>
+      <ShellButton onClick={run}>{actionLabel}</ShellButton>
+      <motion.button onClick={run}>★</motion.button>
+      <ShellButton title="Close" onClick={run}>✕</ShellButton>
     </>
   `,
   "interactive-accessibility-fixture.tsx",
@@ -428,7 +519,7 @@ const pointerFixture = inspectSource(
       </div>
       <div onClick={close} style={{ position: "fixed" }} />
       <div onClick={noop} style={{ cursor: "pointer" }}>
-        <button>Nested action</button>
+        <button onClick={run}>Nested action</button>
       </div>
     </>
   `,
@@ -437,6 +528,25 @@ const pointerFixture = inspectSource(
 
 if (pointerFixture.namedCount !== 2 || pointerFixture.violations.length !== 1) {
   console.error("Pointer accessibility validator self-test failed.");
+  process.exit(1);
+}
+
+const actionFixture = inspectSource(
+  `
+    <>
+      <button type="button">Dead action</button>
+      <button onClick={(event) => event.stopPropagation()}>Snapshot</button>
+      <button onClick={run}>Run check</button>
+      <form onSubmit={save}>
+        <button type="submit">Save</button>
+      </form>
+    </>
+  `,
+  "action-accessibility-fixture.tsx",
+);
+
+if (actionFixture.namedCount !== 4 || actionFixture.violations.length !== 2) {
+  console.error("Action accessibility validator self-test failed.");
   process.exit(1);
 }
 
@@ -459,11 +569,11 @@ if (violations.length > 0) {
     console.error(`- ${violation}`);
   }
   console.error(
-    "Add meaningful visible text, a non-empty aria-label, or a non-empty aria-labelledby. Title, punctuation, emoji, and symbol-only content do not count.",
+    "Add meaningful visible text and a real activation path, or remove the control. Title, punctuation, emoji, symbol-only content, and suppression-only handlers do not count.",
   );
   process.exit(1);
 }
 
 console.log(
-  `Interactive accessibility OK (${namedCount} controls named, no definite pointer-only containers, private RPG lane excluded).`,
+  `Interactive accessibility OK (${namedCount} controls named, no definite pointer-only containers or dead button actions, private RPG lane excluded).`,
 );

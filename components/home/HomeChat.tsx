@@ -8,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import AssistantOperatorWorkflowPanel from "@/components/assistant/AssistantOperatorWorkflowPanel";
 import AssistantTurnReceipt from "@/components/assistant/AssistantTurnReceipt";
+import { toast } from "@/components/ui/Toast";
 import { buildSystemPrompt } from "@/lib/ai";
 import { runAgent, type AgentStep } from "@/lib/agent";
 import {
@@ -153,6 +154,7 @@ function DraftsPanel() {
   const clearFinalized = useStore((s) => s.clearFinalizedDrafts);
   const settings = useStore((s) => s.settings);
   const [expanded, setExpanded] = useState(false);
+  const [finalizingId, setFinalizingId] = useState<string | null>(null);
 
   const pending = pendingDrafts.filter((d) => d.status === "pending");
   const finalized = pendingDrafts.filter((d) => d.status === "finalized");
@@ -161,11 +163,18 @@ function DraftsPanel() {
 
   async function finalizeDraft(id: string, filename: string, content: string) {
     if (!settings.apiKey) {
-      alert("Add your Claude API key in Settings first.");
+      toast({
+        title: "Claude key required",
+        message:
+          "Add your Claude API key in Settings before finalizing this draft.",
+        severity: "medium",
+      });
       return;
     }
+
+    setFinalizingId(id);
     try {
-      await fetch("/api/tools", {
+      const response = await fetch("/api/tools", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -173,9 +182,23 @@ function DraftsPanel() {
           input: { filename, content },
         }),
       });
+      if (!response.ok) throw new Error("Draft finalization request failed");
+
       updateDraftStatus(id, "finalized");
+      toast({
+        title: "Draft finalized",
+        message: `${filename} was written to the workspace.`,
+        severity: "low",
+      });
     } catch {
-      alert("Failed to write file. Check your workspace.");
+      toast({
+        title: "Draft not finalized",
+        message:
+          "The write failed. Check the workspace and try this draft again.",
+        severity: "high",
+      });
+    } finally {
+      setFinalizingId(null);
     }
   }
 
@@ -268,30 +291,38 @@ function DraftsPanel() {
               </div>
               <div style={{ display: "flex", gap: "6px" }}>
                 <button
-                  onClick={() => finalizeDraft(d.id, d.filename, d.content)}
+                  onClick={() =>
+                    void finalizeDraft(d.id, d.filename, d.content)
+                  }
+                  disabled={finalizingId === d.id}
                   style={{
                     padding: "3px 8px",
                     borderRadius: "6px",
                     fontSize: "10px",
                     fontWeight: 700,
                     border: "none",
-                    cursor: "pointer",
+                    cursor: finalizingId === d.id ? "wait" : "pointer",
                     background: "var(--accent)",
                     color: "#fff",
+                    opacity: finalizingId === d.id ? 0.65 : 1,
                   }}
                 >
-                  Finalize with Claude
+                  {finalizingId === d.id
+                    ? "Finalizing…"
+                    : "Finalize with Claude"}
                 </button>
                 <button
                   onClick={() => dismissDraft(d.id)}
+                  disabled={finalizingId === d.id}
                   style={{
                     padding: "3px 8px",
                     borderRadius: "6px",
                     fontSize: "10px",
                     border: "1px solid var(--border2)",
-                    cursor: "pointer",
+                    cursor: finalizingId === d.id ? "not-allowed" : "pointer",
                     background: "transparent",
                     color: "var(--text3)",
+                    opacity: finalizingId === d.id ? 0.5 : 1,
                   }}
                 >
                   Dismiss

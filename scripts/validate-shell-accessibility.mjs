@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -37,6 +38,68 @@ const collectTsxSources = (relativeDirectory) => {
   return sources;
 };
 
+const nativeDialogNames = new Set(["alert", "confirm", "prompt"]);
+const browserGlobalNames = new Set(["globalThis", "self", "window"]);
+
+const getNativeDialogName = (expression) => {
+  if (ts.isIdentifier(expression) && nativeDialogNames.has(expression.text)) {
+    return expression.text;
+  }
+
+  if (
+    ts.isPropertyAccessExpression(expression) &&
+    ts.isIdentifier(expression.expression) &&
+    browserGlobalNames.has(expression.expression.text) &&
+    nativeDialogNames.has(expression.name.text)
+  ) {
+    return expression.name.text;
+  }
+
+  if (
+    ts.isElementAccessExpression(expression) &&
+    ts.isIdentifier(expression.expression) &&
+    browserGlobalNames.has(expression.expression.text) &&
+    expression.argumentExpression &&
+    ts.isStringLiteralLike(expression.argumentExpression) &&
+    nativeDialogNames.has(expression.argumentExpression.text)
+  ) {
+    return expression.argumentExpression.text;
+  }
+
+  return null;
+};
+
+const findNativeDialogCalls = (source, relativePath) => {
+  const sourceFile = ts.createSourceFile(
+    relativePath,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const calls = [];
+
+  const visit = (node) => {
+    if (ts.isCallExpression(node)) {
+      const name = getNativeDialogName(node.expression);
+      if (name) {
+        const location = sourceFile.getLineAndCharacterOfPosition(
+          node.getStart(sourceFile),
+        );
+        calls.push({
+          name,
+          line: location.line + 1,
+          column: location.character + 1,
+        });
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+  return calls;
+};
+
 const chrome = read("components/ui/RootLayoutChrome.tsx");
 const landing = read("components/landing/LandingPage.tsx");
 const nav = read("components/nav/Nav.tsx");
@@ -55,6 +118,7 @@ const toast = read("components/ui/Toast.tsx");
 const notificationToastBridge = read(
   "components/ui/NotificationToastBridge.tsx",
 );
+const homeChat = read("components/home/HomeChat.tsx");
 const actionDialogHook = read("hooks/useActionDialog.ts");
 const actionDialog = read("components/ui/ActionDialog.tsx");
 const trustOperations = read("components/ui/TrustOperationsRail.tsx");
@@ -337,6 +401,18 @@ if (
 }
 
 for (const text of [
+  'import { toast } from "@/components/ui/Toast"',
+  'const response = await fetch("/api/tools", {',
+  "if (!response.ok)",
+  'title: "Claude key required"',
+  'title: "Draft finalized"',
+  'title: "Draft not finalized"',
+  "disabled={finalizingId === d.id}",
+]) {
+  requireText(homeChat, text, "HomeChat draft finalization feedback");
+}
+
+for (const text of [
   "export function useActionDialog",
   "new Promise<boolean>",
   "previousResolver?.(false)",
@@ -403,20 +479,36 @@ for (const [label, source] of [
   requireText(source, 'aria-live="polite"', label);
 }
 
+const nativeDialogFixtureCalls = findNativeDialogCalls(
+  `
+    alert("notice");
+    confirm("continue?");
+    prompt("token");
+    window.alert("notice");
+    globalThis.confirm("continue?");
+    self["prompt"]("token");
+    notifier.alert("allowed component method");
+  `,
+  "native-dialog-fixture.tsx",
+);
+if (
+  nativeDialogFixtureCalls.length !== 6 ||
+  nativeDialogFixtureCalls.map((call) => call.name).join(",") !==
+    "alert,confirm,prompt,alert,confirm,prompt"
+) {
+  errors.push(
+    "native browser dialog: AST self-test must detect bare and explicitly global calls without rejecting component methods",
+  );
+}
+
 for (const { relativePath, source } of [
   ...collectTsxSources("app"),
   ...collectTsxSources("components"),
 ]) {
-  for (const nativeCall of [
-    "window.alert(",
-    "window.confirm(",
-    "window.prompt(",
-  ]) {
-    if (source.includes(nativeCall)) {
-      errors.push(
-        `native browser dialog: ${relativePath} still contains ${nativeCall}`,
-      );
-    }
+  for (const call of findNativeDialogCalls(source, relativePath)) {
+    errors.push(
+      `native browser dialog: ${relativePath}:${call.line}:${call.column} still calls ${call.name}()`,
+    );
   }
 }
 

@@ -59,7 +59,10 @@ export default function ProviderHealthStrip({
         </div>
       ) : null}
       {loadError ? (
-        <div className="mt-2 text-[10px] leading-5 text-[var(--text3)]">
+        <div
+          role="alert"
+          className="mt-2 text-[10px] leading-5 text-[var(--text3)]"
+        >
           {loadError}
         </div>
       ) : null}

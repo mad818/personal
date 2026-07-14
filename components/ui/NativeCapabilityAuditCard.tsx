@@ -254,6 +254,7 @@ export default function NativeCapabilityAuditCard({
         resolvedSurfaceId === "recon" ||
         resolvedSurfaceId === "resources") ? (
         <SurfaceCallout
+          role="alert"
           tone="warning"
           compact
           icon="↺"

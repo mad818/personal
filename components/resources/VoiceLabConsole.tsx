@@ -356,6 +356,7 @@ export default function VoiceLabConsole({
 
       {loadError ? (
         <SurfaceCallout
+          role="alert"
           tone="warning"
           compact
           icon="↺"

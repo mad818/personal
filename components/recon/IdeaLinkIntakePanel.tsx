@@ -133,7 +133,10 @@ export default function IdeaLinkIntakePanel() {
       </div>
 
       {message ? (
-        <div style={{ fontSize: "11px", color: status === "error" ? "#f87171" : "#86efac" }}>
+        <div
+          role={status === "error" ? "alert" : "status"}
+          style={{ fontSize: "11px", color: status === "error" ? "#f87171" : "#86efac" }}
+        >
           {message}
         </div>
       ) : null}

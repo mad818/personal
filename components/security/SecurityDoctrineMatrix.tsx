@@ -152,7 +152,9 @@ export default function SecurityDoctrineMatrix({ initialSource = "all" }: Props)
 
       <InternalWorkbenchNotice meta={scenarioMeta ?? runMeta} compact />
       {loadError ? (
-        <div style={{ fontSize: "11px", color: "var(--text3)" }}>{loadError}</div>
+        <div role="alert" style={{ fontSize: "11px", color: "var(--text3)" }}>
+          {loadError}
+        </div>
       ) : null}
 
       <div

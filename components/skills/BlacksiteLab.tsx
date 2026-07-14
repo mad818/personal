@@ -298,6 +298,7 @@ export default function BlacksiteLab() {
           {error ? (
             <div style={{ marginTop: "10px" }}>
               <SurfaceCallout
+                role="alert"
                 tone="warning"
                 compact
                 icon="↺"
@@ -442,6 +443,7 @@ export default function BlacksiteLab() {
           {experimentError ? (
             <div style={{ marginTop: "10px" }}>
               <SurfaceCallout
+                role="alert"
                 tone="warning"
                 compact
                 icon="↺"

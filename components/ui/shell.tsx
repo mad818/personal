@@ -2134,12 +2134,15 @@ export function SectionLabel({
 export function ShellBadge({
   children,
   tone = "default",
+  role,
 }: {
   children: ReactNode;
   tone?: "default" | "success" | "accent" | "muted";
+  role?: "alert" | "status";
 }) {
   return (
     <span
+      role={role}
       className={cn(
         "nexus-shell-badge",
         tone !== "default" && `nexus-shell-badge--${tone}`,

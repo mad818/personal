@@ -50,6 +50,7 @@ export default function BrowserOpsReadinessCard() {
 
         {loadError ? (
           <SurfaceCallout
+            role="alert"
             tone="warning"
             compact
             icon="↺"

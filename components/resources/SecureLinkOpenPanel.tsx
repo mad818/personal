@@ -525,7 +525,11 @@ export default function SecureLinkOpenPanel({
                   ? "Save failed"
                   : "Local shelf"}
           </ShellBadge>
-          {message ? <ShellBadge tone="accent">{message}</ShellBadge> : null}
+          {message ? (
+            <ShellBadge role="status" tone="accent">
+              {message}
+            </ShellBadge>
+          ) : null}
         </div>
 
         <p

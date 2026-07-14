@@ -39,6 +39,7 @@ const interactiveRoles = new Set([
 ]);
 const privateRpgPrefix = "components/home/arpg/";
 const meaningfulTextPattern = /[\p{L}\p{N}]/u;
+const feedbackIdentifierPattern = /(?:error|message|msg|status)$/i;
 
 function collectTsxFiles(relativeDirectory) {
   const files = [];
@@ -450,6 +451,105 @@ function isSuppressionOnlyClickHandler(attribute) {
   });
 }
 
+function collectFeedbackIdentifierNames(node) {
+  const names = new Set();
+
+  function visit(descendant) {
+    if (
+      ts.isIdentifier(descendant) &&
+      feedbackIdentifierPattern.test(descendant.text) &&
+      descendant.text.toLowerCase() !== "status" &&
+      !(
+        ts.isPropertyAccessExpression(descendant.parent) &&
+        descendant.parent.name === descendant
+      )
+    ) {
+      names.add(descendant.text);
+    }
+    ts.forEachChild(descendant, visit);
+  }
+
+  visit(node);
+  return names;
+}
+
+function findRenderedFeedbackIdentifiers(node, names) {
+  const matches = [];
+
+  function visit(descendant) {
+    if (
+      ts.isIdentifier(descendant) &&
+      names.has(descendant.text) &&
+      ts.isJsxExpression(descendant.parent) &&
+      descendant.parent.expression === descendant
+    ) {
+      matches.push(descendant);
+      return;
+    }
+    ts.forEachChild(descendant, visit);
+  }
+
+  visit(node);
+  return matches;
+}
+
+function getLiveRegionKind(openingElement, sourceFile) {
+  const roleAttribute = getJsxAttribute(openingElement, sourceFile, "role");
+  if (roleAttribute?.initializer) {
+    if (ts.isStringLiteral(roleAttribute.initializer)) {
+      if (roleAttribute.initializer.text === "alert") return "alert";
+      if (roleAttribute.initializer.text === "status") return "status";
+    } else if (
+      ts.isJsxExpression(roleAttribute.initializer) &&
+      roleAttribute.initializer.expression
+    ) {
+      return "dynamic";
+    }
+  }
+
+  const liveAttribute = getJsxAttribute(
+    openingElement,
+    sourceFile,
+    "aria-live",
+  );
+  if (liveAttribute?.initializer) {
+    if (ts.isStringLiteral(liveAttribute.initializer)) {
+      if (liveAttribute.initializer.text === "assertive") return "alert";
+      if (liveAttribute.initializer.text === "polite") return "status";
+    } else if (
+      ts.isJsxExpression(liveAttribute.initializer) &&
+      liveAttribute.initializer.expression
+    ) {
+      return "dynamic";
+    }
+  }
+
+  return null;
+}
+
+function isFeedbackIdentifierAnnounced(
+  identifier,
+  branch,
+  sourceFile,
+  expectedKind,
+) {
+  for (
+    let parent = identifier.parent;
+    parent && parent !== branch.parent;
+    parent = parent.parent
+  ) {
+    const openingElement = ts.isJsxElement(parent)
+      ? parent.openingElement
+      : ts.isJsxSelfClosingElement(parent)
+        ? parent
+        : null;
+    if (!openingElement) continue;
+    const kind = getLiveRegionKind(openingElement, sourceFile);
+    if (kind === expectedKind || kind === "dynamic") return true;
+  }
+  return false;
+}
+
 function inspectSource(sourceText, relativePath) {
   const sourceFile = ts.createSourceFile(
     relativePath,
@@ -461,6 +561,7 @@ function inspectSource(sourceText, relativePath) {
   const violations = [];
   let namedCount = 0;
   let fileInputCount = 0;
+  let feedbackCount = 0;
   const callableDeclarations = new Map();
 
   function collectCallableDeclarations(node) {
@@ -588,11 +689,53 @@ function inspectSource(sourceText, relativePath) {
       }
     }
 
+    if (
+      ts.isConditionalExpression(node) ||
+      (ts.isBinaryExpression(node) &&
+        node.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken)
+    ) {
+      const condition = ts.isConditionalExpression(node)
+        ? node.condition
+        : node.left;
+      const branches = ts.isConditionalExpression(node)
+        ? [node.whenTrue, node.whenFalse]
+        : [node.right];
+      const feedbackNames = collectFeedbackIdentifierNames(condition);
+
+      for (const branch of branches) {
+        for (const identifier of findRenderedFeedbackIdentifiers(
+          branch,
+          feedbackNames,
+        )) {
+          feedbackCount += 1;
+          const expectedKind = /error$/i.test(identifier.text)
+            ? "alert"
+            : "status";
+          if (
+            isFeedbackIdentifierAnnounced(
+              identifier,
+              branch,
+              sourceFile,
+              expectedKind,
+            )
+          ) {
+            continue;
+          }
+          const location = sourceFile.getLineAndCharacterOfPosition(
+            identifier.getStart(sourceFile),
+          );
+          violations.push(
+            `${relativePath}:${location.line + 1}:${location.character + 1} ${identifier.text} feedback is not wrapped in role="${expectedKind}" or equivalent live-region semantics`,
+          );
+        }
+      }
+    }
+
     ts.forEachChild(node, visit);
   }
 
   visit(sourceFile);
-  return { violations, namedCount, fileInputCount };
+  return { violations, namedCount, fileInputCount, feedbackCount };
 }
 
 const fixture = inspectSource(
@@ -694,10 +837,37 @@ if (
   process.exit(1);
 }
 
+const feedbackFixture = inspectSource(
+  `
+    <>
+      {loadError ? <div>{loadError}</div> : null}
+      {message && <span>{message}</span>}
+      {loadError ? <SurfaceCallout role="alert" description={loadError} /> : null}
+      {message ? <div role="status">{message}</div> : null}
+      {message ? (
+        <div role={status === "error" ? "alert" : "status"}>{message}</div>
+      ) : null}
+      {phoneAcceptanceStatus ? (
+        <div>{phoneAcceptanceStatus.items.map(renderItem)}</div>
+      ) : null}
+    </>
+  `,
+  "live-feedback-accessibility-fixture.tsx",
+);
+
+if (
+  feedbackFixture.feedbackCount !== 5 ||
+  feedbackFixture.violations.length !== 2
+) {
+  console.error("Live-feedback accessibility validator self-test failed.");
+  process.exit(1);
+}
+
 const files = [...collectTsxFiles("app"), ...collectTsxFiles("components")];
 const violations = [];
 let namedCount = 0;
 let fileInputCount = 0;
+let feedbackCount = 0;
 
 for (const file of files) {
   const result = inspectSource(
@@ -707,6 +877,7 @@ for (const file of files) {
   violations.push(...result.violations);
   namedCount += result.namedCount;
   fileInputCount += result.fileInputCount;
+  feedbackCount += result.feedbackCount;
 }
 
 if (violations.length > 0) {
@@ -721,5 +892,5 @@ if (violations.length > 0) {
 }
 
 console.log(
-  `Interactive accessibility OK (${namedCount} controls named, ${fileInputCount} file inputs retryable, no definite pointer-only containers or dead button actions, private RPG lane excluded).`,
+  `Interactive accessibility OK (${namedCount} controls named, ${fileInputCount} file inputs retryable, ${feedbackCount} live feedback branches announced, no definite pointer-only containers or dead button actions, private RPG lane excluded).`,
 );

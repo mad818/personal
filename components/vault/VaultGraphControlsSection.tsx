@@ -74,7 +74,11 @@ export default function VaultGraphControlsSection({
       >
         <ShellBadge tone="accent">{nodeCount} visible nodes</ShellBadge>
         <ShellBadge tone="muted">{activeGraphViewLabel}</ShellBadge>
-        {graphViewMsg ? <ShellBadge tone="muted">{graphViewMsg}</ShellBadge> : null}
+        {graphViewMsg ? (
+          <ShellBadge role="status" tone="muted">
+            {graphViewMsg}
+          </ShellBadge>
+        ) : null}
         <ShellBadge tone="muted">{edgeCount} visible edges</ShellBadge>
         <ShellBadge tone="muted">{clusterCount} clusters</ShellBadge>
         <ShellBadge tone="muted">{orphanCount} orphans</ShellBadge>

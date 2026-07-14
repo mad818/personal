@@ -479,6 +479,7 @@ export default function FlightTracker() {
       {/* Error */}
       {error && (
         <div
+          role="alert"
           style={{
             padding: "12px",
             background: "var(--surf2)",

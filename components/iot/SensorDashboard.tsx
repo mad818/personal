@@ -563,6 +563,7 @@ export default function SensorDashboard() {
 
       {mqttStreamError ? (
         <div
+          role="alert"
           style={{
             marginBottom: "10px",
             fontSize: "11px",

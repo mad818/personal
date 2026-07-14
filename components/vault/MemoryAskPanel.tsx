@@ -260,7 +260,14 @@ export default function MemoryAskPanel({
       {loading ? <SurfaceSkeletonRows rows={4} height={36} /> : null}
 
       {error ? (
-        <SurfaceCallout tone="warning" compact icon="AlertTriangle" title="Memory ask blocked" description={error} />
+        <SurfaceCallout
+          role="alert"
+          tone="warning"
+          compact
+          icon="AlertTriangle"
+          title="Memory ask blocked"
+          description={error}
+        />
       ) : null}
 
       {!loading && !error && !result ? (

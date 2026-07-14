@@ -294,6 +294,7 @@ export default function OperatorReadinessLane({
 
       {readinessError && !loading ? (
         <SurfaceCallout
+          role="alert"
           tone="warning"
           compact
           icon="↺"

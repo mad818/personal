@@ -979,7 +979,11 @@ export default function MediaEscapeLibrary({
                     ? "Save failed"
                     : "Local file"}
             </ShellBadge>
-            {message ? <ShellBadge tone="accent">{message}</ShellBadge> : null}
+            {message ? (
+              <ShellBadge role="status" tone="accent">
+                {message}
+              </ShellBadge>
+            ) : null}
             {coverUploadStatus !== "idle" ? (
               <ShellBadge
                 tone={

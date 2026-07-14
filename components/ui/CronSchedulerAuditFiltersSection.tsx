@@ -140,7 +140,9 @@ export default function CronSchedulerAuditFiltersSection({
         ) : null}
       </div>
       {auditMsg ? (
-        <div style={{ color: "#9fb7ff", fontSize: 10 }}>{auditMsg}</div>
+        <div role="status" style={{ color: "#9fb7ff", fontSize: 10 }}>
+          {auditMsg}
+        </div>
       ) : null}
     </>
   );

@@ -97,6 +97,7 @@ export default function ForecastLabCard() {
         />
         {loadError ? (
           <SurfaceCallout
+            role="alert"
             tone="warning"
             compact
             icon="↺"
@@ -214,12 +215,15 @@ export default function ForecastLabCard() {
           {running ? "Calibrating…" : "Run baseline eval"}
         </button>
         {runMsg ? (
-          <span className="text-[10px] text-[var(--text3)]">{runMsg}</span>
+          <span role="status" className="text-[10px] text-[var(--text3)]">
+            {runMsg}
+          </span>
         ) : null}
       </div>
 
       {loadError ? (
         <SurfaceCallout
+          role="alert"
           tone="warning"
           compact
           icon="↺"

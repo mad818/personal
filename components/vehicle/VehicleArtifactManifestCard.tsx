@@ -916,6 +916,7 @@ export default function VehicleArtifactManifestCard() {
 
         {importError ? (
           <div
+            role="alert"
             style={{
               borderRadius: "10px",
               border: "1px solid rgba(239,68,68,0.3)",

@@ -237,7 +237,9 @@ export default function DocumentIntakePanel() {
       </div>
 
       {statusMsg ? (
-        <div style={{ fontSize: "11px", color: "var(--text2)" }}>{statusMsg}</div>
+        <div role="status" style={{ fontSize: "11px", color: "var(--text2)" }}>
+          {statusMsg}
+        </div>
       ) : null}
     </div>
   );

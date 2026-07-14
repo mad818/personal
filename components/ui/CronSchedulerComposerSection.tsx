@@ -371,7 +371,11 @@ export default function CronSchedulerComposerSection({
           fontFamily: "monospace",
         }}
       />
-      {error ? <div style={{ color: "#ef4444", fontSize: 11 }}>{error}</div> : null}
+      {error ? (
+        <div role="alert" style={{ color: "#ef4444", fontSize: 11 }}>
+          {error}
+        </div>
+      ) : null}
     </div>
   );
 }

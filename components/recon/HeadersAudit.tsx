@@ -245,6 +245,7 @@ export default function HeadersAudit() {
 
       {error && (
         <div
+          role="alert"
           style={{
             color: "var(--flo)",
             fontSize: "12px",

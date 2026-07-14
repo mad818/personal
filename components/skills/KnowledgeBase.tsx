@@ -902,6 +902,7 @@ export default function KnowledgeBase() {
       <AnimatePresence>
         {importStatus && (
           <motion.div
+            role="status"
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}

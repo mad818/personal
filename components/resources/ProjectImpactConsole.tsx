@@ -408,6 +408,7 @@ export default function ProjectImpactConsole({
 
       {loadError ? (
         <SurfaceCallout
+          role="alert"
           tone="warning"
           compact
           icon="↺"

@@ -361,6 +361,7 @@ export function DroneCompliancePanel() {
 
       {error ? (
         <SurfaceCallout
+          role="alert"
           tone={hasRetainedResult ? "warning" : "critical"}
           compact
           icon={hasRetainedResult ? "↺" : "!"}

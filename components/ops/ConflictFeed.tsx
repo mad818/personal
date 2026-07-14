@@ -284,6 +284,7 @@ export default function ConflictFeed({
 
       {error && (
         <div
+          role="alert"
           style={{ color: "var(--flo)", fontSize: "12px", marginBottom: "8px" }}
         >
           {error}

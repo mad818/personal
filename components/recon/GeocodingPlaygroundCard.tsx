@@ -140,7 +140,9 @@ export default function GeocodingPlaygroundCard() {
       </div>
 
       {message ? (
-        <div style={{ fontSize: "10px", color: "var(--text3)" }}>{message}</div>
+        <div role="status" style={{ fontSize: "10px", color: "var(--text3)" }}>
+          {message}
+        </div>
       ) : null}
 
       {results.length > 0 ? (

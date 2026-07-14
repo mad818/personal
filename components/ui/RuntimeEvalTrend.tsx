@@ -614,7 +614,7 @@ export default function RuntimeEvalTrend() {
               Open Status
             </button>
             {runMsg && (
-              <span style={{ fontSize: 10, color: "var(--text3)" }}>
+              <span role="status" style={{ fontSize: 10, color: "var(--text3)" }}>
                 {runMsg}
               </span>
             )}

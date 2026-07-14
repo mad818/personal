@@ -315,7 +315,11 @@ export default function EscapeAccessBackupPanel({
                   ? "Save failed"
                   : "Local source of truth"}
           </ShellBadge>
-          {message ? <ShellBadge tone="accent">{message}</ShellBadge> : null}
+          {message ? (
+            <ShellBadge role="status" tone="accent">
+              {message}
+            </ShellBadge>
+          ) : null}
         </div>
         <p
           style={{

@@ -930,7 +930,10 @@ export default function FreeLocalReadinessPanel({
         </div>
 
         {loadError ? (
-          <div className="rounded-xl border border-amber-300/25 bg-amber-300/[0.06] px-3 py-2 text-xs leading-5 text-[var(--text2)]">
+          <div
+            role="alert"
+            className="rounded-xl border border-amber-300/25 bg-amber-300/[0.06] px-3 py-2 text-xs leading-5 text-[var(--text2)]"
+          >
             {loadError}
           </div>
         ) : null}

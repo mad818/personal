@@ -79,7 +79,9 @@ export default function PapersResearchPanel() {
         </button>
       </div>
       {message ? (
-        <div style={{ fontSize: "10px", color: "var(--text3)" }}>{message}</div>
+        <div role="status" style={{ fontSize: "10px", color: "var(--text3)" }}>
+          {message}
+        </div>
       ) : null}
       {papers.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>

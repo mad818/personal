@@ -218,7 +218,10 @@ export default function CVEFeed() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
       {cveFetchError ? (
-        <div style={{ fontSize: "11px", color: "var(--flo)", lineHeight: 1.5 }}>
+        <div
+          role="alert"
+          style={{ fontSize: "11px", color: "var(--flo)", lineHeight: 1.5 }}
+        >
           {cveFetchError}
         </div>
       ) : null}

@@ -524,7 +524,10 @@ export default function RepoIntelPanel() {
       </div>
 
       {error ? (
-        <div style={{ fontSize: "11px", color: "var(--flo)", lineHeight: 1.5 }}>
+        <div
+          role="alert"
+          style={{ fontSize: "11px", color: "var(--flo)", lineHeight: 1.5 }}
+        >
           {error}
         </div>
       ) : null}
@@ -536,7 +539,10 @@ export default function RepoIntelPanel() {
       ) : null}
 
       {assimilationError ? (
-        <div style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}>
+        <div
+          role="alert"
+          style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}
+        >
           {assimilationError}
         </div>
       ) : null}

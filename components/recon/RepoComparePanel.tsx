@@ -390,7 +390,10 @@ export default function RepoComparePanel({
       </div>
 
       {compareError ? (
-        <div style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}>
+        <div
+          role="alert"
+          style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}
+        >
           {compareError}
         </div>
       ) : null}

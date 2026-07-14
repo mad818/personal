@@ -262,7 +262,9 @@ export default function MQTTStatus() {
         {connected ? "LIVE" : "OFFLINE"}
       </span>
       {streamError ? (
-        <span style={{ fontSize: "9px", color: "var(--text3)" }}>{streamError}</span>
+        <span role="alert" style={{ fontSize: "9px", color: "var(--text3)" }}>
+          {streamError}
+        </span>
       ) : null}
     </div>
   );

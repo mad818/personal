@@ -114,6 +114,7 @@ export default function SweepEnginePanel() {
 
       {error ? (
         <p
+          role="alert"
           style={{
             margin: 0,
             padding: "10px 12px",

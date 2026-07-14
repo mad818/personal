@@ -362,7 +362,9 @@ export function VaultLibrarianPanel({
           </div>
 
           {synthError && (
-            <div style={{ color: "var(--flo)", fontSize: "11px" }}>{synthError}</div>
+            <div role="alert" style={{ color: "var(--flo)", fontSize: "11px" }}>
+              {synthError}
+            </div>
           )}
 
           <ActionSessionCluster
@@ -481,7 +483,10 @@ export function VaultLibrarianPanel({
               DURABLE AUDIT BRIEF
             </div>
             {auditPagesError ? (
-              <div style={{ fontSize: "11px", color: "var(--flo)", lineHeight: 1.5, marginBottom: "6px" }}>
+              <div
+                role="alert"
+                style={{ fontSize: "11px", color: "var(--flo)", lineHeight: 1.5, marginBottom: "6px" }}
+              >
                 {auditPagesError}
               </div>
             ) : null}

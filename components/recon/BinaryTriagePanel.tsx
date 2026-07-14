@@ -326,7 +326,11 @@ export default function BinaryTriagePanel() {
         </SurfaceCallout>
       ) : null}
 
-      {error ? <SurfaceCallout tone="warning" compact>{error}</SurfaceCallout> : null}
+      {error ? (
+        <SurfaceCallout role="alert" tone="warning" compact>
+          {error}
+        </SurfaceCallout>
+      ) : null}
 
       {report ? (
         <>
@@ -413,10 +417,12 @@ export default function BinaryTriagePanel() {
             </div>
 
             {copyStatus ? (
-              <div style={{ fontSize: "11px", color: "var(--text3)" }}>{copyStatus}</div>
+              <div role="status" style={{ fontSize: "11px", color: "var(--text3)" }}>
+                {copyStatus}
+              </div>
             ) : null}
             {vaultStatus === "error" ? (
-              <div style={{ fontSize: "11px", color: "var(--flo)" }}>
+              <div role="alert" style={{ fontSize: "11px", color: "var(--flo)" }}>
                 Vault filing failed. The triage report stayed local to this browser session.
               </div>
             ) : null}

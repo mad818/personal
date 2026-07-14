@@ -209,7 +209,10 @@ export default function RuntimeEfficiencyCard({
                   Copy summary
                 </button>
                 {copyMsg ? (
-                  <span className="text-[10px] text-[var(--text3)]">
+                  <span
+                    role="status"
+                    className="text-[10px] text-[var(--text3)]"
+                  >
                     {copyMsg}
                   </span>
                 ) : null}

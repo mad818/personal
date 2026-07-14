@@ -108,6 +108,7 @@ export default function EfficiencyOpsCard() {
 
           {loadError && !loading ? (
             <SurfaceCallout
+              role="alert"
               tone="warning"
               compact
               icon="↺"

@@ -248,7 +248,10 @@ export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelPro
               ))}
             </div>
             {error ? (
-              <div style={{ marginTop: "12px", fontSize: "11px", color: "var(--text3)" }}>
+              <div
+                role="alert"
+                style={{ marginTop: "12px", fontSize: "11px", color: "var(--text3)" }}
+              >
                 {error}
               </div>
             ) : null}

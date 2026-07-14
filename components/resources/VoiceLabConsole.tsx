@@ -95,7 +95,6 @@ export default function VoiceLabConsole({
   const [loadError, setLoadError] = useState("");
   const [draftTitle, setDraftTitle] = useState("Command briefing");
   const [draftText, setDraftText] = useState("");
-  const [creating, setCreating] = useState(false);
   const [rendering, setRendering] = useState(false);
   const [projectDraft, setProjectDraft] = useState("");
   const [effectPreset, setEffectPreset] = useState<VoiceEffectPreset>("briefing");
@@ -196,37 +195,22 @@ export default function VoiceLabConsole({
     [engine, voiceProfiles],
   );
 
-  const handleCreateProject = async () => {
+  const handleCreateProject = () => {
     const text = draftText.trim();
     if (!text) return;
-    setCreating(true);
-    try {
-      const baseProject = buildVoiceProjectFromText({
-        title: draftTitle,
-        text,
-        effectPreset,
-        engine,
-        voiceProfileId: preferredProfileId,
-      });
-      const response = await apiFetch("/api/voice/projects", {
-        method: "POST",
-        body: JSON.stringify(baseProject),
-      });
-      const payload = (await response.json().catch(() => null)) as {
-        project?: VoiceProject;
-      } | null;
-      const normalized = normalizeVoiceProjectInput(payload?.project ?? baseProject);
-      upsertVoiceProject(normalized);
-      setActiveVoiceProjectId(normalized.id);
-      syncVoiceProjectParam(normalized.id);
-      setDraftText("");
-      setDraftTitle("Command briefing");
-      setLoadError("");
-    } catch {
-      setLoadError("Voice project creation is temporarily unavailable.");
-    } finally {
-      setCreating(false);
-    }
+    const project = buildVoiceProjectFromText({
+      title: draftTitle,
+      text,
+      effectPreset,
+      engine,
+      voiceProfileId: preferredProfileId,
+    });
+    upsertVoiceProject(project);
+    setActiveVoiceProjectId(project.id);
+    syncVoiceProjectParam(project.id);
+    setDraftText("");
+    setDraftTitle("Command briefing");
+    setLoadError("");
   };
 
   const handleSaveProject = async () => {
@@ -306,25 +290,14 @@ export default function VoiceLabConsole({
     }
   };
 
-  const handleAddProfile = async (source: "browser" | "clone") => {
-    const baseProfile = normalizeVoiceProfileInput({
+  const handleAddProfile = (source: "browser" | "clone") => {
+    const profile = normalizeVoiceProfileInput({
       name: source === "browser" ? "Browser fallback" : "Runtime clone slot",
       engine: source === "browser" ? "browser" : "local-runtime",
       source,
       effectPreset: source === "browser" ? "clean" : "warm",
     });
-    try {
-      const response = await apiFetch("/api/voice/profiles", {
-        method: "POST",
-        body: JSON.stringify(baseProfile),
-      });
-      const payload = (await response.json().catch(() => null)) as {
-        profile?: VoiceProfile;
-      } | null;
-      upsertVoiceProfile(normalizeVoiceProfileInput(payload?.profile ?? baseProfile));
-    } catch {
-      upsertVoiceProfile(baseProfile);
-    }
+    upsertVoiceProfile(profile);
   };
 
   const handleSelectProject = (nextProjectId: string) => {
@@ -403,10 +376,10 @@ export default function VoiceLabConsole({
             Voice profiles
           </SectionLabel>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <button type="button" style={buttonStyle()} onClick={() => void handleAddProfile("browser")}>
+            <button type="button" style={buttonStyle()} onClick={() => handleAddProfile("browser")}>
               Add browser fallback
             </button>
-            <button type="button" style={buttonStyle()} onClick={() => void handleAddProfile("clone")}>
+            <button type="button" style={buttonStyle()} onClick={() => handleAddProfile("clone")}>
               Add clone slot
             </button>
           </div>
@@ -485,8 +458,8 @@ export default function VoiceLabConsole({
                 </option>
               ))}
             </select>
-            <button type="button" style={buttonStyle(creating)} onClick={() => void handleCreateProject()}>
-              {creating ? "Creating..." : "Create project"}
+            <button type="button" style={buttonStyle()} onClick={handleCreateProject}>
+              Create project
             </button>
             {draftText.trim() ? <SpeakButton text={draftText} size="md" /> : null}
           </div>

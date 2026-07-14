@@ -95,6 +95,7 @@ export default function SecondBrainNightShiftWorkbench() {
           text: captureText,
         }),
       });
+      if (!response.ok) throw new Error(`Capture failed (${response.status}).`);
       const result = await readJson<{ capture: { filename: string } }>(response);
       setTitle("");
       setSourceUrl("");
@@ -132,6 +133,7 @@ export default function SecondBrainNightShiftWorkbench() {
         method: "POST",
         body: JSON.stringify({ action, proposalId: selected.id }),
       });
+      if (!response.ok) throw new Error(`Decision failed (${response.status}).`);
       if (action === "approve") {
         const result = await readJson<{
           promoted: { atoms: number; threads: number; briefings: number };
@@ -153,6 +155,7 @@ export default function SecondBrainNightShiftWorkbench() {
         method: "POST",
         body: JSON.stringify({ action: "audit" }),
       });
+      if (!response.ok) throw new Error(`Audit failed (${response.status}).`);
       const result = await readJson<{
         audit: { filename: string; findings: number; reportOnly: true };
       }>(response);

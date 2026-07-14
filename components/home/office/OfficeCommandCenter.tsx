@@ -18,6 +18,7 @@ import PageTransition from "@/components/ui/PageTransition";
 import MemoryPanel from "@/components/ui/MemoryPanel";
 import CronSchedulerPanel from "@/components/ui/CronSchedulerPanel";
 import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
+import { toast } from "@/components/ui/Toast";
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
 import { usePhonePosture } from "@/hooks/usePhonePosture";
@@ -458,6 +459,7 @@ export default function OfficeCommandCenter() {
     text: string;
     agent: string;
   } | null>(null);
+  const [loggingLesson, setLoggingLesson] = useState(false);
   const [pendingCorrectionId, setPendingCorrectionId] = useState<string | null>(
     null,
   );
@@ -2319,6 +2321,7 @@ export default function OfficeCommandCenter() {
                     activeColor={activeColor}
                     liveSteps={liveSteps}
                     pendingLesson={pendingLesson}
+                    lessonLogging={loggingLesson}
                     pendingCorrection={pendingCorrection}
                     input={input}
                     surfaceMotionProfile={surfaceMotionProfile}
@@ -2347,23 +2350,42 @@ export default function OfficeCommandCenter() {
                     onUseCouncilResult={(result) =>
                       setInput(buildCouncilAdoptDraft(result))
                     }
-                    onLogLesson={() => {
-                      if (!pendingLesson) return;
-                      apiFetch("/api/tools", {
-                        method: "POST",
-                        body: JSON.stringify({
-                          tool: "log_lesson",
-                          input: {
-                            agent: pendingLesson.agent,
-                            lesson: pendingLesson.text,
-                          },
-                        }),
-                      }).catch(() => {
-                        /* non-fatal */
-                      });
-                      setPendingLesson(null);
+                    onLogLesson={async () => {
+                      if (!pendingLesson || loggingLesson) return;
+                      setLoggingLesson(true);
+                      try {
+                        const response = await apiFetch("/api/tools", {
+                          method: "POST",
+                          body: JSON.stringify({
+                            tool: "log_lesson",
+                            input: {
+                              agent: pendingLesson.agent,
+                              lesson: pendingLesson.text,
+                            },
+                          }),
+                        });
+                        if (!response.ok) {
+                          throw new Error(`Lesson logging failed (${response.status}).`);
+                        }
+                        setPendingLesson(null);
+                        toast({
+                          title: "Lesson logged",
+                          message: "The approved lesson is now in the local lesson log.",
+                          severity: "low",
+                        });
+                      } catch {
+                        toast({
+                          title: "Lesson not logged",
+                          message: "The proposal is still pending. Check the tools route and retry.",
+                          severity: "medium",
+                        });
+                      } finally {
+                        setLoggingLesson(false);
+                      }
                     }}
-                    onDismissLesson={() => setPendingLesson(null)}
+                    onDismissLesson={() => {
+                      if (!loggingLesson) setPendingLesson(null);
+                    }}
                     onApproveCorrection={() => {
                       if (!pendingCorrection) return;
                       approveCorrectionMemory(pendingCorrection.id);

@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useStore } from "@/store/useStore";
 import type { AgentId } from "@/components/home/office/types";
 import { apiFetch } from "@/lib/apiFetch";
+import { toast } from "@/components/ui/Toast";
 import { toggleSavedArticleWithIndex } from "@/lib/articleReasoningQueue";
 import {
   detectMemoryVisibility,
@@ -50,6 +51,7 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
   const savedArticles = useStore((s) => s.savedArticles);
   const [open, setOpen]   = useState(false);
   const [done, setDone]   = useState(false);
+  const [saving, setSaving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [compiledPages, setCompiledPages] = useState<CompiledMemoryPageSummary[]>([]);
 
@@ -240,37 +242,50 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
     );
   }
 
-  const confirm = () => {
-    toggleSavedArticleWithIndex({
-      id:    `filed-${Date.now()}-${agentId}`,
-      title: previewItem.title,
-      desc:  previewItem.summary,
-      link:  "",
-      date:  new Date().toISOString(),
-      tags:  previewItem.tags,
-      cat:   previewDomain,
-      archiveLinks: suggestedArchiveLinks,
-    });
-    void apiFetch("/api/memory/pages", {
-      method: "POST",
-      body: JSON.stringify({
-        title: title.trim() || derived.title,
-        summary: tldr.trim() || derived.tldr,
-        content: text,
-        source: "manual",
-        sourceLabel: `Filed answer · ${agentId.toUpperCase()}`,
-        route: routeHint,
-        layer: "knowledge",
-        domain: previewDomain,
-        tags: parsedTags,
-        requestedVisibility,
-        sourceRefs,
-      }),
-    }).catch(() => {
-      /* best-effort */
-    });
-    setDone(true);
-    setOpen(false);
+  const fileToVault = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const response = await apiFetch("/api/memory/pages", {
+        method: "POST",
+        body: JSON.stringify({
+          title: title.trim() || derived.title,
+          summary: tldr.trim() || derived.tldr,
+          content: text,
+          source: "manual",
+          sourceLabel: `Filed answer · ${agentId.toUpperCase()}`,
+          route: routeHint,
+          layer: "knowledge",
+          domain: previewDomain,
+          tags: parsedTags,
+          requestedVisibility,
+          sourceRefs,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`VAULT filing failed (${response.status}).`);
+      }
+      toggleSavedArticleWithIndex({
+        id:    `filed-${Date.now()}-${agentId}`,
+        title: previewItem.title,
+        desc:  previewItem.summary,
+        link:  "",
+        date:  new Date().toISOString(),
+        tags:  previewItem.tags,
+        cat:   previewDomain,
+        archiveLinks: suggestedArchiveLinks,
+      });
+      setDone(true);
+      setOpen(false);
+    } catch {
+      toast({
+        title: "VAULT answer not filed",
+        message: "The filing form is still open. Check the VAULT route and retry.",
+        severity: "medium",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const INPUT: React.CSSProperties = {
@@ -416,7 +431,9 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
       </div>
       <div style={{ display: "flex", gap: "5px" }}>
         <button
-          onClick={confirm}
+          type="button"
+          onClick={() => void fileToVault()}
+          disabled={saving}
           style={{
             flex:         1,
             padding:      "3px 0",
@@ -424,22 +441,24 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
             border:       "1px solid var(--accent)",
             background:   "transparent",
             color:        "var(--accent)",
-            cursor:       "pointer",
+            cursor:       saving ? "not-allowed" : "pointer",
             fontSize:     "10px",
             fontWeight:   "bold",
           }}
         >
-          File
+          {saving ? "Filing..." : "File"}
         </button>
         <button
+          type="button"
           onClick={() => setOpen(false)}
+          disabled={saving}
           style={{
             padding:      "3px 8px",
             borderRadius: "3px",
             border:       "1px solid var(--border)",
             background:   "transparent",
             color:        "var(--text2)",
-            cursor:       "pointer",
+            cursor:       saving ? "not-allowed" : "pointer",
             fontSize:     "10px",
           }}
         >

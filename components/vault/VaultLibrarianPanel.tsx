@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import ActionSessionCluster from "@/components/ui/ActionSessionCluster";
 import { ShellBadge } from "@/components/ui/shell";
+import { toast } from "@/components/ui/Toast";
 import { useStore } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
 import { runVaultLint } from "@/lib/vaultGraph";
@@ -234,7 +235,11 @@ export function VaultLibrarianPanel({
       window.dispatchEvent(new Event("nexus-memory-pages-updated"));
       setTimeout(() => setAuditFiled(false), 3000);
     } catch {
-      // silent — filing is additive only
+      toast({
+        title: "Audit brief not filed",
+        message: "The VAULT write was rejected. Keep this audit open and retry.",
+        severity: "medium",
+      });
     } finally {
       setFilingAudit(false);
     }
@@ -245,7 +250,7 @@ export function VaultLibrarianPanel({
     if (!fileBackTitle.trim() || !fileBackText.trim() || filingBack) return;
     setFilingBack(true);
     try {
-      await apiFetch("/api/memory/pages", {
+      const response = await apiFetch("/api/memory/pages", {
         method:  "POST",
         body: JSON.stringify({
           title:      fileBackTitle.trim(),
@@ -258,13 +263,20 @@ export function VaultLibrarianPanel({
           tags:       ["filed-back", "agent-answer", "vault"],
         }),
       });
+      if (!response.ok) {
+        throw new Error(`VAULT file-back failed (${response.status}).`);
+      }
       setFileBackDone(true);
       setFileBackTitle("");
       setFileBackText("");
       setFileBackTldr("");
       setTimeout(() => setFileBackDone(false), 3000);
     } catch {
-      // silent — file-back is additive only
+      toast({
+        title: "VAULT answer not filed",
+        message: "Your title and answer are still here. Retry the VAULT write.",
+        severity: "medium",
+      });
     } finally {
       setFilingBack(false);
     }

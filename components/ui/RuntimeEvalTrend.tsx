@@ -66,10 +66,13 @@ export default function RuntimeEvalTrend() {
             : 0;
           const eligibleNow = nextEligibleAt <= Date.now();
           if (staleNow && eligibleNow) {
-            await apiFetch("/api/metrics/runtime-eval/run", {
+            const response = await apiFetch("/api/metrics/runtime-eval/run", {
               method: "POST",
               body: JSON.stringify({}),
             });
+            if (!response.ok) {
+              throw new Error(`Runtime evaluation failed (${response.status}).`);
+            }
             await refresh();
           }
         } catch {

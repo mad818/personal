@@ -288,7 +288,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
           body: JSON.stringify(serverPayload),
         });
         const d = await r.json();
-        if (!d.ok) {
+        if (!r.ok || !d.ok) {
           setSaveErr(d.error ?? "Failed to save API keys.");
           setSaving(false);
           return;

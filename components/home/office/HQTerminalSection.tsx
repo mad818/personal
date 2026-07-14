@@ -66,6 +66,7 @@ interface HQTerminalSectionProps {
     text: string;
     agent: string;
   } | null;
+  lessonLogging: boolean;
   pendingCorrection: CorrectionMemoryEntry | null;
   input: string;
   surfaceMotionProfile: SurfaceMotionProfile;
@@ -87,7 +88,7 @@ interface HQTerminalSectionProps {
   onClear: () => void;
   onMergeCouncil: (results: CouncilResult[]) => void;
   onUseCouncilResult: (result: CouncilResult) => void;
-  onLogLesson: () => void;
+  onLogLesson: () => void | Promise<void>;
   onDismissLesson: () => void;
   onApproveCorrection: () => void;
   onArchiveCorrection: () => void;
@@ -99,6 +100,7 @@ export default function HQTerminalSection({
   activeColor,
   liveSteps,
   pendingLesson,
+  lessonLogging,
   pendingCorrection,
   input,
   surfaceMotionProfile,
@@ -633,14 +635,16 @@ export default function HQTerminalSection({
           <div className="nexus-hq-lesson-bar__actions">
             <button
               type="button"
-              onClick={onLogLesson}
+              onClick={() => void onLogLesson()}
+              disabled={lessonLogging}
               className="nexus-hq-composer__action is-send"
             >
-              Log lesson
+              {lessonLogging ? "Logging…" : "Log lesson"}
             </button>
             <button
               type="button"
               onClick={onDismissLesson}
+              disabled={lessonLogging}
               className="nexus-hq-composer__action"
             >
               Dismiss

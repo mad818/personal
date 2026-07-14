@@ -96,6 +96,44 @@ const checks = [
       'severity: "medium"',
     ],
   },
+  {
+    file: "components/resources/VoiceLabConsole.tsx",
+    forbidden: ["/api/voice/projects", "/api/voice/profiles"],
+    required: ["upsertVoiceProject(project)", "upsertVoiceProfile(profile)"],
+  },
+  {
+    file: "components/home/office/FileBackButton.tsx",
+    forbidden: [],
+    required: [
+      "const [saving, setSaving]",
+      "if (!response.ok)",
+      'title: "VAULT answer not filed"',
+      'saving ? "Filing..." : "File"',
+    ],
+  },
+  {
+    file: "components/home/office/OfficeCommandCenter.tsx",
+    forbidden: [],
+    required: [
+      "const [loggingLesson, setLoggingLesson]",
+      "lessonLogging={loggingLesson}",
+      'title: "Lesson not logged"',
+    ],
+  },
+  {
+    file: "components/home/office/HQTerminalSection.tsx",
+    forbidden: [],
+    required: ["lessonLogging: boolean", '"Logging…"'],
+  },
+  {
+    file: "components/vault/VaultLibrarianPanel.tsx",
+    forbidden: [],
+    required: [
+      'title: "Audit brief not filed"',
+      'title: "VAULT answer not filed"',
+      "if (!response.ok)",
+    ],
+  },
 ];
 
 const errors = [];
@@ -295,7 +333,7 @@ function getLiteralMutationMethod(node) {
   if (
     !ts.isCallExpression(node) ||
     !ts.isIdentifier(node.expression) ||
-    node.expression.text !== "fetch"
+    (node.expression.text !== "fetch" && node.expression.text !== "apiFetch")
   ) {
     return null;
   }
@@ -596,6 +634,15 @@ const mutationFixtureViolations = findUncheckedMutationResponses(
       if (!response.ok) throw new Error("failed");
       return response.json();
     }
+    async function uncheckedProtected() {
+      const response = await apiFetch("/unchecked-protected", { method: "POST" });
+      return response.json();
+    }
+    async function checkedProtected() {
+      const response = await apiFetch("/checked-protected", { method: "DELETE" });
+      if (!response.ok) throw new Error("failed");
+      return response.json();
+    }
     function forwarded() {
       return fetch("/forwarded", { method: "PUT" });
     }
@@ -605,9 +652,9 @@ const mutationFixtureViolations = findUncheckedMutationResponses(
   `,
   "client-mutation-fixture.tsx",
 );
-if (mutationFixtureViolations.length !== 2) {
+if (mutationFixtureViolations.length !== 3) {
   errors.push(
-    "client mutation truth: AST self-test must reject unchecked or ignored literal mutations while accepting checked, forwarded, and dynamic responses",
+    "client mutation truth: AST self-test must reject unchecked or ignored literal fetch/apiFetch mutations while accepting checked, forwarded, and dynamic responses",
   );
 }
 
@@ -662,5 +709,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Secondary surface polish OK (camera, drone, IoT, voice, client fetch/mutation, and clipboard states are explicit).",
+  "Secondary surface polish OK (camera, drone, IoT, voice, client fetch/apiFetch mutation, and clipboard states are explicit).",
 );

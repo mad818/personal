@@ -151,7 +151,7 @@ export default function CronSchedulerRunner() {
           ``,
         ].join("\n");
         try {
-          await apiFetch("/api/tools", {
+          const handoffResponse = await apiFetch("/api/tools", {
             method: "POST",
             body: JSON.stringify({
               tool: "write_file",
@@ -161,6 +161,9 @@ export default function CronSchedulerRunner() {
               },
             }),
           });
+          if (!handoffResponse.ok) {
+            throw new Error(`Night Ops handoff failed (${handoffResponse.status}).`);
+          }
         } catch {
           // Silent fail by design; runtime briefings still captured in-app.
         }
@@ -282,7 +285,7 @@ export default function CronSchedulerRunner() {
                 ? "evidence_pack"
                 : "media_kit";
             try {
-              await apiFetch("/api/registry", {
+              const registryResponse = await apiFetch("/api/registry", {
                 method: "POST",
                 body: JSON.stringify({
                   item: {
@@ -306,6 +309,11 @@ export default function CronSchedulerRunner() {
                   },
                 }),
               });
+              if (!registryResponse.ok) {
+                throw new Error(
+                  `Scheduled artifact filing failed (${registryResponse.status}).`,
+                );
+              }
             } catch {
               // Artifact persistence is additive; don't fail the scheduler if it misses.
             }

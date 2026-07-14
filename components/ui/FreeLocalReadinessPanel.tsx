@@ -30,6 +30,8 @@ import { ShellBadge, ShellButton } from "@/components/ui/shell";
 import OperationalLightGrid from "@/components/ui/OperationalLightGrid";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 import { buildOperationalLightGrid } from "@/lib/operationalLights";
+import { ActionDialog } from "@/components/ui/ActionDialog";
+import { useActionDialog } from "@/hooks/useActionDialog";
 
 type BrowserStorageStatus = "checking" | "ready" | "blocked";
 
@@ -199,6 +201,8 @@ export default function FreeLocalReadinessPanel({
     useState<BrowserStorageStatus>("checking");
   const [copiedTarget, setCopiedTarget] = useState<string | null>(null);
   const [phoneActionBusy, setPhoneActionBusy] = useState(false);
+  const actionDialog = useActionDialog();
+  const { requestActionDialog } = actionDialog;
   const receiptPingedRef = useRef(false);
   const phonePosture = usePhonePosture();
   const useMobileLane = mobileLane || phonePosture;
@@ -406,9 +410,14 @@ export default function FreeLocalReadinessPanel({
           return;
         }
         if (actionId === "installPwa") {
-          window.alert(
-            "iPhone: tap Share, then Add to Home Screen.\nAndroid: tap Install app or Add to Home screen.\nThen reopen from your home screen.",
-          );
+          await requestActionDialog({
+            eyebrow: "Phone setup",
+            title: "Install Nexus on this device",
+            description:
+              "iPhone: tap Share, then Add to Home Screen.\nAndroid: tap Install app or Add to Home screen.\nThen reopen Nexus from your home screen.",
+            confirmLabel: "Done",
+            cancelLabel: null,
+          });
           await refreshPhoneAcceptanceStatus();
           return;
         }
@@ -423,7 +432,12 @@ export default function FreeLocalReadinessPanel({
         setPhoneActionBusy(false);
       }
     },
-    [onPhoneSendPrompt, postPhoneReceipt, refreshPhoneAcceptanceStatus],
+    [
+      onPhoneSendPrompt,
+      postPhoneReceipt,
+      requestActionDialog,
+      refreshPhoneAcceptanceStatus,
+    ],
   );
 
   useEffect(() => {
@@ -518,6 +532,7 @@ export default function FreeLocalReadinessPanel({
           busy={phoneActionBusy || phoneAcceptanceStatusLoading}
           onAction={(actionId) => void handlePhoneAction(actionId)}
         />
+        <ActionDialog controller={actionDialog} />
       </div>
     );
   }
@@ -958,6 +973,7 @@ export default function FreeLocalReadinessPanel({
             </div>
           </div>
         ) : null}
+        <ActionDialog controller={actionDialog} />
       </div>
     </SurfaceCallout>
   );

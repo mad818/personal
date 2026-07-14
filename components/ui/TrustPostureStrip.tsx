@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiFetch, validateToken } from "@/lib/apiFetch";
+import { apiFetch, type TokenValidationStatus } from "@/lib/apiFetch";
 import { useProviderHealthPosture } from "@/hooks/useProviderHealthPosture";
+import { StepUpAccessDialog } from "@/components/ui/ActionDialog";
 import {
   buildTrustActionRows,
   buildTrustPostureRows,
@@ -28,7 +29,7 @@ export default function TrustPostureStrip() {
   const { posture } = useProviderHealthPosture();
   const privacyShieldStatus = useStore((s) => s.privacyShieldStatus);
   const [diagnostics, setDiagnostics] = useState<TrustDiagnosticsPayload | null>(null);
-  const [revalidating, setRevalidating] = useState(false);
+  const [stepUpOpen, setStepUpOpen] = useState(false);
   const [revalidateNote, setRevalidateNote] = useState<string | null>(null);
 
   const loadDiagnostics = useCallback(async (signal?: AbortSignal) => {
@@ -109,32 +110,18 @@ export default function TrustPostureStrip() {
     [trustRows],
   );
 
-  const handleRevalidate = useCallback(async () => {
-    const rawToken =
-      typeof window !== "undefined"
-        ? window.prompt("Re-enter the Nexus token to refresh protected actions.")
-        : null;
-    if (!rawToken) return;
-    setRevalidating(true);
+  const handleRevalidate = useCallback(() => {
     setRevalidateNote(null);
-    const status = await validateToken(rawToken, {
-      persistOnSuccess: true,
-      elevate: true,
-    });
-    setRevalidating(false);
-    setRevalidateNote(
-      status === "ok"
-        ? "Step-up refreshed."
-        : status === "rate_limited"
-          ? "Revalidation is rate limited."
-          : status === "server_error"
-            ? "Runtime could not refresh privilege."
-            : status === "unreachable"
-              ? "Runtime unreachable."
-              : "Token rejected.",
-    );
-    await loadDiagnostics();
-  }, [loadDiagnostics]);
+    setStepUpOpen(true);
+  }, []);
+
+  const handleRevalidationResult = useCallback(
+    (_status: TokenValidationStatus, message: string) => {
+      setRevalidateNote(message);
+      return loadDiagnostics();
+    },
+    [loadDiagnostics],
+  );
 
   return (
     <details className="nexus-trust-strip" data-state={summaryState}>
@@ -166,14 +153,23 @@ export default function TrustPostureStrip() {
           </div>
         ))}
         <div className="nexus-trust-strip__actions">
-          <ShellButton onClick={handleRevalidate} disabled={revalidating}>
-            {revalidating ? "Checking" : "Recheck"}
-          </ShellButton>
+          <ShellButton onClick={handleRevalidate}>Recheck</ShellButton>
           {revalidateNote ? (
-            <span className="nexus-trust-strip__note">{revalidateNote}</span>
+            <span
+              role="status"
+              aria-live="polite"
+              className="nexus-trust-strip__note"
+            >
+              {revalidateNote}
+            </span>
           ) : null}
         </div>
       </div>
+      <StepUpAccessDialog
+        open={stepUpOpen}
+        onClose={() => setStepUpOpen(false)}
+        onResult={handleRevalidationResult}
+      />
     </details>
   );
 }

@@ -12,6 +12,30 @@ const errors = [];
 const requireText = (source, text, label) => {
   if (!source.includes(text)) errors.push(`${label}: missing ${text}`);
 };
+const collectTsxSources = (relativeDirectory) => {
+  const sources = [];
+  const pending = [path.join(repoRoot, relativeDirectory)];
+
+  while (pending.length > 0) {
+    const directory = pending.pop();
+    if (!directory) continue;
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const absolutePath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        pending.push(absolutePath);
+      } else if (entry.isFile() && entry.name.endsWith(".tsx")) {
+        sources.push({
+          relativePath: path
+            .relative(repoRoot, absolutePath)
+            .replaceAll("\\", "/"),
+          source: fs.readFileSync(absolutePath, "utf8"),
+        });
+      }
+    }
+  }
+
+  return sources;
+};
 
 const chrome = read("components/ui/RootLayoutChrome.tsx");
 const landing = read("components/landing/LandingPage.tsx");
@@ -31,6 +55,23 @@ const toast = read("components/ui/Toast.tsx");
 const notificationToastBridge = read(
   "components/ui/NotificationToastBridge.tsx",
 );
+const actionDialogHook = read("hooks/useActionDialog.ts");
+const actionDialog = read("components/ui/ActionDialog.tsx");
+const trustOperations = read("components/ui/TrustOperationsRail.tsx");
+const trustPosture = read("components/ui/TrustPostureStrip.tsx");
+const actionDialogAdopters = [
+  ["secure link removal", read("components/resources/SecureLinkOpenPanel.tsx")],
+  [
+    "media intake duplicate review",
+    read("components/resources/MediaIntakeReviewPanel.tsx"),
+  ],
+  [
+    "media library actions",
+    read("components/resources/MediaEscapeLibrary.tsx"),
+  ],
+  ["backup restore", read("components/resources/EscapeAccessBackupPanel.tsx")],
+  ["phone install notice", read("components/ui/FreeLocalReadinessPanel.tsx")],
+];
 
 for (const text of [
   "function SkipToMainContent()",
@@ -227,6 +268,84 @@ if (
 }
 
 for (const text of [
+  "export function useActionDialog",
+  "new Promise<boolean>",
+  "previousResolver?.(false)",
+  "resolverRef.current?.(false)",
+  "setDialog(null)",
+]) {
+  requireText(actionDialogHook, text, "action-dialog controller");
+}
+
+for (const text of [
+  'import { createPortal } from "react-dom"',
+  "useModalDialog({ open, onClose })",
+  'role = "alertdialog"',
+  'aria-modal="true"',
+  "aria-labelledby={titleId}",
+  "aria-describedby={descriptionId}",
+  "data-dialog-initial-focus",
+  'type="password"',
+  'autoComplete="off"',
+  "validateToken(token, {",
+  "persistOnSuccess: true",
+  "elevate: true",
+  "if (!busy) onClose()",
+  'role="alert"',
+  'className="nexus-action-dialog__error"',
+]) {
+  requireText(actionDialog, text, "shared action dialogs");
+}
+for (const forbiddenText of [
+  "rgba(",
+  "#ef4444",
+  "localStorage",
+  "sessionStorage",
+]) {
+  if (
+    actionDialog.includes(forbiddenText) ||
+    actionDialogHook.includes(forbiddenText)
+  ) {
+    errors.push(
+      `shared action dialogs: hardcoded or persistent presentation remains: ${forbiddenText}`,
+    );
+  }
+}
+
+for (const [label, source] of actionDialogAdopters) {
+  requireText(source, "useActionDialog()", label);
+  requireText(source, "requestActionDialog({", label);
+  requireText(source, "<ActionDialog controller={actionDialog} />", label);
+}
+for (const [label, source] of [
+  ["trust operations step-up", trustOperations],
+  ["trust posture step-up", trustPosture],
+]) {
+  requireText(source, "<StepUpAccessDialog", label);
+  requireText(source, "open={stepUpOpen}", label);
+  requireText(source, "onResult={handleRevalidationResult}", label);
+  requireText(source, 'role="status"', label);
+  requireText(source, 'aria-live="polite"', label);
+}
+
+for (const { relativePath, source } of [
+  ...collectTsxSources("app"),
+  ...collectTsxSources("components"),
+]) {
+  for (const nativeCall of [
+    "window.alert(",
+    "window.confirm(",
+    "window.prompt(",
+  ]) {
+    if (source.includes(nativeCall)) {
+      errors.push(
+        `native browser dialog: ${relativePath} still contains ${nativeCall}`,
+      );
+    }
+  }
+}
+
+for (const text of [
   ".nexus-route-state {",
   '.nexus-route-state[data-main="true"]',
   '.nexus-route-state[data-kind="loading"] .nexus-route-state__signal::after',
@@ -249,6 +368,20 @@ for (const text of [
   requireText(styles, text, "toast feedback styling");
 }
 
+for (const text of [
+  ".nexus-action-dialog__overlay {",
+  ".nexus-action-dialog {",
+  '.nexus-action-dialog[data-tone="danger"]',
+  ".nexus-action-dialog__input:focus-visible {",
+  ".nexus-action-dialog__button:focus-visible {",
+  "@keyframes nexus-action-dialog-frame-in",
+  'html[data-nexus-motion-profile="reduced"] .nexus-action-dialog__overlay',
+  "@media (prefers-reduced-motion: reduce)",
+  "@media (max-width: 560px)",
+]) {
+  requireText(styles, text, "action-dialog styling");
+}
+
 if (errors.length > 0) {
   console.error("Shell accessibility validation failed:");
   for (const error of errors) console.error(`- ${error}`);
@@ -256,5 +389,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Shell accessibility OK (skip path, route orientation, navigation semantics, modal focus containment, route resilience, toast feedback, and reduced motion).\n",
+  "Shell accessibility OK (skip path, route orientation, navigation semantics, modal focus containment, route resilience, toast feedback, product-native action dialogs, and reduced motion).\n",
 );

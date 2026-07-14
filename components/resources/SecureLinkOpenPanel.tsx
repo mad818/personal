@@ -14,6 +14,8 @@ import {
 } from "@/lib/subscriptionEscape";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { ActionDialog } from "@/components/ui/ActionDialog";
+import { useActionDialog } from "@/hooks/useActionDialog";
 import MasterDnsVpnReadinessPanel from "@/components/resources/MasterDnsVpnReadinessPanel";
 
 interface SecureLinkOpenPanelProps {
@@ -193,6 +195,7 @@ export default function SecureLinkOpenPanel({
     useState<LegalPrivacyRouteKind>("none");
   const [privacyRouteConfirmed, setPrivacyRouteConfirmed] = useState(false);
   const [message, setMessage] = useState("");
+  const actionDialog = useActionDialog();
   const inspection = useMemo(() => inspectSecureLink(link), [link]);
   const privacyRoutePosture = useMemo(
     () =>
@@ -266,13 +269,17 @@ export default function SecureLinkOpenPanel({
     );
   }
 
-  function removeLink(item: SecureStreamLink) {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(`Remove "${item.title}" from the connect shelf?`)
-    ) {
-      return;
-    }
+  async function removeLink(item: SecureStreamLink) {
+    const confirmed = await actionDialog.requestActionDialog({
+      eyebrow: "Connect shelf",
+      title: `Remove "${item.title}"?`,
+      description:
+        "This removes the private launcher from Nexus. It does not delete or change the linked service.",
+      confirmLabel: "Remove link",
+      tone: "danger",
+    });
+    if (!confirmed) return;
+
     onChangeLinks((currentLinks) =>
       currentLinks.filter((entry) => entry.id !== item.id),
     );
@@ -695,7 +702,7 @@ export default function SecureLinkOpenPanel({
                 </button>
                 <button
                   type="button"
-                  onClick={() => removeLink(item)}
+                  onClick={() => void removeLink(item)}
                   style={buttonStyle(true)}
                 >
                   Remove
@@ -722,6 +729,7 @@ export default function SecureLinkOpenPanel({
           </p>
         </div>
       )}
+      <ActionDialog controller={actionDialog} />
     </section>
   );
 }

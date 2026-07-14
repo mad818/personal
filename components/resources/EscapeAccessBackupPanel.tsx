@@ -13,6 +13,8 @@ import {
 } from "@/lib/subscriptionEscape";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { ActionDialog } from "@/components/ui/ActionDialog";
+import { useActionDialog } from "@/hooks/useActionDialog";
 
 interface EscapeAccessBackupPanelProps {
   state: SubscriptionEscapeState;
@@ -134,6 +136,7 @@ export default function EscapeAccessBackupPanel({
   const [draftRole, setDraftRole] =
     useState<SubscriptionEscapeAccessRole>("family");
   const [message, setMessage] = useState("");
+  const actionDialog = useActionDialog();
   const counts = getSubscriptionEscapeAccessCounts(state.access);
 
   function exportBackup() {
@@ -161,12 +164,15 @@ export default function EscapeAccessBackupPanel({
       const raw = await file.text();
       const candidate = getImportCandidate(JSON.parse(raw));
       const description = describeImport(candidate);
-      if (
-        typeof window !== "undefined" &&
-        !window.confirm(`Restore this backup? It contains ${description}.`)
-      ) {
-        return;
-      }
+      const confirmed = await actionDialog.requestActionDialog({
+        eyebrow: "Backup restore",
+        title: "Restore this backup?",
+        description: `This replaces the current Escape state with ${description}. Download a current backup first if you may need to undo the restore.`,
+        confirmLabel: "Restore backup",
+        tone: "danger",
+      });
+      if (!confirmed) return;
+
       onReplaceState(candidate);
       setMessage(`Restore started: ${description}.`);
     } catch {
@@ -483,6 +489,7 @@ export default function EscapeAccessBackupPanel({
           ))}
         </div>
       </section>
+      <ActionDialog controller={actionDialog} />
     </div>
   );
 }

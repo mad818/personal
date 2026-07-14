@@ -12,6 +12,8 @@ import {
   type MediaEscapeKind,
 } from "@/lib/subscriptionEscape";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
+import { ActionDialog } from "@/components/ui/ActionDialog";
+import { useActionDialog } from "@/hooks/useActionDialog";
 
 interface MediaIntakeReviewPanelProps {
   items: MediaEscapeItem[];
@@ -150,6 +152,7 @@ export default function MediaIntakeReviewPanel({
   const [pasteText, setPasteText] = useState("");
   const [fallbackKind, setFallbackKind] = useState<MediaEscapeKind>("movie");
   const [message, setMessage] = useState("");
+  const actionDialog = useActionDialog();
 
   const activeQueue = useMemo(
     () =>
@@ -231,7 +234,7 @@ export default function MediaIntakeReviewPanel({
     );
   }
 
-  function importItem(item: MediaEscapeIntakeItem) {
+  async function importItem(item: MediaEscapeIntakeItem) {
     if (!item.suggestedTitle.trim()) {
       setMessage("Add a title before importing.");
       return;
@@ -242,14 +245,14 @@ export default function MediaIntakeReviewPanel({
       year: item.suggestedYear,
       creator: item.suggestedCreator,
     });
-    if (
-      duplicate &&
-      typeof window !== "undefined" &&
-      !window.confirm(
-        `"${duplicate.title}" looks like the same ${MEDIA_ESCAPE_KIND_LABELS[item.kind].toLowerCase()}. Import anyway?`,
-      )
-    ) {
-      return;
+    if (duplicate) {
+      const confirmed = await actionDialog.requestActionDialog({
+        eyebrow: "Duplicate review",
+        title: "Import possible duplicate?",
+        description: `"${duplicate.title}" looks like the same ${MEDIA_ESCAPE_KIND_LABELS[item.kind].toLowerCase()}. Importing will keep both entries.`,
+        confirmLabel: "Import anyway",
+      });
+      if (!confirmed) return;
     }
     const mediaItem = itemFromIntake(item);
     const now = new Date().toISOString();
@@ -541,7 +544,7 @@ export default function MediaIntakeReviewPanel({
                   </button>
                   <button
                     type="button"
-                    onClick={() => importItem(item)}
+                    onClick={() => void importItem(item)}
                     style={buttonStyle(true)}
                   >
                     Import
@@ -588,6 +591,7 @@ export default function MediaIntakeReviewPanel({
           </div>
         </div>
       ) : null}
+      <ActionDialog controller={actionDialog} />
     </section>
   );
 }

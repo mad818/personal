@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiFetch, validateToken } from "@/lib/apiFetch";
+import { apiFetch, type TokenValidationStatus } from "@/lib/apiFetch";
 import { useProviderHealthPosture } from "@/hooks/useProviderHealthPosture";
+import { StepUpAccessDialog } from "@/components/ui/ActionDialog";
 import {
   buildTrustActionRows,
   buildTrustPostureRows,
@@ -35,7 +36,7 @@ export default function TrustOperationsRail({
   const { posture } = useProviderHealthPosture();
   const privacyShieldStatus = useStore((s) => s.privacyShieldStatus);
   const [diagnostics, setDiagnostics] = useState<TrustDiagnosticsPayload | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [stepUpOpen, setStepUpOpen] = useState(false);
   const [statusNote, setStatusNote] = useState<string | null>(null);
 
   const loadDiagnostics = useCallback(async () => {
@@ -105,32 +106,18 @@ export default function TrustOperationsRail({
     [trustRows],
   );
 
-  const handleRevalidate = useCallback(async () => {
-    const rawToken =
-      typeof window !== "undefined"
-        ? window.prompt("Re-enter the Nexus token to refresh protected actions.")
-        : null;
-    if (!rawToken) return;
-    setBusy(true);
+  const handleRevalidate = useCallback(() => {
     setStatusNote(null);
-    const result = await validateToken(rawToken, {
-      persistOnSuccess: true,
-      elevate: true,
-    });
-    setBusy(false);
-    setStatusNote(
-      result === "ok"
-        ? "Step-up refreshed."
-        : result === "rate_limited"
-          ? "Revalidation is rate limited."
-          : result === "server_error"
-            ? "Runtime could not refresh privilege."
-            : result === "unreachable"
-              ? "Runtime unreachable."
-              : "Token rejected.",
-    );
-    await loadDiagnostics();
-  }, [loadDiagnostics]);
+    setStepUpOpen(true);
+  }, []);
+
+  const handleRevalidationResult = useCallback(
+    (_status: TokenValidationStatus, message: string) => {
+      setStatusNote(message);
+      return loadDiagnostics();
+    },
+    [loadDiagnostics],
+  );
 
   return (
     <OpsField title={title} detail={detail} tone="muted" compact={compact}>
@@ -162,15 +149,24 @@ export default function TrustOperationsRail({
               ))}
             </div>
             <div className="nexus-trust-operations__footer">
-              <ShellButton onClick={handleRevalidate} disabled={busy}>
-                {busy ? "Refreshing" : "Refresh access"}
-              </ShellButton>
+              <ShellButton onClick={handleRevalidate}>Refresh access</ShellButton>
               {statusNote ? (
-                <span className="nexus-trust-operations__note">{statusNote}</span>
+                <span
+                  role="status"
+                  aria-live="polite"
+                  className="nexus-trust-operations__note"
+                >
+                  {statusNote}
+                </span>
               ) : null}
             </div>
           </div>
         </details>
+        <StepUpAccessDialog
+          open={stepUpOpen}
+          onClose={() => setStepUpOpen(false)}
+          onResult={handleRevalidationResult}
+        />
       </div>
     </OpsField>
   );

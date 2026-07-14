@@ -2600,6 +2600,8 @@ export default function LandingPage({
 
   return (
     <main
+      id="nexus-main-content"
+      tabIndex={-1}
       className="homefront-landing min-h-screen bg-black text-white"
       aria-label="Homefront local-first command intelligence landing"
       data-testid="landing-page"

@@ -133,6 +133,7 @@ export default function Nav() {
   return (
     <>
       <nav
+        aria-label="Primary navigation"
         ref={toprailRef}
         className="nexus-toprail nexus-command-header"
         data-overlay-state={activeOverlay ?? "closed"}
@@ -176,7 +177,7 @@ export default function Nav() {
                 {formatNexusTasteProfile()} · Alt+1-8
               </span>
             </div>
-            <div className="nexus-command-header__tabs" role="tablist" aria-label="Primary navigation">
+            <div className="nexus-command-header__tabs">
               {tabs.map((tab, i) => {
                 const active = activePath === tab.href;
                 const branding = getSurfaceBranding(tab.id);

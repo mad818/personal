@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
+import { useEffect, type MouseEvent } from "react";
 import {
   usePathname,
   useSearchParams,
@@ -48,6 +48,28 @@ type RootLayoutChromeProps = {
   initiallyAuthed: boolean;
 };
 
+function SkipToMainContent() {
+  const focusMainContent = (event: MouseEvent<HTMLAnchorElement>) => {
+    const main = document.getElementById("nexus-main-content");
+    if (!main) return;
+    event.preventDefault();
+    main.focus({ preventScroll: true });
+    main.scrollIntoView({ block: "start" });
+    window.history.replaceState(null, "", "#nexus-main-content");
+  };
+
+  return (
+    <a
+      className="nexus-skip-link"
+      data-testid="nexus-skip-link"
+      href="#nexus-main-content"
+      onClick={focusMainContent}
+    >
+      Skip to main content
+    </a>
+  );
+}
+
 function LandingAccessRedirect({
   pathname,
   search,
@@ -67,6 +89,8 @@ function LandingAccessRedirect({
 
   return (
     <main
+      id="nexus-main-content"
+      tabIndex={-1}
       className="homefront-landing min-h-screen bg-black text-white"
       data-testid="landing-access-redirect"
       style={{
@@ -93,11 +117,21 @@ export default function RootLayoutChrome({
     pathname === "/" || (pathname == null && segments.length === 0);
 
   if (isPublicLanding) {
-    return <>{children}</>;
+    return (
+      <>
+        <SkipToMainContent />
+        {children}
+      </>
+    );
   }
 
   if (!initiallyAuthed) {
-    return <LandingAccessRedirect pathname={pathname} search={currentSearch} />;
+    return (
+      <>
+        <SkipToMainContent />
+        <LandingAccessRedirect pathname={pathname} search={currentSearch} />
+      </>
+    );
   }
 
   const cinematicSurface = getCinematicIASurfaceForPath(pathname);
@@ -113,6 +147,7 @@ export default function RootLayoutChrome({
         <ShellHydrationBeacon />
         <ToastContainer>
           <ErrorBoundary label="RootLayout">
+            <SkipToMainContent />
             <Nav />
             <UIRulesEvaluator />
             <DynamicAlerts />
@@ -120,6 +155,8 @@ export default function RootLayoutChrome({
             <PreparedWorkspaceAutoHeal />
             <ShellHealthGuard />
             <main
+              id="nexus-main-content"
+              tabIndex={-1}
               className="nexus-root-main"
               data-cinematic-ia={CINEMATIC_IA_VERSION}
               data-cinematic-surface={cinematicSurface.surface}

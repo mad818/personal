@@ -65,6 +65,16 @@ assert.equal(davidSkills.posture, "review_first");
 assert.match(davidSkills.codexPath, /never inherit/i);
 assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "research-knowledge")?.sourceIds.includes(davidSkills.id));
 
+const plinySources = COMPANY_SKILL_SOURCES.filter((source) => source.id.startsWith("pliny-"));
+assert.equal(plinySources.length, 5);
+assert.ok(plinySources.every((source) => source.kind === "reference"));
+assert.match(COMPANY_SKILL_SOURCES.find((source) => source.id === "pliny-autotemp")?.codexPath ?? "", /existing AI and eval gates/i);
+assert.match(COMPANY_SKILL_SOURCES.find((source) => source.id === "pliny-leakhub")?.codexPath ?? "", /never solicit, publish, or reward stolen prompts/i);
+assert.match(COMPANY_SKILL_SOURCES.find((source) => source.id === "pliny-parseltongue")?.codexPath ?? "", /AGPL/i);
+assert.match(COMPANY_SKILL_SOURCES.find((source) => source.id === "pliny-ourobopus")?.codexPath ?? "", /no autonomous self-modification/i);
+assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "marketing-social")?.sourceIds.includes("pliny-autostorygen"));
+assert.ok(NEXUS_COMPANY_DEPARTMENTS.find((department) => department.id === "legal-trust")?.sourceIds.includes("pliny-leakhub"));
+
 const summary = getCompanyMapSummary();
 assert.equal(summary.departmentCount, NEXUS_COMPANY_DEPARTMENTS.length);
 assert.equal(summary.sourceCount, COMPANY_SKILL_SOURCES.length);

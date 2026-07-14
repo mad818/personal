@@ -2,8 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
+const read = (relativePath) =>
+  fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
 const errors = [];
 const requireText = (source, text, label) => {
   if (!source.includes(text)) errors.push(`${label}: missing ${text}`);
@@ -17,6 +21,12 @@ const modalHook = read("hooks/useModalDialog.ts");
 const settings = read("components/settings/SettingsDrawer.tsx");
 const notifications = read("components/ui/NotificationCenter.tsx");
 const tradeThesis = read("components/alpha/TradeThesisPanel.tsx");
+const routeState = read("components/ui/RouteStatePanel.tsx");
+const routeLoading = read("app/loading.tsx");
+const routeError = read("app/error.tsx");
+const globalError = read("app/global-error.tsx");
+const notFound = read("app/not-found.tsx");
+const rootErrorBoundary = read("components/system/ErrorBoundary.tsx");
 
 for (const text of [
   "function SkipToMainContent()",
@@ -27,7 +37,7 @@ for (const text of [
   'aria-live="polite"',
   "document.title = nextTitle",
   "workspace loaded",
-  'aria-label={`${routeBranding.visibleLabel} workspace`}',
+  "aria-label={`${routeBranding.visibleLabel} workspace`}",
   'id="nexus-main-content"',
   "tabIndex={-1}",
 ]) {
@@ -38,7 +48,9 @@ requireText(landing, 'id="nexus-main-content"', "public landing");
 requireText(landing, "tabIndex={-1}", "public landing");
 requireText(nav, 'aria-label="Primary navigation"', "navigation landmark");
 if (nav.includes('role="tablist"')) {
-  errors.push("navigation landmark: route links must not be exposed as an ARIA tablist");
+  errors.push(
+    "navigation landmark: route links must not be exposed as an ARIA tablist",
+  );
 }
 
 for (const text of [
@@ -81,7 +93,101 @@ requireText(
   "Mark notification as read:",
   "notification keyboard action",
 );
-requireText(notifications, "disabled={notif.read}", "notification keyboard action");
+requireText(
+  notifications,
+  "disabled={notif.read}",
+  "notification keyboard action",
+);
+
+for (const text of [
+  'export type RouteStateKind = "loading" | "error" | "not-found"',
+  'id={asMain ? "nexus-main-content" : undefined}',
+  'role={kind === "error" ? "alert" : "status"}',
+  'aria-live={kind === "error" ? "assertive" : "polite"}',
+  'aria-busy={kind === "loading" ? true : undefined}',
+  'className="nexus-route-state__signal"',
+  "debugDetail ? (",
+]) {
+  requireText(routeState, text, "shared route-state plane");
+}
+
+for (const text of [
+  'kind="loading"',
+  'announcement="Nexus workspace loading"',
+  'asMain={pathname === "/"}',
+]) {
+  requireText(routeLoading, text, "route loading state");
+}
+
+for (const [label, source, requiredTexts] of [
+  [
+    "segment error state",
+    routeError,
+    [
+      'source: "AppRouter:segment"',
+      'process.env.NODE_ENV !== "production"',
+      "onClick={reset}",
+      'kind="error"',
+      "getDefaultEntrypoint()",
+    ],
+  ],
+  [
+    "global error state",
+    globalError,
+    [
+      'source: "AppRouter:root"',
+      '<html lang="en">',
+      '<body className="nexus-global-error-body">',
+      "onClick={reset}",
+      "window.location.assign(getDefaultEntrypoint())",
+      "asMain",
+    ],
+  ],
+  [
+    "not-found state",
+    notFound,
+    [
+      'kind="not-found"',
+      "getDefaultEntrypoint()",
+      "router.back()",
+      "Workspace not found",
+    ],
+  ],
+]) {
+  for (const text of requiredTexts) requireText(source, text, label);
+}
+
+for (const text of [
+  'import RouteStatePanel from "@/components/ui/RouteStatePanel"',
+  'testId="root-error-boundary-state"',
+  'process.env.NODE_ENV !== "production" && error',
+  "onClick={() => window.location.reload()}",
+]) {
+  requireText(rootErrorBoundary, text, "root React error boundary");
+}
+for (const legacyText of [
+  "SYSTEM FAULT",
+  "Show stack trace",
+  "Sadie Sink rose/gold",
+]) {
+  if (rootErrorBoundary.includes(legacyText)) {
+    errors.push(
+      `root React error boundary: legacy fallback remains: ${legacyText}`,
+    );
+  }
+}
+
+for (const text of [
+  ".nexus-route-state {",
+  '.nexus-route-state[data-main="true"]',
+  '.nexus-route-state[data-kind="loading"] .nexus-route-state__signal::after',
+  "@keyframes nexus-route-state-scan",
+  'html[data-nexus-motion-profile="reduced"]',
+  "@media (prefers-reduced-motion: reduce)",
+  ".nexus-global-error-body {",
+]) {
+  requireText(styles, text, "route-state styling");
+}
 
 if (errors.length > 0) {
   console.error("Shell accessibility validation failed:");
@@ -90,5 +196,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Shell accessibility OK (skip path, route orientation, navigation semantics, modal focus containment, and reduced motion).\n",
+  "Shell accessibility OK (skip path, route orientation, navigation semantics, modal focus containment, route resilience, and reduced motion).\n",
 );

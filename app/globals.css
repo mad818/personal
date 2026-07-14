@@ -147,6 +147,235 @@
   opacity: 0.48;
 }
 
+/* Whole-app loading, error, and route recovery */
+
+.nexus-route-state {
+  --nexus-route-state-signal: var(--accent2);
+  display: grid;
+  min-height: max(360px, calc(100svh - var(--top-rail-height)));
+  place-items: center;
+  padding: clamp(var(--space-5), 5vw, 72px) var(--shell-gutter);
+  color: var(--text);
+}
+
+.nexus-route-state[data-main="true"] {
+  min-height: 100svh;
+  background: var(--bg);
+}
+
+.nexus-route-state[data-kind="error"] {
+  --nexus-route-state-signal: var(--flo);
+}
+
+.nexus-route-state[data-kind="not-found"] {
+  --nexus-route-state-signal: var(--fmd);
+}
+
+.nexus-route-state__frame {
+  display: grid;
+  grid-template-columns: minmax(42px, 0.12fr) minmax(0, 1fr);
+  width: min(760px, 100%);
+  border-block: 1px solid var(--hairline-strong);
+  padding-block: clamp(28px, 5vw, 56px);
+}
+
+.nexus-route-state__signal {
+  position: relative;
+  min-height: 190px;
+  border-inline-start: 1px solid var(--hairline);
+}
+
+.nexus-route-state__signal::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: -5px;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-pill);
+  background: var(--nexus-route-state-signal);
+  box-shadow: 0 0 0 5px var(--panel-muted);
+}
+
+.nexus-route-state__signal::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: -1px;
+  width: 1px;
+  height: 52px;
+  background: var(--nexus-route-state-signal);
+  transform-origin: top;
+}
+
+.nexus-route-state[data-kind="loading"] .nexus-route-state__signal::after {
+  animation: nexus-route-state-scan 1.7s var(--ease-emphasis) infinite;
+}
+
+.nexus-route-state__copy {
+  align-self: center;
+  min-width: 0;
+  max-width: 620px;
+  padding-inline-start: clamp(var(--space-4), 3vw, 36px);
+}
+
+.nexus-route-state__eyebrow {
+  display: block;
+  margin-bottom: var(--space-3);
+  color: var(--nexus-route-state-signal);
+  font-family: "Consolas", "SFMono-Regular", monospace;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.nexus-route-state__title {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: clamp(30px, 5vw, 54px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.nexus-route-state__description {
+  max-width: 58ch;
+  margin: var(--space-4) 0 0;
+  color: var(--text-muted);
+  font-size: var(--fs-md);
+  line-height: 1.65;
+}
+
+.nexus-route-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.nexus-route-state__action {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-4);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: "Consolas", "SFMono-Regular", monospace;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    color var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+.nexus-route-state__action:hover {
+  border-color: var(--border2);
+  color: var(--text-strong);
+  transform: translateY(-1px);
+}
+
+.nexus-route-state__action--primary {
+  border-color: var(--text-strong);
+  background: var(--text-strong);
+  color: var(--bg);
+}
+
+.nexus-route-state__action--primary:hover {
+  background: var(--accent2);
+  color: var(--bg);
+}
+
+.nexus-route-state__debug {
+  margin-top: var(--space-5);
+  color: var(--text-subtle);
+  font-family: "Consolas", "SFMono-Regular", monospace;
+  font-size: var(--fs-xs);
+}
+
+.nexus-route-state__debug summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.nexus-route-state__debug pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: var(--space-3) 0 0;
+  border-inline-start: 1px solid var(--hairline-strong);
+  padding-inline-start: var(--space-3);
+  color: var(--text3);
+  white-space: pre-wrap;
+}
+
+.nexus-global-error-body {
+  min-height: 100svh;
+  margin: 0;
+  background: var(--bg);
+}
+
+@keyframes nexus-route-state-scan {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: scaleY(0.28);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+html[data-nexus-motion-profile="reduced"]
+  .nexus-route-state[data-kind="loading"]
+  .nexus-route-state__signal::after {
+  animation: none;
+  transform: scaleY(0.65);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nexus-route-state[data-kind="loading"] .nexus-route-state__signal::after {
+    animation: none;
+    transform: scaleY(0.65);
+  }
+
+  .nexus-route-state__action {
+    transition: none;
+  }
+
+  .nexus-route-state__action:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .nexus-route-state__frame {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .nexus-route-state__signal {
+    min-height: 220px;
+  }
+
+  .nexus-route-state__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nexus-route-state__action {
+    width: 100%;
+  }
+}
+
 .nexus-root-main[data-cinematic-ga="true"] .nexus-shell-stage {
   min-height: calc(100vh - var(--top-rail-height));
 }

@@ -253,6 +253,7 @@ export default function SECFilingsFeed() {
           }}
         >
           <input
+            aria-label="Search SEC filings"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && load(query)}

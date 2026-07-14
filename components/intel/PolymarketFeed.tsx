@@ -247,6 +247,7 @@ export default function PolymarketFeed() {
           {sortBtn("volume", "Volume")}
           {sortBtn("closing", "Closing")}
           <input
+            aria-label="Search prediction markets"
             type="text"
             placeholder="Search markets…"
             value={search}

@@ -303,18 +303,21 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
         FILE TO VAULT
       </div>
       <input
+        aria-label="Vault file-back title"
         style={INPUT}
         value={title}
         onChange={e => setTitle(e.target.value)}
         placeholder="Title…"
       />
       <input
+        aria-label="Vault file-back summary"
         style={INPUT}
         value={tldr}
         onChange={e => setTldr(e.target.value)}
         placeholder="TLDR…"
       />
       <input
+        aria-label="Vault file-back tags"
         style={INPUT}
         value={tagsText}
         onChange={e => setTagsText(e.target.value)}

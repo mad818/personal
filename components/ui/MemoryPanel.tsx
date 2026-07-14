@@ -466,6 +466,7 @@ export default function MemoryPanel({ open, onClose }: MemoryPanelProps) {
         {/* Search */}
         <div style={{ padding: "8px 12px", flexShrink: 0 }}>
           <input
+            aria-label="Search memories"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search memories…"

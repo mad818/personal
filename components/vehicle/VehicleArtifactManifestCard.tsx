@@ -352,6 +352,7 @@ export default function VehicleArtifactManifestCard() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       <input
+        aria-label="Import vehicle artifact bundle"
         ref={fileInputRef}
         type="file"
         accept=".json,application/json"
@@ -589,6 +590,7 @@ export default function VehicleArtifactManifestCard() {
           }}
         >
           <select
+            aria-label="Vehicle render brief target"
             value={renderTarget}
             onChange={(event) => {
               setRenderTarget(event.target.value as VehicleRenderBriefTarget)
@@ -610,6 +612,7 @@ export default function VehicleArtifactManifestCard() {
             ))}
           </select>
           <input
+            aria-label="Vehicle render fit goal"
             type="text"
             value={renderGoal}
             onChange={(event) => {
@@ -767,6 +770,7 @@ export default function VehicleArtifactManifestCard() {
           }}
         >
           <select
+            aria-label="Radar processing stage"
             value={radarProcessingStage}
             onChange={(event) => setRadarProcessingStage(event.target.value as VehicleRadarProcessingStage)}
             style={{
@@ -785,6 +789,7 @@ export default function VehicleArtifactManifestCard() {
             ))}
           </select>
           <input
+            aria-label="Radar mode label"
             type="text"
             value={radarModeLabel}
             onChange={(event) => setRadarModeLabel(event.target.value)}
@@ -800,6 +805,7 @@ export default function VehicleArtifactManifestCard() {
           />
         </div>
         <textarea
+          aria-label="Passive radar summary"
           value={radarSummary}
           onChange={(event) => setRadarSummary(event.target.value)}
           placeholder="Passive radar summary"
@@ -814,6 +820,7 @@ export default function VehicleArtifactManifestCard() {
           }}
         />
         <textarea
+          aria-label="Radar fusion note"
           value={radarFusionNote}
           onChange={(event) => setRadarFusionNote(event.target.value)}
           placeholder="Fusion note"
@@ -828,6 +835,7 @@ export default function VehicleArtifactManifestCard() {
           }}
         />
         <input
+          aria-label="Radar artifact labels"
           type="text"
           value={radarArtifactLabels}
           onChange={(event) => setRadarArtifactLabels(event.target.value)}

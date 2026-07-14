@@ -504,12 +504,14 @@ export default function NetworkHealth() {
 
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
             <input
+              aria-label="Network health target label"
               style={{ ...INPUT, flex: "0 0 130px" }}
               placeholder="Label"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
             />
             <input
+              aria-label="Network health target URL"
               style={{ ...INPUT, flex: 1, minWidth: "160px" }}
               placeholder="https://api.example.com/health"
               value={newUrl}

@@ -79,6 +79,7 @@ export default function GeocodingPlaygroundCard() {
 
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
         <input
+          aria-label="Address or place"
           style={{ ...INPUT, flex: 1, minWidth: "180px" }}
           placeholder="Search address or place"
           value={query}
@@ -107,12 +108,14 @@ export default function GeocodingPlaygroundCard() {
 
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
         <input
+          aria-label="Latitude"
           style={{ ...INPUT, flex: "0 0 110px" }}
           placeholder="Lat"
           value={lat}
           onChange={(event) => setLat(event.target.value)}
         />
         <input
+          aria-label="Longitude"
           style={{ ...INPUT, flex: "0 0 110px" }}
           placeholder="Lng"
           value={lng}

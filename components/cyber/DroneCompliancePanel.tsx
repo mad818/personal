@@ -291,15 +291,15 @@ export function DroneCompliancePanel() {
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <label style={{ fontSize: "10px", color: "var(--text2)", fontWeight: "bold" }}>CITY</label>
-          <input style={INPUT} value={city} onChange={(event) => setCity(event.target.value)} placeholder="e.g. Los Angeles" />
+          <input aria-label="Drone operation city" style={INPUT} value={city} onChange={(event) => setCity(event.target.value)} placeholder="e.g. Los Angeles" />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <label style={{ fontSize: "10px", color: "var(--text2)", fontWeight: "bold" }}>STATE</label>
-          <input style={INPUT} value={state} onChange={(event) => setState(event.target.value)} placeholder="e.g. CA" />
+          <input aria-label="Drone operation state" style={INPUT} value={state} onChange={(event) => setState(event.target.value)} placeholder="e.g. CA" />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <label style={{ fontSize: "10px", color: "var(--text2)", fontWeight: "bold" }}>OPERATION TYPE</label>
-          <select style={INPUT} value={opType} onChange={(event) => setOpType(event.target.value as DroneComplianceCheck["operationType"])}>
+          <select aria-label="Drone operation type" style={INPUT} value={opType} onChange={(event) => setOpType(event.target.value as DroneComplianceCheck["operationType"])}>
             {OPERATION_TYPES.map((type) => (
               <option key={type} value={type}>
                 {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -310,11 +310,11 @@ export function DroneCompliancePanel() {
         <div style={{ display: "flex", gap: "8px" }}>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
             <label style={{ fontSize: "10px", color: "var(--text2)", fontWeight: "bold" }}>WEIGHT (lbs)</label>
-            <input style={INPUT} type="number" value={weight} onChange={(event) => setWeight(event.target.value)} min="0.1" step="0.1" />
+            <input aria-label="Drone weight in pounds" style={INPUT} type="number" value={weight} onChange={(event) => setWeight(event.target.value)} min="0.1" step="0.1" />
           </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
             <label style={{ fontSize: "10px", color: "var(--text2)", fontWeight: "bold" }}>ALTITUDE (ft)</label>
-            <input style={INPUT} type="number" value={altitude} onChange={(event) => setAltitude(event.target.value)} min="0" step="50" />
+            <input aria-label="Drone altitude in feet" style={INPUT} type="number" value={altitude} onChange={(event) => setAltitude(event.target.value)} min="0" step="50" />
           </div>
         </div>
         <div style={{ gridColumn: "span 2", display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
@@ -330,6 +330,7 @@ export function DroneCompliancePanel() {
         <div style={{ gridColumn: "span 2", display: "flex", flexDirection: "column", gap: "4px" }}>
           <label style={{ fontSize: "10px", color: "var(--text2)", fontWeight: "bold" }}>ADDITIONAL CONTEXT (optional)</label>
           <input
+            aria-label="Drone operation additional context"
             style={INPUT}
             value={context}
             onChange={(event) => setContext(event.target.value)}

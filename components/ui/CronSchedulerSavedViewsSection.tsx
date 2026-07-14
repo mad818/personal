@@ -129,6 +129,7 @@ export default function CronSchedulerSavedViewsSection({
           {showPasteAuditViews ? "Cancel paste" : "Paste JSON"}
         </button>
         <input
+          aria-label="Import saved scheduler audit views"
           ref={importSavedViewsInputRef}
           type="file"
           accept=".json,application/json"
@@ -140,6 +141,7 @@ export default function CronSchedulerSavedViewsSection({
       {showPasteAuditViews ? (
         <div style={{ display: "grid", gap: 8 }}>
           <textarea
+            aria-label="Pasted scheduler audit views JSON"
             value={pastedAuditViewsText}
             onChange={(event) => onPastedAuditViewsTextChange(event.target.value)}
             placeholder="Paste a saved audit view JSON export here"
@@ -260,6 +262,7 @@ export default function CronSchedulerSavedViewsSection({
       {showSaveAuditView ? (
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <input
+            aria-label="Saved scheduler audit view name"
             value={newAuditViewName}
             onChange={(event) => onNewAuditViewNameChange(event.target.value)}
             placeholder="Saved audit view name"

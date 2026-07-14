@@ -86,6 +86,7 @@ export default function DeveloperFieldManual() {
         }}
       >
         <input
+          aria-label="Search developer resources"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search title, note, or tag"
@@ -98,6 +99,7 @@ export default function DeveloperFieldManual() {
           }}
         />
         <select
+          aria-label="Developer resource cost tier"
           value={costFilter}
           onChange={(event) =>
             setCostFilter(

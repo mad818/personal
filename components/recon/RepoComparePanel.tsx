@@ -342,6 +342,7 @@ export default function RepoComparePanel({
 
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         <input
+          aria-label="Repository to add to comparison"
           type="text"
           value={compareInput}
           onChange={(event) => setCompareInput(event.target.value)}

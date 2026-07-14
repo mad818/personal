@@ -87,7 +87,7 @@
     "runtime:stop:3100": "node scripts/runtime-stop-3100.mjs",
     "dev:direct:3100": "node scripts/dev-direct-3100.mjs",
     "vehicle:readiness:check": "node scripts/validate-vehicle-readiness.mjs",
-    "shell:accessibility:check": "node scripts/validate-shell-accessibility.mjs",
+    "shell:accessibility:check": "node scripts/validate-shell-accessibility.mjs && node scripts/validate-form-accessibility.mjs",
     "surface:polish:check": "node scripts/validate-secondary-surface-polish.mjs && npm run shell:accessibility:check",
     "smoothness:check": "node scripts/validate-smoothness-guardrails.mjs",
     "performance:runtime:check": "node --no-warnings --experimental-strip-types scripts/check-shell-performance-runtime.mjs",

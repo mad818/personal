@@ -409,6 +409,7 @@ function AddModal({
               Title
             </div>
             <input
+              aria-label="Knowledge title"
               style={inputStyle}
               value={form.title}
               onChange={(e) =>
@@ -431,6 +432,7 @@ function AddModal({
               Category
             </div>
             <select
+              aria-label="Knowledge category"
               style={{ ...inputStyle, appearance: "none" }}
               value={form.category}
               onChange={(e) =>
@@ -458,6 +460,7 @@ function AddModal({
               Content
             </div>
             <textarea
+              aria-label="Knowledge content"
               style={{ ...inputStyle, minHeight: "100px", resize: "vertical" }}
               value={form.content}
               onChange={(e) =>
@@ -480,6 +483,7 @@ function AddModal({
               Tags (comma-separated)
             </div>
             <input
+              aria-label="Knowledge tags"
               style={inputStyle}
               value={form.tags}
               onChange={(e) => setForm((p) => ({ ...p, tags: e.target.value }))}
@@ -925,6 +929,7 @@ export default function KnowledgeBase() {
               }}
             >
               <textarea
+                aria-label="New persistent memory"
                 value={newMemoryText}
                 onChange={(e) => setNewMemoryText(e.target.value)}
                 placeholder="Enter a fact to remember permanently (stored in IndexedDB)…"
@@ -992,6 +997,7 @@ export default function KnowledgeBase() {
         </div>
         <div style={{ display: "flex", gap: "6px" }}>
           <input
+            aria-label="Search persistent memories"
             value={memorySearch}
             onChange={(e) => setMemorySearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleMemorySearch()}
@@ -1053,6 +1059,7 @@ export default function KnowledgeBase() {
           ⌕
         </span>
         <input
+          aria-label="Search knowledge base"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search titles, content, tags…"

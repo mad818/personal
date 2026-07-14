@@ -173,6 +173,7 @@ export default function HumanEditorWorkbench() {
               Result
             </SectionLabel>
             <textarea
+              aria-label="Rewritten result"
               value={result}
               readOnly
               rows={12}

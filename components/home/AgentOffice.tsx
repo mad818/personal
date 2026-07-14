@@ -1844,6 +1844,7 @@ export default function AgentOffice() {
           }}
         >
           <textarea
+            aria-label="Agent office command"
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}

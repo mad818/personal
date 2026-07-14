@@ -1013,6 +1013,7 @@ export default function HomeChat() {
       >
         <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
           <textarea
+            aria-label="Home chat task"
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}

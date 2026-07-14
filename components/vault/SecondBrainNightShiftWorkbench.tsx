@@ -257,18 +257,21 @@ export default function SecondBrainNightShiftWorkbench() {
           <div className="nexus-surface-disclosure__body">
             <div style={{ display: "grid", gap: "8px" }}>
               <input
+                aria-label="Raw capture title"
                 value={title}
                 onChange={(event) => setTitle(event.target.value.slice(0, 160))}
                 placeholder="Capture title"
                 style={fieldStyle}
               />
               <input
+                aria-label="Raw capture source URL"
                 value={sourceUrl}
                 onChange={(event) => setSourceUrl(event.target.value.slice(0, 2_048))}
                 placeholder="Source URL (optional; never fetched automatically)"
                 style={fieldStyle}
               />
               <textarea
+                aria-label="Raw capture text"
                 value={captureText}
                 onChange={(event) => setCaptureText(event.target.value.slice(0, 24_000))}
                 placeholder="Paste the thought, quote, article text, or rough note exactly as captured."

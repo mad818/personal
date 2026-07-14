@@ -351,6 +351,7 @@ export default function AiExposureReviewCard({
       ) : null}
 
       <input
+        aria-label="Exposure review subject"
         type="text"
         value={draft.subject}
         onChange={(event) => {
@@ -361,6 +362,7 @@ export default function AiExposureReviewCard({
         style={inputStyle()}
       />
       <textarea
+        aria-label="Exposure profile"
         value={draft.exposureProfile}
         onChange={(event) => {
           setDraft((current) => ({ ...current, exposureProfile: event.target.value }));
@@ -370,6 +372,7 @@ export default function AiExposureReviewCard({
         style={inputStyle(true)}
       />
       <textarea
+        aria-label="Passive evidence"
         value={draft.passiveEvidence}
         onChange={(event) => {
           setDraft((current) => ({ ...current, passiveEvidence: event.target.value }));
@@ -379,6 +382,7 @@ export default function AiExposureReviewCard({
         style={inputStyle(true)}
       />
       <textarea
+        aria-label="Containment guidance"
         value={draft.containmentGuidance}
         onChange={(event) => {
           setDraft((current) => ({ ...current, containmentGuidance: event.target.value }));
@@ -388,6 +392,7 @@ export default function AiExposureReviewCard({
         style={inputStyle(true)}
       />
       <textarea
+        aria-label="Advisory boundaries"
         value={draft.advisoryBoundaries}
         onChange={(event) => {
           setDraft((current) => ({ ...current, advisoryBoundaries: event.target.value }));
@@ -397,6 +402,7 @@ export default function AiExposureReviewCard({
         style={inputStyle(true)}
       />
       <textarea
+        aria-label="Next reviewed move"
         value={draft.nextReviewedMove}
         onChange={(event) => {
           setDraft((current) => ({ ...current, nextReviewedMove: event.target.value }));

@@ -424,6 +424,7 @@ export default function VoiceLabConsole({
             New voice project
           </SectionLabel>
           <input
+            aria-label="Voice project title"
             value={draftTitle}
             onChange={(event) => setDraftTitle(event.target.value)}
             placeholder="Command briefing"
@@ -436,6 +437,7 @@ export default function VoiceLabConsole({
             }}
           />
           <textarea
+            aria-label="Voice project script"
             value={draftText}
             onChange={(event) => setDraftText(event.target.value)}
             placeholder="Paste a mission brief, saved article summary, or operator note..."
@@ -451,6 +453,7 @@ export default function VoiceLabConsole({
           />
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <select
+              aria-label="Voice engine"
               value={engine}
               onChange={(event) => setEngine(event.target.value as VoiceLabEngineId)}
               style={{
@@ -465,6 +468,7 @@ export default function VoiceLabConsole({
               <option value="browser">Browser fallback</option>
             </select>
             <select
+              aria-label="Voice effect preset"
               value={effectPreset}
               onChange={(event) => setEffectPreset(event.target.value as VoiceEffectPreset)}
               style={{
@@ -601,6 +605,7 @@ export default function VoiceLabConsole({
                   </div>
                 </div>
                 <textarea
+                  aria-label="Active voice project script"
                   value={projectDraft}
                   onChange={(event) => setProjectDraft(event.target.value)}
                   rows={12}

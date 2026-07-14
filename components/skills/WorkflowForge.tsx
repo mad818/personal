@@ -181,6 +181,7 @@ export default function WorkflowForge() {
       >
         <SectionLabel detail={`${filtered.length} templates`}>Workflow Forge</SectionLabel>
         <input
+          aria-label="Search workflow templates"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search forge templates"

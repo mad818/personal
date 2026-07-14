@@ -457,6 +457,7 @@ export default function RepoIntelPanel() {
 
       <div style={{ display: "grid", gap: "8px" }}>
         <input
+          aria-label="Public GitHub repository"
           type="text"
           value={repoInput}
           onChange={(event) => {

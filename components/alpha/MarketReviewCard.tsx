@@ -321,6 +321,7 @@ export default function MarketReviewCard() {
 
       <div style={{ display: "grid", gap: "8px" }}>
         <input
+          aria-label="Market review asset"
           type="text"
           value={draft.asset}
           onChange={(event) => {
@@ -331,6 +332,7 @@ export default function MarketReviewCard() {
           style={inputStyle()}
         />
         <textarea
+          aria-label="Market review thesis"
           value={draft.thesis}
           onChange={(event) => {
             setDraft((current) => ({ ...current, thesis: event.target.value }));
@@ -340,6 +342,7 @@ export default function MarketReviewCard() {
           style={inputStyle(true)}
         />
         <textarea
+          aria-label="Market review setup"
           value={draft.setup}
           onChange={(event) => {
             setDraft((current) => ({ ...current, setup: event.target.value }));
@@ -349,6 +352,7 @@ export default function MarketReviewCard() {
           style={inputStyle(true)}
         />
         <textarea
+          aria-label="Market review invalidation"
           value={draft.invalidation}
           onChange={(event) => {
             setDraft((current) => ({ ...current, invalidation: event.target.value }));
@@ -358,6 +362,7 @@ export default function MarketReviewCard() {
           style={inputStyle(true)}
         />
         <textarea
+          aria-label="Market review result"
           value={draft.result}
           onChange={(event) => {
             setDraft((current) => ({ ...current, result: event.target.value }));
@@ -367,6 +372,7 @@ export default function MarketReviewCard() {
           style={inputStyle(true)}
         />
         <input
+          aria-label="Market review emotional posture"
           type="text"
           value={draft.emotionalPosture}
           onChange={(event) => {
@@ -377,6 +383,7 @@ export default function MarketReviewCard() {
           style={inputStyle()}
         />
         <textarea
+          aria-label="Market review operator notes"
           value={draft.operatorNotes}
           onChange={(event) => {
             setDraft((current) => ({ ...current, operatorNotes: event.target.value }));
@@ -445,6 +452,7 @@ export default function MarketReviewCard() {
             </div>
           ) : null}
           <textarea
+            aria-label="Market review repeat lesson"
             value={draft.whatToRepeat}
             onChange={(event) => {
               setDraft((current) => ({ ...current, whatToRepeat: event.target.value }));
@@ -454,6 +462,7 @@ export default function MarketReviewCard() {
             style={inputStyle(true)}
           />
           <textarea
+            aria-label="Market review avoid lesson"
             value={draft.whatToAvoid}
             onChange={(event) => {
               setDraft((current) => ({ ...current, whatToAvoid: event.target.value }));
@@ -463,6 +472,7 @@ export default function MarketReviewCard() {
             style={inputStyle(true)}
           />
           <textarea
+            aria-label="Market review next rule"
             value={draft.nextRule}
             onChange={(event) => {
               setDraft((current) => ({ ...current, nextRule: event.target.value }));

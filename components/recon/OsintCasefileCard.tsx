@@ -335,6 +335,7 @@ export default function OsintCasefileCard({
       ) : null}
 
       <input
+        aria-label="OSINT casefile subject"
         type="text"
         value={draft.subject}
         onChange={(event) => {
@@ -345,6 +346,7 @@ export default function OsintCasefileCard({
         style={inputStyle()}
       />
       <textarea
+        aria-label="Casefile goal"
         value={draft.goal}
         onChange={(event) => {
           setDraft((current) => ({ ...current, goal: event.target.value }));
@@ -354,6 +356,7 @@ export default function OsintCasefileCard({
         style={inputStyle(true)}
       />
       <textarea
+        aria-label="Passive findings"
         value={draft.passiveFindings}
         onChange={(event) => {
           setDraft((current) => ({ ...current, passiveFindings: event.target.value }));
@@ -363,6 +366,7 @@ export default function OsintCasefileCard({
         style={inputStyle(true)}
       />
       <textarea
+        aria-label="Pivot opportunities"
         value={draft.pivotOpportunities}
         onChange={(event) => {
           setDraft((current) => ({ ...current, pivotOpportunities: event.target.value }));
@@ -372,6 +376,7 @@ export default function OsintCasefileCard({
         style={inputStyle(true)}
       />
       <textarea
+        aria-label="Evidence gaps"
         value={draft.evidenceGaps}
         onChange={(event) => {
           setDraft((current) => ({ ...current, evidenceGaps: event.target.value }));
@@ -381,6 +386,7 @@ export default function OsintCasefileCard({
         style={inputStyle(true)}
       />
       <textarea
+        aria-label="Next reviewed move"
         value={draft.nextReviewedMove}
         onChange={(event) => {
           setDraft((current) => ({ ...current, nextReviewedMove: event.target.value }));

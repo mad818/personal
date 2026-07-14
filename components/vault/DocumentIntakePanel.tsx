@@ -141,6 +141,7 @@ export default function DocumentIntakePanel() {
       />
 
       <input
+        aria-label="Document title"
         style={INPUT}
         value={title}
         onChange={(event) => setTitle(event.target.value)}
@@ -148,6 +149,7 @@ export default function DocumentIntakePanel() {
       />
 
       <textarea
+        aria-label="Document content"
         style={{
           ...INPUT,
           minHeight: "140px",
@@ -162,18 +164,21 @@ export default function DocumentIntakePanel() {
 
       <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "minmax(0, 1.2fr) minmax(140px, 0.8fr) 120px" }}>
         <input
+          aria-label="Document origin label"
           style={INPUT}
           value={originLabel}
           onChange={(event) => setOriginLabel(event.target.value)}
           placeholder="Optional file label or origin name"
         />
         <input
+          aria-label="Document MIME type"
           style={INPUT}
           value={documentMimeType}
           onChange={(event) => setDocumentMimeType(event.target.value)}
           placeholder="application/pdf"
         />
         <input
+          aria-label="Document page count"
           style={INPUT}
           inputMode="numeric"
           value={pageCountText}
@@ -183,6 +188,7 @@ export default function DocumentIntakePanel() {
       </div>
 
       <input
+        aria-label="Document tags"
         style={INPUT}
         value={tagsText}
         onChange={(event) => setTagsText(event.target.value)}

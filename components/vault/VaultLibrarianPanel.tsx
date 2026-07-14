@@ -501,6 +501,7 @@ export function VaultLibrarianPanel({
               MANUAL FILE-BACK
             </div>
             <input
+              aria-label="File-back title"
               value={fileBackTitle}
               onChange={e => setFileBackTitle(e.target.value)}
               placeholder="Title..."
@@ -512,6 +513,7 @@ export function VaultLibrarianPanel({
               }}
             />
             <input
+              aria-label="File-back summary"
               value={fileBackTldr}
               onChange={e => setFileBackTldr(e.target.value)}
               placeholder="TLDR (one line summary)..."
@@ -523,6 +525,7 @@ export function VaultLibrarianPanel({
               }}
             />
             <textarea
+              aria-label="File-back answer"
               value={fileBackText}
               onChange={e => setFileBackText(e.target.value)}
               placeholder="Paste the agent answer to file back..."

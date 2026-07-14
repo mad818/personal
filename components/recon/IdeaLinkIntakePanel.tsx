@@ -103,6 +103,7 @@ export default function IdeaLinkIntakePanel() {
       </div>
 
       <textarea
+        aria-label="GitHub or X idea links"
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         placeholder={"https://github.com/org/repo\nhttps://x.com/user/status/123..."}

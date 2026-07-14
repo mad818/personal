@@ -288,6 +288,7 @@ export default function EscapeAccessBackupPanel({
             Import backup
           </button>
           <input
+            aria-label="Import access backup"
             ref={fileInputRef}
             type="file"
             accept="application/json,.json"

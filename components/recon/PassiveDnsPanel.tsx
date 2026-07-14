@@ -187,6 +187,7 @@ export default function PassiveDnsPanel() {
         }}
       >
         <input
+          aria-label="Passive DNS domain or IP address"
           style={{ ...INPUT, flex: 1, minWidth: "200px" }}
           placeholder="Domain (e.g. example.com) or IP address"
           value={target}

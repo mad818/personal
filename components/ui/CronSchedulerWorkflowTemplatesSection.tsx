@@ -43,6 +43,7 @@ export default function CronSchedulerWorkflowTemplatesSection({
         detail="Use the topic override when you want the same workflow shell aimed at a specific subject, campaign, or incident before saving the mission."
       />
       <input
+        aria-label="Workflow topic override"
         value={workflowTopic}
         onChange={(e) => onWorkflowTopicChange(e.target.value)}
         placeholder="Optional workflow topic override for prefilled missions"

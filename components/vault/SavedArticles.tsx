@@ -200,6 +200,7 @@ function TagEditor({ articleId, tags }: { articleId: string; tags: string[] }) {
         }}
       >
         <input
+          aria-label="Article tags"
           autoFocus
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -368,6 +369,7 @@ export default function SavedArticles() {
       >
         {/* Search */}
         <input
+          aria-label="Search saved articles"
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -394,6 +396,7 @@ export default function SavedArticles() {
 
         {/* Sort */}
         <select
+          aria-label="Saved article sort order"
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value as typeof sortOrder)}
           style={{

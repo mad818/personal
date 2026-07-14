@@ -54,6 +54,7 @@ export default function CronSchedulerAuditFiltersSection({
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <select
+          aria-label="Scheduler audit lane"
           value={auditFilters.lane}
           onChange={(event) =>
             onSetAuditFilters((current) => ({
@@ -76,6 +77,7 @@ export default function CronSchedulerAuditFiltersSection({
           <option value="provider_native_batch">Provider-native batch</option>
         </select>
         <select
+          aria-label="Scheduler audit outcome"
           value={auditFilters.status}
           onChange={(event) =>
             onSetAuditFilters((current) => ({
@@ -97,6 +99,7 @@ export default function CronSchedulerAuditFiltersSection({
           <option value="error">Errors only</option>
         </select>
         <select
+          aria-label="Scheduler audit time window"
           value={auditFilters.window}
           onChange={(event) =>
             onSetAuditFilters((current) => ({

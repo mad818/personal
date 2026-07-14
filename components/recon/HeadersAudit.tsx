@@ -215,6 +215,7 @@ export default function HeadersAudit() {
         }}
       >
         <input
+          aria-label="Website for security header audit"
           style={INPUT}
           placeholder="example.com or https://example.com"
           value={url}

@@ -158,6 +158,7 @@ export default function VaultExport({
       <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
         {/* Mode picker */}
         <select
+          aria-label="Second brain export mode"
           value={secondBrainMode}
           onChange={(e) => setSecondBrainMode(e.target.value as SecondBrainExportMode)}
           disabled={exporting !== null}

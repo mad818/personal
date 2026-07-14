@@ -752,6 +752,7 @@ export default function BlacksiteLab() {
           <SectionLabel detail="Search previous tournaments">Blacksite ledger</SectionLabel>
           <InternalWorkbenchNotice meta={meta} compact />
           <input
+            aria-label="Search Blacksite ledger"
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
             placeholder="Filter by family, note, or exercise"

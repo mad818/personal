@@ -227,6 +227,7 @@ export default function AutomationRules() {
                 New Rule
               </div>
               <input
+                aria-label="Automation rule name"
                 value={newRule.name}
                 onChange={(e) =>
                   setNewRule((p) => ({ ...p, name: e.target.value }))
@@ -255,6 +256,7 @@ export default function AutomationRules() {
                     IF trigger
                   </div>
                   <select
+                    aria-label="Automation trigger"
                     value={newRule.trigger}
                     onChange={(e) =>
                       setNewRule((p) => ({ ...p, trigger: e.target.value }))
@@ -287,6 +289,7 @@ export default function AutomationRules() {
                     THEN action
                   </div>
                   <select
+                    aria-label="Automation action"
                     value={newRule.action}
                     onChange={(e) =>
                       setNewRule((p) => ({ ...p, action: e.target.value }))

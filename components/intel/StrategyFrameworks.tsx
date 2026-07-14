@@ -173,6 +173,7 @@ export default function StrategyFrameworks() {
           🧠 Strategy Frameworks
         </span>
         <input
+          aria-label="Strategy framework company or product"
           type="text"
           placeholder="Company / product name…"
           value={company}
@@ -394,6 +395,7 @@ export default function StrategyFrameworks() {
                 {q.desc}
               </div>
               <textarea
+                aria-label={`${q.label} products or units`}
                 value={bcgItems[q.key]}
                 onChange={(e) =>
                   setBcgItems((p) => ({ ...p, [q.key]: e.target.value }))

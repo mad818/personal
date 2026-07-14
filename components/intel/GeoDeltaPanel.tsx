@@ -1,26 +1,68 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { SectionLabel, ShellBadge } from "@/components/ui/shell";
+import DataLoadingState from "@/components/ui/DataLoadingState";
+import { SectionLabel, ShellBadge, ShellButton } from "@/components/ui/shell";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 import type { GeoDeltaSnapshot, SweepTheater } from "@/lib/assimilation/types";
 
 export default function GeoDeltaPanel({ theater }: { theater: SweepTheater }) {
   const [snapshots, setSnapshots] = useState<GeoDeltaSnapshot[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     let active = true;
-    void fetch(`/api/geo-delta?theater=${theater}`, { cache: "no-store" })
-      .then((response) => response.json() as Promise<{ snapshots: GeoDeltaSnapshot[] }>)
-      .then((payload) => {
+
+    const load = async () => {
+      setLoadState("loading");
+      setSnapshots([]);
+      try {
+        const response = await fetch(`/api/geo-delta?theater=${theater}`, {
+          cache: "no-store",
+        });
+        if (!response.ok) throw new Error("Geo delta load failed");
+        const payload = (await response.json()) as {
+          snapshots: GeoDeltaSnapshot[];
+        };
         if (!active) return;
         setSnapshots(payload.snapshots);
-      });
+        setLoadState("ready");
+      } catch {
+        if (!active) return;
+        setLoadState("error");
+      }
+    };
+
+    void load();
     return () => {
       active = false;
     };
-  }, [theater]);
+  }, [retryToken, theater]);
 
   const latest = useMemo(() => snapshots[0] ?? null, [snapshots]);
+
+  if (loadState === "loading") {
+    return <DataLoadingState dataName="geo delta evidence" height={160} />;
+  }
+
+  if (loadState === "error") {
+    return (
+      <SurfaceCallout
+        tone="warning"
+        compact
+        role="alert"
+        title="Geo delta unavailable"
+        description="The stored theater evidence could not be loaded. Retry without leaving INTEL."
+      >
+        <ShellButton onClick={() => setRetryToken((current) => current + 1)}>
+          Retry geo delta
+        </ShellButton>
+      </SurfaceCallout>
+    );
+  }
 
   if (!latest) {
     return (

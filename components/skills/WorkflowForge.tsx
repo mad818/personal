@@ -1,7 +1,10 @@
 "use client";
 
 import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
+import DataLoadingState from "@/components/ui/DataLoadingState";
 import { ShellBadge, ShellButton, SectionLabel } from "@/components/ui/shell";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { toast } from "@/components/ui/Toast";
 import { useStore } from "@/store/useStore";
 import type {
   WorkflowDefinition,
@@ -21,6 +24,8 @@ const NODE_TONE: Record<WorkflowNode["type"], string> = {
   scheduler: "#8b5cf6",
   sink: "#22c55e",
 };
+
+type WorkflowAction = "save" | "clone" | "run" | "copy";
 
 function nodeLabel(type: WorkflowNode["type"]) {
   return type.replace(/(^\w|-\w)/g, (chunk) => chunk.replace("-", "").toUpperCase());
@@ -47,26 +52,50 @@ export default function WorkflowForge() {
   const [draftDescription, setDraftDescription] = useState("");
   const [draftApprovalMode, setDraftApprovalMode] =
     useState<WorkflowDefinition["approvalMode"]>("human_gate");
-  const [busy, setBusy] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [retryToken, setRetryToken] = useState(0);
+  const [busyAction, setBusyAction] = useState<WorkflowAction | null>(null);
   const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
     let active = true;
-    void Promise.all([
-      loadJson<{ workflows: WorkflowDefinition[] }>("/api/workflows"),
-      loadJson<{ runs: WorkflowRun[] }>("/api/workflow-runs"),
-    ]).then(([workflowPayload, runPayload]) => {
-      if (!active) return;
-      startTransition(() => {
-        setWorkflows(workflowPayload.workflows);
-        setRuns(runPayload.runs);
-        setSelectedId((current) => current || workflowPayload.workflows[0]?.id || "");
-      });
-    });
+
+    const load = async () => {
+      setLoadState("loading");
+      setWorkflows([]);
+      setRuns([]);
+      try {
+        const [workflowPayload, runPayload] = await Promise.all([
+          loadJson<{ workflows: WorkflowDefinition[] }>("/api/workflows"),
+          loadJson<{ runs: WorkflowRun[] }>("/api/workflow-runs"),
+        ]);
+        if (!active) return;
+        startTransition(() => {
+          setWorkflows(workflowPayload.workflows);
+          setRuns(runPayload.runs);
+          setSelectedId(
+            (current) =>
+              workflowPayload.workflows.some(
+                (workflow) => workflow.id === current,
+              )
+                ? current
+                : workflowPayload.workflows[0]?.id || "",
+          );
+          setLoadState("ready");
+        });
+      } catch {
+        if (!active) return;
+        setLoadState("error");
+      }
+    };
+
+    void load();
     return () => {
       active = false;
     };
-  }, []);
+  }, [retryToken]);
 
   const filtered = useMemo(() => {
     const term = deferredSearch.trim().toLowerCase();
@@ -95,7 +124,7 @@ export default function WorkflowForge() {
 
   async function saveDraft() {
     if (!selectedWorkflow) return;
-    setBusy(true);
+    setBusyAction("save");
     try {
       const response = await fetch("/api/workflows", {
         method: "POST",
@@ -107,14 +136,26 @@ export default function WorkflowForge() {
           version: selectedWorkflow.version + 1,
         } satisfies WorkflowDefinition),
       });
+      if (!response.ok) throw new Error("Workflow save failed");
       const payload = (await response.json()) as { workflow: WorkflowDefinition };
       setWorkflows((current) =>
         current.map((workflow) =>
           workflow.id === payload.workflow.id ? payload.workflow : workflow,
         ),
       );
+      toast({
+        title: "Workflow graph saved",
+        message: `${payload.workflow.name} is now at version ${payload.workflow.version}.`,
+        severity: "low",
+      });
+    } catch {
+      toast({
+        title: "Workflow graph not saved",
+        message: "The protected workflow route rejected or could not complete the save.",
+        severity: "high",
+      });
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
 
@@ -127,39 +168,105 @@ export default function WorkflowForge() {
       version: 1,
       updatedAt: new Date().toISOString(),
     };
-    setBusy(true);
+    setBusyAction("clone");
     try {
       const response = await fetch("/api/workflows", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(next),
       });
+      if (!response.ok) throw new Error("Workflow clone failed");
       const payload = (await response.json()) as { workflow: WorkflowDefinition };
       setWorkflows((current) => [payload.workflow, ...current]);
       setSelectedId(payload.workflow.id);
+      toast({
+        title: "Workflow template cloned",
+        message: `${payload.workflow.name} is ready for local review.`,
+        severity: "low",
+      });
+    } catch {
+      toast({
+        title: "Workflow template not cloned",
+        message: "The protected workflow route rejected or could not create the copy.",
+        severity: "high",
+      });
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
 
   async function runWorkflow() {
     if (!selectedWorkflow) return;
-    setBusy(true);
+    setBusyAction("run");
     try {
-      await fetch("/api/workflow-runs", {
+      const response = await fetch("/api/workflow-runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workflowId: selectedWorkflow.id }),
       });
+      if (!response.ok) throw new Error("Workflow run failed");
       await refreshRuns();
+      toast({
+        title: "Workflow run staged",
+        message: `${selectedWorkflow.name} completed through the reviewed local run route.`,
+        severity: "low",
+      });
+    } catch {
+      toast({
+        title: "Workflow run failed",
+        message: "The run was not recorded. Review route readiness and try again.",
+        severity: "high",
+      });
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
 
   async function exportWorkflow() {
     if (!selectedWorkflow || typeof navigator === "undefined") return;
-    await navigator.clipboard.writeText(JSON.stringify(selectedWorkflow, null, 2));
+    setBusyAction("copy");
+    try {
+      await navigator.clipboard.writeText(
+        JSON.stringify(selectedWorkflow, null, 2),
+      );
+      toast({
+        title: "Workflow JSON copied",
+        message: `${selectedWorkflow.name} is on the clipboard.`,
+        severity: "low",
+      });
+    } catch {
+      toast({
+        title: "Workflow JSON not copied",
+        message: "Clipboard access was unavailable. Keep the workflow open and try again.",
+        severity: "medium",
+      });
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
+  if (loadState === "loading") {
+    return (
+      <DataLoadingState
+        dataName="workflow templates and recent runs"
+        height={260}
+      />
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <SurfaceCallout
+        tone="warning"
+        role="alert"
+        title="Workflow Forge unavailable"
+        description="Templates and recent runs could not be loaded. Retry without leaving SKILLS."
+      >
+        <ShellButton onClick={() => setRetryToken((current) => current + 1)}>
+          Retry workflow data
+        </ShellButton>
+      </SurfaceCallout>
+    );
   }
 
   return (
@@ -391,12 +498,30 @@ export default function WorkflowForge() {
             </div>
 
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "16px" }}>
-              <ShellButton onClick={() => void saveDraft()}>{busy ? "Saving..." : "Save graph"}</ShellButton>
-              <ShellButton onClick={() => void cloneTemplate()}>Clone template</ShellButton>
-              <ShellButton onClick={() => void runWorkflow()}>
-                {busy ? "Running..." : "Run workflow"}
+              <ShellButton
+                onClick={() => void saveDraft()}
+                disabled={Boolean(busyAction)}
+              >
+                {busyAction === "save" ? "Saving…" : "Save graph"}
               </ShellButton>
-              <ShellButton onClick={() => void exportWorkflow()}>Copy JSON</ShellButton>
+              <ShellButton
+                onClick={() => void cloneTemplate()}
+                disabled={Boolean(busyAction)}
+              >
+                {busyAction === "clone" ? "Cloning…" : "Clone template"}
+              </ShellButton>
+              <ShellButton
+                onClick={() => void runWorkflow()}
+                disabled={Boolean(busyAction)}
+              >
+                {busyAction === "run" ? "Running…" : "Run workflow"}
+              </ShellButton>
+              <ShellButton
+                onClick={() => void exportWorkflow()}
+                disabled={Boolean(busyAction)}
+              >
+                {busyAction === "copy" ? "Copying…" : "Copy JSON"}
+              </ShellButton>
             </div>
           </>
         ) : (

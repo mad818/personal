@@ -1,7 +1,9 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { SectionLabel, ShellBadge } from "@/components/ui/shell";
+import DataLoadingState from "@/components/ui/DataLoadingState";
+import { SectionLabel, ShellBadge, ShellButton } from "@/components/ui/shell";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 import type { AssetKit, RegistryCostTier, RegistryItem } from "@/lib/assimilation/types";
 
 interface Props {
@@ -23,21 +25,44 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
   const [kits, setKits] = useState<AssetKit[]>([]);
   const [search, setSearch] = useState("");
   const [costFilter, setCostFilter] = useState<RegistryCostTier | "all">("all");
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [retryToken, setRetryToken] = useState(0);
   const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
     let active = true;
-    void fetch("/api/registry", { cache: "no-store" })
-      .then((response) => response.json() as Promise<{ items: RegistryItem[]; kits: AssetKit[] }>)
-      .then((payload) => {
+
+    const load = async () => {
+      setLoadState("loading");
+      setItems([]);
+      setKits([]);
+      try {
+        const response = await fetch("/api/registry", { cache: "no-store" });
+        if (!response.ok) throw new Error("Registry load failed");
+        const payload = (await response.json()) as {
+          items: RegistryItem[];
+          kits: AssetKit[];
+        };
+        if (!Array.isArray(payload.items) || !Array.isArray(payload.kits)) {
+          throw new Error("Registry payload is invalid");
+        }
         if (!active) return;
         setItems(payload.items);
         setKits(payload.kits);
-      });
+        setLoadState("ready");
+      } catch {
+        if (!active) return;
+        setLoadState("error");
+      }
+    };
+
+    void load();
     return () => {
       active = false;
     };
-  }, []);
+  }, [retryToken]);
 
   const visibleItems = useMemo(() => {
     const term = deferredSearch.trim().toLowerCase();
@@ -61,6 +86,31 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
         : [kit.title, kit.summary, kit.owner].join(" ").toLowerCase().includes(term),
     );
   }, [deferredSearch, kits]);
+
+  if (loadState === "loading") {
+    return (
+      <DataLoadingState
+        dataName="registry inventory"
+        height={compact ? 150 : 220}
+      />
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <SurfaceCallout
+        tone="warning"
+        compact={compact}
+        role="alert"
+        title="Registry unavailable"
+        description="The local registry inventory could not be loaded. Retry without leaving RESOURCES."
+      >
+        <ShellButton onClick={() => setRetryToken((current) => current + 1)}>
+          Retry registry
+        </ShellButton>
+      </SurfaceCallout>
+    );
+  }
 
   return (
     <div style={{ display: "grid", gap: compact ? "12px" : "16px" }}>

@@ -76,6 +76,15 @@ const checks = [
       'title: "Workflow run failed"',
     ],
   },
+  {
+    file: "components/iot/EspectreWifiViewer.tsx",
+    forbidden: [],
+    required: [
+      'method: "POST"',
+      "if (!response.ok)",
+      "Unable to prepare command envelope.",
+    ],
+  },
 ];
 
 const errors = [];
@@ -269,6 +278,157 @@ function findIgnoredPromiseChains(source, relativePath) {
   return violations;
 }
 
+const mutationMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+function getLiteralMutationMethod(node) {
+  if (
+    !ts.isCallExpression(node) ||
+    !ts.isIdentifier(node.expression) ||
+    node.expression.text !== "fetch"
+  ) {
+    return null;
+  }
+
+  const options = node.arguments[1];
+  if (!options || !ts.isObjectLiteralExpression(options)) return null;
+  const methodProperty = options.properties.find(
+    (property) =>
+      ts.isPropertyAssignment(property) &&
+      ((ts.isIdentifier(property.name) && property.name.text === "method") ||
+        (ts.isStringLiteral(property.name) && property.name.text === "method")),
+  );
+  if (!methodProperty || !ts.isPropertyAssignment(methodProperty)) return null;
+  const value = methodProperty.initializer;
+  if (!ts.isStringLiteralLike(value)) return null;
+  const method = value.text.toUpperCase();
+  return mutationMethods.has(method) ? method : null;
+}
+
+function getFunctionBoundary(node) {
+  for (let current = node.parent; current; current = current.parent) {
+    if (ts.isFunctionLike(current)) return current;
+  }
+  return node.getSourceFile();
+}
+
+function hasResponseOkCheck(boundary, responseName) {
+  let checked = false;
+
+  function visit(node) {
+    if (node !== boundary && ts.isFunctionLike(node)) return;
+    if (
+      ts.isPropertyAccessExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === responseName &&
+      node.name.text === "ok"
+    ) {
+      checked = true;
+      return;
+    }
+    if (
+      ts.isElementAccessExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === responseName &&
+      node.argumentExpression &&
+      ts.isStringLiteralLike(node.argumentExpression) &&
+      node.argumentExpression.text === "ok"
+    ) {
+      checked = true;
+      return;
+    }
+    if (!checked) ts.forEachChild(node, visit);
+  }
+
+  visit(boundary);
+  return checked;
+}
+
+function findAwaitExpression(node, boundary) {
+  for (
+    let current = node.parent;
+    current && current !== boundary;
+    current = current.parent
+  ) {
+    if (ts.isAwaitExpression(current)) return current;
+    if (ts.isFunctionLike(current)) return null;
+  }
+  return null;
+}
+
+function findAssignedResponseName(awaitExpression) {
+  const parent = awaitExpression.parent;
+  if (ts.isVariableDeclaration(parent) && ts.isIdentifier(parent.name)) {
+    return parent.name.text;
+  }
+  if (
+    ts.isBinaryExpression(parent) &&
+    parent.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+    ts.isIdentifier(parent.left)
+  ) {
+    return parent.left.text;
+  }
+  return null;
+}
+
+function isForwardedResponse(node, boundary) {
+  let current = node;
+  while (
+    current.parent &&
+    (ts.isParenthesizedExpression(current.parent) ||
+      ts.isAwaitExpression(current.parent))
+  ) {
+    current = current.parent;
+  }
+  if (ts.isReturnStatement(current.parent)) return true;
+  return ts.isArrowFunction(boundary) && boundary.body === current;
+}
+
+function findUncheckedMutationResponses(source, relativePath) {
+  const sourceFile = ts.createSourceFile(
+    relativePath,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const violations = [];
+
+  function visit(node) {
+    const method = getLiteralMutationMethod(node);
+    if (method) {
+      const boundary = getFunctionBoundary(node);
+      const awaitExpression = findAwaitExpression(node, boundary);
+      const location = sourceFile.getLineAndCharacterOfPosition(
+        node.getStart(sourceFile),
+      );
+      const prefix = `${relativePath}:${location.line + 1}:${location.character + 1}`;
+
+      if (awaitExpression) {
+        const responseName = findAssignedResponseName(awaitExpression);
+        if (responseName) {
+          if (!hasResponseOkCheck(boundary, responseName)) {
+            violations.push(
+              `${prefix} uses ${method} response "${responseName}" without checking response.ok`,
+            );
+          }
+        } else if (!isForwardedResponse(node, boundary)) {
+          violations.push(
+            `${prefix} ignores the HTTP status of a ${method} response`,
+          );
+        }
+      } else if (!isForwardedResponse(node, boundary)) {
+        violations.push(
+          `${prefix} does not await or forward a ${method} response`,
+        );
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return violations;
+}
+
 const fetchFixtureViolations = findIgnoredPromiseChains(
   `
     void fetch("/bad").then(read);
@@ -294,11 +454,41 @@ if (fetchFixtureViolations.length !== 3) {
   );
 }
 
+const mutationFixtureViolations = findUncheckedMutationResponses(
+  `
+    async function unchecked() {
+      const response = await fetch("/unchecked", { method: "POST" });
+      return response.json();
+    }
+    async function ignored() {
+      await fetch("/ignored", { method: "DELETE" });
+    }
+    async function checked() {
+      const response = await fetch("/checked", { method: "PATCH" });
+      if (!response.ok) throw new Error("failed");
+      return response.json();
+    }
+    function forwarded() {
+      return fetch("/forwarded", { method: "PUT" });
+    }
+    async function dynamic(method) {
+      await fetch("/dynamic", { method });
+    }
+  `,
+  "client-mutation-fixture.tsx",
+);
+if (mutationFixtureViolations.length !== 2) {
+  errors.push(
+    "client mutation truth: AST self-test must reject unchecked or ignored literal mutations while accepting checked, forwarded, and dynamic responses",
+  );
+}
+
 for (const { relativePath, source } of [
   ...collectTsxSources("app"),
   ...collectTsxSources("components"),
 ]) {
   errors.push(...findIgnoredPromiseChains(source, relativePath));
+  errors.push(...findUncheckedMutationResponses(source, relativePath));
 }
 
 if (errors.length > 0) {
@@ -308,5 +498,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Secondary surface polish OK (camera, drone, IoT, voice, and client fetch states are explicit).",
+  "Secondary surface polish OK (camera, drone, IoT, voice, and client fetch/mutation states are explicit).",
 );

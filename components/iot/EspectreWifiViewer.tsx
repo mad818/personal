@@ -97,6 +97,7 @@ export default function EspectreWifiViewer() {
           patch,
         }),
       });
+      if (!response.ok) throw new Error("ESPectre command rejected");
       const result = (await response.json()) as { note?: string; error?: string };
       setMessage(result.note ?? result.error ?? "Command envelope prepared.");
     } catch {

@@ -52,3 +52,14 @@ Every active client effect that loads workspace data must handle rejection, dist
 - Retry stays local and predictable without refreshing the route.
 - Workflow mutations cannot report success from an HTTP failure.
 - Future ignored client fetch chains fail the normal repository gate.
+
+## Corrective extension: mutation response truth
+
+The active non-RPG mutation audit found one remaining definite gap in `EspectreWifiViewer`: its POST path parsed and displayed a response body without first requiring a successful HTTP status. The correction must:
+
+1. Reject a failed ESPectre control response before accepting its note or changing the success-facing message.
+2. Keep the existing local busy lifecycle and explicit failure message; add no provider, route, state, or visual surface.
+3. Extend the TypeScript-AST validator to reject unchecked literal POST, PUT, PATCH, and DELETE `fetch()` responses while accepting a checked response and dynamic methods that cannot be classified safely.
+4. Prove zero unchecked literal client mutations across active TSX sources outside the private RPG lane.
+
+This closes false-success behavior for the last source-proven client mutation and turns the fix into a whole-app regression contract.

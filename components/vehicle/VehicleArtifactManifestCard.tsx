@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback"
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions"
 import { apiFetch } from "@/lib/apiFetch"
 import { buildMissionHref } from "@/lib/missionHandoff"
@@ -404,9 +405,10 @@ export default function VehicleArtifactManifestCard() {
         <button
           type="button"
           onClick={() =>
-            navigator.clipboard
-              .writeText(stringifyVehicleFlightSessionBundle(bundle))
-              .catch(() => {})
+            void copyTextWithFeedback(
+              stringifyVehicleFlightSessionBundle(bundle),
+              "Flight session JSON",
+            )
           }
           className="nexus-shell-button"
           style={{ marginLeft: "auto" }}
@@ -633,7 +635,7 @@ export default function VehicleArtifactManifestCard() {
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           <button
             type="button"
-            onClick={() => navigator.clipboard.writeText(renderBrief).catch(() => {})}
+            onClick={() => void copyTextWithFeedback(renderBrief, "Render brief")}
             className="nexus-shell-button"
           >
             Copy render brief
@@ -981,9 +983,10 @@ export default function VehicleArtifactManifestCard() {
               <button
                 type="button"
                 onClick={() =>
-                  navigator.clipboard
-                    .writeText(stringifyVehicleFlightSessionBundle(importedBundle))
-                    .catch(() => {})
+                  void copyTextWithFeedback(
+                    stringifyVehicleFlightSessionBundle(importedBundle),
+                    "Imported session JSON",
+                  )
                 }
                 className="nexus-shell-button"
               >

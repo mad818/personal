@@ -2,6 +2,7 @@
 
 import type { Article } from "@/store/useStore";
 import type { VaultGraphData } from "@/components/home/office/types";
+import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback";
 import TrustOperationsRail from "@/components/ui/TrustOperationsRail";
 import {
   OpsField,
@@ -177,13 +178,16 @@ export default function VaultRelationsChamber({
                       `${filteredGraph.edges.length} edges`,
                       `${filteredGraph.orphans.length} orphans`,
                     ].join(" · ");
-                    await navigator.clipboard.writeText(summary);
+                    await copyTextWithFeedback(summary, "Graph view summary");
                   }}
                   onCopyVisibleGraphNodes={async () => {
                     const visibleNodes = filteredGraph.nodes
                       .map((node) => node.title)
                       .join("\n");
-                    await navigator.clipboard.writeText(visibleNodes);
+                    await copyTextWithFeedback(
+                      visibleNodes,
+                      "Visible graph nodes",
+                    );
                   }}
                   onDownloadVisibleGraphNodes={() => {
                     const blob = new Blob(

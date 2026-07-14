@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback";
 import { useStore, PMChecklistItem } from "@/store/useStore";
 
 const CATEGORY_LABELS: Record<PMChecklistItem["category"], string> = {
@@ -31,7 +32,7 @@ export function PMChecklist() {
       });
       lines.push("");
     });
-    navigator.clipboard.writeText(lines.join("\n")).catch(() => {});
+    void copyTextWithFeedback(lines.join("\n"), "PM checklist");
   }, [checklist]);
 
   const totalChecked = checklist.filter((i) => i.checked).length;

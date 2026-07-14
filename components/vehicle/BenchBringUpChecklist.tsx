@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback"
 import {
   getVehicleBenchChecklistProgress,
   VEHICLE_BENCH_CHECKLIST,
@@ -83,7 +84,7 @@ export default function BenchBringUpChecklist() {
       lines.push("")
     })
 
-    navigator.clipboard.writeText(lines.join("\n")).catch(() => {})
+    void copyTextWithFeedback(lines.join("\n"), "Bench checklist")
   }, [normalizedChecklistState])
 
   return (

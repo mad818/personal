@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useMemo } from "react"
+import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback"
 import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry"
 import {
   buildVehicleOpsBrief,
@@ -183,7 +184,7 @@ export default function DroneOpsLaunchpad() {
         </div>
         <button
           type="button"
-          onClick={() => navigator.clipboard.writeText(summary).catch(() => {})}
+          onClick={() => void copyTextWithFeedback(summary, "Drone ops brief")}
           className="nexus-shell-button"
         >
           Copy ops brief

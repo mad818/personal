@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react"
+import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback"
 import {
   areVehicleConnectorProfilesEqual,
   buildVehicleConnectorProfileJson,
@@ -295,21 +296,21 @@ export default function VehicleConnectorOnboardingCard() {
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "auto" }}>
             <button
               type="button"
-              onClick={() => navigator.clipboard.writeText(stubCommand).catch(() => {})}
+              onClick={() => void copyTextWithFeedback(stubCommand, "Bridge command")}
               className="nexus-shell-button"
             >
               Copy command
             </button>
             <button
               type="button"
-              onClick={() => navigator.clipboard.writeText(connectorJson).catch(() => {})}
+              onClick={() => void copyTextWithFeedback(connectorJson, "Connector profile")}
               className="nexus-shell-button"
             >
               Copy profile JSON
             </button>
             <button
               type="button"
-              onClick={() => navigator.clipboard.writeText(setupGuide).catch(() => {})}
+              onClick={() => void copyTextWithFeedback(setupGuide, "Setup guide")}
               className="nexus-shell-button"
             >
               Copy setup guide

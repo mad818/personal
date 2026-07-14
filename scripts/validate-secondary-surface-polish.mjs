@@ -85,6 +85,17 @@ const checks = [
       "Unable to prepare command envelope.",
     ],
   },
+  {
+    file: "components/ui/clipboardFeedback.ts",
+    forbidden: [],
+    required: [
+      'typeof navigator === "undefined"',
+      "await navigator.clipboard.writeText(text)",
+      "`${label} copied`",
+      "`${label} not copied`",
+      'severity: "medium"',
+    ],
+  },
 ];
 
 const errors = [];
@@ -429,6 +440,123 @@ function findUncheckedMutationResponses(source, relativePath) {
   return violations;
 }
 
+function getStaticMemberName(node) {
+  if (ts.isPropertyAccessExpression(node)) return node.name.text;
+  if (
+    ts.isElementAccessExpression(node) &&
+    node.argumentExpression &&
+    ts.isStringLiteralLike(node.argumentExpression)
+  ) {
+    return node.argumentExpression.text;
+  }
+  return null;
+}
+
+function getMemberOwner(node) {
+  if (
+    ts.isPropertyAccessExpression(node) ||
+    ts.isElementAccessExpression(node)
+  ) {
+    return node.expression;
+  }
+  return null;
+}
+
+function isClipboardWriteCall(node) {
+  if (!ts.isCallExpression(node)) return false;
+  const writeOwner = getMemberOwner(node.expression);
+  if (getStaticMemberName(node.expression) !== "writeText" || !writeOwner) {
+    return false;
+  }
+  const clipboardOwner = getMemberOwner(writeOwner);
+  return (
+    getStaticMemberName(writeOwner) === "clipboard" &&
+    clipboardOwner !== null &&
+    ts.isIdentifier(clipboardOwner) &&
+    clipboardOwner.text === "navigator"
+  );
+}
+
+function isEmptyRejectionHandler(handler) {
+  if (!handler) return true;
+  if (ts.isArrowFunction(handler) || ts.isFunctionExpression(handler)) {
+    if (ts.isBlock(handler.body)) return handler.body.statements.length === 0;
+    return ts.isIdentifier(handler.body) && handler.body.text === "undefined";
+  }
+  return false;
+}
+
+function findUncheckedClipboardWrites(source, relativePath) {
+  const sourceFile = ts.createSourceFile(
+    relativePath,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const violations = [];
+
+  function visit(node) {
+    if (isClipboardWriteCall(node)) {
+      const boundary = getFunctionBoundary(node);
+      let handled = false;
+      let swallowed = false;
+
+      for (
+        let parent = node.parent;
+        parent && parent !== boundary;
+        parent = parent.parent
+      ) {
+        if (
+          ts.isTryStatement(parent) &&
+          parent.catchClause &&
+          parent.tryBlock.pos <= node.pos &&
+          node.end <= parent.tryBlock.end
+        ) {
+          if (parent.catchClause.block.statements.length === 0)
+            swallowed = true;
+          else handled = true;
+        }
+
+        if (
+          ts.isCallExpression(parent) &&
+          (ts.isPropertyAccessExpression(parent.expression) ||
+            ts.isElementAccessExpression(parent.expression))
+        ) {
+          const method = getStaticMemberName(parent.expression);
+          const handler =
+            method === "catch"
+              ? parent.arguments[0]
+              : method === "then"
+                ? parent.arguments[1]
+                : undefined;
+          if (method === "catch" || (method === "then" && handler)) {
+            if (isEmptyRejectionHandler(handler)) swallowed = true;
+            else handled = true;
+          }
+        }
+      }
+
+      if (swallowed || (!handled && !isForwardedResponse(node, boundary))) {
+        const location = sourceFile.getLineAndCharacterOfPosition(
+          node.getStart(sourceFile),
+        );
+        violations.push(
+          `${relativePath}:${location.line + 1}:${location.character + 1} ${
+            swallowed
+              ? "silently swallows clipboard failure"
+              : "does not handle or forward clipboard failure"
+          }`,
+        );
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return violations;
+}
+
 const fetchFixtureViolations = findIgnoredPromiseChains(
   `
     void fetch("/bad").then(read);
@@ -483,12 +611,48 @@ if (mutationFixtureViolations.length !== 2) {
   );
 }
 
+const clipboardFixtureViolations = findUncheckedClipboardWrites(
+  `
+    async function unhandled() {
+      await navigator.clipboard.writeText("unhandled");
+    }
+    function swallowed() {
+      void navigator.clipboard.writeText("swallowed").catch(() => {});
+    }
+    async function bracketSwallowed() {
+      try {
+        await navigator["clipboard"]["writeText"]("bracket");
+      } catch {}
+    }
+    async function guarded() {
+      try {
+        await navigator.clipboard.writeText("guarded");
+      } catch {
+        reportFailure();
+      }
+    }
+    function delegated() {
+      return navigator.clipboard.writeText("delegated").catch(reportFailure);
+    }
+    function forwarded() {
+      return navigator.clipboard.writeText("forwarded");
+    }
+  `,
+  "clipboard-feedback-fixture.tsx",
+);
+if (clipboardFixtureViolations.length !== 3) {
+  errors.push(
+    "clipboard feedback: AST self-test must reject unhandled and empty rejection paths while accepting substantive handlers and forwarded promises",
+  );
+}
+
 for (const { relativePath, source } of [
   ...collectTsxSources("app"),
   ...collectTsxSources("components"),
 ]) {
   errors.push(...findIgnoredPromiseChains(source, relativePath));
   errors.push(...findUncheckedMutationResponses(source, relativePath));
+  errors.push(...findUncheckedClipboardWrites(source, relativePath));
 }
 
 if (errors.length > 0) {
@@ -498,5 +662,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Secondary surface polish OK (camera, drone, IoT, voice, and client fetch/mutation states are explicit).",
+  "Secondary surface polish OK (camera, drone, IoT, voice, client fetch/mutation, and clipboard states are explicit).",
 );

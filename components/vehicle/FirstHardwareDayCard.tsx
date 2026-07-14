@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback"
 import {
   areVehicleChecklistStatesEqual,
   getVehicleFirstHardwareDayProgress,
@@ -146,9 +147,10 @@ export default function FirstHardwareDayCard() {
         <button
           type="button"
           onClick={() =>
-            navigator.clipboard
-              .writeText(buildHardwareDayRunbook(normalizedChecklistState))
-              .catch(() => {})
+            void copyTextWithFeedback(
+              buildHardwareDayRunbook(normalizedChecklistState),
+              "Hardware-day runbook",
+            )
           }
           className="nexus-shell-button"
           style={{ marginLeft: "auto" }}
@@ -268,9 +270,10 @@ export default function FirstHardwareDayCard() {
             <button
               type="button"
               onClick={() =>
-                navigator.clipboard
-                  .writeText([flow.label, `Trigger: ${flow.trigger}`, ...flow.steps].join("\n"))
-                  .catch(() => {})
+                void copyTextWithFeedback(
+                  [flow.label, `Trigger: ${flow.trigger}`, ...flow.steps].join("\n"),
+                  `${flow.label} recovery flow`,
+                )
               }
               className="nexus-shell-button"
               style={{ alignSelf: "flex-start" }}

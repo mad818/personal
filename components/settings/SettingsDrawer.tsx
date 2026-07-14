@@ -14,6 +14,7 @@ import {
 } from "@/lib/brand";
 import { RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
 import { compilePersonalAIProfile } from "@/lib/personalAIProfile";
+import { useModalDialog } from "@/hooks/useModalDialog";
 
 // ── Non-sensitive fields — stored in Zustand / localStorage ──────────────────
 const LOCAL_FIELDS: {
@@ -334,19 +335,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
     }, 220);
   }, [onClose]);
 
-  useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") handleClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [handleClose, open]);
+  const dialogRef = useModalDialog({ open, onClose: handleClose });
 
   if (!open) return null;
 
@@ -365,12 +354,14 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
 
       {/* Drawer */}
       <div
+        ref={dialogRef}
         className="nexus-sidepanel nexus-sidepanel--settings"
         role="dialog"
         aria-modal="true"
-        aria-label="Settings"
+        aria-labelledby="nexus-settings-title"
         id="nexus-settings-dialog"
         data-testid="settings-dialog"
+        tabIndex={-1}
         style={{
           width: "min(440px, 100vw)",
           transform: closing ? "translateX(100%)" : "translateX(0)",
@@ -381,7 +372,9 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
         <div className="nexus-sidepanel__header">
           <div className="nexus-sidepanel__header-copy">
             <span className="nexus-sidepanel__eyebrow">Control surface</span>
-            <span className="nexus-sidepanel__title">Settings</span>
+            <span className="nexus-sidepanel__title" id="nexus-settings-title">
+              Settings
+            </span>
             <span className="nexus-sidepanel__subtitle">
               {BRAND_NAME} preferences, provider posture, and deployment policy in one place.
             </span>
@@ -391,6 +384,7 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
             onClick={handleClose}
             className="nexus-sidepanel__close"
             data-testid="settings-close"
+            data-dialog-initial-focus
             aria-label="Close settings"
           >
             ✕

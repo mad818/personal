@@ -10,6 +10,7 @@ import {
   type TradeThesisResult,
 } from "@/lib/alphaTradeThesis";
 import { fmtPct, fmtPrice } from "@/lib/helpers";
+import { useModalDialog } from "@/hooks/useModalDialog";
 
 interface TradeThesisPanelProps {
   input: TradeThesisInput;
@@ -55,6 +56,7 @@ export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelPro
   const [loading, setLoading] = useState(true);
   const [thesis, setThesis] = useState<TradeThesisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const dialogRef = useModalDialog({ open: true, onClose });
 
   const generate = useCallback(async () => {
     setLoading(true);
@@ -80,8 +82,6 @@ export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelPro
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
       onClick={onClose}
       style={{
         position: "fixed",
@@ -95,6 +95,13 @@ export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelPro
       }}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="nexus-trade-thesis-title"
+        aria-describedby="nexus-trade-thesis-context"
+        aria-busy={loading}
+        tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
         style={{
           background: "var(--surf)",
@@ -112,6 +119,8 @@ export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelPro
         <button
           type="button"
           onClick={onClose}
+          data-dialog-initial-focus
+          aria-label="Close trade thesis"
           style={{
             position: "absolute",
             top: "14px",
@@ -127,6 +136,7 @@ export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelPro
         </button>
 
         <div
+          id="nexus-trade-thesis-title"
           style={{
             fontSize: "22px",
             fontWeight: 900,
@@ -134,9 +144,12 @@ export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelPro
             color: "#a855f7",
           }}
         >
-          {input.sym}
+          {input.sym} trade thesis
         </div>
-        <div style={{ fontSize: "11px", color: "var(--text3)", margin: "2px 0 14px" }}>
+        <div
+          id="nexus-trade-thesis-context"
+          style={{ fontSize: "11px", color: "var(--text3)", margin: "2px 0 14px" }}
+        >
           {input.name ?? input.sym} · {fmtPrice(input.price)} · {fmtPct(input.chg24h)} · Score{" "}
           {input.score}/100 · {input.label}
         </div>

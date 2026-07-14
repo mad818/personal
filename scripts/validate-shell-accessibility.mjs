@@ -19,6 +19,11 @@ for (const text of [
   'href="#nexus-main-content"',
   'data-testid="nexus-skip-link"',
   "main.focus({ preventScroll: true })",
+  "function RouteAnnouncement",
+  'aria-live="polite"',
+  "document.title = nextTitle",
+  "workspace loaded",
+  'aria-label={`${routeBranding.visibleLabel} workspace`}',
   'id="nexus-main-content"',
   "tabIndex={-1}",
 ]) {

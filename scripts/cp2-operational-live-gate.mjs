@@ -90,7 +90,9 @@ async function main() {
     runNpm("runtime:stop:3100");
   }
 
-  const passed = (gateStdout + gateStderr).includes("ok cp2-local-launch-gate");
+  const passed =
+    gate.status === 0 &&
+    (gateStdout + gateStderr).includes("Outcome: target_checks_passed");
   const artifact = {
     generatedAt: new Date().toISOString(),
     baseUrl,

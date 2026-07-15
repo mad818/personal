@@ -5,6 +5,8 @@ loadEnv({ path: ".env.local" });
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3100";
 const port = new URL(baseURL).port || "3100";
+const externalRuntime =
+  process.env.NEXUS_PLAYWRIGHT_EXTERNAL_RUNTIME === "1";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -26,16 +28,18 @@ export default defineConfig({
     video: "off",
     headless: true,
   },
-  webServer: {
-    command: "npm run dev",
-    url: `${baseURL}/api/health`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-    env: {
-      ...process.env,
-      PORT: port,
-    },
-  },
+  webServer: externalRuntime
+    ? undefined
+    : {
+        command: "npm run dev",
+        url: `${baseURL}/api/health`,
+        reuseExistingServer: !process.env.CI,
+        timeout: 180_000,
+        env: {
+          ...process.env,
+          PORT: port,
+        },
+      },
   projects: [
     {
       name: "auth-chromium",

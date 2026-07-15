@@ -2,6 +2,13 @@
 
 Use this checklist for both deployment lanes before promoting a release.
 
+## One-command CP2.4 gate
+
+- `npm run cp2:launch:gate` runs the complete local release gate plus the agent-runtime evaluation without calling a target.
+- With an already-running target, set `NEXUS_RELEASE_BASE_URL` and `NEXUS_TOKEN`, then run `npm run cp2:launch:gate -- --live` to add route integrity, release smoke, and auth E2E.
+- The live gate fails before expensive checks when the target health endpoint is unreachable, never starts its own runtime, never writes evidence, and never prints the token value.
+- A static pass is not live acceptance. A live pass still requires remote CI confirmation plus staged promotion and rollback records.
+
 ## Shared baseline
 
 - [ ] `npm run type-check`

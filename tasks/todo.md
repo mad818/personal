@@ -20,6 +20,10 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 - [ ] CP2.2 — Desktop isolation validation: secure runtime, no-outbound proof in isolated mode, capability lockdown evidence
 - [ ] CP2.3 — Desktop trust chain: checksum verification, signing status record, SBOM status record. The status-record command and canonical SBOM now exist; remaining release work is real packaged artifacts, checksums for those artifacts, and configured signing strategy.
 - [ ] CP2.4 — Final launch gate: `type-check`, `lint`, `verify`, `route:integrity`, `eval:agent-runtime:ci`, `release:smoke`, auth E2E
+  - Current pass: repair the missing executable contract with one fixed-command `cp2:launch:gate` runner. Static mode must own the existing release gate plus runtime evaluation; explicit `--live` mode must require a reachable operator-managed target and token before route integrity, smoke, and auth E2E run.
+  - Guardrail: no RPG file changes, provider calls, remote writes, package installs, runtime auto-start, `.env.local` mutation, token printing, evidence writes, bypass flag, or launch-ready claim without every requested live check.
+  - Design: `specs/features/cp2-launch-gate-contract-repair.md`.
+  - Progress: the executable contract is repaired and verify-gated. Static mode delegates to the truthful full release gate and runtime evaluation; live mode validates one explicit target, proves health first, and then runs route integrity, release smoke, and auth E2E with Playwright server startup disabled. Existing `cp2:local:launch-gate`, `launch:gate:target`, operational live, preflight, web rehearsal, and staged rehearsal names resolve again. CP2.4 remains open because `NEXUS_RELEASE_BASE_URL` is absent and no managed runtime is healthy on `127.0.0.1:3100`; no live acceptance was simulated. Proof: focused static/runtime fixtures, compatibility help, missing-target rejection, `npx tsc --noEmit`, canonical `npm run verify`, production build, and zero-RPG-path diff audit passed.
 
 ## Security ideas (next)
 
@@ -289,6 +293,12 @@ Blocked or manual watchlist, not the active queue:
 - [ ] FD2 remains blocked on the real staged Coolify hostname in repo-root `.env.local`, so release-proof work still stays out of this replay stack.
 
 ## In Progress
+
+- [x] CP2.4-LAUNCH-GATE-CONTRACT-REPAIR — Restore the missing final-launch command as a safe static/live gate while keeping real target acceptance open.
+  - Current pass: add one shell-free fixed-command orchestrator, explicit target health/token preconditions, external-runtime Playwright posture, compatibility aliases, focused fixtures, and canonical verification coverage.
+  - Guardrail: no service start from the new gate, evidence write, env mutation, secret output, provider/package/remote change, RPG file change, or live-ready claim without live checks.
+  - Design: `specs/features/cp2-launch-gate-contract-repair.md`.
+  - Progress: complete. The pre-fix missing npm script now resolves; static and live outcomes are distinct; live checks fail closed before expensive work when configuration/health is absent; the old operational wrapper recognizes the new success contract; and the release checklist describes the exact command and remaining promotion blockers. Parent CP2.4 stays open for a real operator-managed target. Proof: `npm run cp2:launch:check`, `npm run cp2:local:launch-gate -- --help`, fail-closed missing-env probe, `npx tsc --noEmit`, `npm run verify`, `npm run build`, and diff checks passed.
 
 - [x] FEYNMAN-HUGGING-FACE-INSPECTION — Add bounded public model/dataset repository inspection and use it as direct Feynman evidence only when relevant.
   - Current pass: public metadata, access posture, bounded top-level files, dataset split/schema information, safe small text-file reads, protected `huggingface_inspect` tool wiring, and relevant-reference Feynman integration.

@@ -8,6 +8,11 @@ import {
   parseFeynmanPaperSearchFilters,
   applyFeynmanPaperSearchFilters,
 } from "./feynmanAcademicFilters.ts";
+import {
+  getFeynmanWorkflowContract,
+  renderFeynmanWorkflowContractForPrompt,
+  renderFeynmanWorkflowContractForReport,
+} from "./feynmanWorkflowContracts.ts";
 
 export type FeynmanWorkflowId =
   | "deepresearch"
@@ -432,6 +437,9 @@ export function buildFeynmanSynthesisPrompt(
     'Each claim item must be {"claim":"...","sourceIds":["S1"]}.',
     "Use only the evidence supplied. Cite source IDs inline. Label inferences. Never invent source access.",
     `Purpose: ${workflowPurpose(input.workflow)}`,
+    "",
+    "WORKFLOW OUTPUT CONTRACT:",
+    renderFeynmanWorkflowContractForPrompt(input.workflow),
     EXECUTION_GATED_WORKFLOWS.has(input.workflow)
       ? "Do not execute anything. Produce a plan only and state that explicit operator approval is required."
       : "",
@@ -459,14 +467,18 @@ export function buildFeynmanSynthesisPrompt(
 }
 
 export function buildFeynmanVerificationPrompt(
+  workflow: FeynmanWorkflowId,
   writer: FeynmanWriterResult,
   sources: FeynmanSource[],
 ) {
   return [
-    "You are the Verifier stage of a Feynman-style research workflow.",
+    `You are the Verifier stage of a Feynman-style ${getFeynmanWorkflowContract(workflow).label} workflow.`,
     "Return JSON only with key claims.",
     'Each item must be {"id":"C1","claim":"...","sourceIds":["S1"],"verdict":"supported|partial|conflicting|unsupported|unverifiable","rationale":"..."}.',
     "Audit every supplied claim against only the evidence ledger. A URL that was discovered but not read cannot support a claim.",
+    "",
+    "WORKFLOW OUTPUT CONTRACT:",
+    renderFeynmanWorkflowContractForPrompt(workflow),
     "",
     "CLAIMS:",
     JSON.stringify(writer.claims),
@@ -486,7 +498,11 @@ export function buildFeynmanReviewPrompt(
     "Return JSON only with key findings.",
     'Each finding must be {"severity":"fatal|major|minor","issue":"...","recommendation":"..."}.',
     "Check unsupported claims, contradictions, logical gaps, overconfidence, missing methodology, and single-source critical findings.",
+    "Also check the workflow-specific output contract and approval boundary.",
     "Use FATAL only when the artifact cannot safely support its central conclusion.",
+    "",
+    "WORKFLOW OUTPUT CONTRACT:",
+    renderFeynmanWorkflowContractForPrompt(workflow),
     "",
     "DRAFT:",
     JSON.stringify(writer),
@@ -631,6 +647,9 @@ export function formatFeynmanReport(input: {
     `- Question: ${input.research.topic}`,
     `- Purpose: ${workflowPurpose(input.research.workflow)}`,
     `- Stages: Researcher ${input.stageStatus.researcher}; Writer ${input.stageStatus.writer}; Verifier ${input.stageStatus.verifier}; Reviewer ${input.stageStatus.reviewer}.`,
+    "",
+    "## Workflow Contract",
+    renderFeynmanWorkflowContractForReport(input.research.workflow),
     "",
     "## Evidence Ledger",
     formatEvidenceLedger(input.sources),
@@ -785,7 +804,9 @@ export async function runFeynmanResearch(
   let claims: FeynmanClaimAudit[] = fallbackClaims(writer, sources);
   try {
     const result = parseClaimAudits(
-      await deps.verify(buildFeynmanVerificationPrompt(writer, sources)),
+      await deps.verify(
+        buildFeynmanVerificationPrompt(workflow, writer, sources),
+      ),
     );
     if (result && result.length > 0) {
       claims = result;

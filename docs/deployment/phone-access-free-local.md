@@ -36,6 +36,12 @@ NEXUS_RATE_LIMIT_PERSISTENCE=persistent
 
 `NEXUS_PHONE_LAN_ENABLED=false` is intentional. LAN exposure should be explicit for the session where you need phone access.
 
+## Phone-token permissions
+
+`NEXUS_PHONE_TOKEN` is deliberately narrower than the desktop master token. A phone session can read protected dashboards and use exactly three mutation-shaped workflows: local AI through `POST /api/ai`, governed read/analyze tools through `POST /api/tools`, and sanitized acceptance receipts through `POST /api/phone-acceptance/receipt`. The AI route stays on Ollama or TurboQuant even if the host is in internal or connected network mode; governed tools continue to reject networked, mutate, and exec capabilities for phone sessions.
+
+Every other `POST`, `PUT`, `PATCH`, or `DELETE` request returns `403 phone_token_limited` before route code runs. Use `NEXUS_TOKEN` from the desktop for settings, workflow, memory, telemetry, integration, experiment, or other operator-state changes. The protected auth diagnostics payload reports `authTier: phone` or `authTier: master` so the active boundary is visible without exposing either credential.
+
 ## Start phone LAN mode
 
 From the repo root:

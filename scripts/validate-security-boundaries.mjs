@@ -10,6 +10,7 @@ const root = process.cwd();
 const requiredFiles = [
   "middleware.ts",
   "lib/security/routePolicy.ts",
+  "lib/security/phoneSessionPolicy.ts",
   "lib/security/rateLimit.ts",
   "lib/security/protectedActionTelemetry.ts",
   "lib/security/stepUpAuth.ts",
@@ -21,7 +22,9 @@ const requiredMiddlewareSignals = [
   "getRoutePolicy",
   "isRouteAllowedInMode",
   "NEXUS_INTERNAL_AUTH_HEADER",
-  "hasAuthenticatedNexusSession",
+  "getNexusSessionState",
+  "resolvePhoneSessionRequestPolicy",
+  "X-Nexus-Phone-Policy",
   "isTrustedInternalHost",
   "policy.public",
   "Unknown API route",
@@ -229,7 +232,7 @@ function main() {
   }
 
   console.log(
-    "Security boundary OK (middleware, route policy, protected helpers, high-risk routes, and protected 401/403 posture are wired).",
+    "Security boundary OK (middleware, route policy, signed session tiers, protected helpers, high-risk routes, and protected 401/403 posture are wired).",
   );
 }
 

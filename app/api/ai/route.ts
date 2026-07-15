@@ -14,6 +14,7 @@ import {
   applyRateLimitHeaders,
   checkRateLimit,
 } from "@/lib/security/rateLimit";
+import { resolvePhoneSessionAiPolicy } from "@/lib/security/phoneSessionPolicy";
 import {
   applyPrivacyShieldHeaders,
   protectCloudBoundPayload,
@@ -348,6 +349,27 @@ export async function POST(req: NextRequest) {
       secondBrainMode,
     } = body;
 
+    const trustContext = await readProtectedActionContext(req);
+    const phoneAiPolicy = resolvePhoneSessionAiPolicy(
+      trustContext.session?.authTier,
+      typeof provider === "string" ? provider : null,
+    );
+    if (!phoneAiPolicy.explicitProviderAllowed) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "phone_token_limited",
+            message: `Provider "${phoneAiPolicy.provider}" is blocked for phone-token sessions. Phone access can use Ollama or TurboQuant local AI only.`,
+            recoveryAction:
+              "Use local AI from the phone, or use the master token from the desktop for an explicitly enabled BYOK provider.",
+          },
+        },
+        { status: 403 },
+      );
+    }
+    const localOnlyMode =
+      phoneAiPolicy.localOnly || trustContext.networkMode === "isolated";
+
     const resolvedSecondBrainMode = resolveSecondBrainMode({
       requestedMode: secondBrainMode,
       task,
@@ -393,8 +415,6 @@ export async function POST(req: NextRequest) {
     const taskModel = task
       ? (TASK_MODELS[task as keyof typeof TASK_MODELS] ?? DEFAULT_LOCAL_MODEL)
       : undefined;
-    const trustContext = await readProtectedActionContext(req);
-    const localOnlyMode = trustContext.networkMode === "isolated";
 
     let validatedLocalEndpoint: string | undefined;
     if (typeof localEndpoint === "string" && localEndpoint.trim()) {
@@ -471,16 +491,25 @@ export async function POST(req: NextRequest) {
       providerAllowedByPolicy(providerName, localOnlyMode),
     );
     if (policyFilteredChain.length === 0) {
+      const phoneLocalAiRequired = phoneAiPolicy.phoneSession;
       return NextResponse.json(
         {
           error: {
-            code: localOnlyMode ? "ollama_required" : "provider_policy_blocked",
-            message: localOnlyMode
-              ? "No local providers are available while the network mode is isolated. Start Ollama locally to continue."
-              : "No providers allowed by free-use policy. Set NEXUS_ALLOW_PAID_APIS=true to opt in.",
-            recoveryAction: localOnlyMode
-              ? "Start Ollama and install the configured local model."
-              : "Use Ollama locally, or explicitly opt in to BYOK cloud providers.",
+            code: phoneLocalAiRequired
+              ? "phone_local_ai_required"
+              : localOnlyMode
+                ? "ollama_required"
+                : "provider_policy_blocked",
+            message: phoneLocalAiRequired
+              ? "No local AI provider is available for this phone-token session. Start Ollama or the optional TurboQuant runtime."
+              : localOnlyMode
+                ? "No local providers are available while the network mode is isolated. Start Ollama locally to continue."
+                : "No providers allowed by free-use policy. Set NEXUS_ALLOW_PAID_APIS=true to opt in.",
+            recoveryAction: phoneLocalAiRequired
+              ? "Start a local AI runtime on the host, then retry from the phone."
+              : localOnlyMode
+                ? "Start Ollama and install the configured local model."
+                : "Use Ollama locally, or explicitly opt in to BYOK cloud providers.",
           },
         },
         { status: 403 },
@@ -612,13 +641,21 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json(
       {
         error: {
-          code: localOnlyMode ? "ollama_unavailable" : "provider_unavailable",
-          message: localOnlyMode
-            ? "Local Ollama did not answer. Check that Ollama is running and the resolved model is installed."
-            : "All allowed AI providers are unavailable. Check Ollama first, then any explicitly configured BYOK provider keys.",
-          recoveryAction: localOnlyMode
-            ? "Run ollama serve, then run npm run offline:local:check."
-            : "Open provider health and keep paid APIs disabled unless you explicitly opt in.",
+          code: phoneAiPolicy.phoneSession
+            ? "phone_local_ai_unavailable"
+            : localOnlyMode
+              ? "ollama_unavailable"
+              : "provider_unavailable",
+          message: phoneAiPolicy.phoneSession
+            ? "Local AI did not answer this phone-token request. Check that Ollama or TurboQuant is running on the host."
+            : localOnlyMode
+              ? "Local Ollama did not answer. Check that Ollama is running and the resolved model is installed."
+              : "All allowed AI providers are unavailable. Check Ollama first, then any explicitly configured BYOK provider keys.",
+          recoveryAction: phoneAiPolicy.phoneSession
+            ? "Run the local AI readiness check on the host, then retry from the phone."
+            : localOnlyMode
+              ? "Run ollama serve, then run npm run offline:local:check."
+              : "Open provider health and keep paid APIs disabled unless you explicitly opt in.",
         },
       },
       { status: 503 },

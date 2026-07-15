@@ -3,8 +3,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import {
+  applyAuthNoStoreHeaders,
   getConfiguredNexusToken,
-  hasAuthenticatedNexusSession,
+  getNexusSessionState,
   isTrustedInternalHost,
   matchesConfiguredNexusToken,
   NEXUS_INTERNAL_AUTH_HEADER,
@@ -25,6 +26,7 @@ import {
   findConnectorKeyForPath,
   readConnectorPolicy,
 } from '@/lib/security/connectorPolicy'
+import { resolvePhoneSessionRequestPolicy } from '@/lib/security/phoneSessionPolicy'
 
 /**
  * Nexus Gateway Middleware
@@ -88,7 +90,8 @@ export async function middleware(req: NextRequest) {
 
   const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? ''
   const internalAuth = req.headers.get(NEXUS_INTERNAL_AUTH_HEADER) ?? ''
-  const sessionAuthorized = await hasAuthenticatedNexusSession(sessionCookie)
+  const session = await getNexusSessionState(sessionCookie)
+  const sessionAuthorized = Boolean(session)
   const internalAuthorized =
     matchesConfiguredNexusToken(internalAuth) &&
     isTrustedInternalHost(
@@ -100,6 +103,27 @@ export async function middleware(req: NextRequest) {
 
   if (!authorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (session?.authTier === 'phone' && !internalAuthorized) {
+    const phonePolicy = resolvePhoneSessionRequestPolicy(pathname, req.method)
+    if (!phonePolicy.allowed) {
+      const response = NextResponse.json(
+        {
+          error:
+            'This action needs the desktop NEXUS_TOKEN. Phone token sessions can read Nexus and use local assistant workflows, but cannot perform this mutation.',
+          code: 'phone_token_limited',
+          route: pathname,
+          method: phonePolicy.method,
+          recoveryAction:
+            'Use the master token from the desktop for operator-state changes.',
+        },
+        { status: 403 },
+      )
+      response.headers.set('X-Nexus-Phone-Policy', 'blocked_mutation')
+      applyAuthNoStoreHeaders(response.headers)
+      return response
+    }
   }
 
   return NextResponse.next()

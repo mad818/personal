@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
     auth: {
       tokenConfigured: Boolean(configuredToken),
       phoneTokenConfigured: isNexusPhoneTokenConfigured(),
+      authTier: trustContext.session?.authTier ?? null,
       authenticated: authEnabled ? trustContext.sessionAuthenticated : true,
       stepUpActive: authEnabled ? trustContext.stepUpActive : true,
       sessionRemainingSeconds: trustContext.session?.remainingSeconds ?? null,

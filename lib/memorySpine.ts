@@ -119,19 +119,39 @@ function trimSummary(value: string, max = 180) {
 
 function guessDomainFromText(text: string): MemoryDomain {
   const lower = normalizeText(text);
-  if (/\b(cve|vulnerability|threat|malware|exploit|incident|security|otx|containment)\b/.test(lower)) {
+  if (
+    /\b(cve|vulnerability|threat|malware|exploit|incident|security|otx|containment)\b/.test(
+      lower,
+    )
+  ) {
     return "cyber";
   }
-  if (/\b(bitcoin|btc|eth|crypto|market|trade|portfolio|fear and greed|momentum)\b/.test(lower)) {
+  if (
+    /\b(bitcoin|btc|eth|crypto|market|trade|portfolio|fear and greed|momentum)\b/.test(
+      lower,
+    )
+  ) {
     return "markets";
   }
-  if (/\b(world risk|geopolit|conflict|ops|earthquake|flight|maritime|weather)\b/.test(lower)) {
+  if (
+    /\b(world risk|geopolit|conflict|ops|earthquake|flight|maritime|weather)\b/.test(
+      lower,
+    )
+  ) {
     return "ops";
   }
-  if (/\b(next|react|typescript|tailwind|store|agent|prompt|runtime|verify|code)\b/.test(lower)) {
+  if (
+    /\b(next|react|typescript|tailwind|store|agent|prompt|runtime|verify|code)\b/.test(
+      lower,
+    )
+  ) {
     return "engineering";
   }
-  if (/\b(strategy|brief|portfolio review|vrio|porter|bcg|jtbd|mission codex)\b/.test(lower)) {
+  if (
+    /\b(strategy|brief|portfolio review|vrio|porter|bcg|jtbd|mission codex)\b/.test(
+      lower,
+    )
+  ) {
     return "strategy";
   }
   if (/\b(news|research|source|article|report|analysis|intel)\b/.test(lower)) {
@@ -243,7 +263,9 @@ function dedupeTags(tags: string[]) {
   return Array.from(new Set(tags.filter(Boolean)));
 }
 
-function buildMemoryCitationId(base: Pick<MemorySpineItem, "id" | "layer" | "kind">) {
+function buildMemoryCitationId(
+  base: Pick<MemorySpineItem, "id" | "layer" | "kind">,
+) {
   const layerCode =
     base.layer === "raw" ? "RAW" : base.layer === "knowledge" ? "KNW" : "OUT";
   const kindCode = base.kind.slice(0, 3).toUpperCase();
@@ -274,7 +296,10 @@ function deriveSensitivityTags(combined: string, visibility: MemoryVisibility) {
       tags.push("protected-path");
     }
   }
-  if (visibility !== "safe" && INTERNAL_HINT_PATTERNS.some((pattern) => pattern.test(combined))) {
+  if (
+    visibility !== "safe" &&
+    INTERNAL_HINT_PATTERNS.some((pattern) => pattern.test(combined))
+  ) {
     tags.push("internal-doctrine");
   }
   return dedupeTags(tags);
@@ -362,93 +387,114 @@ export function materializeMemorySpineItem(
   return sanitizeMemoryItem(base, options);
 }
 
-export function buildMemorySpineItems(input: MemorySpineSources): MemorySpineItem[] {
-  const articleItems = input.savedArticles.map<MemorySpineItem>((article) => {
-    const backlinkCount = countVaultArchiveBacklinks(article.id, input.savedArticles);
-    const archiveLinkCount = article.archiveLinks?.length ?? 0;
-    return {
-      id: `article:${article.id}`,
-      layer: "raw",
-      kind: "clip",
-      title: article.title,
-      summary: trimSummary(
-        [
-          getArticleReasoningSummary(article),
-          archiveLinkCount > 0
-            ? `${archiveLinkCount} archive link${archiveLinkCount === 1 ? "" : "s"}`
-            : "",
-          backlinkCount > 0
-            ? `${backlinkCount} backlink${backlinkCount === 1 ? "" : "s"}`
-            : "",
-        ]
-          .filter(Boolean)
-          .join(" · "),
-      ),
-      sourceLabel: article.src ? `Source · ${article.src}` : "Vault clip",
-      domain: domainFromArticle(article),
-      tags: dedupeTags([
-        ...(article.tags ?? []),
-        ...getArticleReasoningDomainHints(article),
-        ...getArticleReasoningEntities(article).slice(0, 2),
-      ]),
-      timestamp: Number.isFinite(new Date(article.date).getTime())
-        ? new Date(article.date).getTime()
-        : 0,
-      visibility: "safe",
-    };
-  }).map((item) => sanitizeMemoryItem(item));
+export function buildMemorySpineItems(
+  input: MemorySpineSources,
+): MemorySpineItem[] {
+  const articleItems = input.savedArticles
+    .map<MemorySpineItem>((article) => {
+      const backlinkCount = countVaultArchiveBacklinks(
+        article.id,
+        input.savedArticles,
+      );
+      const archiveLinkCount = article.archiveLinks?.length ?? 0;
+      return {
+        id: `article:${article.id}`,
+        layer: "raw",
+        kind: "clip",
+        title: article.title,
+        summary: trimSummary(
+          [
+            getArticleReasoningSummary(article),
+            archiveLinkCount > 0
+              ? `${archiveLinkCount} archive link${archiveLinkCount === 1 ? "" : "s"}`
+              : "",
+            backlinkCount > 0
+              ? `${backlinkCount} backlink${backlinkCount === 1 ? "" : "s"}`
+              : "",
+          ]
+            .filter(Boolean)
+            .join(" · "),
+        ),
+        sourceLabel: article.src ? `Source · ${article.src}` : "Vault clip",
+        domain: domainFromArticle(article),
+        tags: dedupeTags([
+          ...(article.tags ?? []),
+          ...getArticleReasoningDomainHints(article),
+          ...getArticleReasoningEntities(article).slice(0, 2),
+        ]),
+        timestamp: Number.isFinite(new Date(article.date).getTime())
+          ? new Date(article.date).getTime()
+          : 0,
+        visibility: "safe",
+      };
+    })
+    .map((item) => sanitizeMemoryItem(item));
 
-  const learningItems = Object.entries(input.agentLearnings).flatMap(([, entries]) =>
-    entries.map<MemorySpineItem>((entry) => ({
-      id: `learning:${entry.id}`,
-      layer: "knowledge",
-      kind: "learning",
-      title: `${entry.agent.toUpperCase()} ${entry.category}`,
-      summary: trimSummary(entry.summary),
-      sourceLabel: entry.proposedFix ? "Agent learning · proposed fix" : "Agent learning",
-      domain: domainFromLearning(entry),
-      tags: [entry.queryType, entry.category, entry.agent],
-      timestamp: entry.ts,
-      visibility: "safe",
-    })).map((item) => sanitizeMemoryItem(item)),
+  const learningItems = Object.entries(input.agentLearnings).flatMap(
+    ([, entries]) =>
+      entries
+        .map<MemorySpineItem>((entry) => ({
+          id: `learning:${entry.id}`,
+          layer: "knowledge",
+          kind: "learning",
+          title: `${entry.agent.toUpperCase()} ${entry.category}`,
+          summary: trimSummary(entry.summary),
+          sourceLabel: entry.proposedFix
+            ? "Agent learning · proposed fix"
+            : "Agent learning",
+          domain: domainFromLearning(entry),
+          tags: [entry.queryType, entry.category, entry.agent],
+          timestamp: entry.ts,
+          visibility: "safe",
+        }))
+        .map((item) => sanitizeMemoryItem(item)),
   );
 
-  const runItems = input.agentRunHistory.map<MemorySpineItem>((artifact) => ({
-    id: `run:${artifact.runId}`,
-    layer: "output",
-    kind: "run",
-    title: trimSummary(artifact.userMessage, 72),
-    summary: trimSummary(artifact.finalAnswer),
-    sourceLabel: `Agent run · ${artifact.runtimeEngine}`,
-    domain: domainFromRun(artifact),
-    tags: [
-      artifact.toolTraces[0]?.tool ?? "answer",
-      artifact.efficiency.toolPackId,
-      artifact.verificationSummary,
-    ].filter(Boolean),
-    timestamp: artifact.finishedAt,
-    visibility: "safe",
-  })).map((item) => sanitizeMemoryItem(item));
+  const runItems = input.agentRunHistory
+    .map<MemorySpineItem>((artifact) => ({
+      id: `run:${artifact.runId}`,
+      layer: "output",
+      kind: "run",
+      title: trimSummary(artifact.userMessage, 72),
+      summary: trimSummary(artifact.finalAnswer),
+      sourceLabel: `Agent run · ${artifact.runtimeEngine}`,
+      domain: domainFromRun(artifact),
+      tags: [
+        artifact.toolTraces[0]?.tool ?? "answer",
+        artifact.efficiency.toolPackId,
+        artifact.verificationSummary,
+      ].filter(Boolean),
+      timestamp: artifact.finishedAt,
+      visibility: "safe",
+    }))
+    .map((item) => sanitizeMemoryItem(item));
 
-  const briefingItems = input.modeBriefings.map<MemorySpineItem>((briefing) => ({
-    id: `briefing:${briefing.id}`,
-    layer: "output",
-    kind: "briefing",
-    title: `${briefing.mode} ${briefing.jobName}`,
-    summary: trimSummary(briefing.summary),
-    sourceLabel: `Mode briefing · ${briefing.relatedTab}`,
-    domain: domainFromBriefing(briefing),
-    tags: [briefing.mode, briefing.relatedTab, briefing.status],
-    timestamp: briefing.createdAt,
-    visibility: "safe",
-  })).map((item) => sanitizeMemoryItem(item));
+  const briefingItems = input.modeBriefings
+    .map<MemorySpineItem>((briefing) => ({
+      id: `briefing:${briefing.id}`,
+      layer: "output",
+      kind: "briefing",
+      title: `${briefing.mode} ${briefing.jobName}`,
+      summary: trimSummary(briefing.summary),
+      sourceLabel: `Mode briefing · ${briefing.relatedTab}`,
+      domain: domainFromBriefing(briefing),
+      tags: [briefing.mode, briefing.relatedTab, briefing.status],
+      timestamp: briefing.createdAt,
+      visibility: "safe",
+    }))
+    .map((item) => sanitizeMemoryItem(item));
 
-  return [...articleItems, ...learningItems, ...runItems, ...briefingItems].sort(
-    (a, b) => b.timestamp - a.timestamp,
-  );
+  return [
+    ...articleItems,
+    ...learningItems,
+    ...runItems,
+    ...briefingItems,
+  ].sort((a, b) => b.timestamp - a.timestamp);
 }
 
-export function buildMemorySpineSnapshotFromItems(items: MemorySpineItem[]): MemorySpineSnapshot {
+export function buildMemorySpineSnapshotFromItems(
+  items: MemorySpineItem[],
+): MemorySpineSnapshot {
   const countsByLayer = { ...EMPTY_LAYER_COUNTS };
   const countsByDomain = { ...EMPTY_DOMAIN_COUNTS };
   const countsByVisibility = { ...EMPTY_VISIBILITY_COUNTS };
@@ -469,7 +515,9 @@ export function buildMemorySpineSnapshotFromItems(items: MemorySpineItem[]): Mem
   };
 }
 
-export function buildMemorySpineSnapshot(input: MemorySpineSources): MemorySpineSnapshot {
+export function buildMemorySpineSnapshot(
+  input: MemorySpineSources,
+): MemorySpineSnapshot {
   return buildMemorySpineSnapshotFromItems(buildMemorySpineItems(input));
 }
 
@@ -488,9 +536,10 @@ export function searchMemorySpine(
   const includeRestricted = options?.includeRestricted ?? false;
   const terms = query.split(/\s+/).filter(Boolean);
 
-  const candidates = snapshot.items.filter((item) =>
-    (layer === "all" ? true : item.layer === layer) &&
-    (includeRestricted ? true : item.visibility !== "restricted"),
+  const candidates = snapshot.items.filter(
+    (item) =>
+      (layer === "all" ? true : item.layer === layer) &&
+      (includeRestricted ? true : item.visibility !== "restricted"),
   );
 
   const scored = candidates

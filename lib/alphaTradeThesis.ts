@@ -30,8 +30,7 @@ export function buildTradeThesisPrompt(
     input.fearGreedValue != null
       ? `Fear & Greed: ${input.fearGreedValue} (${input.fearGreedLabel ?? "—"})`
       : "";
-  const trend =
-    input.trend != null ? `7d trend: ${fmtPct(input.trend)}` : "";
+  const trend = input.trend != null ? `7d trend: ${fmtPct(input.trend)}` : "";
 
   return `You are a professional momentum analyst (Dexter-style thesis generator).
 Analyze this setup and return ONLY valid JSON — no markdown fences.
@@ -54,14 +53,18 @@ Be conservative on stops and targets. Output shape:
 }`;
 }
 
-export function parseTradeThesisResponse(raw: string): TradeThesisResult | null {
+export function parseTradeThesisResponse(
+  raw: string,
+): TradeThesisResult | null {
   const trimmed = raw.trim();
   const jsonStart = trimmed.indexOf("{");
   const jsonEnd = trimmed.lastIndexOf("}");
   if (jsonStart < 0 || jsonEnd <= jsonStart) return null;
 
   try {
-    const parsed = JSON.parse(trimmed.slice(jsonStart, jsonEnd + 1)) as Partial<TradeThesisResult>;
+    const parsed = JSON.parse(
+      trimmed.slice(jsonStart, jsonEnd + 1),
+    ) as Partial<TradeThesisResult>;
     if (!parsed.thesis?.trim()) return null;
     return {
       entry: parsed.entry?.trim() || "—",
@@ -71,7 +74,9 @@ export function parseTradeThesisResponse(raw: string): TradeThesisResult | null 
       rr: parsed.rr?.trim() || "—",
       thesis: parsed.thesis.trim(),
       risks: Array.isArray(parsed.risks)
-        ? parsed.risks.filter((r): r is string => typeof r === "string" && r.trim().length > 0)
+        ? parsed.risks.filter(
+            (r): r is string => typeof r === "string" && r.trim().length > 0,
+          )
         : ["Market conditions can change rapidly.", "Always use a hard stop."],
     };
   } catch {
@@ -79,10 +84,16 @@ export function parseTradeThesisResponse(raw: string): TradeThesisResult | null 
   }
 }
 
-export function fallbackTradeThesis(input: TradeThesisInput): TradeThesisResult {
-  const direction = input.score >= 60 ? "long" : input.score <= 40 ? "cautious" : "neutral";
+export function fallbackTradeThesis(
+  input: TradeThesisInput,
+): TradeThesisResult {
+  const direction =
+    input.score >= 60 ? "long" : input.score <= 40 ? "cautious" : "neutral";
   return {
-    entry: direction === "long" ? "Pullback toward prior support" : "Wait for confirmation",
+    entry:
+      direction === "long"
+        ? "Pullback toward prior support"
+        : "Wait for confirmation",
     stop: direction === "long" ? "~7% below entry" : "N/A until setup confirms",
     target1: "Prior swing high / resistance",
     target2: "Extended measured move",

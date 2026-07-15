@@ -245,7 +245,9 @@ export function getScheduledMissionReviewSummary(
       ? lastQueuedAt + contract.expiryHours * 60 * 60 * 1000
       : null);
   const pendingStatus =
-    lastQueuedAt && expiresAt && expiresAt <= now ? "expired" : "pending_review";
+    lastQueuedAt && expiresAt && expiresAt <= now
+      ? "expired"
+      : "pending_review";
   const status: ScheduledMissionReviewComputedStatus =
     job.missionReview?.status === "cleared"
       ? "cleared"
@@ -314,17 +316,13 @@ const SCHEDULER_AUDIT_FILTER_LANES = new Set<SchedulerAuditFilters["lane"]>([
   "provider_native_batch",
 ]);
 
-const SCHEDULER_AUDIT_FILTER_STATUSES = new Set<SchedulerAuditFilters["status"]>([
-  "all",
-  "ok",
-  "error",
-]);
+const SCHEDULER_AUDIT_FILTER_STATUSES = new Set<
+  SchedulerAuditFilters["status"]
+>(["all", "ok", "error"]);
 
-const SCHEDULER_AUDIT_FILTER_WINDOWS = new Set<SchedulerAuditFilters["window"]>([
-  "all",
-  "24h",
-  "7d",
-]);
+const SCHEDULER_AUDIT_FILTER_WINDOWS = new Set<SchedulerAuditFilters["window"]>(
+  ["all", "24h", "7d"],
+);
 
 export function coerceSchedulerAuditFilters(
   value: Partial<SchedulerAuditFilters> | null | undefined,
@@ -396,9 +394,7 @@ export function coerceSavedSchedulerAuditViewsImport(
     return coerceSavedSchedulerAuditViews(value);
   }
   if (value && typeof value === "object" && "views" in value) {
-    return coerceSavedSchedulerAuditViews(
-      (value as { views?: unknown }).views,
-    );
+    return coerceSavedSchedulerAuditViews((value as { views?: unknown }).views);
   }
   return [];
 }
@@ -407,9 +403,7 @@ export function summarizeSavedSchedulerAuditViewsImport(
   current: SavedSchedulerAuditView[],
   incoming: SavedSchedulerAuditView[],
 ): SavedSchedulerAuditViewsImportPreview {
-  const currentNames = new Set(
-    current.map((view) => view.name.toLowerCase()),
-  );
+  const currentNames = new Set(current.map((view) => view.name.toLowerCase()));
   const replacementNames: string[] = [];
   const newNames: string[] = [];
   for (const view of incoming) {
@@ -420,7 +414,10 @@ export function summarizeSavedSchedulerAuditViewsImport(
     }
   }
   const mergedCount = replacementNames.length + newNames.length;
-  const untouchedCurrentCount = Math.max(0, current.length - replacementNames.length);
+  const untouchedCurrentCount = Math.max(
+    0,
+    current.length - replacementNames.length,
+  );
   const trimmedCount = Math.max(
     0,
     untouchedCurrentCount + mergedCount - MAX_SAVED_SCHEDULER_AUDIT_VIEWS,
@@ -570,15 +567,19 @@ export function analyzeScheduledJobs(
   const missionReviewStates = activeJobs
     .map((job) => getScheduledMissionReviewSummary(job))
     .filter((review) => review.required);
-  const queuedJobs = activeJobs.filter((job) => job.lastStatus === "queued").length;
+  const queuedJobs = activeJobs.filter(
+    (job) => job.lastStatus === "queued",
+  ).length;
   const queuedFailureJobs = activeJobs.filter(
-    (job) => job.lastStatus === "queued" && (job.pendingBatchPollFailures ?? 0) > 0,
+    (job) =>
+      job.lastStatus === "queued" && (job.pendingBatchPollFailures ?? 0) > 0,
   ).length;
   const measuredJobs = activeJobs.filter(
     (
       job,
-    ): job is ScheduledJob & { lastEfficiency: ScheduledJobEfficiencySnapshot } =>
-      Boolean(job.lastEfficiency),
+    ): job is ScheduledJob & {
+      lastEfficiency: ScheduledJobEfficiencySnapshot;
+    } => Boolean(job.lastEfficiency),
   );
   const durableArtifactJobs = activeJobs.filter(
     (job) => job.outputTarget === "vault" || job.outputTarget === "review",
@@ -762,7 +763,11 @@ export function analyzeScheduledJobs(
     });
   }
 
-  if (activeJobs.length >= 2 && completedEfficiencySnapshots > 0 && batchedRuns === 0) {
+  if (
+    activeJobs.length >= 2 &&
+    completedEfficiencySnapshots > 0 &&
+    batchedRuns === 0
+  ) {
     recommendations.push({
       id: "no-batched-runs",
       tone: "info",
@@ -873,9 +878,7 @@ export function analyzeScheduledJobs(
   };
 }
 
-export function hasActiveSchedulerAuditFilters(
-  filters: SchedulerAuditFilters,
-) {
+export function hasActiveSchedulerAuditFilters(filters: SchedulerAuditFilters) {
   return (
     filters.lane !== "all" ||
     filters.status !== "all" ||
@@ -895,7 +898,8 @@ function matchesSchedulerAuditWindow(
   window: SchedulerAuditFilters["window"],
 ) {
   if (window === "all") return true;
-  const maxAgeMs = window === "24h" ? 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
+  const maxAgeMs =
+    window === "24h" ? 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
   return Date.now() - recordedAt <= maxAgeMs;
 }
 
@@ -967,8 +971,10 @@ export function buildSchedulerAuditExport(
   const filteredScopedJobs = scopedJobs.filter((job) =>
     jobMatchesSchedulerAuditFilters(job, filters),
   );
-  const scopeKind: SchedulerAuditExport["scope"]["kind"] =
-    options?.jobIds?.length ? "job" : "all";
+  const scopeKind: SchedulerAuditExport["scope"]["kind"] = options?.jobIds
+    ?.length
+    ? "job"
+    : "all";
   const scopeLabel =
     options?.scopeLabel ??
     (scopeKind === "job" && scopedJobs.length === 1

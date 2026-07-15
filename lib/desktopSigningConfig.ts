@@ -22,7 +22,10 @@ function readTauriBundleConfig(): {
   try {
     const root = resolveRuntimeProjectRoot();
     const raw = JSON.parse(
-      readFileSync(join(root, "desktop", "src-tauri", "tauri.conf.json"), "utf8"),
+      readFileSync(
+        join(root, "desktop", "src-tauri", "tauri.conf.json"),
+        "utf8",
+      ),
     ) as {
       bundle?: {
         macOS?: { signingIdentity?: string | null };
@@ -32,7 +35,9 @@ function readTauriBundleConfig(): {
     const macIdentity = raw.bundle?.macOS?.signingIdentity ?? null;
     return {
       macIdentity:
-        typeof macIdentity === "string" && macIdentity.trim() ? macIdentity.trim() : null,
+        typeof macIdentity === "string" && macIdentity.trim()
+          ? macIdentity.trim()
+          : null,
       windowsDigest: raw.bundle?.windows?.digestAlgorithm ?? null,
     };
   } catch {
@@ -44,7 +49,9 @@ export function readDesktopSigningConfigHints(): DesktopSigningConfigHints {
   const tauri = readTauriBundleConfig();
   const macFromConfig = Boolean(tauri.macIdentity);
   const macFromEnv = Boolean(process.env.NEXUS_MACOS_SIGNING_IDENTITY?.trim());
-  const winFromEnv = Boolean(process.env.NEXUS_WINDOWS_SIGNING_THUMBPRINT?.trim());
+  const winFromEnv = Boolean(
+    process.env.NEXUS_WINDOWS_SIGNING_THUMBPRINT?.trim(),
+  );
 
   const platforms: DesktopSigningPlatformHint[] = [
     {
@@ -81,7 +88,8 @@ export function readDesktopSigningConfigHints(): DesktopSigningConfigHints {
         signing?: { status?: string };
       };
       trustConfigured =
-        Boolean(raw.signingIdentity?.configured) || raw.signing?.status === "configured";
+        Boolean(raw.signingIdentity?.configured) ||
+        raw.signing?.status === "configured";
     } catch {
       /* unreadable */
     }

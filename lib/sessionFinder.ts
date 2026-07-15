@@ -2,7 +2,10 @@
 // Session registry + fuzzy search for the SessionFinderConsole.
 // Covers all Nexus routes and exact focus panels.
 
-import { isExactSessionHref, getSessionTargetLabel } from "@/lib/exactSessionLinks";
+import {
+  isExactSessionHref,
+  getSessionTargetLabel,
+} from "@/lib/exactSessionLinks";
 
 const MEMORY_KEY = "nexus-session-finder-memory";
 const MEMORY_MAX = 24;
@@ -43,11 +46,21 @@ const SESSION_REGISTRY: SessionRegistryEntry[] = [
   {
     id: "finder-vault-export-second-brain",
     title: "Second Brain Export",
-    detail: "Scoped second-brain export — choose full, compiled, clips, or heartbeat pack.",
+    detail:
+      "Scoped second-brain export — choose full, compiled, clips, or heartbeat pack.",
     href: "/vault?focus=vault-export-second-brain",
     kind: "exact-panel",
-    tags: ["second brain", "obsidian", "vault", "export", "markdown", "knowledge pack",
-           "compiled pages", "saved clips", "heartbeat"],
+    tags: [
+      "second brain",
+      "obsidian",
+      "vault",
+      "export",
+      "markdown",
+      "knowledge pack",
+      "compiled pages",
+      "saved clips",
+      "heartbeat",
+    ],
     workingContext: {
       href: "/resources?view=specs&spec=second-brain-system",
       label: "Open second-brain spec",
@@ -65,7 +78,8 @@ const SESSION_REGISTRY: SessionRegistryEntry[] = [
   {
     id: "finder-vault-stewardship",
     title: "Vault Stewardship",
-    detail: "Orphans, stale context, tag coverage, and route continuity for the archive.",
+    detail:
+      "Orphans, stale context, tag coverage, and route continuity for the archive.",
     href: "/vault?focus=vault-stewardship",
     kind: "exact-panel",
     tags: ["vault", "stewardship", "orphans", "tags", "archive", "repair"],
@@ -124,7 +138,8 @@ const SESSION_REGISTRY: SessionRegistryEntry[] = [
   {
     id: "finder-route-intel",
     title: "Intel",
-    detail: "Flight tracker, Polymarket odds, SEC filings, and strategy frameworks.",
+    detail:
+      "Flight tracker, Polymarket odds, SEC filings, and strategy frameworks.",
     href: "/intel",
     kind: "route",
     tags: ["intel", "flights", "polymarket", "sec", "strategy"],
@@ -164,7 +179,8 @@ const SESSION_REGISTRY: SessionRegistryEntry[] = [
   {
     id: "finder-route-resources",
     title: "Resources",
-    detail: "Developer field manual, specs, playbooks, system design, and session finder.",
+    detail:
+      "Developer field manual, specs, playbooks, system design, and session finder.",
     href: "/resources",
     kind: "route",
     tags: ["resources", "docs", "manual", "specs", "playbooks", "systems"],
@@ -227,9 +243,7 @@ export function buildSessionFinderResults(
     };
   });
 
-  return scored
-    .filter((e) => e.score > 0)
-    .sort((a, b) => b.score - a.score);
+  return scored.filter((e) => e.score > 0).sort((a, b) => b.score - a.score);
 }
 
 export function readSessionFinderMemory(): SessionFinderMemoryEntry[] {

@@ -33,7 +33,9 @@ export function buildSecurityPostureRollup(
     advisories.push("Configure NEXUS_TOKEN for protected local routes.");
   }
   if (networkMode === "isolated") {
-    advisories.push("Isolated network mode — outbound connectors are restricted.");
+    advisories.push(
+      "Isolated network mode — outbound connectors are restricted.",
+    );
   }
   if (toolIsolationStatus === "blocked") {
     advisories.push(
@@ -41,10 +43,14 @@ export function buildSecurityPostureRollup(
         "High-risk exec tools are blocked until sandbox adapter is ready.",
     );
   } else if (toolIsolationStatus === "unavailable") {
-    advisories.push("Tool isolation runner unavailable — exec tools stay fail-closed.");
+    advisories.push(
+      "Tool isolation runner unavailable — exec tools stay fail-closed.",
+    );
   }
   if (input.highRiskRoutesEnabled) {
-    advisories.push("High-risk tool routes are enabled — review operator approvals.");
+    advisories.push(
+      "High-risk tool routes are enabled — review operator approvals.",
+    );
   }
   if (input.localData?.summary?.trim()) {
     advisories.push(input.localData.summary.trim());

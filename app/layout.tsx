@@ -56,7 +56,8 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(NEXUS_SESSION_COOKIE)?.value ?? "";
   const initiallyAuthed =
-    !isNexusAuthEnabled() || (await hasAuthenticatedNexusSession(sessionCookie));
+    !isNexusAuthEnabled() ||
+    (await hasAuthenticatedNexusSession(sessionCookie));
 
   return (
     <html lang="en" suppressHydrationWarning>

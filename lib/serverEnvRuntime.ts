@@ -25,7 +25,9 @@ export function assertAnchoredRuntimeEnvFilePath(
   const resolved = resolve(filePath);
   const expected = resolve(getRuntimeEnvFilePath(cwd));
   if (resolved !== expected) {
-    throw new Error("Runtime env file path is outside the anchored project root");
+    throw new Error(
+      "Runtime env file path is outside the anchored project root",
+    );
   }
   return resolved;
 }

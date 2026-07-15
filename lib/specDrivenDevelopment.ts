@@ -118,7 +118,8 @@ export const SPEC_DRIVEN_TEMPLATES: SpecDrivenTemplate[] = [
       {
         href: "/vault?focus=vault-compiled-pages",
         label: "View compiled pages",
-        detail: "Review compiled memory pages before deciding which export mode fits best.",
+        detail:
+          "Review compiled memory pages before deciding which export mode fits best.",
       },
     ],
   },
@@ -127,7 +128,8 @@ export const SPEC_DRIVEN_TEMPLATES: SpecDrivenTemplate[] = [
     title: "Reverse-Engineering Memory",
     objective:
       "Define how binary triage turns into durable archive memory, analyst briefs, and second-brain export before expanding reverse-engineering features.",
-    bestFor: "RECON binary triage, reverse-engineering notes, and RE-to-VAULT continuity",
+    bestFor:
+      "RECON binary triage, reverse-engineering notes, and RE-to-VAULT continuity",
     primarySystemId: "vault",
     impactSeedFile: "lib/binaryTriage.ts",
     specSections: [
@@ -201,7 +203,8 @@ export const SPEC_DRIVEN_TEMPLATES: SpecDrivenTemplate[] = [
       {
         href: "/vault?focus=vault-compiled-pages&compiledFilter=reverse-engineering",
         label: "Open RE maintenance",
-        detail: "Check durable reverse-engineering artifacts where archive repair actually happens.",
+        detail:
+          "Check durable reverse-engineering artifacts where archive repair actually happens.",
       },
     ],
   },
@@ -220,7 +223,8 @@ export const SPEC_DRIVEN_TEMPLATES: SpecDrivenTemplate[] = [
       },
       {
         title: "Non-goals",
-        prompt: "What related features are explicitly deferred to a later iteration?",
+        prompt:
+          "What related features are explicitly deferred to a later iteration?",
       },
       {
         title: "Data shape",
@@ -228,11 +232,13 @@ export const SPEC_DRIVEN_TEMPLATES: SpecDrivenTemplate[] = [
       },
       {
         title: "Acceptance criteria",
-        prompt: "What must be true — component renders, store updates, tsc passes, no regressions?",
+        prompt:
+          "What must be true — component renders, store updates, tsc passes, no regressions?",
       },
       {
         title: "Verification",
-        prompt: "How will you prove correctness — manual test, tsc, lint, screenshot?",
+        prompt:
+          "How will you prove correctness — manual test, tsc, lint, screenshot?",
       },
     ],
     antiPatterns: [
@@ -294,7 +300,8 @@ export const SPEC_DRIVEN_TEMPLATES: SpecDrivenTemplate[] = [
     specSections: [
       {
         title: "Problem",
-        prompt: "What data gap does this API fill? Which tab or panel consumes it?",
+        prompt:
+          "What data gap does this API fill? Which tab or panel consumes it?",
       },
       {
         title: "Non-goals",
@@ -302,7 +309,8 @@ export const SPEC_DRIVEN_TEMPLATES: SpecDrivenTemplate[] = [
       },
       {
         title: "Error surface",
-        prompt: "What failure modes exist — rate limit, auth, CORS, empty response? How is each handled?",
+        prompt:
+          "What failure modes exist — rate limit, auth, CORS, empty response? How is each handled?",
       },
       {
         title: "Acceptance criteria",
@@ -360,7 +368,10 @@ export const SPEC_DRIVEN_TEMPLATES: SpecDrivenTemplate[] = [
 // ── Helpers ────────────────────────────────────────────────────────────────
 export function getSpecDrivenTemplate(id: string): SpecDrivenTemplate {
   const resolvedId = resolveSpecTemplateId(id) ?? DEFAULT_SPEC_TEMPLATE_ID;
-  return SPEC_DRIVEN_TEMPLATES.find((t) => t.id === resolvedId) ?? SPEC_DRIVEN_TEMPLATES[0];
+  return (
+    SPEC_DRIVEN_TEMPLATES.find((t) => t.id === resolvedId) ??
+    SPEC_DRIVEN_TEMPLATES[0]
+  );
 }
 
 export function buildSpecDrivenBrief(template: SpecDrivenTemplate): string {

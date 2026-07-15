@@ -13,7 +13,9 @@ export function buildPassiveSessionMemoryNote(args: {
     .split("\n")
     .map((line) => line.trim())
     .find((line) => line.length > 12);
-  const outcomeSnippet = (firstLine ?? args.result).replace(/\s+/g, " ").slice(0, 120);
+  const outcomeSnippet = (firstLine ?? args.result)
+    .replace(/\s+/g, " ")
+    .slice(0, 120);
   return `${ts} | ${agent} | "${querySnippet}" → ${outcomeSnippet}`;
 }
 
@@ -32,7 +34,9 @@ export function appendPassiveMemoryTrail(
 
 export function buildPassiveMemoryTrailBlock(trail: string[]): string {
   if (!trail.length) return "";
-  const lines = trail.slice(0, 5).map((entry, index) => `${index + 1}. ${entry}`);
+  const lines = trail
+    .slice(0, 5)
+    .map((entry, index) => `${index + 1}. ${entry}`);
   return (
     `\n\n[PASSIVE SESSION MEMORY — recent HQ runs]\n` +
     `${lines.join("\n")}\n` +

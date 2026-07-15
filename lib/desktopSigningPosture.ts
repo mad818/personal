@@ -18,13 +18,22 @@ export interface DesktopSigningPosture {
 export function readDesktopSigningPosture(): DesktopSigningPosture {
   const root = resolveRuntimeProjectRoot();
   const signingHints = readDesktopSigningConfigHints();
-  const checksumsPresent = existsSync(join(root, "desktop", "dist", "SHA256SUMS.txt"));
-  const sbomPresent = existsSync(join(root, "docs", "metrics", "desktop-sbom.cdx.json"));
+  const checksumsPresent = existsSync(
+    join(root, "desktop", "dist", "SHA256SUMS.txt"),
+  );
+  const sbomPresent = existsSync(
+    join(root, "docs", "metrics", "desktop-sbom.cdx.json"),
+  );
   let signingConfigured = signingHints.signingConfigured;
   const advisories: string[] = [];
 
   try {
-    const trustPath = join(root, "docs", "metrics", "desktop-trust-chain-status.json");
+    const trustPath = join(
+      root,
+      "docs",
+      "metrics",
+      "desktop-trust-chain-status.json",
+    );
     if (existsSync(trustPath)) {
       const raw = JSON.parse(readFileSync(trustPath, "utf8")) as {
         signingIdentity?: { configured?: boolean };
@@ -40,13 +49,19 @@ export function readDesktopSigningPosture(): DesktopSigningPosture {
   }
 
   if (!checksumsPresent) {
-    advisories.push("Desktop SHA256SUMS.txt missing — run desktop packaging lane.");
+    advisories.push(
+      "Desktop SHA256SUMS.txt missing — run desktop packaging lane.",
+    );
   }
   if (!sbomPresent) {
-    advisories.push("Desktop SBOM artifact missing — run npm run desktop:sbom.");
+    advisories.push(
+      "Desktop SBOM artifact missing — run npm run desktop:sbom.",
+    );
   }
   if (!signingConfigured) {
-    advisories.push("Code signing not configured — run npm run desktop:signing:guide.");
+    advisories.push(
+      "Code signing not configured — run npm run desktop:signing:guide.",
+    );
   }
 
   const headline =

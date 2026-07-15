@@ -51,7 +51,9 @@ export function buildTrajectoryTracksFromFlights(
   maxTracks = 6,
 ): TrajectoryTrack[] {
   return flights
-    .filter((flight) => Number.isFinite(flight.lat) && Number.isFinite(flight.lng))
+    .filter(
+      (flight) => Number.isFinite(flight.lat) && Number.isFinite(flight.lng),
+    )
     .slice(0, maxTracks)
     .map((flight) => {
       const speedKts = Math.max(0, Math.round((flight.vel ?? 0) * 1.94384));
@@ -74,7 +76,9 @@ export function buildTrajectoryTracksFromFlights(
     });
 }
 
-export function buildDualViewSyncState(tracks: TrajectoryTrack[]): DualViewSyncState {
+export function buildDualViewSyncState(
+  tracks: TrajectoryTrack[],
+): DualViewSyncState {
   if (!tracks.length) {
     return {
       centerLat: 20,

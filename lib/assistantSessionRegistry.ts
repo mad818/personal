@@ -1,8 +1,9 @@
 import { normalizeSessionHref } from "@/lib/exactSessionLinks";
-import {
-  getExactSessionGovernanceProfile,
-} from "@/lib/governanceCatalog";
-import type { HQAssistantIntent, PreparedWorkspaceTarget } from "@/components/home/office/types";
+import { getExactSessionGovernanceProfile } from "@/lib/governanceCatalog";
+import type {
+  HQAssistantIntent,
+  PreparedWorkspaceTarget,
+} from "@/components/home/office/types";
 
 export type AssistantWorkspaceId =
   | "hq-strategium"
@@ -193,8 +194,7 @@ const ASSISTANT_WORKSPACES: AssistantWorkspaceEntry[] = [
     route: "/recon",
     href: "/recon?view=osint&focus=recon-lookup",
     label: "Open RECON lookup",
-    detail:
-      "Prepared the target-led recon lane so lookup work is ready first.",
+    detail: "Prepared the target-led recon lane so lookup work is ready first.",
   },
   {
     id: "recon-repo-intel",
@@ -441,7 +441,9 @@ const ROUTE_INTENT_WORKSPACE_OVERRIDES: Partial<
   },
 };
 
-export function getAssistantWorkspace(id: AssistantWorkspaceId): AssistantWorkspaceEntry {
+export function getAssistantWorkspace(
+  id: AssistantWorkspaceId,
+): AssistantWorkspaceEntry {
   const match = ASSISTANT_WORKSPACES.find((entry) => entry.id === id);
   if (match) return match;
   return ASSISTANT_WORKSPACES[0];

@@ -123,6 +123,8 @@ const OPS_LAYOUT_REGISTRY: Record<OpsLayoutSurface, OpsLayoutDescriptor> = {
   },
 };
 
-export function getOpsLayoutDescriptor(surface: OpsLayoutSurface): OpsLayoutDescriptor {
+export function getOpsLayoutDescriptor(
+  surface: OpsLayoutSurface,
+): OpsLayoutDescriptor {
   return OPS_LAYOUT_REGISTRY[surface];
 }

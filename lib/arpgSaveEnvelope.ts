@@ -38,7 +38,8 @@ export interface ArpgSaveImportResult {
   format: "envelope-v1" | "raw-save";
 }
 
-const ENVELOPE_VERSION: ArpgSaveEnvelopeVersion = "aether-reliquary-save-envelope-v1";
+const ENVELOPE_VERSION: ArpgSaveEnvelopeVersion =
+  "aether-reliquary-save-envelope-v1";
 export const ARPG_AUTOSAVE_SLOT_ID = "autosave";
 export const ARPG_MANUAL_SLOT_ID = "manual-01";
 const ARPG_CHECKPOINT_SLOT_PREFIX = "checkpoint-";
@@ -65,7 +66,11 @@ function isSlotKind(value: unknown): value is ArpgSaveSlotKind {
   return value === "autosave" || value === "manual" || value === "checkpoint";
 }
 
-function resolveSlotId(save: ArpgSaveState, kind: ArpgSaveSlotKind, id?: string) {
+function resolveSlotId(
+  save: ArpgSaveState,
+  kind: ArpgSaveSlotKind,
+  id?: string,
+) {
   if (kind === "autosave") return ARPG_AUTOSAVE_SLOT_ID;
   if (kind === "manual") return ARPG_MANUAL_SLOT_ID;
   return id || `${ARPG_CHECKPOINT_SLOT_PREFIX}${resolveCheckpointId(save)}`;
@@ -113,8 +118,14 @@ function normalizeArpgSaveSlot(
   );
   const kind = isSlotKind(input.kind) ? input.kind : fallbackKind;
   const id = typeof input.id === "string" ? input.id : undefined;
-  const label = typeof input.label === "string" && input.label.trim() ? input.label : SLOT_LABELS[kind];
-  const savedAt = typeof input.savedAt === "number" && input.savedAt > 0 ? input.savedAt : resolveSavedAt(save);
+  const label =
+    typeof input.label === "string" && input.label.trim()
+      ? input.label
+      : SLOT_LABELS[kind];
+  const savedAt =
+    typeof input.savedAt === "number" && input.savedAt > 0
+      ? input.savedAt
+      : resolveSavedAt(save);
   const checkpointId =
     typeof input.checkpointId === "string" && input.checkpointId.trim()
       ? input.checkpointId
@@ -136,7 +147,9 @@ export function normalizeArpgSaveSlots(
 ): ArpgSaveSlot[] {
   const normalizedFallback = normalizeArpgSave(fallbackSave);
   const rawSlots = Array.isArray(slots) ? slots : [];
-  const normalized = rawSlots.map((slot) => normalizeArpgSaveSlot(slot, normalizedFallback, "autosave"));
+  const normalized = rawSlots.map((slot) =>
+    normalizeArpgSaveSlot(slot, normalizedFallback, "autosave"),
+  );
 
   const autosave =
     normalized.find((slot) => slot.kind === "autosave") ??
@@ -159,10 +172,15 @@ export function normalizeArpgSaveSlots(
   ];
 }
 
-export function syncArpgAutosaveSlot(save: ArpgSaveState, slots: unknown): ArpgSaveSlot[] {
+export function syncArpgAutosaveSlot(
+  save: ArpgSaveState,
+  slots: unknown,
+): ArpgSaveSlot[] {
   const normalized = normalizeArpgSave(save);
   return normalizeArpgSaveSlots(slots, normalized).map((slot) =>
-    slot.kind === "autosave" ? createArpgSaveSlot(normalized, "autosave", ARPG_AUTOSAVE_SLOT_ID) : slot,
+    slot.kind === "autosave"
+      ? createArpgSaveSlot(normalized, "autosave", ARPG_AUTOSAVE_SLOT_ID)
+      : slot,
   );
 }
 
@@ -213,18 +231,30 @@ export function createArpgSaveEnvelope(
   return {
     schemaVersion: ENVELOPE_VERSION,
     gameTitle: "Aether Reliquary",
-    activeSlotId: slotIds.has(activeSlotId) ? activeSlotId : ARPG_AUTOSAVE_SLOT_ID,
+    activeSlotId: slotIds.has(activeSlotId)
+      ? activeSlotId
+      : ARPG_AUTOSAVE_SLOT_ID,
     exportedAt: new Date(normalized.lastSavedAt || Date.now()).toISOString(),
     slots: normalizedSlots,
   };
 }
 
 export function normalizeArpgSaveImport(input: unknown): ArpgSaveImportResult {
-  if (isRecord(input) && input.schemaVersion === ENVELOPE_VERSION && Array.isArray(input.slots)) {
+  if (
+    isRecord(input) &&
+    input.schemaVersion === ENVELOPE_VERSION &&
+    Array.isArray(input.slots)
+  ) {
     const activeSlotId =
-      typeof input.activeSlotId === "string" ? input.activeSlotId : ARPG_AUTOSAVE_SLOT_ID;
-    const activeSlot = input.slots.find((entry) => isRecord(entry) && entry.id === activeSlotId);
-    const fallbackSlot = activeSlot ?? input.slots.find((entry) => isRecord(entry) && "save" in entry);
+      typeof input.activeSlotId === "string"
+        ? input.activeSlotId
+        : ARPG_AUTOSAVE_SLOT_ID;
+    const activeSlot = input.slots.find(
+      (entry) => isRecord(entry) && entry.id === activeSlotId,
+    );
+    const fallbackSlot =
+      activeSlot ??
+      input.slots.find((entry) => isRecord(entry) && "save" in entry);
     if (isRecord(fallbackSlot)) {
       const fallbackSave = normalizeArpgSave(
         ("save" in fallbackSlot ? fallbackSlot.save : undefined) as
@@ -234,8 +264,12 @@ export function normalizeArpgSaveImport(input: unknown): ArpgSaveImportResult {
       );
       const slots = normalizeArpgSaveSlots(input.slots, fallbackSave);
       const slotIds = new Set(slots.map((slot) => slot.id));
-      const resolvedActiveSlotId = slotIds.has(activeSlotId) ? activeSlotId : slots[0]?.id ?? ARPG_AUTOSAVE_SLOT_ID;
-      const save = slots.find((slot) => slot.id === resolvedActiveSlotId)?.save ?? fallbackSave;
+      const resolvedActiveSlotId = slotIds.has(activeSlotId)
+        ? activeSlotId
+        : (slots[0]?.id ?? ARPG_AUTOSAVE_SLOT_ID);
+      const save =
+        slots.find((slot) => slot.id === resolvedActiveSlotId)?.save ??
+        fallbackSave;
       return {
         save,
         slots,

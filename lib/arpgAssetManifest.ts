@@ -117,31 +117,36 @@ export const ARPG_ASSET_SOURCE_POLICY: ArpgAssetSourcePolicy[] = [
     name: "Kenney",
     url: "https://kenney.nl/support",
     defaultLicense: "CC0-first",
-    recommendedUse: "Low-poly props, interface icons, and small game-ready packs.",
+    recommendedUse:
+      "Low-poly props, interface icons, and small game-ready packs.",
   },
   {
     name: "Quaternius",
     url: "https://quaternius.com/faq.html",
     defaultLicense: "CC0-first",
-    recommendedUse: "Stylized modular fantasy ruins, props, and character kits.",
+    recommendedUse:
+      "Stylized modular fantasy ruins, props, and character kits.",
   },
   {
     name: "Poly Haven",
     url: "https://polyhaven.com/license",
     defaultLicense: "CC0-first",
-    recommendedUse: "HDRIs, lightweight PBR references, and occasional neutral props.",
+    recommendedUse:
+      "HDRIs, lightweight PBR references, and occasional neutral props.",
   },
   {
     name: "ambientCG",
     url: "https://docs.ambientcg.com/license/",
     defaultLicense: "CC0-first",
-    recommendedUse: "PBR materials to simplify stone, bronze, cloth, and floor textures.",
+    recommendedUse:
+      "PBR materials to simplify stone, bronze, cloth, and floor textures.",
   },
   {
     name: "Sketchfab",
     url: "https://sketchfab.com/developers/download-api/guidelines",
     defaultLicense: "CC-BY-guarded",
-    recommendedUse: "Only when attribution, license, author, and source URL are complete.",
+    recommendedUse:
+      "Only when attribution, license, author, and source URL are complete.",
   },
   {
     name: "Operator-approved commercial packs",
@@ -152,51 +157,52 @@ export const ARPG_ASSET_SOURCE_POLICY: ArpgAssetSourcePolicy[] = [
   },
 ];
 
-export const ARPG_GENERATED_ASSET_TOOL_POLICY: ArpgGeneratedAssetToolPolicy[] = [
-  {
-    id: "gpt-image-2",
-    name: "GPT Image 2",
-    defaultUses: [
-      "character-portrait",
-      "enemy-card",
-      "gear-icon",
-      "location-card",
-      "outfit-card",
-      "sprite-seed",
-      "sprite-sheet",
-      "skill-icon",
-      "item-icon",
-      "tileset-reference",
-      "fx-reference",
-    ],
-    shippingPosture:
-      "Optional operator-approved static art tool. Outputs must be reviewed, normalized, recorded, and rights-cleared before manifest intake.",
-  },
-  {
-    id: "seedance-2.0",
-    name: "Seedance 2.0",
-    defaultUses: ["animation-reference", "motion-study", "fx-reference"],
-    shippingPosture:
-      "Optional operator-approved motion reference tool. Use for animation timing and frame studies unless a specific output is rights-cleared for runtime use.",
-  },
-  {
-    id: "other-operator-approved",
-    name: "Other operator-approved generator",
-    defaultUses: [
-      "character-portrait",
-      "enemy-card",
-      "gear-icon",
-      "location-card",
-      "outfit-card",
-      "skill-icon",
-      "sprite-seed",
-      "item-icon",
-      "fx-reference",
-      "motion-study",
-    ],
-    shippingPosture:
-      "Allowed only when the same prompt, rights, cost, provenance, normalization, and asset-ledger gates are satisfied.",
-  },
-];
+export const ARPG_GENERATED_ASSET_TOOL_POLICY: ArpgGeneratedAssetToolPolicy[] =
+  [
+    {
+      id: "gpt-image-2",
+      name: "GPT Image 2",
+      defaultUses: [
+        "character-portrait",
+        "enemy-card",
+        "gear-icon",
+        "location-card",
+        "outfit-card",
+        "sprite-seed",
+        "sprite-sheet",
+        "skill-icon",
+        "item-icon",
+        "tileset-reference",
+        "fx-reference",
+      ],
+      shippingPosture:
+        "Optional operator-approved static art tool. Outputs must be reviewed, normalized, recorded, and rights-cleared before manifest intake.",
+    },
+    {
+      id: "seedance-2.0",
+      name: "Seedance 2.0",
+      defaultUses: ["animation-reference", "motion-study", "fx-reference"],
+      shippingPosture:
+        "Optional operator-approved motion reference tool. Use for animation timing and frame studies unless a specific output is rights-cleared for runtime use.",
+    },
+    {
+      id: "other-operator-approved",
+      name: "Other operator-approved generator",
+      defaultUses: [
+        "character-portrait",
+        "enemy-card",
+        "gear-icon",
+        "location-card",
+        "outfit-card",
+        "skill-icon",
+        "sprite-seed",
+        "item-icon",
+        "fx-reference",
+        "motion-study",
+      ],
+      shippingPosture:
+        "Allowed only when the same prompt, rights, cost, provenance, normalization, and asset-ledger gates are satisfied.",
+    },
+  ];
 
 export const ARPG_ASSET_MANIFEST = manifestData as ArpgAssetManifestEntry[];

@@ -15,7 +15,10 @@ export interface ArpgIllustratedAssetBatch {
   manifestAssetId: string;
   kind: ArpgIllustratedAssetKind;
   role: string;
-  sourceMode: "project-original-seed" | "operator-approved-generated" | "approved-external-2d-pack";
+  sourceMode:
+    | "project-original-seed"
+    | "operator-approved-generated"
+    | "approved-external-2d-pack";
   status?: "approved" | "reference-only" | "rejected";
   rejectionReason?: string;
   sourcePath: string;
@@ -52,13 +55,23 @@ export const ARPG_ILLUSTRATED_ASSET_BENCH =
 
 export function getArpgIllustratedAssetBenchSummary() {
   const batches = ARPG_ILLUSTRATED_ASSET_BENCH.batches;
-  const approvedBatches = batches.filter((batch) => (batch.status ?? "approved") === "approved");
-  const rejectedBatches = batches.filter((batch) => (batch.status ?? "approved") !== "approved");
-  const totalFrames = approvedBatches.reduce((sum, batch) => sum + batch.frameCount, 0);
-  const countsByKind = approvedBatches.reduce<Record<string, number>>((counts, batch) => {
-    counts[batch.kind] = (counts[batch.kind] ?? 0) + batch.frameCount;
-    return counts;
-  }, {});
+  const approvedBatches = batches.filter(
+    (batch) => (batch.status ?? "approved") === "approved",
+  );
+  const rejectedBatches = batches.filter(
+    (batch) => (batch.status ?? "approved") !== "approved",
+  );
+  const totalFrames = approvedBatches.reduce(
+    (sum, batch) => sum + batch.frameCount,
+    0,
+  );
+  const countsByKind = approvedBatches.reduce<Record<string, number>>(
+    (counts, batch) => {
+      counts[batch.kind] = (counts[batch.kind] ?? 0) + batch.frameCount;
+      return counts;
+    },
+    {},
+  );
 
   return {
     title: ARPG_ILLUSTRATED_ASSET_BENCH.title,

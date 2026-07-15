@@ -263,10 +263,13 @@ const TOOL_TO_ROUTE: Record<string, NexusRoute | null> = {
 
 export function detectRouteFromPrompt(prompt: string): NexusRoute | null {
   const lower = prompt.toLowerCase();
-  let best: { route: NexusRoute; score: number; specificity: number } | null = null;
+  let best: { route: NexusRoute; score: number; specificity: number } | null =
+    null;
 
   for (const item of KEYWORD_ROUTE_HINTS) {
-    const matchedKeywords = item.keywords.filter((keyword) => lower.includes(keyword));
+    const matchedKeywords = item.keywords.filter((keyword) =>
+      lower.includes(keyword),
+    );
     const score = matchedKeywords.length;
     const specificity = matchedKeywords.reduce(
       (max, keyword) => Math.max(max, keyword.length),

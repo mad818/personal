@@ -212,7 +212,8 @@ export const AI_PROVIDER_BRANDING: ProviderBranding[] = [
     billingTier: "free_local",
     surface: "primary",
     recommended: true,
-    description: "Primary local lane for free-first operation and offline control.",
+    description:
+      "Primary local lane for free-first operation and offline control.",
   },
   {
     id: "groq",
@@ -221,7 +222,8 @@ export const AI_PROVIDER_BRANDING: ProviderBranding[] = [
     billingTier: "free_tier_optional",
     surface: "primary",
     recommended: true,
-    description: "Fast inference lane with a usable free tier for normal operator workflows.",
+    description:
+      "Fast inference lane with a usable free tier for normal operator workflows.",
   },
   {
     id: "google",
@@ -230,7 +232,8 @@ export const AI_PROVIDER_BRANDING: ProviderBranding[] = [
     billingTier: "free_tier_optional",
     surface: "primary",
     recommended: false,
-    description: "Optional Gemini lane for teams that want another free-tier cloud option.",
+    description:
+      "Optional Gemini lane for teams that want another free-tier cloud option.",
   },
   {
     id: "anthropic",
@@ -248,7 +251,8 @@ export const AI_PROVIDER_BRANDING: ProviderBranding[] = [
     billingTier: "paid_optional_hidden",
     surface: "advanced",
     recommended: false,
-    description: "Advanced BYOK lane for teams that explicitly opt into paid providers.",
+    description:
+      "Advanced BYOK lane for teams that explicitly opt into paid providers.",
   },
   {
     id: "openrouter",
@@ -257,7 +261,8 @@ export const AI_PROVIDER_BRANDING: ProviderBranding[] = [
     billingTier: "paid_optional_hidden",
     surface: "advanced",
     recommended: false,
-    description: "Advanced routing gateway; intentionally not part of the default product posture.",
+    description:
+      "Advanced routing gateway; intentionally not part of the default product posture.",
   },
   {
     id: "minimax",
@@ -266,7 +271,8 @@ export const AI_PROVIDER_BRANDING: ProviderBranding[] = [
     billingTier: "paid_optional_hidden",
     surface: "advanced",
     recommended: false,
-    description: "Advanced compatible lane retained for explicit BYOK opt-in only.",
+    description:
+      "Advanced compatible lane retained for explicit BYOK opt-in only.",
   },
 ];
 
@@ -282,7 +288,8 @@ function getGeneratedAccentPalette(surfaceId: string): [string, string] | null {
 export function getSurfaceBranding(surfaceId?: string | null): SurfaceBranding {
   const resolvedSurfaceId =
     surfaceId && SURFACE_BRANDING[surfaceId] ? surfaceId : "default";
-  const branding = SURFACE_BRANDING[resolvedSurfaceId] ?? SURFACE_BRANDING.default;
+  const branding =
+    SURFACE_BRANDING[resolvedSurfaceId] ?? SURFACE_BRANDING.default;
   const accentPalette =
     getGeneratedAccentPalette(resolvedSurfaceId) ?? branding.accentPalette;
 
@@ -305,29 +312,31 @@ export function summarizeProviderReadiness(
       (process.env.NODE_ENV === "development" ? "internal" : "isolated"),
   );
   const cloudInferenceEnabled = isCloudInferenceAllowedInMode(networkMode);
-  const items: ProviderReadinessItem[] = AI_PROVIDER_BRANDING.map((provider) => {
-    const configured = provider.envKey
-      ? isConfiguredSecretValue(env[provider.envKey])
-      : true;
-    const enabledByPolicy = isCloudInferenceProvider(provider.id)
-      ? provider.billingTier === "paid_optional_hidden"
-        ? paidApisEnabled && cloudInferenceEnabled
-        : cloudInferenceEnabled
-      : provider.billingTier !== "paid_optional_hidden" || paidApisEnabled;
-    const status: ProviderReadinessItem["status"] = !enabledByPolicy
-      ? "hidden_by_default"
-      : configured
-        ? "ready"
-        : "available_if_configured";
+  const items: ProviderReadinessItem[] = AI_PROVIDER_BRANDING.map(
+    (provider) => {
+      const configured = provider.envKey
+        ? isConfiguredSecretValue(env[provider.envKey])
+        : true;
+      const enabledByPolicy = isCloudInferenceProvider(provider.id)
+        ? provider.billingTier === "paid_optional_hidden"
+          ? paidApisEnabled && cloudInferenceEnabled
+          : cloudInferenceEnabled
+        : provider.billingTier !== "paid_optional_hidden" || paidApisEnabled;
+      const status: ProviderReadinessItem["status"] = !enabledByPolicy
+        ? "hidden_by_default"
+        : configured
+          ? "ready"
+          : "available_if_configured";
 
-    return {
-      ...provider,
-      configured,
-      enabledByPolicy,
-      tierLabel: BILLING_TIER_LABELS[provider.billingTier],
-      status,
-    };
-  });
+      return {
+        ...provider,
+        configured,
+        enabledByPolicy,
+        tierLabel: BILLING_TIER_LABELS[provider.billingTier],
+        status,
+      };
+    },
+  );
 
   return {
     paidApisEnabled,
@@ -343,8 +352,10 @@ export function summarizeProviderReadiness(
       ).length,
       primary: items.filter((item) => item.surface === "primary").length,
       advanced: items.filter((item) => item.surface === "advanced").length,
-      freeLocal: items.filter((item) => item.billingTier === "free_local").length,
-      freePublic: items.filter((item) => item.billingTier === "free_public").length,
+      freeLocal: items.filter((item) => item.billingTier === "free_local")
+        .length,
+      freePublic: items.filter((item) => item.billingTier === "free_public")
+        .length,
       freeTierOptional: items.filter(
         (item) => item.billingTier === "free_tier_optional",
       ).length,

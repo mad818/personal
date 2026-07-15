@@ -210,7 +210,15 @@ const ROUTING_RULES: { keywords: string[]; strategy: RagStrategy }[] = [
     },
   },
   {
-    keywords: ["rss", "feed", "blog", "newsletter", "substack", "medium", "article"],
+    keywords: [
+      "rss",
+      "feed",
+      "blog",
+      "newsletter",
+      "substack",
+      "medium",
+      "article",
+    ],
     strategy: {
       domain: "RSS / Blog Feed",
       primaryTools: ["rss_fetch"],
@@ -312,10 +320,9 @@ const DEFAULT_STRATEGY: RagStrategy = {
 };
 
 const STRATEGY_BY_DOMAIN = new Map<string, RagStrategy>(
-  [DEFAULT_STRATEGY, ...ROUTING_RULES.map((rule) => rule.strategy)].map((strategy) => [
-    strategy.domain.toLowerCase(),
-    strategy,
-  ]),
+  [DEFAULT_STRATEGY, ...ROUTING_RULES.map((rule) => rule.strategy)].map(
+    (strategy) => [strategy.domain.toLowerCase(), strategy],
+  ),
 );
 
 function calcConfidence(hits: number, total: number): number {
@@ -387,7 +394,8 @@ function fallbackReasoningDecision(
     return {
       strategies: [baseResult.strategy],
       confidencePosture: confidenceToPosture(baseResult.confidence),
-      rationale: "Keyword routing matched strongly enough to stay on the fast path.",
+      rationale:
+        "Keyword routing matched strongly enough to stay on the fast path.",
       usedReasoningFallback: false,
     };
   }
@@ -404,7 +412,9 @@ function fallbackReasoningDecision(
       multi.length > 1
         ? "The query blends multiple weak keyword lanes, so HQ should triangulate across both."
         : "No strong keyword lane was detected, so HQ should stay on a general retrieval posture.",
-    usedReasoningFallback: baseResult.hitCount === 0 || baseResult.confidence < RAG_LOW_CONFIDENCE_THRESHOLD,
+    usedReasoningFallback:
+      baseResult.hitCount === 0 ||
+      baseResult.confidence < RAG_LOW_CONFIDENCE_THRESHOLD,
   };
 }
 
@@ -412,12 +422,16 @@ function getReasoningCacheKey(query: string) {
   return query.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function formatLocalArchiveClues(savedArticles: ArticleReasoningSource[], query: string) {
+function formatLocalArchiveClues(
+  savedArticles: ArticleReasoningSource[],
+  query: string,
+) {
   const matches = findArticleReasoningMatches(query, savedArticles, 2);
   if (matches.length === 0) return "";
   const lines = matches.map((match, index) => {
     const entities = getArticleReasoningEntities(match.article).slice(0, 3);
-    const entityText = entities.length > 0 ? ` · entities: ${entities.join(", ")}` : "";
+    const entityText =
+      entities.length > 0 ? ` · entities: ${entities.join(", ")}` : "";
     return `${index + 1}. ${match.article.title} — ${match.cue}${entityText}`;
   });
   return `Local archive clues:\n${lines.join("\n")}\n`;
@@ -483,11 +497,18 @@ export async function reasoningRoute(
   const candidates =
     multi.length > 0
       ? multi.map((result) => result.strategy)
-      : [DEFAULT_STRATEGY, ...ROUTING_RULES.slice(0, 5).map((rule) => rule.strategy)];
+      : [
+          DEFAULT_STRATEGY,
+          ...ROUTING_RULES.slice(0, 5).map((rule) => rule.strategy),
+        ];
   const fallback = fallbackReasoningDecision(baseResult, multi);
 
   try {
-    const raw = await callAI(buildReasoningPrompt(query, candidates), 220, "reasoning");
+    const raw = await callAI(
+      buildReasoningPrompt(query, candidates),
+      220,
+      "reasoning",
+    );
     const payload = extractJsonObject(raw);
     if (!payload) {
       RAG_REASONING_CACHE.set(cacheKey, {
@@ -498,10 +519,14 @@ export async function reasoningRoute(
     }
     const parsed = JSON.parse(payload) as RagReasoningPayload;
     const domains = Array.isArray(parsed.domains)
-      ? parsed.domains.filter((value): value is string => typeof value === "string")
+      ? parsed.domains.filter(
+          (value): value is string => typeof value === "string",
+        )
       : [];
     const confidence =
-      parsed.confidence === "high" || parsed.confidence === "medium" || parsed.confidence === "low"
+      parsed.confidence === "high" ||
+      parsed.confidence === "medium" ||
+      parsed.confidence === "low"
         ? parsed.confidence
         : "low";
     const value: RagReasoningDecision = {
@@ -604,7 +629,7 @@ export async function buildRagContextBlockAsync(
     : "Reasoning fallback engaged: yes";
 
   return (
-    `\n\n[RAG ROUTING — ${multiDomain ? "REASONED BLEND" : decision.strategies[0]?.domain ?? DEFAULT_STRATEGY.domain}]\n` +
+    `\n\n[RAG ROUTING — ${multiDomain ? "REASONED BLEND" : (decision.strategies[0]?.domain ?? DEFAULT_STRATEGY.domain)}]\n` +
     `${multiDomain ? `Domains:\n${domainLines}\n` : `Domain: ${domainLines}\n`}` +
     `Confidence posture: ${decision.confidencePosture}\n` +
     `${confidenceDetail}\n` +
@@ -619,13 +644,20 @@ export function boostRagConfidenceWithEntities(
   query: string,
   savedArticles?: { title?: string; content?: string }[],
 ): { boostedConfidence: number; entityHits: string[] } {
-  const tokens = query.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length > 3);
+  const tokens = query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 3);
   if (!tokens.length || !savedArticles?.length) {
     return { boostedConfidence: 0.2, entityHits: [] };
   }
   const entityHits: string[] = [];
   for (const article of savedArticles) {
-    const text = ((article.title ?? "") + " " + (article.content ?? "")).toLowerCase();
+    const text = (
+      (article.title ?? "") +
+      " " +
+      (article.content ?? "")
+    ).toLowerCase();
     for (const token of tokens) {
       if (text.includes(token) && !entityHits.includes(token)) {
         entityHits.push(token);

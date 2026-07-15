@@ -22,10 +22,7 @@ import {
   normalizePreparedWorkspaceTarget,
   resolveAssistantWorkspaceForRoute,
 } from "@/lib/assistantSessionRegistry";
-import {
-  getAgentToolCatalog,
-  type AgentToolCatalog,
-} from "@/lib/agent";
+import { getAgentToolCatalog, type AgentToolCatalog } from "@/lib/agent";
 import {
   buildAssistantChatActionModel,
   createLocalFastPathRuntimeReceipt,
@@ -82,12 +79,16 @@ const LOCAL_ACK_RE = /^(?:ok|okay|k|thanks|thank you|thx)[!. ]*$/i;
 const PROMPT_OPTIMIZATION_RE =
   /\b(?:lyra|prompt optimizer|prompt optimization|prompt forge|optimi[sz]e (?:this |my )?prompt|improve (?:this |my )?prompt|rewrite (?:this |my )?prompt|human editor(?: mode)?|natural thought flow|ai pattern breaker|ban the fluff(?: words)?|reader-first rewrite|mega prompt|humanize (?:this |my )?(?:text|post|copy|writing)|rewrite (?:this |my )?(?:text|post|tweet|thread|caption|email|message|article|paragraph|bio|description|draft))\b/i;
 
-function resolveIntent(style: HQAnswerStyle, routeHint: NexusRoute | null): HQAssistantIntent {
+function resolveIntent(
+  style: HQAnswerStyle,
+  routeHint: NexusRoute | null,
+): HQAssistantIntent {
   if (style === "learning") return "learning";
   if (style === "live_current") return "live_current";
   if (style === "repo_work") return "repo_work";
   if (style === "workflow") return "workflow";
-  if (style === "product_help") return routeHint ? "workspace_action" : "product_help";
+  if (style === "product_help")
+    return routeHint ? "workspace_action" : "product_help";
   return "conversation";
 }
 
@@ -116,7 +117,8 @@ function buildRouteReason(
   target: PreparedWorkspaceTarget | null,
 ) {
   if (!target) return null;
-  if (mode === "route_action") return `${target.label} is the requested workspace.`;
+  if (mode === "route_action")
+    return `${target.label} is the requested workspace.`;
   if (mode === "ask_route_choice") {
     return `${target.label} may be more useful than answering only in chat.`;
   }
@@ -161,10 +163,7 @@ function resolvePreparedWorkspace(
   if (routeHint === "/intel" && /deep research|sweep|research/.test(lower)) {
     return getAssistantWorkspace("intel-sweeps");
   }
-  if (
-    routeHint === "/internal/skills" &&
-    PROMPT_OPTIMIZATION_RE.test(input)
-  ) {
+  if (routeHint === "/internal/skills" && PROMPT_OPTIMIZATION_RE.test(input)) {
     return getAssistantWorkspace("skills-prompt-forge");
   }
   return resolveAssistantWorkspaceForRoute(routeHint, intent);
@@ -183,7 +182,10 @@ function buildContextBlock(plan: {
   const workflow = plan.operatorWorkflow;
   const proposedEditPosture = workflow.proposedEdits.length
     ? workflow.proposedEdits
-        .map((edit) => `${edit.label}: ${edit.diffState}, approval via ${edit.approvalSurface}`)
+        .map(
+          (edit) =>
+            `${edit.label}: ${edit.diffState}, approval via ${edit.approvalSurface}`,
+        )
         .join("; ")
     : "none";
   const visibleTools = workflow.skillInvocations.length
@@ -351,7 +353,8 @@ export const ASSISTANT_DISPATCH_CHECKS = [
     expectedWorkflowPhase: "review",
   },
   {
-    prompt: "Research this dependency, implement the adapter, and audit the security boundary",
+    prompt:
+      "Research this dependency, implement the adapter, and audit the security boundary",
     expectedAgent: "jansky",
     expectedOrchestrator: true,
   },

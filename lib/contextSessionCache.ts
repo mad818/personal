@@ -12,7 +12,8 @@ const sessionReads = new Map<string, SessionReadEntry>();
 export function extractProjectReadPathsFromSteps(steps: AgentStep[]): string[] {
   const paths: string[] = [];
   for (const step of steps) {
-    if (step.type !== "tool_call" || step.tool !== "read_project_file") continue;
+    if (step.type !== "tool_call" || step.tool !== "read_project_file")
+      continue;
     try {
       const parsed = JSON.parse(step.content) as { path?: string };
       if (typeof parsed.path === "string" && parsed.path.trim()) {
@@ -25,14 +26,23 @@ export function extractProjectReadPathsFromSteps(steps: AgentStep[]): string[] {
   return Array.from(new Set(paths));
 }
 
-export function recordContextSessionRead(path: string, readAt = Date.now()): void {
-  const normalized = path.replace(/^[/\\]+/, "").replace(/\\/g, "/").trim();
+export function recordContextSessionRead(
+  path: string,
+  readAt = Date.now(),
+): void {
+  const normalized = path
+    .replace(/^[/\\]+/, "")
+    .replace(/\\/g, "/")
+    .trim();
   if (!normalized) return;
   sessionReads.set(normalized, { path: normalized, readAt });
   pruneContextSessionReads(readAt);
 }
 
-export function recordContextSessionReads(paths: string[], readAt = Date.now()): void {
+export function recordContextSessionReads(
+  paths: string[],
+  readAt = Date.now(),
+): void {
   for (const path of paths) {
     recordContextSessionRead(path, readAt);
   }
@@ -53,7 +63,10 @@ function pruneContextSessionReads(now = Date.now()): void {
   }
 }
 
-export function getRecentContextSessionReads(max = 8, now = Date.now()): string[] {
+export function getRecentContextSessionReads(
+  max = 8,
+  now = Date.now(),
+): string[] {
   pruneContextSessionReads(now);
   return Array.from(sessionReads.values())
     .filter((entry) => now - entry.readAt <= CONTEXT_SESSION_READ_TTL_MS)

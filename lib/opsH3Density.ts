@@ -9,10 +9,10 @@ export function hexVertices(
 ): [number, number][] {
   return Array.from({ length: 6 }, (_, index) => {
     const angle = (Math.PI / 3) * index;
-    return [lat + radiusDeg * Math.sin(angle), lng + radiusDeg * Math.cos(angle)] as [
-      number,
-      number,
-    ];
+    return [
+      lat + radiusDeg * Math.sin(angle),
+      lng + radiusDeg * Math.cos(angle),
+    ] as [number, number];
   });
 }
 

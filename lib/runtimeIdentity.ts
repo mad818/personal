@@ -52,10 +52,10 @@ function ensureRuntimeIdentity(): SharedRuntimeIdentity {
     const persisted = readPersistedRuntimeIdentity();
     const startedAt = isNonEmpty(process.env.NEXUS_STARTED_AT)
       ? process.env.NEXUS_STARTED_AT
-      : persisted?.startedAt ?? new Date().toISOString();
+      : (persisted?.startedAt ?? new Date().toISOString());
     const bootId = isNonEmpty(process.env.NEXUS_BOOT_ID)
       ? process.env.NEXUS_BOOT_ID
-      : persisted?.bootId ?? randomUUID();
+      : (persisted?.bootId ?? randomUUID());
     const identity = { bootId, startedAt };
 
     process.env.NEXUS_STARTED_AT = identity.startedAt;

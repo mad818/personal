@@ -34,7 +34,8 @@ export function parseHuggingFaceDailyPapers(
         const row = entry as {
           paper?: { title?: string; summary?: string };
         };
-        const haystack = `${row.paper?.title ?? ""} ${row.paper?.summary ?? ""}`.toLowerCase();
+        const haystack =
+          `${row.paper?.title ?? ""} ${row.paper?.summary ?? ""}`.toLowerCase();
         return haystack.includes(normalizedQuery);
       })
     : payload;
@@ -103,7 +104,8 @@ export async function fetchHuggingFaceDailyPapers(
     return {
       papers,
       status: papers.length > 0 ? "ok" : "empty",
-      message: papers.length > 0 ? undefined : "No papers matched that query today.",
+      message:
+        papers.length > 0 ? undefined : "No papers matched that query today.",
       query: normalizedQuery,
     };
   } catch {

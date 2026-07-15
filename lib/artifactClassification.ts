@@ -94,7 +94,8 @@ function parserHintFromMimeType(mimeType?: string) {
     return "csv" as ArtifactParserHint;
   }
   if (normalized.startsWith("image/")) return "image" as ArtifactParserHint;
-  if (normalized.startsWith("text/plain")) return "plain_text" as ArtifactParserHint;
+  if (normalized.startsWith("text/plain"))
+    return "plain_text" as ArtifactParserHint;
   return null;
 }
 
@@ -102,11 +103,13 @@ function parserHintFromOriginLabel(originLabel?: string) {
   const normalized = originLabel?.trim().toLowerCase() ?? "";
   if (!normalized) return null;
   if (normalized.endsWith(".pdf")) return "pdf" as ArtifactParserHint;
-  if (/\.(png|jpe?g|gif|webp|svg)$/i.test(normalized)) return "image" as ArtifactParserHint;
+  if (/\.(png|jpe?g|gif|webp|svg)$/i.test(normalized))
+    return "image" as ArtifactParserHint;
   if (normalized.endsWith(".csv")) return "csv" as ArtifactParserHint;
   if (normalized.endsWith(".json")) return "json" as ArtifactParserHint;
   if (normalized.endsWith(".md")) return "markdown" as ArtifactParserHint;
-  if (/\.(txt|log)$/i.test(normalized)) return "plain_text" as ArtifactParserHint;
+  if (/\.(txt|log)$/i.test(normalized))
+    return "plain_text" as ArtifactParserHint;
   return null;
 }
 
@@ -283,7 +286,9 @@ export function classifyMemoryArtifact(
       sensitive,
       sensitivity,
       reasons: uniqueReasons([
-        input.documentMetadata?.mimeType ? `mime: ${input.documentMetadata.mimeType}` : null,
+        input.documentMetadata?.mimeType
+          ? `mime: ${input.documentMetadata.mimeType}`
+          : null,
         input.documentMetadata?.pageCount ? "multi-page document" : null,
         structure === "document_heavy" ? "document-heavy structure" : null,
       ]),
@@ -297,7 +302,9 @@ export function classifyMemoryArtifact(
       sensitive,
       sensitivity,
       reasons: uniqueReasons([
-        sourceCount > 0 ? `${sourceCount} cited source${sourceCount === 1 ? "" : "s"}` : null,
+        sourceCount > 0
+          ? `${sourceCount} cited source${sourceCount === 1 ? "" : "s"}`
+          : null,
         structure === "structured" ? "structured research signals" : null,
         input.route,
       ]),
@@ -340,7 +347,10 @@ export function classifyProjectArtifact(
   let confidence = 0.58;
   const reasons: Array<string | null | undefined> = [];
 
-  if (lowerPath.startsWith("app/api/") || /\/route\.(ts|tsx|js|jsx)$/i.test(normalizedPath)) {
+  if (
+    lowerPath.startsWith("app/api/") ||
+    /\/route\.(ts|tsx|js|jsx)$/i.test(normalizedPath)
+  ) {
     artifactType = "route_handler";
     confidence = 0.97;
     reasons.push("server route");

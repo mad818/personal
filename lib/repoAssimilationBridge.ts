@@ -13,7 +13,9 @@ export function extractRepoIdsFromBrief(brief: string): string[] {
 }
 
 export function buildRepoCompareHandoffHref(repoIds: string[]): string {
-  const unique = Array.from(new Set(repoIds.map((id) => id.trim()).filter(Boolean)));
+  const unique = Array.from(
+    new Set(repoIds.map((id) => id.trim()).filter(Boolean)),
+  );
   if (unique.length < 2) {
     return "/recon?view=osint&focus=repo-intel";
   }

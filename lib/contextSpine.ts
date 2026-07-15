@@ -41,10 +41,12 @@ export type ProjectContextSlice<
 export function isProjectContextSection(
   value: string | null | undefined,
 ): value is ProjectContextSection {
-  return value === "agents" ||
+  return (
+    value === "agents" ||
     value === "standards" ||
     value === "state" ||
-    value === "bible";
+    value === "bible"
+  );
 }
 
 export function readMarkdownSection(md: string, heading: string): string {

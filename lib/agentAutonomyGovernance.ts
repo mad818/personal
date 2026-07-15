@@ -20,7 +20,8 @@ export const AGENT_AUTONOMY_REVIEW_DOMAINS: AgentAutonomyReviewDomain[] = [
   {
     id: "scope-enforcement",
     label: "Scope enforcement",
-    summary: "Autonomous work stays inside declared route, tool, and mission boundaries.",
+    summary:
+      "Autonomous work stays inside declared route, tool, and mission boundaries.",
     reviewQuestions: [
       "Is the mission scope written before background or scheduled work starts?",
       "Does the run refuse tasks outside the declared surface or capability?",
@@ -29,7 +30,8 @@ export const AGENT_AUTONOMY_REVIEW_DOMAINS: AgentAutonomyReviewDomain[] = [
   {
     id: "safety-controls",
     label: "Safety controls",
-    summary: "Risky capabilities remain gated, redacted, and fail-closed when posture is incomplete.",
+    summary:
+      "Risky capabilities remain gated, redacted, and fail-closed when posture is incomplete.",
     reviewQuestions: [
       "Are high-risk tools blocked or approval-gated when isolation is unavailable?",
       "Does privacy shield stay active for every cloud-bound call?",
@@ -38,7 +40,8 @@ export const AGENT_AUTONOMY_REVIEW_DOMAINS: AgentAutonomyReviewDomain[] = [
   {
     id: "human-oversight",
     label: "Human oversight",
-    summary: "Operators can stop, review, and promote outcomes without hidden automation.",
+    summary:
+      "Operators can stop, review, and promote outcomes without hidden automation.",
     reviewQuestions: [
       "Is there a visible stop path and re-entry summary for long-running missions?",
       "Are durable memory writes and promotions human-approved?",
@@ -56,7 +59,8 @@ export const AGENT_AUTONOMY_REVIEW_DOMAINS: AgentAutonomyReviewDomain[] = [
   {
     id: "manipulation-resistance",
     label: "Manipulation resistance",
-    summary: "Prompt-threat taxonomy and instruction hierarchy resist bypass pressure.",
+    summary:
+      "Prompt-threat taxonomy and instruction hierarchy resist bypass pressure.",
     reviewQuestions: [
       "Are jailbreak, obfuscation, and authority-inversion patterns detected defensively?",
       "Does the agent refuse scope expansion or secret disclosure requests?",
@@ -65,7 +69,8 @@ export const AGENT_AUTONOMY_REVIEW_DOMAINS: AgentAutonomyReviewDomain[] = [
   {
     id: "provider-trust",
     label: "Provider trust",
-    summary: "External model and connector trust stays explicit and BYOK-aligned.",
+    summary:
+      "External model and connector trust stays explicit and BYOK-aligned.",
     reviewQuestions: [
       "Are provider routes documented with failover and redaction posture?",
       "Is any external MCP or connector dependency optional and operator-approved?",

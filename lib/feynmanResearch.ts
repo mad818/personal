@@ -155,7 +155,9 @@ async function emitProgress(
 }
 
 function uniqueStrings(values: string[]) {
-  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+  return Array.from(
+    new Set(values.map((value) => value.trim()).filter(Boolean)),
+  );
 }
 
 function cleanInline(value: string, max = 220) {
@@ -175,7 +177,11 @@ function extractJsonObject(value: string) {
 
 function inferSourceKind(url: string): FeynmanSourceKind {
   const lower = url.toLowerCase();
-  if (/arxiv\.org|doi\.org|pubmed|semanticscholar|huggingface\.co\/papers/.test(lower)) {
+  if (
+    /arxiv\.org|doi\.org|pubmed|semanticscholar|huggingface\.co\/papers/.test(
+      lower,
+    )
+  ) {
     return "paper";
   }
   if (/github\.com|gitlab\.com/.test(lower)) return "repository";
@@ -188,8 +194,11 @@ function inferSourceKind(url: string): FeynmanSourceKind {
   return "secondary";
 }
 
-function sourceConfidence(kind: FeynmanSourceKind): FeynmanSource["confidence"] {
-  if (kind === "paper" || kind === "official" || kind === "primary") return "high";
+function sourceConfidence(
+  kind: FeynmanSourceKind,
+): FeynmanSource["confidence"] {
+  if (kind === "paper" || kind === "official" || kind === "primary")
+    return "high";
   if (kind === "repository" || kind === "secondary") return "medium";
   return "low";
 }
@@ -228,7 +237,10 @@ function workflowPurpose(workflow: FeynmanWorkflowId) {
   }
 }
 
-export function buildFeynmanQueries(workflow: FeynmanWorkflowId, topic: string) {
+export function buildFeynmanQueries(
+  workflow: FeynmanWorkflowId,
+  topic: string,
+) {
   return buildInitialFeynmanResearchQueries(workflow, topic).map(
     (query) => query.query,
   );
@@ -264,7 +276,10 @@ function buildSourceLedger(input: FeynmanResearchInput): FeynmanSource[] {
   });
 }
 
-function fallbackWriter(input: FeynmanResearchInput, sources: FeynmanSource[]): FeynmanWriterResult {
+function fallbackWriter(
+  input: FeynmanResearchInput,
+  sources: FeynmanSource[],
+): FeynmanWriterResult {
   const accepted = sources.filter((source) => source.accepted);
   return {
     title: `${WORKFLOW_LABELS[input.workflow]} · ${cleanInline(input.topic, 90)}`,
@@ -279,8 +294,7 @@ function fallbackWriter(input: FeynmanResearchInput, sources: FeynmanSource[]): 
             .map((source) => `- [${source.id}] ${source.keyClaim}`)
             .join("\n")
         : "- No directly read source was available. Treat this output as a research plan, not a conclusion.",
-    methodology:
-      `The Researcher ran ${input.coverage.queryWaves} bounded query wave${input.coverage.queryWaves === 1 ? "" : "s"}, one paper sweep, and ${input.webResults.length} successful web angle${input.webResults.length === 1 ? "" : "s"}, then attempted parallel direct reads before synthesis.`,
+    methodology: `The Researcher ran ${input.coverage.queryWaves} bounded query wave${input.coverage.queryWaves === 1 ? "" : "s"}, one paper sweep, and ${input.webResults.length} successful web angle${input.webResults.length === 1 ? "" : "s"}, then attempted parallel direct reads before synthesis.`,
     disagreements:
       input.failures.length > 0
         ? `Collection gaps: ${input.failures.join(" | ")}`
@@ -289,10 +303,9 @@ function fallbackWriter(input: FeynmanResearchInput, sources: FeynmanSource[]): 
       accepted.length > 1
         ? "Which source differences materially change the conclusion, and which claims need stronger primary evidence?"
         : "Which authoritative primary source should be read next before accepting the central claim?",
-    nextAction:
-      EXECUTION_GATED_WORKFLOWS.has(input.workflow)
-        ? "Review the plan and explicitly approve any execution step."
-        : "Reopen the strongest direct source and resolve the highest-impact evidence gap.",
+    nextAction: EXECUTION_GATED_WORKFLOWS.has(input.workflow)
+      ? "Review the plan and explicitly approve any execution step."
+      : "Reopen the strongest direct source and resolve the highest-impact evidence gap.",
     claims: accepted.slice(0, 5).map((source) => ({
       claim: source.keyClaim,
       sourceIds: [source.id],
@@ -310,20 +323,23 @@ function parseWriterResult(value: string) {
       title: typeof parsed.title === "string" ? parsed.title : "",
       summary: typeof parsed.summary === "string" ? parsed.summary : "",
       synthesis: parsed.synthesis,
-      methodology: typeof parsed.methodology === "string" ? parsed.methodology : "",
-      disagreements: typeof parsed.disagreements === "string" ? parsed.disagreements : "",
-      openQuestions: typeof parsed.openQuestions === "string" ? parsed.openQuestions : "",
-      nextAction: typeof parsed.nextAction === "string" ? parsed.nextAction : "",
+      methodology:
+        typeof parsed.methodology === "string" ? parsed.methodology : "",
+      disagreements:
+        typeof parsed.disagreements === "string" ? parsed.disagreements : "",
+      openQuestions:
+        typeof parsed.openQuestions === "string" ? parsed.openQuestions : "",
+      nextAction:
+        typeof parsed.nextAction === "string" ? parsed.nextAction : "",
       claims: Array.isArray(parsed.claims)
         ? parsed.claims
-            .filter(
-              (claim): claim is { claim: string; sourceIds: string[] } =>
-                Boolean(
-                  claim &&
-                    typeof claim === "object" &&
-                    typeof claim.claim === "string" &&
-                    Array.isArray(claim.sourceIds),
-                ),
+            .filter((claim): claim is { claim: string; sourceIds: string[] } =>
+              Boolean(
+                claim &&
+                typeof claim === "object" &&
+                typeof claim.claim === "string" &&
+                Array.isArray(claim.sourceIds),
+              ),
             )
             .slice(0, 12)
         : [],
@@ -347,9 +363,13 @@ function parseClaimAudits(value: string) {
       "unverifiable",
     ]);
     return parsed.claims
-      .filter((claim): claim is Record<string, unknown> => Boolean(claim && typeof claim === "object"))
+      .filter((claim): claim is Record<string, unknown> =>
+        Boolean(claim && typeof claim === "object"),
+      )
       .map((claim, index) => {
-        const rawVerdict = String(claim.verdict ?? "unverifiable") as FeynmanClaimVerdict;
+        const rawVerdict = String(
+          claim.verdict ?? "unverifiable",
+        ) as FeynmanClaimVerdict;
         return {
           id: String(claim.id ?? `C${index + 1}`),
           claim: String(claim.claim ?? "Unlabeled claim"),
@@ -357,7 +377,9 @@ function parseClaimAudits(value: string) {
             ? claim.sourceIds.map(String).slice(0, 8)
             : [],
           verdict: verdicts.has(rawVerdict) ? rawVerdict : "unverifiable",
-          rationale: String(claim.rationale ?? "No verifier rationale was returned."),
+          rationale: String(
+            claim.rationale ?? "No verifier rationale was returned.",
+          ),
         } satisfies FeynmanClaimAudit;
       })
       .slice(0, 12);
@@ -372,18 +394,25 @@ function parseReviewFindings(value: string) {
   try {
     const parsed = JSON.parse(payload) as { findings?: unknown };
     if (!Array.isArray(parsed.findings)) return null;
-    const severities = new Set<FeynmanReviewSeverity>(["fatal", "major", "minor"]);
+    const severities = new Set<FeynmanReviewSeverity>([
+      "fatal",
+      "major",
+      "minor",
+    ]);
     return parsed.findings
       .filter((finding): finding is Record<string, unknown> =>
         Boolean(finding && typeof finding === "object"),
       )
       .map((finding) => {
-        const rawSeverity = String(finding.severity ?? "minor") as FeynmanReviewSeverity;
+        const rawSeverity = String(
+          finding.severity ?? "minor",
+        ) as FeynmanReviewSeverity;
         return {
           severity: severities.has(rawSeverity) ? rawSeverity : "minor",
           issue: String(finding.issue ?? "Unlabeled review issue"),
           recommendation: String(
-            finding.recommendation ?? "Review this issue before relying on the artifact.",
+            finding.recommendation ??
+              "Review this issue before relying on the artifact.",
           ),
         } satisfies FeynmanReviewFinding;
       })
@@ -468,7 +497,9 @@ export function buildFeynmanReviewPrompt(
 }
 
 function fallbackClaims(writer: FeynmanWriterResult, sources: FeynmanSource[]) {
-  const acceptedIds = new Set(sources.filter((source) => source.accepted).map((source) => source.id));
+  const acceptedIds = new Set(
+    sources.filter((source) => source.accepted).map((source) => source.id),
+  );
   return writer.claims.map((claim, index) => {
     const acceptedRefs = claim.sourceIds.filter((id) => acceptedIds.has(id));
     return {
@@ -500,28 +531,37 @@ function fallbackReview(
     findings.push({
       severity: "major",
       issue: "The central synthesis has fewer than two directly read sources.",
-      recommendation: "Add an independent authoritative source before treating the conclusion as settled.",
+      recommendation:
+        "Add an independent authoritative source before treating the conclusion as settled.",
     });
   }
-  if (claims.some((claim) => claim.verdict === "unsupported" || claim.verdict === "unverifiable")) {
+  if (
+    claims.some(
+      (claim) =>
+        claim.verdict === "unsupported" || claim.verdict === "unverifiable",
+    )
+  ) {
     findings.push({
       severity: "major",
       issue: "One or more claims are unsupported or unverifiable.",
-      recommendation: "Downgrade or remove those claims until direct evidence is available.",
+      recommendation:
+        "Downgrade or remove those claims until direct evidence is available.",
     });
   }
   if (failures.length > 0) {
     findings.push({
       severity: "minor",
       issue: "The bounded collection pass had partial failures.",
-      recommendation: "Review coverage status and retry the highest-impact failed source lane.",
+      recommendation:
+        "Review coverage status and retry the highest-impact failed source lane.",
     });
   }
   if (EXECUTION_GATED_WORKFLOWS.has(workflow)) {
     findings.push({
       severity: "minor",
       issue: "The workflow describes execution-capable follow-through.",
-      recommendation: "Keep every execution step behind explicit operator approval.",
+      recommendation:
+        "Keep every execution step behind explicit operator approval.",
     });
   }
   return findings;
@@ -579,7 +619,9 @@ export function formatFeynmanReport(input: {
   findings: FeynmanReviewFinding[];
   stageStatus: FeynmanResearchResult["stageStatus"];
 }) {
-  const acceptedCount = input.sources.filter((source) => source.accepted).length;
+  const acceptedCount = input.sources.filter(
+    (source) => source.accepted,
+  ).length;
   const rejectedCount = input.sources.length - acceptedCount;
   return [
     `# ${input.writer.title || `${WORKFLOW_LABELS[input.research.workflow]} · ${input.research.topic}`}`,
@@ -633,7 +675,8 @@ export function formatFeynmanReport(input: {
     buildExecutionGate(input.research.workflow),
     "",
     "## Next Action",
-    input.writer.nextAction || "Review the strongest evidence gap before continuing.",
+    input.writer.nextAction ||
+      "Review the strongest evidence gap before continuing.",
   ].join("\n");
 }
 
@@ -682,12 +725,7 @@ export async function runFeynmanResearch(
     },
   });
   failures.push(...collection.failures);
-  const {
-    paperSignal,
-    webResults,
-    fetchedSources,
-    coverage,
-  } = collection;
+  const { paperSignal, webResults, fetchedSources, coverage } = collection;
 
   if (!coverage.sufficient) {
     stageStatus.researcher = "degraded";

@@ -76,7 +76,9 @@ export function readRuntimeExperimentDefinitions(): RuntimeExperimentDefinition[
   }
 }
 
-export function readRuntimeExperimentHistory(limit = 20): RuntimeExperimentRun[] {
+export function readRuntimeExperimentHistory(
+  limit = 20,
+): RuntimeExperimentRun[] {
   if (!existsSync(RUNTIME_EXPERIMENT_HISTORY_FILE)) return [];
   try {
     return readFileSync(RUNTIME_EXPERIMENT_HISTORY_FILE, "utf-8")
@@ -137,7 +139,9 @@ export async function recordRuntimeExperimentRun(
   );
 }
 
-export function readRuntimeExperimentPayload(limit = 20): RuntimeExperimentPayload {
+export function readRuntimeExperimentPayload(
+  limit = 20,
+): RuntimeExperimentPayload {
   const latest = readLatestRuntimeExperiment();
   const history = readRuntimeExperimentHistory(limit);
   const definitions = readRuntimeExperimentDefinitions();
@@ -159,9 +163,7 @@ export function readRuntimeExperimentPayload(limit = 20): RuntimeExperimentPaylo
   };
 }
 
-export function readLatestRuntimeExperimentSummary():
-  | RuntimeExperimentLatestSummary
-  | null {
+export function readLatestRuntimeExperimentSummary(): RuntimeExperimentLatestSummary | null {
   return summarizeRuntimeExperiment(readLatestRuntimeExperiment());
 }
 

@@ -65,7 +65,8 @@ export function buildRepoSyncHealthReport(): RepoSyncHealthReport {
         command: "Get-Process git -ErrorAction SilentlyContinue",
         detail:
           "Close Git/IDE shells that are still alive before lock cleanup or ACL repair.",
-        safetyNote: "Do not remove lock files while Git processes are still running.",
+        safetyNote:
+          "Do not remove lock files while Git processes are still running.",
       },
       {
         id: "repair-acl",

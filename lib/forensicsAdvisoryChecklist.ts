@@ -16,13 +16,16 @@ export const FORENSICS_ADVISORY_STEPS: readonly ForensicsAdvisoryStep[] = [
     id: "chain-of-custody",
     phase: "preserve",
     action: "Document who collected evidence, when, and from which system.",
-    nexusNote: "File artifact metadata in VAULT with tags: forensics, chain-of-custody.",
+    nexusNote:
+      "File artifact metadata in VAULT with tags: forensics, chain-of-custody.",
   },
   {
     id: "volatile-first",
     phase: "collect",
-    action: "Capture volatile artifacts (running processes, network connections) before shutdown.",
-    nexusNote: "CYBER lane stays read-only — operator runs external tools; Nexus records findings only.",
+    action:
+      "Capture volatile artifacts (running processes, network connections) before shutdown.",
+    nexusNote:
+      "CYBER lane stays read-only — operator runs external tools; Nexus records findings only.",
   },
   {
     id: "disk-image",
@@ -33,20 +36,25 @@ export const FORENSICS_ADVISORY_STEPS: readonly ForensicsAdvisoryStep[] = [
   {
     id: "timeline",
     phase: "analyze",
-    action: "Build event timeline: logon, process creation, network, file writes.",
+    action:
+      "Build event timeline: logon, process creation, network, file writes.",
     nexusNote: "Use RECON casefile pattern for structured operator notes.",
   },
   {
     id: "ioc-correlation",
     phase: "analyze",
-    action: "Correlate IOCs with CVE/threat-intel feeds already in live context.",
-    nexusNote: "Cross-ref CIPHER triage + aiExposureReview packs — passive only.",
+    action:
+      "Correlate IOCs with CVE/threat-intel feeds already in live context.",
+    nexusNote:
+      "Cross-ref CIPHER triage + aiExposureReview packs — passive only.",
   },
   {
     id: "report-pack",
     phase: "report",
-    action: "Produce executive summary + technical appendix with evidence pointers.",
-    nexusNote: "Export via VAULT compiled page; no raw secrets in cloud-bound prompts.",
+    action:
+      "Produce executive summary + technical appendix with evidence pointers.",
+    nexusNote:
+      "Export via VAULT compiled page; no raw secrets in cloud-bound prompts.",
   },
 ] as const;
 

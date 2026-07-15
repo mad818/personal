@@ -62,17 +62,29 @@ export async function executeMcpGatewayTool(input: {
   stepUpToken?: string;
 }): Promise<McpGatewayExecutionResult> {
   if (!readMcpGatewayEnabled()) {
-    return { ok: false, error: "MCP gateway not enabled (NEXUS_MCP_GATEWAY_ENABLED).", httpStatus: 501 };
+    return {
+      ok: false,
+      error: "MCP gateway not enabled (NEXUS_MCP_GATEWAY_ENABLED).",
+      httpStatus: 501,
+    };
   }
 
   const gatewayUrl = readMcpGatewayUrl();
   if (!gatewayUrl) {
-    return { ok: false, error: "NEXUS_MCP_GATEWAY_URL not configured.", httpStatus: 503 };
+    return {
+      ok: false,
+      error: "NEXUS_MCP_GATEWAY_URL not configured.",
+      httpStatus: 503,
+    };
   }
 
   const requiredToken = readMcpStepUpToken();
   if (requiredToken && input.stepUpToken !== requiredToken) {
-    return { ok: false, error: "Step-up authorization required.", httpStatus: 403 };
+    return {
+      ok: false,
+      error: "Step-up authorization required.",
+      httpStatus: 403,
+    };
   }
 
   if (!validateMcpToolAllowlist(input.tool)) {
@@ -97,7 +109,11 @@ export async function executeMcpGatewayTool(input: {
     });
 
     if (!response.ok) {
-      return { ok: false, error: `MCP gateway returned HTTP ${response.status}.`, httpStatus: 502 };
+      return {
+        ok: false,
+        error: `MCP gateway returned HTTP ${response.status}.`,
+        httpStatus: 502,
+      };
     }
 
     const result = (await response.json()) as unknown;

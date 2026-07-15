@@ -38,9 +38,7 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 function normalizeList(values: Array<string | null | undefined>, max = 6) {
   return Array.from(
     new Set(
-      values
-        .map((value) => value?.trim().toLowerCase() ?? "")
-        .filter(Boolean),
+      values.map((value) => value?.trim().toLowerCase() ?? "").filter(Boolean),
     ),
   ).slice(0, max);
 }
@@ -109,8 +107,12 @@ function countByKey(values: string[]) {
 }
 
 function buildFallbackWeeklyContent(artifacts: WeeklyArtifact[]) {
-  const clipCount = artifacts.filter((artifact) => artifact.kind === "clip").length;
-  const pageCount = artifacts.filter((artifact) => artifact.kind === "page").length;
+  const clipCount = artifacts.filter(
+    (artifact) => artifact.kind === "clip",
+  ).length;
+  const pageCount = artifacts.filter(
+    (artifact) => artifact.kind === "page",
+  ).length;
   const topDomains = countByKey(artifacts.map((artifact) => artifact.domain))
     .slice(0, 3)
     .map(([domain]) => domain.replace(/-/g, " "));
@@ -128,13 +130,14 @@ function buildFallbackWeeklyContent(artifacts: WeeklyArtifact[]) {
   const routeLessCount = artifacts.filter(
     (artifact) => artifact.kind === "page" && !artifact.route?.trim(),
   ).length;
-  const untaggedCount = artifacts.filter((artifact) => artifact.tags.length === 0).length;
-  const strongestNextSession =
-    artifacts[0]?.route?.trim()
-      ? `Reopen ${artifacts[0].title} in ${artifacts[0].route}.`
-      : artifacts[0]
-        ? `Promote the latest theme around ${artifacts[0].title}.`
-        : "No weekly archive material is available yet.";
+  const untaggedCount = artifacts.filter(
+    (artifact) => artifact.tags.length === 0,
+  ).length;
+  const strongestNextSession = artifacts[0]?.route?.trim()
+    ? `Reopen ${artifacts[0].title} in ${artifacts[0].route}.`
+    : artifacts[0]
+      ? `Promote the latest theme around ${artifacts[0].title}.`
+      : "No weekly archive material is available yet.";
 
   return [
     `- Vault posture: ${artifacts.length} recent artifact${artifacts.length === 1 ? "" : "s"} landed this week (${clipCount} clips, ${pageCount} compiled pages), with the archive leaning ${topDomains.join(", ") || "mixed"} this pass.`,
@@ -193,7 +196,9 @@ function sanitizeWeeklyContent(content: string, fallback: string) {
     "strongest next session:",
   ];
   const normalized = bullets.map((line) => line.toLowerCase());
-  if (!requiredLabels.every((label, index) => normalized[index]?.includes(label))) {
+  if (
+    !requiredLabels.every((label, index) => normalized[index]?.includes(label))
+  ) {
     return fallback;
   }
   return bullets.join("\n");
@@ -239,12 +244,15 @@ export async function buildVaultWeeklySynthesis(input: {
   return {
     content,
     sourceRefs: buildVaultWeeklySourceRefs(input),
-    tags: normalizeList([
-      "vault-weekly",
-      "archive-synthesis",
-      ...artifacts.flatMap((artifact) => artifact.tags.slice(0, 2)),
-      ...artifacts.slice(0, 3).map((artifact) => artifact.domain),
-    ], 10),
+    tags: normalizeList(
+      [
+        "vault-weekly",
+        "archive-synthesis",
+        ...artifacts.flatMap((artifact) => artifact.tags.slice(0, 2)),
+        ...artifacts.slice(0, 3).map((artifact) => artifact.domain),
+      ],
+      10,
+    ),
   };
 }
 
@@ -262,7 +270,9 @@ export function parseVaultWeeklyMarkdown(content: string): VaultWeeklyInsights {
     } else if (normalized.toLowerCase().startsWith("top themes:")) {
       insights.topThemes = normalized.slice("Top themes:".length).trim();
     } else if (normalized.toLowerCase().startsWith("notable signals:")) {
-      insights.notableSignals = normalized.slice("Notable signals:".length).trim();
+      insights.notableSignals = normalized
+        .slice("Notable signals:".length)
+        .trim();
     } else if (normalized.toLowerCase().startsWith("repair lane:")) {
       insights.repairLane = normalized.slice("Repair lane:".length).trim();
     } else if (normalized.toLowerCase().startsWith("strongest next session:")) {

@@ -81,7 +81,10 @@ export interface ArpgSheetFrame {
   frame: number;
 }
 
-export const ARPG_DAMAGE_TYPES: Record<ArpgDamageType, { label: string; color: string }> = {
+export const ARPG_DAMAGE_TYPES: Record<
+  ArpgDamageType,
+  { label: string; color: string }
+> = {
   physical: { label: "Physical", color: "#e7c99b" },
   ember: { label: "Ember", color: "#fb923c" },
   frost: { label: "Frost", color: "#93c5fd" },
@@ -338,26 +341,30 @@ export const ARPG_ENEMY_FAMILIES: Record<string, ArpgEnemyFamilyDefinition> = {
   },
 };
 
-export const ARPG_ELITE_MODIFIERS: Record<string, ArpgEliteModifierDefinition> = {
-  "brass-oath": {
-    id: "brass-oath",
-    label: "Brass Oath",
-    summary: "Gains ward and relic fury when bloodied.",
-    statBonus: { ward: 4, might: 2 },
-    statusId: "relic-fury",
-    accent: "#d946ef",
-  },
-  "ember-pack": {
-    id: "ember-pack",
-    label: "Ember Pack",
-    summary: "Moves faster while another ash fiend lives.",
-    statBonus: { speed: 2, crit: 1 },
-    statusId: "haste",
-    accent: "#fb923c",
-  },
-};
+export const ARPG_ELITE_MODIFIERS: Record<string, ArpgEliteModifierDefinition> =
+  {
+    "brass-oath": {
+      id: "brass-oath",
+      label: "Brass Oath",
+      summary: "Gains ward and relic fury when bloodied.",
+      statBonus: { ward: 4, might: 2 },
+      statusId: "relic-fury",
+      accent: "#d946ef",
+    },
+    "ember-pack": {
+      id: "ember-pack",
+      label: "Ember Pack",
+      summary: "Moves faster while another ash fiend lives.",
+      statBonus: { speed: 2, crit: 1 },
+      statusId: "haste",
+      accent: "#fb923c",
+    },
+  };
 
-export const ARPG_ENEMY_COMBAT_PROFILES: Record<string, ArpgEnemyCombatProfile> = {
+export const ARPG_ENEMY_COMBAT_PROFILES: Record<
+  string,
+  ArpgEnemyCombatProfile
+> = {
   "hollow-sentry": {
     enemyId: "hollow-sentry",
     familyId: "hollow-sentries",
@@ -371,7 +378,8 @@ export const ARPG_ENEMY_COMBAT_PROFILES: Record<string, ArpgEnemyCombatProfile> 
     appliesStatuses: ["exposed"],
     weaknesses: ["ember"],
     resistances: ["physical"],
-    codexEntry: "Hollow Sentries guard old doors. Crack armor first, then strike during recovery.",
+    codexEntry:
+      "Hollow Sentries guard old doors. Crack armor first, then strike during recovery.",
   },
   "ashling-scout": {
     enemyId: "ashling-scout",
@@ -386,7 +394,8 @@ export const ARPG_ENEMY_COMBAT_PROFILES: Record<string, ArpgEnemyCombatProfile> 
     appliesStatuses: ["burn"],
     weaknesses: ["frost"],
     resistances: ["ember"],
-    codexEntry: "Ashling Scouts dart before they bite. A dodge turns their speed against them.",
+    codexEntry:
+      "Ashling Scouts dart before they bite. A dodge turns their speed against them.",
     eliteModifierId: "ember-pack",
   },
   "rune-husk": {
@@ -402,7 +411,8 @@ export const ARPG_ENEMY_COMBAT_PROFILES: Record<string, ArpgEnemyCombatProfile> 
     appliesStatuses: ["cracked-armor"],
     weaknesses: ["void", "ember"],
     resistances: ["curse"],
-    codexEntry: "Rune Husks are slow but punitive. Let the telegraph bloom, then cut the command line.",
+    codexEntry:
+      "Rune Husks are slow but punitive. Let the telegraph bloom, then cut the command line.",
   },
   "brass-warden": {
     enemyId: "brass-warden",
@@ -417,7 +427,8 @@ export const ARPG_ENEMY_COMBAT_PROFILES: Record<string, ArpgEnemyCombatProfile> 
     appliesStatuses: ["staggered", "cracked-armor"],
     weaknesses: ["ember", "curse"],
     resistances: ["physical", "holy"],
-    codexEntry: "The Brass Warden changes rhythm below half health. Dodge the oath slam, then punish recovery.",
+    codexEntry:
+      "The Brass Warden changes rhythm below half health. Dodge the oath slam, then punish recovery.",
     eliteModifierId: "brass-oath",
     phaseThreshold: 0.5,
   },
@@ -434,7 +445,8 @@ export const ARPG_ENEMY_COMBAT_PROFILES: Record<string, ArpgEnemyCombatProfile> 
     appliesStatuses: ["burn"],
     weaknesses: ["frost", "holy"],
     resistances: ["ember"],
-    codexEntry: "Ember Motes look harmless until they gather heat. Tap them down before they stack burn.",
+    codexEntry:
+      "Ember Motes look harmless until they gather heat. Tap them down before they stack burn.",
   },
   "glass-gnawer": {
     enemyId: "glass-gnawer",
@@ -449,47 +461,66 @@ export const ARPG_ENEMY_COMBAT_PROFILES: Record<string, ArpgEnemyCombatProfile> 
     appliesStatuses: ["bleed"],
     weaknesses: ["physical", "holy"],
     resistances: ["frost"],
-    codexEntry: "Glass Gnawers punish panic movement. Hold ground, then strike through the reflection.",
+    codexEntry:
+      "Glass Gnawers punish panic movement. Hold ground, then strike through the reflection.",
   },
 };
 
-export const ARPG_ENEMY_SPRITE_FRAMES: Record<string, ArpgSheetFrame> = Object.fromEntries(
-  Object.values(ARPG_ENEMY_COMBAT_PROFILES).map((profile) => [
-    profile.enemyId,
-    {
-      id: profile.enemyId,
-      label: profile.enemyId,
-      frame: profile.spriteFrame,
-    },
-  ]),
-) as Record<string, ArpgSheetFrame>;
+export const ARPG_ENEMY_SPRITE_FRAMES: Record<string, ArpgSheetFrame> =
+  Object.fromEntries(
+    Object.values(ARPG_ENEMY_COMBAT_PROFILES).map((profile) => [
+      profile.enemyId,
+      {
+        id: profile.enemyId,
+        label: profile.enemyId,
+        frame: profile.spriteFrame,
+      },
+    ]),
+  ) as Record<string, ArpgSheetFrame>;
 
 export const ARPG_ITEM_ICON_FRAMES: Record<string, ArpgSheetFrame> = {
   "cinder-glaive": { id: "cinder-glaive", label: "Cinder Glaive", frame: 0 },
   "ember-buckler": { id: "ember-buckler", label: "Ember Buckler", frame: 1 },
   "pilgrim-helm": { id: "pilgrim-helm", label: "Pilgrim Helm", frame: 2 },
-  "threadbare-wardplate": { id: "threadbare-wardplate", label: "Wardplate", frame: 3 },
+  "threadbare-wardplate": {
+    id: "threadbare-wardplate",
+    label: "Wardplate",
+    frame: 3,
+  },
   "ash-runner-boots": { id: "ash-runner-boots", label: "Ash Boots", frame: 4 },
   "memory-prism": { id: "memory-prism", label: "Memory Prism", frame: 5 },
-  "wayfinder-sigil": { id: "wayfinder-sigil", label: "Wayfinder Sigil", frame: 6 },
+  "wayfinder-sigil": {
+    id: "wayfinder-sigil",
+    label: "Wayfinder Sigil",
+    frame: 6,
+  },
   "brass-charm": { id: "brass-charm", label: "Brass Charm", frame: 7 },
   "loomshard-charm": { id: "loomshard-charm", label: "Loom-Shard", frame: 8 },
   "oracle-focus": { id: "oracle-focus", label: "Oracle Focus", frame: 9 },
-  "warden-cuirass": { id: "warden-cuirass", label: "Warden Cuirass", frame: 10 },
+  "warden-cuirass": {
+    id: "warden-cuirass",
+    label: "Warden Cuirass",
+    frame: 10,
+  },
   "health-vial": { id: "health-vial", label: "Health Vial", frame: 11 },
   "focus-draught": { id: "focus-draught", label: "Focus Draught", frame: 12 },
   "upgrade-shard": { id: "upgrade-shard", label: "Upgrade Shard", frame: 13 },
   "relic-dust": { id: "relic-dust", label: "Relic Dust", frame: 14 },
-  "gate-key-fragment": { id: "gate-key-fragment", label: "Gate Fragment", frame: 15 },
+  "gate-key-fragment": {
+    id: "gate-key-fragment",
+    label: "Gate Fragment",
+    frame: 15,
+  },
 };
 
-export const ARPG_STATUS_ICON_FRAMES: Record<string, ArpgSheetFrame> = Object.fromEntries(
-  Object.values(ARPG_STATUS_EFFECTS).map((status) => [
-    status.id,
-    {
-      id: status.id,
-      label: status.label,
-      frame: status.iconFrame,
-    },
-  ]),
-) as Record<string, ArpgSheetFrame>;
+export const ARPG_STATUS_ICON_FRAMES: Record<string, ArpgSheetFrame> =
+  Object.fromEntries(
+    Object.values(ARPG_STATUS_EFFECTS).map((status) => [
+      status.id,
+      {
+        id: status.id,
+        label: status.label,
+        frame: status.iconFrame,
+      },
+    ]),
+  ) as Record<string, ArpgSheetFrame>;

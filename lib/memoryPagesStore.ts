@@ -21,7 +21,10 @@ import {
   buildArtifactContinuityMetadata,
   type ArtifactContinuityMetadata,
 } from "@/lib/artifactContinuity";
-import type { LearningMissionMode, TutorProfileId } from "@/lib/learningMissions";
+import type {
+  LearningMissionMode,
+  TutorProfileId,
+} from "@/lib/learningMissions";
 import type { MemoryCompartment } from "@/lib/memoryMining";
 import type {
   EvidenceStrength,
@@ -97,7 +100,14 @@ function derivePreview(content: string) {
 }
 
 function uniqueTags(tags: string[]) {
-  return Array.from(new Set(tags.filter(Boolean).map((tag) => tag.trim()).filter(Boolean)));
+  return Array.from(
+    new Set(
+      tags
+        .filter(Boolean)
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+    ),
+  );
 }
 
 function sanitizeDocumentOriginLabel(value?: string) {
@@ -121,7 +131,9 @@ function sanitizeDocumentPageCount(value?: number) {
   return pageCount > 0 && pageCount <= 5000 ? pageCount : undefined;
 }
 
-function toArtifactSensitivity(visibility: MemoryVisibility): ArtifactSensitivity {
+function toArtifactSensitivity(
+  visibility: MemoryVisibility,
+): ArtifactSensitivity {
   return visibility === "restricted"
     ? "restricted"
     : visibility === "internal"
@@ -136,13 +148,23 @@ const DOCUMENT_HINTS: Array<{ label: string; pattern: RegExp }> = [
   { label: "report", pattern: /\breport\b|\bwhitepaper\b|\bbrief\b/i },
   { label: "filing", pattern: /\b10-k\b|\b10-q\b|\b8-k\b|\bfiling\b|\bsec\b/i },
   { label: "table", pattern: /\btable\b|\bcsv\b|\bspreadsheet\b|\bledger\b/i },
-  { label: "image", pattern: /\bimage\b|\bscreenshot\b|\bphoto\b|\bdiagram\b/i },
-  { label: "manual", pattern: /\bmanual\b|\bdatasheet\b|\bspec\b|\binvoice\b|\breceipt\b/i },
+  {
+    label: "image",
+    pattern: /\bimage\b|\bscreenshot\b|\bphoto\b|\bdiagram\b/i,
+  },
+  {
+    label: "manual",
+    pattern: /\bmanual\b|\bdatasheet\b|\bspec\b|\binvoice\b|\breceipt\b/i,
+  },
 ];
 
 function extractUniqueUrls(content: string) {
   return Array.from(
-    new Set((content.match(/https?:\/\/[^\s)\]}>"']+/g) ?? []).map((url) => url.trim())),
+    new Set(
+      (content.match(/https?:\/\/[^\s)\]}>"']+/g) ?? []).map((url) =>
+        url.trim(),
+      ),
+    ),
   );
 }
 
@@ -198,7 +220,9 @@ function deriveResearchSignals(
     (content.match(/\bsource(?:s)?\s*:/gi)?.length ?? 0) +
     (content.match(/\bcitation(?:s)?\s*:/gi)?.length ?? 0);
   const structure: CompiledMemoryResearchSignals["structure"] =
-    documentHints.length >= 2 || documentHints.includes("scan") || documentHints.includes("pdf")
+    documentHints.length >= 2 ||
+    documentHints.includes("scan") ||
+    documentHints.includes("pdf")
       ? "document_heavy"
       : sectionHeadings.length >= 3 || urls.length >= 2
         ? "structured"
@@ -251,8 +275,10 @@ function defaultSourceLabel(input: {
   return "Compiled memory page";
 }
 
-export interface CompiledMemoryPageEnvelope
-  extends Omit<CompiledMemoryPage, "content"> {
+export interface CompiledMemoryPageEnvelope extends Omit<
+  CompiledMemoryPage,
+  "content"
+> {
   content?: string;
   contentWithheld: boolean;
 }
@@ -276,7 +302,9 @@ function normalizeCompiledMemoryPage(
 ): CompiledMemoryPage {
   const documentMetadata = page.documentMetadata
     ? {
-        originLabel: sanitizeDocumentOriginLabel(page.documentMetadata.originLabel),
+        originLabel: sanitizeDocumentOriginLabel(
+          page.documentMetadata.originLabel,
+        ),
         mimeType: sanitizeDocumentMimeType(page.documentMetadata.mimeType),
         pageCount: sanitizeDocumentPageCount(page.documentMetadata.pageCount),
       }
@@ -320,13 +348,15 @@ function normalizeCompiledMemoryPage(
     continuity,
     artifactClassification,
     contentPreview:
-      typeof page.contentPreview === "string" && page.contentPreview.trim().length > 0
+      typeof page.contentPreview === "string" &&
+      page.contentPreview.trim().length > 0
         ? page.contentPreview
         : page.visibility === "restricted"
-        ? "Sensitive content withheld from shared memory surfaces."
-        : derivePreview(page.content ?? ""),
+          ? "Sensitive content withheld from shared memory surfaces."
+          : derivePreview(page.content ?? ""),
     researchSignals:
-      page.researchSignals ?? deriveResearchSignals(page.content ?? "", documentMetadata),
+      page.researchSignals ??
+      deriveResearchSignals(page.content ?? "", documentMetadata),
     documentMetadata:
       documentMetadata &&
       (documentMetadata.originLabel ||
@@ -468,7 +498,10 @@ export async function createCompiledMemoryPage(input: {
       ? { originLabel, mimeType, pageCount }
       : undefined;
   })();
-  const researchSignals = deriveResearchSignals(input.content, documentMetadata);
+  const researchSignals = deriveResearchSignals(
+    input.content,
+    documentMetadata,
+  );
   const detectedVisibility = detectMemoryVisibility({
     layer: input.layer ?? defaultLayerForWorkflow(input.workflowId),
     kind: "page",
@@ -500,42 +533,45 @@ export async function createCompiledMemoryPage(input: {
     detectedVisibility,
     input.requestedVisibility,
   );
-  const pageItem = materializeMemorySpineItem({
-    id: `page:draft:${now}`,
-    layer: input.layer ?? defaultLayerForWorkflow(input.workflowId),
-    kind: "page",
-    title: baseTitle,
-    summary: baseSummary,
-    sourceLabel:
-      input.sourceLabel ??
-      defaultSourceLabel({
-        source: input.source,
-        workflowLabel: input.workflowLabel,
-        route: input.route,
-      }),
-    domain:
-      input.domain ??
-      guessMemoryDomain(
-        [baseTitle, baseSummary, input.content, input.topic ?? ""].join(" "),
-      ),
-    tags: uniqueTags([
-      ...(input.tags ?? []),
-      input.workflowId ?? "",
-      input.source,
-      input.agentId ?? "",
-      input.route?.replace(/^\//, "") ?? "",
-    ]),
-    timestamp: now,
-  }, {
-    visibility,
-    extraText: [
-      input.content,
-      input.topic ?? "",
-      documentMetadata?.originLabel ?? "",
-      documentMetadata?.mimeType ?? "",
-      documentMetadata?.pageCount ? `${documentMetadata.pageCount}` : "",
-    ].join(" "),
-  });
+  const pageItem = materializeMemorySpineItem(
+    {
+      id: `page:draft:${now}`,
+      layer: input.layer ?? defaultLayerForWorkflow(input.workflowId),
+      kind: "page",
+      title: baseTitle,
+      summary: baseSummary,
+      sourceLabel:
+        input.sourceLabel ??
+        defaultSourceLabel({
+          source: input.source,
+          workflowLabel: input.workflowLabel,
+          route: input.route,
+        }),
+      domain:
+        input.domain ??
+        guessMemoryDomain(
+          [baseTitle, baseSummary, input.content, input.topic ?? ""].join(" "),
+        ),
+      tags: uniqueTags([
+        ...(input.tags ?? []),
+        input.workflowId ?? "",
+        input.source,
+        input.agentId ?? "",
+        input.route?.replace(/^\//, "") ?? "",
+      ]),
+      timestamp: now,
+    },
+    {
+      visibility,
+      extraText: [
+        input.content,
+        input.topic ?? "",
+        documentMetadata?.originLabel ?? "",
+        documentMetadata?.mimeType ?? "",
+        documentMetadata?.pageCount ? `${documentMetadata.pageCount}` : "",
+      ].join(" "),
+    },
+  );
 
   const page: CompiledMemoryPage = {
     id: `${now}-${Math.random().toString(36).slice(2, 8)}`,

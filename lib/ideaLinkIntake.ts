@@ -37,7 +37,9 @@ export function slugifyIdeaLinkId(url: string): string {
   if (kind === "github") {
     const match = url.match(/github\.com\/([^/\s]+)\/([^/\s#?]+)/i);
     if (match) {
-      return `${match[1]}-${match[2]}`.toLowerCase().replace(/[^a-z0-9-]+/g, "-");
+      return `${match[1]}-${match[2]}`
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, "-");
     }
   }
   if (kind === "x") {
@@ -57,9 +59,9 @@ function hashLinkFallback(input: string): string {
 
 export function parseIdeaLinksFromText(text: string): string[] {
   const matches = text.match(URL_RE) ?? [];
-  return [...new Set(matches.map((url) => url.replace(/[),.;]+$/g, "").trim()))].filter(
-    Boolean,
-  );
+  return [
+    ...new Set(matches.map((url) => url.replace(/[),.;]+$/g, "").trim())),
+  ].filter(Boolean);
 }
 
 export function buildIdeaLinkIntakeItem(url: string): IdeaLinkIntakeItem {
@@ -86,14 +88,20 @@ export function mergeIdeaLinkIntakeItems(
     added.push(item);
   }
   return {
-    merged: [...bySource.values()].sort((a, b) => b.addedAt.localeCompare(a.addedAt)),
+    merged: [...bySource.values()].sort((a, b) =>
+      b.addedAt.localeCompare(a.addedAt),
+    ),
     added,
   };
 }
 
 export function summarizeIdeaLinkIntake(queue: IdeaLinkIntakeQueue) {
-  const pending = queue.items.filter((item) => item.status === "pending").length;
-  const triaged = queue.items.filter((item) => item.status === "triaged").length;
+  const pending = queue.items.filter(
+    (item) => item.status === "pending",
+  ).length;
+  const triaged = queue.items.filter(
+    (item) => item.status === "triaged",
+  ).length;
   return {
     total: queue.items.length,
     pending,

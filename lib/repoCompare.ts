@@ -61,7 +61,9 @@ export interface RepoCompareDeps {
   getProfile: (
     rawRepoReference: string,
   ) => Promise<{ profile: RepoIntelProfile; cacheHit: boolean }>;
-  getSavedAssimilationBrief?: (normalizedRepoId: string) => Promise<string | null>;
+  getSavedAssimilationBrief?: (
+    normalizedRepoId: string,
+  ) => Promise<string | null>;
   synthesize: (input: RepoComparePipelineInput) => Promise<string>;
 }
 
@@ -152,12 +154,16 @@ function describeStack(profile: RepoIntelProfile) {
   );
 }
 
-function metadataCompletenessScore(profile: RepoIntelProfile, brief: string | null) {
+function metadataCompletenessScore(
+  profile: RepoIntelProfile,
+  brief: string | null,
+) {
   let score = 0;
   if (profile.description.trim()) score += 1;
   if (profile.readmeExcerpt.trim()) score += 2;
   if (profile.topics.length > 0) score += 1;
-  if (profile.inferredStack.length > 0 || profile.languageHints.length > 0) score += 1;
+  if (profile.inferredStack.length > 0 || profile.languageHints.length > 0)
+    score += 1;
   if (profile.topLevelTree.length > 0) score += 1;
   if (brief?.trim()) score += 2;
   return score;
@@ -201,7 +207,9 @@ function inferDifferenceLines(candidates: RepoCompareCandidate[]) {
       const structuralSignal =
         profile.topLevelTree
           .slice(0, 3)
-          .map((entry) => `${entry.type === "dir" ? "dir" : "file"}:${entry.name}`)
+          .map(
+            (entry) => `${entry.type === "dir" ? "dir" : "file"}:${entry.name}`,
+          )
           .join(", ") || "minimal tree signal";
       return `- ${profile.normalizedRepoId}: ${describeStack(profile)}; structure ${structuralSignal}; ${savedAssimilationBrief ? "prior assimilation exists." : "no saved assimilation yet."}`;
     })
@@ -331,18 +339,21 @@ function extractUniqueRepoRefsFromText(input: string) {
     ...(input.match(OWNER_REPO_ANY_RE) ?? []),
   ];
 
-  return rawCandidates.reduce<Array<{ normalizedRepoId: string; sourceUrl: string }>>(
-    (acc, candidate) => {
-      const normalized = normalizeRepoCompareRef(candidate);
-      if (!normalized) return acc;
-      if (acc.some((entry) => entry.normalizedRepoId === normalized.normalizedRepoId)) {
-        return acc;
-      }
-      acc.push(normalized);
+  return rawCandidates.reduce<
+    Array<{ normalizedRepoId: string; sourceUrl: string }>
+  >((acc, candidate) => {
+    const normalized = normalizeRepoCompareRef(candidate);
+    if (!normalized) return acc;
+    if (
+      acc.some(
+        (entry) => entry.normalizedRepoId === normalized.normalizedRepoId,
+      )
+    ) {
       return acc;
-    },
-    [],
-  );
+    }
+    acc.push(normalized);
+    return acc;
+  }, []);
 }
 
 export function normalizeRepoCompareReferences(
@@ -455,9 +466,13 @@ export function buildRepoCompareSummary(
 export function buildRepoCompareTags(profiles: RepoIntelProfile[]) {
   return uniqueStrings([
     "repo-compare",
-    ...profiles.map((profile) => buildRepoReferenceTag(profile.normalizedRepoId)),
+    ...profiles.map((profile) =>
+      buildRepoReferenceTag(profile.normalizedRepoId),
+    ),
     ...profiles.flatMap((profile) =>
-      profile.inferredStack.slice(0, 2).map((stack) => `stack:${slugify(stack)}`),
+      profile.inferredStack
+        .slice(0, 2)
+        .map((stack) => `stack:${slugify(stack)}`),
     ),
   ]).slice(0, 10);
 }
@@ -474,7 +489,9 @@ export function buildRepoCompareEvidenceStrength(
   profiles: RepoIntelProfile[],
 ): EvidenceStrength {
   const sourceRefs = buildRepoCompareSourceRefs(profiles);
-  const readmeCount = profiles.filter((profile) => profile.readmeExcerpt.trim()).length;
+  const readmeCount = profiles.filter((profile) =>
+    profile.readmeExcerpt.trim(),
+  ).length;
   const metadataCoverage = profiles.filter((profile) => {
     const signals = [
       profile.description.trim().length > 0,
@@ -639,7 +656,9 @@ export async function runRepoCompare(
   );
 
   const usableProfiles = profileResults.filter(
-    (result): result is Extract<(typeof profileResults)[number], { ok: true }> =>
+    (
+      result,
+    ): result is Extract<(typeof profileResults)[number], { ok: true }> =>
       result.ok,
   );
 
@@ -655,8 +674,9 @@ export async function runRepoCompare(
     usableProfiles.map(async (result) => ({
       profile: result.profile,
       savedAssimilationBrief:
-        (await deps.getSavedAssimilationBrief?.(result.profile.normalizedRepoId)) ??
-        null,
+        (await deps.getSavedAssimilationBrief?.(
+          result.profile.normalizedRepoId,
+        )) ?? null,
     })),
   );
 
@@ -686,7 +706,10 @@ export async function runRepoCompare(
         warnings,
         failedRefs,
         brief: formatRepoCompareBrief({
-          candidates: withFallbackSection(parsed.candidates, fallback.candidates),
+          candidates: withFallbackSection(
+            parsed.candidates,
+            fallback.candidates,
+          ),
           sharedFit: withFallbackSection(parsed.sharedFit, fallback.sharedFit),
           keyDifferences: withFallbackSection(
             parsed.keyDifferences,
@@ -714,7 +737,9 @@ export async function runRepoCompare(
 
   return {
     profiles: candidates.map((candidate) => candidate.profile),
-    normalizedRepoIds: candidates.map((candidate) => candidate.profile.normalizedRepoId),
+    normalizedRepoIds: candidates.map(
+      (candidate) => candidate.profile.normalizedRepoId,
+    ),
     cacheHit: usableProfiles.every((result) => result.cacheHit),
     warnings,
     failedRefs,

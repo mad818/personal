@@ -134,7 +134,9 @@ async function listMarkdownFiles(directory: string) {
 
 async function readState(): Promise<NightShiftState> {
   try {
-    const parsed = JSON.parse(await readFile(STATE_PATH, "utf8")) as NightShiftState;
+    const parsed = JSON.parse(
+      await readFile(STATE_PATH, "utf8"),
+    ) as NightShiftState;
     return parsed?.version === 1 && parsed.processed
       ? parsed
       : { version: 1, processed: {} };
@@ -148,8 +150,13 @@ async function writeState(state: NightShiftState) {
 }
 
 function candidateId(kind: NightShiftSourceKind, absolutePath: string) {
-  const relativePath = path.relative(LIVE_ROOT, absolutePath).replace(/\\/g, "/");
-  const pathHash = createHash("sha256").update(relativePath).digest("hex").slice(0, 8);
+  const relativePath = path
+    .relative(LIVE_ROOT, absolutePath)
+    .replace(/\\/g, "/");
+  const pathHash = createHash("sha256")
+    .update(relativePath)
+    .digest("hex")
+    .slice(0, 8);
   return `${kind}-${toNightShiftSlug(path.basename(absolutePath, ".md"), "capture")}-${pathHash}`;
 }
 
@@ -159,9 +166,12 @@ async function readCandidate(
 ): Promise<CandidateFile | null> {
   try {
     const fileStat = await stat(absolutePath);
-    if (!fileStat.isFile() || fileStat.size > MAX_DISK_SOURCE_BYTES) return null;
+    if (!fileStat.isFile() || fileStat.size > MAX_DISK_SOURCE_BYTES)
+      return null;
     const content = await readFile(absolutePath, "utf8");
-    const relativePath = path.relative(LIVE_ROOT, absolutePath).replace(/\\/g, "/");
+    const relativePath = path
+      .relative(LIVE_ROOT, absolutePath)
+      .replace(/\\/g, "/");
     return {
       id: candidateId(kind, absolutePath),
       kind,
@@ -198,7 +208,10 @@ function extractTitle(content: string, fallback: string) {
 }
 
 function extractSummary(content: string) {
-  const withoutFrontmatter = content.replace(/^---\s*\r?\n[\s\S]*?\r?\n---\s*\r?\n/, "");
+  const withoutFrontmatter = content.replace(
+    /^---\s*\r?\n[\s\S]*?\r?\n---\s*\r?\n/,
+    "",
+  );
   const paragraph = withoutFrontmatter
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -222,18 +235,24 @@ async function listExistingNotes(directory: string, limit: number) {
         return null;
       }
     }),
-  ).then((items) => items.filter((item): item is NonNullable<typeof item> => Boolean(item)));
+  ).then((items) =>
+    items.filter((item): item is NonNullable<typeof item> => Boolean(item)),
+  );
 }
 
 async function readPendingEnvelopes() {
-  const files = await readdir(DESK_DIR, { withFileTypes: true }).catch(() => []);
+  const files = await readdir(DESK_DIR, { withFileTypes: true }).catch(
+    () => [],
+  );
   const jsonFiles = files
     .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
     .map((entry) => path.join(DESK_DIR, entry.name));
   const envelopes = await Promise.all(
     jsonFiles.map(async (file) => {
       try {
-        const parsed = JSON.parse(await readFile(file, "utf8")) as NightShiftProposalEnvelope;
+        const parsed = JSON.parse(
+          await readFile(file, "utf8"),
+        ) as NightShiftProposalEnvelope;
         return parsed?.status === "pending" ? parsed : null;
       } catch {
         return null;
@@ -245,7 +264,9 @@ async function readPendingEnvelopes() {
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
 
-function summarizeEnvelope(envelope: NightShiftProposalEnvelope): NightShiftProposalSummary {
+function summarizeEnvelope(
+  envelope: NightShiftProposalEnvelope,
+): NightShiftProposalSummary {
   return {
     id: envelope.id,
     createdAt: envelope.createdAt,
@@ -261,14 +282,15 @@ function summarizeEnvelope(envelope: NightShiftProposalEnvelope): NightShiftProp
 
 export async function readNightShiftStatus(): Promise<NightShiftStatus> {
   await ensureNightShiftVault();
-  const [candidates, pending, atoms, threads, briefings, state] = await Promise.all([
-    listCandidates(),
-    readPendingEnvelopes(),
-    listMarkdownFiles(ATOM_DIR),
-    listMarkdownFiles(THREAD_DIR),
-    listMarkdownFiles(BRIEFING_DIR),
-    readState(),
-  ]);
+  const [candidates, pending, atoms, threads, briefings, state] =
+    await Promise.all([
+      listCandidates(),
+      readPendingEnvelopes(),
+      listMarkdownFiles(ATOM_DIR),
+      listMarkdownFiles(THREAD_DIR),
+      listMarkdownFiles(BRIEFING_DIR),
+      readState(),
+    ]);
   return {
     posture: "ready",
     liveVaultPath: "data/second-brain",
@@ -278,7 +300,9 @@ export async function readNightShiftStatus(): Promise<NightShiftStatus> {
     counts: {
       raw: candidates.filter((item) => item.kind === "raw").length,
       sources: candidates.filter((item) => item.kind === "source").length,
-      unprocessed: candidates.filter((item) => !state.processed[item.fingerprint]).length,
+      unprocessed: candidates.filter(
+        (item) => !state.processed[item.fingerprint],
+      ).length,
       pendingProposals: pending.length,
       atoms: atoms.length,
       threads: threads.length,
@@ -290,12 +314,14 @@ export async function readNightShiftStatus(): Promise<NightShiftStatus> {
 
 export async function prepareNightShift(): Promise<NightShiftPreparation> {
   await ensureNightShiftVault();
-  const [candidates, state, existingAtoms, existingThreads] = await Promise.all([
-    listCandidates(),
-    readState(),
-    listExistingNotes(ATOM_DIR, 200),
-    listExistingNotes(THREAD_DIR, 80),
-  ]);
+  const [candidates, state, existingAtoms, existingThreads] = await Promise.all(
+    [
+      listCandidates(),
+      readState(),
+      listExistingNotes(ATOM_DIR, 200),
+      listExistingNotes(THREAD_DIR, 80),
+    ],
+  );
   const selected = candidates
     .filter((item) => !state.processed[item.fingerprint])
     .slice(0, NIGHT_SHIFT_MAX_SOURCE_ITEMS);
@@ -303,7 +329,10 @@ export async function prepareNightShift(): Promise<NightShiftPreparation> {
   const sources: CandidateFile[] = [];
   for (const item of selected) {
     if (remaining <= 0) break;
-    const allowed = Math.max(0, Math.min(NIGHT_SHIFT_MAX_SOURCE_CHARS, remaining));
+    const allowed = Math.max(
+      0,
+      Math.min(NIGHT_SHIFT_MAX_SOURCE_CHARS, remaining),
+    );
     const content = item.content.slice(0, allowed);
     remaining -= content.length;
     sources.push({
@@ -335,7 +364,9 @@ export async function captureNightShiftInput(input: {
   const rawText = typeof input.text === "string" ? input.text : "";
   if (!rawText.trim()) throw new Error("Capture text is required.");
   if (rawText.length > MAX_CAPTURE_CHARS) {
-    throw new Error(`Capture exceeds the ${MAX_CAPTURE_CHARS.toLocaleString()} character limit.`);
+    throw new Error(
+      `Capture exceeds the ${MAX_CAPTURE_CHARS.toLocaleString()} character limit.`,
+    );
   }
   const title = cleanText(input.title, 160) || "Untitled capture";
   const text = cleanText(rawText, MAX_CAPTURE_CHARS);
@@ -368,7 +399,10 @@ export async function captureNightShiftInput(input: {
     text,
     "",
   ].join("\n");
-  await writeFile(path.join(RAW_DIR, filename), content, { encoding: "utf8", flag: "wx" });
+  await writeFile(path.join(RAW_DIR, filename), content, {
+    encoding: "utf8",
+    flag: "wx",
+  });
   return { id: candidateId("raw", path.join(RAW_DIR, filename)), filename };
 }
 
@@ -381,7 +415,9 @@ function assertSafeProposalId(value: unknown) {
 }
 
 async function currentCandidateMap() {
-  return new Map((await listCandidates()).map((candidate) => [candidate.id, candidate]));
+  return new Map(
+    (await listCandidates()).map((candidate) => [candidate.id, candidate]),
+  );
 }
 
 function proposalFile(id: string) {
@@ -401,11 +437,14 @@ export async function stageNightShiftProposal(input: {
       fingerprint: cleanText(source.fingerprint, 128),
     }))
     .filter((source) => source.id && source.fingerprint);
-  if (expected.length === 0) throw new Error("No prepared sources were supplied.");
+  if (expected.length === 0)
+    throw new Error("No prepared sources were supplied.");
   for (const source of expected) {
     const candidate = current.get(source.id);
     if (!candidate || candidate.fingerprint !== source.fingerprint) {
-      throw new Error("A prepared source changed. Prepare a fresh shift proposal.");
+      throw new Error(
+        "A prepared source changed. Prepare a fresh shift proposal.",
+      );
     }
   }
   const normalized = normalizeNightShiftProposal(
@@ -420,7 +459,11 @@ export async function stageNightShiftProposal(input: {
     createdAt: new Date().toISOString(),
     sources: expected.map((source) => {
       const candidate = current.get(source.id)!;
-      const { content: _content, modifiedAt: _modifiedAt, ...snapshot } = candidate;
+      const {
+        content: _content,
+        modifiedAt: _modifiedAt,
+        ...snapshot
+      } = candidate;
       return snapshot;
     }),
     proposal: normalized.value,
@@ -451,7 +494,9 @@ function renderAtom(
   sourcePaths: Map<string, string>,
   createdAt: string,
 ) {
-  const sources = atom.sourceIds.map((id) => sourcePaths.get(id)).filter(Boolean);
+  const sources = atom.sourceIds
+    .map((id) => sourcePaths.get(id))
+    .filter(Boolean);
   const orphan = atom.links.length < 2;
   return [
     "---",
@@ -473,7 +518,12 @@ function renderAtom(
     "",
     atom.whyItMatters || "Not established by the supplied evidence.",
     ...(orphan
-      ? ["", "## [ORPHAN]", "", "Fewer than two evidence-backed links exist. Audit this as the vault grows."]
+      ? [
+          "",
+          "## [ORPHAN]",
+          "",
+          "Fewer than two evidence-backed links exist. Audit this as the vault grows.",
+        ]
       : []),
     ...atom.friction.flatMap((item) => [
       "",
@@ -482,7 +532,12 @@ function renderAtom(
       `> [[${item.noteId}]] — ${item.reason}`,
     ]),
     ...(atom.openThreads.length
-      ? ["", "## Open Threads", "", ...atom.openThreads.map((item) => `- ${item}`)]
+      ? [
+          "",
+          "## Open Threads",
+          "",
+          ...atom.openThreads.map((item) => `- ${item}`),
+        ]
       : []),
     "",
   ].join("\n");
@@ -554,13 +609,17 @@ export async function approveNightShiftProposal(value: unknown) {
   const envelope = await getNightShiftProposal(id);
   if (!envelope) throw new Error("Pending proposal was not found.");
   if (envelope.proposal.outcome === "blocked") {
-    throw new Error("Blocked proposals cannot be promoted. Reject it or prepare a fresh shift.");
+    throw new Error(
+      "Blocked proposals cannot be promoted. Reject it or prepare a fresh shift.",
+    );
   }
   const current = await currentCandidateMap();
   for (const source of envelope.sources) {
     const candidate = current.get(source.id);
     if (!candidate || candidate.fingerprint !== source.fingerprint) {
-      throw new Error("A source changed after staging. Promotion requires a fresh proposal.");
+      throw new Error(
+        "A source changed after staging. Promotion requires a fresh proposal.",
+      );
     }
   }
   const normalized = normalizeNightShiftProposal(
@@ -569,7 +628,9 @@ export async function approveNightShiftProposal(value: unknown) {
   );
   if (!normalized.ok) throw new Error(normalized.error);
   const proposal = normalized.value;
-  const sourcePaths = new Map(envelope.sources.map((source) => [source.id, source.relativePath]));
+  const sourcePaths = new Map(
+    envelope.sources.map((source) => [source.id, source.relativePath]),
+  );
   const createdAt = new Date().toISOString();
   const atomWrites = proposal.atoms.map((atom) => ({
     path: path.join(ATOM_DIR, `${atom.id}.md`),
@@ -586,18 +647,29 @@ export async function approveNightShiftProposal(value: unknown) {
   const writes = [...atomWrites, ...threadWrites, briefingWrite];
   for (const write of writes) {
     if (await pathExists(write.path)) {
-      throw new Error(`Promotion blocked because ${path.basename(write.path)} already exists.`);
+      throw new Error(
+        `Promotion blocked because ${path.basename(write.path)} already exists.`,
+      );
     }
   }
   for (const write of writes) {
-    await writeFile(write.path, write.content, { encoding: "utf8", flag: "wx" });
+    await writeFile(write.path, write.content, {
+      encoding: "utf8",
+      flag: "wx",
+    });
   }
   const state = await readState();
   for (const source of envelope.sources) {
-    state.processed[source.fingerprint] = { processedAt: createdAt, proposalId: id };
+    state.processed[source.fingerprint] = {
+      processedAt: createdAt,
+      proposalId: id,
+    };
   }
   await writeState(state);
-  await rename(proposalFile(id), path.join(DESK_ARCHIVE_DIR, `${id}.approved.json`));
+  await rename(
+    proposalFile(id),
+    path.join(DESK_ARCHIVE_DIR, `${id}.approved.json`),
+  );
   return {
     proposalId: id,
     atoms: atomWrites.length,
@@ -609,13 +681,19 @@ export async function approveNightShiftProposal(value: unknown) {
 export async function rejectNightShiftProposal(value: unknown) {
   await ensureNightShiftVault();
   const id = assertSafeProposalId(value);
-  if (!(await pathExists(proposalFile(id)))) throw new Error("Pending proposal was not found.");
-  await rename(proposalFile(id), path.join(DESK_ARCHIVE_DIR, `${id}.rejected.json`));
+  if (!(await pathExists(proposalFile(id))))
+    throw new Error("Pending proposal was not found.");
+  await rename(
+    proposalFile(id),
+    path.join(DESK_ARCHIVE_DIR, `${id}.rejected.json`),
+  );
   return { proposalId: id, rejected: true };
 }
 
 function parseFrontmatterArray(content: string, key: string): string[] {
-  const match = content.match(new RegExp(`^${key}:\\s*(\\[[^\\n]*\\])\\s*$`, "m"));
+  const match = content.match(
+    new RegExp(`^${key}:\\s*(\\[[^\\n]*\\])\\s*$`, "m"),
+  );
   if (!match) return [];
   try {
     const value = JSON.parse(match[1]) as unknown;
@@ -653,7 +731,10 @@ export async function runNightShiftAudit() {
     } else {
       for (const source of sources) {
         const resolved = path.resolve(LIVE_ROOT, source);
-        if (!resolved.startsWith(`${path.resolve(LIVE_ROOT)}${path.sep}`) || !(await pathExists(resolved))) {
+        if (
+          !resolved.startsWith(`${path.resolve(LIVE_ROOT)}${path.sep}`) ||
+          !(await pathExists(resolved))
+        ) {
           missingSources.push(`${name}: missing ${source}`);
         }
       }

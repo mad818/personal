@@ -26,7 +26,8 @@ export const HUMAN_EDITOR_MODES: ReadonlyArray<{
   {
     id: "natural-flow",
     label: "Natural Flow",
-    summary: "Use real speech rhythm, mixed sentence lengths, and clean fragments.",
+    summary:
+      "Use real speech rhythm, mixed sentence lengths, and clean fragments.",
   },
   {
     id: "pattern-breaker",

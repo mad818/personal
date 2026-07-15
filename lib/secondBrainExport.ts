@@ -16,7 +16,10 @@ import type { Article } from "@/store/useStore";
 // ── Types ──────────────────────────────────────────────────────────────────
 export type SecondBrainExportMode = "full" | "compiled" | "clips" | "heartbeat";
 
-export const SECOND_BRAIN_EXPORT_MODE_LABELS: Record<SecondBrainExportMode, string> = {
+export const SECOND_BRAIN_EXPORT_MODE_LABELS: Record<
+  SecondBrainExportMode,
+  string
+> = {
   full: "Full pack",
   compiled: "Compiled only",
   clips: "Clips only",
@@ -84,7 +87,10 @@ interface SecondBrainExportArtifact extends ArtifactContinuityComparable {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function safeName(s: string) {
-  return s.replace(/[/\\:*?"<>|]/g, "-").slice(0, 80).trim();
+  return s
+    .replace(/[/\\:*?"<>|]/g, "-")
+    .slice(0, 80)
+    .trim();
 }
 
 function fmtDate(d: string) {
@@ -158,7 +164,7 @@ function normalizeCompiledArtifact(
     summary: page.summary,
     content: page.contentWithheld
       ? "Restricted compiled artifact body withheld from the export bundle."
-      : page.content ?? page.contentPreview,
+      : (page.content ?? page.contentPreview),
     sourceLabel: page.sourceLabel,
     dateLabel: fmtTimestamp(page.updatedAt),
     domain: page.domain,
@@ -219,11 +225,15 @@ function buildIndexFile(
 }
 
 // ── 01 Heartbeat ───────────────────────────────────────────────────────────
-function buildHeartbeatFile(allItems: SecondBrainExportArtifact[]): SecondBrainExportFile {
+function buildHeartbeatFile(
+  allItems: SecondBrainExportArtifact[],
+): SecondBrainExportFile {
   const domains = Array.from(new Set(allItems.map((item) => item.domain)));
   const sources = Array.from(new Set(allItems.map((item) => item.sourceLabel)));
   const clipCount = allItems.filter((item) => item.kind === "clip").length;
-  const compiledCount = allItems.filter((item) => item.kind === "compiled_page").length;
+  const compiledCount = allItems.filter(
+    (item) => item.kind === "compiled_page",
+  ).length;
   const reverseEngineeringPrepCount = allItems.filter(
     (item) => item.continuity.artifactClass === "reverse_engineering_prep",
   ).length;
@@ -312,7 +322,10 @@ function buildContinuityIndexFiles(
   );
   const files: SecondBrainExportFile[] = [];
 
-  if (reverseEngineeringPrep.length > 0 || reverseEngineeringBriefs.length > 0) {
+  if (
+    reverseEngineeringPrep.length > 0 ||
+    reverseEngineeringBriefs.length > 0
+  ) {
     files.push({
       path: "02 Reverse Engineering Continuity.md",
       content: [
@@ -322,24 +335,20 @@ function buildContinuityIndexFiles(
         `- Promoted briefs: ${reverseEngineeringBriefs.length}`,
         "",
         "## Prep notes",
-        ...(
-          reverseEngineeringPrep.length > 0
-            ? reverseEngineeringPrep.map(
-                (item) =>
-                  `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
-              )
-            : ["- None in this export slice."]
-        ),
+        ...(reverseEngineeringPrep.length > 0
+          ? reverseEngineeringPrep.map(
+              (item) =>
+                `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
+            )
+          : ["- None in this export slice."]),
         "",
         "## Promoted briefs",
-        ...(
-          reverseEngineeringBriefs.length > 0
-            ? reverseEngineeringBriefs.map(
-                (item) =>
-                  `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
-              )
-            : ["- None in this export slice."]
-        ),
+        ...(reverseEngineeringBriefs.length > 0
+          ? reverseEngineeringBriefs.map(
+              (item) =>
+                `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
+            )
+          : ["- None in this export slice."]),
       ].join("\n"),
     });
   }
@@ -354,24 +363,20 @@ function buildContinuityIndexFiles(
         `- Research briefs: ${researchBriefs.length}`,
         "",
         "## Research artifacts",
-        ...(
-          researchArtifacts.length > 0
-            ? researchArtifacts.map(
-                (item) =>
-                  `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
-              )
-            : ["- None in this export slice."]
-        ),
+        ...(researchArtifacts.length > 0
+          ? researchArtifacts.map(
+              (item) =>
+                `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
+            )
+          : ["- None in this export slice."]),
         "",
         "## Research briefs",
-        ...(
-          researchBriefs.length > 0
-            ? researchBriefs.map(
-                (item) =>
-                  `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
-              )
-            : ["- None in this export slice."]
-        ),
+        ...(researchBriefs.length > 0
+          ? researchBriefs.map(
+              (item) =>
+                `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
+            )
+          : ["- None in this export slice."]),
       ].join("\n"),
     });
   }
@@ -393,24 +398,20 @@ function buildContinuityIndexFiles(
         `- Quiz sets: ${quizSets.length}`,
         "",
         "## Learning notes",
-        ...(
-          learningNotes.length > 0
-            ? learningNotes.map(
-                (item) =>
-                  `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
-              )
-            : ["- None in this export slice."]
-        ),
+        ...(learningNotes.length > 0
+          ? learningNotes.map(
+              (item) =>
+                `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
+            )
+          : ["- None in this export slice."]),
         "",
         "## Higher-order study artifacts",
-        ...(
-          [...studyBriefs, ...reviewSheets, ...quizSets].length > 0
-            ? [...studyBriefs, ...reviewSheets, ...quizSets].map(
-                (item) =>
-                  `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
-              )
-            : ["- None in this export slice."]
-        ),
+        ...([...studyBriefs, ...reviewSheets, ...quizSets].length > 0
+          ? [...studyBriefs, ...reviewSheets, ...quizSets].map(
+              (item) =>
+                `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title}]]`,
+            )
+          : ["- None in this export slice."]),
       ].join("\n"),
     });
   }
@@ -468,13 +469,22 @@ function buildDomainMocFile(
     ``,
     `## Compiled artifacts (${compiled.length})`,
     ``,
-    ...compiled.map((item) => `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title.slice(0, 60)}]]`),
+    ...compiled.map(
+      (item) =>
+        `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title.slice(0, 60)}]]`,
+    ),
     ``,
     `## Saved clips (${clips.length})`,
     ``,
-    ...clips.map((item) => `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title.slice(0, 60)}]]`),
+    ...clips.map(
+      (item) =>
+        `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title.slice(0, 60)}]]`,
+    ),
   ];
-  return { path: `Maps/Domain — ${safeName(domain)}.md`, content: lines.join("\n") };
+  return {
+    path: `Maps/Domain — ${safeName(domain)}.md`,
+    content: lines.join("\n"),
+  };
 }
 
 // ── Maps — Source ──────────────────────────────────────────────────────────
@@ -495,12 +505,20 @@ function buildRouteMocFile(
     ``,
     `## Notes (${srcItems.length})`,
     ``,
-    ...srcItems.map((item) => `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title.slice(0, 60)}]]`),
+    ...srcItems.map(
+      (item) =>
+        `- [[${item.notePath.replace(/\.md$/, "")}\\|${item.title.slice(0, 60)}]]`,
+    ),
   ];
-  return { path: `Maps/Route — ${safeName(source)}.md`, content: lines.join("\n") };
+  return {
+    path: `Maps/Route — ${safeName(source)}.md`,
+    content: lines.join("\n"),
+  };
 }
 
-function buildMapNoteFiles(items: SecondBrainExportArtifact[]): SecondBrainExportFile[] {
+function buildMapNoteFiles(
+  items: SecondBrainExportArtifact[],
+): SecondBrainExportFile[] {
   const domains = Array.from(new Set(items.map((item) => item.domain)));
   const sources = Array.from(new Set(items.map((item) => item.sourceLabel)));
   return [
@@ -525,7 +543,10 @@ function buildArtifactFile(
     }))
     .filter((link) => Boolean(link.notePath));
   const derivedWikiLinks = relatedNotes
-    .filter((match) => !confirmedArchiveLinks.some((link) => link.targetId === match.item.id))
+    .filter(
+      (match) =>
+        !confirmedArchiveLinks.some((link) => link.targetId === match.item.id),
+    )
     .slice(0, 3);
   const lines = [
     `---`,
@@ -541,8 +562,12 @@ function buildArtifactFile(
     `workflow_label: "${(artifact.workflowLabel ?? "").replace(/"/g, "'")}"`,
     `archive_link_ids: [${artifact.archiveLinks.map((link) => `"${link.targetId}"`).join(", ")}]`,
     `source_ref_ids: [${artifact.continuity.sourceRefs.map((ref) => `"${ref.id}"`).join(", ")}]`,
-    continuity.continuityId ? `continuity_id: "${continuity.continuityId}"` : `continuity_id: ""`,
-    continuity.continuityTag ? `continuity_tag: "${continuity.continuityTag}"` : `continuity_tag: ""`,
+    continuity.continuityId
+      ? `continuity_id: "${continuity.continuityId}"`
+      : `continuity_id: ""`,
+    continuity.continuityTag
+      ? `continuity_tag: "${continuity.continuityTag}"`
+      : `continuity_tag: ""`,
     continuity.promotionKind
       ? `promotion_kind: "${continuity.promotionKind}"`
       : `promotion_kind: ""`,
@@ -555,7 +580,9 @@ function buildArtifactFile(
     `## Continuity`,
     ``,
     `- Artifact class: ${continuity.artifactClass}`,
-    continuity.routeOrigin ? `- Route origin: ${continuity.routeOrigin}` : `- Route origin: unavailable`,
+    continuity.routeOrigin
+      ? `- Route origin: ${continuity.routeOrigin}`
+      : `- Route origin: unavailable`,
     continuity.workflowClass
       ? `- Workflow class: ${continuity.workflowClass}`
       : `- Workflow class: unavailable`,
@@ -573,7 +600,9 @@ function buildArtifactFile(
     `## Archive links`,
     ``,
     ...(artifact.visibility === "restricted"
-      ? ["- Restricted artifact export stays redacted, so confirmed archive links are withheld in this bundle."]
+      ? [
+          "- Restricted artifact export stays redacted, so confirmed archive links are withheld in this bundle.",
+        ]
       : confirmedArchiveLinks.length > 0
         ? confirmedArchiveLinks.map(
             (link) =>

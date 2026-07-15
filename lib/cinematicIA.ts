@@ -262,7 +262,8 @@ export function getCinematicIASurfaceForPath(
       contract.routePrefixes.some((prefix) =>
         prefix === "/"
           ? normalizedPath === "/"
-          : normalizedPath === prefix || normalizedPath.startsWith(`${prefix}/`),
+          : normalizedPath === prefix ||
+            normalizedPath.startsWith(`${prefix}/`),
       ),
     )
     .sort((a, b) => b.routePrefixes[0].length - a.routePrefixes[0].length);

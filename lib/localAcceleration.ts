@@ -117,7 +117,8 @@ function valueBitWidth(value: string | undefined, fallback: 2 | 4): 2 | 4 {
 
 function turboQuantMode(value: string | undefined): TurboQuantMode {
   const normalized = value?.trim().toLowerCase();
-  if (normalized === "capture_only" || normalized === "hybrid") return normalized;
+  if (normalized === "capture_only" || normalized === "hybrid")
+    return normalized;
   return "off";
 }
 
@@ -139,7 +140,9 @@ export function validateLocalAccelerationEndpoint(
     throw new Error("Local acceleration endpoint must use HTTP or HTTPS.");
   }
   if (parsed.username || parsed.password) {
-    throw new Error("Credential-bearing local acceleration endpoints are blocked.");
+    throw new Error(
+      "Credential-bearing local acceleration endpoints are blocked.",
+    );
   }
   const host = parsed.hostname.toLowerCase();
   const loopback =
@@ -245,7 +248,9 @@ async function fetchJson(
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!response.ok) {
-    throw new Error(`Local acceleration runtime returned HTTP ${response.status}.`);
+    throw new Error(
+      `Local acceleration runtime returned HTTP ${response.status}.`,
+    );
   }
   return (await response.json()) as Record<string, unknown>;
 }
@@ -263,12 +268,16 @@ function sanitizeDocuments(documents: TurboVecDocument[]) {
     throw new Error("At least one TurboVec document is required.");
   }
   if (documents.length > MAX_DOCUMENTS_PER_REQUEST) {
-    throw new Error(`TurboVec upsert accepts at most ${MAX_DOCUMENTS_PER_REQUEST} documents.`);
+    throw new Error(
+      `TurboVec upsert accepts at most ${MAX_DOCUMENTS_PER_REQUEST} documents.`,
+    );
   }
   return documents.map((document) => {
     const text = document.text.trim();
     if (!text || text.length > MAX_DOCUMENT_CHARS) {
-      throw new Error(`TurboVec document text must contain 1-${MAX_DOCUMENT_CHARS} characters.`);
+      throw new Error(
+        `TurboVec document text must contain 1-${MAX_DOCUMENT_CHARS} characters.`,
+      );
     }
     return {
       id: sanitizeId(document.id),
@@ -283,7 +292,9 @@ function sanitizeIds(ids: string[]) {
     throw new Error("At least one TurboVec ID is required.");
   }
   if (ids.length > MAX_ALLOWLIST_IDS) {
-    throw new Error(`TurboVec accepts at most ${MAX_ALLOWLIST_IDS} IDs per request.`);
+    throw new Error(
+      `TurboVec accepts at most ${MAX_ALLOWLIST_IDS} IDs per request.`,
+    );
   }
   return Array.from(new Set(ids.map(sanitizeId)));
 }
@@ -321,7 +332,9 @@ export async function turboVecSearch(
   if (!config.turboVec.enabled) return [];
   const query = input.query.trim();
   if (!query || query.length > MAX_QUERY_CHARS) {
-    throw new Error(`TurboVec query must contain 1-${MAX_QUERY_CHARS} characters.`);
+    throw new Error(
+      `TurboVec query must contain 1-${MAX_QUERY_CHARS} characters.`,
+    );
   }
   const limit = Math.max(1, Math.min(100, Math.floor(input.limit ?? 12)));
   const payload = await fetchJson(
@@ -387,7 +400,10 @@ export async function turboVecControl(
       config.allowTailnet,
     ),
     config.turboVec.timeoutMs,
-    { method: "POST", body: JSON.stringify({ bitWidth: config.turboVec.bitWidth }) },
+    {
+      method: "POST",
+      body: JSON.stringify({ bitWidth: config.turboVec.bitWidth }),
+    },
   );
 }
 
@@ -408,11 +424,16 @@ export async function turboQuantControl(
     ),
     config.turboQuant.timeoutMs,
     {
-      method: operation === "capabilities" || operation === "limitations" || operation === "stats"
-        ? "GET"
-        : "POST",
+      method:
+        operation === "capabilities" ||
+        operation === "limitations" ||
+        operation === "stats"
+          ? "GET"
+          : "POST",
       body:
-        operation === "capabilities" || operation === "limitations" || operation === "stats"
+        operation === "capabilities" ||
+        operation === "limitations" ||
+        operation === "stats"
           ? undefined
           : JSON.stringify({
               mode: config.turboQuant.mode,

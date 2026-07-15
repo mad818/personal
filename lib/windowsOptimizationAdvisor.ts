@@ -89,9 +89,14 @@ export function normalizeWindowsOptimizationSnapshot(
   const scheduledTasks = objectValue(input.scheduledTasks);
   const availability = objectValue(input.availability);
   const totalBytes = Math.max(0, finiteNumber(memory.totalBytes));
-  const freeBytes = Math.max(0, Math.min(totalBytes, finiteNumber(memory.freeBytes)));
+  const freeBytes = Math.max(
+    0,
+    Math.min(totalBytes, finiteNumber(memory.freeBytes)),
+  );
   const freePercent =
-    totalBytes > 0 ? percent((freeBytes / totalBytes) * 100) : percent(memory.freePercent);
+    totalBytes > 0
+      ? percent((freeBytes / totalBytes) * 100)
+      : percent(memory.freePercent);
   const rawDisks = Array.isArray(input.disks) ? input.disks : [];
 
   return {
@@ -104,7 +109,10 @@ export function normalizeWindowsOptimizationSnapshot(
         ? input.generatedAt
         : new Date().toISOString(),
     processorCount: count(input.processorCount),
-    uptimeHours: Math.max(0, Math.round(finiteNumber(input.uptimeHours) * 10) / 10),
+    uptimeHours: Math.max(
+      0,
+      Math.round(finiteNumber(input.uptimeHours) * 10) / 10,
+    ),
     memory: {
       totalBytes,
       freeBytes,
@@ -136,7 +144,10 @@ export function normalizeWindowsOptimizationSnapshot(
 }
 
 function recommendation(
-  value: Omit<WindowsOptimizationRecommendation, "execution" | "measurementRequired">,
+  value: Omit<
+    WindowsOptimizationRecommendation,
+    "execution" | "measurementRequired"
+  >,
 ): WindowsOptimizationRecommendation {
   return {
     ...value,
@@ -153,10 +164,17 @@ export function buildWindowsOptimizationAdvisor(
   const collectionWarnings = supported
     ? Object.entries(snapshot.availability)
         .filter(([, available]) => !available)
-        .map(([section]) => `${section} inventory was unavailable and was not treated as zero.`)
+        .map(
+          ([section]) =>
+            `${section} inventory was unavailable and was not treated as zero.`,
+        )
     : [];
 
-  if (supported && snapshot.memory.totalBytes > 0 && snapshot.memory.freePercent < 15) {
+  if (
+    supported &&
+    snapshot.memory.totalBytes > 0 &&
+    snapshot.memory.freePercent < 15
+  ) {
     recommendations.push(
       recommendation({
         id: "memory-pressure",
@@ -170,7 +188,10 @@ export function buildWindowsOptimizationAdvisor(
     );
   }
 
-  const fullestDisk = Math.max(0, ...snapshot.disks.map((disk) => disk.usedPercent));
+  const fullestDisk = Math.max(
+    0,
+    ...snapshot.disks.map((disk) => disk.usedPercent),
+  );
   if (supported && fullestDisk >= 85) {
     recommendations.push(
       recommendation({
@@ -247,7 +268,8 @@ export function buildWindowsOptimizationAdvisor(
     readOnly: true,
     requiresElevation: false,
     status:
-      !supported || (recommendations.length === 0 && collectionWarnings.length === 0)
+      !supported ||
+      (recommendations.length === 0 && collectionWarnings.length === 0)
         ? supported
           ? "healthy"
           : "unsupported"
@@ -256,9 +278,9 @@ export function buildWindowsOptimizationAdvisor(
       ? "Windows optimization posture is unavailable on this host. No changes were attempted."
       : collectionWarnings.length > 0
         ? `Windows inventory is incomplete in ${collectionWarnings.length} section(s). Available measurements produced ${recommendations.length} review item(s); no changes were attempted.`
-      : recommendations.length > 0
-        ? `${recommendations.length} measured posture item(s) deserve operator review. No changes were attempted.`
-        : "No measured Windows pressure crossed the advisor thresholds. No changes were attempted.",
+        : recommendations.length > 0
+          ? `${recommendations.length} measured posture item(s) deserve operator review. No changes were attempted.`
+          : "No measured Windows pressure crossed the advisor thresholds. No changes were attempted.",
     snapshot,
     recommendations,
     collectionWarnings,

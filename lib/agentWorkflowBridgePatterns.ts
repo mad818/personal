@@ -115,7 +115,8 @@ export function listAgentWorkflowDescriptors(): AgentWorkflowDescriptor[] {
       sourceRepo: "Crosstalk-Solutions/project-nomad",
       sourceUrl: "https://github.com/Crosstalk-Solutions/project-nomad",
       disposition: "defer",
-      nexusSurface: "COMMAND/OPS mobile posture · offline-first Docker reference",
+      nexusSurface:
+        "COMMAND/OPS mobile posture · offline-first Docker reference",
       operatorNote:
         "Different architecture (offline Docker stack). Compare to homelable + phone acceptance only.",
     },
@@ -144,7 +145,9 @@ export function listAgentWorkflowDescriptors(): AgentWorkflowDescriptor[] {
   ];
 }
 
-export function formatAgentPipelineFamilyBlock(family: AgentPipelineFamily): string {
+export function formatAgentPipelineFamilyBlock(
+  family: AgentPipelineFamily,
+): string {
   if (!family) return "";
   const labels: Record<Exclude<AgentPipelineFamily, null>, string> = {
     "deer-flow": "Deep research (DeerFlow-aligned sections)",

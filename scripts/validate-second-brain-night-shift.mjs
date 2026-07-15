@@ -67,7 +67,7 @@ assert.match(audit, /Report second-brain integrity without repairing it/);
 
 assert.match(secondBrain, /"night-shift"/);
 assert.match(secondBrain, /night-shift-rules/);
-assert.match(ai, /secondBrainMode\?:.*"night-shift"/);
+assert.match(ai, /secondBrainMode\?\s*:[\s\S]{0,160}?"night-shift"/);
 assert.match(route, /prepareNightShift/);
 assert.match(route, /approveNightShiftProposal/);
 assert.match(route, /runNightShiftAudit/);

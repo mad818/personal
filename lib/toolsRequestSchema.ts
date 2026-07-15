@@ -16,9 +16,7 @@ export type ToolsPostBody = z.infer<typeof toolsPostBodySchema>;
 
 export function parseToolsPostBody(
   value: unknown,
-):
-  | { ok: true; data: ToolsPostBody }
-  | { ok: false; error: string } {
+): { ok: true; data: ToolsPostBody } | { ok: false; error: string } {
   const parsed = toolsPostBodySchema.safeParse(value);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];

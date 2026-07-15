@@ -44,7 +44,9 @@ export function isMarkItDownConfigured(): boolean {
  * Convert a binary file to markdown via the MarkItDown CLI subprocess.
  * filePath must be an absolute path to the file on disk.
  */
-export function convertBinaryWithMarkItDown(filePath: string): MarkItDownResult {
+export function convertBinaryWithMarkItDown(
+  filePath: string,
+): MarkItDownResult {
   const bin = resolveMarkItDownBin();
   if (!bin) {
     return {

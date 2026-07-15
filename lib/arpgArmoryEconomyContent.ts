@@ -121,16 +121,23 @@ export const ARPG_CITY_GEAR_REWARDS: ArpgCityGearReward[] =
       name: subCity.gearDrop,
       source: subCity.miniBoss,
       recommendedQuality:
-        cityIndex > 9 ? "ancient" : cityIndex > 6 ? "relic" : subCityIndex === 3 ? "epic" : "rare",
+        cityIndex > 9
+          ? "ancient"
+          : cityIndex > 6
+            ? "relic"
+            : subCityIndex === 3
+              ? "epic"
+              : "rare",
     })),
   );
 
-export const ARPG_CITY_ARMOR_SETS: ArpgCityArmorSet[] = ARPG_PRODUCTION_CONTENT.world.cities.map(
-  (city, index) => {
+export const ARPG_CITY_ARMOR_SETS: ArpgCityArmorSet[] =
+  ARPG_PRODUCTION_CONTENT.world.cities.map((city, index) => {
     const armor = armorFamilies[index % armorFamilies.length];
     const vendor =
-      ARPG_ARMORY_ECONOMY_CONTENT.vendorArchetypes.find((entry) => entry.cityId === city.id) ??
-      ARPG_ARMORY_ECONOMY_CONTENT.vendorArchetypes[0];
+      ARPG_ARMORY_ECONOMY_CONTENT.vendorArchetypes.find(
+        (entry) => entry.cityId === city.id,
+      ) ?? ARPG_ARMORY_ECONOMY_CONTENT.vendorArchetypes[0];
 
     return {
       id: `${city.id}-set`,
@@ -140,8 +147,7 @@ export const ARPG_CITY_ARMOR_SETS: ArpgCityArmorSet[] = ARPG_PRODUCTION_CONTENT.
       setBonus: armor.setBonus,
       vendorId: vendor.id,
     };
-  },
-);
+  });
 
 export const ARPG_ARMORY_ECONOMY_SUMMARY = {
   weaponFamilyCount: ARPG_ARMORY_ECONOMY_CONTENT.weaponFamilies.length,
@@ -154,13 +160,25 @@ export const ARPG_ARMORY_ECONOMY_SUMMARY = {
 };
 
 export function getArpgCraftingRecipe(recipeId: string) {
-  return ARPG_ARMORY_ECONOMY_CONTENT.craftingRecipes.find((recipe) => recipe.id === recipeId) ?? null;
+  return (
+    ARPG_ARMORY_ECONOMY_CONTENT.craftingRecipes.find(
+      (recipe) => recipe.id === recipeId,
+    ) ?? null
+  );
 }
 
 export function getArpgSalvageRule(quality: string) {
-  return ARPG_ARMORY_ECONOMY_CONTENT.salvageRules.find((rule) => rule.id === quality) ?? null;
+  return (
+    ARPG_ARMORY_ECONOMY_CONTENT.salvageRules.find(
+      (rule) => rule.id === quality,
+    ) ?? null
+  );
 }
 
 export function getArpgWeaponFamily(familyId: string) {
-  return ARPG_ARMORY_ECONOMY_CONTENT.weaponFamilies.find((family) => family.id === familyId) ?? null;
+  return (
+    ARPG_ARMORY_ECONOMY_CONTENT.weaponFamilies.find(
+      (family) => family.id === familyId,
+    ) ?? null
+  );
 }

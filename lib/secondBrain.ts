@@ -47,7 +47,9 @@ export function isSecondBrainModeReady(
     );
   }
   if (mode === "night-shift") {
-    const ids = new Set(loadedFiles.filter((file) => file.present).map((file) => file.id));
+    const ids = new Set(
+      loadedFiles.filter((file) => file.present).map((file) => file.id),
+    );
     return ids.has("night-shift-skill") && ids.has("night-shift-rules");
   }
   return true;

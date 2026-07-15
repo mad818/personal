@@ -181,8 +181,7 @@ export const AGENT_TOOLS = [
       properties: {
         topic: {
           type: "string",
-          description:
-            "The research topic or question to investigate deeply.",
+          description: "The research topic or question to investigate deeply.",
         },
       },
       required: ["topic"],
@@ -229,15 +228,18 @@ export const AGENT_TOOLS = [
         action: {
           type: "string",
           enum: ["list", "search", "resume", "export"],
-          description: "List sessions and VAULT outputs, search sessions, resume one session, or export one fixed artifact.",
+          description:
+            "List sessions and VAULT outputs, search sessions, resume one session, or export one fixed artifact.",
         },
         query: {
           type: "string",
-          description: "Search text used for session search or resume when session_id is unknown.",
+          description:
+            "Search text used for session search or resume when session_id is unknown.",
         },
         session_id: {
           type: "string",
-          description: "Generated Feynman continuity session ID used for resume or export.",
+          description:
+            "Generated Feynman continuity session ID used for resume or export.",
         },
         format: {
           type: "string",
@@ -326,10 +328,10 @@ export const AGENT_TOOLS = [
       required: ["repo_refs"],
     },
   },
-    {
-      name: "assimilate_repo",
-      description:
-        "Build a public-safe repo-assimilation implementation brief for a public GitHub repo using existing metadata-only repo intel. Use this for explicit adopt/adapt/reject questions when the user wants a Nexus-local implementation decision, extension-point brief, and ORBIT-ready handoff instead of raw code ingestion. Returns a deterministic six-section brief and never fetches arbitrary source files.",
+  {
+    name: "assimilate_repo",
+    description:
+      "Build a public-safe repo-assimilation implementation brief for a public GitHub repo using existing metadata-only repo intel. Use this for explicit adopt/adapt/reject questions when the user wants a Nexus-local implementation decision, extension-point brief, and ORBIT-ready handoff instead of raw code ingestion. Returns a deterministic six-section brief and never fetches arbitrary source files.",
     input_schema: {
       type: "object",
       properties: {
@@ -445,7 +447,8 @@ export const AGENT_TOOLS = [
         worker: {
           type: "string",
           enum: ["orbit", "nova", "cipher", "flux"],
-          description: "Specialist worker: orbit=code, nova=research, cipher=security, flux=markets",
+          description:
+            "Specialist worker: orbit=code, nova=research, cipher=security, flux=markets",
         },
         task_id: {
           type: "string",
@@ -453,11 +456,13 @@ export const AGENT_TOOLS = [
         },
         mission: {
           type: "string",
-          description: "One bounded specialist mission with a clear done-when condition",
+          description:
+            "One bounded specialist mission with a clear done-when condition",
         },
         context: {
           type: "string",
-          description: "Only the file excerpts, evidence, assumptions, or constraints the worker may rely on",
+          description:
+            "Only the file excerpts, evidence, assumptions, or constraints the worker may rely on",
         },
         expected_output: {
           type: "string",
@@ -758,7 +763,10 @@ export function getAgentToolCatalog(
     names.add("fetch_url");
   }
 
-  if (deepResearchIntent && (normalizedAgent === "nova" || normalizedAgent === "jansky")) {
+  if (
+    deepResearchIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
     groups.add("deep_research");
     names.add("deep_research");
   }
@@ -1190,14 +1198,14 @@ async function executeToolDetailed(
     if (requireApproval) {
       const pathOrFile = input.path ?? input.filename ?? name;
       const blocked = `🔒 Blocked ${name} (${risk}). Use propose_project_edit first so the user can review and approve the change.`;
-        store.addChangeEntry({
-          path: pathOrFile,
-          agent: "orbit",
-          summary: `Policy blocked high-risk tool: ${name}`,
-          type: "rejected",
-          linesAdded: 0,
-          linesRemoved: 0,
-        });
+      store.addChangeEntry({
+        path: pathOrFile,
+        agent: "orbit",
+        summary: `Policy blocked high-risk tool: ${name}`,
+        type: "rejected",
+        linesAdded: 0,
+        linesRemoved: 0,
+      });
       return { result: blocked, meta: emptyToolExecutionMeta() };
     }
   }
@@ -1580,9 +1588,7 @@ async function postOllamaProxy(
       ...(settings.localEndpoint
         ? { localEndpoint: settings.localEndpoint }
         : {}),
-      ...(settings.localApiKey
-        ? { localApiKey: settings.localApiKey }
-        : {}),
+      ...(settings.localApiKey ? { localApiKey: settings.localApiKey } : {}),
     }),
     signal,
   });
@@ -1610,8 +1616,7 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
   let initialResolutionReason: string | null = null;
 
   const selectedCatalog =
-    toolCatalog ??
-    getAgentToolCatalog(agentId, messages.at(-1)?.content ?? "");
+    toolCatalog ?? getAgentToolCatalog(agentId, messages.at(-1)?.content ?? "");
   const tools = applyDraftModeToTools(selectedCatalog.tools, draftMode);
 
   if (typeof window !== "undefined")
@@ -1639,7 +1644,8 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     onStep({
       type: "thinking",
       content:
-        initialResolutionReason === "active_runtime" && activeModel !== configuredModel
+        initialResolutionReason === "active_runtime" &&
+        activeModel !== configuredModel
           ? `⚠️ Draft mode — using active Ollama runtime model ${activeModel}. File writes are queued for Claude to finalize.`
           : `⚠️ Draft mode — using ${activeModel}. File writes are queued for Claude to finalize.`,
     });
@@ -1647,7 +1653,8 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     onStep({
       type: "thinking",
       content:
-        initialResolutionReason === "active_runtime" && activeModel !== configuredModel
+        initialResolutionReason === "active_runtime" &&
+        activeModel !== configuredModel
           ? `Using active Ollama runtime model: ${activeModel}`
           : `Using local model: ${activeModel}`,
     });
@@ -1726,10 +1733,7 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
 
     if (!res.ok) {
       const errorMessage = extractOllamaErrorMessage(data, res.status);
-      if (
-        !modelRecoveryAttempted &&
-        isMissingOllamaModelError(errorMessage)
-      ) {
+      if (!modelRecoveryAttempted && isMissingOllamaModelError(errorMessage)) {
         modelRecoveryAttempted = true;
         const recovery = await resolveInstalledOllamaModel({
           endpoint,
@@ -1852,8 +1856,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
   } = opts;
   const model = MINIMAX_DEFAULT_AGENT_MODEL;
   const selectedCatalog =
-    toolCatalog ??
-    getAgentToolCatalog(agentId, messages.at(-1)?.content ?? "");
+    toolCatalog ?? getAgentToolCatalog(agentId, messages.at(-1)?.content ?? "");
   const tools = selectedCatalog.tools;
 
   if (typeof window !== "undefined")
@@ -2052,7 +2055,9 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   // ── Auto-recall: inject relevant memories into system prompt ─────────────
   const memoryContext = await buildMemoryContext(userMessage);
   const enrichedPrompt =
-    systemPrompt + buildRuntimeAuthorityPromptBlock() + memoryContext +
+    systemPrompt +
+    buildRuntimeAuthorityPromptBlock() +
+    memoryContext +
     `\n\n${YAGNI_AGENT_DIRECTIVE}\n\nTool budget: aim to complete this run in ${YAGNI_MAX_TOOL_CALLS_PER_RUN} tool calls or fewer.`;
   const contextChars = enrichedPrompt.length;
   const contextCompacted =
@@ -2266,22 +2271,25 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
           signal: AbortSignal.timeout(30_000),
         });
         syncPrivacyShieldStatus(cloudRes);
-        const cloudData = (await cloudRes
-          .json()
-          .catch(() => null)) as Record<string, unknown> | null;
+        const cloudData = (await cloudRes.json().catch(() => null)) as Record<
+          string,
+          unknown
+        > | null;
         if (cloudRes.ok) {
-          providerUsed = cloudRes.headers.get("X-Provider")?.trim() ?? providerUsed;
+          providerUsed =
+            cloudRes.headers.get("X-Provider")?.trim() ?? providerUsed;
           type CloudMsg = {
             choices?: { message?: { content?: string } }[];
             content?: { text?: string }[];
           };
           const d = cloudData as CloudMsg | null;
           const cloudAnswer =
-            d?.choices?.[0]?.message?.content ??
-            d?.content?.[0]?.text ??
-            "";
+            d?.choices?.[0]?.message?.content ?? d?.content?.[0]?.text ?? "";
           if (cloudAnswer) {
-            const sanitizedCloudAnswer = sanitizeAgentReply(cloudAnswer, onStep);
+            const sanitizedCloudAnswer = sanitizeAgentReply(
+              cloudAnswer,
+              onStep,
+            );
             finalizeRunState(true);
             finishDiagnostics({ ok: true, finalAnswer: sanitizedCloudAnswer });
             void autoLearn(userMessage, sanitizedCloudAnswer, s);
@@ -2296,7 +2304,9 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
           onStep({ type: "answer", content: err });
           return err;
         }
-      } catch { /* ignore — fall through to final error below */ }
+      } catch {
+        /* ignore — fall through to final error below */
+      }
       const recovery = buildLocalInferenceRecoveryMessage();
       const err = recovery.message;
       finalizeRunState(false);
@@ -2437,7 +2447,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     if (!res.ok) {
       finalAnswer = isRoutePolicyBlockPayload(data)
         ? buildCloudInferencePolicyMessage(data)
-        : data?.error?.message ?? "Claude API error.";
+        : (data?.error?.message ?? "Claude API error.");
       finalizeRunState(false);
       finishDiagnostics({ ok: false, failureCause: finalAnswer, finalAnswer });
       break;
@@ -2555,8 +2565,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       if (!verification.ok) {
         onStep({
           type: "thinking",
-          content:
-            `Verification failed: run marked DEGRADED (${RUNTIME_VERIFICATION_LABEL}).`,
+          content: `Verification failed: run marked DEGRADED (${RUNTIME_VERIFICATION_LABEL}).`,
         });
       } else {
         onStep({

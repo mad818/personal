@@ -113,7 +113,12 @@ export const ARPG_CITY_STORYLINES: ArpgCityStoryline[] =
       cityId: city.id,
       title: `${city.name}: ${city.campaignRole}`,
       factionIds: city.factions,
-      questSteps: ["arrive", "hear the local pressure", "resolve two districts", "defeat the city boss"],
+      questSteps: [
+        "arrive",
+        "hear the local pressure",
+        "resolve two districts",
+        "defeat the city boss",
+      ],
       bossId: `${city.id}-city-boss`,
       unlockFlag: `city:${slug(city.id)}-story-complete`,
       summary: `${city.coreFantasy}. ${city.rulerPressure}`,
@@ -135,48 +140,57 @@ export const ARPG_SUBCITY_SIDE_ARCS: ArpgSubCitySideArc[] =
     })),
   );
 
-export const ARPG_ROUTE_EVENTS: ArpgRouteEvent[] = ARPG_PRODUCTION_CONTENT.world.routes.map((route, index) => {
-  const eventType =
-    ARPG_WORLD_LOOP_CONTENT.routeEventTypes[index % ARPG_WORLD_LOOP_CONTENT.routeEventTypes.length];
-  const city = ARPG_PRODUCTION_CONTENT.world.cities.find((entry) => entry.id === route.to);
-  const routeId = arpgRouteId(route.from, route.to);
+export const ARPG_ROUTE_EVENTS: ArpgRouteEvent[] =
+  ARPG_PRODUCTION_CONTENT.world.routes.map((route, index) => {
+    const eventType =
+      ARPG_WORLD_LOOP_CONTENT.routeEventTypes[
+        index % ARPG_WORLD_LOOP_CONTENT.routeEventTypes.length
+      ];
+    const city = ARPG_PRODUCTION_CONTENT.world.cities.find(
+      (entry) => entry.id === route.to,
+    );
+    const routeId = arpgRouteId(route.from, route.to);
 
-  return {
-    id: `${routeId}-${eventType.id}`,
-    routeId,
-    from: route.from,
-    to: route.to,
-    eventTypeId: eventType.id,
-    title: `${eventType.summary.split(" ")[0]} toward ${city?.name ?? route.to}`,
-    summary: eventType.summary,
-    unlockFlag: route.unlockFlag,
-    choices: ARPG_WORLD_LOOP_CONTENT.routeChoiceOutcomes,
-  };
-});
+    return {
+      id: `${routeId}-${eventType.id}`,
+      routeId,
+      from: route.from,
+      to: route.to,
+      eventTypeId: eventType.id,
+      title: `${eventType.summary.split(" ")[0]} toward ${city?.name ?? route.to}`,
+      summary: eventType.summary,
+      unlockFlag: route.unlockFlag,
+      choices: ARPG_WORLD_LOOP_CONTENT.routeChoiceOutcomes,
+    };
+  });
 
-export const ARPG_MAJOR_NPCS: ArpgMajorNpc[] = ARPG_PRODUCTION_CONTENT.world.cities.flatMap((city, cityIndex) =>
-  ARPG_WORLD_LOOP_CONTENT.npcRoles.slice(0, 4).map((role, roleIndex) => ({
-    id: `${city.id}-${role.id}`,
-    cityId: city.id,
-    name: `${city.name} ${role.id.replace(/-/g, " ")}`,
-    roleId: role.id,
-    faction: city.factions[roleIndex % city.factions.length],
-    dialogueFlag: `dialogue:${city.id}:${role.id}`,
-  })),
+export const ARPG_MAJOR_NPCS: ArpgMajorNpc[] =
+  ARPG_PRODUCTION_CONTENT.world.cities.flatMap((city, cityIndex) =>
+    ARPG_WORLD_LOOP_CONTENT.npcRoles.slice(0, 4).map((role, roleIndex) => ({
+      id: `${city.id}-${role.id}`,
+      cityId: city.id,
+      name: `${city.name} ${role.id.replace(/-/g, " ")}`,
+      roleId: role.id,
+      faction: city.factions[roleIndex % city.factions.length],
+      dialogueFlag: `dialogue:${city.id}:${role.id}`,
+    })),
+  );
+
+export const ARPG_COMPANION_ARCS = ARPG_PRODUCTION_CONTENT.companions.map(
+  (companion) => {
+    const arc =
+      ARPG_WORLD_LOOP_CONTENT.companionArcTemplates.find(
+        (entry) => entry.id === companion.id,
+      ) ?? ARPG_WORLD_LOOP_CONTENT.companionArcTemplates[0];
+
+    return {
+      ...companion,
+      loyaltyFlag: arc.loyaltyFlag,
+      perkDetail: arc.perk,
+      questTitle: arc.quest,
+    };
+  },
 );
-
-export const ARPG_COMPANION_ARCS = ARPG_PRODUCTION_CONTENT.companions.map((companion) => {
-  const arc =
-    ARPG_WORLD_LOOP_CONTENT.companionArcTemplates.find((entry) => entry.id === companion.id) ??
-    ARPG_WORLD_LOOP_CONTENT.companionArcTemplates[0];
-
-  return {
-    ...companion,
-    loyaltyFlag: arc.loyaltyFlag,
-    perkDetail: arc.perk,
-    questTitle: arc.quest,
-  };
-});
 
 export const ARPG_WORLD_LOOP_SUMMARY = {
   campaignPhaseCount: ARPG_WORLD_LOOP_CONTENT.campaignPhases.length,
@@ -196,9 +210,14 @@ export function getArpgTravelEvent(eventId: string) {
 }
 
 export function getArpgCityStoryline(cityId: string) {
-  return ARPG_CITY_STORYLINES.find((storyline) => storyline.cityId === cityId) ?? null;
+  return (
+    ARPG_CITY_STORYLINES.find((storyline) => storyline.cityId === cityId) ??
+    null
+  );
 }
 
 export function getArpgSubCitySideArc(subCityId: string) {
-  return ARPG_SUBCITY_SIDE_ARCS.find((arc) => arc.subCityId === subCityId) ?? null;
+  return (
+    ARPG_SUBCITY_SIDE_ARCS.find((arc) => arc.subCityId === subCityId) ?? null
+  );
 }

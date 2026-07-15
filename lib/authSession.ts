@@ -47,7 +47,9 @@ function buildStepUpCookieOptions(maxAge: number) {
 }
 
 function bytesToHex(bytes: Uint8Array) {
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
 }
 
 function mintOpaqueToken(prefix: "sess" | "step") {
@@ -90,7 +92,9 @@ async function verifyAuthSignature(
 ) {
   const normalizedSignature = normalizeTokenCandidate(expectedSignature ?? "");
   if (!normalizedSignature) return false;
-  const actualSignature = await signAuthPayload(buildSignedPayload(kind, parts));
+  const actualSignature = await signAuthPayload(
+    buildSignedPayload(kind, parts),
+  );
   return Boolean(actualSignature && actualSignature === normalizedSignature);
 }
 
@@ -174,7 +178,8 @@ export async function getNexusSessionState(rawSessionCookie?: string | null) {
 
   const issuedAt = parseTokenTimestamp(issuedAtRaw);
   const expiresAt = parseTokenTimestamp(expiresAtRaw);
-  if (!sessionId || !issuedAt || !expiresAt || expiresAt <= issuedAt) return null;
+  if (!sessionId || !issuedAt || !expiresAt || expiresAt <= issuedAt)
+    return null;
   const now = Date.now();
   if (expiresAt <= now) return null;
   const validSignature = await verifyAuthSignature(
@@ -235,7 +240,9 @@ export async function getNexusStepUpState(
   };
 }
 
-export async function hasAuthenticatedNexusSession(rawSessionCookie?: string | null) {
+export async function hasAuthenticatedNexusSession(
+  rawSessionCookie?: string | null,
+) {
   return Boolean(await getNexusSessionState(rawSessionCookie));
 }
 
@@ -298,7 +305,10 @@ function normalizeHostCandidate(rawValue?: string | null) {
   } catch {
     // Fall through to plain host normalization below.
   }
-  return value.replace(/^https?:\/\//i, "").replace(/\/.*$/, "").toLowerCase();
+  return value
+    .replace(/^https?:\/\//i, "")
+    .replace(/\/.*$/, "")
+    .toLowerCase();
 }
 
 export function isTrustedInternalHost(rawHost?: string | null) {
@@ -393,16 +403,8 @@ export function applyAuthNoStoreHeaders(headers: Headers) {
 }
 
 export function clearNexusSessionCookie(response: NextResponse) {
-  response.cookies.set(
-    NEXUS_SESSION_COOKIE,
-    "",
-    buildSessionCookieOptions(0),
-  );
-  response.cookies.set(
-    NEXUS_STEP_UP_COOKIE,
-    "",
-    buildStepUpCookieOptions(0),
-  );
+  response.cookies.set(NEXUS_SESSION_COOKIE, "", buildSessionCookieOptions(0));
+  response.cookies.set(NEXUS_STEP_UP_COOKIE, "", buildStepUpCookieOptions(0));
   applyAuthNoStoreHeaders(response.headers);
 }
 

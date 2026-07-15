@@ -6,7 +6,8 @@ import {
 } from "@/lib/arpgVisualReplacementContent";
 
 export const PROLOGUE_HIFI_BATCH_ID = "prologue-hifi-story-pack";
-export const PROLOGUE_HIFI_RUNTIME_PATH = "/arpg/illustrated/prologue-hifi-story-pack.png";
+export const PROLOGUE_HIFI_RUNTIME_PATH =
+  "/arpg/illustrated/prologue-hifi-story-pack.png";
 
 const PROLOGUE_HIFI_FRAME_ORDER = [
   "bellroot-vestibule",
@@ -46,7 +47,12 @@ const REGION_VISUAL_TARGET_BY_ID: Record<string, string> = {
 
 const FALLBACK_SHEET_BY_ASSET_ID: Record<
   string,
-  { sheetPath: string; frameCount: number; frameWidth: number; frameHeight: number }
+  {
+    sheetPath: string;
+    frameCount: number;
+    frameWidth: number;
+    frameHeight: number;
+  }
 > = {
   "illustrated-location-card-seeds": {
     sheetPath: "/arpg/illustrated/location-cards.png",
@@ -100,23 +106,34 @@ export interface ArpgVisualReplacementFrame {
 
 function stableFrameFromId(id: string, frameCount: number): number {
   return (
-    Array.from(id).reduce((total, character) => total + character.charCodeAt(0), 0) %
-    frameCount
+    Array.from(id).reduce(
+      (total, character) => total + character.charCodeAt(0),
+      0,
+    ) % frameCount
   );
 }
 
 function targetById(targetId: string): ArpgVisualReplacementTarget | undefined {
-  return ARPG_VISUAL_REPLACEMENT_CONTENT.targets.find((target) => target.id === targetId);
+  return ARPG_VISUAL_REPLACEMENT_CONTENT.targets.find(
+    (target) => target.id === targetId,
+  );
 }
 
 function isPrologueHifiRuntimeReady() {
-  const asset = ARPG_ASSET_MANIFEST.find((entry) => entry.id === PROLOGUE_HIFI_BATCH_ID);
+  const asset = ARPG_ASSET_MANIFEST.find(
+    (entry) => entry.id === PROLOGUE_HIFI_BATCH_ID,
+  );
   if (!asset) return false;
-  if (asset.tags?.includes("style-rejected") || asset.tags?.includes("reference-only")) {
+  if (
+    asset.tags?.includes("style-rejected") ||
+    asset.tags?.includes("reference-only")
+  ) {
     return false;
   }
   if (asset.generation?.operatorApproved !== true) return false;
-  return asset.localPath === "public/arpg/illustrated/prologue-hifi-story-pack.png";
+  return (
+    asset.localPath === "public/arpg/illustrated/prologue-hifi-story-pack.png"
+  );
 }
 
 function prologueHifiFrameIndex(targetId: string): number {
@@ -126,8 +143,12 @@ function prologueHifiFrameIndex(targetId: string): number {
   return index >= 0 ? index : 0;
 }
 
-function resolveFallbackFrame(target: ArpgVisualReplacementTarget): ArpgVisualReplacementFrame | null {
-  const fallbackAssetId = target.fallbackAssetIds.find((assetId) => FALLBACK_SHEET_BY_ASSET_ID[assetId]);
+function resolveFallbackFrame(
+  target: ArpgVisualReplacementTarget,
+): ArpgVisualReplacementFrame | null {
+  const fallbackAssetId = target.fallbackAssetIds.find(
+    (assetId) => FALLBACK_SHEET_BY_ASSET_ID[assetId],
+  );
   if (!fallbackAssetId) return null;
   const sheet = FALLBACK_SHEET_BY_ASSET_ID[fallbackAssetId];
   return {

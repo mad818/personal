@@ -1,6 +1,10 @@
 import visualBriefsData from "@/lib/arpgVisualAssetBriefs.json";
 
-export type ArpgVisualBriefStatus = "ready-for-generation" | "draft" | "blocked" | "approved";
+export type ArpgVisualBriefStatus =
+  | "ready-for-generation"
+  | "draft"
+  | "blocked"
+  | "approved";
 
 export interface ArpgVisualBriefSheetSpec {
   frameWidth: number;
@@ -12,7 +16,12 @@ export interface ArpgVisualBriefSheetSpec {
 
 export interface ArpgVisualBriefItem {
   id: string;
-  kind: "enemy-card" | "location-card" | "character-portrait" | "gear-icon" | "outfit-card";
+  kind:
+    | "enemy-card"
+    | "location-card"
+    | "character-portrait"
+    | "gear-icon"
+    | "outfit-card";
   name: string;
   prompt: string;
   acceptance: string;
@@ -48,8 +57,14 @@ export function getArpgVisualAssetBriefSummary() {
   const briefs = [...ARPG_VISUAL_ASSET_BRIEFS.briefs].sort(
     (a, b) => a.priority - b.priority,
   );
-  const totalBriefItems = briefs.reduce((sum, brief) => sum + brief.items.length, 0);
-  const nextBrief = briefs.find((brief) => brief.status === "ready-for-generation") ?? briefs[0] ?? null;
+  const totalBriefItems = briefs.reduce(
+    (sum, brief) => sum + brief.items.length,
+    0,
+  );
+  const nextBrief =
+    briefs.find((brief) => brief.status === "ready-for-generation") ??
+    briefs[0] ??
+    null;
 
   return {
     ...ARPG_VISUAL_ASSET_BRIEFS,

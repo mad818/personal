@@ -46,7 +46,9 @@ export function getArpgCompletionSummary() {
   const blockedTracks = tracks.filter((track) => track.status === "blocked");
   const activeTracks = tracks.filter((track) => track.status === "current");
   const nextTracks = tracks.filter((track) => track.status === "next");
-  const completionPercent = Math.round((doneCount / Math.max(tracks.length, 1)) * 100);
+  const completionPercent = Math.round(
+    (doneCount / Math.max(tracks.length, 1)) * 100,
+  );
 
   return {
     ...ARPG_COMPLETION_PROGRAM,

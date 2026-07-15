@@ -14,7 +14,10 @@ import {
 } from "@/lib/schedulerGovernance";
 import type { NetworkMode } from "@/lib/security/routePolicy";
 import type { Skill } from "@/lib/skillEngine";
-import { inferWorkflowPackIdFromText, getWorkflowPack } from "@/lib/workflowPacks";
+import {
+  inferWorkflowPackIdFromText,
+  getWorkflowPack,
+} from "@/lib/workflowPacks";
 import type { ScheduledJob, AgentRuntime } from "@/store/useStore";
 import type { HQWorkflowCatalogItem } from "@/components/home/office/workflowCommands";
 
@@ -184,7 +187,11 @@ function buildWorkflowJobNote(
 ) {
   const missionReview = getScheduledMissionReviewSummary(job);
   const summary = job.lastSummary?.trim();
-  if (summary && missionReview.status !== "pending_review" && missionReview.status !== "expired") {
+  if (
+    summary &&
+    missionReview.status !== "pending_review" &&
+    missionReview.status !== "expired"
+  ) {
     return summary;
   }
 
@@ -282,7 +289,7 @@ function buildWorkflowGovernancePosture(jobs: ScheduledJob[]) {
 
 function buildGovernanceAuditSummary(args: {
   scheduledJobs: ScheduledJob[];
-}) : GovernanceAuditSummary {
+}): GovernanceAuditSummary {
   const inventory = summarizeGovernanceInventory();
   const workflowGovernance = buildWorkflowGovernancePosture(args.scheduledJobs);
   const highRiskCapabilityCount = ASSISTANT_CAPABILITIES.filter(
@@ -388,11 +395,21 @@ export function buildWorkflowOpsSnapshot(args: {
       .filter((item) => item.owner !== "HANDOFF")
       .map((item) => item.owner),
   ).size;
-  const queuedCount = sortedItems.filter((item) => item.status === "queued").length;
-  const blockedCount = sortedItems.filter((item) => item.status === "blocked").length;
-  const handoffCount = sortedItems.filter((item) => item.status === "handoff").length;
-  const activeCount = sortedItems.filter((item) => item.status === "active").length;
-  const readyCount = sortedItems.filter((item) => item.status === "ready").length;
+  const queuedCount = sortedItems.filter(
+    (item) => item.status === "queued",
+  ).length;
+  const blockedCount = sortedItems.filter(
+    (item) => item.status === "blocked",
+  ).length;
+  const handoffCount = sortedItems.filter(
+    (item) => item.status === "handoff",
+  ).length;
+  const activeCount = sortedItems.filter(
+    (item) => item.status === "active",
+  ).length;
+  const readyCount = sortedItems.filter(
+    (item) => item.status === "ready",
+  ).length;
 
   const headline =
     activeCount > 0
@@ -408,8 +425,8 @@ export function buildWorkflowOpsSnapshot(args: {
     workflowGovernance.missingPackJobs > 0 ||
     workflowGovernance.cyberBaselineRepairJobs > 0
       ? workflowGovernance.detail
-      : governance.recommendations[0]?.detail ??
-    "Mission queue, scheduler posture, and continuity handoffs all stay inside the native dispatch spine.";
+      : (governance.recommendations[0]?.detail ??
+        "Mission queue, scheduler posture, and continuity handoffs all stay inside the native dispatch spine.");
 
   return {
     headline,
@@ -434,7 +451,8 @@ export function buildMemoryLifecycleSummary(args: {
   countsByVisibility: MemorySpineSnapshot["countsByVisibility"];
   items?: MemorySpineItem[];
 }): MemoryLifecycleSummary {
-  const promotedCount = args.countsByLayer.knowledge + args.countsByLayer.output;
+  const promotedCount =
+    args.countsByLayer.knowledge + args.countsByLayer.output;
   const compactionBacklog = Math.max(
     0,
     args.countsByLayer.raw - args.countsByLayer.knowledge,
@@ -454,12 +472,12 @@ export function buildMemoryLifecycleSummary(args: {
           item.sourceLabel.trim().length > 0,
       ).length
     : visibleCount;
-  const recentWindowStart = (args.latestUpdatedAt ?? Date.now()) - 1000 * 60 * 60 * 24 * 7;
+  const recentWindowStart =
+    (args.latestUpdatedAt ?? Date.now()) - 1000 * 60 * 60 * 24 * 7;
   const reopenReadyCount = args.items
     ? args.items.filter(
         (item) =>
-          item.nextAction === "reopen" &&
-          item.timestamp >= recentWindowStart,
+          item.nextAction === "reopen" && item.timestamp >= recentWindowStart,
       ).length
     : Math.min(args.countsByLayer.output, 4);
   const sensitiveHoldCount = args.items
@@ -481,7 +499,7 @@ export function buildMemoryLifecycleSummary(args: {
       ? "info"
       : compactionBacklog > promotedCount || sensitiveHoldCount > 0
         ? "warning"
-      : promotedCount > 0
+        : promotedCount > 0
           ? "success"
           : "info";
 
@@ -508,7 +526,7 @@ export function buildMemoryLifecycleSummary(args: {
           ? "Compact one stale raw artifact before widening the archive further."
           : sensitiveHoldCount > 0
             ? "Review the sensitive-hold queue before sharing or reusing archive material."
-        : "Reopen the latest durable output before creating a duplicate memory trail.";
+            : "Reopen the latest durable output before creating a duplicate memory trail.";
 
   return {
     tone,
@@ -638,7 +656,11 @@ export function buildCapabilityAuditSummary(args: {
       id: "memory",
       label: "Memory lifecycle",
       state:
-        args.memoryTotal >= 8 ? "strong" : args.memoryTotal > 0 ? "watch" : "gap",
+        args.memoryTotal >= 8
+          ? "strong"
+          : args.memoryTotal > 0
+            ? "watch"
+            : "gap",
       note:
         args.memoryTotal >= 8
           ? `${args.memoryTotal} durable artifacts already support compaction, recall, and reopen flows.`
@@ -650,13 +672,15 @@ export function buildCapabilityAuditSummary(args: {
       id: "context",
       label: "Context policy",
       state:
-        args.contextLoadReport && args.contextLoadReport.selectedAssets.length > 0
+        args.contextLoadReport &&
+        args.contextLoadReport.selectedAssets.length > 0
           ? "strong"
           : args.surfaceId === "hq" || args.surfaceId === "skills"
             ? "watch"
             : "strong",
       note:
-        args.contextLoadReport && args.contextLoadReport.selectedAssets.length > 0
+        args.contextLoadReport &&
+        args.contextLoadReport.selectedAssets.length > 0
           ? `${args.contextLoadReport.selectedAssets.length} bounded assets were loaded through the active lane policy.`
           : "No recent bounded context manifest is recorded on this surface yet.",
     },
@@ -707,7 +731,9 @@ export function buildCapabilityAuditSummary(args: {
   );
 
   const nextMoves = new Set<string>();
-  if (signals.find((signal) => signal.id === "governance")?.state !== "strong") {
+  if (
+    signals.find((signal) => signal.id === "governance")?.state !== "strong"
+  ) {
     nextMoves.add(
       governanceSummary.highRiskUngatedJobs > 0
         ? "Restore explicit human gating on tier-2 recurring work before widening automation or write follow-through."
@@ -717,31 +743,47 @@ export function buildCapabilityAuditSummary(args: {
     );
   }
   if (signals.find((signal) => signal.id === "workflow")?.state !== "strong") {
-    nextMoves.add("Stage or tighten one governed mission queue before widening automation.");
+    nextMoves.add(
+      "Stage or tighten one governed mission queue before widening automation.",
+    );
   }
   if (signals.find((signal) => signal.id === "memory")?.state !== "strong") {
-    nextMoves.add("Promote one raw artifact into durable memory instead of starting a parallel archive trail.");
+    nextMoves.add(
+      "Promote one raw artifact into durable memory instead of starting a parallel archive trail.",
+    );
   }
   if (signals.find((signal) => signal.id === "browser")?.state === "watch") {
-    nextMoves.add("Keep protected recon routes primary and stage the Lightpanda companion only behind explicit approval gates.");
+    nextMoves.add(
+      "Keep protected recon routes primary and stage the Lightpanda companion only behind explicit approval gates.",
+    );
   }
   if (signals.find((signal) => signal.id === "skills")?.state !== "strong") {
-    nextMoves.add("Use the improvement queue to close the weakest capability before adding more surface complexity.");
+    nextMoves.add(
+      "Use the improvement queue to close the weakest capability before adding more surface complexity.",
+    );
   }
   if (
     (args.surfaceId === "hq" || args.surfaceId === "command") &&
     signals.find((signal) => signal.id === "context")?.state !== "strong"
   ) {
-    nextMoves.add("Exercise the bounded context lane on the live shell so routing and support rails stay deterministic.");
+    nextMoves.add(
+      "Exercise the bounded context lane on the live shell so routing and support rails stay deterministic.",
+    );
   }
   if (args.surfaceId === "vault") {
-    nextMoves.add("Keep Archive, Relations, and Publish distinct while stewardship stays in the quieter rail.");
+    nextMoves.add(
+      "Keep Archive, Relations, and Publish distinct while stewardship stays in the quieter rail.",
+    );
   }
   if (args.surfaceId === "resources" || args.surfaceId === "skills") {
-    nextMoves.add("Recommend capability packs and governance tags natively instead of reviving ambient context loading.");
+    nextMoves.add(
+      "Recommend capability packs and governance tags natively instead of reviving ambient context loading.",
+    );
   }
   if (args.surfaceId === "cyber") {
-    nextMoves.add("Keep cyber-triage as the governed baseline, then stage RECON OPSEC or VAULT evidence follow-through explicitly.");
+    nextMoves.add(
+      "Keep cyber-triage as the governed baseline, then stage RECON OPSEC or VAULT evidence follow-through explicitly.",
+    );
   }
 
   return {

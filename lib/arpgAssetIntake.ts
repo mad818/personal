@@ -1,7 +1,14 @@
-import { ARPG_ASSET_MANIFEST, type ArpgAssetManifestEntry } from "@/lib/arpgAssetManifest";
+import {
+  ARPG_ASSET_MANIFEST,
+  type ArpgAssetManifestEntry,
+} from "@/lib/arpgAssetManifest";
 import candidateData from "@/lib/arpgAssetCandidateSources.json";
 
-export type ArpgAssetCandidatePriority = "critical" | "high" | "medium" | "guarded";
+export type ArpgAssetCandidatePriority =
+  | "critical"
+  | "high"
+  | "medium"
+  | "guarded";
 
 export interface ArpgAssetCandidateSource {
   id: string;
@@ -45,14 +52,15 @@ function isImportedRuntimeAsset(asset: ArpgAssetManifestEntry) {
 
 export function getArpgRealAssetIntakeSummary(): ArpgRealAssetIntakeSummary {
   const importedEntries = ARPG_ASSET_MANIFEST.filter(isImportedRuntimeAsset);
-  const importedModelCount = importedEntries.filter((asset) =>
-    asset.kind === "glb-model" || asset.kind === "gltf-model",
+  const importedModelCount = importedEntries.filter(
+    (asset) => asset.kind === "glb-model" || asset.kind === "gltf-model",
   ).length;
-  const importedPreviewCount = importedEntries.filter((asset) =>
-    asset.kind === "ui-preview" || asset.kind === "concept-preview",
+  const importedPreviewCount = importedEntries.filter(
+    (asset) => asset.kind === "ui-preview" || asset.kind === "concept-preview",
   ).length;
-  const nextRequiredPacks = ARPG_ASSET_CANDIDATE_SOURCES.filter((candidate) =>
-    candidate.priority === "critical" || candidate.priority === "high",
+  const nextRequiredPacks = ARPG_ASSET_CANDIDATE_SOURCES.filter(
+    (candidate) =>
+      candidate.priority === "critical" || candidate.priority === "high",
   ).slice(0, 5);
 
   return {

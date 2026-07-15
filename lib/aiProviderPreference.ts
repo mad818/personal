@@ -1,4 +1,8 @@
-export const PRIMARY_AI_PROVIDER_OPTIONS = ["ollama", "groq", "google"] as const;
+export const PRIMARY_AI_PROVIDER_OPTIONS = [
+  "ollama",
+  "groq",
+  "google",
+] as const;
 export const ADVANCED_AI_PROVIDER_OPTIONS = [
   "anthropic",
   "openai",
@@ -12,7 +16,9 @@ export const ALL_AI_PROVIDER_OPTIONS = [
 
 export type PreferredAIProvider = (typeof ALL_AI_PROVIDER_OPTIONS)[number];
 
-export function isPreferredAIProvider(value: unknown): value is PreferredAIProvider {
+export function isPreferredAIProvider(
+  value: unknown,
+): value is PreferredAIProvider {
   return (
     typeof value === "string" &&
     (ALL_AI_PROVIDER_OPTIONS as readonly string[]).includes(

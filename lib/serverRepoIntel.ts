@@ -121,7 +121,10 @@ async function readGitHubJson<T>(url: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-function decodeReadmeContent(content: string | undefined, encoding: string | undefined) {
+function decodeReadmeContent(
+  content: string | undefined,
+  encoding: string | undefined,
+) {
   if (!content) return "";
   if (encoding?.toLowerCase() !== "base64") return "";
   try {
@@ -195,7 +198,9 @@ export async function getRepoIntelProfile(
         )
       : [];
   if (treeResult.status === "rejected") {
-    warnings.push("Top-level file tree was unavailable from GitHub at request time.");
+    warnings.push(
+      "Top-level file tree was unavailable from GitHub at request time.",
+    );
   }
 
   const languageHints =
@@ -203,7 +208,9 @@ export async function getRepoIntelProfile(
       ? toLanguageHints(languagesResult.value)
       : [];
   if (languagesResult.status === "rejected") {
-    warnings.push("Language hints were unavailable from GitHub at request time.");
+    warnings.push(
+      "Language hints were unavailable from GitHub at request time.",
+    );
   }
 
   const readmeExcerpt =
@@ -216,7 +223,9 @@ export async function getRepoIntelProfile(
         )
       : "";
   if (readmeResult.status === "rejected") {
-    warnings.push("README excerpt was unavailable from GitHub at request time.");
+    warnings.push(
+      "README excerpt was unavailable from GitHub at request time.",
+    );
   }
 
   const inferredStack = inferRepoIntelStack({
@@ -228,10 +237,15 @@ export async function getRepoIntelProfile(
   const profileBase = {
     normalizedRepoId: normalized.normalizedRepoId,
     sourceUrl: normalized.sourceUrl,
-    owner: repo.owner?.login?.toLowerCase() ?? normalized.normalizedRepoId.split("/")[0] ?? "",
-    repo: repo.name?.toLowerCase() ?? normalized.normalizedRepoId.split("/")[1] ?? "",
-    displayName:
-      repo.full_name?.trim() || normalized.normalizedRepoId,
+    owner:
+      repo.owner?.login?.toLowerCase() ??
+      normalized.normalizedRepoId.split("/")[0] ??
+      "",
+    repo:
+      repo.name?.toLowerCase() ??
+      normalized.normalizedRepoId.split("/")[1] ??
+      "",
+    displayName: repo.full_name?.trim() || normalized.normalizedRepoId,
     description: repo.description?.trim() ?? "",
     topics: repo.topics ?? [],
     stars: repo.stargazers_count ?? 0,

@@ -56,10 +56,7 @@ function drawFinder(base: QrBase, x: number, y: number) {
           patternX === 6 ||
           patternY === 0 ||
           patternY === 6 ||
-          (patternX >= 2 &&
-            patternX <= 4 &&
-            patternY >= 2 &&
-            patternY <= 4));
+          (patternX >= 2 && patternX <= 4 && patternY >= 2 && patternY <= 4));
       setFunctionModule(base, xx, yy, isDark);
     }
   }
@@ -128,7 +125,9 @@ function drawFormatBits(
 
 function makeBase(): QrBase {
   const base: QrBase = {
-    modules: range(QR_SIZE).map(() => Array<boolean | null>(QR_SIZE).fill(null)),
+    modules: range(QR_SIZE).map(() =>
+      Array<boolean | null>(QR_SIZE).fill(null),
+    ),
     isFunction: range(QR_SIZE).map(() => Array<boolean>(QR_SIZE).fill(false)),
   };
 
@@ -338,7 +337,19 @@ function getPenalty(modules: Array<Array<boolean | null>>) {
     }
   }
 
-  const finderPattern = [true, false, true, true, true, false, true, false, false, false, false];
+  const finderPattern = [
+    true,
+    false,
+    true,
+    true,
+    true,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+  ];
   const reverseFinderPattern = Array.from(finderPattern).reverse();
   const matches = (values: boolean[]) =>
     values.every((value, index) => value === finderPattern[index]) ||

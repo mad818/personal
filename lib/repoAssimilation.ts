@@ -121,7 +121,9 @@ function chooseAssimilationDecision(
     (profile.readmeExcerpt.trim().length > 0 ? 2 : 0) +
     (profile.description.trim().length > 0 ? 1 : 0) +
     (profile.topics.length > 0 ? 1 : 0) +
-    (profile.inferredStack.length > 0 || profile.languageHints.length > 0 ? 1 : 0) +
+    (profile.inferredStack.length > 0 || profile.languageHints.length > 0
+      ? 1
+      : 0) +
     (profile.topLevelTree.length > 0 ? 1 : 0);
 
   if (OFFENSIVE_REPO_SIGNAL_RE.test(signal)) {
@@ -131,7 +133,9 @@ function chooseAssimilationDecision(
   if (
     DIRECT_SEAM_SIGNAL_RE.test(signal) &&
     metadataStrength >= 5 &&
-    !/\b(media|video|audio|animation|recording|avatar|hyperframe)\b/i.test(signal)
+    !/\b(media|video|audio|animation|recording|avatar|hyperframe)\b/i.test(
+      signal,
+    )
   ) {
     return "adopt";
   }
@@ -176,7 +180,9 @@ function inferLocalFitLines(profile: RepoIntelProfile) {
     );
   }
   if (
-    /\b(workflow|scheduler|automation|job|queue|ops|orchestration)\b/i.test(signal)
+    /\b(workflow|scheduler|automation|job|queue|ops|orchestration)\b/i.test(
+      signal,
+    )
   ) {
     lines.push(
       "- Why now: Nexus already has workflow commands, post-run artifact filing, and exact reopen behavior, so the useful pattern can land as a bounded operator workflow instead of a new subsystem.",
@@ -208,12 +214,18 @@ function inferExtensionPointLines(profile: RepoIntelProfile) {
   const signal = repoSignalText(profile);
   const lines: string[] = [];
 
-  if (/\b(repo|compare|dependency|reference library|implementation brief)\b/i.test(signal)) {
+  if (
+    /\b(repo|compare|dependency|reference library|implementation brief)\b/i.test(
+      signal,
+    )
+  ) {
     lines.push(
       "- RECON implementation brief seam: `components/recon/RepoIntelPanel.tsx`, `lib/repoAssimilation.ts`, and `lib/repoCompare.ts`.",
     );
   }
-  if (/\b(osint|intel|threat|cyber|security|metadata|evidence)\b/i.test(signal)) {
+  if (
+    /\b(osint|intel|threat|cyber|security|metadata|evidence)\b/i.test(signal)
+  ) {
     lines.push(
       "- Evidence and advisory filing seam: `app/recon/page.tsx`, `app/cyber/page.tsx`, and `components/vault/CompiledMemoryPagesPanel.tsx`.",
     );
@@ -223,12 +235,18 @@ function inferExtensionPointLines(profile: RepoIntelProfile) {
       "- Durable archive seam: `components/vault/CompiledMemoryPagesPanel.tsx`, `lib/memoryPagesStore.ts`, and `lib/artifactClassification.ts`.",
     );
   }
-  if (/\b(agent|assistant|workflow|queue|orchestration|handoff|brief)\b/i.test(signal)) {
+  if (
+    /\b(agent|assistant|workflow|queue|orchestration|handoff|brief)\b/i.test(
+      signal,
+    )
+  ) {
     lines.push(
       "- HQ handoff seam: `components/home/office/workflowCommands.ts`, `components/home/office/officeCommandCenterPostRun.ts`, and `lib/liveContext.ts`.",
     );
   }
-  if (/\b(privacy|redaction|anonymization|provider|cloud-bound)\b/i.test(signal)) {
+  if (
+    /\b(privacy|redaction|anonymization|provider|cloud-bound)\b/i.test(signal)
+  ) {
     lines.push(
       "- Provider-boundary seam: `app/api/ai/route.ts`, `lib/privacyShieldServer.ts`, and `components/ui/TrustPostureStrip.tsx`.",
     );
@@ -238,7 +256,11 @@ function inferExtensionPointLines(profile: RepoIntelProfile) {
       "- Tool-governance seam: `app/api/tools/route.ts`, `lib/security/toolIsolationPolicy.ts`, and `lib/security/toolIsolationRunner.ts`.",
     );
   }
-  if (/\b(file|artifact|classification|inspection|project|ownership|impact)\b/i.test(signal)) {
+  if (
+    /\b(file|artifact|classification|inspection|project|ownership|impact)\b/i.test(
+      signal,
+    )
+  ) {
     lines.push(
       "- Project inspection seam: `components/resources/ProjectImpactConsole.tsx`, `lib/projectArchitecture.ts`, and `lib/artifactClassification.ts`.",
     );
@@ -290,13 +312,22 @@ function buildDecisionTag(decision: RepoAssimilationDecision) {
 
 function parseDecisionFromText(value: string) {
   const normalized = value.toLowerCase();
-  if (/\bdecision:\s*reject\b/.test(normalized) || /\breject\b/.test(normalized)) {
+  if (
+    /\bdecision:\s*reject\b/.test(normalized) ||
+    /\breject\b/.test(normalized)
+  ) {
     return "reject" as const;
   }
-  if (/\bdecision:\s*adopt\b/.test(normalized) || /\badopt\b/.test(normalized)) {
+  if (
+    /\bdecision:\s*adopt\b/.test(normalized) ||
+    /\badopt\b/.test(normalized)
+  ) {
     return "adopt" as const;
   }
-  if (/\bdecision:\s*adapt\b/.test(normalized) || /\badapt\b/.test(normalized)) {
+  if (
+    /\bdecision:\s*adapt\b/.test(normalized) ||
+    /\badapt\b/.test(normalized)
+  ) {
     return "adapt" as const;
   }
   return null;
@@ -327,7 +358,8 @@ function buildFallbackRepoAssimilationSections(
     ),
     localFitAndWhyNow: inferLocalFitLines(profile).join("\n"),
     implementationDecision: buildImplementationDecisionSection(profile),
-    extensionPointsAndSmallestSlice: inferExtensionPointLines(profile).join("\n"),
+    extensionPointsAndSmallestSlice:
+      inferExtensionPointLines(profile).join("\n"),
     boundariesAndRisks: uniqueStrings([
       "- Stay public-safe and metadata-grounded; do not fetch private repos, arbitrary source files, or background GitHub data.",
       "- Do not import upstream code directly; keep the outcome as a Nexus-local helper, panel, parser, playbook, or route-side contract change.",
@@ -345,7 +377,9 @@ function toSectionString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function parseRepoAssimilationJson(value: string): RepoAssimilationSections | null {
+function parseRepoAssimilationJson(
+  value: string,
+): RepoAssimilationSections | null {
   const payload = extractJsonObject(value);
   if (!payload) return null;
 
@@ -401,14 +435,15 @@ export function parseRepoAssimilationMarkdown(
     sections.get("essence prompt") ??
     "";
   const implementationDecisionText =
-    sections.get("implementation decision") ??
-    "";
+    sections.get("implementation decision") ?? "";
   const inferredDecision =
     parseDecisionFromText(implementationDecisionText) ??
     parseDecisionFromText(
-      [localFitAndWhyNow, sections.get("safe adoption points") ?? "", sections.get("orbit handoff") ?? ""].join(
-        "\n",
-      ),
+      [
+        localFitAndWhyNow,
+        sections.get("safe adoption points") ?? "",
+        sections.get("orbit handoff") ?? "",
+      ].join("\n"),
     ) ??
     "adapt";
   return {
@@ -486,21 +521,22 @@ export function buildRepoAssimilationTags(
 ) {
   const parsedBrief = brief ? parseRepoAssimilationMarkdown(brief) : null;
   const decisionTag = buildDecisionTag(
-    parsedBrief ? getRepoAssimilationDecision(parsedBrief) : chooseAssimilationDecision(profile),
+    parsedBrief
+      ? getRepoAssimilationDecision(parsedBrief)
+      : chooseAssimilationDecision(profile),
   );
   return uniqueStrings([
     "repo-assimilation",
     decisionTag,
     `repo:${slugify(profile.normalizedRepoId)}`,
-    ...profile.inferredStack.slice(0, 3).map((stack) => `stack:${slugify(stack)}`),
+    ...profile.inferredStack
+      .slice(0, 3)
+      .map((stack) => `stack:${slugify(stack)}`),
   ]);
 }
 
 export function hasRepoAssimilationReadmeSignal(
-  profileOrBrief: Pick<
-    RepoIntelProfile,
-    "readmeExcerpt"
-  > | string,
+  profileOrBrief: Pick<RepoIntelProfile, "readmeExcerpt"> | string,
 ) {
   if (typeof profileOrBrief === "string") {
     return !/readme (?:excerpt )?(?:unavailable|signal was missing)/i.test(
@@ -511,7 +547,10 @@ export function hasRepoAssimilationReadmeSignal(
 }
 
 export function buildRepoAssimilationSourceRefs(
-  profile: Pick<RepoIntelProfile, "normalizedRepoId" | "sourceUrl" | "readmeExcerpt">,
+  profile: Pick<
+    RepoIntelProfile,
+    "normalizedRepoId" | "sourceUrl" | "readmeExcerpt"
+  >,
 ): ResearchSourceRef[] {
   const refs: ResearchSourceRef[] = [
     {

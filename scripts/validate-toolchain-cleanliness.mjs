@@ -30,6 +30,8 @@ const packageJson = JSON.parse(readRequired("package.json"));
 const lint = packageJson.scripts?.lint ?? "";
 const lintFix = packageJson.scripts?.["lint:fix"] ?? "";
 const verify = packageJson.scripts?.verify ?? "";
+const verifyFull = packageJson.scripts?.["verify:full"] ?? "";
+const formatCheck = packageJson.scripts?.["format:check"] ?? "";
 const auditFull = packageJson.scripts?.["audit:full"] ?? "";
 
 for (const [label, command] of [
@@ -62,9 +64,21 @@ if (!lintFix.includes("--fix")) {
 }
 if (
   !verify.includes("npm run toolchain:check") ||
+  !verify.includes("npm run format:check") ||
   !verify.includes("npm run lint")
 ) {
-  fail("verify must run both toolchain:check and lint");
+  fail("verify must run toolchain:check, format:check, and lint");
+}
+if (
+  formatCheck !==
+  'prettier --check "{app,lib,components}**/*.{ts,tsx,mdx}" --cache'
+) {
+  fail(
+    "format:check must retain the exact cached active-source Prettier scope",
+  );
+}
+if (verifyFull !== "npm run verify") {
+  fail("verify:full must remain a compatibility alias for canonical verify");
 }
 
 if (auditFull !== "node scripts/audit.js") {
@@ -119,5 +133,5 @@ if (typescriptOverride?.parser !== "@typescript-eslint/parser") {
 }
 
 console.log(
-  "ok toolchain-cleanliness (npm include=dev + direct ESLint + truthful full audit)",
+  "ok toolchain-cleanliness (npm include=dev + ESLint + Prettier + truthful full audit)",
 );

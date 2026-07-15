@@ -109,11 +109,9 @@ export const ARPG_PROLOGUE_CONTENT = prologueContent as ArpgPrologueContent;
 export const ARPG_PROLOGUE_IDENTITY_POLICY =
   ARPG_PROLOGUE_CONTENT.protagonistIdentity;
 
-export const ARPG_PROLOGUE_FIRST_LOCATION =
-  ARPG_PROLOGUE_CONTENT.firstLocation;
+export const ARPG_PROLOGUE_FIRST_LOCATION = ARPG_PROLOGUE_CONTENT.firstLocation;
 
-export const ARPG_PROLOGUE_FIRST_QUEST =
-  ARPG_PROLOGUE_CONTENT.firstQuest;
+export const ARPG_PROLOGUE_FIRST_QUEST = ARPG_PROLOGUE_CONTENT.firstQuest;
 
 export const ARPG_PROLOGUE_FLOW_BY_FLAG = Object.fromEntries(
   ARPG_PROLOGUE_CONTENT.openingFlow.map((step) => [step.storyFlag, step]),

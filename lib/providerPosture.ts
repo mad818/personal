@@ -120,8 +120,13 @@ function buildSummary(input: {
   activeCloudLane: string | null;
   noAiLaneReason: ProviderOutageReason | null;
 }) {
-  const { loading, internetReachable, runtimeReachable, activeCloudLane, noAiLaneReason } =
-    input;
+  const {
+    loading,
+    internetReachable,
+    runtimeReachable,
+    activeCloudLane,
+    noAiLaneReason,
+  } = input;
   if (loading) {
     return {
       title: "Checking provider posture",
@@ -138,7 +143,8 @@ function buildSummary(input: {
       description:
         "Browser internet is offline, but the local runtime is still reachable, so Nexus can keep working through local-first operator lanes.",
       readinessSummary: "Internet offline · local operator lane still ready",
-      repairAction: "Keep the current session local-first until browser connectivity returns.",
+      repairAction:
+        "Keep the current session local-first until browser connectivity returns.",
     };
   }
 
@@ -147,7 +153,8 @@ function buildSummary(input: {
       title: "Local and cloud lanes are ready",
       description: `${providerLabel(activeCloudLane)} is currently the strongest cloud lane, while the local runtime remains available for explicit fallback.`,
       readinessSummary: `${providerLabel(activeCloudLane)} up · local runtime ready`,
-      repairAction: "Use the current lane and keep explicit fallback available.",
+      repairAction:
+        "Use the current lane and keep explicit fallback available.",
     };
   }
 
@@ -157,7 +164,8 @@ function buildSummary(input: {
       description:
         "The local runtime is reachable, so operator work can still proceed even if no cloud lane is currently configured or healthy.",
       readinessSummary: "Local runtime ready",
-      repairAction: "Continue locally or add a cloud key only if you want explicit fallback.",
+      repairAction:
+        "Continue locally or add a cloud key only if you want explicit fallback.",
     };
   }
 
@@ -177,7 +185,8 @@ function buildSummary(input: {
       title: "Cloud lanes are cooling down",
       description:
         "The local runtime is unavailable and every configured cloud lane is currently circuit-open, so dispatch should wait for cooldown or local recovery.",
-      readinessSummary: "Local runtime down · configured cloud lanes cooling down",
+      readinessSummary:
+        "Local runtime down · configured cloud lanes cooling down",
       repairAction: "Wait for a circuit to close or restore the local runtime.",
     };
   }
@@ -188,7 +197,8 @@ function buildSummary(input: {
       description:
         "The local runtime is down and no cloud lane is currently healthy enough to take over, so operator work should pause until a lane recovers.",
       readinessSummary: "Local runtime unavailable",
-      repairAction: "Restore the local runtime or wait for a healthy cloud lane.",
+      repairAction:
+        "Restore the local runtime or wait for a healthy cloud lane.",
     };
   }
 
@@ -220,8 +230,12 @@ export function buildProviderResiliencePosture(input: {
     };
   });
 
-  const cloudProviders = providers.filter((provider) => provider.name !== "ollama");
-  const cloudConfiguredProviders = cloudProviders.filter((provider) => provider.hasKey);
+  const cloudProviders = providers.filter(
+    (provider) => provider.name !== "ollama",
+  );
+  const cloudConfiguredProviders = cloudProviders.filter(
+    (provider) => provider.hasKey,
+  );
   const cloudUpProviders = cloudProviders.filter(
     (provider) => provider.displayStatus === "up",
   );
@@ -229,7 +243,8 @@ export function buildProviderResiliencePosture(input: {
 
   const counts = {
     up: providers.filter((provider) => provider.displayStatus === "up").length,
-    noKey: providers.filter((provider) => provider.displayStatus === "no-key").length,
+    noKey: providers.filter((provider) => provider.displayStatus === "no-key")
+      .length,
     circuitOpen: providers.filter(
       (provider) => provider.displayStatus === "circuit-open",
     ).length,
@@ -242,7 +257,8 @@ export function buildProviderResiliencePosture(input: {
   };
 
   let noAiLaneReason: ProviderOutageReason | null = null;
-  const noAiLaneAvailable = runtimeReachable === false && cloudUpProviders.length === 0;
+  const noAiLaneAvailable =
+    runtimeReachable === false && cloudUpProviders.length === 0;
   if (loading) {
     noAiLaneReason = "loading";
   } else if (noAiLaneAvailable) {
@@ -278,7 +294,7 @@ export function buildProviderResiliencePosture(input: {
         : runtimeReachable
           ? "Local runtime up"
           : "Local runtime unavailable",
-      tone:
+    tone:
       runtimeReachable === null
         ? "muted"
         : runtimeReachable
@@ -346,7 +362,9 @@ export function buildProviderResiliencePosture(input: {
   };
 }
 
-export function formatProviderHealthBadgeLabel(provider: ProviderDisplayProvider) {
+export function formatProviderHealthBadgeLabel(
+  provider: ProviderDisplayProvider,
+) {
   return `${providerLabel(provider.name)} ${formatStatusLabel(provider.displayStatus)}`;
 }
 

@@ -98,7 +98,9 @@ const SAFE_EXTENSIONLESS_FILES = new Set([
 ]);
 
 function cleanInline(value: unknown, max = 180) {
-  const normalized = String(value ?? "").replace(/\s+/g, " ").trim();
+  const normalized = String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
   return normalized.length <= max
     ? normalized
     : `${normalized.slice(0, max - 1).trimEnd()}…`;
@@ -164,7 +166,9 @@ export function normalizeHuggingFaceReference(
       parsed.search ||
       parsed.hash
     ) {
-      throw new Error("Only credential-free public huggingface.co URLs are allowed.");
+      throw new Error(
+        "Only credential-free public huggingface.co URLs are allowed.",
+      );
     }
     const segments = parsed.pathname.split("/").filter(Boolean);
     if (segments[0]?.toLowerCase() === "datasets") {
@@ -216,7 +220,9 @@ function safeRequestInit(): RequestInit {
 async function readResponseBytes(response: Response, maximumBytes: number) {
   const contentLength = Number(response.headers.get("content-length") ?? "0");
   if (contentLength > maximumBytes) {
-    throw new Error(`Hugging Face response exceeded the ${maximumBytes}-byte limit.`);
+    throw new Error(
+      `Hugging Face response exceeded the ${maximumBytes}-byte limit.`,
+    );
   }
   if (!response.body) return new Uint8Array();
 
@@ -255,7 +261,9 @@ async function readJson(
 ): Promise<unknown> {
   const response = await (deps.fetchImpl ?? fetch)(url, safeRequestInit());
   if (!response.ok) {
-    throw new Error(`Hugging Face public API returned HTTP ${response.status}.`);
+    throw new Error(
+      `Hugging Face public API returned HTTP ${response.status}.`,
+    );
   }
   const bytes = await readResponseBytes(
     response,
@@ -302,7 +310,8 @@ function normalizeFiles(value: unknown): HuggingFaceRepoFile[] {
       const rawType = cleanInline(entry.type, 20).toLowerCase();
       return {
         path: filePath,
-        type: rawType === "directory" || rawType === "dir" ? "directory" : "file",
+        type:
+          rawType === "directory" || rawType === "dir" ? "directory" : "file",
         size: optionalNumber(entry.size),
       } satisfies HuggingFaceRepoFile;
     })
@@ -457,7 +466,9 @@ function normalizeTextFilePath(rawPath: string) {
     filePath.endsWith("/") ||
     filePath.includes("?") ||
     filePath.includes("#") ||
-    segments.some((segment) => !segment || segment === "." || segment === "..") ||
+    segments.some(
+      (segment) => !segment || segment === "." || segment === "..",
+    ) ||
     segments.some((segment) => segment.toLowerCase() === ".git")
   ) {
     throw new Error("Hugging Face text-file path is invalid.");
@@ -495,13 +506,17 @@ export async function readHuggingFaceTextFile(
     redirect: "follow",
   });
   if (!response.ok) {
-    throw new Error(`Hugging Face text-file read returned HTTP ${response.status}.`);
+    throw new Error(
+      `Hugging Face text-file read returned HTTP ${response.status}.`,
+    );
   }
   const bytes = await readResponseBytes(
     response,
     HUGGING_FACE_INSPECTION_LIMITS.maximumTextFileBytes,
   );
-  const content = new TextDecoder("utf-8", { fatal: true }).decode(bytes).trim();
+  const content = new TextDecoder("utf-8", { fatal: true })
+    .decode(bytes)
+    .trim();
   return {
     ...normalized,
     path: filePath,

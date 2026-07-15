@@ -138,8 +138,7 @@ export function buildSnapshot(state: {
   now?: Date | number;
 }): NexusLiveSnapshot {
   const fg = state.signals?.fg ?? { value: 50, label: "Neutral" };
-  const fgValue =
-    fg && typeof fg === "object" && "value" in fg ? fg.value : 50;
+  const fgValue = fg && typeof fg === "object" && "value" in fg ? fg.value : 50;
   const fgLabel =
     fg && typeof fg === "object" && "label" in fg ? fg.label : "Neutral";
   const normalizedFgValue =
@@ -160,11 +159,11 @@ export function buildSnapshot(state: {
   const highCves = cves.filter(
     (c: any) =>
       c.severity?.toLowerCase?.() === "high" ||
-      ((c.cvssScore ?? c.score ?? 0) >= 7 &&
-        (c.cvssScore ?? c.score ?? 0) < 9),
+      ((c.cvssScore ?? c.score ?? 0) >= 7 && (c.cvssScore ?? c.score ?? 0) < 9),
   ).length;
 
-  const now = state.now instanceof Date ? state.now : new Date(state.now ?? Date.now());
+  const now =
+    state.now instanceof Date ? state.now : new Date(state.now ?? Date.now());
   const hour = now.getHours();
   const dow = now.getDay();
   const isWeekday = dow >= 1 && dow <= 5;
@@ -179,7 +178,10 @@ export function buildSnapshot(state: {
   const btcChgPct = state.prices?.bitcoin?.chg ?? 0;
 
   return {
-    fg: { value: Number.isFinite(normalizedFgValue) ? normalizedFgValue : 50, label: normalizedFgLabel },
+    fg: {
+      value: Number.isFinite(normalizedFgValue) ? normalizedFgValue : 50,
+      label: normalizedFgLabel,
+    },
     cveCount: { critical: criticalCves, high: highCves },
     worldRisk: state.worldRisk ?? 0,
     hour,
@@ -191,17 +193,26 @@ export function buildSnapshot(state: {
 }
 
 // ── Template resolver ─────────────────────────────────────────────────────────
-export function resolveTemplate(template: string, s: NexusLiveSnapshot): string {
+export function resolveTemplate(
+  template: string,
+  s: NexusLiveSnapshot,
+): string {
   return template
     .replace(/\{\{fg\.value\}\}/g, String(Math.round(s.fg.value)))
     .replace(/\{\{fg\.label\}\}/g, s.fg.label)
     .replace(/\{\{worldRisk\}\}/g, String(Math.round(s.worldRisk)))
     .replace(/\{\{agentBusy\}\}/g, String(s.agentBusy))
-    .replace(/\{\{btcChgPct\}\}/g, (s.btcChgPct >= 0 ? "+" : "") + s.btcChgPct.toFixed(1))
+    .replace(
+      /\{\{btcChgPct\}\}/g,
+      (s.btcChgPct >= 0 ? "+" : "") + s.btcChgPct.toFixed(1),
+    )
     .replace(/\{\{cveCount\.critical\}\}/g, String(s.cveCount.critical));
 }
 
-export function buildRuleActivationKey(rule: UIRule, snapshot: NexusLiveSnapshot) {
+export function buildRuleActivationKey(
+  rule: UIRule,
+  snapshot: NexusLiveSnapshot,
+) {
   return rule.activationKey ? rule.activationKey(snapshot) : rule.id;
 }
 
@@ -238,7 +249,10 @@ export function filterDismissedRuleMatches(
 }
 
 // Backward-compatible helper for older callers that only need rule IDs.
-export function evaluateRules(snapshot: NexusLiveSnapshot, rules: UIRule[]): string[] {
+export function evaluateRules(
+  snapshot: NexusLiveSnapshot,
+  rules: UIRule[],
+): string[] {
   return evaluateRuleMatches(snapshot, rules).map((match) => match.id);
 }
 
@@ -259,7 +273,9 @@ export function resolveActiveUIRules(
       rule,
       title: rule.card ? resolveTemplate(rule.card.title, snapshot) : undefined,
       body: rule.card ? resolveTemplate(rule.card.body, snapshot) : undefined,
-      badgeLabel: rule.badge ? resolveTemplate(rule.badge.label, snapshot) : undefined,
+      badgeLabel: rule.badge
+        ? resolveTemplate(rule.badge.label, snapshot)
+        : undefined,
       indicatorText: rule.indicator
         ? resolveTemplate(rule.indicator.text, snapshot)
         : undefined,

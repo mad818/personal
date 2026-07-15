@@ -19,7 +19,9 @@ export function readPhonePostureFromWindow(): boolean {
   if (typeof window === "undefined") return false;
   const standalone =
     window.matchMedia?.("(display-mode: standalone)")?.matches === true ||
-    (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
-  const coarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches === true;
+    (window.navigator as Navigator & { standalone?: boolean }).standalone ===
+      true;
+  const coarsePointer =
+    window.matchMedia?.("(pointer: coarse)")?.matches === true;
   return detectPhonePosture(window.innerWidth, { standalone, coarsePointer });
 }

@@ -13,12 +13,15 @@ import type { ScheduledJob } from "@/store/useStore";
 export const NIGHT_SHIFT_REFINERY_TEMPLATE_ID = "second-brain-night-shift";
 export const NIGHT_SHIFT_AUDIT_TEMPLATE_ID = "second-brain-weekly-audit";
 
-export function buildNightShiftScheduledJobs(createdAt = Date.now()): ScheduledJob[] {
+export function buildNightShiftScheduledJobs(
+  createdAt = Date.now(),
+): ScheduledJob[] {
   return [
     {
       id: `job-${NIGHT_SHIFT_REFINERY_TEMPLATE_ID}-${createdAt}`,
       name: "Second Brain Night Shift",
-      prompt: "Prepare the next source-locked refinery proposal and stop at human review.",
+      prompt:
+        "Prepare the next source-locked refinery proposal and stop at human review.",
       cron: "0 3 * * *",
       enabled: true,
       type: "mission",
@@ -40,7 +43,8 @@ export function buildNightShiftScheduledJobs(createdAt = Date.now()): ScheduledJ
     {
       id: `job-${NIGHT_SHIFT_AUDIT_TEMPLATE_ID}-${createdAt}`,
       name: "Second Brain Weekly Audit",
-      prompt: "Run the report-only integrity audit. Do not repair or promote notes.",
+      prompt:
+        "Run the report-only integrity audit. Do not repair or promote notes.",
       cron: "0 22 * * 0",
       enabled: true,
       type: "mission",
@@ -67,7 +71,9 @@ async function readJson<T>(response: Response): Promise<T> {
     | (T & { error?: string })
     | null;
   if (!response.ok || !payload) {
-    throw new Error(payload?.error || `Night-shift request failed (${response.status}).`);
+    throw new Error(
+      payload?.error || `Night-shift request failed (${response.status}).`,
+    );
   }
   return payload;
 }
@@ -80,9 +86,14 @@ export async function stagePreparedNightShift(input: {
     method: "POST",
     body: JSON.stringify({ action: "prepare" }),
   });
-  const prepared = await readJson<{ preparation: NightShiftPreparation }>(prepareResponse);
+  const prepared = await readJson<{ preparation: NightShiftPreparation }>(
+    prepareResponse,
+  );
   if (prepared.preparation.sources.length === 0) {
-    return { summary: "No unprocessed raw captures or source files.", staged: null };
+    return {
+      summary: "No unprocessed raw captures or source files.",
+      staged: null,
+    };
   }
   const raw = await callNonInteractiveAI({
     systemPrompt: `${input.baseSystemPrompt}\n\n${buildNightShiftSystemPrompt()}`,
@@ -108,7 +119,9 @@ export async function stagePreparedNightShift(input: {
       })),
     }),
   });
-  const staged = await readJson<{ staged: NightShiftProposalSummary }>(stageResponse);
+  const staged = await readJson<{ staged: NightShiftProposalSummary }>(
+    stageResponse,
+  );
   return {
     summary:
       staged.staged.outcome === "blocked"

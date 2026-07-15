@@ -85,22 +85,34 @@ export const ARPG_PRODUCTION_READINESS =
 export function getArpgProductionReadinessSummary() {
   return {
     title: ARPG_PRODUCTION_READINESS.title,
-    acceptedLicenseCount: ARPG_PRODUCTION_READINESS.assetPipeline.acceptedLicenses.length,
-    metadataFieldCount: ARPG_PRODUCTION_READINESS.assetPipeline.requiredMetadata.length,
+    acceptedLicenseCount:
+      ARPG_PRODUCTION_READINESS.assetPipeline.acceptedLicenses.length,
+    metadataFieldCount:
+      ARPG_PRODUCTION_READINESS.assetPipeline.requiredMetadata.length,
     menuPanelCount: ARPG_PRODUCTION_READINESS.menuSurface.requiredPanels.length,
     saveSlotKindCount: ARPG_PRODUCTION_READINESS.saveHardening.slotKinds.length,
-    saveFixtureCount: Object.keys(ARPG_PRODUCTION_READINESS.saveHardening.fixturePaths).length,
-    migrationSourceCount: ARPG_PRODUCTION_READINESS.saveHardening.migrationSources.length,
-    recoveryScenarioCount: ARPG_PRODUCTION_READINESS.saveHardening.recoveryScenarios.length,
-    fixtureGroupCount: ARPG_PRODUCTION_READINESS.contentTooling.fixtureGroups.length,
-    validationScriptCount: ARPG_PRODUCTION_READINESS.contentTooling.validationScripts.length,
+    saveFixtureCount: Object.keys(
+      ARPG_PRODUCTION_READINESS.saveHardening.fixturePaths,
+    ).length,
+    migrationSourceCount:
+      ARPG_PRODUCTION_READINESS.saveHardening.migrationSources.length,
+    recoveryScenarioCount:
+      ARPG_PRODUCTION_READINESS.saveHardening.recoveryScenarios.length,
+    fixtureGroupCount:
+      ARPG_PRODUCTION_READINESS.contentTooling.fixtureGroups.length,
+    validationScriptCount:
+      ARPG_PRODUCTION_READINESS.contentTooling.validationScripts.length,
     balanceTargetCount: ARPG_PRODUCTION_READINESS.balanceTargets.xpCurve.length,
-    balanceFixtureCount: ARPG_PRODUCTION_READINESS.balanceTargets.fixtureSuites.length,
+    balanceFixtureCount:
+      ARPG_PRODUCTION_READINESS.balanceTargets.fixtureSuites.length,
     cityPlaytestCount: ARPG_PRODUCTION_READINESS.cityPlaytestMatrix.length,
-    releaseGateCount: ARPG_PRODUCTION_READINESS.releaseGates.requiredScripts.length,
+    releaseGateCount:
+      ARPG_PRODUCTION_READINESS.releaseGates.requiredScripts.length,
     releaseFlowCount: ARPG_PRODUCTION_READINESS.releaseGates.e2eFlows.length,
-    browserRouteCount: ARPG_PRODUCTION_READINESS.releaseGates.browserRoutes.length,
-    fallbackProofCount: ARPG_PRODUCTION_READINESS.releaseGates.fallbackProofMatrix.length,
+    browserRouteCount:
+      ARPG_PRODUCTION_READINESS.releaseGates.browserRoutes.length,
+    fallbackProofCount:
+      ARPG_PRODUCTION_READINESS.releaseGates.fallbackProofMatrix.length,
     assetPipeline: ARPG_PRODUCTION_READINESS.assetPipeline,
     menuSurface: ARPG_PRODUCTION_READINESS.menuSurface,
     saveHardening: ARPG_PRODUCTION_READINESS.saveHardening,

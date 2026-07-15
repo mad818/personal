@@ -28,10 +28,7 @@ export function buildPhoneAcceptancePendingActions(
 
   const actions: PhoneAcceptanceAction[] = [];
 
-  if (
-    !options.sessionAuthenticated &&
-    !itemPassed(status, "phoneLogin")
-  ) {
+  if (!options.sessionAuthenticated && !itemPassed(status, "phoneLogin")) {
     return [
       {
         id: "refreshReceipt",
@@ -75,7 +72,8 @@ export function buildPhoneAcceptancePendingActions(
     actions.push({
       id: "installPwa",
       label: "Install app",
-      detail: "iPhone Safari: Share → Add to Home Screen. Android Chrome: Install app.",
+      detail:
+        "iPhone Safari: Share → Add to Home Screen. Android Chrome: Install app.",
     });
   }
 

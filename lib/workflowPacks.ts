@@ -153,7 +153,8 @@ const REVERSE_ENGINEERING_RE =
   /\b(?:reverse engineering|reverse-engineering|binary|ghidra|strings|entropy|ioc|sample|malware)\b/i;
 const SECOND_BRAIN_RE =
   /\b(?:second brain|obsidian|export|knowledge pack|continuity|compiled page|archive)\b/i;
-const SCHEDULER_RE = /\b(?:scheduler|cron|automation|recurring|job|jobs|batch)\b/i;
+const SCHEDULER_RE =
+  /\b(?:scheduler|cron|automation|recurring|job|jobs|batch)\b/i;
 const MARKET_REVIEW_RE =
   /\b(?:(?:btc|eth|bitcoin|ethereum|crypto|stock|stocks|market|markets|watchlist|setup|trade|trading).*(?:review|journal|postmortem|thesis|invalidation|loss review)|(?:review|journal|postmortem|thesis|invalidation|loss review).*(?:btc|eth|bitcoin|ethereum|crypto|stock|stocks|market|markets|watchlist|setup|trade|trading))\b/i;
 

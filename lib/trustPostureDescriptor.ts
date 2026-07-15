@@ -152,9 +152,13 @@ export function buildTrustPostureRows(input: {
   privacyShieldStatus: PrivacyShieldStatus | null;
 }): TrustPostureRow[] {
   const networkMode = input.diagnostics?.trust?.networkMode ?? "local";
-  const connectorEnabled = input.diagnostics?.trust?.connectorExposure?.enabled ?? 0;
-  const connectorTotal = input.diagnostics?.trust?.connectorExposure?.total ?? 0;
-  const sessionState = input.diagnostics?.auth?.authenticated ? "session armed" : "locked";
+  const connectorEnabled =
+    input.diagnostics?.trust?.connectorExposure?.enabled ?? 0;
+  const connectorTotal =
+    input.diagnostics?.trust?.connectorExposure?.total ?? 0;
+  const sessionState = input.diagnostics?.auth?.authenticated
+    ? "session armed"
+    : "locked";
   const stepUpState = input.diagnostics?.auth?.stepUpActive
     ? `step-up ${formatTrustRemaining(input.diagnostics?.auth?.stepUpRemainingSeconds)}`
     : "step-up idle";
@@ -170,7 +174,10 @@ export function buildTrustPostureRows(input: {
     { label: "Network", value: networkMode },
     {
       label: "Connectors",
-      value: connectorTotal > 0 ? `${connectorEnabled}/${connectorTotal} enabled` : "local only",
+      value:
+        connectorTotal > 0
+          ? `${connectorEnabled}/${connectorTotal} enabled`
+          : "local only",
     },
     {
       label: "High-risk",
@@ -182,7 +189,9 @@ export function buildTrustPostureRows(input: {
     },
     {
       label: "External tools",
-      value: formatExternalToolBridgeStatus(input.diagnostics?.trust?.externalTools),
+      value: formatExternalToolBridgeStatus(
+        input.diagnostics?.trust?.externalTools,
+      ),
     },
     {
       label: "Privacy",
@@ -235,6 +244,8 @@ export function buildTrustActionRows(input: {
   ];
 }
 
-export function summarizeTrustState(diagnostics: TrustDiagnosticsPayload | null) {
+export function summarizeTrustState(
+  diagnostics: TrustDiagnosticsPayload | null,
+) {
   return diagnostics?.auth?.authenticated ? "trusted" : "gated";
 }

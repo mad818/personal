@@ -85,7 +85,10 @@ function normalizeEffectPreset(
 }
 
 function generateId(prefix: string) {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
     return `${prefix}-${crypto.randomUUID()}`;
   }
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
@@ -123,13 +126,11 @@ export async function probeVoiceRuntime(): Promise<VoiceRuntimeStatus> {
       signal: AbortSignal.timeout(1800),
     });
     if (!response.ok) return baseStatus;
-    const payload = (await response.json().catch(() => null)) as
-      | {
-          ok?: boolean;
-          status?: string;
-          features?: Partial<VoiceRuntimeStatus["features"]>;
-        }
-      | null;
+    const payload = (await response.json().catch(() => null)) as {
+      ok?: boolean;
+      status?: string;
+      features?: Partial<VoiceRuntimeStatus["features"]>;
+    } | null;
     return {
       checkedAt: Date.now(),
       runtimeUrl,
@@ -153,14 +154,20 @@ export async function probeVoiceRuntime(): Promise<VoiceRuntimeStatus> {
 export function normalizeVoiceProfileInput(
   input: Partial<VoiceProfile> & { name?: string | null },
 ): VoiceProfile {
-  const createdAt = Number.isFinite(input.createdAt) ? Number(input.createdAt) : Date.now();
-  const updatedAt = Number.isFinite(input.updatedAt) ? Number(input.updatedAt) : Date.now();
+  const createdAt = Number.isFinite(input.createdAt)
+    ? Number(input.createdAt)
+    : Date.now();
+  const updatedAt = Number.isFinite(input.updatedAt)
+    ? Number(input.updatedAt)
+    : Date.now();
   return {
     id: input.id?.trim() || generateId("voice-profile"),
     name: clampText(input.name?.trim() || "New voice profile", 64),
     engine: input.engine === "browser" ? "browser" : "local-runtime",
     source:
-      input.source === "browser" || input.source === "import" ? input.source : "clone",
+      input.source === "browser" || input.source === "import"
+        ? input.source
+        : "clone",
     runtimeVoiceId: input.runtimeVoiceId?.trim() || undefined,
     effectPreset: normalizeEffectPreset(input.effectPreset),
     sampleText: clampText(input.sampleText?.trim() || DEFAULT_SAMPLE_TEXT, 220),
@@ -172,8 +179,12 @@ export function normalizeVoiceProfileInput(
 export function normalizeVoiceProjectInput(
   input: Partial<VoiceProject> & { title?: string | null },
 ): VoiceProject {
-  const createdAt = Number.isFinite(input.createdAt) ? Number(input.createdAt) : Date.now();
-  const updatedAt = Number.isFinite(input.updatedAt) ? Number(input.updatedAt) : Date.now();
+  const createdAt = Number.isFinite(input.createdAt)
+    ? Number(input.createdAt)
+    : Date.now();
+  const updatedAt = Number.isFinite(input.updatedAt)
+    ? Number(input.updatedAt)
+    : Date.now();
   const rawSegments = Array.isArray(input.segments) ? input.segments : [];
   const segments = rawSegments
     .map((segment) => ({
@@ -201,8 +212,9 @@ export function normalizeVoiceProjectInput(
     engine: input.engine === "browser" ? "browser" : "local-runtime",
     effectPreset: normalizeEffectPreset(input.effectPreset),
     segments: segments.length > 0 ? segments : [fallbackSegment],
-    lastRenderedAt:
-      Number.isFinite(input.lastRenderedAt) ? Number(input.lastRenderedAt) : undefined,
+    lastRenderedAt: Number.isFinite(input.lastRenderedAt)
+      ? Number(input.lastRenderedAt)
+      : undefined,
     renderStatus:
       input.renderStatus === "rendered" ||
       input.renderStatus === "runtime-unavailable" ||
@@ -243,8 +255,10 @@ export function buildVoiceProjectFromText(input: {
 }
 
 export function buildVoiceRenderFilename(title: string) {
-  return `${clampText(title, 48)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "voice-briefing"}.wav`;
+  return `${
+    clampText(title, 48)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "voice-briefing"
+  }.wav`;
 }

@@ -175,11 +175,13 @@ export function normalizeNightShiftProposal(
   input: unknown,
   allowedSourceIds: Iterable<string>,
 ): NormalizeResult {
-  if (!isRecord(input)) return { ok: false, error: "Proposal must be an object." };
+  if (!isRecord(input))
+    return { ok: false, error: "Proposal must be an object." };
   const allowedSources = new Set(allowedSourceIds);
-  const sourceIds = boundedSlugArray(input.sourceIds, NIGHT_SHIFT_MAX_SOURCE_ITEMS).filter(
-    (id) => allowedSources.has(id),
-  );
+  const sourceIds = boundedSlugArray(
+    input.sourceIds,
+    NIGHT_SHIFT_MAX_SOURCE_ITEMS,
+  ).filter((id) => allowedSources.has(id));
   const outcome = input.outcome === "blocked" ? "blocked" : "ready";
   const blockReason = boundedText(input.blockReason, 1_000);
   const rawAtoms = Array.isArray(input.atoms)
@@ -197,7 +199,13 @@ export function normalizeNightShiftProposal(
       rawAtom.sourceIds,
       NIGHT_SHIFT_MAX_SOURCE_ITEMS,
     ).filter((sourceId) => sourceIds.includes(sourceId));
-    if (!id || atomIds.has(id) || !title || !claim || atomSourceIds.length === 0) {
+    if (
+      !id ||
+      atomIds.has(id) ||
+      !title ||
+      !claim ||
+      atomSourceIds.length === 0
+    ) {
       continue;
     }
     atomIds.add(id);
@@ -264,10 +272,16 @@ export function normalizeNightShiftProposal(
   };
 
   if (sourceIds.length === 0) {
-    return { ok: false, error: "Proposal does not reference an allowed source." };
+    return {
+      ok: false,
+      error: "Proposal does not reference an allowed source.",
+    };
   }
   if (outcome === "ready" && atoms.length === 0) {
-    return { ok: false, error: "Ready proposal must contain a source-traced atom." };
+    return {
+      ok: false,
+      error: "Ready proposal must contain a source-traced atom.",
+    };
   }
   if (outcome === "blocked" && !blockReason) {
     return { ok: false, error: "Blocked proposal must explain why." };
@@ -298,7 +312,9 @@ export function buildNightShiftSystemPrompt(): string {
   ].join(" ");
 }
 
-export function buildNightShiftUserPrompt(preparation: NightShiftPreparation): string {
+export function buildNightShiftUserPrompt(
+  preparation: NightShiftPreparation,
+): string {
   const schema = {
     outcome: "ready|blocked",
     blockReason: "required when blocked",

@@ -23,13 +23,18 @@ function tokenize(text: string): string[] {
     .slice(0, 24);
 }
 
-function normalizeDedupeKey(entry: Pick<EpisodicMemoryEntry, "agent" | "query" | "summary">) {
+function normalizeDedupeKey(
+  entry: Pick<EpisodicMemoryEntry, "agent" | "query" | "summary">,
+) {
   return `${entry.agent}|${entry.query.slice(0, 80)}|${entry.summary.slice(0, 120)}`
     .toLowerCase()
     .trim();
 }
 
-export function recencyDecayScore(capturedAt: number, now = Date.now()): number {
+export function recencyDecayScore(
+  capturedAt: number,
+  now = Date.now(),
+): number {
   const ageMs = Math.max(0, now - capturedAt);
   return Math.pow(0.5, ageMs / EPISODIC_RECENCY_HALF_LIFE_MS);
 }
@@ -81,7 +86,8 @@ export function scoreEpisodicRelevance(
   for (const keyword of entry.keywords) {
     if (tokens.has(keyword)) overlap += 1;
   }
-  const overlapScore = overlap / Math.max(1, Math.min(tokens.size, entry.keywords.length));
+  const overlapScore =
+    overlap / Math.max(1, Math.min(tokens.size, entry.keywords.length));
   return overlapScore * 0.7 + recencyDecayScore(entry.capturedAt, now) * 0.3;
 }
 
@@ -110,9 +116,7 @@ export function buildEpisodicMemoryPromptBlock(
   if (!hits.length) return "";
 
   const lines = hits.map((entry, index) => {
-    const age = Math.round(
-      (Date.now() - entry.capturedAt) / (60 * 60 * 1000),
-    );
+    const age = Math.round((Date.now() - entry.capturedAt) / (60 * 60 * 1000));
     return (
       `${index + 1}. [${entry.agent.toUpperCase()} · ${age}h ago] ` +
       `"${entry.query.slice(0, 64)}" → ${entry.summary.slice(0, 140)}`

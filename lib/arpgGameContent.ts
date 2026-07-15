@@ -137,7 +137,8 @@ export const ARPG_SKILLS: Record<string, ArpgSkillDefinition> = {
     name: "Cinder Cleave",
     kind: "active",
     unlockLevel: 1,
-    summary: "A reliable arc strike that adds might scaling to the next attack.",
+    summary:
+      "A reliable arc strike that adds might scaling to the next attack.",
     statBonus: { might: 2 },
     cooldownMs: 1600,
     accent: "#f4a261",
@@ -181,7 +182,8 @@ export const ARPG_SKILLS: Record<string, ArpgSkillDefinition> = {
     name: "Ash Step",
     kind: "active",
     unlockLevel: 1,
-    summary: "A short repositioning burst that keeps combat readable and quick.",
+    summary:
+      "A short repositioning burst that keeps combat readable and quick.",
     statBonus: { speed: 2 },
     cooldownMs: 1400,
     accent: "#90be6d",
@@ -339,7 +341,8 @@ export const ARPG_ITEMS: Record<string, ArpgItemDefinition> = {
     slot: "amulet",
     quality: "common",
     rarity: "common",
-    summary: "A cord-and-brass amulet given to people who descend before they understand why.",
+    summary:
+      "A cord-and-brass amulet given to people who descend before they understand why.",
     lore: "The knot is simple. The oath tied into it is not.",
     stats: { ward: 1, resonance: 2 },
     accent: "#f4a261",
@@ -351,7 +354,8 @@ export const ARPG_ITEMS: Record<string, ArpgItemDefinition> = {
     slot: "charm",
     quality: "rare",
     rarity: "rare",
-    summary: "A living shard from the reliquary loom. It sharpens memory and wardwork.",
+    summary:
+      "A living shard from the reliquary loom. It sharpens memory and wardwork.",
     lore: "The charm clicks softly when an old door decides you are worth hearing.",
     stats: { focus: 10, ward: 3, resonance: 5 },
     accent: "#ffd166",
@@ -387,7 +391,8 @@ export const ARPG_ITEMS: Record<string, ArpgItemDefinition> = {
     slot: "weapon",
     quality: "rare",
     rarity: "rare",
-    summary: "A city-oath spear tuned for reach, ward stance, and early socket planning.",
+    summary:
+      "A city-oath spear tuned for reach, ward stance, and early socket planning.",
     lore: "The brass pennant rings once when a promise is kept and twice when it is tested.",
     stats: { might: 8, ward: 4, speed: 3, resonance: 2 },
     accent: "#ffd166",
@@ -399,7 +404,8 @@ export const ARPG_ITEMS: Record<string, ArpgItemDefinition> = {
     slot: "weapon",
     quality: "epic",
     rarity: "epic",
-    summary: "A mirrored dagger built for crit pressure, quick steps, and clean status windows.",
+    summary:
+      "A mirrored dagger built for crit pressure, quick steps, and clean status windows.",
     lore: "It leaves a reflection behind to apologize for the cut.",
     stats: { might: 5, speed: 8, crit: 8, cooldown: 3 },
     accent: "#d946ef",
@@ -411,7 +417,8 @@ export const ARPG_ITEMS: Record<string, ArpgItemDefinition> = {
     slot: "weapon",
     quality: "relic",
     rarity: "relic",
-    summary: "A boss-forged polearm with heavy stagger identity and double-socket planning.",
+    summary:
+      "A boss-forged polearm with heavy stagger identity and double-socket planning.",
     lore: "The Brass Warden did not drop it. The oath decided to follow you instead.",
     stats: { might: 13, ward: 6, resonance: 7 },
     accent: "#8ecae6",
@@ -423,7 +430,8 @@ export const ARPG_ITEMS: Record<string, ArpgItemDefinition> = {
     slot: "weapon",
     quality: "ancient",
     rarity: "ancient",
-    summary: "An ancient focus staff for holy pressure, cooldown recovery, and relic resonance.",
+    summary:
+      "An ancient focus staff for holy pressure, cooldown recovery, and relic resonance.",
     lore: "Its gold is not metal. It is stored daylight with a handle.",
     stats: { focus: 14, ward: 6, cooldown: 8, resonance: 12 },
     accent: "#f59e0b",
@@ -435,7 +443,8 @@ export const ARPG_ITEMS: Record<string, ArpgItemDefinition> = {
     slot: "weapon",
     quality: "mythic",
     rarity: "mythic",
-    summary: "A mythic endgame scythe for curse builds, crit windows, and relic resonance spikes.",
+    summary:
+      "A mythic endgame scythe for curse builds, crit windows, and relic resonance spikes.",
     lore: "It cuts commands away from kings and lets the silence decide what remains.",
     stats: { might: 16, focus: 8, crit: 10, resonance: 14 },
     accent: "#fb7185",
@@ -447,7 +456,8 @@ export const ARPG_ITEMS: Record<string, ArpgItemDefinition> = {
     slot: "weapon",
     quality: "epic",
     rarity: "epic",
-    summary: "An anti-guard flail that rewards close timing and shield-breaking pressure.",
+    summary:
+      "An anti-guard flail that rewards close timing and shield-breaking pressure.",
     lore: "Every chain link has a tiny ward-drill etched into the brass.",
     stats: { might: 11, ward: 5, crit: 5, resonance: 3 },
     accent: "#d946ef",
@@ -459,7 +469,8 @@ export const ARPG_ITEMS: Record<string, ArpgItemDefinition> = {
     slot: "weapon",
     quality: "rare",
     rarity: "rare",
-    summary: "A heavy civic blade that trades speed for might, ward posture, and cleave weight.",
+    summary:
+      "A heavy civic blade that trades speed for might, ward posture, and cleave weight.",
     lore: "The Bellroot smiths call it a sword because calling it a door-opener sounds impolite.",
     stats: { might: 12, ward: 4, crit: 2 },
     accent: "#ffd166",
@@ -533,7 +544,8 @@ export const ARPG_ITEMS: Record<string, ArpgItemDefinition> = {
     quality: "uncommon",
     rarity: "uncommon",
     maxStack: 99,
-    summary: "Claw, moss, ash, shell, or bone used for repeatable field crafting.",
+    summary:
+      "Claw, moss, ash, shell, or bone used for repeatable field crafting.",
     lore: "The reliquary catalogs it politely. The bag does not.",
     stats: {},
     accent: "#90be6d",
@@ -545,7 +557,8 @@ export const ARPG_ITEMS: Record<string, ArpgItemDefinition> = {
     quality: "uncommon",
     rarity: "uncommon",
     maxStack: 99,
-    summary: "Local reputation currency traded for city sets and endgame route favors.",
+    summary:
+      "Local reputation currency traded for city sets and endgame route favors.",
     lore: "Each city mints promises in a different shape.",
     stats: {},
     accent: "#facc15",
@@ -582,20 +595,21 @@ export const ARPG_STARTER_ITEM_IDS = [
   "upgrade-shard",
 ];
 
-export const ARPG_STARTER_EQUIPMENT: Record<ArpgEquipmentSlot, string | null> = {
-  weapon: "cinder-glaive",
-  offhand: "ember-buckler",
-  helm: "pilgrim-helm",
-  armor: "threadbare-wardplate",
-  gloves: "oath-stitch-gloves",
-  boots: "ash-runner-boots",
-  relic: "memory-prism",
-  sigil: "wayfinder-sigil",
-  charm: "brass-charm",
-  "ring-left": "copper-oath-ring",
-  "ring-right": "pilgrim-tin-ring",
-  amulet: "bellroot-cord-amulet",
-};
+export const ARPG_STARTER_EQUIPMENT: Record<ArpgEquipmentSlot, string | null> =
+  {
+    weapon: "cinder-glaive",
+    offhand: "ember-buckler",
+    helm: "pilgrim-helm",
+    armor: "threadbare-wardplate",
+    gloves: "oath-stitch-gloves",
+    boots: "ash-runner-boots",
+    relic: "memory-prism",
+    sigil: "wayfinder-sigil",
+    charm: "brass-charm",
+    "ring-left": "copper-oath-ring",
+    "ring-right": "pilgrim-tin-ring",
+    amulet: "bellroot-cord-amulet",
+  };
 
 export const ARPG_LOOT_PEDESTAL_ITEM_ID = "loomshard-charm";
 
@@ -614,7 +628,8 @@ export const ARPG_LOOT_NODES: Record<string, ArpgLootNodeDefinition> = {
     title: "Forge Cache",
     itemId: "upgrade-shard",
     quantity: 2,
-    summary: "A cracked reliquary locker stores upgrade shards for the first temper.",
+    summary:
+      "A cracked reliquary locker stores upgrade shards for the first temper.",
     position: { x: 2.2, z: 1.45 },
   },
   "oracle-cache": {
@@ -706,7 +721,8 @@ export const ARPG_ENEMIES: Record<string, ArpgEnemyDefinition> = {
   "ember-mote": {
     id: "ember-mote",
     name: "Ember Mote",
-    summary: "A furnace-born spark that tries to stack burn before the hero can breathe.",
+    summary:
+      "A furnace-born spark that tries to stack burn before the hero can breathe.",
     familyId: "ash-fiends",
     spriteFrameId: "ember-mote",
     maxHp: 28,
@@ -722,7 +738,8 @@ export const ARPG_ENEMIES: Record<string, ArpgEnemyDefinition> = {
   "glass-gnawer": {
     id: "glass-gnawer",
     name: "Glass Gnawer",
-    summary: "A mirror-bitten crawler that leaves tiny cuts in the air before it lunges.",
+    summary:
+      "A mirror-bitten crawler that leaves tiny cuts in the air before it lunges.",
     familyId: "glass-wraiths",
     spriteFrameId: "glass-gnawer",
     maxHp: 48,
@@ -797,9 +814,18 @@ export const ARPG_QUESTS: Record<string, ArpgQuestDefinition> = {
   "quiet-the-warden": {
     id: "quiet-the-warden",
     title: "Quiet the Brass Warden",
-    summary: "Defeat the mini-boss and claim a gate fragment for the next chamber.",
-    steps: ["Defeat the Hollow Sentry.", "Defeat the Brass Warden.", "Collect a Gate Key Fragment."],
-    requiredFlags: ["defeated:hollow-sentry", "defeated:brass-warden", "loot:gate-key-fragment"],
+    summary:
+      "Defeat the mini-boss and claim a gate fragment for the next chamber.",
+    steps: [
+      "Defeat the Hollow Sentry.",
+      "Defeat the Brass Warden.",
+      "Collect a Gate Key Fragment.",
+    ],
+    requiredFlags: [
+      "defeated:hollow-sentry",
+      "defeated:brass-warden",
+      "loot:gate-key-fragment",
+    ],
     rewardItemIds: ["warden-cuirass"],
   },
 };
@@ -810,19 +836,86 @@ export const ARPG_FIRST_ZONE: ArpgZoneDefinition = {
   summary: `${ARPG_PROLOGUE_FIRST_LOCATION.name}: ${ARPG_PROLOGUE_FIRST_LOCATION.visualSummary}`,
   spawn: { x: -0.8, z: 0.95 },
   rooms: [
-    { id: "gate-room", label: "Bellroot Vestibule", center: { x: -0.3, z: 0.65 }, radius: 1.45 },
-    { id: "archive-alcove", label: "Namewell Alcove", center: { x: -2.25, z: 0.42 }, radius: 0.86 },
-    { id: "forge-pedestal", label: "Quiet Forge Pedestal", center: { x: 2.32, z: 1.33 }, radius: 0.82 },
-    { id: "sentry-hall", label: "Warden's Antechamber", center: { x: 1.55, z: -1.08 }, radius: 1.02 },
-    { id: "north-exit", label: "Sealed North Road", center: { x: 0.25, z: -2.35 }, radius: 0.72 },
+    {
+      id: "gate-room",
+      label: "Bellroot Vestibule",
+      center: { x: -0.3, z: 0.65 },
+      radius: 1.45,
+    },
+    {
+      id: "archive-alcove",
+      label: "Namewell Alcove",
+      center: { x: -2.25, z: 0.42 },
+      radius: 0.86,
+    },
+    {
+      id: "forge-pedestal",
+      label: "Quiet Forge Pedestal",
+      center: { x: 2.32, z: 1.33 },
+      radius: 0.82,
+    },
+    {
+      id: "sentry-hall",
+      label: "Warden's Antechamber",
+      center: { x: 1.55, z: -1.08 },
+      radius: 1.02,
+    },
+    {
+      id: "north-exit",
+      label: "Sealed North Road",
+      center: { x: 0.25, z: -2.35 },
+      radius: 0.72,
+    },
   ],
   obstacles: [
-    { id: "west-wall", label: "west wall", x: -3.95, z: 0, width: 0.35, depth: 5.65 },
-    { id: "east-wall", label: "east wall", x: 3.95, z: 0, width: 0.35, depth: 5.65 },
-    { id: "north-wall", label: "north wall", x: 0, z: -3.02, width: 7.6, depth: 0.32 },
-    { id: "south-rubble", label: "south rubble", x: 1.55, z: 2.18, width: 1.2, depth: 0.34 },
-    { id: "archive-column", label: "archive column", x: -2.95, z: 0.42, width: 0.42, depth: 0.42 },
-    { id: "east-column", label: "east column", x: 2.78, z: 0.72, width: 0.42, depth: 0.42 },
+    {
+      id: "west-wall",
+      label: "west wall",
+      x: -3.95,
+      z: 0,
+      width: 0.35,
+      depth: 5.65,
+    },
+    {
+      id: "east-wall",
+      label: "east wall",
+      x: 3.95,
+      z: 0,
+      width: 0.35,
+      depth: 5.65,
+    },
+    {
+      id: "north-wall",
+      label: "north wall",
+      x: 0,
+      z: -3.02,
+      width: 7.6,
+      depth: 0.32,
+    },
+    {
+      id: "south-rubble",
+      label: "south rubble",
+      x: 1.55,
+      z: 2.18,
+      width: 1.2,
+      depth: 0.34,
+    },
+    {
+      id: "archive-column",
+      label: "archive column",
+      x: -2.95,
+      z: 0.42,
+      width: 0.42,
+      depth: 0.42,
+    },
+    {
+      id: "east-column",
+      label: "east column",
+      x: 2.78,
+      z: 0.72,
+      width: 0.42,
+      depth: 0.42,
+    },
   ],
 };
 

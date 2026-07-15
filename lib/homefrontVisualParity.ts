@@ -78,9 +78,12 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "guardian-video",
     primaryActionLabel: "Open chronicle",
     interiorPolish: {
-      leadIntent: "Keep command chrome premium while the private RPG stays isolated.",
-      staleInfoPolicy: "Show assistant readiness and shell posture without injecting route polish into the RPG playfield.",
-      mediaMoment: "Guardian media stays in HQ chrome only; ARPG presentation remains private and separate.",
+      leadIntent:
+        "Keep command chrome premium while the private RPG stays isolated.",
+      staleInfoPolicy:
+        "Show assistant readiness and shell posture without injecting route polish into the RPG playfield.",
+      mediaMoment:
+        "Guardian media stays in HQ chrome only; ARPG presentation remains private and separate.",
       activeStateLabel: "HQ chrome active",
       supportDensity: "balanced",
     },
@@ -94,17 +97,21 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     primaryActionLabel: "Open runtime focus",
     interiorPolish: {
       leadIntent: "Put provider, runtime, and agent posture before dispatch.",
-      staleInfoPolicy: "Collapse repeated readiness copy into posture chips, proof, and one recovery action.",
-      mediaMoment: "Route plate behaves like a live runtime instrument, not a static dashboard card.",
+      staleInfoPolicy:
+        "Collapse repeated readiness copy into posture chips, proof, and one recovery action.",
+      mediaMoment:
+        "Route plate behaves like a live runtime instrument, not a static dashboard card.",
       activeStateLabel: "Command posture active",
       supportDensity: "compact",
     },
     workplaneSummary: {
       primaryQuestion: "What needs operator pressure right now?",
-      nextBestAction: "Start with provider health before dispatch, runtime, or agent work.",
+      nextBestAction:
+        "Start with provider health before dispatch, runtime, or agent work.",
       actionLabel: "Open provider health",
       actionHref: "/command?focus=provider-health",
-      proofLine: "Provider health, agent health, and runtime efficiency stay visible before execution.",
+      proofLine:
+        "Provider health, agent health, and runtime efficiency stay visible before execution.",
     },
     proofChips: ["provider health", "agent health", "runtime efficiency"],
     excludedSelectors: RPG_EXCLUSION_SELECTORS,
@@ -115,18 +122,23 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "route-plate",
     primaryActionLabel: "Open sweeps",
     interiorPolish: {
-      leadIntent: "Lead with source freshness and world posture before feed volume.",
-      staleInfoPolicy: "Demote duplicate feed explanations behind proof, freshness, and route context.",
-      mediaMoment: "Signal lanes should feel watched and current without becoming noisy.",
+      leadIntent:
+        "Lead with source freshness and world posture before feed volume.",
+      staleInfoPolicy:
+        "Demote duplicate feed explanations behind proof, freshness, and route context.",
+      mediaMoment:
+        "Signal lanes should feel watched and current without becoming noisy.",
       activeStateLabel: "Intel source lane active",
       supportDensity: "compact",
     },
     workplaneSummary: {
       primaryQuestion: "Which signal changed enough to matter?",
-      nextBestAction: "Open world posture and read source freshness before acting.",
+      nextBestAction:
+        "Open world posture and read source freshness before acting.",
       actionLabel: "Open world posture",
       actionHref: "/intel?focus=intel-world",
-      proofLine: "Source proof, freshness, and world posture stay ahead of interpretation.",
+      proofLine:
+        "Source proof, freshness, and world posture stay ahead of interpretation.",
     },
     proofChips: ["source proof", "freshness", "world posture"],
     excludedSelectors: RPG_EXCLUSION_SELECTORS,
@@ -137,18 +149,23 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "route-plate",
     primaryActionLabel: "Open scanner",
     interiorPolish: {
-      leadIntent: "Connect scanner, tape, and sizing into one advisory decision flow.",
-      staleInfoPolicy: "Keep market utility dense, but move repeated thesis copy below live proof.",
-      mediaMoment: "Market panels read like premium workplanes with advisory posture visible.",
+      leadIntent:
+        "Connect scanner, tape, and sizing into one advisory decision flow.",
+      staleInfoPolicy:
+        "Keep market utility dense, but move repeated thesis copy below live proof.",
+      mediaMoment:
+        "Market panels read like premium workplanes with advisory posture visible.",
       activeStateLabel: "Alpha scanner active",
       supportDensity: "balanced",
     },
     workplaneSummary: {
       primaryQuestion: "Which market move deserves review?",
-      nextBestAction: "Open the momentum scanner before thesis or watchlist work.",
+      nextBestAction:
+        "Open the momentum scanner before thesis or watchlist work.",
       actionLabel: "Open momentum scanner",
       actionHref: "/alpha?focus=alpha-scanner",
-      proofLine: "Watchlist, signals, and sizing cues stay visible without autonomous trading.",
+      proofLine:
+        "Watchlist, signals, and sizing cues stay visible without autonomous trading.",
     },
     proofChips: ["watchlist", "signals", "position sizing"],
     excludedSelectors: RPG_EXCLUSION_SELECTORS,
@@ -159,9 +176,12 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "route-plate",
     primaryActionLabel: "Open triage",
     interiorPolish: {
-      leadIntent: "Keep risk matrix and review gates ahead of raw threat volume.",
-      staleInfoPolicy: "Reduce raw-feed dominance; show severity, gate, and allowed next action first.",
-      mediaMoment: "Risk visuals should feel controlled, review-first, and passive by default.",
+      leadIntent:
+        "Keep risk matrix and review gates ahead of raw threat volume.",
+      staleInfoPolicy:
+        "Reduce raw-feed dominance; show severity, gate, and allowed next action first.",
+      mediaMoment:
+        "Risk visuals should feel controlled, review-first, and passive by default.",
       activeStateLabel: "Cyber review gate active",
       supportDensity: "compact",
     },
@@ -170,7 +190,8 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
       nextBestAction: "Open the severity matrix and keep review gates in view.",
       actionLabel: "Open severity matrix",
       actionHref: "/cyber?focus=cyber-matrix",
-      proofLine: "CVE posture, review gates, and compliance notes stay advisory-first.",
+      proofLine:
+        "CVE posture, review gates, and compliance notes stay advisory-first.",
     },
     proofChips: ["CVE posture", "review gates", "drone compliance"],
     excludedSelectors: RPG_EXCLUSION_SELECTORS,
@@ -181,18 +202,22 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "route-plate",
     primaryActionLabel: "Open OSINT",
     interiorPolish: {
-      leadIntent: "Start with passive evidence and source posture before tooling.",
-      staleInfoPolicy: "Keep risky collection language blocked behind passive-first proof and operator review.",
+      leadIntent:
+        "Start with passive evidence and source posture before tooling.",
+      staleInfoPolicy:
+        "Keep risky collection language blocked behind passive-first proof and operator review.",
       mediaMoment: "Evidence lanes should feel precise, quiet, and bounded.",
       activeStateLabel: "Recon evidence active",
       supportDensity: "compact",
     },
     workplaneSummary: {
       primaryQuestion: "What evidence can be reviewed passively?",
-      nextBestAction: "Open repo intelligence before binary, exposure, or case work.",
+      nextBestAction:
+        "Open repo intelligence before binary, exposure, or case work.",
       actionLabel: "Open repo intelligence",
       actionHref: "/recon?focus=recon-repo-intel",
-      proofLine: "Passive-first evidence and source boundaries stay visible before escalation.",
+      proofLine:
+        "Passive-first evidence and source boundaries stay visible before escalation.",
     },
     proofChips: ["passive-first", "case evidence", "repo exposure"],
     excludedSelectors: RPG_EXCLUSION_SELECTORS,
@@ -203,9 +228,12 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "route-plate",
     primaryActionLabel: "Open stewardship",
     interiorPolish: {
-      leadIntent: "Prioritize compiled pages and continuity proof over archive sprawl.",
-      staleInfoPolicy: "Turn archive-wall copy into recovery state, durable proof, and reopen links.",
-      mediaMoment: "The archive should feel like a continuity room, not a storage list.",
+      leadIntent:
+        "Prioritize compiled pages and continuity proof over archive sprawl.",
+      staleInfoPolicy:
+        "Turn archive-wall copy into recovery state, durable proof, and reopen links.",
+      mediaMoment:
+        "The archive should feel like a continuity room, not a storage list.",
       activeStateLabel: "Vault continuity active",
       supportDensity: "balanced",
     },
@@ -214,7 +242,8 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
       nextBestAction: "Open compiled pages before graph repair or export work.",
       actionLabel: "Open compiled pages",
       actionHref: "/vault?focus=vault-compiled-pages",
-      proofLine: "Compiled pages, memory graph, and continuity state stay recoverable.",
+      proofLine:
+        "Compiled pages, memory graph, and continuity state stay recoverable.",
     },
     proofChips: ["memory graph", "compiled pages", "continuity"],
     excludedSelectors: RPG_EXCLUSION_SELECTORS,
@@ -225,18 +254,23 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "route-plate",
     primaryActionLabel: "Open finder",
     interiorPolish: {
-      leadIntent: "Make source intelligence, playbooks, and exact-session utilities the front door.",
-      staleInfoPolicy: "Govern outside ideas with status, fit, rejection reason, and next action before expansion.",
-      mediaMoment: "Resource surfaces should feel like a field manual with live intake proof.",
+      leadIntent:
+        "Make source intelligence, playbooks, and exact-session utilities the front door.",
+      staleInfoPolicy:
+        "Govern outside ideas with status, fit, rejection reason, and next action before expansion.",
+      mediaMoment:
+        "Resource surfaces should feel like a field manual with live intake proof.",
       activeStateLabel: "Resources source lane active",
       supportDensity: "balanced",
     },
     workplaneSummary: {
       primaryQuestion: "Which outside idea is safe to absorb?",
-      nextBestAction: "Open source intelligence and map the idea before implementation.",
+      nextBestAction:
+        "Open source intelligence and map the idea before implementation.",
       actionLabel: "Open source intelligence",
       actionHref: "/resources?view=sources",
-      proofLine: "Source intake, playbooks, and surface audit keep outside ideas governed.",
+      proofLine:
+        "Source intake, playbooks, and surface audit keep outside ideas governed.",
     },
     proofChips: ["playbooks", "surface audit", "source intake"],
     excludedSelectors: RPG_EXCLUSION_SELECTORS,
@@ -247,9 +281,12 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "guardian-image",
     primaryActionLabel: "Open controls",
     interiorPolish: {
-      leadIntent: "Expose trust, controls, and AI surfaces as one review-first control plane.",
-      staleInfoPolicy: "Keep policy explanation short and keep blocked reasons visible.",
-      mediaMoment: "Guardian imagery anchors the control posture without implying automation approval.",
+      leadIntent:
+        "Expose trust, controls, and AI surfaces as one review-first control plane.",
+      staleInfoPolicy:
+        "Keep policy explanation short and keep blocked reasons visible.",
+      mediaMoment:
+        "Guardian imagery anchors the control posture without implying automation approval.",
       activeStateLabel: "Security controls active",
       supportDensity: "compact",
     },
@@ -262,9 +299,12 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "data-grid",
     primaryActionLabel: "Open Workflow Forge",
     interiorPolish: {
-      leadIntent: "Make skill invocation, workflow forge, and library status easy to inspect.",
-      staleInfoPolicy: "Keep forge copy compact; show invocation visibility and review gates first.",
-      mediaMoment: "Data-grid treatment keeps workflows operational instead of decorative.",
+      leadIntent:
+        "Make skill invocation, workflow forge, and library status easy to inspect.",
+      staleInfoPolicy:
+        "Keep forge copy compact; show invocation visibility and review gates first.",
+      mediaMoment:
+        "Data-grid treatment keeps workflows operational instead of decorative.",
       activeStateLabel: "Skills forge active",
       supportDensity: "compact",
     },
@@ -277,13 +317,20 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "guardian-video",
     primaryActionLabel: "Open launchpad",
     interiorPolish: {
-      leadIntent: "Show simulated telemetry and passive bridge readiness before hardware ambition.",
-      staleInfoPolicy: "Keep every vehicle panel clear that Nexus is not flight-critical control.",
-      mediaMoment: "Capability video supports patrol readiness while actions remain review-only.",
+      leadIntent:
+        "Show simulated telemetry and passive bridge readiness before hardware ambition.",
+      staleInfoPolicy:
+        "Keep every vehicle panel clear that Nexus is not flight-critical control.",
+      mediaMoment:
+        "Capability video supports patrol readiness while actions remain review-only.",
       activeStateLabel: "Vehicle readiness active",
       supportDensity: "balanced",
     },
-    proofChips: ["simulation-first", "passive bridge", "no flight-critical control"],
+    proofChips: [
+      "simulation-first",
+      "passive bridge",
+      "no flight-critical control",
+    ],
     excludedSelectors: RPG_EXCLUSION_SELECTORS,
   },
   iot: {
@@ -292,9 +339,12 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "guardian-image",
     primaryActionLabel: "Open device matrix",
     interiorPolish: {
-      leadIntent: "Keep device posture, sensor health, and automation review in the same lane.",
-      staleInfoPolicy: "Move generic smart-home copy behind sensor proof and review state.",
-      mediaMoment: "Guardian image anchors connected-home context without remote dependency.",
+      leadIntent:
+        "Keep device posture, sensor health, and automation review in the same lane.",
+      staleInfoPolicy:
+        "Move generic smart-home copy behind sensor proof and review state.",
+      mediaMoment:
+        "Guardian image anchors connected-home context without remote dependency.",
       activeStateLabel: "IoT sensor lane active",
       supportDensity: "compact",
     },
@@ -307,9 +357,12 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "route-plate",
     primaryActionLabel: "Open INTEL",
     interiorPolish: {
-      leadIntent: "Treat signals as an INTEL watch lane with source proof first.",
-      staleInfoPolicy: "Redirect stale signal copy into the INTEL route context.",
-      mediaMoment: "Route plate reinforces watch posture while canonical work lives in INTEL.",
+      leadIntent:
+        "Treat signals as an INTEL watch lane with source proof first.",
+      staleInfoPolicy:
+        "Redirect stale signal copy into the INTEL route context.",
+      mediaMoment:
+        "Route plate reinforces watch posture while canonical work lives in INTEL.",
       activeStateLabel: "Signals redirected",
       supportDensity: "compact",
     },
@@ -322,9 +375,12 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     mediaMode: "route-plate",
     primaryActionLabel: "Open INTEL",
     interiorPolish: {
-      leadIntent: "Keep operations posture tied to the canonical INTEL workplane.",
-      staleInfoPolicy: "Avoid duplicate ops walls; point action back to the live route.",
-      mediaMoment: "Route plate provides continuity for redirected operations context.",
+      leadIntent:
+        "Keep operations posture tied to the canonical INTEL workplane.",
+      staleInfoPolicy:
+        "Avoid duplicate ops walls; point action back to the live route.",
+      mediaMoment:
+        "Route plate provides continuity for redirected operations context.",
       activeStateLabel: "Ops redirected",
       supportDensity: "compact",
     },
@@ -350,5 +406,8 @@ export function getHomefrontVisualSurfaceSpec(
 export function resolveHomefrontVisualSurfaceSpec(
   surfaceId: string | null | undefined,
 ): HomefrontVisualSurfaceSpec {
-  return getHomefrontVisualSurfaceSpec(surfaceId) ?? HOMEFRONT_VISUAL_SURFACE_SPECS.hq;
+  return (
+    getHomefrontVisualSurfaceSpec(surfaceId) ??
+    HOMEFRONT_VISUAL_SURFACE_SPECS.hq
+  );
 }

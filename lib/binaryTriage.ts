@@ -11,7 +11,13 @@ export interface BinaryFormatMatch {
     | "text"
     | "unknown";
   label: string;
-  category: "executable" | "archive" | "document" | "media" | "script" | "unknown";
+  category:
+    | "executable"
+    | "archive"
+    | "document"
+    | "media"
+    | "script"
+    | "unknown";
   detail: string;
 }
 
@@ -171,11 +177,17 @@ function buildReverseEngineeringContinuityTags(
 function buildReverseEngineeringNextSteps(source: BinaryTriageBriefSource) {
   const steps: string[] = [];
   const tagSet = new Set(source.tags);
-  const iocLines = extractMarkdownSectionLines(source.content, "IOC candidates");
+  const iocLines = extractMarkdownSectionLines(
+    source.content,
+    "IOC candidates",
+  );
   const hasNetworkIocs = iocLines.some(
     (line) => !/\bnone\b/i.test(line) && /URLs|Domains|IPv4|Emails/i.test(line),
   );
-  const noteLines = extractMarkdownSectionLines(source.content, "Analyst notes");
+  const noteLines = extractMarkdownSectionLines(
+    source.content,
+    "Analyst notes",
+  );
   const hasHighEntropySignal = noteLines.some((line) =>
     /high-entropy|packing|obfuscation|encrypted data/i.test(line),
   );
@@ -268,7 +280,8 @@ export function detectBinaryFormat(
       id: "zip",
       label: "ZIP container",
       category: "archive",
-      detail: "Archive/container signature detected. Check for embedded scripts or payloads.",
+      detail:
+        "Archive/container signature detected. Check for embedded scripts or payloads.",
     };
   }
 
@@ -283,7 +296,8 @@ export function detectBinaryFormat(
       id: "pdf",
       label: "PDF document",
       category: "document",
-      detail: "PDF signature detected. Treat as document triage before deeper reverse engineering.",
+      detail:
+        "PDF signature detected. Treat as document triage before deeper reverse engineering.",
     };
   }
 
@@ -298,7 +312,8 @@ export function detectBinaryFormat(
       id: "png",
       label: "PNG image",
       category: "media",
-      detail: "PNG signature detected. This is likely a media artifact rather than an executable.",
+      detail:
+        "PNG signature detected. This is likely a media artifact rather than an executable.",
     };
   }
 
@@ -312,7 +327,8 @@ export function detectBinaryFormat(
       id: "jpeg",
       label: "JPEG image",
       category: "media",
-      detail: "JPEG signature detected. Treat this as media or steganography triage, not native binary RE.",
+      detail:
+        "JPEG signature detected. Treat this as media or steganography triage, not native binary RE.",
     };
   }
 
@@ -329,7 +345,8 @@ export function detectBinaryFormat(
       id: "script",
       label: "Script or source text",
       category: "script",
-      detail: "Readable text/script posture detected. Start with strings and embedded IOCs before heavier tooling.",
+      detail:
+        "Readable text/script posture detected. Start with strings and embedded IOCs before heavier tooling.",
     };
   }
 
@@ -338,7 +355,8 @@ export function detectBinaryFormat(
       id: "text",
       label: "Plain text candidate",
       category: "script",
-      detail: "Sample is mostly printable text. Prioritize manual reading and IOC extraction first.",
+      detail:
+        "Sample is mostly printable text. Prioritize manual reading and IOC extraction first.",
     };
   }
 
@@ -346,7 +364,8 @@ export function detectBinaryFormat(
     id: "unknown",
     label: "Unknown binary",
     category: "unknown",
-    detail: "No strong signature detected. Use strings, entropy, and hashes to decide whether deeper RE is warranted.",
+    detail:
+      "No strong signature detected. Use strings, entropy, and hashes to decide whether deeper RE is warranted.",
   };
 }
 
@@ -425,15 +444,21 @@ export function buildBinaryTriageNotes(input: BinaryTriageInput) {
   const notes: string[] = [];
 
   if (input.format.category === "executable" && input.entropy >= 7.2) {
-    notes.push("High-entropy executable sample; packing or obfuscation is plausible.");
+    notes.push(
+      "High-entropy executable sample; packing or obfuscation is plausible.",
+    );
   }
 
   if (input.format.category === "archive") {
-    notes.push("Container/archive sample detected; inspect embedded files before deeper reverse engineering.");
+    notes.push(
+      "Container/archive sample detected; inspect embedded files before deeper reverse engineering.",
+    );
   }
 
   if (input.format.category === "script") {
-    notes.push("Readable script/text posture detected; strings and direct code review may be higher-yield than binary tooling first.");
+    notes.push(
+      "Readable script/text posture detected; strings and direct code review may be higher-yield than binary tooling first.",
+    );
   }
 
   if (
@@ -441,19 +466,27 @@ export function buildBinaryTriageNotes(input: BinaryTriageInput) {
     input.iocs.domains.length > 0 ||
     input.iocs.ipv4.length > 0
   ) {
-    notes.push("Network-oriented indicators are present; pivot into OSINT or sandbox review after local triage.");
+    notes.push(
+      "Network-oriented indicators are present; pivot into OSINT or sandbox review after local triage.",
+    );
   }
 
   if (input.printableStringCount < 10 && input.entropy >= 6.8) {
-    notes.push("Sparse readable strings plus elevated entropy suggest compression, packing, or encrypted data.");
+    notes.push(
+      "Sparse readable strings plus elevated entropy suggest compression, packing, or encrypted data.",
+    );
   }
 
   if (input.sampleBytes < input.totalBytes) {
-    notes.push("Entropy, strings, and IOC extraction were sampled from the leading bytes for speed; confirm with deeper tooling if the artifact is important.");
+    notes.push(
+      "Entropy, strings, and IOC extraction were sampled from the leading bytes for speed; confirm with deeper tooling if the artifact is important.",
+    );
   }
 
   if (notes.length === 0) {
-    notes.push("No urgent red flags surfaced from lightweight local triage; keep the hashes and format classification for follow-on analysis.");
+    notes.push(
+      "No urgent red flags surfaced from lightweight local triage; keep the hashes and format classification for follow-on analysis.",
+    );
   }
 
   return notes;
@@ -496,7 +529,9 @@ export function isReverseEngineeringMemoryArtifact(
   );
 }
 
-export function buildBinaryTriageVaultDraft(report: BinaryTriageReport): BinaryTriageVaultDraft {
+export function buildBinaryTriageVaultDraft(
+  report: BinaryTriageReport,
+): BinaryTriageVaultDraft {
   const networkIndicatorCount =
     report.iocs.urls.length +
     report.iocs.domains.length +
@@ -561,8 +596,14 @@ export function buildReverseEngineeringBriefDraft(
   const sampleLabel = inferBinarySampleLabel(source.title);
   const summaryLines = extractMarkdownSectionLines(source.content, "Summary");
   const hashLines = extractMarkdownSectionLines(source.content, "Hashes");
-  const noteLines = extractMarkdownSectionLines(source.content, "Analyst notes");
-  const iocLines = extractMarkdownSectionLines(source.content, "IOC candidates");
+  const noteLines = extractMarkdownSectionLines(
+    source.content,
+    "Analyst notes",
+  );
+  const iocLines = extractMarkdownSectionLines(
+    source.content,
+    "IOC candidates",
+  );
   const nextSteps = buildReverseEngineeringNextSteps(source);
   const carriedTags = source.tags.filter(
     (tag) =>

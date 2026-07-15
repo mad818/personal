@@ -1,4 +1,8 @@
-export type DocumentMarkdownFormat = "markdown" | "text" | "html" | "unsupported";
+export type DocumentMarkdownFormat =
+  | "markdown"
+  | "text"
+  | "html"
+  | "unsupported";
 
 export interface DocumentMarkdownIntakeResult {
   format: DocumentMarkdownFormat;
@@ -12,7 +16,10 @@ const MARKITDOWN_SOURCE = {
   url: "https://github.com/microsoft/markitdown",
 } as const;
 
-export function detectDocumentFormat(filename: string, mimeHint?: string): DocumentMarkdownFormat {
+export function detectDocumentFormat(
+  filename: string,
+  mimeHint?: string,
+): DocumentMarkdownFormat {
   const lower = filename.toLowerCase();
   if (lower.endsWith(".md") || lower.endsWith(".markdown")) return "markdown";
   if (lower.endsWith(".txt")) return "text";
@@ -43,7 +50,10 @@ export function normalizeDocumentToMarkdown(input: {
   if (format === "text") {
     return {
       format,
-      markdown: trimmed.split("\n").map((line) => line.trim()).join("\n\n"),
+      markdown: trimmed
+        .split("\n")
+        .map((line) => line.trim())
+        .join("\n\n"),
       sourceHint: "Plain text wrapped for agent intake.",
       externalPattern: MARKITDOWN_SOURCE.url,
     };
@@ -59,7 +69,8 @@ export function normalizeDocumentToMarkdown(input: {
     return {
       format,
       markdown: text.slice(0, 12_000),
-      sourceHint: "HTML stripped to text — for rich pages prefer fetch_url or Firecrawl BYOK.",
+      sourceHint:
+        "HTML stripped to text — for rich pages prefer fetch_url or Firecrawl BYOK.",
       externalPattern: MARKITDOWN_SOURCE.url,
     };
   }

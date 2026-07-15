@@ -42,12 +42,10 @@ export interface SpecialistMission {
 const WORKER_BRIEFS: Record<CentralOrchestratorWorkerId, string> = {
   orbit:
     "EL is the engineering worker. Inspect supplied code context, propose the smallest coherent implementation, name affected files, and state verification needed.",
-  nova:
-    "DUSTIN is the research worker. Separate evidence from inference, identify source gaps, and return concise findings MAX can verify and synthesize.",
+  nova: "DUSTIN is the research worker. Separate evidence from inference, identify source gaps, and return concise findings MAX can verify and synthesize.",
   cipher:
     "HOPPER is the security worker. Lead with concrete risk, identify the exact vulnerable or trust-boundary pattern, and state residual risk.",
-  flux:
-    "LUCAS is the markets worker. Separate current supplied data from assumptions, quantify uncertainty, and identify invalidation conditions.",
+  flux: "LUCAS is the markets worker. Separate current supplied data from assumptions, quantify uncertainty, and identify invalidation conditions.",
 };
 
 const STATUS_SET = new Set<SpecialistHandoffStatus>([
@@ -78,7 +76,9 @@ function extractJsonObject(raw: string) {
   const candidate = fenced || trimmed;
   const start = candidate.indexOf("{");
   const end = candidate.lastIndexOf("}");
-  return start >= 0 && end > start ? candidate.slice(start, end + 1) : candidate;
+  return start >= 0 && end > start
+    ? candidate.slice(start, end + 1)
+    : candidate;
 }
 
 export function normalizeCentralOrchestratorWorker(
@@ -112,7 +112,11 @@ export function normalizeSpecialistMission(input: {
       80,
     ).replace(/[^a-zA-Z0-9._-]/g, "-"),
     mission,
-    context: boundedString(input.context, "No additional context supplied.", 8_000),
+    context: boundedString(
+      input.context,
+      "No additional context supplied.",
+      8_000,
+    ),
     expectedOutput: boundedString(
       input.expectedOutput,
       "Return the strongest bounded specialist finding for MAX to synthesize.",
@@ -175,7 +179,8 @@ export function buildFailedSpecialistHandoff(
     notes: [],
     risks: ["MAX did not receive a verified specialist result."],
     verification: [],
-    nextAction: "MAX should continue without this worker or retry with narrower context.",
+    nextAction:
+      "MAX should continue without this worker or retry with narrower context.",
   };
 }
 
@@ -215,7 +220,11 @@ export function parseSpecialistHandoff(
     taskId: mission.taskId,
     worker: mission.worker,
     status,
-    summary: boundedString(parsed.summary, "Worker returned no summary.", 1_000),
+    summary: boundedString(
+      parsed.summary,
+      "Worker returned no summary.",
+      1_000,
+    ),
     deliverable: boundedString(parsed.deliverable, "", 6_000),
     codeProposal,
     files: boundedStringArray(parsed.files),

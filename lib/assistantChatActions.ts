@@ -376,7 +376,9 @@ function extractStructuredError(error: unknown): {
   return { code: null, message: null, raw };
 }
 
-export function resolveAssistantFailure(error: unknown): AssistantFailureResolution {
+export function resolveAssistantFailure(
+  error: unknown,
+): AssistantFailureResolution {
   const structured = extractStructuredError(error);
   const raw = structured.message ?? structured.raw;
   const code = structured.code;
@@ -396,7 +398,8 @@ export function resolveAssistantFailure(error: unknown): AssistantFailureResolut
         id: "reset_session",
         label: "Reset session",
         href: "/",
-        detail: "Return to the local access gate and refresh the protected session.",
+        detail:
+          "Return to the local access gate and refresh the protected session.",
       },
       diagnostic: raw,
       recoveryCode: code ?? "session_required",
@@ -468,7 +471,8 @@ export function resolveAssistantFailure(error: unknown): AssistantFailureResolut
   ) {
     return {
       message:
-        lower.includes("all ai providers unavailable") || lower.includes("provider")
+        lower.includes("all ai providers unavailable") ||
+        lower.includes("provider")
           ? "The active provider lane is unavailable. Review provider health, local model resolution, and network posture before retrying."
           : raw.startsWith("Error:")
             ? raw

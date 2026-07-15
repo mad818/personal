@@ -122,7 +122,10 @@ export const ARPG_LINEAGES = Object.fromEntries(
 ) as Record<string, ArpgLineageDefinition>;
 
 export const ARPG_CLASS_TREES = Object.fromEntries(
-  ARPG_CHARACTER_CONTENT.classTrees.map((classTree) => [classTree.id, classTree]),
+  ARPG_CHARACTER_CONTENT.classTrees.map((classTree) => [
+    classTree.id,
+    classTree,
+  ]),
 ) as Record<string, ArpgClassTreeDefinition>;
 
 export const ARPG_PALETTES = Object.fromEntries(

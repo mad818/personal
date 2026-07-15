@@ -126,7 +126,10 @@ interface GitActivity {
 }
 
 function normalizeRepoPath(value: string) {
-  return value.replace(/\\/g, "/").replace(/^\.\/+/, "").replace(/^\/+/, "");
+  return value
+    .replace(/\\/g, "/")
+    .replace(/^\.\/+/, "")
+    .replace(/^\/+/, "");
 }
 
 function normalizeRelativeImport(value: string) {
@@ -143,7 +146,9 @@ function normalizeRelativeImport(value: string) {
 }
 
 function isAllowedSourcePath(path: string) {
-  return SOURCE_ROOTS.some((root) => path === root || path.startsWith(`${root}/`));
+  return SOURCE_ROOTS.some(
+    (root) => path === root || path.startsWith(`${root}/`),
+  );
 }
 
 function listSourceFiles(root: string) {
@@ -174,7 +179,9 @@ function listSourceFiles(root: string) {
 
       const relativePath = normalizeRepoPath(relative(root, absolutePath));
       if (
-        SOURCE_EXTENSIONS.some((extension) => relativePath.endsWith(extension)) &&
+        SOURCE_EXTENSIONS.some((extension) =>
+          relativePath.endsWith(extension),
+        ) &&
         isAllowedSourcePath(relativePath)
       ) {
         results.push(relativePath);
@@ -205,7 +212,10 @@ function buildProjectArtifactClassificationMap(
 ) {
   const classifications = new Map<string, ArtifactClassification>();
   for (const path of paths) {
-    classifications.set(path, classifyProjectArtifact(path, safeRead(root, path)));
+    classifications.set(
+      path,
+      classifyProjectArtifact(path, safeRead(root, path)),
+    );
   }
   return classifications;
 }
@@ -230,12 +240,17 @@ function extractImportSpecifiers(source: string) {
   return Array.from(specifiers);
 }
 
-function resolveCandidate(basePath: string, files: ReadonlySet<string>): string | null {
+function resolveCandidate(
+  basePath: string,
+  files: ReadonlySet<string>,
+): string | null {
   const normalizedBase = normalizeRelativeImport(basePath);
   if (!normalizedBase || !isAllowedSourcePath(normalizedBase)) return null;
 
   const candidates = [normalizedBase];
-  if (!SOURCE_EXTENSIONS.some((extension) => normalizedBase.endsWith(extension))) {
+  if (
+    !SOURCE_EXTENSIONS.some((extension) => normalizedBase.endsWith(extension))
+  ) {
     for (const extension of SOURCE_EXTENSIONS) {
       candidates.push(`${normalizedBase}${extension}`);
       candidates.push(`${normalizedBase}/index${extension}`);
@@ -284,7 +299,9 @@ function buildProjectImportIndex(root: string): ProjectImportIndex {
     const resolvedImports = Array.from(
       new Set(
         extractImportSpecifiers(source)
-          .map((specifier) => resolveImportSpecifier(sourceFile, specifier, fileSet))
+          .map((specifier) =>
+            resolveImportSpecifier(sourceFile, specifier, fileSet),
+          )
           .filter((path): path is string => Boolean(path)),
       ),
     ).sort((left, right) => left.localeCompare(right));
@@ -310,7 +327,10 @@ function buildReviewPack(index: ProjectImportIndex, target: string | null) {
   if (!target) return [];
   const directImports = index.outgoing.get(target) ?? [];
   const importers = Array.from(index.incoming.get(target) ?? []);
-  return Array.from(new Set([target, ...importers, ...directImports])).slice(0, 14);
+  return Array.from(new Set([target, ...importers, ...directImports])).slice(
+    0,
+    14,
+  );
 }
 
 function detectCircularDependencies(index: ProjectImportIndex) {
@@ -354,7 +374,10 @@ function detectIsolatedFiles(index: ProjectImportIndex) {
 function detectHighCouplingFiles(index: ProjectImportIndex) {
   return index.sourceFiles
     .filter((file) => couplingForPath(index, file) >= 10)
-    .sort((left, right) => couplingForPath(index, right) - couplingForPath(index, left))
+    .sort(
+      (left, right) =>
+        couplingForPath(index, right) - couplingForPath(index, left),
+    )
     .slice(0, 12);
 }
 
@@ -374,18 +397,30 @@ function buildGraphNodes(
 
 function buildGraphEdges(index: ProjectImportIndex) {
   return Array.from(index.outgoing.entries())
-    .flatMap(([source, targets]) => targets.map((target) => ({ source, target })))
+    .flatMap(([source, targets]) =>
+      targets.map((target) => ({ source, target })),
+    )
     .slice(0, 320);
 }
 
 function buildGitActivity(root: string, sourceFiles: string[]): GitActivity {
-  const byPath = new Map<string, { changeCount: number; lastTouchedAt: string | null; lastAuthor: string }>();
+  const byPath = new Map<
+    string,
+    { changeCount: number; lastTouchedAt: string | null; lastAuthor: string }
+  >();
   const authorCounts = new Map<string, number>();
 
   try {
     const output = execFileSync(
       "git",
-      ["-C", root, "log", "--since=180 days ago", "--name-only", "--pretty=format:__COMMIT__%an|%cI"],
+      [
+        "-C",
+        root,
+        "log",
+        "--since=180 days ago",
+        "--name-only",
+        "--pretty=format:__COMMIT__%an|%cI",
+      ],
       {
         encoding: "utf-8",
         stdio: ["ignore", "pipe", "ignore"],
@@ -403,7 +438,10 @@ function buildGitActivity(root: string, sourceFiles: string[]): GitActivity {
         const [author, date] = payload.split("|");
         currentAuthor = author?.trim() || "Unknown";
         currentDate = date?.trim() || null;
-        authorCounts.set(currentAuthor, (authorCounts.get(currentAuthor) ?? 0) + 1);
+        authorCounts.set(
+          currentAuthor,
+          (authorCounts.get(currentAuthor) ?? 0) + 1,
+        );
         continue;
       }
       const path = normalizeRepoPath(line);
@@ -474,7 +512,8 @@ const SECURITY_PATTERNS: Array<{
     kind: "hardcoded-secret",
     severity: "high",
     label: "Possible hardcoded secret",
-    detail: "This file matches a credential-like assignment pattern and should be reviewed for accidental secret exposure.",
+    detail:
+      "This file matches a credential-like assignment pattern and should be reviewed for accidental secret exposure.",
     pattern:
       /\b(?:api[_-]?key|secret|token|password|passwd|client_secret)\b[^=\n]{0,32}[:=]\s*["'`][^"'`\n]{8,}["'`]/i,
   },
@@ -482,41 +521,56 @@ const SECURITY_PATTERNS: Array<{
     kind: "dangerous-eval",
     severity: "high",
     label: "Dangerous eval usage",
-    detail: "Dynamic code execution increases injection and sandbox-escape risk when input is not tightly controlled.",
+    detail:
+      "Dynamic code execution increases injection and sandbox-escape risk when input is not tightly controlled.",
     pattern: /\beval\s*\(/,
   },
   {
     kind: "new-function",
     severity: "high",
     label: "Dynamic Function constructor",
-    detail: "The Function constructor behaves like eval and should be treated as an injection sink.",
+    detail:
+      "The Function constructor behaves like eval and should be treated as an injection sink.",
     pattern: /\bnew\s+Function\s*\(/,
   },
   {
     kind: "html-injection",
     severity: "high",
     label: "Risky HTML injection sink",
-    detail: "Direct HTML insertion paths should be reviewed for untrusted content handling and sanitization gaps.",
-    pattern: /\bdangerouslySetInnerHTML\b|(?:\.innerHTML|\.outerHTML)\s*=|\binsertAdjacentHTML\s*\(/,
+    detail:
+      "Direct HTML insertion paths should be reviewed for untrusted content handling and sanitization gaps.",
+    pattern:
+      /\bdangerouslySetInnerHTML\b|(?:\.innerHTML|\.outerHTML)\s*=|\binsertAdjacentHTML\s*\(/,
   },
   {
     kind: "shell-composition",
     severity: "high",
     label: "Shell composition sink",
-    detail: "Shell execution and spawned command composition should be reviewed for argument escaping and untrusted input flow.",
-    pattern: /\b(?:exec|execSync|execFile|execFileSync|spawn|spawnSync|fork)\s*\(|\bcmd\s*\/c\b|\bpowershell\b/i,
+    detail:
+      "Shell execution and spawned command composition should be reviewed for argument escaping and untrusted input flow.",
+    pattern:
+      /\b(?:exec|execSync|execFile|execFileSync|spawn|spawnSync|fork)\s*\(|\bcmd\s*\/c\b|\bpowershell\b/i,
   },
 ];
 
-export function getProjectGraph(root: string, file?: string | null): ProjectGraphResult {
+export function getProjectGraph(
+  root: string,
+  file?: string | null,
+): ProjectGraphResult {
   const index = buildProjectImportIndex(root);
-  const classifications = buildProjectArtifactClassificationMap(root, index.sourceFiles);
+  const classifications = buildProjectArtifactClassificationMap(
+    root,
+    index.sourceFiles,
+  );
   const target = file ? resolveRequestedFile(file, index.fileSet) : null;
   const circularDependencies = detectCircularDependencies(index);
   const isolatedFiles = detectIsolatedFiles(index);
   const highCouplingFiles = detectHighCouplingFiles(index);
   const nodes = buildGraphNodes(index, classifications)
-    .sort((left, right) => right.coupling - left.coupling || left.path.localeCompare(right.path))
+    .sort(
+      (left, right) =>
+        right.coupling - left.coupling || left.path.localeCompare(right.path),
+    )
     .slice(0, 80);
   const edges = buildGraphEdges(index);
 
@@ -537,13 +591,20 @@ export function getProjectGraph(root: string, file?: string | null): ProjectGrap
   };
 }
 
-export function getProjectOwnership(root: string, file?: string | null): ProjectOwnershipResult {
+export function getProjectOwnership(
+  root: string,
+  file?: string | null,
+): ProjectOwnershipResult {
   const index = buildProjectImportIndex(root);
-  const classifications = buildProjectArtifactClassificationMap(root, index.sourceFiles);
+  const classifications = buildProjectArtifactClassificationMap(
+    root,
+    index.sourceFiles,
+  );
   const target = file ? resolveRequestedFile(file, index.fileSet) : null;
   const reviewPack = buildReviewPack(index, target);
   const activity = buildGitActivity(root, index.sourceFiles);
-  const focusPaths = reviewPack.length > 0 ? reviewPack : index.sourceFiles.slice(0, 18);
+  const focusPaths =
+    reviewPack.length > 0 ? reviewPack : index.sourceFiles.slice(0, 18);
   const owners = focusPaths
     .map((path) => {
       const details = activity.byPath.get(path);
@@ -557,7 +618,10 @@ export function getProjectOwnership(root: string, file?: string | null): Project
           classifications.get(path) ?? classifyProjectArtifact(path),
       };
     })
-    .sort((left, right) => right.changeCount - left.changeCount || right.coupling - left.coupling);
+    .sort(
+      (left, right) =>
+        right.changeCount - left.changeCount || right.coupling - left.coupling,
+    );
 
   return {
     owners,
@@ -572,9 +636,15 @@ export function getProjectOwnership(root: string, file?: string | null): Project
   };
 }
 
-export function getProjectHotspots(root: string, file?: string | null): ProjectHotspotResult {
+export function getProjectHotspots(
+  root: string,
+  file?: string | null,
+): ProjectHotspotResult {
   const index = buildProjectImportIndex(root);
-  const classifications = buildProjectArtifactClassificationMap(root, index.sourceFiles);
+  const classifications = buildProjectArtifactClassificationMap(
+    root,
+    index.sourceFiles,
+  );
   const activity = buildGitActivity(root, index.sourceFiles);
   const target = file ? resolveRequestedFile(file, index.fileSet) : null;
   const preferred = new Set(buildReviewPack(index, target));
@@ -584,7 +654,8 @@ export function getProjectHotspots(root: string, file?: string | null): ProjectH
       const details = activity.byPath.get(path);
       const changeCount = details?.changeCount ?? 0;
       const coupling = couplingForPath(index, path);
-      const hotspotScore = changeCount * 2 + coupling + (preferred.has(path) ? 3 : 0);
+      const hotspotScore =
+        changeCount * 2 + coupling + (preferred.has(path) ? 3 : 0);
       return {
         path,
         changeCount,
@@ -595,7 +666,11 @@ export function getProjectHotspots(root: string, file?: string | null): ProjectH
           classifications.get(path) ?? classifyProjectArtifact(path),
       };
     })
-    .sort((left, right) => right.hotspotScore - left.hotspotScore || left.path.localeCompare(right.path))
+    .sort(
+      (left, right) =>
+        right.hotspotScore - left.hotspotScore ||
+        left.path.localeCompare(right.path),
+    )
     .slice(0, 16);
 
   return {
@@ -605,9 +680,15 @@ export function getProjectHotspots(root: string, file?: string | null): ProjectH
   };
 }
 
-export function getProjectSecurity(root: string, file?: string | null): ProjectSecurityResult {
+export function getProjectSecurity(
+  root: string,
+  file?: string | null,
+): ProjectSecurityResult {
   const index = buildProjectImportIndex(root);
-  const classifications = buildProjectArtifactClassificationMap(root, index.sourceFiles);
+  const classifications = buildProjectArtifactClassificationMap(
+    root,
+    index.sourceFiles,
+  );
   const target = file ? resolveRequestedFile(file, index.fileSet) : null;
   const reviewPack = new Set(buildReviewPack(index, target));
   const highCouplingFiles = detectHighCouplingFiles(index);
@@ -634,9 +715,15 @@ export function getProjectSecurity(root: string, file?: string | null): ProjectS
 
   const sortedFindings = findings
     .sort((left, right) => {
-      const severityScore = left.severity === right.severity ? 0 : left.severity === "high" ? -1 : 1;
+      const severityScore =
+        left.severity === right.severity
+          ? 0
+          : left.severity === "high"
+            ? -1
+            : 1;
       if (severityScore !== 0) return severityScore;
-      const reviewBoost = Number(reviewPack.has(right.path)) - Number(reviewPack.has(left.path));
+      const reviewBoost =
+        Number(reviewPack.has(right.path)) - Number(reviewPack.has(left.path));
       if (reviewBoost !== 0) return reviewBoost;
       return left.path.localeCompare(right.path);
     })
@@ -650,7 +737,9 @@ export function getProjectSecurity(root: string, file?: string | null): ProjectS
     highCouplingFiles,
     stats: {
       findingCount: sortedFindings.length,
-      highSeverityCount: sortedFindings.filter((finding) => finding.severity === "high").length,
+      highSeverityCount: sortedFindings.filter(
+        (finding) => finding.severity === "high",
+      ).length,
       cycleCount: circularDependencies.length,
       isolatedCount: isolatedFiles.length,
     },

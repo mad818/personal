@@ -43,9 +43,15 @@ export const ARPG_FIRST_TOWN_PRESENTATION_CUES =
 
 export function getArpgFirstTownPresentationSummary() {
   const cues = ARPG_FIRST_TOWN_PRESENTATION_CUES;
-  const assetIds = Array.from(new Set(cues.flatMap((cue) => cue.runtimeAssetIds)));
-  const surfaceTargets = Array.from(new Set(cues.flatMap((cue) => cue.surfaceTargets)));
-  const reducedMotionCueCount = cues.filter((cue) => cue.reducedMotionAlternative.trim()).length;
+  const assetIds = Array.from(
+    new Set(cues.flatMap((cue) => cue.runtimeAssetIds)),
+  );
+  const surfaceTargets = Array.from(
+    new Set(cues.flatMap((cue) => cue.surfaceTargets)),
+  );
+  const reducedMotionCueCount = cues.filter((cue) =>
+    cue.reducedMotionAlternative.trim(),
+  ).length;
 
   return {
     title: ARPG_FIRST_TOWN_PRESENTATION_CONTENT.title,
@@ -66,8 +72,12 @@ export function getArpgFirstTownPresentationCue(
   districtId?: string | null,
 ) {
   return (
-    ARPG_FIRST_TOWN_PRESENTATION_CUES.find((cue) => cue.districtId === districtId) ??
-    ARPG_FIRST_TOWN_PRESENTATION_CUES.find((cue) => cue.cityId === cityId && cue.districtId === cityId) ??
+    ARPG_FIRST_TOWN_PRESENTATION_CUES.find(
+      (cue) => cue.districtId === districtId,
+    ) ??
+    ARPG_FIRST_TOWN_PRESENTATION_CUES.find(
+      (cue) => cue.cityId === cityId && cue.districtId === cityId,
+    ) ??
     ARPG_FIRST_TOWN_PRESENTATION_CUES.find((cue) => cue.cityId === cityId) ??
     ARPG_FIRST_TOWN_PRESENTATION_CUES[0]
   );

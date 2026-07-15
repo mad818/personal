@@ -27,8 +27,12 @@ export function readPrivacyShieldStatusFromHeaders(
     response.headers.get("X-Anonymization-Protected") ?? "0",
     10,
   );
-  const protectedKinds = parseKinds(response.headers.get("X-Anonymization-Kinds"));
-  const protectedFields = parseKinds(response.headers.get("X-Anonymization-Fields"));
+  const protectedKinds = parseKinds(
+    response.headers.get("X-Anonymization-Kinds"),
+  );
+  const protectedFields = parseKinds(
+    response.headers.get("X-Anonymization-Fields"),
+  );
   const classCounts = parseClassCounts(
     response.headers.get("X-Anonymization-Classes"),
   );
@@ -51,7 +55,9 @@ export function readPrivacyShieldStatusFromHeaders(
     policy,
     protectedKinds,
     protectedFields,
-    protectedCount: Number.isFinite(protectedCount) ? protectedCount : protectedKinds.length,
+    protectedCount: Number.isFinite(protectedCount)
+      ? protectedCount
+      : protectedKinds.length,
     summary,
     classCounts,
     dispatchMode,

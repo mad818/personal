@@ -56,8 +56,8 @@ export function buildRagEvalRequirementsBlock(): string {
 
 export function formatRagEvalReceipt(score: RagEvalScore): string {
   const gapLine =
-    score.gaps.length > 0 ? `Gaps: ${score.gaps.join(" ")}` : "Gaps: none detected";
-  return (
-    `[RAG EVAL RECEIPT] grade=${score.grade} · urls=${score.urlCount} · citations=${score.citationCount} · ${gapLine}`
-  );
+    score.gaps.length > 0
+      ? `Gaps: ${score.gaps.join(" ")}`
+      : "Gaps: none detected";
+  return `[RAG EVAL RECEIPT] grade=${score.grade} · urls=${score.urlCount} · citations=${score.citationCount} · ${gapLine}`;
 }

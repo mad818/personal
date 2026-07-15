@@ -29,7 +29,10 @@ function normalizeSimpleFocusParams(pathname: string, params: URLSearchParams) {
   }
 }
 
-function normalizeSegmentedRouteParams(pathname: string, params: URLSearchParams) {
+function normalizeSegmentedRouteParams(
+  pathname: string,
+  params: URLSearchParams,
+) {
   const rule = CANONICAL_SEGMENTED_ROUTE_RULES[pathname];
   if (!rule) return;
 
@@ -98,7 +101,8 @@ export function isExactSessionHref(href: string) {
   if (params.has("compiledFilter")) return true;
   if (params.has("workflowId")) return true;
   if (params.has("graphAudit")) return true;
-  if (url.pathname === "/resources" && hasResourcesExactParams(params)) return true;
+  if (url.pathname === "/resources" && hasResourcesExactParams(params))
+    return true;
   return false;
 }
 

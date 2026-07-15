@@ -6,14 +6,16 @@ export type LocalInferenceTask = "chat" | "research" | "code";
 
 export const LOCAL_INFERENCE_PROVIDERS = ["ollama", "turboquant"] as const;
 
-export const LOCAL_INFERENCE_CHAINS: Record<LocalInferenceTask, readonly string[]> = {
+export const LOCAL_INFERENCE_CHAINS: Record<
+  LocalInferenceTask,
+  readonly string[]
+> = {
   chat: LOCAL_INFERENCE_PROVIDERS,
   research: LOCAL_INFERENCE_PROVIDERS,
   code: LOCAL_INFERENCE_PROVIDERS,
 };
 
-const DEFAULT_OLLAMA_CHAT_URL =
-  "http://localhost:11434/v1/chat/completions";
+const DEFAULT_OLLAMA_CHAT_URL = "http://localhost:11434/v1/chat/completions";
 
 function envBool(value: string | undefined, fallback = false) {
   if (typeof value !== "string") return fallback;
@@ -135,7 +137,9 @@ export function resolveProviderChainForTask(options: {
       ? [...LOCAL_INFERENCE_CHAINS.research]
       : [...options.researchChain];
   }
-  return useLocalFirst ? [...LOCAL_INFERENCE_CHAINS.chat] : [...options.autoChain];
+  return useLocalFirst
+    ? [...LOCAL_INFERENCE_CHAINS.chat]
+    : [...options.autoChain];
 }
 
 export function buildLocalInferenceRecoveryMessage() {

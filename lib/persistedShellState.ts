@@ -1,18 +1,21 @@
 import { normalizePreferredAIProvider } from "@/lib/aiProviderPreference";
 import { CLIENT_SENSITIVE_SETTINGS_KEYS } from "@/lib/clientSettingsBoundary";
 
-export const PERSISTED_SHELL_STATE_NOTICE_KEY =
-  "nexus:shell-state-healed:v1";
+export const PERSISTED_SHELL_STATE_NOTICE_KEY = "nexus:shell-state-healed:v1";
 
 const NEXUS_SETTINGS_STORAGE_KEY = "nexus-settings";
 const VAULT_GRAPH_FILTERS_STORAGE_KEY = "nexus:vault-graph-filters:v1";
-const SCHEDULER_AUDIT_FILTER_STORAGE_KEY =
-  "nexus:scheduler-audit-filters:v1";
+const SCHEDULER_AUDIT_FILTER_STORAGE_KEY = "nexus:scheduler-audit-filters:v1";
 const SCHEDULER_AUDIT_VIEWS_STORAGE_KEY = "nexus:scheduler-audit-views:v1";
 const HQ_SPLIT_LOCK_STORAGE_KEY = "nexus_hq_split_drag_locked";
 const CLICK_DEBUG_STORAGE_KEY = "nexus_click_debug";
 
-const VALID_OFFICE_SCENE_MODES = ["auto", "morning", "afternoon", "night"] as const;
+const VALID_OFFICE_SCENE_MODES = [
+  "auto",
+  "morning",
+  "afternoon",
+  "night",
+] as const;
 const VALID_OFFICE_CAMERA_PRESETS = [
   "cinematic",
   "closeOps",
@@ -49,10 +52,9 @@ function buildEnumCheck(values: readonly string[]) {
 }
 
 export function buildPersistedShellStateRepairScript() {
-  const normalizeAdvancedDefault = normalizePreferredAIProvider(
-    "ollama",
-    { allowAdvanced: false },
-  );
+  const normalizeAdvancedDefault = normalizePreferredAIProvider("ollama", {
+    allowAdvanced: false,
+  });
 
   return `
     (function () {

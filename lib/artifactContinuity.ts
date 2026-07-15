@@ -1,5 +1,8 @@
 import type { AssistantCapabilityId } from "@/lib/assistantCapabilityRegistry";
-import type { TutorProfileId, LearningMissionMode } from "@/lib/learningMissions";
+import type {
+  TutorProfileId,
+  LearningMissionMode,
+} from "@/lib/learningMissions";
 import type { MemoryCompartment } from "@/lib/memoryMining";
 import type {
   EvidenceStrength,
@@ -105,7 +108,9 @@ function uniqueStrings(values: Array<string | null | undefined>) {
   return result;
 }
 
-function normalizeCapability(route: string | null | undefined): AssistantCapabilityId | null {
+function normalizeCapability(
+  route: string | null | undefined,
+): AssistantCapabilityId | null {
   switch (route) {
     case "/recon":
       return "reverse-engineering";
@@ -132,10 +137,16 @@ function normalizeWorkflowClass(input: ArtifactContinuityInput) {
     .join(" ")
     .toLowerCase();
 
-  if (/\b(binary triage|reverse-engineering|ghidra|malware|sample)\b/i.test(haystack)) {
+  if (
+    /\b(binary triage|reverse-engineering|ghidra|malware|sample)\b/i.test(
+      haystack,
+    )
+  ) {
     return "reverse-engineering";
   }
-  if (/\b(repo-assimilation|assimilate-repo|repo assimilation)\b/i.test(haystack)) {
+  if (
+    /\b(repo-assimilation|assimilate-repo|repo assimilation)\b/i.test(haystack)
+  ) {
     return "repo-assimilation";
   }
   if (/\b(repo-compare|compare-repos|repo compare)\b/i.test(haystack)) {
@@ -147,10 +158,16 @@ function normalizeWorkflowClass(input: ArtifactContinuityInput) {
   if (/\b(threat-hunt|evidence pack|brief)\b/i.test(haystack)) {
     return "briefing";
   }
-  if (/\b(second brain|obsidian|heartbeat|export|maintenance)\b/i.test(haystack)) {
+  if (
+    /\b(second brain|obsidian|heartbeat|export|maintenance)\b/i.test(haystack)
+  ) {
     return "archive-maintenance";
   }
-  if (/\b(teach|explain|study|quiz|practice|review sheet|study brief|lesson)\b/i.test(haystack)) {
+  if (
+    /\b(teach|explain|study|quiz|practice|review sheet|study brief|lesson)\b/i.test(
+      haystack,
+    )
+  ) {
     return "guided-learning";
   }
   return input.workflowId ? slugify(input.workflowId) : null;
@@ -175,10 +192,7 @@ function hasLearningSignals(input: ArtifactContinuityInput) {
 
 function buildLearningContinuityIdentity(input: ArtifactContinuityInput) {
   const anchor =
-    input.workflowId ??
-    input.topic ??
-    input.sourceLabel ??
-    input.title;
+    input.workflowId ?? input.topic ?? input.sourceLabel ?? input.title;
   return slugify(anchor || input.summary || "learning-artifact");
 }
 
@@ -233,7 +247,9 @@ function buildMissionHints(
     input.workflowPackId ? `workflow-pack:${input.workflowPackId}` : null,
     artifactClass ? `artifact:${artifactClass}` : null,
     input.memoryCompartment ? `compartment:${input.memoryCompartment}` : null,
-    input.learningMissionMode ? `learning-mode:${input.learningMissionMode}` : null,
+    input.learningMissionMode
+      ? `learning-mode:${input.learningMissionMode}`
+      : null,
     input.tutorProfile ? `tutor:${input.tutorProfile}` : null,
     input.repoMemoryBinding ? `repo-memory:${input.repoMemoryBinding}` : null,
     input.sourceLabel ? `source:${slugify(input.sourceLabel)}` : null,
@@ -263,7 +279,9 @@ function buildRelatedLinkSeeds(
     input.workflowPackId ? `workflow-pack:${input.workflowPackId}` : null,
     capability ? `capability:${capability}` : null,
     input.memoryCompartment ? `compartment:${input.memoryCompartment}` : null,
-    input.learningMissionMode ? `learning-mode:${input.learningMissionMode}` : null,
+    input.learningMissionMode
+      ? `learning-mode:${input.learningMissionMode}`
+      : null,
     input.tutorProfile ? `tutor:${input.tutorProfile}` : null,
     input.repoMemoryBinding ? `repo-memory:${input.repoMemoryBinding}` : null,
     input.sourceLabel ? `source:${slugify(input.sourceLabel)}` : null,
@@ -284,21 +302,33 @@ function buildQualitySignals(
   if (input.workflowId) signals.add(`workflow:${input.workflowId}`);
   if (workflowClass) signals.add(`workflow-class:${workflowClass}`);
   if (capability) signals.add(`capability:${capability}`);
-  if (input.workflowPackId) signals.add(`workflow-pack:${input.workflowPackId}`);
-  if (input.memoryCompartment) signals.add(`compartment:${input.memoryCompartment}`);
-  if (input.learningMissionMode) signals.add(`learning-mode:${input.learningMissionMode}`);
+  if (input.workflowPackId)
+    signals.add(`workflow-pack:${input.workflowPackId}`);
+  if (input.memoryCompartment)
+    signals.add(`compartment:${input.memoryCompartment}`);
+  if (input.learningMissionMode)
+    signals.add(`learning-mode:${input.learningMissionMode}`);
   if (input.tutorProfile) signals.add(`tutor:${input.tutorProfile}`);
-  if (input.repoMemoryBinding) signals.add(`repo-memory:${input.repoMemoryBinding}`);
+  if (input.repoMemoryBinding)
+    signals.add(`repo-memory:${input.repoMemoryBinding}`);
   if (input.sourceType) signals.add(`source-type:${input.sourceType}`);
   if (input.evidenceStrength) signals.add(`evidence:${input.evidenceStrength}`);
-  if (input.tags.length > 0) signals.add(`tagged:${Math.min(input.tags.length, 6)}`);
+  if (input.tags.length > 0)
+    signals.add(`tagged:${Math.min(input.tags.length, 6)}`);
   if (/https?:\/\//i.test(input.content ?? "")) signals.add("cited");
   if (/^#{1,6}\s/m.test(input.content ?? "")) signals.add("sectioned");
-  if (/\bsha-?256\b|\bsha-?1\b/i.test(input.content ?? "")) signals.add("hash-anchored");
-  if (/\bioc candidates\b|\burls:\b|\bdomains:\b|\bipv4:\b|\bemails:\b/i.test(input.content ?? "")) {
+  if (/\bsha-?256\b|\bsha-?1\b/i.test(input.content ?? ""))
+    signals.add("hash-anchored");
+  if (
+    /\bioc candidates\b|\burls:\b|\bdomains:\b|\bipv4:\b|\bemails:\b/i.test(
+      input.content ?? "",
+    )
+  ) {
     signals.add("ioc-anchored");
   }
-  if (/\bbrief\b/i.test(`${input.title} ${input.summary} ${input.topic ?? ""}`)) {
+  if (
+    /\bbrief\b/i.test(`${input.title} ${input.summary} ${input.topic ?? ""}`)
+  ) {
     signals.add("brief-shaped");
   }
   if (artifactClass === "reverse_engineering_prep") signals.add("promotable");
@@ -318,7 +348,8 @@ export function buildArtifactContinuityMetadata(
       tags: input.tags,
     });
     const capability: AssistantCapabilityId = "reverse-engineering";
-    const workflowClass = normalizeWorkflowClass(input) ?? "reverse-engineering";
+    const workflowClass =
+      normalizeWorkflowClass(input) ?? "reverse-engineering";
     return {
       artifactClass: "reverse_engineering_brief",
       continuityId,
@@ -371,7 +402,8 @@ export function buildArtifactContinuityMetadata(
       tags: input.tags,
     });
     const capability: AssistantCapabilityId = "reverse-engineering";
-    const workflowClass = normalizeWorkflowClass(input) ?? "reverse-engineering";
+    const workflowClass =
+      normalizeWorkflowClass(input) ?? "reverse-engineering";
     return {
       artifactClass: "reverse_engineering_prep",
       continuityId,
@@ -421,9 +453,13 @@ export function buildArtifactContinuityMetadata(
       `${input.title} ${input.summary} ${input.topic ?? ""}`,
     )
       ? "quiz_set"
-      : /\breview sheet\b/i.test(`${input.title} ${input.summary} ${input.topic ?? ""}`)
+      : /\breview sheet\b/i.test(
+            `${input.title} ${input.summary} ${input.topic ?? ""}`,
+          )
         ? "review_sheet"
-        : /\bstudy brief\b/i.test(`${input.title} ${input.summary} ${input.topic ?? ""}`)
+        : /\bstudy brief\b/i.test(
+              `${input.title} ${input.summary} ${input.topic ?? ""}`,
+            )
           ? "study_brief"
           : "learning_note";
     const continuityId = buildLearningContinuityIdentity(input);
@@ -433,7 +469,9 @@ export function buildArtifactContinuityMetadata(
     return {
       artifactClass,
       continuityId,
-      continuityTag: continuityId ? `continuity:learning:${continuityId}` : null,
+      continuityTag: continuityId
+        ? `continuity:learning:${continuityId}`
+        : null,
       sourceQuery: buildSourceQuery(input),
       capability,
       routeOrigin: input.route?.trim() || null,
@@ -446,7 +484,12 @@ export function buildArtifactContinuityMetadata(
       sourceRefs: input.sourceRefs ?? [],
       sourceType: input.sourceType ?? null,
       evidenceStrength: input.evidenceStrength ?? null,
-      missionHints: buildMissionHints(input, artifactClass, capability, workflowClass),
+      missionHints: buildMissionHints(
+        input,
+        artifactClass,
+        capability,
+        workflowClass,
+      ),
       relatedLinkSeeds: buildRelatedLinkSeeds(
         input,
         continuityId,
@@ -455,7 +498,12 @@ export function buildArtifactContinuityMetadata(
         artifactClass,
       ),
       promotionKind: artifactClass === "learning_note" ? "study_brief" : null,
-      qualitySignals: buildQualitySignals(input, artifactClass, workflowClass, capability),
+      qualitySignals: buildQualitySignals(
+        input,
+        artifactClass,
+        workflowClass,
+        capability,
+      ),
     };
   }
 
@@ -464,15 +512,17 @@ export function buildArtifactContinuityMetadata(
       input.workflowId === "repo-assimilation" ||
       input.workflowId === "repo-compare" ||
       /\bbrief\b/i.test(`${input.title} ${input.summary} ${input.topic ?? ""}`)
-      ? "research_brief"
-      : "research_artifact";
+        ? "research_brief"
+        : "research_artifact";
     const continuityId = buildResearchContinuityIdentity(input);
     const capability = normalizeCapability(input.route);
     const workflowClass = normalizeWorkflowClass(input) ?? "research";
     return {
       artifactClass,
       continuityId,
-      continuityTag: continuityId ? `continuity:research:${continuityId}` : null,
+      continuityTag: continuityId
+        ? `continuity:research:${continuityId}`
+        : null,
       sourceQuery: buildSourceQuery(input),
       capability,
       routeOrigin: input.route?.trim() || null,
@@ -485,7 +535,12 @@ export function buildArtifactContinuityMetadata(
       sourceRefs: input.sourceRefs ?? [],
       sourceType: input.sourceType ?? null,
       evidenceStrength: input.evidenceStrength ?? null,
-      missionHints: buildMissionHints(input, artifactClass, capability, workflowClass),
+      missionHints: buildMissionHints(
+        input,
+        artifactClass,
+        capability,
+        workflowClass,
+      ),
       relatedLinkSeeds: buildRelatedLinkSeeds(
         input,
         continuityId,
@@ -493,8 +548,14 @@ export function buildArtifactContinuityMetadata(
         workflowClass,
         artifactClass,
       ),
-      promotionKind: artifactClass === "research_artifact" ? "research_brief" : null,
-      qualitySignals: buildQualitySignals(input, artifactClass, workflowClass, capability),
+      promotionKind:
+        artifactClass === "research_artifact" ? "research_brief" : null,
+      qualitySignals: buildQualitySignals(
+        input,
+        artifactClass,
+        workflowClass,
+        capability,
+      ),
     };
   }
 
@@ -516,7 +577,12 @@ export function buildArtifactContinuityMetadata(
     sourceRefs: input.sourceRefs ?? [],
     sourceType: input.sourceType ?? null,
     evidenceStrength: input.evidenceStrength ?? null,
-    missionHints: buildMissionHints(input, "archive_note", capability, workflowClass),
+    missionHints: buildMissionHints(
+      input,
+      "archive_note",
+      capability,
+      workflowClass,
+    ),
     relatedLinkSeeds: buildRelatedLinkSeeds(
       input,
       null,
@@ -525,7 +591,12 @@ export function buildArtifactContinuityMetadata(
       "archive_note",
     ),
     promotionKind: null,
-    qualitySignals: buildQualitySignals(input, "archive_note", workflowClass, capability),
+    qualitySignals: buildQualitySignals(
+      input,
+      "archive_note",
+      workflowClass,
+      capability,
+    ),
   };
 }
 

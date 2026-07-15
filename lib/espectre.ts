@@ -165,7 +165,10 @@ export function normalizeEspectreTelemetry(
       fallback.sensorId ?? "espectre-unknown",
     ).replace(/[^a-zA-Z0-9._-]/g, "-"),
     name: text(input.name, fallback.name ?? "ESPectre sensor"),
-    zone: text(input.zone ?? input.location, fallback.zone ?? "Unassigned zone"),
+    zone: text(
+      input.zone ?? input.location,
+      fallback.zone ?? "Unassigned zone",
+    ),
     motionState: motionState(
       input.motionState ?? input.motion_state ?? input.motion,
       movementScore,
@@ -173,11 +176,7 @@ export function normalizeEspectreTelemetry(
     ),
     movementScore,
     threshold,
-    detector: enumValue(
-      input.detector,
-      DETECTORS,
-      fallback.detector ?? "mvs",
-    ),
+    detector: enumValue(input.detector, DETECTORS, fallback.detector ?? "mvs"),
     trafficMode: enumValue(
       input.trafficMode ?? input.traffic_mode,
       TRAFFIC_MODES,
@@ -241,7 +240,9 @@ export function buildEspectreReadiness(
   const stale = !Number.isFinite(seenAt) || now - seenAt > 120_000;
 
   if (!telemetry.consentConfirmed) {
-    blockers.push("Confirm consent for everyone who can be sensed in this zone.");
+    blockers.push(
+      "Confirm consent for everyone who can be sensed in this zone.",
+    );
   }
   if (!telemetry.calibrated) {
     blockers.push("Calibrate the sensor in its installed position.");
@@ -279,7 +280,8 @@ export function buildEspectreReadiness(
       status: "simulated",
       ready: true,
       blockers: [],
-      summary: "Simulation is live. Connect external ESPectre hardware for real sensing.",
+      summary:
+        "Simulation is live. Connect external ESPectre hardware for real sensing.",
     };
   }
   return {

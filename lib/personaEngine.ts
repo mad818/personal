@@ -136,7 +136,9 @@ export function resolveCouncilMembers(input: {
   return DEFAULT_COUNCIL_MEMBERS;
 }
 
-function resolveCouncilTask(persona: PersonaMode): "chat" | "fast" | "reasoning" {
+function resolveCouncilTask(
+  persona: PersonaMode,
+): "chat" | "fast" | "reasoning" {
   if (persona === "deep") return "reasoning";
   if (persona === "direct") return "fast";
   return "chat";
@@ -153,11 +155,16 @@ export function sortCouncilResults(
   members: CouncilMember[],
 ): CouncilResult[] {
   const order = new Map(
-    members.map((member, index) => [`${member.agent}:${member.persona}`, index]),
+    members.map((member, index) => [
+      `${member.agent}:${member.persona}`,
+      index,
+    ]),
   );
   return [...results].sort((a, b) => {
-    const aIndex = order.get(`${a.agent}:${a.persona}`) ?? Number.MAX_SAFE_INTEGER;
-    const bIndex = order.get(`${b.agent}:${b.persona}`) ?? Number.MAX_SAFE_INTEGER;
+    const aIndex =
+      order.get(`${a.agent}:${a.persona}`) ?? Number.MAX_SAFE_INTEGER;
+    const bIndex =
+      order.get(`${b.agent}:${b.persona}`) ?? Number.MAX_SAFE_INTEGER;
     if (aIndex !== bIndex) return aIndex - bIndex;
     return compareCouncilMembers(a, b);
   });

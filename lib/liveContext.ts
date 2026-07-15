@@ -235,7 +235,8 @@ export function buildFilteredLiveContext(
 
   if (allowed.has("vault") && state.vaultSynthesis) {
     const vs = state.vaultSynthesis;
-    const gapSnippet = vs.gaps.length > 0 ? ` | Gaps: ${vs.gaps.slice(0, 2).join(", ")}` : "";
+    const gapSnippet =
+      vs.gaps.length > 0 ? ` | Gaps: ${vs.gaps.slice(0, 2).join(", ")}` : "";
     lines.push(`VAULT: ${vs.summary.slice(0, 160)}${gapSnippet}`);
   }
 
@@ -243,15 +244,17 @@ export function buildFilteredLiveContext(
 
   // Inject learnings block if available for this agent
   const learnings = state.agentLearnings?.[agentId.toLowerCase()] ?? [];
-  const learningsBlock = learnings.length > 0
-    && opts.includeLearnings !== false
-    ? buildLearningsBlock(agentId.toLowerCase() as import("@/components/home/office/types").AgentId, learnings.slice(0, 5))
-    : "";
+  const learningsBlock =
+    learnings.length > 0 && opts.includeLearnings !== false
+      ? buildLearningsBlock(
+          agentId.toLowerCase() as import("@/components/home/office/types").AgentId,
+          learnings.slice(0, 5),
+        )
+      : "";
 
   if (!lines.length) return "";
-  const stackBlock = opts.includeStackContext === false
-    ? ""
-    : buildStackContextBlock();
+  const stackBlock =
+    opts.includeStackContext === false ? "" : buildStackContextBlock();
   return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join("\n")}\n[END LIVE INTEL]\n${stackBlock ? "\n" + stackBlock + "\n" : ""}${learningsBlock ? "\n" + learningsBlock + "\n" : ""}`;
 }
 
@@ -365,7 +368,8 @@ export function buildLiveContext(
   // VAULT SYNTHESIS
   if (state.vaultSynthesis) {
     const vs = state.vaultSynthesis;
-    const gapSnippet = vs.gaps.length > 0 ? ` | Gaps: ${vs.gaps.slice(0, 2).join(", ")}` : "";
+    const gapSnippet =
+      vs.gaps.length > 0 ? ` | Gaps: ${vs.gaps.slice(0, 2).join(", ")}` : "";
     lines.push(`VAULT: ${vs.summary.slice(0, 160)}${gapSnippet}`);
   }
 
@@ -376,9 +380,8 @@ export function buildLiveContext(
   );
 
   if (lines.length === 0) return "";
-  const stackBlock = opts.includeStackContext === false
-    ? ""
-    : buildStackContextBlock();
+  const stackBlock =
+    opts.includeStackContext === false ? "" : buildStackContextBlock();
   return `\n\n[NEXUS LIVE INTEL — ${ts}]\n${lines.join("\n")}\n[END LIVE INTEL]\n${stackBlock ? "\n" + stackBlock + "\n" : ""}`;
 }
 
@@ -392,7 +395,7 @@ export function buildLiveContextWithAgentId(
   if (learnings.length === 0) return baseContext;
   const learningsBlock = buildLearningsBlock(
     agentId.toLowerCase() as import("@/components/home/office/types").AgentId,
-    learnings.slice(0, 5)
+    learnings.slice(0, 5),
   );
   return baseContext + learningsBlock + "\n";
 }
@@ -440,7 +443,9 @@ export function buildCorrectionMemoryPromptBlock(
           entry.scope.routeSurface ? `route ${entry.scope.routeSurface}` : null,
           entry.scope.agent ? `agent ${entry.scope.agent.toUpperCase()}` : null,
           entry.scope.taskType ? `task ${entry.scope.taskType}` : null,
-          entry.scope.capability ? `capability ${entry.scope.capability}` : null,
+          entry.scope.capability
+            ? `capability ${entry.scope.capability}`
+            : null,
         ].filter(Boolean);
         const scopeLabel = scopeParts.length
           ? ` [${scopeParts.join(" · ")}]`

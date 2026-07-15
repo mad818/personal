@@ -39,13 +39,22 @@ const KIND_ACCENTS: Record<ArpgVfxKind, string> = {
   oracle: "#a7f3d0",
 };
 
-function eventKindFor(lastEvent: string, activeAgent: AgentId | null): ArpgVfxKind {
+function eventKindFor(
+  lastEvent: string,
+  activeAgent: AgentId | null,
+): ArpgVfxKind {
   const event = lastEvent.toLowerCase();
-  if (/equipped|upgraded|tempered|tune your build|not equippable|select equipment/.test(event)) {
+  if (
+    /equipped|upgraded|tempered|tune your build|not equippable|select equipment/.test(
+      event,
+    )
+  ) {
     return "equip";
   }
-  if (/collected|already in your kit|loom-shard|vial|draught/.test(event)) return "loot";
-  if (/struck|defeated|dissolved|quiet|closer|ignores/.test(event)) return "hit";
+  if (/collected|already in your kit|loom-shard|vial|draught/.test(event))
+    return "loot";
+  if (/struck|defeated|dissolved|quiet|closer|ignores/.test(event))
+    return "hit";
   if (/monolith|map-fragment|records|reliquary gate stabilized/.test(event)) {
     return "objective";
   }
@@ -62,7 +71,11 @@ function accentFor(
   if (kind === "loot") {
     return ARPG_ITEMS[ARPG_LOOT_PEDESTAL_ITEM_ID]?.accent ?? KIND_ACCENTS.loot;
   }
-  if (kind === "equip" && save.selectedItemId && ARPG_ITEMS[save.selectedItemId]) {
+  if (
+    kind === "equip" &&
+    save.selectedItemId &&
+    ARPG_ITEMS[save.selectedItemId]
+  ) {
     return ARPG_ITEMS[save.selectedItemId].accent;
   }
   const nearest = getNearestArpgInteraction(save);

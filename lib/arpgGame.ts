@@ -537,7 +537,12 @@ function isKnownItem(itemId: unknown): itemId is string {
 
 function uniqueStrings(values: unknown[]): string[] {
   return Array.from(
-    new Set(values.filter((value): value is string => typeof value === "string" && value.length > 0)),
+    new Set(
+      values.filter(
+        (value): value is string =>
+          typeof value === "string" && value.length > 0,
+      ),
+    ),
   );
 }
 
@@ -549,48 +554,71 @@ function addStats(target: ArpgStats, bonus: Partial<ArpgStats> | undefined) {
 }
 
 function knownLineageId(value: unknown): string {
-  return typeof value === "string" && ARPG_LINEAGES[value] ? value : DEFAULT_RACE_ID;
+  return typeof value === "string" && ARPG_LINEAGES[value]
+    ? value
+    : DEFAULT_RACE_ID;
 }
 
 function knownClassPathId(value: unknown): string {
-  return typeof value === "string" && ARPG_CLASS_TREES[value] ? value : DEFAULT_CLASS_PATH_ID;
+  return typeof value === "string" && ARPG_CLASS_TREES[value]
+    ? value
+    : DEFAULT_CLASS_PATH_ID;
 }
 
 function getClassTree(classPathId: string): ArpgClassTreeDefinition {
-  return ARPG_CLASS_TREES[classPathId] ?? ARPG_CLASS_TREES[DEFAULT_CLASS_PATH_ID];
+  return (
+    ARPG_CLASS_TREES[classPathId] ?? ARPG_CLASS_TREES[DEFAULT_CLASS_PATH_ID]
+  );
 }
 
-function getSubclass(classPathId: string, subclassId: unknown): ArpgSubclassDefinition {
+function getSubclass(
+  classPathId: string,
+  subclassId: unknown,
+): ArpgSubclassDefinition {
   const classTree = getClassTree(classPathId);
   return (
     classTree.subclasses.find((subclass) => subclass.id === subclassId) ??
-    classTree.subclasses.find((subclass) => subclass.id === classTree.starterBuild.subclassId) ??
+    classTree.subclasses.find(
+      (subclass) => subclass.id === classTree.starterBuild.subclassId,
+    ) ??
     classTree.subclasses[0]
   );
 }
 
-function getPalette(lineageId: string, paletteId: unknown): ArpgPaletteDefinition {
+function getPalette(
+  lineageId: string,
+  paletteId: unknown,
+): ArpgPaletteDefinition {
   const lineage = ARPG_LINEAGES[lineageId] ?? ARPG_LINEAGES[DEFAULT_RACE_ID];
   const preferred =
     typeof paletteId === "string" && ARPG_PALETTES[paletteId]
       ? ARPG_PALETTES[paletteId]
       : null;
-  if (preferred && (preferred.lineageId === lineage.id || lineage.paletteIds.includes(preferred.id))) {
+  if (
+    preferred &&
+    (preferred.lineageId === lineage.id ||
+      lineage.paletteIds.includes(preferred.id))
+  ) {
     return preferred;
   }
-  const fallbackPaletteId = lineage.paletteIds.find((id) => ARPG_PALETTES[id]) ?? DEFAULT_PALETTE_ID;
+  const fallbackPaletteId =
+    lineage.paletteIds.find((id) => ARPG_PALETTES[id]) ?? DEFAULT_PALETTE_ID;
   return ARPG_PALETTES[fallbackPaletteId] ?? ARPG_PALETTES[DEFAULT_PALETTE_ID];
 }
 
-function getPortrait(lineageId: string, portraitId: unknown): ArpgPortraitDefinition {
+function getPortrait(
+  lineageId: string,
+  portraitId: unknown,
+): ArpgPortraitDefinition {
   const preferred =
     typeof portraitId === "string" && ARPG_PORTRAITS[portraitId]
       ? ARPG_PORTRAITS[portraitId]
       : null;
   if (preferred && preferred.lineageId === lineageId) return preferred;
   return (
-    Object.values(ARPG_PORTRAITS).find((portrait) => portrait.lineageId === lineageId) ??
-    ARPG_PORTRAITS[DEFAULT_PORTRAIT_ID]
+    Object.values(ARPG_PORTRAITS).find(
+      (portrait) => portrait.lineageId === lineageId,
+    ) ?? ARPG_PORTRAITS[DEFAULT_PORTRAIT_ID]
   );
 }
 
@@ -638,19 +666,23 @@ function normalizeCharacterIdentity(
   player: Partial<ArpgSaveState["player"]> | undefined,
 ): ArpgProductionCharacterIdentity {
   const raceId = knownLineageId(rawCharacter?.raceId);
-  const classPathId = knownClassPathId(rawCharacter?.classPathId ?? player?.classPathId);
+  const classPathId = knownClassPathId(
+    rawCharacter?.classPathId ?? player?.classPathId,
+  );
   const subclass = getSubclass(classPathId, rawCharacter?.subclassId);
   const palette = getPalette(raceId, rawCharacter?.spritePaletteId);
   const portrait = getPortrait(raceId, rawCharacter?.portraitId);
 
   return {
     characterName:
-      typeof rawCharacter?.characterName === "string" && rawCharacter.characterName.trim()
+      typeof rawCharacter?.characterName === "string" &&
+      rawCharacter.characterName.trim()
         ? rawCharacter.characterName.trim().slice(0, 40)
         : ARPG_CHARACTER_DEFAULTS.characterName,
     raceId,
     originId:
-      typeof rawCharacter?.originId === "string" && ARPG_ORIGINS[rawCharacter.originId]
+      typeof rawCharacter?.originId === "string" &&
+      ARPG_ORIGINS[rawCharacter.originId]
         ? rawCharacter.originId
         : DEFAULT_ORIGIN_ID,
     classPathId,
@@ -658,7 +690,8 @@ function normalizeCharacterIdentity(
     portraitId: portrait.id,
     spritePaletteId: palette.id,
     cosmeticAccent:
-      typeof rawCharacter?.cosmeticAccent === "string" && rawCharacter.cosmeticAccent.trim()
+      typeof rawCharacter?.cosmeticAccent === "string" &&
+      rawCharacter.cosmeticAccent.trim()
         ? rawCharacter.cosmeticAccent
         : palette.accent,
     respecCount: Math.max(0, Math.floor(rawCharacter?.respecCount ?? 0)),
@@ -676,7 +709,10 @@ function createDefaultQuestLog(): ArpgProductionQuestLogEntry[] {
   ];
 }
 
-function createDefaultCompanions(): Record<string, ArpgProductionCompanionState> {
+function createDefaultCompanions(): Record<
+  string,
+  ArpgProductionCompanionState
+> {
   return {
     "oracle-guide": {
       companionId: "oracle-guide",
@@ -723,14 +759,22 @@ function createDefaultJourney(storyFlags: string[] = []): ArpgJourneyState {
   };
 }
 
-function normalizeJourney(rawJourney: unknown, storyFlags: string[]): ArpgJourneyState {
+function normalizeJourney(
+  rawJourney: unknown,
+  storyFlags: string[],
+): ArpgJourneyState {
   const raw =
     rawJourney && typeof rawJourney === "object"
       ? (rawJourney as Partial<ArpgJourneyState>)
       : {};
-  const cityIds = new Set(["first-reliquary", ...ARPG_PRODUCTION_CONTENT.world.cities.map((city) => city.id)]);
+  const cityIds = new Set([
+    "first-reliquary",
+    ...ARPG_PRODUCTION_CONTENT.world.cities.map((city) => city.id),
+  ]);
   const subCityIds = new Set(
-    ARPG_PRODUCTION_CONTENT.world.cities.flatMap((city) => city.subCities.map((subCity) => subCity.id)),
+    ARPG_PRODUCTION_CONTENT.world.cities.flatMap((city) =>
+      city.subCities.map((subCity) => subCity.id),
+    ),
   );
   const routeIds = new Set(ARPG_ROUTE_EVENTS.map((event) => event.routeId));
   const eventIds = new Set(ARPG_ROUTE_EVENTS.map((event) => event.id));
@@ -739,7 +783,8 @@ function normalizeJourney(rawJourney: unknown, storyFlags: string[]): ArpgJourne
       ? raw.selectedCityId
       : "first-reliquary";
   const selectedSubCityId =
-    typeof raw.selectedSubCityId === "string" && subCityIds.has(raw.selectedSubCityId)
+    typeof raw.selectedSubCityId === "string" &&
+    subCityIds.has(raw.selectedSubCityId)
       ? raw.selectedSubCityId
       : null;
 
@@ -751,12 +796,13 @@ function normalizeJourney(rawJourney: unknown, storyFlags: string[]): ArpgJourne
         ? raw.activeRouteId
         : null,
     activeTravelEventId:
-      typeof raw.activeTravelEventId === "string" && eventIds.has(raw.activeTravelEventId)
+      typeof raw.activeTravelEventId === "string" &&
+      eventIds.has(raw.activeTravelEventId)
         ? raw.activeTravelEventId
         : null,
-    resolvedTravelEventIds: uniqueStrings(raw.resolvedTravelEventIds ?? []).filter((eventId) =>
-      eventIds.has(eventId),
-    ),
+    resolvedTravelEventIds: uniqueStrings(
+      raw.resolvedTravelEventIds ?? [],
+    ).filter((eventId) => eventIds.has(eventId)),
     unlockedRouteIds: uniqueStrings([
       ...routeIdsUnlockedByFlags(storyFlags),
       ...(Array.isArray(raw.unlockedRouteIds) ? raw.unlockedRouteIds : []),
@@ -765,16 +811,18 @@ function normalizeJourney(rawJourney: unknown, storyFlags: string[]): ArpgJourne
 }
 
 function hasEndgameAccessFromFlags(storyFlags: string[]) {
-  return [...ARPG_ENDGAME_CONTENT.postgameUnlockFlags, ...ARPG_ENDGAME_CONTENT.previewUnlockFlags].some((flag) =>
-    storyFlags.includes(flag),
-  );
+  return [
+    ...ARPG_ENDGAME_CONTENT.postgameUnlockFlags,
+    ...ARPG_ENDGAME_CONTENT.previewUnlockFlags,
+  ].some((flag) => storyFlags.includes(flag));
 }
 
 function createDefaultEndgame(storyFlags: string[] = []): ArpgEndgameState {
   return {
     unlocked: hasEndgameAccessFromFlags(storyFlags),
     difficultyTierId: ARPG_ENDGAME_CONTENT.defaultDifficultyTierId,
-    eliteAffixRotationId: ARPG_ENDGAME_CONTENT.eliteAffixRotations[0]?.id ?? "iron-vow",
+    eliteAffixRotationId:
+      ARPG_ENDGAME_CONTENT.eliteAffixRotations[0]?.id ?? "iron-vow",
     activeDungeonId: null,
     activeTrialId: null,
     activeBossRematchId: null,
@@ -791,34 +839,52 @@ function createDefaultEndgame(storyFlags: string[] = []): ArpgEndgameState {
   };
 }
 
-function normalizeEndgame(rawEndgame: unknown, storyFlags: string[]): ArpgEndgameState {
+function normalizeEndgame(
+  rawEndgame: unknown,
+  storyFlags: string[],
+): ArpgEndgameState {
   const raw =
     rawEndgame && typeof rawEndgame === "object"
       ? (rawEndgame as Partial<ArpgEndgameState>)
       : {};
   const fallback = createDefaultEndgame(storyFlags);
-  const difficultyIds = new Set(ARPG_ENDGAME_CONTENT.difficultyTiers.map((tier) => tier.id));
-  const affixIds = new Set(ARPG_ENDGAME_CONTENT.eliteAffixRotations.map((rotation) => rotation.id));
-  const dungeonIds = new Set(ARPG_CITY_CHALLENGE_DUNGEONS.map((dungeon) => dungeon.id));
+  const difficultyIds = new Set(
+    ARPG_ENDGAME_CONTENT.difficultyTiers.map((tier) => tier.id),
+  );
+  const affixIds = new Set(
+    ARPG_ENDGAME_CONTENT.eliteAffixRotations.map((rotation) => rotation.id),
+  );
+  const dungeonIds = new Set(
+    ARPG_CITY_CHALLENGE_DUNGEONS.map((dungeon) => dungeon.id),
+  );
   const trialIds = new Set(ARPG_RELIC_TRIALS.map((trial) => trial.id));
   const bossIds = new Set(ARPG_BOSS_REMATCHES.map((boss) => boss.id));
   const mapIds = new Set(ARPG_TREASURE_MAPS.map((map) => map.id));
-  const arenaIds = new Set(ARPG_ENDGAME_CONTENT.arenaChallenges.map((challenge) => challenge.id));
-  const goalIds = new Set(ARPG_ENDGAME_CONTENT.collectionGoals.map((goal) => goal.id));
-  const cosmeticIds = new Set(ARPG_ENDGAME_CONTENT.cosmeticRewards.map((reward) => reward.id));
+  const arenaIds = new Set(
+    ARPG_ENDGAME_CONTENT.arenaChallenges.map((challenge) => challenge.id),
+  );
+  const goalIds = new Set(
+    ARPG_ENDGAME_CONTENT.collectionGoals.map((goal) => goal.id),
+  );
+  const cosmeticIds = new Set(
+    ARPG_ENDGAME_CONTENT.cosmeticRewards.map((reward) => reward.id),
+  );
 
   return {
     unlocked: Boolean(raw.unlocked) || fallback.unlocked,
     difficultyTierId:
-      typeof raw.difficultyTierId === "string" && difficultyIds.has(raw.difficultyTierId)
+      typeof raw.difficultyTierId === "string" &&
+      difficultyIds.has(raw.difficultyTierId)
         ? raw.difficultyTierId
         : fallback.difficultyTierId,
     eliteAffixRotationId:
-      typeof raw.eliteAffixRotationId === "string" && affixIds.has(raw.eliteAffixRotationId)
+      typeof raw.eliteAffixRotationId === "string" &&
+      affixIds.has(raw.eliteAffixRotationId)
         ? raw.eliteAffixRotationId
         : fallback.eliteAffixRotationId,
     activeDungeonId:
-      typeof raw.activeDungeonId === "string" && dungeonIds.has(raw.activeDungeonId)
+      typeof raw.activeDungeonId === "string" &&
+      dungeonIds.has(raw.activeDungeonId)
         ? raw.activeDungeonId
         : null,
     activeTrialId:
@@ -826,21 +892,39 @@ function normalizeEndgame(rawEndgame: unknown, storyFlags: string[]): ArpgEndgam
         ? raw.activeTrialId
         : null,
     activeBossRematchId:
-      typeof raw.activeBossRematchId === "string" && bossIds.has(raw.activeBossRematchId)
+      typeof raw.activeBossRematchId === "string" &&
+      bossIds.has(raw.activeBossRematchId)
         ? raw.activeBossRematchId
         : null,
     activeArenaChallengeId:
-      typeof raw.activeArenaChallengeId === "string" && arenaIds.has(raw.activeArenaChallengeId)
+      typeof raw.activeArenaChallengeId === "string" &&
+      arenaIds.has(raw.activeArenaChallengeId)
         ? raw.activeArenaChallengeId
         : null,
-    completedDungeonIds: uniqueStrings(raw.completedDungeonIds ?? []).filter((id) => dungeonIds.has(id)),
-    completedTrialIds: uniqueStrings(raw.completedTrialIds ?? []).filter((id) => trialIds.has(id)),
-    completedBossRematchIds: uniqueStrings(raw.completedBossRematchIds ?? []).filter((id) => bossIds.has(id)),
-    discoveredTreasureMapIds: uniqueStrings(raw.discoveredTreasureMapIds ?? []).filter((id) => mapIds.has(id)),
-    completedTreasureMapIds: uniqueStrings(raw.completedTreasureMapIds ?? []).filter((id) => mapIds.has(id)),
-    completedArenaChallengeIds: uniqueStrings(raw.completedArenaChallengeIds ?? []).filter((id) => arenaIds.has(id)),
-    collectionGoalIds: uniqueStrings(raw.collectionGoalIds ?? []).filter((id) => goalIds.has(id)),
-    cosmeticRewardIds: uniqueStrings(raw.cosmeticRewardIds ?? []).filter((id) => cosmeticIds.has(id)),
+    completedDungeonIds: uniqueStrings(raw.completedDungeonIds ?? []).filter(
+      (id) => dungeonIds.has(id),
+    ),
+    completedTrialIds: uniqueStrings(raw.completedTrialIds ?? []).filter((id) =>
+      trialIds.has(id),
+    ),
+    completedBossRematchIds: uniqueStrings(
+      raw.completedBossRematchIds ?? [],
+    ).filter((id) => bossIds.has(id)),
+    discoveredTreasureMapIds: uniqueStrings(
+      raw.discoveredTreasureMapIds ?? [],
+    ).filter((id) => mapIds.has(id)),
+    completedTreasureMapIds: uniqueStrings(
+      raw.completedTreasureMapIds ?? [],
+    ).filter((id) => mapIds.has(id)),
+    completedArenaChallengeIds: uniqueStrings(
+      raw.completedArenaChallengeIds ?? [],
+    ).filter((id) => arenaIds.has(id)),
+    collectionGoalIds: uniqueStrings(raw.collectionGoalIds ?? []).filter((id) =>
+      goalIds.has(id),
+    ),
+    cosmeticRewardIds: uniqueStrings(raw.cosmeticRewardIds ?? []).filter((id) =>
+      cosmeticIds.has(id),
+    ),
     lastCompletedAt:
       typeof raw.lastCompletedAt === "number" && raw.lastCompletedAt > 0
         ? raw.lastCompletedAt
@@ -901,7 +985,8 @@ function normalizeInventory(rawInventory: unknown): ArpgInventoryItem[] {
     rawInventory.forEach((raw, index) => {
       if (typeof raw === "string") {
         if (!ARPG_ITEMS[raw]) return;
-        const source = index < ARPG_STARTER_ITEM_IDS.length ? "starter" : "legacy";
+        const source =
+          index < ARPG_STARTER_ITEM_IDS.length ? "starter" : "legacy";
         const item = ARPG_ITEMS[raw];
         const existingStack = Array.from(entries.values()).find(
           (candidate) => candidate.itemId === raw && isStackable(item),
@@ -924,15 +1009,20 @@ function normalizeInventory(rawInventory: unknown): ArpgInventoryItem[] {
       const candidate = raw as Partial<ArpgInventoryItem>;
       if (!isKnownItem(candidate.itemId)) return;
       const item = ARPG_ITEMS[candidate.itemId];
-      const normalized = createInventoryEntry(candidate.itemId, candidate.source ?? "save", {
-        ...candidate,
-        quantity: isStackable(item)
-          ? clamp(Math.floor(candidate.quantity ?? 1), 1, item.maxStack ?? 99)
-          : 1,
-        quality: candidate.quality && ARPG_ITEM_QUALITIES[candidate.quality]
-          ? candidate.quality
-          : item.quality,
-      });
+      const normalized = createInventoryEntry(
+        candidate.itemId,
+        candidate.source ?? "save",
+        {
+          ...candidate,
+          quantity: isStackable(item)
+            ? clamp(Math.floor(candidate.quantity ?? 1), 1, item.maxStack ?? 99)
+            : 1,
+          quality:
+            candidate.quality && ARPG_ITEM_QUALITIES[candidate.quality]
+              ? candidate.quality
+              : item.quality,
+        },
+      );
       entries.set(normalized.instanceId, normalized);
     });
   }
@@ -958,7 +1048,8 @@ function normalizeEquipped(
 ): Record<ArpgEquipmentSlot, string | null> {
   return ARPG_EQUIPMENT_SLOTS.reduce<Record<ArpgEquipmentSlot, string | null>>(
     (acc, slot) => {
-      const rawCandidate = equipped?.[slot] ?? ARPG_STARTER_EQUIPMENT[slot] ?? null;
+      const rawCandidate =
+        equipped?.[slot] ?? ARPG_STARTER_EQUIPMENT[slot] ?? null;
       const candidate = findInventoryEntry(inventory, rawCandidate);
       const item = candidate ? ARPG_ITEMS[candidate.itemId] : null;
       acc[slot] =
@@ -1016,20 +1107,32 @@ function normalizeEnemies(rawEnemies: unknown): Record<string, ArpgEnemyState> {
       ),
       defeated: Boolean(previous.defeated),
       lastStruckAt:
-        typeof previous.lastStruckAt === "number" ? previous.lastStruckAt : undefined,
-      intent: previous.defeated ? "defeated" : previous.intent ?? "idle",
+        typeof previous.lastStruckAt === "number"
+          ? previous.lastStruckAt
+          : undefined,
+      intent: previous.defeated ? "defeated" : (previous.intent ?? "idle"),
       nextIntentAt:
-        typeof previous.nextIntentAt === "number" ? previous.nextIntentAt : undefined,
+        typeof previous.nextIntentAt === "number"
+          ? previous.nextIntentAt
+          : undefined,
       phase: Number.isFinite(previous.phase) ? Number(previous.phase) : 1,
       statuses: normalizeStatuses(previous.statuses),
-      lastDamage: Number.isFinite(previous.lastDamage) ? Number(previous.lastDamage) : undefined,
+      lastDamage: Number.isFinite(previous.lastDamage)
+        ? Number(previous.lastDamage)
+        : undefined,
     };
   }
   return defaults;
 }
 
-function normalizeWorld(rawWorld: unknown, storyFlags: string[]): ArpgWorldState {
-  const raw = rawWorld && typeof rawWorld === "object" ? (rawWorld as Partial<ArpgWorldState>) : {};
+function normalizeWorld(
+  rawWorld: unknown,
+  storyFlags: string[],
+): ArpgWorldState {
+  const raw =
+    rawWorld && typeof rawWorld === "object"
+      ? (rawWorld as Partial<ArpgWorldState>)
+      : {};
   return {
     zoneId: typeof raw.zoneId === "string" ? raw.zoneId : ARPG_ZONE_ID,
     discoveredMarkers: uniqueStrings(raw.discoveredMarkers ?? []),
@@ -1046,7 +1149,8 @@ function normalizeWorld(rawWorld: unknown, storyFlags: string[]): ArpgWorldState
         .map((flag) => flag.replace("defeated:", "")),
     ]),
     npcDialogueFlags: uniqueStrings(raw.npcDialogueFlags ?? []),
-    checkpointId: typeof raw.checkpointId === "string" ? raw.checkpointId : "gate-room",
+    checkpointId:
+      typeof raw.checkpointId === "string" ? raw.checkpointId : "gate-room",
   };
 }
 
@@ -1058,25 +1162,39 @@ function hasAnyUpgradedEquipment(save: ArpgSaveState) {
 }
 
 function hasItem(save: ArpgSaveState, itemId: string) {
-  return save.inventory.some((entry) => entry.itemId === itemId && entry.quantity > 0);
+  return save.inventory.some(
+    (entry) => entry.itemId === itemId && entry.quantity > 0,
+  );
 }
 
 function hasNorthGateAccess(save: ArpgSaveState) {
-  return Boolean(save.enemies["brass-warden"]?.defeated && hasItem(save, "gate-key-fragment"));
+  return Boolean(
+    save.enemies["brass-warden"]?.defeated &&
+    hasItem(save, "gate-key-fragment"),
+  );
 }
 
 function hasEndgameAccess(save: ArpgSaveState) {
-  return Boolean(save.endgame.unlocked || hasEndgameAccessFromFlags(save.storyFlags) || hasNorthGateAccess(save));
+  return Boolean(
+    save.endgame.unlocked ||
+    hasEndgameAccessFromFlags(save.storyFlags) ||
+    hasNorthGateAccess(save),
+  );
 }
 
 function nearestLiveEnemyId(save: ArpgSaveState) {
-  return Object.values(ARPG_ENEMIES)
-    .filter((enemy) => !save.enemies[enemy.id]?.defeated)
-    .map((enemy) => ({
-      enemyId: enemy.id,
-      distance: Math.hypot(save.player.x - enemy.position.x, save.player.z - enemy.position.z),
-    }))
-    .sort((a, b) => a.distance - b.distance)[0]?.enemyId ?? null;
+  return (
+    Object.values(ARPG_ENEMIES)
+      .filter((enemy) => !save.enemies[enemy.id]?.defeated)
+      .map((enemy) => ({
+        enemyId: enemy.id,
+        distance: Math.hypot(
+          save.player.x - enemy.position.x,
+          save.player.z - enemy.position.z,
+        ),
+      }))
+      .sort((a, b) => a.distance - b.distance)[0]?.enemyId ?? null
+  );
 }
 
 function addStoryFlags(save: ArpgSaveState, flags: string[]) {
@@ -1086,7 +1204,9 @@ function addStoryFlags(save: ArpgSaveState, flags: string[]) {
 function combatEvent(
   kind: ArpgCombatEvent["kind"],
   label: string,
-  patch: Partial<Omit<ArpgCombatEvent, "id" | "kind" | "label" | "createdAt">> = {},
+  patch: Partial<
+    Omit<ArpgCombatEvent, "id" | "kind" | "label" | "createdAt">
+  > = {},
 ): ArpgCombatEvent {
   const createdAt = now();
   return {
@@ -1105,15 +1225,24 @@ function normalizeStatuses(rawStatuses: unknown): ArpgAppliedStatus[] {
     .map((status): ArpgAppliedStatus | null => {
       if (!status || typeof status !== "object") return null;
       const raw = status as Partial<ArpgAppliedStatus>;
-      if (typeof raw.id !== "string" || !ARPG_STATUS_EFFECTS[raw.id]) return null;
-      const expiresAt = Number.isFinite(raw.expiresAt) ? Number(raw.expiresAt) : timestamp;
+      if (typeof raw.id !== "string" || !ARPG_STATUS_EFFECTS[raw.id])
+        return null;
+      const expiresAt = Number.isFinite(raw.expiresAt)
+        ? Number(raw.expiresAt)
+        : timestamp;
       if (expiresAt <= timestamp) return null;
       return {
         id: raw.id,
         sourceId: typeof raw.sourceId === "string" ? raw.sourceId : "unknown",
-        appliedAt: Number.isFinite(raw.appliedAt) ? Number(raw.appliedAt) : timestamp,
+        appliedAt: Number.isFinite(raw.appliedAt)
+          ? Number(raw.appliedAt)
+          : timestamp,
         expiresAt,
-        stacks: clamp(Number.isFinite(raw.stacks) ? Number(raw.stacks) : 1, 1, 5),
+        stacks: clamp(
+          Number.isFinite(raw.stacks) ? Number(raw.stacks) : 1,
+          1,
+          5,
+        ),
       };
     })
     .filter((status): status is ArpgAppliedStatus => Boolean(status));
@@ -1124,7 +1253,8 @@ function applyStatus(
   statusId: string | undefined,
   sourceId: string,
 ): ArpgAppliedStatus[] {
-  if (!statusId || !ARPG_STATUS_EFFECTS[statusId]) return normalizeStatuses(statuses);
+  if (!statusId || !ARPG_STATUS_EFFECTS[statusId])
+    return normalizeStatuses(statuses);
   const timestamp = now();
   const definition = ARPG_STATUS_EFFECTS[statusId];
   const existing = normalizeStatuses(statuses);
@@ -1159,15 +1289,27 @@ function createDefaultCombatState(storyFlags: string[] = []): ArpgCombatState {
   };
 }
 
-function normalizeCombat(rawCombat: unknown, storyFlags: string[]): ArpgCombatState {
-  const raw = rawCombat && typeof rawCombat === "object" ? (rawCombat as Partial<ArpgCombatState>) : {};
+function normalizeCombat(
+  rawCombat: unknown,
+  storyFlags: string[],
+): ArpgCombatState {
+  const raw =
+    rawCombat && typeof rawCombat === "object"
+      ? (rawCombat as Partial<ArpgCombatState>)
+      : {};
   const timestamp = now();
   const cooldowns =
     raw.cooldowns && typeof raw.cooldowns === "object"
       ? Object.fromEntries(
           Object.entries(raw.cooldowns)
-            .filter(([skillId, readyAt]) => isKnownSkill(skillId) && Number.isFinite(readyAt))
-            .map(([skillId, readyAt]) => [skillId, Math.max(timestamp, Number(readyAt))]),
+            .filter(
+              ([skillId, readyAt]) =>
+                isKnownSkill(skillId) && Number.isFinite(readyAt),
+            )
+            .map(([skillId, readyAt]) => [
+              skillId,
+              Math.max(timestamp, Number(readyAt)),
+            ]),
         )
       : {};
   return {
@@ -1179,14 +1321,18 @@ function normalizeCombat(rawCombat: unknown, storyFlags: string[]): ArpgCombatSt
         : null,
     latestEvents: Array.isArray(raw.latestEvents)
       ? raw.latestEvents
-          .filter((event): event is ArpgCombatEvent => Boolean(event && typeof event.label === "string"))
+          .filter((event): event is ArpgCombatEvent =>
+            Boolean(event && typeof event.label === "string"),
+          )
           .slice(0, COMBAT_EVENT_LIMIT)
       : [],
     discoveredEnemyCodexIds: uniqueStrings([
       ...storyFlags
         .filter((flag) => flag.startsWith("codex:enemy:"))
         .map((flag) => flag.replace("codex:enemy:", "")),
-      ...(Array.isArray(raw.discoveredEnemyCodexIds) ? raw.discoveredEnemyCodexIds : []),
+      ...(Array.isArray(raw.discoveredEnemyCodexIds)
+        ? raw.discoveredEnemyCodexIds
+        : []),
     ]).filter((enemyId) => Boolean(ARPG_ENEMIES[enemyId])),
     reducedMotionVfx: Boolean(raw.reducedMotionVfx),
     lastDodgedAt:
@@ -1196,10 +1342,16 @@ function normalizeCombat(rawCombat: unknown, storyFlags: string[]): ArpgCombatSt
   };
 }
 
-function pushCombatEvents(save: ArpgSaveState, events: ArpgCombatEvent[]): ArpgCombatState {
+function pushCombatEvents(
+  save: ArpgSaveState,
+  events: ArpgCombatEvent[],
+): ArpgCombatState {
   return {
     ...save.combat,
-    latestEvents: [...events, ...save.combat.latestEvents].slice(0, COMBAT_EVENT_LIMIT),
+    latestEvents: [...events, ...save.combat.latestEvents].slice(
+      0,
+      COMBAT_EVENT_LIMIT,
+    ),
   };
 }
 
@@ -1214,9 +1366,14 @@ function discoverEnemy(save: ArpgSaveState, enemyId: string): ArpgSaveState {
     ...save,
     combat: {
       ...pushCombatEvents(save, [
-        combatEvent("codex", `Codex updated: ${ARPG_ENEMIES[enemyId].name}.`, { enemyId }),
+        combatEvent("codex", `Codex updated: ${ARPG_ENEMIES[enemyId].name}.`, {
+          enemyId,
+        }),
       ]),
-      discoveredEnemyCodexIds: [...save.combat.discoveredEnemyCodexIds, enemyId],
+      discoveredEnemyCodexIds: [
+        ...save.combat.discoveredEnemyCodexIds,
+        enemyId,
+      ],
     },
     storyFlags: addStoryFlags(save, [`codex:enemy:${enemyId}`]),
   };
@@ -1229,7 +1386,8 @@ function setEnemyIntentForDistance(
 ): ArpgEnemyState {
   if (enemy.defeated) return { ...enemy, intent: "defeated" };
   const profile = getEnemyProfile(enemyId);
-  if (!profile) return { ...enemy, intent: distance <= ATTACK_REACH ? "aggro" : "idle" };
+  if (!profile)
+    return { ...enemy, intent: distance <= ATTACK_REACH ? "aggro" : "idle" };
   if (distance <= profile.attackReach) {
     return {
       ...enemy,
@@ -1243,7 +1401,10 @@ function setEnemyIntentForDistance(
   };
 }
 
-function damageMultiplier(profile: ReturnType<typeof getEnemyProfile>, damageType: ArpgDamageType) {
+function damageMultiplier(
+  profile: ReturnType<typeof getEnemyProfile>,
+  damageType: ArpgDamageType,
+) {
   if (!profile) return 1;
   let multiplier = 1;
   if (profile.weaknesses.includes(damageType)) multiplier += 0.22;
@@ -1252,16 +1413,23 @@ function damageMultiplier(profile: ReturnType<typeof getEnemyProfile>, damageTyp
 }
 
 function firstActiveSkill(save: ArpgSaveState) {
-  return save.player.equippedSkillIds
-    .map((skillId) => getSkillDefinition(skillId))
-    .find((skill) => skill?.kind === "active") ?? null;
+  return (
+    save.player.equippedSkillIds
+      .map((skillId) => getSkillDefinition(skillId))
+      .find((skill) => skill?.kind === "active") ?? null
+  );
 }
 
 function resolveAttackDamage(
   save: ArpgSaveState,
   enemyId: string,
   skillId: string | null,
-): { amount: number; damageType: ArpgDamageType; skillName: string | null; statusId?: string } {
+): {
+  amount: number;
+  damageType: ArpgDamageType;
+  skillName: string | null;
+  statusId?: string;
+} {
   const stats = deriveArpgStats(save);
   const profile = getEnemyProfile(enemyId);
   const skill = skillId ? getSkillDefinition(skillId) : firstActiveSkill(save);
@@ -1292,7 +1460,10 @@ function resolveAttackDamage(
     ? 4
     : 0;
   return {
-    amount: Math.max(7, Math.round((base + statusBonus) * damageMultiplier(profile, damageType))),
+    amount: Math.max(
+      7,
+      Math.round((base + statusBonus) * damageMultiplier(profile, damageType)),
+    ),
     damageType,
     skillName: skill?.name ?? null,
     statusId: profile?.appliesStatuses[0],
@@ -1329,7 +1500,10 @@ function consumeStack(save: ArpgSaveState, itemId: string, quantity: number) {
   return { inventory, consumed: quantity - remaining, player: save.player };
 }
 
-function addRewardOutputs(save: ArpgSaveState, outputs: Array<{ id: string; quantity: number }>) {
+function addRewardOutputs(
+  save: ArpgSaveState,
+  outputs: Array<{ id: string; quantity: number }>,
+) {
   let next = save;
   for (const output of outputs) {
     if (output.id === "gold") {
@@ -1344,7 +1518,8 @@ function addRewardOutputs(save: ArpgSaveState, outputs: Array<{ id: string; quan
     }
     if (!ARPG_ITEMS[output.id]) continue;
     const existingStack = next.inventory.find(
-      (entry) => entry.itemId === output.id && isStackable(ARPG_ITEMS[output.id]),
+      (entry) =>
+        entry.itemId === output.id && isStackable(ARPG_ITEMS[output.id]),
     );
     if (existingStack) {
       next = {
@@ -1370,7 +1545,10 @@ function addRewardOutputs(save: ArpgSaveState, outputs: Array<{ id: string; quan
         ...next.inventory,
         createInventoryEntry(output.id, "mw6-system", {
           quantity: output.quantity,
-          instanceId: stableInstanceId(output.id, `mw6-${now()}-${next.inventory.length}`),
+          instanceId: stableInstanceId(
+            output.id,
+            `mw6-${now()}-${next.inventory.length}`,
+          ),
         }),
       ],
     };
@@ -1386,7 +1564,9 @@ export function createDefaultArpgSave(): ArpgSaveState {
     originId: DEFAULT_ORIGIN_ID,
   });
   const starterSkillIds = getStarterSkillIds(character.classPathId);
-  const equippedSkillIds = [getClassTree(character.classPathId).starterBuild.activeSkillId];
+  const equippedSkillIds = [
+    getClassTree(character.classPathId).starterBuild.activeSkillId,
+  ];
   const storyFlags = [
     `origin:${character.originId}`,
     `race:${character.raceId}`,
@@ -1459,12 +1639,17 @@ export function normalizeArpgSave(
   };
   const inventory = normalizeInventory(legacySave.inventory);
   const equipped = normalizeEquipped(legacySave.equipped, inventory);
-  const character = normalizeCharacterIdentity(legacySave.character, legacySave.player);
+  const character = normalizeCharacterIdentity(
+    legacySave.character,
+    legacySave.player,
+  );
   const originId =
     legacySave.player?.originId && ARPG_ORIGINS[legacySave.player.originId]
       ? legacySave.player.originId
       : character.originId;
-  const classPathId = knownClassPathId(legacySave.player?.classPathId ?? character.classPathId);
+  const classPathId = knownClassPathId(
+    legacySave.player?.classPathId ?? character.classPathId,
+  );
   const normalizedCharacter = normalizeCharacterIdentity(
     {
       ...character,
@@ -1475,7 +1660,9 @@ export function normalizeArpgSave(
   );
   const starterSkillIds = getStarterSkillIds(normalizedCharacter.classPathId);
   const rawStoryFlags = uniqueStrings([
-    ...(Array.isArray(legacySave.storyFlags) ? legacySave.storyFlags : fallback.storyFlags),
+    ...(Array.isArray(legacySave.storyFlags)
+      ? legacySave.storyFlags
+      : fallback.storyFlags),
     `origin:${originId}`,
     `race:${normalizedCharacter.raceId}`,
     `class:${normalizedCharacter.classPathId}`,
@@ -1503,27 +1690,37 @@ export function normalizeArpgSave(
   const journey = normalizeJourney(legacySave.journey, storyFlags);
   const endgame = normalizeEndgame(legacySave.endgame, storyFlags);
   const level = clamp(
-    Math.floor(Number.isFinite(legacySave.player?.level) ? Number(legacySave.player?.level) : 1),
+    Math.floor(
+      Number.isFinite(legacySave.player?.level)
+        ? Number(legacySave.player?.level)
+        : 1,
+    ),
     1,
     3,
   );
   const maxHp = clamp(
     Math.floor(
-      Number.isFinite(legacySave.player?.maxHp) ? Number(legacySave.player?.maxHp) : 100,
+      Number.isFinite(legacySave.player?.maxHp)
+        ? Number(legacySave.player?.maxHp)
+        : 100,
     ),
     60,
     180,
   );
   const maxMana = clamp(
     Math.floor(
-      Number.isFinite(legacySave.player?.maxMana) ? Number(legacySave.player?.maxMana) : 50,
+      Number.isFinite(legacySave.player?.maxMana)
+        ? Number(legacySave.player?.maxMana)
+        : 50,
     ),
     30,
     140,
   );
   const selectedEntry = findInventoryEntry(
     inventory,
-    legacySave.selectedItemInstanceId ?? legacySave.selectedItemId ?? equipped.weapon,
+    legacySave.selectedItemInstanceId ??
+      legacySave.selectedItemId ??
+      equipped.weapon,
   );
 
   return {
@@ -1531,17 +1728,23 @@ export function normalizeArpgSave(
     character: normalizedCharacter,
     player: {
       x: clamp(
-        Number.isFinite(legacySave.player?.x) ? Number(legacySave.player?.x) : fallback.player.x,
+        Number.isFinite(legacySave.player?.x)
+          ? Number(legacySave.player?.x)
+          : fallback.player.x,
         ARPG_WORLD_BOUNDS.minX,
         ARPG_WORLD_BOUNDS.maxX,
       ),
       z: clamp(
-        Number.isFinite(legacySave.player?.z) ? Number(legacySave.player?.z) : fallback.player.z,
+        Number.isFinite(legacySave.player?.z)
+          ? Number(legacySave.player?.z)
+          : fallback.player.z,
         ARPG_WORLD_BOUNDS.minZ,
         ARPG_WORLD_BOUNDS.maxZ,
       ),
       hp: clamp(
-        Number.isFinite(legacySave.player?.hp) ? Number(legacySave.player?.hp) : fallback.player.hp,
+        Number.isFinite(legacySave.player?.hp)
+          ? Number(legacySave.player?.hp)
+          : fallback.player.hp,
         1,
         maxHp,
       ),
@@ -1554,13 +1757,20 @@ export function normalizeArpgSave(
         maxMana,
       ),
       maxMana,
-      xp: Math.max(0, Number.isFinite(legacySave.player?.xp) ? Number(legacySave.player?.xp) : 0),
+      xp: Math.max(
+        0,
+        Number.isFinite(legacySave.player?.xp)
+          ? Number(legacySave.player?.xp)
+          : 0,
+      ),
       level,
       originId,
       classPathId: normalizedCharacter.classPathId,
       gold: Math.max(
         0,
-        Number.isFinite(legacySave.player?.gold) ? Number(legacySave.player?.gold) : 0,
+        Number.isFinite(legacySave.player?.gold)
+          ? Number(legacySave.player?.gold)
+          : 0,
       ),
       unlockedSkills: uniqueStrings([
         ...starterSkillIds,
@@ -1569,7 +1779,8 @@ export function normalizeArpgSave(
           : []),
       ]).filter((skillId) => isKnownSkill(skillId)),
       equippedSkillIds: uniqueStrings([
-        getClassTree(normalizedCharacter.classPathId).starterBuild.activeSkillId,
+        getClassTree(normalizedCharacter.classPathId).starterBuild
+          .activeSkillId,
         ...(Array.isArray(legacySave.player?.equippedSkillIds)
           ? legacySave.player?.equippedSkillIds
           : []),
@@ -1577,7 +1788,8 @@ export function normalizeArpgSave(
         .filter((skillId) => isKnownSkill(skillId))
         .slice(0, 2),
       activeQuestId:
-        legacySave.player?.activeQuestId && ARPG_QUESTS[legacySave.player.activeQuestId]
+        legacySave.player?.activeQuestId &&
+        ARPG_QUESTS[legacySave.player.activeQuestId]
           ? legacySave.player.activeQuestId
           : "awaken-the-reliquary",
       respawnMarker:
@@ -1589,7 +1801,9 @@ export function normalizeArpgSave(
     equipped,
     collectedItemIds: uniqueStrings([
       ...ARPG_STARTER_ITEM_IDS,
-      ...(Array.isArray(legacySave.collectedItemIds) ? legacySave.collectedItemIds : []),
+      ...(Array.isArray(legacySave.collectedItemIds)
+        ? legacySave.collectedItemIds
+        : []),
     ]).filter((id) => Boolean(ARPG_ITEMS[id])),
     storyFlags,
     enemies,
@@ -1608,10 +1822,14 @@ export function normalizeArpgSave(
         : world.zoneId,
     discoveredCityIds: uniqueStrings([
       "first-reliquary",
-      ...(Array.isArray(legacySave.discoveredCityIds) ? legacySave.discoveredCityIds : []),
+      ...(Array.isArray(legacySave.discoveredCityIds)
+        ? legacySave.discoveredCityIds
+        : []),
     ]),
     discoveredSubCityIds: uniqueStrings(
-      Array.isArray(legacySave.discoveredSubCityIds) ? legacySave.discoveredSubCityIds : [],
+      Array.isArray(legacySave.discoveredSubCityIds)
+        ? legacySave.discoveredSubCityIds
+        : [],
     ),
     reputations: {
       ...(legacySave.reputations && typeof legacySave.reputations === "object"
@@ -1622,7 +1840,9 @@ export function normalizeArpgSave(
           ? legacySave.reputations[normalizedCharacter.raceId]
           : undefined) ?? 1,
     },
-    questLog: Array.isArray(legacySave.questLog) ? legacySave.questLog : createDefaultQuestLog(),
+    questLog: Array.isArray(legacySave.questLog)
+      ? legacySave.questLog
+      : createDefaultQuestLog(),
     companions:
       legacySave.companions && typeof legacySave.companions === "object"
         ? { ...createDefaultCompanions(), ...legacySave.companions }
@@ -1667,10 +1887,17 @@ export function normalizeArpgSave(
   };
 }
 
-export function deriveArpgStats(save: Partial<ArpgSaveState> | null | undefined): ArpgStats {
+export function deriveArpgStats(
+  save: Partial<ArpgSaveState> | null | undefined,
+): ArpgStats {
   const normalized = normalizeArpgSave(save);
-  const lineage = ARPG_LINEAGES[normalized.character.raceId] ?? ARPG_LINEAGES[DEFAULT_RACE_ID];
-  const subclass = getSubclass(normalized.character.classPathId, normalized.character.subclassId);
+  const lineage =
+    ARPG_LINEAGES[normalized.character.raceId] ??
+    ARPG_LINEAGES[DEFAULT_RACE_ID];
+  const subclass = getSubclass(
+    normalized.character.classPathId,
+    normalized.character.subclassId,
+  );
   const origin =
     ARPG_ORIGINS[normalized.player.originId] ?? ARPG_ORIGINS[DEFAULT_ORIGIN_ID];
   const stats = { ...lineage.baseStats };
@@ -1689,11 +1916,14 @@ export function deriveArpgStats(save: Partial<ArpgSaveState> | null | undefined)
     const entry = findInventoryEntry(normalized.inventory, instanceId);
     const item = entry ? ARPG_ITEMS[entry.itemId] : null;
     if (!entry || !item) continue;
-    const quality = ARPG_ITEM_QUALITIES[entry.quality] ?? ARPG_ITEM_QUALITIES[item.quality];
+    const quality =
+      ARPG_ITEM_QUALITIES[entry.quality] ?? ARPG_ITEM_QUALITIES[item.quality];
     const upgradeBonus = entry.upgradeRank;
     for (const key of Object.keys(stats) as Array<keyof ArpgStats>) {
       const base = item.stats[key] ?? 0;
-      stats[key] += Math.round(base * quality.statMultiplier) + (base > 0 ? upgradeBonus : 0);
+      stats[key] +=
+        Math.round(base * quality.statMultiplier) +
+        (base > 0 ? upgradeBonus : 0);
     }
     for (const affix of entry.affixes) {
       stats[affix] += 1 + Math.ceil(entry.upgradeRank / 2);
@@ -1711,7 +1941,9 @@ export function deriveArpgStats(save: Partial<ArpgSaveState> | null | undefined)
   for (const status of activeStatuses(normalized.combat.playerStatuses)) {
     const definition = ARPG_STATUS_EFFECTS[status.id];
     if (!definition?.statModifier) continue;
-    for (const key of Object.keys(definition.statModifier) as Array<keyof ArpgStats>) {
+    for (const key of Object.keys(definition.statModifier) as Array<
+      keyof ArpgStats
+    >) {
       stats[key] += (definition.statModifier[key] ?? 0) * status.stacks;
     }
   }
@@ -1719,9 +1951,13 @@ export function deriveArpgStats(save: Partial<ArpgSaveState> | null | undefined)
   return stats;
 }
 
-export function getArpgInventory(save: Partial<ArpgSaveState> | null | undefined) {
+export function getArpgInventory(
+  save: Partial<ArpgSaveState> | null | undefined,
+) {
   const normalized = normalizeArpgSave(save);
-  const equippedIds = new Set(Object.values(normalized.equipped).filter(Boolean));
+  const equippedIds = new Set(
+    Object.values(normalized.equipped).filter(Boolean),
+  );
   return normalized.inventory.flatMap<ArpgInventoryItemView>((entry) => {
     const item = ARPG_ITEMS[entry.itemId];
     if (!item) return [];
@@ -1747,23 +1983,34 @@ export function getArpgInventory(save: Partial<ArpgSaveState> | null | undefined
   });
 }
 
-export function getArpgEquippedItems(save: Partial<ArpgSaveState> | null | undefined) {
+export function getArpgEquippedItems(
+  save: Partial<ArpgSaveState> | null | undefined,
+) {
   const normalized = normalizeArpgSave(save);
   const inventory = getArpgInventory(normalized);
   return ARPG_EQUIPMENT_SLOTS.map((slot) => ({
     slot,
     item: normalized.equipped[slot]
-      ? inventory.find((entry) => entry.instanceId === normalized.equipped[slot]) ?? null
+      ? (inventory.find(
+          (entry) => entry.instanceId === normalized.equipped[slot],
+        ) ?? null)
       : null,
   }));
 }
 
-export function getArpgActiveQuest(save: Partial<ArpgSaveState> | null | undefined) {
+export function getArpgActiveQuest(
+  save: Partial<ArpgSaveState> | null | undefined,
+) {
   const normalized = normalizeArpgSave(save);
-  return ARPG_QUESTS[normalized.player.activeQuestId] ?? ARPG_QUESTS["awaken-the-reliquary"];
+  return (
+    ARPG_QUESTS[normalized.player.activeQuestId] ??
+    ARPG_QUESTS["awaken-the-reliquary"]
+  );
 }
 
-export function getArpgKnownSkills(save: Partial<ArpgSaveState> | null | undefined) {
+export function getArpgKnownSkills(
+  save: Partial<ArpgSaveState> | null | undefined,
+) {
   const normalized = normalizeArpgSave(save);
   const unlocked = new Set(normalized.player.unlockedSkills);
   const equipped = new Set(normalized.player.equippedSkillIds);
@@ -1790,13 +2037,26 @@ export function getArpgCharacterOptions() {
   };
 }
 
-export function getArpgCharacterProfile(save: Partial<ArpgSaveState> | null | undefined) {
+export function getArpgCharacterProfile(
+  save: Partial<ArpgSaveState> | null | undefined,
+) {
   const normalized = normalizeArpgSave(save);
-  const lineage = ARPG_LINEAGES[normalized.character.raceId] ?? ARPG_LINEAGES[DEFAULT_RACE_ID];
+  const lineage =
+    ARPG_LINEAGES[normalized.character.raceId] ??
+    ARPG_LINEAGES[DEFAULT_RACE_ID];
   const classTree = getClassTree(normalized.character.classPathId);
-  const subclass = getSubclass(normalized.character.classPathId, normalized.character.subclassId);
-  const palette = getPalette(normalized.character.raceId, normalized.character.spritePaletteId);
-  const portrait = getPortrait(normalized.character.raceId, normalized.character.portraitId);
+  const subclass = getSubclass(
+    normalized.character.classPathId,
+    normalized.character.subclassId,
+  );
+  const palette = getPalette(
+    normalized.character.raceId,
+    normalized.character.spritePaletteId,
+  );
+  const portrait = getPortrait(
+    normalized.character.raceId,
+    normalized.character.portraitId,
+  );
 
   return {
     saveVersion: normalized.version,
@@ -1809,20 +2069,27 @@ export function getArpgCharacterProfile(save: Partial<ArpgSaveState> | null | un
   };
 }
 
-export function getArpgCombatSummary(save: Partial<ArpgSaveState> | null | undefined) {
+export function getArpgCombatSummary(
+  save: Partial<ArpgSaveState> | null | undefined,
+) {
   const normalized = normalizeArpgSave(save);
-  const targetId = normalized.combat.targetEnemyId ?? nearestLiveEnemyId(normalized);
+  const targetId =
+    normalized.combat.targetEnemyId ?? nearestLiveEnemyId(normalized);
   const targetDefinition = targetId ? ARPG_ENEMIES[targetId] : null;
   const targetState = targetId ? normalized.enemies[targetId] : null;
   const targetProfile = targetId ? getEnemyProfile(targetId) : null;
-  const playerStatuses = activeStatuses(normalized.combat.playerStatuses).map((status) => ({
-    ...status,
-    definition: ARPG_STATUS_EFFECTS[status.id],
-  }));
-  const targetStatuses = activeStatuses(targetState?.statuses).map((status) => ({
-    ...status,
-    definition: ARPG_STATUS_EFFECTS[status.id],
-  }));
+  const playerStatuses = activeStatuses(normalized.combat.playerStatuses).map(
+    (status) => ({
+      ...status,
+      definition: ARPG_STATUS_EFFECTS[status.id],
+    }),
+  );
+  const targetStatuses = activeStatuses(targetState?.statuses).map(
+    (status) => ({
+      ...status,
+      definition: ARPG_STATUS_EFFECTS[status.id],
+    }),
+  );
   const cooldowns = Object.fromEntries(
     Object.entries(normalized.combat.cooldowns).map(([skillId, readyAt]) => [
       skillId,
@@ -1835,21 +2102,30 @@ export function getArpgCombatSummary(save: Partial<ArpgSaveState> | null | undef
     targetDefinition,
     targetState,
     targetProfile,
-    targetFamily: targetProfile ? ARPG_ENEMY_FAMILIES[targetProfile.familyId] : null,
+    targetFamily: targetProfile
+      ? ARPG_ENEMY_FAMILIES[targetProfile.familyId]
+      : null,
     playerStatuses,
     targetStatuses,
     latestEvents: normalized.combat.latestEvents,
     cooldowns,
     damageTypes: ARPG_DAMAGE_TYPES,
-    traits: targetProfile?.traits.map((traitId) => ARPG_ENEMY_TRAITS[traitId]).filter(Boolean) ?? [],
+    traits:
+      targetProfile?.traits
+        .map((traitId) => ARPG_ENEMY_TRAITS[traitId])
+        .filter(Boolean) ?? [],
   };
 }
 
-export function getArpgEnemyCodex(save: Partial<ArpgSaveState> | null | undefined) {
+export function getArpgEnemyCodex(
+  save: Partial<ArpgSaveState> | null | undefined,
+) {
   const normalized = normalizeArpgSave(save);
   return Object.values(ARPG_ENEMY_COMBAT_PROFILES).map((profile) => {
     const enemy = ARPG_ENEMIES[profile.enemyId];
-    const discovered = normalized.combat.discoveredEnemyCodexIds.includes(profile.enemyId);
+    const discovered = normalized.combat.discoveredEnemyCodexIds.includes(
+      profile.enemyId,
+    );
     return {
       enemy,
       profile,
@@ -1860,15 +2136,20 @@ export function getArpgEnemyCodex(save: Partial<ArpgSaveState> | null | undefine
   });
 }
 
-export function getArpgWorldLoopSummary(save: Partial<ArpgSaveState> | null | undefined) {
+export function getArpgWorldLoopSummary(
+  save: Partial<ArpgSaveState> | null | undefined,
+) {
   const normalized = normalizeArpgSave(save);
   const selectedCity =
     normalized.journey.selectedCityId === "first-reliquary"
       ? null
-      : ARPG_PRODUCTION_CONTENT.world.cities.find((city) => city.id === normalized.journey.selectedCityId) ?? null;
+      : (ARPG_PRODUCTION_CONTENT.world.cities.find(
+          (city) => city.id === normalized.journey.selectedCityId,
+        ) ?? null);
   const selectedSubCity =
-    selectedCity?.subCities.find((subCity) => subCity.id === normalized.journey.selectedSubCityId) ??
-    null;
+    selectedCity?.subCities.find(
+      (subCity) => subCity.id === normalized.journey.selectedSubCityId,
+    ) ?? null;
   const activeTravelEvent = normalized.journey.activeTravelEventId
     ? getArpgTravelEvent(normalized.journey.activeTravelEventId)
     : null;
@@ -1898,17 +2179,24 @@ export function getArpgWorldLoopSummary(save: Partial<ArpgSaveState> | null | un
     selectedCity,
     selectedSubCity,
     activeTravelEvent,
-    discoveredCityCount: normalized.discoveredCityIds.filter((cityId) => cityId !== "first-reliquary").length,
+    discoveredCityCount: normalized.discoveredCityIds.filter(
+      (cityId) => cityId !== "first-reliquary",
+    ).length,
     discoveredSubCityCount: normalized.discoveredSubCityIds.length,
     unlockedRouteCount: normalized.journey.unlockedRouteIds.length,
     reputations: normalized.reputations,
   };
 }
 
-export function getArpgArmorySummary(save: Partial<ArpgSaveState> | null | undefined) {
+export function getArpgArmorySummary(
+  save: Partial<ArpgSaveState> | null | undefined,
+) {
   const normalized = normalizeArpgSave(save);
   const inventory = getArpgInventory(normalized);
-  const selectedItem = inventory.find((item) => item.instanceId === normalized.selectedItemInstanceId) ?? null;
+  const selectedItem =
+    inventory.find(
+      (item) => item.instanceId === normalized.selectedItemInstanceId,
+    ) ?? null;
   const selectedComparison = selectedItem
     ? getArpgArsenalComparison({
         id: selectedItem.instanceId,
@@ -1938,19 +2226,27 @@ export function getArpgArmorySummary(save: Partial<ArpgSaveState> | null | undef
   };
 }
 
-export function getArpgEndgameSummary(save: Partial<ArpgSaveState> | null | undefined) {
+export function getArpgEndgameSummary(
+  save: Partial<ArpgSaveState> | null | undefined,
+) {
   const normalized = normalizeArpgSave(save);
   const selectedCityId =
     normalized.journey.selectedCityId === "first-reliquary"
       ? ARPG_PRODUCTION_CONTENT.world.cities[0]?.id
       : normalized.journey.selectedCityId;
   const selectedDungeon =
-    ARPG_CITY_CHALLENGE_DUNGEONS.find((dungeon) => dungeon.cityId === selectedCityId) ??
-    ARPG_CITY_CHALLENGE_DUNGEONS[0];
+    ARPG_CITY_CHALLENGE_DUNGEONS.find(
+      (dungeon) => dungeon.cityId === selectedCityId,
+    ) ?? ARPG_CITY_CHALLENGE_DUNGEONS[0];
   const selectedTrial =
-    ARPG_RELIC_TRIALS.find((trial) => trial.cityId === selectedCityId) ?? ARPG_RELIC_TRIALS[0];
-  const localTreasureMaps = ARPG_TREASURE_MAPS.filter((map) => map.cityId === selectedCityId);
-  const localTimedRooms = ARPG_TIMED_TREASURE_ROOMS.filter((room) => room.cityId === selectedCityId);
+    ARPG_RELIC_TRIALS.find((trial) => trial.cityId === selectedCityId) ??
+    ARPG_RELIC_TRIALS[0];
+  const localTreasureMaps = ARPG_TREASURE_MAPS.filter(
+    (map) => map.cityId === selectedCityId,
+  );
+  const localTimedRooms = ARPG_TIMED_TREASURE_ROOMS.filter(
+    (room) => room.cityId === selectedCityId,
+  );
   const localBossRematches = ARPG_BOSS_REMATCHES.filter(
     (rematch) => !rematch.cityId || rematch.cityId === selectedCityId,
   );
@@ -2010,45 +2306,63 @@ function applyCharacterSelection(
   const requestedClassPathId = knownClassPathId(
     selection.classPathId ?? normalized.character.classPathId,
   );
-  const classChanged = requestedClassPathId !== normalized.character.classPathId;
-  const requestedRaceId = knownLineageId(selection.raceId ?? normalized.character.raceId);
+  const classChanged =
+    requestedClassPathId !== normalized.character.classPathId;
+  const requestedRaceId = knownLineageId(
+    selection.raceId ?? normalized.character.raceId,
+  );
   const requestedSubclassId =
     selection.subclassId ??
-    (classChanged ? getClassTree(requestedClassPathId).starterBuild.subclassId : normalized.character.subclassId);
+    (classChanged
+      ? getClassTree(requestedClassPathId).starterBuild.subclassId
+      : normalized.character.subclassId);
   const character = normalizeCharacterIdentity(
     {
       ...normalized.character,
-      characterName: selection.characterName ?? normalized.character.characterName,
+      characterName:
+        selection.characterName ?? normalized.character.characterName,
       raceId: requestedRaceId,
       originId: selection.originId ?? normalized.character.originId,
       classPathId: requestedClassPathId,
       subclassId: requestedSubclassId,
       portraitId: selection.portraitId ?? normalized.character.portraitId,
-      spritePaletteId: selection.paletteId ?? normalized.character.spritePaletteId,
+      spritePaletteId:
+        selection.paletteId ?? normalized.character.spritePaletteId,
       cosmeticAccent: selection.paletteId
-        ? (ARPG_PALETTES[selection.paletteId]?.accent ?? normalized.character.cosmeticAccent)
+        ? (ARPG_PALETTES[selection.paletteId]?.accent ??
+          normalized.character.cosmeticAccent)
         : normalized.character.cosmeticAccent,
       respecCount:
-        mode === "respec" ? normalized.character.respecCount + 1 : normalized.character.respecCount,
+        mode === "respec"
+          ? normalized.character.respecCount + 1
+          : normalized.character.respecCount,
     },
     normalized.player,
   );
-  const lineage = ARPG_LINEAGES[character.raceId] ?? ARPG_LINEAGES[DEFAULT_RACE_ID];
+  const lineage =
+    ARPG_LINEAGES[character.raceId] ?? ARPG_LINEAGES[DEFAULT_RACE_ID];
   const classTree = getClassTree(character.classPathId);
   const starterSkillIds = getStarterSkillIds(character.classPathId);
   const unlockedSkills = uniqueStrings([
     ...starterSkillIds,
-    ...(mode === "cosmetic" ? normalized.player.unlockedSkills : normalized.player.unlockedSkills),
+    ...(mode === "cosmetic"
+      ? normalized.player.unlockedSkills
+      : normalized.player.unlockedSkills),
   ]).filter((skillId) => isKnownSkill(skillId));
   const equippedSkillIds = uniqueStrings([
     classTree.starterBuild.activeSkillId,
-    ...normalized.player.equippedSkillIds.filter((skillId) => getSkillPathId(skillId) === character.classPathId),
+    ...normalized.player.equippedSkillIds.filter(
+      (skillId) => getSkillPathId(skillId) === character.classPathId,
+    ),
   ])
     .filter((skillId) => isKnownSkill(skillId))
     .slice(0, 2);
   const reputations = { ...normalized.reputations };
   for (const hook of lineage.cityReputationHooks) {
-    reputations[hook.cityId] = Math.max(reputations[hook.cityId] ?? 0, hook.delta);
+    reputations[hook.cityId] = Math.max(
+      reputations[hook.cityId] ?? 0,
+      hook.delta,
+    );
   }
 
   return {
@@ -2071,10 +2385,9 @@ function applyCharacterSelection(
     lastEvent:
       mode === "cosmetic"
         ? `Updated ${character.characterName}'s colors.`
-        : `${character.characterName} is now ${lineage.name} ${classTree.name} (${getSubclass(
-            character.classPathId,
-            character.subclassId,
-          ).name}).`,
+        : `${character.characterName} is now ${lineage.name} ${classTree.name} (${
+            getSubclass(character.classPathId, character.subclassId).name
+          }).`,
     lastSavedAt: now(),
   };
 }
@@ -2100,7 +2413,9 @@ export function setArpgCharacterCosmetic(
   return applyCharacterSelection(save, selection, "cosmetic");
 }
 
-export function resolveArpgObjective(save: Partial<ArpgSaveState> | null | undefined) {
+export function resolveArpgObjective(
+  save: Partial<ArpgSaveState> | null | undefined,
+) {
   const normalized = normalizeArpgSave(save);
   if (!normalized.storyFlags.includes("lore:descent-ledger")) {
     return "Sign the Descent Ledger so the reliquary records the hero's player-created identity.";
@@ -2117,10 +2432,12 @@ export function resolveArpgObjective(save: Partial<ArpgSaveState> | null | undef
   if (!hasItem(normalized, ARPG_LOOT_PEDESTAL_ITEM_ID)) {
     return "Claim the loom-shard charm from the pedestal.";
   }
-  if (!Object.values(normalized.equipped).some((id) => {
-    const entry = findInventoryEntry(normalized.inventory, id);
-    return entry?.itemId === ARPG_LOOT_PEDESTAL_ITEM_ID;
-  })) {
+  if (
+    !Object.values(normalized.equipped).some((id) => {
+      const entry = findInventoryEntry(normalized.inventory, id);
+      return entry?.itemId === ARPG_LOOT_PEDESTAL_ITEM_ID;
+    })
+  ) {
     return "Equip the loom-shard charm to tune your build.";
   }
   if (!normalized.world.openedChests.includes("forge-cache")) {
@@ -2158,14 +2475,19 @@ export function getNearestArpgInteraction(
   const candidates: ArpgInteractionPrompt[] = [];
 
   for (const node of Object.values(ARPG_LORE_NODES)) {
-    const distance = Math.hypot(player.x - node.position.x, player.z - node.position.z);
+    const distance = Math.hypot(
+      player.x - node.position.x,
+      player.z - node.position.z,
+    );
     const complete = normalized.storyFlags.includes(node.storyFlag);
     candidates.push({
       id: node.id,
       kind: "lore",
       label: node.title,
       actionLabel: complete ? "Review" : "Study",
-      hint: complete ? "The echo stays available in your journal." : node.summary,
+      hint: complete
+        ? "The echo stays available in your journal."
+        : node.summary,
       distance,
       inRange: distance <= INTERACTION_REACH,
       complete,
@@ -2176,16 +2498,27 @@ export function getNearestArpgInteraction(
   for (const node of Object.values(ARPG_LOOT_NODES)) {
     const item = ARPG_ITEMS[node.itemId];
     if (!item) continue;
-    const distance = Math.hypot(player.x - node.position.x, player.z - node.position.z);
+    const distance = Math.hypot(
+      player.x - node.position.x,
+      player.z - node.position.z,
+    );
     const complete =
       normalized.world.openedChests.includes(node.id) ||
-      (item.type === "equipment" && normalized.inventory.some((entry) => entry.itemId === node.itemId));
+      (item.type === "equipment" &&
+        normalized.inventory.some((entry) => entry.itemId === node.itemId));
     candidates.push({
       id: node.id,
       kind: "loot",
       label: complete ? `${item.name} secured` : node.title,
-      actionLabel: complete && item.type === "equipment" ? "Open kit" : complete ? "Quiet" : "Claim",
-      hint: complete ? "The cache is quiet. Tune your build from the kit." : node.summary,
+      actionLabel:
+        complete && item.type === "equipment"
+          ? "Open kit"
+          : complete
+            ? "Quiet"
+            : "Claim",
+      hint: complete
+        ? "The cache is quiet. Tune your build from the kit."
+        : node.summary,
       distance,
       inRange: distance <= INTERACTION_REACH,
       complete,
@@ -2201,7 +2534,8 @@ export function getNearestArpgInteraction(
     );
     const complete = Boolean(enemy?.defeated);
     const gated =
-      enemyDefinition.requiresUpgradedItem && !hasAnyUpgradedEquipment(normalized);
+      enemyDefinition.requiresUpgradedItem &&
+      !hasAnyUpgradedEquipment(normalized);
     candidates.push({
       id: enemyDefinition.id,
       kind: "enemy",
@@ -2215,11 +2549,17 @@ export function getNearestArpgInteraction(
       distance,
       inRange: distance <= ATTACK_REACH,
       complete,
-      accent: complete ? "#ffd166" : enemyDefinition.id === "brass-warden" ? "#d946ef" : "#ef4444",
+      accent: complete
+        ? "#ffd166"
+        : enemyDefinition.id === "brass-warden"
+          ? "#d946ef"
+          : "#ef4444",
     });
   }
 
-  const firstRoute = getArpgRouteEvent(arpgRouteId("first-reliquary", "veyrhold"));
+  const firstRoute = getArpgRouteEvent(
+    arpgRouteId("first-reliquary", "veyrhold"),
+  );
   if (firstRoute) {
     const distance = Math.hypot(player.x - 0.25, player.z - -2.35);
     const unlocked = hasNorthGateAccess(normalized);
@@ -2227,7 +2567,11 @@ export function getNearestArpgInteraction(
     candidates.push({
       id: firstRoute.routeId,
       kind: "travel",
-      label: complete ? "North Gate mapped" : unlocked ? "North Gate route" : "North Gate sealed",
+      label: complete
+        ? "North Gate mapped"
+        : unlocked
+          ? "North Gate route"
+          : "North Gate sealed",
       actionLabel: complete ? "Map" : unlocked ? "Travel" : "Locked",
       hint: complete
         ? "Veyrhold is mapped in the world drawer."
@@ -2243,7 +2587,9 @@ export function getNearestArpgInteraction(
 
   const nearest = candidates.sort((a, b) => a.distance - b.distance)[0] ?? null;
   if (!nearest) return null;
-  return nearest.distance <= DISCOVERY_REACH || nearest.inRange ? nearest : null;
+  return nearest.distance <= DISCOVERY_REACH || nearest.inRange
+    ? nearest
+    : null;
 }
 
 export function isBlockedArpgPosition(x: number, z: number) {
@@ -2259,7 +2605,10 @@ export function isBlockedArpgPosition(x: number, z: number) {
   });
 }
 
-export function moveArpgPlayer(save: ArpgSaveState, vector: ArpgMoveVector): ArpgSaveState {
+export function moveArpgPlayer(
+  save: ArpgSaveState,
+  vector: ArpgMoveVector,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const stats = deriveArpgStats(normalized);
   const step = 0.3 + Math.min(0.2, stats.speed * 0.012);
@@ -2312,7 +2661,11 @@ export function collectArpgItem(
         entry.instanceId === existing.instanceId
           ? {
               ...entry,
-              quantity: clamp(entry.quantity + quantity, 1, item.maxStack ?? 99),
+              quantity: clamp(
+                entry.quantity + quantity,
+                1,
+                item.maxStack ?? 99,
+              ),
             }
           : entry,
       );
@@ -2323,7 +2676,9 @@ export function collectArpgItem(
       selectedItemInstanceId = entry.instanceId;
     }
   } else {
-    const existing = inventory.find((entry) => entry.itemId === itemId && entry.source === sourceId);
+    const existing = inventory.find(
+      (entry) => entry.itemId === itemId && entry.source === sourceId,
+    );
     if (existing) {
       return {
         ...normalized,
@@ -2366,7 +2721,9 @@ export function collectArpgItem(
   return {
     ...normalized,
     inventory,
-    collectedItemIds: Array.from(new Set([...normalized.collectedItemIds, itemId])),
+    collectedItemIds: Array.from(
+      new Set([...normalized.collectedItemIds, itemId]),
+    ),
     storyFlags: addStoryFlags(normalized, flags),
     world: {
       ...normalized.world,
@@ -2379,7 +2736,10 @@ export function collectArpgItem(
   };
 }
 
-export function equipArpgItem(save: ArpgSaveState, itemOrInstanceId: string): ArpgSaveState {
+export function equipArpgItem(
+  save: ArpgSaveState,
+  itemOrInstanceId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const entry = findInventoryEntry(normalized.inventory, itemOrInstanceId);
   const item = entry ? ARPG_ITEMS[entry.itemId] : null;
@@ -2414,7 +2774,9 @@ export function selectArpgRegion(
   const city =
     cityId === "first-reliquary"
       ? null
-      : ARPG_PRODUCTION_CONTENT.world.cities.find((entry) => entry.id === cityId);
+      : ARPG_PRODUCTION_CONTENT.world.cities.find(
+          (entry) => entry.id === cityId,
+        );
   if (cityId !== "first-reliquary" && !city) {
     return {
       ...normalized,
@@ -2424,7 +2786,11 @@ export function selectArpgRegion(
   }
   const subCity =
     city?.subCities.find((entry) => entry.id === subCityId) ??
-    (subCityId ? ARPG_PRODUCTION_CONTENT.world.cities.flatMap((entry) => entry.subCities).find((entry) => entry.id === subCityId) : null);
+    (subCityId
+      ? ARPG_PRODUCTION_CONTENT.world.cities
+          .flatMap((entry) => entry.subCities)
+          .find((entry) => entry.id === subCityId)
+      : null);
 
   return {
     ...normalized,
@@ -2442,7 +2808,10 @@ export function selectArpgRegion(
   };
 }
 
-export function beginArpgTravel(save: ArpgSaveState, routeId: string): ArpgSaveState {
+export function beginArpgTravel(
+  save: ArpgSaveState,
+  routeId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const event = getArpgRouteEvent(routeId);
   if (!event) {
@@ -2470,7 +2839,10 @@ export function beginArpgTravel(save: ArpgSaveState, routeId: string): ArpgSaveS
       ...normalized.journey,
       activeRouteId: routeId,
       activeTravelEventId: event.id,
-      unlockedRouteIds: uniqueStrings([...normalized.journey.unlockedRouteIds, routeId]),
+      unlockedRouteIds: uniqueStrings([
+        ...normalized.journey.unlockedRouteIds,
+        routeId,
+      ]),
     },
     mapFlags: uniqueStrings([...normalized.mapFlags, `route:${routeId}`]),
     lastEvent: `Travel started: ${event.title}.`,
@@ -2478,7 +2850,10 @@ export function beginArpgTravel(save: ArpgSaveState, routeId: string): ArpgSaveS
   };
 }
 
-export function resolveArpgTravelEvent(save: ArpgSaveState, choiceId: string): ArpgSaveState {
+export function resolveArpgTravelEvent(
+  save: ArpgSaveState,
+  choiceId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const event = normalized.journey.activeTravelEventId
     ? getArpgTravelEvent(normalized.journey.activeTravelEventId)
@@ -2490,8 +2865,11 @@ export function resolveArpgTravelEvent(save: ArpgSaveState, choiceId: string): A
       lastSavedAt: now(),
     };
   }
-  const choice = event.choices.find((entry) => entry.id === choiceId) ?? event.choices[0];
-  const targetCity = ARPG_PRODUCTION_CONTENT.world.cities.find((city) => city.id === event.to);
+  const choice =
+    event.choices.find((entry) => entry.id === choiceId) ?? event.choices[0];
+  const targetCity = ARPG_PRODUCTION_CONTENT.world.cities.find(
+    (city) => city.id === event.to,
+  );
   const rewarded = addRewardOutputs(normalized, [
     {
       id: choice.rewardCurrency,
@@ -2508,23 +2886,42 @@ export function resolveArpgTravelEvent(save: ArpgSaveState, choiceId: string): A
       selectedSubCityId: null,
       activeRouteId: null,
       activeTravelEventId: null,
-      resolvedTravelEventIds: uniqueStrings([...rewarded.journey.resolvedTravelEventIds, event.id]),
-      unlockedRouteIds: uniqueStrings([...rewarded.journey.unlockedRouteIds, event.routeId]),
+      resolvedTravelEventIds: uniqueStrings([
+        ...rewarded.journey.resolvedTravelEventIds,
+        event.id,
+      ]),
+      unlockedRouteIds: uniqueStrings([
+        ...rewarded.journey.unlockedRouteIds,
+        event.routeId,
+      ]),
     },
     reputations: {
       ...rewarded.reputations,
-      [event.to]: (rewarded.reputations[event.to] ?? 0) + choice.reputationDelta,
+      [event.to]:
+        (rewarded.reputations[event.to] ?? 0) + choice.reputationDelta,
     },
-    mapFlags: uniqueStrings([...rewarded.mapFlags, `map:${event.to}`, `travel:${event.id}`]),
-    storyFlags: addStoryFlags(rewarded, [`travel:${event.id}`, `map:${event.to}`]),
+    mapFlags: uniqueStrings([
+      ...rewarded.mapFlags,
+      `map:${event.to}`,
+      `travel:${event.id}`,
+    ]),
+    storyFlags: addStoryFlags(rewarded, [
+      `travel:${event.id}`,
+      `map:${event.to}`,
+    ]),
     lastEvent: `${choice.label}: reached ${targetCity?.name ?? event.to}. ${choice.summary}`,
     lastSavedAt: now(),
   };
 }
 
-export function acceptArpgQuest(save: ArpgSaveState, questId: string): ArpgSaveState {
+export function acceptArpgQuest(
+  save: ArpgSaveState,
+  questId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
-  const cityStory = ARPG_CITY_STORYLINES.find((storyline) => storyline.id === questId);
+  const cityStory = ARPG_CITY_STORYLINES.find(
+    (storyline) => storyline.id === questId,
+  );
   const subCityArc = ARPG_SUBCITY_SIDE_ARCS.find((arc) => arc.id === questId);
   if (!cityStory && !subCityArc && !ARPG_QUESTS[questId]) {
     return {
@@ -2533,12 +2930,16 @@ export function acceptArpgQuest(save: ArpgSaveState, questId: string): ArpgSaveS
       lastSavedAt: now(),
     };
   }
-  const existing = normalized.questLog.find((entry) => entry.questId === questId);
+  const existing = normalized.questLog.find(
+    (entry) => entry.questId === questId,
+  );
   return {
     ...normalized,
     questLog: existing
       ? normalized.questLog.map((entry) =>
-          entry.questId === questId ? { ...entry, status: "active" as const } : entry,
+          entry.questId === questId
+            ? { ...entry, status: "active" as const }
+            : entry,
         )
       : [
           ...normalized.questLog,
@@ -2578,9 +2979,14 @@ export function advanceArpgQuest(
   };
 }
 
-export function recruitArpgCompanion(save: ArpgSaveState, companionId: string): ArpgSaveState {
+export function recruitArpgCompanion(
+  save: ArpgSaveState,
+  companionId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
-  const companion = ARPG_COMPANION_ARCS.find((entry) => entry.id === companionId);
+  const companion = ARPG_COMPANION_ARCS.find(
+    (entry) => entry.id === companionId,
+  );
   if (!companion) {
     return {
       ...normalized,
@@ -2604,7 +3010,10 @@ export function recruitArpgCompanion(save: ArpgSaveState, companionId: string): 
         ...current,
         recruited: true,
         loyalty: Math.max(current.loyalty, 1),
-        loyaltyQuestStatus: current.loyaltyQuestStatus === "locked" ? "active" : current.loyaltyQuestStatus,
+        loyaltyQuestStatus:
+          current.loyaltyQuestStatus === "locked"
+            ? "active"
+            : current.loyaltyQuestStatus,
         perkUnlocked: current.perkUnlocked || companionId === "oracle-guide",
       },
     },
@@ -2614,7 +3023,10 @@ export function recruitArpgCompanion(save: ArpgSaveState, companionId: string): 
   };
 }
 
-export function craftArpgRecipe(save: ArpgSaveState, recipeId: string): ArpgSaveState {
+export function craftArpgRecipe(
+  save: ArpgSaveState,
+  recipeId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const recipe = getArpgCraftingRecipe(recipeId);
   if (!recipe) {
@@ -2689,11 +3101,16 @@ export function salvageArpgItem(
   const salvageRule = getArpgSalvageRule(entry.quality);
   const withoutItem = {
     ...normalized,
-    inventory: normalized.inventory.filter((candidate) => candidate.instanceId !== entry.instanceId),
+    inventory: normalized.inventory.filter(
+      (candidate) => candidate.instanceId !== entry.instanceId,
+    ),
     selectedItemId: null,
     selectedItemInstanceId: normalized.equipped.weapon,
   };
-  const rewarded = addRewardOutputs(withoutItem, salvageRule?.outputs ?? [{ id: "upgrade-shard", quantity: 1 }]);
+  const rewarded = addRewardOutputs(
+    withoutItem,
+    salvageRule?.outputs ?? [{ id: "upgrade-shard", quantity: 1 }],
+  );
   return {
     ...rewarded,
     storyFlags: addStoryFlags(rewarded, [`salvaged:${item.id}`]),
@@ -2713,7 +3130,8 @@ export function recordArpgReputation(
     ...normalized,
     reputations: {
       ...normalized.reputations,
-      [factionOrCityId]: (normalized.reputations[factionOrCityId] ?? 0) + amount,
+      [factionOrCityId]:
+        (normalized.reputations[factionOrCityId] ?? 0) + amount,
     },
     storyFlags: addStoryFlags(normalized, [`reputation:${factionOrCityId}`]),
     lastEvent: `${factionOrCityId} reputation ${amount >= 0 ? "+" : ""}${amount}.`,
@@ -2725,12 +3143,16 @@ function requireEndgameAccess(save: ArpgSaveState): ArpgSaveState | null {
   if (hasEndgameAccess(save)) return null;
   return {
     ...save,
-    lastEvent: "Endgame trials unlock after the north gate proof or finale flags.",
+    lastEvent:
+      "Endgame trials unlock after the north gate proof or finale flags.",
     lastSavedAt: now(),
   };
 }
 
-function rewardArpgEndgameTrack(save: ArpgSaveState, rewardTrackId: string): ArpgSaveState {
+function rewardArpgEndgameTrack(
+  save: ArpgSaveState,
+  rewardTrackId: string,
+): ArpgSaveState {
   const rewardTrack = getArpgEndgameRewardTrack(rewardTrackId);
   if (!rewardTrack) return save;
   return addRewardOutputs(save, [
@@ -2741,9 +3163,14 @@ function rewardArpgEndgameTrack(save: ArpgSaveState, rewardTrackId: string): Arp
   ]);
 }
 
-export function selectArpgEndgameDifficulty(save: ArpgSaveState, difficultyTierId: string): ArpgSaveState {
+export function selectArpgEndgameDifficulty(
+  save: ArpgSaveState,
+  difficultyTierId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
-  const difficulty = ARPG_ENDGAME_CONTENT.difficultyTiers.find((tier) => tier.id === difficultyTierId);
+  const difficulty = ARPG_ENDGAME_CONTENT.difficultyTiers.find(
+    (tier) => tier.id === difficultyTierId,
+  );
   if (!difficulty) {
     return {
       ...normalized,
@@ -2763,7 +3190,10 @@ export function selectArpgEndgameDifficulty(save: ArpgSaveState, difficultyTierI
   };
 }
 
-export function startArpgEndgameDungeon(save: ArpgSaveState, dungeonId: string): ArpgSaveState {
+export function startArpgEndgameDungeon(
+  save: ArpgSaveState,
+  dungeonId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const blocked = requireEndgameAccess(normalized);
   if (blocked) return blocked;
@@ -2786,7 +3216,10 @@ export function startArpgEndgameDungeon(save: ArpgSaveState, dungeonId: string):
       activeArenaChallengeId: null,
       eliteAffixRotationId: dungeon.eliteAffixRotationId,
     },
-    mapFlags: uniqueStrings([...normalized.mapFlags, `endgame:dungeon:${dungeon.id}`]),
+    mapFlags: uniqueStrings([
+      ...normalized.mapFlags,
+      `endgame:dungeon:${dungeon.id}`,
+    ]),
     lastEvent: `Entered ${dungeon.name}: ${dungeon.objective}`,
     lastSavedAt: now(),
   };
@@ -2797,7 +3230,9 @@ export function completeArpgEndgameDungeon(
   dungeonId?: string | null,
 ): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
-  const dungeon = getArpgChallengeDungeon(dungeonId ?? normalized.endgame.activeDungeonId ?? "");
+  const dungeon = getArpgChallengeDungeon(
+    dungeonId ?? normalized.endgame.activeDungeonId ?? "",
+  );
   if (!dungeon) {
     return {
       ...normalized,
@@ -2812,21 +3247,32 @@ export function completeArpgEndgameDungeon(
       ...rewarded.endgame,
       unlocked: true,
       activeDungeonId: null,
-      completedDungeonIds: uniqueStrings([...rewarded.endgame.completedDungeonIds, dungeon.id]),
-      collectionGoalIds: uniqueStrings([...rewarded.endgame.collectionGoalIds, "city-reputation-completion"]),
+      completedDungeonIds: uniqueStrings([
+        ...rewarded.endgame.completedDungeonIds,
+        dungeon.id,
+      ]),
+      collectionGoalIds: uniqueStrings([
+        ...rewarded.endgame.collectionGoalIds,
+        "city-reputation-completion",
+      ]),
       lastCompletedAt: now(),
     },
     reputations: {
       ...rewarded.reputations,
       [dungeon.cityId]: (rewarded.reputations[dungeon.cityId] ?? 0) + 2,
     },
-    storyFlags: addStoryFlags(rewarded, [`endgame:dungeon:${dungeon.id}:complete`]),
+    storyFlags: addStoryFlags(rewarded, [
+      `endgame:dungeon:${dungeon.id}:complete`,
+    ]),
     lastEvent: `Completed ${dungeon.name}. ${dungeon.roomCount} rooms cleared.`,
     lastSavedAt: now(),
   };
 }
 
-export function startArpgRelicTrial(save: ArpgSaveState, trialId: string): ArpgSaveState {
+export function startArpgRelicTrial(
+  save: ArpgSaveState,
+  trialId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const blocked = requireEndgameAccess(normalized);
   if (blocked) return blocked;
@@ -2853,9 +3299,14 @@ export function startArpgRelicTrial(save: ArpgSaveState, trialId: string): ArpgS
   };
 }
 
-export function completeArpgRelicTrial(save: ArpgSaveState, trialId?: string | null): ArpgSaveState {
+export function completeArpgRelicTrial(
+  save: ArpgSaveState,
+  trialId?: string | null,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
-  const trial = getArpgRelicTrial(trialId ?? normalized.endgame.activeTrialId ?? "");
+  const trial = getArpgRelicTrial(
+    trialId ?? normalized.endgame.activeTrialId ?? "",
+  );
   if (!trial) {
     return {
       ...normalized,
@@ -2870,8 +3321,14 @@ export function completeArpgRelicTrial(save: ArpgSaveState, trialId?: string | n
       ...rewarded.endgame,
       unlocked: true,
       activeTrialId: null,
-      completedTrialIds: uniqueStrings([...rewarded.endgame.completedTrialIds, trial.id]),
-      collectionGoalIds: uniqueStrings([...rewarded.endgame.collectionGoalIds, "trial-master"]),
+      completedTrialIds: uniqueStrings([
+        ...rewarded.endgame.completedTrialIds,
+        trial.id,
+      ]),
+      collectionGoalIds: uniqueStrings([
+        ...rewarded.endgame.collectionGoalIds,
+        "trial-master",
+      ]),
       lastCompletedAt: now(),
     },
     storyFlags: addStoryFlags(rewarded, [`endgame:trial:${trial.id}:complete`]),
@@ -2880,7 +3337,10 @@ export function completeArpgRelicTrial(save: ArpgSaveState, trialId?: string | n
   };
 }
 
-export function startArpgBossRematch(save: ArpgSaveState, rematchId: string): ArpgSaveState {
+export function startArpgBossRematch(
+  save: ArpgSaveState,
+  rematchId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const blocked = requireEndgameAccess(normalized);
   if (blocked) return blocked;
@@ -2907,9 +3367,14 @@ export function startArpgBossRematch(save: ArpgSaveState, rematchId: string): Ar
   };
 }
 
-export function completeArpgBossRematch(save: ArpgSaveState, rematchId?: string | null): ArpgSaveState {
+export function completeArpgBossRematch(
+  save: ArpgSaveState,
+  rematchId?: string | null,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
-  const rematch = getArpgBossRematch(rematchId ?? normalized.endgame.activeBossRematchId ?? "");
+  const rematch = getArpgBossRematch(
+    rematchId ?? normalized.endgame.activeBossRematchId ?? "",
+  );
   if (!rematch) {
     return {
       ...normalized,
@@ -2924,21 +3389,35 @@ export function completeArpgBossRematch(save: ArpgSaveState, rematchId?: string 
       ...rewarded.endgame,
       unlocked: true,
       activeBossRematchId: null,
-      completedBossRematchIds: uniqueStrings([...rewarded.endgame.completedBossRematchIds, rematch.id]),
-      collectionGoalIds: uniqueStrings([...rewarded.endgame.collectionGoalIds, "boss-memory-cycle"]),
+      completedBossRematchIds: uniqueStrings([
+        ...rewarded.endgame.completedBossRematchIds,
+        rematch.id,
+      ]),
+      collectionGoalIds: uniqueStrings([
+        ...rewarded.endgame.collectionGoalIds,
+        "boss-memory-cycle",
+      ]),
       lastCompletedAt: now(),
     },
     codex: {
       ...rewarded.codex,
-      revealedWeaknessEnemyIds: uniqueStrings([...rewarded.codex.revealedWeaknessEnemyIds, rematch.bossId]),
+      revealedWeaknessEnemyIds: uniqueStrings([
+        ...rewarded.codex.revealedWeaknessEnemyIds,
+        rematch.bossId,
+      ]),
     },
-    storyFlags: addStoryFlags(rewarded, [`endgame:boss:${rematch.id}:complete`]),
+    storyFlags: addStoryFlags(rewarded, [
+      `endgame:boss:${rematch.id}:complete`,
+    ]),
     lastEvent: `Completed ${rematch.name}. Unique memory: ${rematch.uniqueDrop}.`,
     lastSavedAt: now(),
   };
 }
 
-export function claimArpgTreasureMap(save: ArpgSaveState, mapId: string): ArpgSaveState {
+export function claimArpgTreasureMap(
+  save: ArpgSaveState,
+  mapId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const map = getArpgTreasureMap(mapId);
   if (!map) {
@@ -2953,7 +3432,10 @@ export function claimArpgTreasureMap(save: ArpgSaveState, mapId: string): ArpgSa
     endgame: {
       ...normalized.endgame,
       unlocked: hasEndgameAccess(normalized),
-      discoveredTreasureMapIds: uniqueStrings([...normalized.endgame.discoveredTreasureMapIds, map.id]),
+      discoveredTreasureMapIds: uniqueStrings([
+        ...normalized.endgame.discoveredTreasureMapIds,
+        map.id,
+      ]),
     },
     mapFlags: uniqueStrings([...normalized.mapFlags, `treasure:${map.id}`]),
     lastEvent: `Treasure map discovered: ${map.name}.`,
@@ -2961,7 +3443,10 @@ export function claimArpgTreasureMap(save: ArpgSaveState, mapId: string): ArpgSa
   };
 }
 
-export function completeArpgTreasureMap(save: ArpgSaveState, mapId: string): ArpgSaveState {
+export function completeArpgTreasureMap(
+  save: ArpgSaveState,
+  mapId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const map = getArpgTreasureMap(mapId);
   if (!map) {
@@ -2977,18 +3462,32 @@ export function completeArpgTreasureMap(save: ArpgSaveState, mapId: string): Arp
     endgame: {
       ...rewarded.endgame,
       unlocked: hasEndgameAccess(rewarded),
-      discoveredTreasureMapIds: uniqueStrings([...rewarded.endgame.discoveredTreasureMapIds, map.id]),
-      completedTreasureMapIds: uniqueStrings([...rewarded.endgame.completedTreasureMapIds, map.id]),
-      collectionGoalIds: uniqueStrings([...rewarded.endgame.collectionGoalIds, "subcity-secret-completion"]),
+      discoveredTreasureMapIds: uniqueStrings([
+        ...rewarded.endgame.discoveredTreasureMapIds,
+        map.id,
+      ]),
+      completedTreasureMapIds: uniqueStrings([
+        ...rewarded.endgame.completedTreasureMapIds,
+        map.id,
+      ]),
+      collectionGoalIds: uniqueStrings([
+        ...rewarded.endgame.collectionGoalIds,
+        "subcity-secret-completion",
+      ]),
       lastCompletedAt: now(),
     },
-    storyFlags: addStoryFlags(rewarded, [`endgame:treasure:${map.id}:complete`]),
+    storyFlags: addStoryFlags(rewarded, [
+      `endgame:treasure:${map.id}:complete`,
+    ]),
     lastEvent: `Cleared ${map.name}.`,
     lastSavedAt: now(),
   };
 }
 
-export function startArpgArenaChallenge(save: ArpgSaveState, challengeId: string): ArpgSaveState {
+export function startArpgArenaChallenge(
+  save: ArpgSaveState,
+  challengeId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const challenge = getArpgArenaChallenge(challengeId);
   if (!challenge) {
@@ -3013,9 +3512,14 @@ export function startArpgArenaChallenge(save: ArpgSaveState, challengeId: string
   };
 }
 
-export function completeArpgArenaChallenge(save: ArpgSaveState, challengeId?: string | null): ArpgSaveState {
+export function completeArpgArenaChallenge(
+  save: ArpgSaveState,
+  challengeId?: string | null,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
-  const challenge = getArpgArenaChallenge(challengeId ?? normalized.endgame.activeArenaChallengeId ?? "");
+  const challenge = getArpgArenaChallenge(
+    challengeId ?? normalized.endgame.activeArenaChallengeId ?? "",
+  );
   if (!challenge) {
     return {
       ...normalized,
@@ -3032,19 +3536,32 @@ export function completeArpgArenaChallenge(save: ArpgSaveState, challengeId?: st
     endgame: {
       ...normalized.endgame,
       activeArenaChallengeId: null,
-      completedArenaChallengeIds: uniqueStrings([...normalized.endgame.completedArenaChallengeIds, challenge.id]),
-      collectionGoalIds: uniqueStrings([...normalized.endgame.collectionGoalIds, "arena-build-proving"]),
+      completedArenaChallengeIds: uniqueStrings([
+        ...normalized.endgame.completedArenaChallengeIds,
+        challenge.id,
+      ]),
+      collectionGoalIds: uniqueStrings([
+        ...normalized.endgame.collectionGoalIds,
+        "arena-build-proving",
+      ]),
       lastCompletedAt: now(),
     },
-    storyFlags: addStoryFlags(normalized, [`endgame:arena:${challenge.id}:complete`]),
+    storyFlags: addStoryFlags(normalized, [
+      `endgame:arena:${challenge.id}:complete`,
+    ]),
     lastEvent: `Arena cleared: ${challenge.label}.`,
     lastSavedAt: now(),
   };
 }
 
-export function recordArpgCollectionGoal(save: ArpgSaveState, goalId: string): ArpgSaveState {
+export function recordArpgCollectionGoal(
+  save: ArpgSaveState,
+  goalId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
-  const goal = ARPG_ENDGAME_CONTENT.collectionGoals.find((entry) => entry.id === goalId);
+  const goal = ARPG_ENDGAME_CONTENT.collectionGoals.find(
+    (entry) => entry.id === goalId,
+  );
   if (!goal) {
     return {
       ...normalized,
@@ -3056,7 +3573,10 @@ export function recordArpgCollectionGoal(save: ArpgSaveState, goalId: string): A
     ...normalized,
     endgame: {
       ...normalized.endgame,
-      collectionGoalIds: uniqueStrings([...normalized.endgame.collectionGoalIds, goal.id]),
+      collectionGoalIds: uniqueStrings([
+        ...normalized.endgame.collectionGoalIds,
+        goal.id,
+      ]),
     },
     storyFlags: addStoryFlags(normalized, [`endgame:goal:${goal.id}`]),
     lastEvent: `Collection goal recorded: ${goal.label}.`,
@@ -3064,9 +3584,14 @@ export function recordArpgCollectionGoal(save: ArpgSaveState, goalId: string): A
   };
 }
 
-export function claimArpgCosmeticReward(save: ArpgSaveState, rewardId: string): ArpgSaveState {
+export function claimArpgCosmeticReward(
+  save: ArpgSaveState,
+  rewardId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
-  const reward = ARPG_ENDGAME_CONTENT.cosmeticRewards.find((entry) => entry.id === rewardId);
+  const reward = ARPG_ENDGAME_CONTENT.cosmeticRewards.find(
+    (entry) => entry.id === rewardId,
+  );
   if (!reward) {
     return {
       ...normalized,
@@ -3078,8 +3603,14 @@ export function claimArpgCosmeticReward(save: ArpgSaveState, rewardId: string): 
     ...normalized,
     endgame: {
       ...normalized.endgame,
-      collectionGoalIds: uniqueStrings([...normalized.endgame.collectionGoalIds, reward.sourceGoalId]),
-      cosmeticRewardIds: uniqueStrings([...normalized.endgame.cosmeticRewardIds, reward.id]),
+      collectionGoalIds: uniqueStrings([
+        ...normalized.endgame.collectionGoalIds,
+        reward.sourceGoalId,
+      ]),
+      cosmeticRewardIds: uniqueStrings([
+        ...normalized.endgame.cosmeticRewardIds,
+        reward.id,
+      ]),
     },
     character: {
       ...normalized.character,
@@ -3098,7 +3629,10 @@ export function upgradeArpgItem(
   const normalized = normalizeArpgSave(save);
   const target =
     findInventoryEntry(normalized.inventory, itemOrInstanceId) ??
-    findInventoryEntry(normalized.inventory, normalized.selectedItemInstanceId) ??
+    findInventoryEntry(
+      normalized.inventory,
+      normalized.selectedItemInstanceId,
+    ) ??
     findInventoryEntry(normalized.inventory, normalized.equipped.weapon);
   const item = target ? ARPG_ITEMS[target.itemId] : null;
   if (!target || !item || item.type !== "equipment") {
@@ -3138,7 +3672,11 @@ export function upgradeArpgItem(
 
   const afterShards = consumeStack(normalized, "upgrade-shard", shardCost);
   const afterDust = dustCost
-    ? consumeStack({ ...normalized, inventory: afterShards.inventory }, "relic-dust", dustCost)
+    ? consumeStack(
+        { ...normalized, inventory: afterShards.inventory },
+        "relic-dust",
+        dustCost,
+      )
     : { inventory: afterShards.inventory, consumed: 0 };
   const inventory = afterDust.inventory.map((entry) =>
     entry.instanceId === target.instanceId
@@ -3148,7 +3686,9 @@ export function upgradeArpgItem(
           affixes: Array.from(
             new Set([
               ...entry.affixes,
-              (entry.upgradeRank >= 2 ? "resonance" : "might") as keyof ArpgStats,
+              (entry.upgradeRank >= 2
+                ? "resonance"
+                : "might") as keyof ArpgStats,
             ]),
           ),
         }
@@ -3160,13 +3700,19 @@ export function upgradeArpgItem(
     inventory,
     selectedItemId: item.id,
     selectedItemInstanceId: target.instanceId,
-    storyFlags: addStoryFlags(normalized, [`upgraded:${item.id}`, "upgraded:any"]),
+    storyFlags: addStoryFlags(normalized, [
+      `upgraded:${item.id}`,
+      "upgraded:any",
+    ]),
     lastEvent: `Upgraded ${item.name} to +${target.upgradeRank + 1}.`,
     lastSavedAt: now(),
   };
 }
 
-export function unlockArpgSkill(save: ArpgSaveState, skillId: string): ArpgSaveState {
+export function unlockArpgSkill(
+  save: ArpgSaveState,
+  skillId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const skill = getSkillDefinition(skillId);
   if (!skill) return normalized;
@@ -3177,10 +3723,14 @@ export function unlockArpgSkill(save: ArpgSaveState, skillId: string): ArpgSaveS
       lastSavedAt: now(),
     };
   }
-  const unlockedSkills = Array.from(new Set([...normalized.player.unlockedSkills, skillId]));
+  const unlockedSkills = Array.from(
+    new Set([...normalized.player.unlockedSkills, skillId]),
+  );
   const equippedSkillIds =
     skill.kind === "active"
-      ? Array.from(new Set([...normalized.player.equippedSkillIds, skillId])).slice(0, 2)
+      ? Array.from(
+          new Set([...normalized.player.equippedSkillIds, skillId]),
+        ).slice(0, 2)
       : normalized.player.equippedSkillIds;
   const alreadyUnlocked = normalized.player.unlockedSkills.includes(skillId);
   const nextCharacter =
@@ -3209,12 +3759,18 @@ export function unlockArpgSkill(save: ArpgSaveState, skillId: string): ArpgSaveS
       `class:${nextCharacter.classPathId}`,
       `subclass:${nextCharacter.subclassId}`,
     ]),
-    lastEvent: alreadyUnlocked && skill.kind === "active" ? `Equipped ${skill.name}.` : `Unlocked ${skill.name}.`,
+    lastEvent:
+      alreadyUnlocked && skill.kind === "active"
+        ? `Equipped ${skill.name}.`
+        : `Unlocked ${skill.name}.`,
     lastSavedAt: now(),
   };
 }
 
-export function useArpgConsumable(save: ArpgSaveState, itemId: string): ArpgSaveState {
+export function useArpgConsumable(
+  save: ArpgSaveState,
+  itemId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const item = ARPG_ITEMS[itemId];
   if (!item || item.type !== "consumable" || !hasItem(normalized, itemId)) {
@@ -3230,7 +3786,11 @@ export function useArpgConsumable(save: ArpgSaveState, itemId: string): ArpgSave
     inventory: afterConsume.inventory,
     player: {
       ...normalized.player,
-      hp: clamp(normalized.player.hp + (item.effect?.hp ?? 0), 1, normalized.player.maxHp),
+      hp: clamp(
+        normalized.player.hp + (item.effect?.hp ?? 0),
+        1,
+        normalized.player.maxHp,
+      ),
       mana: clamp(
         normalized.player.mana + (item.effect?.mana ?? 0),
         0,
@@ -3243,7 +3803,10 @@ export function useArpgConsumable(save: ArpgSaveState, itemId: string): ArpgSave
   };
 }
 
-export function advanceArpgStory(save: ArpgSaveState, storyFlag: string): ArpgSaveState {
+export function advanceArpgStory(
+  save: ArpgSaveState,
+  storyFlag: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const prologueStep = ARPG_PROLOGUE_FLOW_BY_FLAG[storyFlag];
   const quest =
@@ -3256,7 +3819,9 @@ export function advanceArpgStory(save: ArpgSaveState, storyFlag: string): ArpgSa
     ...normalized,
     player: {
       ...normalized.player,
-      activeQuestId: ARPG_QUESTS[quest] ? quest : normalized.player.activeQuestId,
+      activeQuestId: ARPG_QUESTS[quest]
+        ? quest
+        : normalized.player.activeQuestId,
     },
     storyFlags: addStoryFlags(normalized, [storyFlag]),
     world: {
@@ -3265,10 +3830,9 @@ export function advanceArpgStory(save: ArpgSaveState, storyFlag: string): ArpgSa
         ? Array.from(new Set([...normalized.world.npcDialogueFlags, storyFlag]))
         : normalized.world.npcDialogueFlags,
     },
-    lastEvent:
-      prologueStep
-        ? `${prologueStep.title}: ${prologueStep.summary}`
-        : storyFlag === "lore:gate-monolith"
+    lastEvent: prologueStep
+      ? `${prologueStep.title}: ${prologueStep.summary}`
+      : storyFlag === "lore:gate-monolith"
         ? "The Gate Monolith yielded a warm map-fragment."
         : storyFlag === "lore:forge-echo"
           ? "The forge explains upgrade shards, pressure, and patient heat."
@@ -3277,7 +3841,10 @@ export function advanceArpgStory(save: ArpgSaveState, storyFlag: string): ArpgSa
   };
 }
 
-export function strikeArpgEnemy(save: ArpgSaveState, enemyId: string): ArpgSaveState {
+export function strikeArpgEnemy(
+  save: ArpgSaveState,
+  enemyId: string,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const enemyDefinition = ARPG_ENEMIES[enemyId];
   const enemy = normalized.enemies[enemyId];
@@ -3303,7 +3870,9 @@ export function strikeArpgEnemy(save: ArpgSaveState, enemyId: string): ArpgSaveS
     };
   }
   if (
-    enemyDefinition.requiresStoryFlags?.some((flag) => !normalized.storyFlags.includes(flag))
+    enemyDefinition.requiresStoryFlags?.some(
+      (flag) => !normalized.storyFlags.includes(flag),
+    )
   ) {
     return {
       ...normalized,
@@ -3311,7 +3880,10 @@ export function strikeArpgEnemy(save: ArpgSaveState, enemyId: string): ArpgSaveS
       lastSavedAt: now(),
     };
   }
-  if (enemyDefinition.requiresUpgradedItem && !hasAnyUpgradedEquipment(normalized)) {
+  if (
+    enemyDefinition.requiresUpgradedItem &&
+    !hasAnyUpgradedEquipment(normalized)
+  ) {
     return {
       ...normalized,
       lastEvent: `${enemyDefinition.name} ignores untempered gear. Upgrade first.`,
@@ -3324,11 +3896,22 @@ export function strikeArpgEnemy(save: ArpgSaveState, enemyId: string): ArpgSaveS
   const damage = attack.amount;
   const nextHp = Math.max(0, enemy.hp - damage);
   const defeated = nextHp === 0;
-  const nextXp = defeated ? normalized.player.xp + enemyDefinition.xp : normalized.player.xp;
-  const nextLevel = nextXp >= 95 ? 3 : nextXp >= 40 ? 2 : normalized.player.level;
-  const playerDamage = defeated ? 0 : Math.max(1, (profile?.basicDamage ?? enemyDefinition.level * 3) - Math.floor(deriveArpgStats(baseSave).ward / 12));
+  const nextXp = defeated
+    ? normalized.player.xp + enemyDefinition.xp
+    : normalized.player.xp;
+  const nextLevel =
+    nextXp >= 95 ? 3 : nextXp >= 40 ? 2 : normalized.player.level;
+  const playerDamage = defeated
+    ? 0
+    : Math.max(
+        1,
+        (profile?.basicDamage ?? enemyDefinition.level * 3) -
+          Math.floor(deriveArpgStats(baseSave).ward / 12),
+      );
   const phaseStatusId =
-    !defeated && profile?.eliteModifierId && nextHp / enemyDefinition.maxHp <= (profile.phaseThreshold ?? 0)
+    !defeated &&
+    profile?.eliteModifierId &&
+    nextHp / enemyDefinition.maxHp <= (profile.phaseThreshold ?? 0)
       ? ARPG_ELITE_MODIFIERS[profile.eliteModifierId]?.statusId
       : undefined;
   const enemyStatuses = defeated
@@ -3345,32 +3928,47 @@ export function strikeArpgEnemy(save: ArpgSaveState, enemyId: string): ArpgSaveS
     intent: defeated ? "defeated" : "recover",
     nextIntentAt: defeated ? undefined : now() + (profile?.recoverMs ?? 600),
     phase:
-      profile?.phaseThreshold && nextHp / enemyDefinition.maxHp <= profile.phaseThreshold ? 2 : enemy.phase ?? 1,
+      profile?.phaseThreshold &&
+      nextHp / enemyDefinition.maxHp <= profile.phaseThreshold
+        ? 2
+        : (enemy.phase ?? 1),
     statuses: enemyStatuses,
     lastDamage: damage,
     lastStruckAt: now(),
   };
   const playerStatuses = activeStatuses(baseSave.combat.playerStatuses);
   const events = [
-    combatEvent("damage", `${attack.skillName ?? "Basic strike"} hit ${enemyDefinition.name} for ${damage}.`, {
-      enemyId,
-      damageType: attack.damageType,
-      amount: damage,
-    }),
+    combatEvent(
+      "damage",
+      `${attack.skillName ?? "Basic strike"} hit ${enemyDefinition.name} for ${damage}.`,
+      {
+        enemyId,
+        damageType: attack.damageType,
+        amount: damage,
+      },
+    ),
     ...(attack.statusId
       ? [
-          combatEvent("status", `${enemyDefinition.name} gained ${ARPG_STATUS_EFFECTS[attack.statusId]?.label}.`, {
-            enemyId,
-            statusId: attack.statusId,
-          }),
+          combatEvent(
+            "status",
+            `${enemyDefinition.name} gained ${ARPG_STATUS_EFFECTS[attack.statusId]?.label}.`,
+            {
+              enemyId,
+              statusId: attack.statusId,
+            },
+          ),
         ]
       : []),
     ...(phaseStatusId
       ? [
-          combatEvent("status", `${enemyDefinition.name} entered ${ARPG_STATUS_EFFECTS[phaseStatusId]?.label}.`, {
-            enemyId,
-            statusId: phaseStatusId,
-          }),
+          combatEvent(
+            "status",
+            `${enemyDefinition.name} entered ${ARPG_STATUS_EFFECTS[phaseStatusId]?.label}.`,
+            {
+              enemyId,
+              statusId: phaseStatusId,
+            },
+          ),
         ]
       : []),
     ...(defeated
@@ -3391,8 +3989,12 @@ export function strikeArpgEnemy(save: ArpgSaveState, enemyId: string): ArpgSaveS
         : clamp(baseSave.player.hp - playerDamage, 1, baseSave.player.maxHp),
       xp: nextXp,
       level: Math.max(baseSave.player.level, nextLevel),
-      gold: defeated ? baseSave.player.gold + enemyDefinition.gold : baseSave.player.gold,
-      activeQuestId: defeated ? "quiet-the-warden" : baseSave.player.activeQuestId,
+      gold: defeated
+        ? baseSave.player.gold + enemyDefinition.gold
+        : baseSave.player.gold,
+      activeQuestId: defeated
+        ? "quiet-the-warden"
+        : baseSave.player.activeQuestId,
     },
     enemies: {
       ...baseSave.enemies,
@@ -3411,7 +4013,9 @@ export function strikeArpgEnemy(save: ArpgSaveState, enemyId: string): ArpgSaveS
       ...pushCombatEvents(baseSave, events),
       playerStatuses,
       targetEnemyId: defeated ? null : enemyId,
-      discoveredEnemyCodexIds: baseSave.combat.discoveredEnemyCodexIds.includes(enemyId)
+      discoveredEnemyCodexIds: baseSave.combat.discoveredEnemyCodexIds.includes(
+        enemyId,
+      )
         ? baseSave.combat.discoveredEnemyCodexIds
         : [...baseSave.combat.discoveredEnemyCodexIds, enemyId],
     },
@@ -3435,9 +4039,15 @@ export function strikeArpgEnemy(save: ArpgSaveState, enemyId: string): ArpgSaveS
   return nextSave;
 }
 
-export function targetArpgEnemy(save: ArpgSaveState, enemyId: string | null): ArpgSaveState {
+export function targetArpgEnemy(
+  save: ArpgSaveState,
+  enemyId: string | null,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
-  if (enemyId && (!ARPG_ENEMIES[enemyId] || normalized.enemies[enemyId]?.defeated)) {
+  if (
+    enemyId &&
+    (!ARPG_ENEMIES[enemyId] || normalized.enemies[enemyId]?.defeated)
+  ) {
     return normalized;
   }
   const nextSave = enemyId ? discoverEnemy(normalized, enemyId) : normalized;
@@ -3445,7 +4055,10 @@ export function targetArpgEnemy(save: ArpgSaveState, enemyId: string | null): Ar
   const enemyDefinition = enemyId ? ARPG_ENEMIES[enemyId] : null;
   const distance =
     enemy && enemyDefinition
-      ? Math.hypot(nextSave.player.x - enemyDefinition.position.x, nextSave.player.z - enemyDefinition.position.z)
+      ? Math.hypot(
+          nextSave.player.x - enemyDefinition.position.x,
+          nextSave.player.z - enemyDefinition.position.z,
+        )
       : 0;
   return {
     ...nextSave,
@@ -3461,12 +4074,16 @@ export function targetArpgEnemy(save: ArpgSaveState, enemyId: string | null): Ar
       targetEnemyId: enemyId,
       latestEvents: enemyDefinition
         ? [
-            combatEvent("codex", `Targeted ${enemyDefinition.name}.`, { enemyId: enemyId ?? undefined }),
+            combatEvent("codex", `Targeted ${enemyDefinition.name}.`, {
+              enemyId: enemyId ?? undefined,
+            }),
             ...nextSave.combat.latestEvents,
           ].slice(0, COMBAT_EVENT_LIMIT)
         : nextSave.combat.latestEvents,
     },
-    lastEvent: enemyDefinition ? `Targeted ${enemyDefinition.name}.` : "Target cleared.",
+    lastEvent: enemyDefinition
+      ? `Targeted ${enemyDefinition.name}.`
+      : "Target cleared.",
     lastSavedAt: now(),
   };
 }
@@ -3505,16 +4122,23 @@ export function useArpgSkill(
       ...normalized,
       combat: {
         ...pushCombatEvents(normalized, [
-          combatEvent("cooldown", `${skill.name} ready in ${Math.ceil((readyAt - timestamp) / 1000)}s.`, {
-            skillId: selectedSkillId,
-          }),
+          combatEvent(
+            "cooldown",
+            `${skill.name} ready in ${Math.ceil((readyAt - timestamp) / 1000)}s.`,
+            {
+              skillId: selectedSkillId,
+            },
+          ),
         ]),
       },
       lastEvent: `${skill.name} is cooling down.`,
       lastSavedAt: timestamp,
     };
   }
-  const targetId = enemyId ?? normalized.combat.targetEnemyId ?? nearestLiveEnemyId(normalized);
+  const targetId =
+    enemyId ??
+    normalized.combat.targetEnemyId ??
+    nearestLiveEnemyId(normalized);
   if (!targetId) {
     return {
       ...normalized,
@@ -3528,12 +4152,16 @@ export function useArpgSkill(
       ...normalized.player,
       equippedSkillIds: uniqueStrings([
         selectedSkillId,
-        ...normalized.player.equippedSkillIds.filter((id) => id !== selectedSkillId),
+        ...normalized.player.equippedSkillIds.filter(
+          (id) => id !== selectedSkillId,
+        ),
       ]).slice(0, 2),
     },
   };
   const result = strikeArpgEnemy(prepared, targetId);
-  const applied = result.lastEvent !== normalized.lastEvent && !/Move closer|waits|ignores/.test(result.lastEvent);
+  const applied =
+    result.lastEvent !== normalized.lastEvent &&
+    !/Move closer|waits|ignores/.test(result.lastEvent);
   return {
     ...result,
     combat: {
@@ -3545,15 +4173,23 @@ export function useArpgSkill(
           }
         : result.combat.cooldowns,
     },
-    lastEvent: applied ? `${skill.name}: ${result.lastEvent}` : result.lastEvent,
+    lastEvent: applied
+      ? `${skill.name}: ${result.lastEvent}`
+      : result.lastEvent,
     lastSavedAt: now(),
   };
 }
 
-export function dodgeArpgPlayer(save: ArpgSaveState, vector?: ArpgMoveVector | null): ArpgSaveState {
+export function dodgeArpgPlayer(
+  save: ArpgSaveState,
+  vector?: ArpgMoveVector | null,
+): ArpgSaveState {
   const normalized = normalizeArpgSave(save);
   const timestamp = now();
-  if (normalized.combat.lastDodgedAt && timestamp - normalized.combat.lastDodgedAt < DODGE_COOLDOWN_MS) {
+  if (
+    normalized.combat.lastDodgedAt &&
+    timestamp - normalized.combat.lastDodgedAt < DODGE_COOLDOWN_MS
+  ) {
     return {
       ...normalized,
       combat: {
@@ -3575,9 +4211,15 @@ export function dodgeArpgPlayer(save: ArpgSaveState, vector?: ArpgMoveVector | n
     ...moved,
     combat: {
       ...pushCombatEvents(moved, [
-        combatEvent("dodge", `Dodged ${dodgeVector.label ?? "clear"}.`, { skillId: "dodge" }),
+        combatEvent("dodge", `Dodged ${dodgeVector.label ?? "clear"}.`, {
+          skillId: "dodge",
+        }),
       ]),
-      playerStatuses: applyStatus(moved.combat.playerStatuses, "guard", "dodge"),
+      playerStatuses: applyStatus(
+        moved.combat.playerStatuses,
+        "guard",
+        "dodge",
+      ),
       lastDodgedAt: timestamp,
     },
     lastEvent: `Dodged ${dodgeVector.label ?? "clear"} and raised guard.`,

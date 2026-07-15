@@ -1,5 +1,9 @@
 import type { MemorySpineItem } from "@/lib/memorySpine";
-import type { WorkflowPackId, EvidenceStrength, ResearchSourceType } from "@/lib/researchSources";
+import type {
+  WorkflowPackId,
+  EvidenceStrength,
+  ResearchSourceType,
+} from "@/lib/researchSources";
 import { inferWorkflowPackIdFromText } from "@/lib/workflowPacks";
 
 export type MemoryCompartment =
@@ -78,7 +82,9 @@ function trimSentence(value: string, max = 160) {
   return `${normalized.slice(0, max - 1).trimEnd()}…`;
 }
 
-export function detectMemoryCompartment(item: MemorySpineItem): MemoryCompartment {
+export function detectMemoryCompartment(
+  item: MemorySpineItem,
+): MemoryCompartment {
   const text = `${item.title} ${item.summary} ${item.sourceLabel} ${item.tags.join(" ")}`;
   const taggedCompartment = item.tags
     .find((tag) => tag.startsWith("compartment:"))
@@ -102,7 +108,11 @@ export function detectMemoryCompartment(item: MemorySpineItem): MemoryCompartmen
   ) {
     return "project";
   }
-  if (item.kind === "run" || item.kind === "briefing" || CONVERSATION_RE.test(text)) {
+  if (
+    item.kind === "run" ||
+    item.kind === "briefing" ||
+    CONVERSATION_RE.test(text)
+  ) {
     return "conversation";
   }
   if (RESEARCH_RE.test(text)) {
@@ -114,12 +124,19 @@ export function detectMemoryCompartment(item: MemorySpineItem): MemoryCompartmen
   return "general";
 }
 
-function scoreMemoryItem(item: MemorySpineItem, query: string, requestedCompartment?: MemoryCompartment | null) {
+function scoreMemoryItem(
+  item: MemorySpineItem,
+  query: string,
+  requestedCompartment?: MemoryCompartment | null,
+) {
   const normalizedQuery = query.toLowerCase();
-  const haystack = `${item.title} ${item.summary} ${item.sourceLabel} ${item.tags.join(" ")}`.toLowerCase();
+  const haystack =
+    `${item.title} ${item.summary} ${item.sourceLabel} ${item.tags.join(" ")}`.toLowerCase();
   let score = 0;
 
-  for (const token of normalizedQuery.split(/\s+/).filter((token) => token.length > 1)) {
+  for (const token of normalizedQuery
+    .split(/\s+/)
+    .filter((token) => token.length > 1)) {
     if (haystack.includes(token)) score += 8;
     if (item.title.toLowerCase().includes(token)) score += 6;
     if (item.tags.some((tag) => tag.toLowerCase().includes(token))) score += 4;
@@ -178,10 +195,14 @@ function buildEntities(item: MemorySpineItem) {
 function buildOpenLoops(item: MemorySpineItem) {
   const values: string[] = [];
   if (item.kind === "run") {
-    values.push("Follow through on the previous run before starting a parallel thread.");
+    values.push(
+      "Follow through on the previous run before starting a parallel thread.",
+    );
   }
   if (item.kind === "page") {
-    values.push("Check whether the durable artifact already needs a higher-order brief instead of creating a duplicate.");
+    values.push(
+      "Check whether the durable artifact already needs a higher-order brief instead of creating a duplicate.",
+    );
   }
   if (item.kind === "briefing") {
     values.push("Review whether this briefing changed since the last session.");
@@ -208,25 +229,32 @@ function detectWorkflowPackId(item: MemorySpineItem): WorkflowPackId | null {
 }
 
 function detectWorkflowClass(item: MemorySpineItem) {
-  const text = `${item.title} ${item.summary} ${item.sourceLabel} ${item.tags.join(" ")}`.toLowerCase();
+  const text =
+    `${item.title} ${item.summary} ${item.sourceLabel} ${item.tags.join(" ")}`.toLowerCase();
   if (/\b(reverse engineering|binary|ghidra|sample|malware)\b/i.test(text)) {
     return "reverse-engineering";
   }
-  if (/\b(literature|research|evidence|compare|citation|synthesis)\b/i.test(text)) {
+  if (
+    /\b(literature|research|evidence|compare|citation|synthesis)\b/i.test(text)
+  ) {
     return "research";
   }
   if (/\b(study|quiz|practice|teach|explain|lesson)\b/i.test(text)) {
     return "guided-learning";
   }
-  if (/\b(project memory|repo memory|codebase|spec|playbook|impact)\b/i.test(text)) {
+  if (
+    /\b(project memory|repo memory|codebase|spec|playbook|impact)\b/i.test(text)
+  ) {
     return "project-memory";
   }
   return null;
 }
 
 function detectSourceType(item: MemorySpineItem): ResearchSourceType {
-  const text = `${item.title} ${item.summary} ${item.sourceLabel} ${item.tags.join(" ")}`.toLowerCase();
-  if (/\b(project-memory|repo-bound|repo memory)\b/i.test(text)) return "repo-memory";
+  const text =
+    `${item.title} ${item.summary} ${item.sourceLabel} ${item.tags.join(" ")}`.toLowerCase();
+  if (/\b(project-memory|repo-bound|repo memory)\b/i.test(text))
+    return "repo-memory";
   if (/\b(pdf|mime:application\/pdf)\b/i.test(text)) return "local-pdf";
   if (/\b(citation|bibliography|doi|arxiv)\b/i.test(text)) return "citation";
   if (item.kind === "page") return "vault-artifact";
@@ -242,13 +270,23 @@ function detectEvidenceStrength(
   sourceType: ResearchSourceType,
 ): EvidenceStrength {
   const text = `${item.title} ${item.summary} ${item.sourceLabel} ${item.tags.join(" ")}`;
-  if (/\b(citation|citations|doi|arxiv|source-backed|bibliography)\b/i.test(text)) {
+  if (
+    /\b(citation|citations|doi|arxiv|source-backed|bibliography)\b/i.test(text)
+  ) {
     return "synthesis-ready";
   }
-  if (sourceType === "vault-artifact" || sourceType === "local-pdf" || sourceType === "citation") {
+  if (
+    sourceType === "vault-artifact" ||
+    sourceType === "local-pdf" ||
+    sourceType === "citation"
+  ) {
     return "source-backed";
   }
-  if (sourceType === "repo-memory" || sourceType === "memory-spine" || item.kind === "learning") {
+  if (
+    sourceType === "repo-memory" ||
+    sourceType === "memory-spine" ||
+    item.kind === "learning"
+  ) {
     return "contextual";
   }
   return "unverified";
@@ -275,7 +313,13 @@ export function mineMemorySpine(
   return ranked.map<MinedMemory>((entry) => {
     const freshness = Math.max(
       0,
-      Math.min(100, 100 - Math.round((Date.now() - entry.item.timestamp) / (1000 * 60 * 60 * 24))),
+      Math.min(
+        100,
+        100 -
+          Math.round(
+            (Date.now() - entry.item.timestamp) / (1000 * 60 * 60 * 24),
+          ),
+      ),
     );
     const sourceType = detectSourceType(entry.item);
     const evidenceStrength = detectEvidenceStrength(entry.item, sourceType);

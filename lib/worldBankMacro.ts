@@ -17,7 +17,10 @@ export interface WorldBankMacroResult {
 const INDICATOR_LABELS: Record<string, { label: string; unit: string }> = {
   "NY.GDP.MKTP.CD": { label: "GDP (current US$)", unit: "USD" },
   "FP.CPI.TOTL.ZG": { label: "Inflation (CPI annual %)", unit: "%" },
-  "GC.DOD.TOTL.GD.ZS": { label: "Central government debt (% of GDP)", unit: "% of GDP" },
+  "GC.DOD.TOTL.GD.ZS": {
+    label: "Central government debt (% of GDP)",
+    unit: "% of GDP",
+  },
 };
 
 function normalizeCountryCode(input: string): string {
@@ -37,7 +40,9 @@ export async function fetchWorldBankMacro(input: {
   indicator?: string;
 }): Promise<WorldBankMacroResult | string> {
   const countryCode = normalizeCountryCode(input.country);
-  const indicatorCode = (input.indicator?.trim() || "NY.GDP.MKTP.CD").toUpperCase();
+  const indicatorCode = (
+    input.indicator?.trim() || "NY.GDP.MKTP.CD"
+  ).toUpperCase();
   const meta = INDICATOR_LABELS[indicatorCode] ?? {
     label: indicatorCode,
     unit: "value",
@@ -48,7 +53,9 @@ export async function fetchWorldBankMacro(input: {
     `/indicator/${encodeURIComponent(indicatorCode)}?format=json&per_page=1`;
 
   try {
-    const response = await fetch(sourceUrl, { signal: AbortSignal.timeout(10_000) });
+    const response = await fetch(sourceUrl, {
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!response.ok) {
       return `World Bank API returned HTTP ${response.status}`;
     }
@@ -85,7 +92,9 @@ export async function fetchWorldBankMacro(input: {
   }
 }
 
-export function formatWorldBankMacroResult(result: WorldBankMacroResult): string {
+export function formatWorldBankMacroResult(
+  result: WorldBankMacroResult,
+): string {
   const value =
     result.value == null
       ? "n/a"

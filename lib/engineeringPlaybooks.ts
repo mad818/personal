@@ -49,17 +49,20 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/resources?view=system&system=hq-mission-flow",
         label: "Open HQ system map",
-        detail: "Start from ownership and failure modes before widening shell edits.",
+        detail:
+          "Start from ownership and failure modes before widening shell edits.",
       },
       {
         href: "/resources?view=impact&file=components/home/office/OfficeCommandCenter.tsx",
         label: "Seed Impact for HQ shell",
-        detail: "See likely touched files before extracting more HQ orchestration.",
+        detail:
+          "See likely touched files before extracting more HQ orchestration.",
       },
       {
         href: "/hq?focus=hq-console-shell",
         label: "Open HQ console shell",
-        detail: "Validate the live shell and composer after every extraction step.",
+        detail:
+          "Validate the live shell and composer after every extraction step.",
       },
     ],
   },
@@ -89,7 +92,8 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/recon?view=opsec&focus=recon-opsec",
         label: "Open RECON OPSEC",
-        detail: "Validate degraded connector posture and operator-facing trust cues.",
+        detail:
+          "Validate degraded connector posture and operator-facing trust cues.",
       },
       {
         href: "/resources?view=impact&file=lib/security/routePolicy.ts",
@@ -99,7 +103,8 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/security?view=ai&focus=security-ai-surface",
         label: "Open AI surface audit",
-        detail: "Review related AI/runtime trust posture if the boundary touches provider flows.",
+        detail:
+          "Review related AI/runtime trust posture if the boundary touches provider flows.",
       },
     ],
   },
@@ -129,17 +134,20 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/security?view=ai&focus=security-ai-surface",
         label: "Open AI surface audit",
-        detail: "Track which answer surfaces are still boundary-only versus visibly hardened.",
+        detail:
+          "Track which answer surfaces are still boundary-only versus visibly hardened.",
       },
       {
         href: "/resources?view=system&system=ai-runtime-boundary",
         label: "Open AI runtime map",
-        detail: "Review provider, prompt, and retrieval ownership before changing answer behavior.",
+        detail:
+          "Review provider, prompt, and retrieval ownership before changing answer behavior.",
       },
       {
         href: "/command?focus=runtime-efficiency",
         label: "Open runtime efficiency",
-        detail: "Watch provider and prompt posture while tightening AI behavior.",
+        detail:
+          "Watch provider and prompt posture while tightening AI behavior.",
       },
     ],
   },
@@ -169,7 +177,8 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/resources?view=specs&spec=feature-build",
         label: "Open feature-build spec",
-        detail: "Start with the general feature starter when no narrower spec already exists.",
+        detail:
+          "Start with the general feature starter when no narrower spec already exists.",
       },
       {
         href: "/resources?view=system&system=hq-mission-flow",
@@ -179,7 +188,8 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/resources?view=impact&file=store/useStore.ts",
         label: "Seed Impact",
-        detail: "Use a real blast-radius seed before the spec turns into code work.",
+        detail:
+          "Use a real blast-radius seed before the spec turns into code work.",
       },
     ],
   },
@@ -213,12 +223,14 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/vault?focus=vault-compiled-pages&compiledFilter=reverse-engineering",
         label: "Open RE maintenance",
-        detail: "Repair and promote reverse-engineering prep from the dedicated VAULT lane.",
+        detail:
+          "Repair and promote reverse-engineering prep from the dedicated VAULT lane.",
       },
       {
         href: "/vault?focus=vault-export-second-brain",
         label: "Open second-brain export",
-        detail: "Carry durable reverse-engineering memory into the Obsidian-ready pack.",
+        detail:
+          "Carry durable reverse-engineering memory into the Obsidian-ready pack.",
       },
     ],
   },
@@ -256,12 +268,14 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/vault?focus=vault-stewardship",
         label: "Open stewardship",
-        detail: "Review orphans and tag coverage before exporting to keep the pack clean.",
+        detail:
+          "Review orphans and tag coverage before exporting to keep the pack clean.",
       },
       {
         href: "/vault?focus=vault-compiled-pages",
         label: "View compiled pages",
-        detail: "Check compiled pages for newly accumulated artifacts before running the pack.",
+        detail:
+          "Check compiled pages for newly accumulated artifacts before running the pack.",
       },
     ],
   },
@@ -297,12 +311,14 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/vault?focus=vault-compiled-pages&workflowId=market-review",
         label: "Open market review archive",
-        detail: "Reopen prior durable market reviews without leaving the compiled-pages lane.",
+        detail:
+          "Reopen prior durable market reviews without leaving the compiled-pages lane.",
       },
       {
         href: "/hq?focus=hq-chronicle",
         label: "Open HQ chronicle",
-        detail: "Resume assistant continuity once the strongest market review is staged.",
+        detail:
+          "Resume assistant continuity once the strongest market review is staged.",
       },
     ],
   },
@@ -336,12 +352,14 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/cyber?view=triage&focus=cyber-triage",
         label: "Open CYBER triage",
-        detail: "Carry threat-led case packaging back through the governed cyber baseline.",
+        detail:
+          "Carry threat-led case packaging back through the governed cyber baseline.",
       },
       {
         href: "/vault?focus=vault-compiled-pages&workflowId=osint-casefile",
         label: "Open OSINT archive",
-        detail: "Review durable casefiles from the filtered compiled-pages lane.",
+        detail:
+          "Review durable casefiles from the filtered compiled-pages lane.",
       },
     ],
   },
@@ -370,17 +388,20 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/intel",
         label: "Open INTEL",
-        detail: "Run the explicit deep-research mission from the existing NOVA lane.",
+        detail:
+          "Run the explicit deep-research mission from the existing NOVA lane.",
       },
       {
         href: "/vault?focus=vault-compiled-pages&workflowId=deepresearch",
         label: "Open deep-research archive",
-        detail: "Review durable deep-research briefs from the filtered compiled-pages lane.",
+        detail:
+          "Review durable deep-research briefs from the filtered compiled-pages lane.",
       },
       {
         href: "/hq?focus=hq-chronicle",
         label: "Open HQ chronicle",
-        detail: "Carry the finished brief back into the assistant-first command flow once the research pass is complete.",
+        detail:
+          "Carry the finished brief back into the assistant-first command flow once the research pass is complete.",
       },
     ],
   },
@@ -409,17 +430,20 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/recon?view=osint&focus=recon-repo-intel",
         label: "Open RECON repo intel",
-        detail: "Assess first, then run explicit repo assimilation from the same OSINT lane.",
+        detail:
+          "Assess first, then run explicit repo assimilation from the same OSINT lane.",
       },
       {
         href: "/vault?focus=vault-compiled-pages&workflowId=repo-assimilation",
         label: "Open repo assimilation archive",
-        detail: "Review durable repo-fit briefs from the filtered compiled-pages lane.",
+        detail:
+          "Review durable repo-fit briefs from the filtered compiled-pages lane.",
       },
       {
         href: "/hq?focus=hq-chronicle",
         label: "Open HQ chronicle",
-        detail: "Hand the saved assimilation brief to ORBIT once the fit and boundaries are explicit.",
+        detail:
+          "Hand the saved assimilation brief to ORBIT once the fit and boundaries are explicit.",
       },
     ],
   },
@@ -448,17 +472,20 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/recon?view=osint&focus=recon-repo-intel",
         label: "Open RECON repo compare",
-        detail: "Assess candidates, build the compare set, and file one durable recommendation from the existing repo-intel lane.",
+        detail:
+          "Assess candidates, build the compare set, and file one durable recommendation from the existing repo-intel lane.",
       },
       {
         href: "/vault?focus=vault-compiled-pages&workflowId=repo-compare",
         label: "Open repo compare archive",
-        detail: "Reopen durable compare briefs from the filtered compiled-pages lane.",
+        detail:
+          "Reopen durable compare briefs from the filtered compiled-pages lane.",
       },
       {
         href: "/hq?focus=hq-chronicle",
         label: "Open HQ chronicle",
-        detail: "Carry the saved recommendation into ORBIT once the compare brief is filed.",
+        detail:
+          "Carry the saved recommendation into ORBIT once the compare brief is filed.",
       },
     ],
   },
@@ -491,12 +518,14 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/hq?focus=hq-chronicle",
         label: "Open HQ chronicle",
-        detail: "Hand the brief to ORBIT only after the metadata view is worth local planning.",
+        detail:
+          "Hand the brief to ORBIT only after the metadata view is worth local planning.",
       },
       {
         href: "/resources?view=system&system=recon-boundary",
         label: "Open RECON system map",
-        detail: "Keep the repo-intel module aligned to RECON’s existing passive-first boundaries.",
+        detail:
+          "Keep the repo-intel module aligned to RECON’s existing passive-first boundaries.",
       },
     ],
   },
@@ -525,17 +554,20 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/vehicle?focus=vehicle-artifact-convention",
         label: "Open session bundles",
-        detail: "Attach radar-readiness notes inside the existing vehicle artifact lane.",
+        detail:
+          "Attach radar-readiness notes inside the existing vehicle artifact lane.",
       },
       {
         href: "/vehicle?focus=vehicle-connector-onboarding",
         label: "Open connector onboarding",
-        detail: "Keep future hardware and companion posture visible while filing radar notes.",
+        detail:
+          "Keep future hardware and companion posture visible while filing radar notes.",
       },
       {
         href: "/vault?focus=vault-compiled-pages",
         label: "Open compiled pages",
-        detail: "Review the filed vehicle summary once the radar-ready bundle lands in VAULT.",
+        detail:
+          "Review the filed vehicle summary once the radar-ready bundle lands in VAULT.",
       },
     ],
   },
@@ -562,17 +594,20 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/resources?view=voice-lab",
         label: "Open Voice Lab",
-        detail: "Stage local dictation, profile, and rendering work in one bounded lane.",
+        detail:
+          "Stage local dictation, profile, and rendering work in one bounded lane.",
       },
       {
         href: "/hq?focus=hq-chronicle",
         label: "Open HQ chronicle",
-        detail: "Turn the current reply into a spoken briefing once the content is stable.",
+        detail:
+          "Turn the current reply into a spoken briefing once the content is stable.",
       },
       {
         href: "/vault",
         label: "Open VAULT",
-        detail: "Use readback or a saved voice project when replaying archived material.",
+        detail:
+          "Use readback or a saved voice project when replaying archived material.",
       },
     ],
   },
@@ -604,12 +639,14 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/resources?view=impact&impactMode=security",
         label: "Open Impact security",
-        detail: "Review heuristic sinks, secrets, and risky boundaries from the same local workbench.",
+        detail:
+          "Review heuristic sinks, secrets, and risky boundaries from the same local workbench.",
       },
       {
         href: "/cyber?view=vuln-review&focus=cyber-vuln-review",
         label: "Open vulnerability review",
-        detail: "Escalate into the defensive review lane once the architecture signal is concrete enough.",
+        detail:
+          "Escalate into the defensive review lane once the architecture signal is concrete enough.",
       },
     ],
   },
@@ -636,17 +673,20 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/command?focus=provider-health",
         label: "Open provider health",
-        detail: "Check runtime reachability, cloud posture, and privacy-shield status together.",
+        detail:
+          "Check runtime reachability, cloud posture, and privacy-shield status together.",
       },
       {
         href: "/hq?focus=hq-chronicle",
         label: "Open HQ chronicle",
-        detail: "Return to the assistant-first lane once the privacy posture is clear.",
+        detail:
+          "Return to the assistant-first lane once the privacy posture is clear.",
       },
       {
         href: "/resources?view=system&system=ai-runtime-boundary",
         label: "Open AI runtime boundary",
-        detail: "Review the existing provider and route boundary before widening privacy logic.",
+        detail:
+          "Review the existing provider and route boundary before widening privacy logic.",
       },
     ],
   },
@@ -678,12 +718,14 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/vault?focus=vault-compiled-pages&workflowId=vuln-review",
         label: "Open vuln-review archive",
-        detail: "Reopen saved defensive briefs and exact repair lanes from VAULT.",
+        detail:
+          "Reopen saved defensive briefs and exact repair lanes from VAULT.",
       },
       {
         href: "/resources?view=impact&impactMode=security",
         label: "Open Impact security",
-        detail: "Inspect the local security heuristics and likely blast radius before the next repair step.",
+        detail:
+          "Inspect the local security heuristics and likely blast radius before the next repair step.",
       },
     ],
   },
@@ -753,17 +795,20 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/command?focus=agent-health",
         label: "Open agent health",
-        detail: "Start from the runtime health lane before trusting higher-level shell signals.",
+        detail:
+          "Start from the runtime health lane before trusting higher-level shell signals.",
       },
       {
         href: "/resources?view=impact",
         label: "Open Impact",
-        detail: "Seed the local blast-radius workbench for the files touched by the update.",
+        detail:
+          "Seed the local blast-radius workbench for the files touched by the update.",
       },
       {
         href: "/resources?view=playbooks&playbook=feature-ship",
         label: "Open feature ship",
-        detail: "Move from local proof into commit/PR readiness after the runtime checks are quiet.",
+        detail:
+          "Move from local proof into commit/PR readiness after the runtime checks are quiet.",
       },
     ],
   },
@@ -799,14 +844,17 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
       {
         href: "/resources?view=specs&spec=api-integration",
         label: "Open API spec",
-        detail: "Review the API integration starter before widening the connector surface.",
+        detail:
+          "Review the API integration starter before widening the connector surface.",
       },
     ],
   },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-export function getEngineeringPlaybook(id: string | null | undefined): EngineeringPlaybook {
+export function getEngineeringPlaybook(
+  id: string | null | undefined,
+): EngineeringPlaybook {
   const resolvedId =
     resolveEngineeringPlaybookId(id) ?? DEFAULT_ENGINEERING_PLAYBOOK_ID;
   return (
@@ -815,7 +863,9 @@ export function getEngineeringPlaybook(id: string | null | undefined): Engineeri
   );
 }
 
-export function buildEngineeringPlaybookBrief(playbook: EngineeringPlaybook): string {
+export function buildEngineeringPlaybookBrief(
+  playbook: EngineeringPlaybook,
+): string {
   const lines = [
     `# Playbook: ${playbook.title}`,
     ``,

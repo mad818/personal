@@ -1,6 +1,7 @@
 import type { RuntimeExperimentRecommendation } from "@/lib/runtimeExperimentContracts";
 
-export const EVOLUTION_IMPROVER_STORAGE_KEY = "nexus-evolution-improver-decisions";
+export const EVOLUTION_IMPROVER_STORAGE_KEY =
+  "nexus-evolution-improver-decisions";
 
 export type EvolutionOperatorDecision = "keep" | "reject" | "defer";
 
@@ -66,7 +67,9 @@ export function readEvolutionOperatorRecords(): EvolutionOperatorRecord[] {
   }
 }
 
-export function writeEvolutionOperatorRecord(record: EvolutionOperatorRecord): void {
+export function writeEvolutionOperatorRecord(
+  record: EvolutionOperatorRecord,
+): void {
   if (typeof window === "undefined") return;
   try {
     const next = [

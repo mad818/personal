@@ -104,7 +104,8 @@ export interface ArpgProductionContent {
   companions: ArpgProductionCompanion[];
 }
 
-export const ARPG_PRODUCTION_CONTENT = productionContent as ArpgProductionContent;
+export const ARPG_PRODUCTION_CONTENT =
+  productionContent as ArpgProductionContent;
 
 export const ARPG_PRODUCTION_MAJOR_CITY_COUNT =
   ARPG_PRODUCTION_CONTENT.world.cities.length;

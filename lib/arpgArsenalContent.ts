@@ -1,6 +1,10 @@
 import arsenalContent from "@/lib/arpgArsenalContent.json";
 import { ARPG_ARMORY_ECONOMY_CONTENT } from "@/lib/arpgArmoryEconomyContent";
-import type { ArpgEquipmentSlot, ArpgItemQuality, ArpgStats } from "@/lib/arpgGame";
+import type {
+  ArpgEquipmentSlot,
+  ArpgItemQuality,
+  ArpgStats,
+} from "@/lib/arpgGame";
 
 export type ArpgArsenalDamageType =
   | "physical"
@@ -100,11 +104,14 @@ export const ARPG_ARSENAL_SUMMARY = {
   vfxFrameCount: ARPG_ARSENAL_CONTENT.vfxFrames.length,
 };
 
-export function getArpgArsenalWeaponTemplate(idOrFamilyId: string | null | undefined) {
+export function getArpgArsenalWeaponTemplate(
+  idOrFamilyId: string | null | undefined,
+) {
   if (!idOrFamilyId) return null;
   return (
     ARPG_ARSENAL_CONTENT.weaponItemTemplates.find(
-      (template) => template.id === idOrFamilyId || template.familyId === idOrFamilyId,
+      (template) =>
+        template.id === idOrFamilyId || template.familyId === idOrFamilyId,
     ) ?? null
   );
 }
@@ -148,10 +155,14 @@ export function getArpgArsenalAffixCount(quality: string | null | undefined) {
   return getArpgArsenalQualityRule(quality)?.affixCount ?? 0;
 }
 
-export function getArpgArsenalComparison(item: ArpgComparableItem | null | undefined) {
+export function getArpgArsenalComparison(
+  item: ArpgComparableItem | null | undefined,
+) {
   if (!item) return null;
   const named = getArpgArsenalNamedWeapon(item.itemId ?? item.id);
-  const template = getArpgArsenalWeaponTemplate(item.familyId ?? named?.familyId ?? null);
+  const template = getArpgArsenalWeaponTemplate(
+    item.familyId ?? named?.familyId ?? null,
+  );
   const quality = getArpgArsenalQualityRule(item.quality);
   const basePower = template?.basePower ?? 8;
   const statScore = Object.values(item.stats ?? {}).reduce(
@@ -160,9 +171,13 @@ export function getArpgArsenalComparison(item: ArpgComparableItem | null | undef
   );
   const affixScore = (item.affixes?.length ?? 0) * 2;
   const upgradeScore = Math.max(0, item.upgradeRank) * 3;
-  const powerScore = Math.round(basePower + quality.statBudget + statScore + affixScore + upgradeScore);
+  const powerScore = Math.round(
+    basePower + quality.statBudget + statScore + affixScore + upgradeScore,
+  );
   const economyQuality =
-    ARPG_ARMORY_ECONOMY_CONTENT.qualities.find((entry) => entry.id === item.quality) ?? null;
+    ARPG_ARMORY_ECONOMY_CONTENT.qualities.find(
+      (entry) => entry.id === item.quality,
+    ) ?? null;
 
   return {
     named,
@@ -184,7 +199,8 @@ export function getArpgArsenalComparison(item: ArpgComparableItem | null | undef
 export function getArpgArsenalDropPreview(quality: ArpgItemQuality) {
   const rule = getArpgArsenalQualityRule(quality);
   return (
-    ARPG_ARSENAL_CONTENT.vfxFrames.find((frame) => frame.id === `loot-burst-${rule.id}`) ??
-    ARPG_ARSENAL_CONTENT.vfxFrames[0]
+    ARPG_ARSENAL_CONTENT.vfxFrames.find(
+      (frame) => frame.id === `loot-burst-${rule.id}`,
+    ) ?? ARPG_ARSENAL_CONTENT.vfxFrames[0]
   );
 }

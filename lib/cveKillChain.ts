@@ -54,7 +54,9 @@ export const KILL_CHAIN_STAGE_COLOR: Record<KillChainStage, string> = {
   "Denial of Service": "#6b7280",
 };
 
-export function detectCveKillChainStage(description: string): KillChainStage | null {
+export function detectCveKillChainStage(
+  description: string,
+): KillChainStage | null {
   const text = description ?? "";
   for (const [stage, pattern] of KILL_CHAIN_STAGE_PATTERNS) {
     if (pattern.test(text)) return stage;

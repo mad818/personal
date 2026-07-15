@@ -112,7 +112,10 @@ export interface BuildOperationalLightGridInput {
   generatedAt?: string;
 }
 
-export const OPERATIONAL_LIGHT_STATE_HEX: Record<OperationalLightState, string> = {
+export const OPERATIONAL_LIGHT_STATE_HEX: Record<
+  OperationalLightState,
+  string
+> = {
   on: "#39f6c3",
   dim: "#fbbf24",
   off: "#64748b",
@@ -228,13 +231,13 @@ function protectedSessionState(input: BuildOperationalLightGridInput) {
     return stateFromFreeLocalStatus(input.freeLocal.session.status);
   }
   if (input.protectedStatusOk === true) return "on";
-  if (
-    input.protectedStatusHttp === 401 ||
-    input.protectedStatusHttp === 403
-  ) {
+  if (input.protectedStatusHttp === 401 || input.protectedStatusHttp === 403) {
     return "blocked";
   }
-  return stateFromOptionalBoolean(input.status?.summary?.tokenConfigured, "dim");
+  return stateFromOptionalBoolean(
+    input.status?.summary?.tokenConfigured,
+    "dim",
+  );
 }
 
 function buildGroups(lights: OperationalLight[]): OperationalLightGroup[] {

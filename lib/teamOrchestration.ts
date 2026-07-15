@@ -30,10 +30,22 @@ const CENTRAL_ORCHESTRATION_RE =
   /\b(?:central (?:ai|orchestrator)|orchestrator|sub-?agents?|specialist workers?|delegate .+ (?:agent|specialist))\b/i;
 
 const CROSS_LANE_KEYWORDS: Array<{ lane: AgentId; keywords: string[] }> = [
-  { lane: "orbit", keywords: ["fix", "implement", "patch", "code", "bug", "refactor"] },
-  { lane: "nova", keywords: ["research", "paper", "verify", "fact-check", "sources"] },
-  { lane: "cipher", keywords: ["cve", "security", "vuln", "audit", "exploit", "threat"] },
-  { lane: "flux", keywords: ["price", "market", "btc", "crypto", "thesis", "trade"] },
+  {
+    lane: "orbit",
+    keywords: ["fix", "implement", "patch", "code", "bug", "refactor"],
+  },
+  {
+    lane: "nova",
+    keywords: ["research", "paper", "verify", "fact-check", "sources"],
+  },
+  {
+    lane: "cipher",
+    keywords: ["cve", "security", "vuln", "audit", "exploit", "threat"],
+  },
+  {
+    lane: "flux",
+    keywords: ["price", "market", "btc", "crypto", "thesis", "trade"],
+  },
 ];
 
 function lanesInQuery(query: string): AgentId[] {
@@ -61,9 +73,7 @@ export function buildTeamOrchestrationPlan(
   const detected = primaryAgent ?? detectAgent(query);
   const lead: AgentId = "jansky";
   const lanes = lanesInQuery(query);
-  const specialists = lanes
-    .filter((lane) => lane !== lead)
-    .slice(0, 3);
+  const specialists = lanes.filter((lane) => lane !== lead).slice(0, 3);
   if (!specialists.length && detected !== "jansky") specialists.push(detected);
 
   const phases: TeamOrchestrationPhase[] = [
@@ -72,7 +82,8 @@ export function buildTeamOrchestrationPlan(
       kind: "orchestrator",
       owner: lead,
       ownerLabel: AGENT_LABEL[lead],
-      objective: "Frame mission, constraints, and acceptance before specialists run.",
+      objective:
+        "Frame mission, constraints, and acceptance before specialists run.",
       exitCriteria: "Constraint Cage posted · owner assigned · risks named",
     },
   ];
@@ -93,7 +104,8 @@ export function buildTeamOrchestrationPlan(
     kind: "review",
     owner: lead,
     ownerLabel: AGENT_LABEL[lead],
-    objective: "Read typed handoffs, resolve conflicts, verify claims, and synthesize one answer.",
+    objective:
+      "Read typed handoffs, resolve conflicts, verify claims, and synthesize one answer.",
     exitCriteria: "Evidence-backed synthesis or explicit blocker for operator",
   });
 
@@ -104,7 +116,9 @@ export function buildTeamOrchestrationPlan(
   };
 }
 
-export function formatTeamOrchestrationBlock(plan: TeamOrchestrationPlan): string {
+export function formatTeamOrchestrationBlock(
+  plan: TeamOrchestrationPlan,
+): string {
   const lines = plan.phases.map(
     (phase) =>
       `${phase.phase}. ${phase.ownerLabel} — ${phase.objective} (exit: ${phase.exitCriteria})`,

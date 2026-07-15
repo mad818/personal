@@ -32,28 +32,29 @@ export const CANONICAL_ROUTE_ALIASES: Record<string, string> = {
   "/internal/vehicle": "/vehicle",
 };
 
-export const CANONICAL_SIMPLE_FOCUS_ROUTES: Record<string, readonly string[]> = {
-  "/hq": [
-    "hq-strategium",
-    "hq-console-shell",
-    "hq-chronicle",
-    "hq-scheduler-composer",
-    "hq-scheduler-governance",
-    "hq-scheduler-jobs",
-  ],
-  "/command": [
-    "runtime-efficiency",
-    "agent-health",
-    "memory-spine",
-    "provider-health",
-  ],
-  "/vehicle": [
-    "vehicle-bridge-status",
-    "vehicle-connector-onboarding",
-    "vehicle-bench-checklist",
-    "vehicle-artifact-convention",
-  ],
-};
+export const CANONICAL_SIMPLE_FOCUS_ROUTES: Record<string, readonly string[]> =
+  {
+    "/hq": [
+      "hq-strategium",
+      "hq-console-shell",
+      "hq-chronicle",
+      "hq-scheduler-composer",
+      "hq-scheduler-governance",
+      "hq-scheduler-jobs",
+    ],
+    "/command": [
+      "runtime-efficiency",
+      "agent-health",
+      "memory-spine",
+      "provider-health",
+    ],
+    "/vehicle": [
+      "vehicle-bridge-status",
+      "vehicle-connector-onboarding",
+      "vehicle-bench-checklist",
+      "vehicle-artifact-convention",
+    ],
+  };
 
 export const CANONICAL_SEGMENTED_ROUTE_RULES: Record<
   string,
@@ -71,7 +72,14 @@ export const CANONICAL_SEGMENTED_ROUTE_RULES: Record<
   },
   "/alpha": {
     defaultView: "watchlist",
-    allowedViews: ["watchlist", "signals", "scanner", "sizer", "prices", "charts"],
+    allowedViews: [
+      "watchlist",
+      "signals",
+      "scanner",
+      "sizer",
+      "prices",
+      "charts",
+    ],
     focusToView: {
       "alpha-watchlist": "watchlist",
       "alpha-market-review": "watchlist",
@@ -84,7 +92,15 @@ export const CANONICAL_SEGMENTED_ROUTE_RULES: Record<
   },
   "/cyber": {
     defaultView: "triage",
-    allowedViews: ["triage", "matrix", "cves", "otx", "cisa", "drone", "vuln-review"],
+    allowedViews: [
+      "triage",
+      "matrix",
+      "cves",
+      "otx",
+      "cisa",
+      "drone",
+      "vuln-review",
+    ],
     focusToView: {
       "cyber-triage": "triage",
       "cyber-matrix": "matrix",
@@ -219,13 +235,13 @@ export function normalizeCanonicalResourceParams(params: URLSearchParams) {
           ? "surfaces"
           : params.has("voiceProject")
             ? "voice-lab"
-          : params.has("file")
-            ? "impact"
-            : null;
+            : params.has("file")
+              ? "impact"
+              : null;
 
   const nextView = CANONICAL_RESOURCES_VIEWS.has(aliasedView as never)
     ? aliasedView
-    : inferredView ?? "finder";
+    : (inferredView ?? "finder");
 
   params.set("view", nextView);
 
@@ -306,11 +322,12 @@ export function normalizeCanonicalVaultParams(params: URLSearchParams) {
   }
 
   if (focus && !CANONICAL_VAULT_FOCUSES.has(focus as never)) {
-    focus = compiledFilter || workflowId || pageId
-      ? "vault-compiled-pages"
-      : graphAudit || nodeId
-        ? "vault-graph-focus"
-        : null;
+    focus =
+      compiledFilter || workflowId || pageId
+        ? "vault-compiled-pages"
+        : graphAudit || nodeId
+          ? "vault-graph-focus"
+          : null;
   }
 
   if (focus) {
@@ -326,10 +343,7 @@ export function normalizeCanonicalVaultParams(params: URLSearchParams) {
     ) {
       params.delete("compiledFilter");
     }
-    if (
-      workflowId &&
-      !CANONICAL_VAULT_WORKFLOW_IDS.has(workflowId as never)
-    ) {
+    if (workflowId && !CANONICAL_VAULT_WORKFLOW_IDS.has(workflowId as never)) {
       params.delete("workflowId");
     }
     if (pageId) {

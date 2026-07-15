@@ -1,4 +1,8 @@
-import { DEFAULT_LOCAL_MODEL, TASK_MODELS, type AITask } from "@/lib/aiModelRouting";
+import {
+  DEFAULT_LOCAL_MODEL,
+  TASK_MODELS,
+  type AITask,
+} from "@/lib/aiModelRouting";
 import { normalizeOllamaEndpoint } from "@/lib/localInferencePosture";
 
 export interface OllamaRuntimeModel {
@@ -43,7 +47,9 @@ const COMMON_FALLBACK_CANDIDATES = [
 ] as const;
 
 function normalizeModelToken(value: string | null | undefined) {
-  return String(value ?? "").trim().toLowerCase();
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
 }
 
 function readModelBase(value: string | null | undefined) {
@@ -58,7 +64,8 @@ function readModelFamilyToken(value: string | null | undefined) {
   if (!normalized) return "";
   if (normalized.includes("gemma4")) return "gemma4";
   if (normalized.includes("gemma3")) return "gemma3";
-  if (normalized.includes("qwen3.5") || normalized.includes("qwen35")) return "qwen35";
+  if (normalized.includes("qwen3.5") || normalized.includes("qwen35"))
+    return "qwen35";
   if (normalized.includes("qwen")) return "qwen";
   if (normalized.includes("deepseek")) return "deepseek";
   if (normalized.includes("llama")) return "llama";
@@ -99,7 +106,10 @@ function sortNewestFirst(models: OllamaRuntimeModel[]) {
   return [...models].sort((left, right) => {
     const leftTs = Date.parse(left.modified_at ?? "");
     const rightTs = Date.parse(right.modified_at ?? "");
-    return (Number.isFinite(rightTs) ? rightTs : 0) - (Number.isFinite(leftTs) ? leftTs : 0);
+    return (
+      (Number.isFinite(rightTs) ? rightTs : 0) -
+      (Number.isFinite(leftTs) ? leftTs : 0)
+    );
   });
 }
 
@@ -161,7 +171,11 @@ async function fetchOllamaModelList(
 export async function listReachableOllamaModels(options?: {
   endpoint?: string | null;
   apiKey?: string | null;
-}): Promise<{ reachable: boolean; models: OllamaRuntimeModel[]; tagsUrl: string }> {
+}): Promise<{
+  reachable: boolean;
+  models: OllamaRuntimeModel[];
+  tagsUrl: string;
+}> {
   const tagsUrl = deriveOllamaTagsUrl(options?.endpoint);
   const result = await fetchOllamaModelList(tagsUrl, options?.apiKey);
   return { ...result, tagsUrl };
@@ -170,14 +184,21 @@ export async function listReachableOllamaModels(options?: {
 export async function listRunningOllamaModels(options?: {
   endpoint?: string | null;
   apiKey?: string | null;
-}): Promise<{ reachable: boolean; models: OllamaRuntimeModel[]; psUrl: string }> {
+}): Promise<{
+  reachable: boolean;
+  models: OllamaRuntimeModel[];
+  psUrl: string;
+}> {
   const psUrl = deriveOllamaPsUrl(options?.endpoint);
   const result = await fetchOllamaModelList(psUrl, options?.apiKey);
   return { ...result, psUrl };
 }
 
 function readPrimaryActiveModel(models: OllamaRuntimeModel[]) {
-  return models.find((model) => normalizeModelToken(model.name || model.model)) ?? null;
+  return (
+    models.find((model) => normalizeModelToken(model.name || model.model)) ??
+    null
+  );
 }
 
 export function shouldPreferActiveOllamaModel(task: string | null | undefined) {
@@ -198,13 +219,17 @@ export function resolveInstalledOllamaModelFromCatalog(options: {
   activeModels?: OllamaRuntimeModel[];
   preferActiveModel?: boolean;
 }): ResolvedOllamaModel {
-  const requestedModel = String(options.requestedModel ?? "").trim() || DEFAULT_LOCAL_MODEL;
+  const requestedModel =
+    String(options.requestedModel ?? "").trim() || DEFAULT_LOCAL_MODEL;
   const models = options.models ?? [];
   const activeModels = options.activeModels ?? [];
   const activeRuntimeModel =
-    options.preferActiveModel !== false ? readPrimaryActiveModel(activeModels) : null;
+    options.preferActiveModel !== false
+      ? readPrimaryActiveModel(activeModels)
+      : null;
   if (activeRuntimeModel) {
-    const resolvedModel = activeRuntimeModel.name || activeRuntimeModel.model || null;
+    const resolvedModel =
+      activeRuntimeModel.name || activeRuntimeModel.model || null;
     return {
       requestedModel,
       resolvedModel,
@@ -243,7 +268,9 @@ export function resolveInstalledOllamaModelFromCatalog(options: {
   );
 
   for (const candidate of candidateOrder) {
-    const match = models.find((model) => modelMatchesCandidate(model, candidate));
+    const match = models.find((model) =>
+      modelMatchesCandidate(model, candidate),
+    );
     if (!match) continue;
     if (candidate === requestedModel) {
       return {
@@ -303,7 +330,8 @@ export async function resolveInstalledOllamaModel(options: {
   task?: AITask | "default" | null;
   preferActiveModel?: boolean;
 }): Promise<ResolvedOllamaModel> {
-  const requestedModel = String(options.requestedModel ?? "").trim() || DEFAULT_LOCAL_MODEL;
+  const requestedModel =
+    String(options.requestedModel ?? "").trim() || DEFAULT_LOCAL_MODEL;
   const [catalog, running] = await Promise.all([
     listReachableOllamaModels(options),
     listRunningOllamaModels(options),
@@ -352,7 +380,10 @@ export function extractOllamaErrorMessage(
   return `Ollama error (HTTP ${status}).`;
 }
 
-export function summarizeInstalledOllamaModels(models: OllamaRuntimeModel[], limit = 4) {
+export function summarizeInstalledOllamaModels(
+  models: OllamaRuntimeModel[],
+  limit = 4,
+) {
   return models
     .map((model) => model.name)
     .filter(Boolean)

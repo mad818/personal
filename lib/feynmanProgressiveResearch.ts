@@ -110,7 +110,9 @@ const REFINEMENT_STOPWORDS = new Set([
 ]);
 
 function uniqueStrings(values: string[]) {
-  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+  return Array.from(
+    new Set(values.map((value) => value.trim()).filter(Boolean)),
+  );
 }
 
 function extractUrls(value: string) {
@@ -128,7 +130,11 @@ function normalizedQuery(value: string) {
 }
 
 function authoritativeDomains(workflow: FeynmanWorkflowId) {
-  if (workflow === "replicate" || workflow === "recipe" || workflow === "audit") {
+  if (
+    workflow === "replicate" ||
+    workflow === "recipe" ||
+    workflow === "audit"
+  ) {
     return ["github.com", "arxiv.org", ".gov", ".edu"];
   }
   return ["arxiv.org", "doi.org", ".gov", ".edu"];
@@ -194,7 +200,10 @@ export function buildInitialFeynmanResearchQueries(
       domainFilters: authoritativeDomains(workflow),
     },
   ];
-  return queries.slice(0, DEFAULT_FEYNMAN_COVERAGE_POLICY.maximumInitialQueries);
+  return queries.slice(
+    0,
+    DEFAULT_FEYNMAN_COVERAGE_POLICY.maximumInitialQueries,
+  );
 }
 
 export function renderFeynmanResearchQuery(
@@ -209,7 +218,9 @@ export function renderFeynmanResearchQuery(
   }
   if (query.domainFilters?.length) {
     parts.push(
-      `(${uniqueStrings(query.domainFilters).map((domain) => `site:${domain}`).join(" OR ")})`,
+      `(${uniqueStrings(query.domainFilters)
+        .map((domain) => `site:${domain}`)
+        .join(" OR ")})`,
     );
   }
   return parts.filter(Boolean).join(" ");
@@ -245,7 +256,10 @@ export function prioritizeFeynmanCandidateUrls(urls: string[]) {
           ? 1
           : 2,
     }))
-    .sort((left, right) => left.priority - right.priority || left.index - right.index)
+    .sort(
+      (left, right) =>
+        left.priority - right.priority || left.index - right.index,
+    )
     .map((entry) => entry.url);
 }
 
@@ -269,13 +283,18 @@ export function assessFeynmanCoverage(input: {
       .filter((source) => source.content.trim().length > 0)
       .map((source) => source.url),
   );
-  const highConfidenceDirectSources = directlyReadUrls.filter(isHighConfidenceUrl).length;
+  const highConfidenceDirectSources =
+    directlyReadUrls.filter(isHighConfidenceUrl).length;
   const gaps: string[] = [];
   if (discoveredUrls.length < policy.discoveredSources) {
-    gaps.push(`discovered sources ${discoveredUrls.length}/${policy.discoveredSources}`);
+    gaps.push(
+      `discovered sources ${discoveredUrls.length}/${policy.discoveredSources}`,
+    );
   }
   if (directlyReadUrls.length < policy.directlyReadSources) {
-    gaps.push(`directly read sources ${directlyReadUrls.length}/${policy.directlyReadSources}`);
+    gaps.push(
+      `directly read sources ${directlyReadUrls.length}/${policy.directlyReadSources}`,
+    );
   }
   if (highConfidenceDirectSources < policy.highConfidenceDirectSources) {
     gaps.push(
@@ -292,17 +311,29 @@ export function assessFeynmanCoverage(input: {
     directlyReadSources: directlyReadUrls.length,
     highConfidenceDirectSources,
     queryWaves: Math.min(input.queryWaves, policy.maximumQueryWaves),
-    initialQueries: Math.min(input.initialQueries, policy.maximumInitialQueries),
-    refinementQueries: Math.min(input.refinementQueries, policy.maximumRefinementQueries),
+    initialQueries: Math.min(
+      input.initialQueries,
+      policy.maximumInitialQueries,
+    ),
+    refinementQueries: Math.min(
+      input.refinementQueries,
+      policy.maximumRefinementQueries,
+    ),
     refinementRequired: input.refinementRequired,
     sufficient: gaps.length === 0,
     gaps,
   } satisfies FeynmanProgressiveCoverage;
 }
 
-function extractRefinementTerms(topic: string, webResults: FeynmanProgressiveWebResult[]) {
+function extractRefinementTerms(
+  topic: string,
+  webResults: FeynmanProgressiveWebResult[],
+) {
   const topicTerms = new Set(
-    topic.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean),
+    topic
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter(Boolean),
   );
   const candidates = webResults
     .flatMap((result) =>
@@ -378,7 +409,8 @@ export function buildRefinementFeynmanResearchQueries(input: {
   return candidates
     .filter((query) => {
       const normalized = normalizedQuery(query.query);
-      if (initialNormalized.has(normalized) || seen.has(normalized)) return false;
+      if (initialNormalized.has(normalized) || seen.has(normalized))
+        return false;
       seen.add(normalized);
       return true;
     })

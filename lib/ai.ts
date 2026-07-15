@@ -31,7 +31,10 @@ import {
 } from "@/lib/aiProviderPreference";
 import { NEXUS_AGENT_NO_BILLING_RULE } from "@/lib/productGuarantees";
 import { readPrivacyShieldStatusFromHeaders } from "@/lib/privacyShieldClient";
-import { getNavProductSurfaces, summarizeSurfaceTiers } from "@/lib/releaseMatrix";
+import {
+  getNavProductSurfaces,
+  summarizeSurfaceTiers,
+} from "@/lib/releaseMatrix";
 import { buildPersonalAIProfilePromptBlock } from "@/lib/personalAIProfile";
 
 function getSettings(): Settings {
@@ -62,14 +65,17 @@ function syncPrivacyShieldStatus(response: Response) {
 }
 
 function aiReady(s: Settings): boolean {
-  if (resolveApiAIProvider(normalizePreferredAIProvider(s.aiProvider))) return true;
+  if (resolveApiAIProvider(normalizePreferredAIProvider(s.aiProvider)))
+    return true;
   // Local Ollama — needs endpoint + model
   if (s.localEndpoint && s.localModel) return true;
   return false;
 }
 
 function readServerRoutedProvider(settings: Settings) {
-  return resolveApiAIProvider(normalizePreferredAIProvider(settings.aiProvider));
+  return resolveApiAIProvider(
+    normalizePreferredAIProvider(settings.aiProvider),
+  );
 }
 
 function readServerRoutedModel(
@@ -224,8 +230,12 @@ export function buildScheduledMissionSingleFlightKey(input: {
   volatilePrompt: string;
   timeWindowMs?: number;
 }): string {
-  const { systemPrompt, cacheablePrefix = "", volatilePrompt, timeWindowMs = 60_000 } =
-    input;
+  const {
+    systemPrompt,
+    cacheablePrefix = "",
+    volatilePrompt,
+    timeWindowMs = 60_000,
+  } = input;
   const windowBucket = Math.floor(Date.now() / Math.max(1, timeWindowMs));
   return `scheduled:${windowBucket}:${stableHash(
     `${systemPrompt}\n${cacheablePrefix}\n${volatilePrompt}`,
@@ -260,7 +270,7 @@ export function buildNonInteractiveBatchPrompt(
     "Process each mission independently and return ONLY valid JSON.",
     'Return an array where every item matches this exact shape: {"id":"string","status":"ok|error","content":"string"}',
     "Do not omit any mission. Keep each content concise, operator-grade, and specific to that mission only.",
-    "If a mission cannot be completed, still return its id with status=\"error\" and a brief explanation in content.",
+    'If a mission cannot be completed, still return its id with status="error" and a brief explanation in content.',
     "",
     manifest,
   ].join("\n");
@@ -364,7 +374,10 @@ export async function submitAnthropicNativeBatch(opts: {
     provider: "anthropic",
     model: typeof data.model === "string" ? data.model : undefined,
     processingStatus: String(data.processingStatus ?? "unknown"),
-    requestCount: Math.max(0, Number(data.requestCount ?? opts.items.length) || 0),
+    requestCount: Math.max(
+      0,
+      Number(data.requestCount ?? opts.items.length) || 0,
+    ),
   };
 }
 
@@ -393,7 +406,9 @@ export async function pollAnthropicNativeBatch(
   const results = Array.isArray(data.results)
     ? data.results
         .filter(
-          (item): item is { id?: unknown; status?: unknown; content?: unknown } =>
+          (
+            item,
+          ): item is { id?: unknown; status?: unknown; content?: unknown } =>
             typeof item === "object" && item !== null,
         )
         .map<NonInteractiveBatchResult>((item) => ({
@@ -439,9 +454,7 @@ export async function readAnthropicNativeBatchPosture(): Promise<NativeAnthropic
     provider: "anthropic",
     nativeReady: data.nativeReady === true,
     mode:
-      data.mode === "provider_native"
-        ? "provider_native"
-        : "internal_fallback",
+      data.mode === "provider_native" ? "provider_native" : "internal_fallback",
     featureEnabled: data.featureEnabled === true,
     paidApisAllowed: data.paidApisAllowed === true,
     apiKeyConfigured: data.apiKeyConfigured === true,
@@ -506,13 +519,20 @@ async function callLocalModel(
     max_tokens: number;
     messages: { role: string; content: string }[];
     task?: string;
-    secondBrainMode?: "off" | "auto" | "file-first" | "human-editor" | "night-shift";
+    secondBrainMode?:
+      | "off"
+      | "auto"
+      | "file-first"
+      | "human-editor"
+      | "night-shift";
   },
 ) {
   const requestedModel = body.task
     ? (TASK_MODELS[body.task as keyof typeof TASK_MODELS] ?? s.localModel)
     : s.localModel;
-  const preferRunningModel = shouldPreferActiveOllamaModel(body.task ?? "default");
+  const preferRunningModel = shouldPreferActiveOllamaModel(
+    body.task ?? "default",
+  );
   try {
     const res = await apiFetch("/api/ai", {
       method: "POST",
@@ -530,9 +550,10 @@ async function callLocalModel(
         ...(s.localApiKey ? { localApiKey: s.localApiKey } : {}),
       }),
     });
-    const data = (await res.json().catch(() => null)) as
-      | Record<string, unknown>
-      | null;
+    const data = (await res.json().catch(() => null)) as Record<
+      string,
+      unknown
+    > | null;
     syncPrivacyShieldStatus(res);
     if (!res.ok) {
       return "";
@@ -547,8 +568,10 @@ async function callLocalModel(
         localModel: activeModel,
       } as Partial<Settings>);
     }
-    return (data as { choices?: { message?: { content?: string } }[] })?.choices?.[0]
-      ?.message?.content ?? "";
+    return (
+      (data as { choices?: { message?: { content?: string } }[] })?.choices?.[0]
+        ?.message?.content ?? ""
+    );
   } catch {
     return "";
   }
@@ -567,7 +590,12 @@ interface DirectAiRequestOptions {
   task?: string;
   provider?: string;
   model?: string;
-  secondBrainMode?: "off" | "auto" | "file-first" | "human-editor" | "night-shift";
+  secondBrainMode?:
+    | "off"
+    | "auto"
+    | "file-first"
+    | "human-editor"
+    | "night-shift";
 }
 
 async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
@@ -651,7 +679,12 @@ async function callNonInteractiveAIInternal(opts: {
   task?: string;
   singleFlightKey?: string;
   promptParts?: NonInteractivePromptParts;
-  secondBrainMode?: "off" | "auto" | "file-first" | "human-editor" | "night-shift";
+  secondBrainMode?:
+    | "off"
+    | "auto"
+    | "file-first"
+    | "human-editor"
+    | "night-shift";
 }): Promise<NonInteractiveAIResult> {
   const {
     systemPrompt,
@@ -768,7 +801,8 @@ async function callNonInteractiveAIInternal(opts: {
   const promise = run().finally(() => {
     if (singleFlightKey) NON_INTERACTIVE_SINGLE_FLIGHT.delete(singleFlightKey);
   });
-  if (singleFlightKey) NON_INTERACTIVE_SINGLE_FLIGHT.set(singleFlightKey, promise);
+  if (singleFlightKey)
+    NON_INTERACTIVE_SINGLE_FLIGHT.set(singleFlightKey, promise);
   return promise;
 }
 
@@ -779,7 +813,12 @@ export async function callNonInteractiveAI(opts: {
   task?: string;
   singleFlightKey?: string;
   promptParts?: NonInteractivePromptParts;
-  secondBrainMode?: "off" | "auto" | "file-first" | "human-editor" | "night-shift";
+  secondBrainMode?:
+    | "off"
+    | "auto"
+    | "file-first"
+    | "human-editor"
+    | "night-shift";
 }): Promise<string> {
   const result = await callNonInteractiveAIInternal(opts);
   return result.content;
@@ -792,7 +831,12 @@ export async function callNonInteractiveAIWithMeta(opts: {
   task?: string;
   singleFlightKey?: string;
   promptParts?: NonInteractivePromptParts;
-  secondBrainMode?: "off" | "auto" | "file-first" | "human-editor" | "night-shift";
+  secondBrainMode?:
+    | "off"
+    | "auto"
+    | "file-first"
+    | "human-editor"
+    | "night-shift";
 }): Promise<NonInteractiveAIResult> {
   return callNonInteractiveAIInternal(opts);
 }

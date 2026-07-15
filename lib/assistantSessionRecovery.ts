@@ -13,7 +13,10 @@ import {
   normalizePreparedWorkspaceTarget,
   resolveAssistantWorkspaceForRoute,
 } from "@/lib/assistantSessionRegistry";
-import { isExactSessionHref, normalizeSessionHref } from "@/lib/exactSessionLinks";
+import {
+  isExactSessionHref,
+  normalizeSessionHref,
+} from "@/lib/exactSessionLinks";
 
 export const PREPARED_WORKSPACE_TTL_MS = 1000 * 60 * 20;
 
@@ -47,7 +50,9 @@ function isPreparedWorkspaceFresh(
   return now - preparedWorkspace.preparedAt < PREPARED_WORKSPACE_TTL_MS;
 }
 
-function resolveCapabilityId(value: AssistantCapabilityId | string | null | undefined) {
+function resolveCapabilityId(
+  value: AssistantCapabilityId | string | null | undefined,
+) {
   if (!value) return null;
   return resolveAssistantCapabilityId(value);
 }
@@ -78,9 +83,10 @@ export function resolveAssistantSessionHref(
 ) {
   const normalizedTargetHref = options.href
     ? normalizeSessionHref(options.href)
-    : normalizeRoutePath(options.pathname) ?? "";
+    : (normalizeRoutePath(options.pathname) ?? "");
   const normalizedPath =
-    normalizeRoutePath(normalizedTargetHref) ?? normalizeRoutePath(options.pathname);
+    normalizeRoutePath(normalizedTargetHref) ??
+    normalizeRoutePath(options.pathname);
   if (!normalizedPath) return normalizedTargetHref;
 
   if (normalizedTargetHref && isExactSessionHref(normalizedTargetHref)) {

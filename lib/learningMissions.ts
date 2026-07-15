@@ -101,8 +101,7 @@ const LEARNING_MODE_PATTERNS: Array<{
   },
   {
     mode: "teach",
-    pattern:
-      /\b(?:teach me|coach me through|show me how to understand)\b/i,
+    pattern: /\b(?:teach me|coach me through|show me how to understand)\b/i,
   },
   {
     mode: "explain",
@@ -126,56 +125,64 @@ export const TUTOR_PROFILES: Record<TutorProfileId, TutorProfile> = {
   "concept-tutor": {
     id: "concept-tutor",
     title: "Concept tutor",
-    summary: "Break concepts into simple mental models, checkpoints, and short explanations.",
+    summary:
+      "Break concepts into simple mental models, checkpoints, and short explanations.",
     exactHref: "/skills?view=brain&focus=skills-brain",
     keywords: ["concept", "teach", "explain", "understand", "study"],
   },
   "code-tutor": {
     id: "code-tutor",
     title: "Code tutor",
-    summary: "Teach implementation details, safe coding steps, and repo-grounded practice.",
+    summary:
+      "Teach implementation details, safe coding steps, and repo-grounded practice.",
     exactHref: "/resources?view=study",
     keywords: ["code", "repo", "typescript", "react", "next.js", "debug"],
   },
   "research-tutor": {
     id: "research-tutor",
     title: "Research tutor",
-    summary: "Teach by comparing evidence, source-backed summaries, and review-oriented prompts.",
+    summary:
+      "Teach by comparing evidence, source-backed summaries, and review-oriented prompts.",
     exactHref: "/vault?focus=vault-memory-general",
     keywords: ["research", "sources", "review", "compare", "brief"],
   },
   "reverse-engineering-tutor": {
     id: "reverse-engineering-tutor",
     title: "Reverse-engineering tutor",
-    summary: "Teach local triage, evidence capture, and follow-through for binary analysis.",
+    summary:
+      "Teach local triage, evidence capture, and follow-through for binary analysis.",
     exactHref: "/vault?focus=vault-memory-project",
     keywords: ["reverse engineering", "binary", "ghidra", "malware", "sample"],
   },
   "research-analyst": {
     id: "research-analyst",
     title: "Research analyst",
-    summary: "Frame the question, bound the scope, and stage the strongest first evidence lane.",
+    summary:
+      "Frame the question, bound the scope, and stage the strongest first evidence lane.",
     exactHref: "/resources?view=study",
     keywords: ["research", "ideate", "question", "scope", "investigate"],
   },
   "literature-reviewer": {
     id: "literature-reviewer",
     title: "Literature reviewer",
-    summary: "Review local sources and literature-style evidence before widening into synthesis.",
+    summary:
+      "Review local sources and literature-style evidence before widening into synthesis.",
     exactHref: "/vault?focus=vault-memory-research",
     keywords: ["sources", "literature", "citations", "survey", "review"],
   },
   "evidence-synthesizer": {
     id: "evidence-synthesizer",
     title: "Evidence synthesizer",
-    summary: "Compare evidence, produce synthesis, and reopen the right durable brief without duplication.",
+    summary:
+      "Compare evidence, produce synthesis, and reopen the right durable brief without duplication.",
     exactHref: "/vault?focus=vault-memory-study",
     keywords: ["evidence", "synthesis", "brief", "write-up", "analysis"],
   },
   "study-coach": {
     id: "study-coach",
     title: "Study coach",
-    summary: "Turn knowledge into compact checkpoints, practice loops, and one clear next session.",
+    summary:
+      "Turn knowledge into compact checkpoints, practice loops, and one clear next session.",
     exactHref: "/vault?focus=vault-memory-study",
     keywords: ["study", "quiz", "practice", "checkpoint", "plan"],
   },
@@ -364,7 +371,8 @@ export function detectLearningMission(input: string): LearningMission | null {
     checkpoint: buildCheckpoint(mode, subject),
     preparedWorkspaceHref: TUTOR_PROFILES[profile].exactHref,
     memoryCompartment: detectMemoryCompartmentForMission(input, mode, profile),
-    sourceAware: workflowPackId === "research-workflow" || RESEARCH_RE.test(input),
+    sourceAware:
+      workflowPackId === "research-workflow" || RESEARCH_RE.test(input),
   };
 }
 

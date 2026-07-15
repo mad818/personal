@@ -47,13 +47,11 @@ export function readDesktopSigningPreflightSummary(): DesktopSigningPreflightSum
     macEnv || Boolean(artifact?.macosIdentityConfigured);
 
   const prepared =
-    thumbprintValid ||
-    macosIdentityConfigured ||
-    Boolean(artifact?.prepared);
+    thumbprintValid || macosIdentityConfigured || Boolean(artifact?.prepared);
 
   const releaseReady = Boolean(
     artifact?.releaseReady &&
-      (windowsThumbprintMatchesStore === true || macosIdentityConfigured),
+    (windowsThumbprintMatchesStore === true || macosIdentityConfigured),
   );
 
   return {

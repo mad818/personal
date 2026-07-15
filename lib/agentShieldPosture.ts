@@ -21,26 +21,32 @@ export const AGENT_SHIELD_CHECKS: AgentShieldCheckItem[] = [
   {
     id: "tool-permission-scope",
     label: "Tool permission scope",
-    question: "Does every enabled tool have an explicit risk tier and approval gate?",
+    question:
+      "Does every enabled tool have an explicit risk tier and approval gate?",
     passCriteria:
       "High-risk tools require operator approval; catalog entries map to policy in toolIsolationPolicy.",
-    failSignal: "Silent exec, shell, or filesystem writes without a visible approval lane.",
+    failSignal:
+      "Silent exec, shell, or filesystem writes without a visible approval lane.",
   },
   {
     id: "mcp-origin-trust",
     label: "MCP origin trust",
-    question: "Are external MCP connectors limited to operator-approved origins?",
+    question:
+      "Are external MCP connectors limited to operator-approved origins?",
     passCriteria:
       "Connector descriptors are documented; unknown MCP servers stay outside the default runtime.",
-    failSignal: "Arbitrary MCP endpoints reachable without trust review or OAuth posture.",
+    failSignal:
+      "Arbitrary MCP endpoints reachable without trust review or OAuth posture.",
   },
   {
     id: "secret-handling",
     label: "Secret handling",
-    question: "Are secrets kept local and redacted before cloud-bound inference?",
+    question:
+      "Are secrets kept local and redacted before cloud-bound inference?",
     passCriteria:
       "Privacy shield redaction receipts cover tokens, paths, and credential-like fragments.",
-    failSignal: "Raw secrets or internal hostnames visible in outbound provider payloads.",
+    failSignal:
+      "Raw secrets or internal hostnames visible in outbound provider payloads.",
   },
   {
     id: "mutation-gates",
@@ -48,7 +54,8 @@ export const AGENT_SHIELD_CHECKS: AgentShieldCheckItem[] = [
     question: "Do write/mutate capabilities require explicit human promotion?",
     passCriteria:
       "Correction memory, lessons, and durable writes stay approval-gated; no silent self-modification.",
-    failSignal: "Autonomous production mutation or unreviewed skill write-back.",
+    failSignal:
+      "Autonomous production mutation or unreviewed skill write-back.",
   },
   {
     id: "connector-opt-in",
@@ -56,7 +63,8 @@ export const AGENT_SHIELD_CHECKS: AgentShieldCheckItem[] = [
     question: "Are outbound connectors opt-in rather than always-on?",
     passCriteria:
       "RECON/CYBER connectors use connector_opt_in routes; BYOK keys stay operator-controlled.",
-    failSignal: "Default-on third-party scanning or paid API calls without operator intent.",
+    failSignal:
+      "Default-on third-party scanning or paid API calls without operator intent.",
   },
   {
     id: "audit-trail",
@@ -64,7 +72,8 @@ export const AGENT_SHIELD_CHECKS: AgentShieldCheckItem[] = [
     question: "Can the operator reconstruct what influenced a run?",
     passCriteria:
       "Diagnostics show correction memory, privacy receipts, and workflow pack context where relevant.",
-    failSignal: "Opaque agent runs with no provenance or operator-visible evidence.",
+    failSignal:
+      "Opaque agent runs with no provenance or operator-visible evidence.",
   },
 ];
 

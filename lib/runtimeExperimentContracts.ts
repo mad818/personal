@@ -31,10 +31,7 @@ export const runtimeExperimentDefinitionInputSchema = z.object({
   variantKind: runtimeExperimentVariantKindSchema,
   changeSummary: z.string().trim().min(1).max(600),
   hypothesis: z.string().trim().min(1).max(600),
-  targetCategories: z
-    .array(runtimeExperimentCategorySchema)
-    .max(4)
-    .default([]),
+  targetCategories: z.array(runtimeExperimentCategorySchema).max(4).default([]),
   operatorNotes: z.string().trim().max(1200).optional(),
 });
 

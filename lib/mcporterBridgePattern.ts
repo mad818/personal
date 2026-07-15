@@ -3,7 +3,8 @@ import { MCPORTER_OPERATOR_GUIDANCE } from "@/lib/mcporterBridgeConstants";
 
 export { MCPORTER_OPERATOR_GUIDANCE } from "@/lib/mcporterBridgeConstants";
 
-export const MCPORTER_BRIDGE_PATTERN_VERSION = "mcporter-bridge-pattern.v1" as const;
+export const MCPORTER_BRIDGE_PATTERN_VERSION =
+  "mcporter-bridge-pattern.v1" as const;
 
 export type McporterTransport = "stdio" | "http" | "sse";
 

@@ -121,8 +121,13 @@ export const ARPG_REGIONAL_ENEMY_ARCHETYPES: ArpgRegionalEnemyArchetype[] =
   ARPG_PRODUCTION_CONTENT.world.cities.flatMap((city, cityIndex) =>
     city.subCities.map((subCity, subCityIndex) => {
       const familyId = subCity.enemies[0] ?? "beasts";
-      const family = familyRuleById.get(familyId) ?? ARPG_ENEMY_TAXONOMY_CONTENT.familyRules[0];
-      const template = archetypeTemplates[(cityIndex + subCityIndex) % archetypeTemplates.length];
+      const family =
+        familyRuleById.get(familyId) ??
+        ARPG_ENEMY_TAXONOMY_CONTENT.familyRules[0];
+      const template =
+        archetypeTemplates[
+          (cityIndex + subCityIndex) % archetypeTemplates.length
+        ];
 
       return {
         id: `${subCity.id}-${template.id}`,
@@ -145,7 +150,9 @@ export const ARPG_SUBCITY_CHAMPIONS: ArpgSubCityChampion[] =
   ARPG_PRODUCTION_CONTENT.world.cities.flatMap((city) =>
     city.subCities.map((subCity) => {
       const familyId = subCity.enemies[0] ?? "wandering-champions";
-      const family = familyRuleById.get(familyId) ?? ARPG_ENEMY_TAXONOMY_CONTENT.familyRules[0];
+      const family =
+        familyRuleById.get(familyId) ??
+        ARPG_ENEMY_TAXONOMY_CONTENT.familyRules[0];
 
       return {
         id: `${subCity.id}-champion`,
@@ -153,7 +160,9 @@ export const ARPG_SUBCITY_CHAMPIONS: ArpgSubCityChampion[] =
         subCityId: subCity.id,
         name: subCity.miniBoss,
         familyId,
-        traitIds: Array.from(new Set([...family.traits, "elite", "city-bound"])),
+        traitIds: Array.from(
+          new Set([...family.traits, "elite", "city-bound"]),
+        ),
         phaseCount: familyId === "world-bosses" ? 4 : 2,
         uniqueDrop: subCity.gearDrop,
         codexText: `${subCity.miniBoss} anchors ${subCity.name}; weakness notes reveal after observation or defeat.`,
@@ -161,8 +170,8 @@ export const ARPG_SUBCITY_CHAMPIONS: ArpgSubCityChampion[] =
     }),
   );
 
-export const ARPG_CITY_BOSSES: ArpgCityBoss[] = ARPG_PRODUCTION_CONTENT.world.cities.map(
-  (city) => {
+export const ARPG_CITY_BOSSES: ArpgCityBoss[] =
+  ARPG_PRODUCTION_CONTENT.world.cities.map((city) => {
     const finaleSubCity = city.subCities[city.subCities.length - 1];
     const familyId = finaleSubCity?.enemies[0] ?? "wandering-champions";
     return {
@@ -170,12 +179,12 @@ export const ARPG_CITY_BOSSES: ArpgCityBoss[] = ARPG_PRODUCTION_CONTENT.world.ci
       cityId: city.id,
       name: finaleSubCity?.miniBoss ?? `${city.name} Champion`,
       familyId,
-      phaseCount: city.id === ARPG_PRODUCTION_CONTENT.world.finalRegionId ? 4 : 3,
+      phaseCount:
+        city.id === ARPG_PRODUCTION_CONTENT.world.finalRegionId ? 4 : 3,
       uniqueDrop: finaleSubCity?.gearDrop ?? `${city.name} Relic`,
       unlockFlag: `city:${slug(city.id)}-boss-defeated`,
     };
-  },
-);
+  });
 
 export const ARPG_ENEMY_TAXONOMY_SUMMARY = {
   familyCount: ARPG_ENEMY_TAXONOMY_CONTENT.familyRules.length,
@@ -192,5 +201,9 @@ export function getArpgEnemyFamilyRule(familyId: string) {
 }
 
 export function getArpgSubCityChampion(subCityId: string) {
-  return ARPG_SUBCITY_CHAMPIONS.find((champion) => champion.subCityId === subCityId) ?? null;
+  return (
+    ARPG_SUBCITY_CHAMPIONS.find(
+      (champion) => champion.subCityId === subCityId,
+    ) ?? null
+  );
 }

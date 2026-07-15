@@ -37,7 +37,9 @@ export function parseFeynmanPaperSearchFilters(
     if (years.length > 1) filters.maxYear = years[years.length - 1];
   }
 
-  const citationMatch = topic.match(/(?:cited|citations?)\s*(?:>=|at least|over)\s*(\d+)/i);
+  const citationMatch = topic.match(
+    /(?:cited|citations?)\s*(?:>=|at least|over)\s*(\d+)/i,
+  );
   if (citationMatch) {
     filters.minCitations = Number(citationMatch[1]);
   }
@@ -87,20 +89,28 @@ export function buildMethodologyCritiqueHints(topic: string): string[] {
     "Separate dataset limitations from model limitations.",
   ];
   if (/replicat|reproduc/i.test(topic)) {
-    hints.push("List concrete artifacts required to replicate (code, data, seeds, hardware).");
+    hints.push(
+      "List concrete artifacts required to replicate (code, data, seeds, hardware).",
+    );
   }
   if (/clinical|medical|biomed/i.test(topic)) {
-    hints.push("Check preregistration, sample size, and conflict-of-interest disclosures.");
+    hints.push(
+      "Check preregistration, sample size, and conflict-of-interest disclosures.",
+    );
   }
   return hints;
 }
 
-export function scoreReproducibilityPosture(text: string): "high" | "medium" | "low" {
+export function scoreReproducibilityPosture(
+  text: string,
+): "high" | "medium" | "low" {
   const lower = text.toLowerCase();
   let score = 0;
-  if (/github\.com|gitlab\.com|code available|open.?source/i.test(lower)) score += 2;
+  if (/github\.com|gitlab\.com|code available|open.?source/i.test(lower))
+    score += 2;
   if (/dataset|data available|supplementary/i.test(lower)) score += 1;
-  if (/random seed|hyperparameter|appendix|supplementary material/i.test(lower)) score += 1;
+  if (/random seed|hyperparameter|appendix|supplementary material/i.test(lower))
+    score += 1;
   if (/we will release|future work/i.test(lower)) score -= 1;
   if (score >= 3) return "high";
   if (score >= 1) return "medium";

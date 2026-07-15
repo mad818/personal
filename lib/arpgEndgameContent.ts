@@ -1,5 +1,8 @@
 import endgameContent from "@/lib/arpgEndgameContent.json";
-import { ARPG_ENEMY_TAXONOMY_CONTENT, ARPG_CITY_BOSSES } from "@/lib/arpgEnemyTaxonomyContent";
+import {
+  ARPG_ENEMY_TAXONOMY_CONTENT,
+  ARPG_CITY_BOSSES,
+} from "@/lib/arpgEnemyTaxonomyContent";
 import { ARPG_PRODUCTION_CONTENT } from "@/lib/arpgProductionContent";
 
 export interface ArpgEndgameDifficultyTier {
@@ -159,8 +162,14 @@ const defaultDifficulty =
 
 export const ARPG_CITY_CHALLENGE_DUNGEONS: ArpgCityChallengeDungeon[] =
   ARPG_PRODUCTION_CONTENT.world.cities.map((city, index) => {
-    const archetype = ARPG_ENDGAME_CONTENT.dungeonArchetypes[index % ARPG_ENDGAME_CONTENT.dungeonArchetypes.length];
-    const affix = ARPG_ENDGAME_CONTENT.eliteAffixRotations[index % ARPG_ENDGAME_CONTENT.eliteAffixRotations.length];
+    const archetype =
+      ARPG_ENDGAME_CONTENT.dungeonArchetypes[
+        index % ARPG_ENDGAME_CONTENT.dungeonArchetypes.length
+      ];
+    const affix =
+      ARPG_ENDGAME_CONTENT.eliteAffixRotations[
+        index % ARPG_ENDGAME_CONTENT.eliteAffixRotations.length
+      ];
 
     return {
       id: `${city.id}-challenge-dungeon`,
@@ -178,7 +187,10 @@ export const ARPG_CITY_CHALLENGE_DUNGEONS: ArpgCityChallengeDungeon[] =
 
 export const ARPG_RELIC_TRIALS: ArpgRelicTrial[] =
   ARPG_PRODUCTION_CONTENT.world.cities.map((city, index) => {
-    const rule = ARPG_ENDGAME_CONTENT.relicTrialRules[index % ARPG_ENDGAME_CONTENT.relicTrialRules.length];
+    const rule =
+      ARPG_ENDGAME_CONTENT.relicTrialRules[
+        index % ARPG_ENDGAME_CONTENT.relicTrialRules.length
+      ];
     return {
       id: `${city.id}-relic-trial`,
       cityId: city.id,
@@ -196,7 +208,8 @@ export const ARPG_TREASURE_MAPS: ArpgTreasureMap[] =
     city.subCities.map((subCity, subCityIndex) => {
       const rule =
         ARPG_ENDGAME_CONTENT.treasureMapRules[
-          (cityIndex + subCityIndex) % ARPG_ENDGAME_CONTENT.treasureMapRules.length
+          (cityIndex + subCityIndex) %
+            ARPG_ENDGAME_CONTENT.treasureMapRules.length
         ];
       return {
         id: `${subCity.id}-treasure-map`,
@@ -213,10 +226,13 @@ export const ARPG_TREASURE_MAPS: ArpgTreasureMap[] =
 export const ARPG_TIMED_TREASURE_ROOMS: ArpgTimedTreasureRoom[] =
   ARPG_PRODUCTION_CONTENT.world.cities.flatMap((city, cityIndex) =>
     city.subCities.map((subCity, subCityIndex) => {
-      const map = ARPG_TREASURE_MAPS.find((entry) => entry.subCityId === subCity.id)!;
+      const map = ARPG_TREASURE_MAPS.find(
+        (entry) => entry.subCityId === subCity.id,
+      )!;
       const affix =
         ARPG_ENDGAME_CONTENT.eliteAffixRotations[
-          (cityIndex + subCityIndex) % ARPG_ENDGAME_CONTENT.eliteAffixRotations.length
+          (cityIndex + subCityIndex) %
+            ARPG_ENDGAME_CONTENT.eliteAffixRotations.length
         ];
       return {
         id: `${subCity.id}-timed-room`,
@@ -233,7 +249,10 @@ export const ARPG_TIMED_TREASURE_ROOMS: ArpgTimedTreasureRoom[] =
 
 export const ARPG_BOSS_REMATCHES: ArpgBossRematch[] = [
   ...ARPG_CITY_BOSSES.map((boss, index) => {
-    const rule = ARPG_ENDGAME_CONTENT.bossRematchRules[index % ARPG_ENDGAME_CONTENT.bossRematchRules.length];
+    const rule =
+      ARPG_ENDGAME_CONTENT.bossRematchRules[
+        index % ARPG_ENDGAME_CONTENT.bossRematchRules.length
+      ];
     return {
       id: `${boss.id}-rematch`,
       name: `${boss.name} memory rematch`,
@@ -247,11 +266,17 @@ export const ARPG_BOSS_REMATCHES: ArpgBossRematch[] = [
     };
   }),
   ...ARPG_ENEMY_TAXONOMY_CONTENT.actBosses.map((boss, index) => {
-    const rule = ARPG_ENDGAME_CONTENT.bossRematchRules[(index + 1) % ARPG_ENDGAME_CONTENT.bossRematchRules.length];
+    const rule =
+      ARPG_ENDGAME_CONTENT.bossRematchRules[
+        (index + 1) % ARPG_ENDGAME_CONTENT.bossRematchRules.length
+      ];
     return {
       id: `${boss.id}-act-rematch`,
       name: `${boss.name} act echo`,
-      source: boss.name === "The Hollow Regent" ? ("final" as const) : ("act" as const),
+      source:
+        boss.name === "The Hollow Regent"
+          ? ("final" as const)
+          : ("act" as const),
       bossId: boss.id,
       ruleId: rule.id,
       phaseCount: boss.phaseCount ?? 2,
@@ -260,7 +285,10 @@ export const ARPG_BOSS_REMATCHES: ArpgBossRematch[] = [
     };
   }),
   ...ARPG_ENEMY_TAXONOMY_CONTENT.worldBosses.map((boss, index) => {
-    const rule = ARPG_ENDGAME_CONTENT.bossRematchRules[(index + 2) % ARPG_ENDGAME_CONTENT.bossRematchRules.length];
+    const rule =
+      ARPG_ENDGAME_CONTENT.bossRematchRules[
+        (index + 2) % ARPG_ENDGAME_CONTENT.bossRematchRules.length
+      ];
     return {
       id: `${boss.id}-world-rematch`,
       name: `${boss.name} world-boss hunt`,
@@ -289,11 +317,17 @@ export const ARPG_ENDGAME_SUMMARY = {
 };
 
 export function getArpgEndgameRewardTrack(trackId: string) {
-  return ARPG_ENDGAME_CONTENT.rewardTracks.find((track) => track.id === trackId) ?? null;
+  return (
+    ARPG_ENDGAME_CONTENT.rewardTracks.find((track) => track.id === trackId) ??
+    null
+  );
 }
 
 export function getArpgChallengeDungeon(dungeonId: string) {
-  return ARPG_CITY_CHALLENGE_DUNGEONS.find((dungeon) => dungeon.id === dungeonId) ?? null;
+  return (
+    ARPG_CITY_CHALLENGE_DUNGEONS.find((dungeon) => dungeon.id === dungeonId) ??
+    null
+  );
 }
 
 export function getArpgRelicTrial(trialId: string) {
@@ -305,10 +339,15 @@ export function getArpgTreasureMap(mapId: string) {
 }
 
 export function getArpgBossRematch(rematchId: string) {
-  return ARPG_BOSS_REMATCHES.find((rematch) => rematch.id === rematchId) ?? null;
+  return (
+    ARPG_BOSS_REMATCHES.find((rematch) => rematch.id === rematchId) ?? null
+  );
 }
 
 export function getArpgArenaChallenge(challengeId: string) {
-  return ARPG_ENDGAME_CONTENT.arenaChallenges.find((challenge) => challenge.id === challengeId) ?? null;
+  return (
+    ARPG_ENDGAME_CONTENT.arenaChallenges.find(
+      (challenge) => challenge.id === challengeId,
+    ) ?? null
+  );
 }
-

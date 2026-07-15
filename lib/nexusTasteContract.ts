@@ -15,7 +15,8 @@ export type NexusTasteSurfaceContract = {
 
 const DEFAULT_CONTRACT: NexusTasteSurfaceContract = {
   surface: "default",
-  visualThesis: "One cinematic command plane with a dark holo plate and restrained support rails.",
+  visualThesis:
+    "One cinematic command plane with a dark holo plate and restrained support rails.",
   workplaneLabel: "Workplane",
   supportLabel: "Rail",
   continuityLabel: "Continuity",
@@ -23,11 +24,15 @@ const DEFAULT_CONTRACT: NexusTasteSurfaceContract = {
   routeDirective: "Lead with the workplane. Keep support quiet.",
 };
 
-const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract> = {
+const CONTRACT_REGISTRY: Record<
+  SurfaceMotionSurface,
+  NexusTasteSurfaceContract
+> = {
   default: DEFAULT_CONTRACT,
   hq: {
     surface: "hq",
-    visualThesis: "A dark command table where the chronicle stays primary and the room behaves like instrumentation.",
+    visualThesis:
+      "A dark command table where the chronicle stays primary and the room behaves like instrumentation.",
     workplaneLabel: "Chronicle",
     supportLabel: "Tactical rail",
     continuityLabel: "Command band",
@@ -36,7 +41,8 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
   },
   command: {
     surface: "command",
-    visualThesis: "An execution board with one hot dispatch lane and one compact control rail.",
+    visualThesis:
+      "An execution board with one hot dispatch lane and one compact control rail.",
     workplaneLabel: "Dispatch",
     supportLabel: "Control rail",
     continuityLabel: "Ops band",
@@ -45,7 +51,8 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
   },
   intel: {
     surface: "intel",
-    visualThesis: "A signal-led desk with one dominant evidence plane and quiet telemetry.",
+    visualThesis:
+      "A signal-led desk with one dominant evidence plane and quiet telemetry.",
     workplaneLabel: "Signal plane",
     supportLabel: "Evidence rail",
     continuityLabel: "Intel band",
@@ -54,7 +61,8 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
   },
   alpha: {
     surface: "alpha",
-    visualThesis: "A decision desk with thesis pressure, market memory, and restrained telemetry.",
+    visualThesis:
+      "A decision desk with thesis pressure, market memory, and restrained telemetry.",
     workplaneLabel: "Decision plane",
     supportLabel: "Review rail",
     continuityLabel: "Market band",
@@ -63,7 +71,8 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
   },
   cyber: {
     surface: "cyber",
-    visualThesis: "A threat desk with one containment lane and one repair rail.",
+    visualThesis:
+      "A threat desk with one containment lane and one repair rail.",
     workplaneLabel: "Containment",
     supportLabel: "Repair rail",
     continuityLabel: "Evidence band",
@@ -72,7 +81,8 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
   },
   recon: {
     surface: "recon",
-    visualThesis: "A collection sweep anchored by one case plane and compact pivots.",
+    visualThesis:
+      "A collection sweep anchored by one case plane and compact pivots.",
     workplaneLabel: "Case plane",
     supportLabel: "Pivot rail",
     continuityLabel: "Case band",
@@ -81,7 +91,8 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
   },
   vault: {
     surface: "vault",
-    visualThesis: "An archive lattice with one memory plane and one relation rail.",
+    visualThesis:
+      "An archive lattice with one memory plane and one relation rail.",
     workplaneLabel: "Archive plane",
     supportLabel: "Steward rail",
     continuityLabel: "Memory band",
@@ -90,7 +101,8 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
   },
   resources: {
     surface: "resources",
-    visualThesis: "A reference lattice with one guided workbench plane per chamber.",
+    visualThesis:
+      "A reference lattice with one guided workbench plane per chamber.",
     workplaneLabel: "Workbench",
     supportLabel: "Guide rail",
     continuityLabel: "Session band",
@@ -99,7 +111,8 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
   },
   vehicle: {
     surface: "vehicle",
-    visualThesis: "A systems table with one launch plane and embedded telemetry rails.",
+    visualThesis:
+      "A systems table with one launch plane and embedded telemetry rails.",
     workplaneLabel: "Launch plane",
     supportLabel: "Systems rail",
     continuityLabel: "Flight band",
@@ -108,7 +121,8 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
   },
   iot: {
     surface: "iot",
-    visualThesis: "A sensor desk with one device plane and one automation rail.",
+    visualThesis:
+      "A sensor desk with one device plane and one automation rail.",
     workplaneLabel: "Sensor plane",
     supportLabel: "Automation rail",
     continuityLabel: "Device band",
@@ -117,7 +131,8 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
   },
   security: {
     surface: "security",
-    visualThesis: "A hardening desk with one control plane and one embedded trust rail.",
+    visualThesis:
+      "A hardening desk with one control plane and one embedded trust rail.",
     workplaneLabel: "Control plane",
     supportLabel: "Trust rail",
     continuityLabel: "Security band",
@@ -126,7 +141,8 @@ const CONTRACT_REGISTRY: Record<SurfaceMotionSurface, NexusTasteSurfaceContract>
   },
   skills: {
     surface: "skills",
-    visualThesis: "A workflow lab with one forge plane and one capability rail.",
+    visualThesis:
+      "A workflow lab with one forge plane and one capability rail.",
     workplaneLabel: "Forge plane",
     supportLabel: "Capability rail",
     continuityLabel: "Learning band",
@@ -142,6 +158,7 @@ export function getNexusTasteContract(
 }
 
 export function formatNexusTasteProfile() {
-  const { designVariance, motionIntensity, visualDensity } = NEXUS_TASTE_PROFILE;
+  const { designVariance, motionIntensity, visualDensity } =
+    NEXUS_TASTE_PROFILE;
   return `V${designVariance} / M${motionIntensity} / D${visualDensity}`;
 }

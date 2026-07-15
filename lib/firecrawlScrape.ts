@@ -24,7 +24,9 @@ export function buildFirecrawlCapabilityBlock(): string {
   );
 }
 
-export async function scrapeUrlWithFirecrawl(url: string): Promise<string | null> {
+export async function scrapeUrlWithFirecrawl(
+  url: string,
+): Promise<string | null> {
   const apiKey = resolveFirecrawlApiKey();
   if (!apiKey) return null;
 
@@ -49,7 +51,10 @@ export async function scrapeUrlWithFirecrawl(url: string): Promise<string | null
 
     const payload = (await response.json()) as {
       success?: boolean;
-      data?: { markdown?: string; metadata?: { title?: string; sourceURL?: string } };
+      data?: {
+        markdown?: string;
+        metadata?: { title?: string; sourceURL?: string };
+      };
     };
 
     const markdown = payload.data?.markdown?.trim();

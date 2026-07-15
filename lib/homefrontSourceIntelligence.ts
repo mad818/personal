@@ -156,7 +156,8 @@ export const HOMEFRONT_SOURCE_LEDGER: HomefrontSourceLedgerItem[] = [
     status: "mapped",
     decisionReason:
       "Permission-review ideas fit the assistant/tool posture model already in Nexus.",
-    nextAction: "Map permission checks into operator workflow receipt language.",
+    nextAction:
+      "Map permission checks into operator workflow receipt language.",
     vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
   },
   {
@@ -167,7 +168,8 @@ export const HOMEFRONT_SOURCE_LEDGER: HomefrontSourceLedgerItem[] = [
     status: "candidate",
     decisionReason:
       "Useful as defensive learning taxonomy only; individual projects need authorized-use review.",
-    nextAction: "Extract passive checklist patterns, reject exploit-first flows.",
+    nextAction:
+      "Extract passive checklist patterns, reject exploit-first flows.",
     vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
   },
   {
@@ -200,7 +202,8 @@ export const HOMEFRONT_SOURCE_LEDGER: HomefrontSourceLedgerItem[] = [
     status: "private-lane",
     decisionReason:
       "Potentially useful for private game asset workflow, not public Homefront positioning.",
-    nextAction: "Consider only inside the ARPG asset-pipeline ledger after licensing review.",
+    nextAction:
+      "Consider only inside the ARPG asset-pipeline ledger after licensing review.",
     vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
   },
   {
@@ -266,7 +269,8 @@ export const HOMEFRONT_SOURCE_LEDGER: HomefrontSourceLedgerItem[] = [
     status: "mapped",
     decisionReason:
       "Design.md already matches the repo's design-check lane and should stay a governance input.",
-    nextAction: "Keep enforcing through design checks, not ad hoc visual drift.",
+    nextAction:
+      "Keep enforcing through design checks, not ad hoc visual drift.",
     vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
   },
   {
@@ -299,7 +303,8 @@ export const HOMEFRONT_SOURCE_LEDGER: HomefrontSourceLedgerItem[] = [
     status: "candidate",
     decisionReason:
       "Bug-bounty ideas must stay defensive, scoped, and advisory before entering CYBER.",
-    nextAction: "Extract defensive checklist language only after source review.",
+    nextAction:
+      "Extract defensive checklist language only after source review.",
     vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
   },
   {
@@ -310,7 +315,8 @@ export const HOMEFRONT_SOURCE_LEDGER: HomefrontSourceLedgerItem[] = [
     status: "candidate",
     decisionReason:
       "Potentially useful for operator workflow and context discipline, but not from headline alone.",
-    nextAction: "Map to assistant workflow or RESOURCES playbook only after review.",
+    nextAction:
+      "Map to assistant workflow or RESOURCES playbook only after review.",
     vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
   },
   {
@@ -321,7 +327,8 @@ export const HOMEFRONT_SOURCE_LEDGER: HomefrontSourceLedgerItem[] = [
     status: "candidate",
     decisionReason:
       "Idea may be useful, but the repo should not absorb social-post claims without underlying proof.",
-    nextAction: "Review for durable pattern, then file only the mapped summary.",
+    nextAction:
+      "Review for durable pattern, then file only the mapped summary.",
     vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
   },
   {
@@ -354,7 +361,8 @@ export const HOMEFRONT_SOURCE_LEDGER: HomefrontSourceLedgerItem[] = [
     status: "candidate",
     decisionReason:
       "Potential operator/productivity pattern, not a dependency and not implementation proof.",
-    nextAction: "Map to COMMAND only if it improves route actions or proof receipts.",
+    nextAction:
+      "Map to COMMAND only if it improves route actions or proof receipts.",
     vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
   },
   {

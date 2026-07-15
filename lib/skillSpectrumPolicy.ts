@@ -25,7 +25,8 @@ export const SKILL_CAPABILITY_POLICIES: SkillCapabilityPolicy[] = [
   {
     capability: "filesystem:write",
     riskLevel: "review",
-    reason: "File writes require explicit operator approval in skill definitions.",
+    reason:
+      "File writes require explicit operator approval in skill definitions.",
   },
   {
     capability: "filesystem:delete",
@@ -40,12 +41,14 @@ export const SKILL_CAPABILITY_POLICIES: SkillCapabilityPolicy[] = [
   {
     capability: "process:exec",
     riskLevel: "blocked",
-    reason: "Arbitrary process execution is blocked; use approved npm scripts only.",
+    reason:
+      "Arbitrary process execution is blocked; use approved npm scripts only.",
   },
   {
     capability: "secrets:read",
     riskLevel: "review",
-    reason: "Secret reads must be scoped to named keys; wildcard reads are disallowed.",
+    reason:
+      "Secret reads must be scoped to named keys; wildcard reads are disallowed.",
   },
   {
     capability: "agent:spawn",
@@ -125,7 +128,9 @@ const CSS_HIDDEN_SMUGGLE_RE =
  * Use this in CIPHER/SkillSpector review of any third-party skill or
  * agent markdown before loading it into the Nexus runtime.
  */
-export function detectCssHiddenPromptPatterns(content: string): CssHiddenPromptFinding[] {
+export function detectCssHiddenPromptPatterns(
+  content: string,
+): CssHiddenPromptFinding[] {
   const findings: CssHiddenPromptFinding[] = [];
   const lines = content.split("\n");
   for (let i = 0; i < lines.length; i++) {
@@ -157,7 +162,9 @@ export function detectCssHiddenPromptPatterns(content: string): CssHiddenPromptF
 /**
  * Stricter smuggling scan for CI — flags hidden HTML bodies and style blocks only.
  */
-export function detectCssHiddenPromptSmuggling(content: string): CssHiddenPromptFinding[] {
+export function detectCssHiddenPromptSmuggling(
+  content: string,
+): CssHiddenPromptFinding[] {
   const findings: CssHiddenPromptFinding[] = [];
   const styleBlocks = content.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi);
   for (const match of styleBlocks) {

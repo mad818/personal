@@ -22,7 +22,12 @@ export interface CrawlScrapeDescriptor {
   label: string;
   sourceRepo: string;
   sourceUrl: string;
-  disposition: "shipped" | "byok_optional" | "external_reference" | "defer" | "boundary";
+  disposition:
+    | "shipped"
+    | "byok_optional"
+    | "external_reference"
+    | "defer"
+    | "boundary";
   capability: "read" | "networked" | "exec";
   auth: "none" | "api_key" | "oauth";
   nexusSurface: string;
@@ -51,7 +56,8 @@ export function listCrawlScrapeDescriptors(): CrawlScrapeDescriptor[] {
       disposition: "byok_optional",
       capability: "networked",
       auth: "api_key",
-      nexusSurface: "Settings firecrawlKey / env FIRECRAWL_KEY · ALPHA thesis context",
+      nexusSurface:
+        "Settings firecrawlKey / env FIRECRAWL_KEY · ALPHA thesis context",
       operatorNote: firecrawlConfigured
         ? "Key present — optional richer markdown scrape via external API."
         : "Set FIRECRAWL_KEY for cleaner markdown extraction; native fetch_url remains fallback.",
@@ -64,8 +70,10 @@ export function listCrawlScrapeDescriptors(): CrawlScrapeDescriptor[] {
       disposition: "external_reference",
       capability: "exec",
       auth: "api_key",
-      nexusSurface: "HQ browser tools (navigate_to, click_element) — descriptor only",
-      operatorNote: "Run browser-use beside Nexus; do not bundle Playwright agent runtime in-app.",
+      nexusSurface:
+        "HQ browser tools (navigate_to, click_element) — descriptor only",
+      operatorNote:
+        "Run browser-use beside Nexus; do not bundle Playwright agent runtime in-app.",
     },
     {
       id: "crawl4ai_external",
@@ -76,7 +84,8 @@ export function listCrawlScrapeDescriptors(): CrawlScrapeDescriptor[] {
       capability: "networked",
       auth: "none",
       nexusSurface: "NOVA research — compare against fetch_url output quality",
-      operatorNote: "External Python service pattern; no vendored crawler in Nexus.",
+      operatorNote:
+        "External Python service pattern; no vendored crawler in Nexus.",
     },
     {
       id: "crawlee_external",
@@ -87,7 +96,8 @@ export function listCrawlScrapeDescriptors(): CrawlScrapeDescriptor[] {
       capability: "networked",
       auth: "api_key",
       nexusSurface: "Operator crawl jobs — n8n / external worker only",
-      operatorNote: "Use for scheduled scrape workers outside the dashboard runtime.",
+      operatorNote:
+        "Use for scheduled scrape workers outside the dashboard runtime.",
     },
     {
       id: "scrapy_external",
@@ -98,7 +108,8 @@ export function listCrawlScrapeDescriptors(): CrawlScrapeDescriptor[] {
       capability: "networked",
       auth: "none",
       nexusSurface: "None in-app — batch ETL reference",
-      operatorNote: "Classic spider framework; keep external to Nexus agent loop.",
+      operatorNote:
+        "Classic spider framework; keep external to Nexus agent loop.",
     },
     {
       id: "markitdown_external",
@@ -109,7 +120,8 @@ export function listCrawlScrapeDescriptors(): CrawlScrapeDescriptor[] {
       capability: "read",
       auth: "none",
       nexusSurface: "document_to_markdown tool + VAULT document intake",
-      operatorNote: "Binary formats stay operator-side; Nexus handles text/html/markdown passthrough.",
+      operatorNote:
+        "Binary formats stay operator-side; Nexus handles text/html/markdown passthrough.",
     },
     {
       id: "scrapling_external",
@@ -152,8 +164,10 @@ export function listCrawlScrapeDescriptors(): CrawlScrapeDescriptor[] {
       disposition: "boundary",
       capability: "networked",
       auth: "none",
-      nexusSurface: "fetch_url hardening notes — do not bypass robots/rate limits",
-      operatorNote: "Reference for TLS fingerprint parity only; Nexus stays on standard fetch with policy gates.",
+      nexusSurface:
+        "fetch_url hardening notes — do not bypass robots/rate limits",
+      operatorNote:
+        "Reference for TLS fingerprint parity only; Nexus stays on standard fetch with policy gates.",
     },
   ];
 }

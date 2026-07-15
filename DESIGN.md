@@ -91,6 +91,71 @@ components:
     typography: "{typography.label-caps}"
     rounded: "{rounded.none}"
     padding: "{spacing.xs}"
+  shell-panel-raised:
+    backgroundColor: "{colors.surface-3}"
+    textColor: "{colors.text}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.none}"
+    padding: "{spacing.md}"
+  shell-separator:
+    backgroundColor: "{colors.border}"
+    height: 1px
+  focus-marker:
+    backgroundColor: "{colors.border-strong}"
+    width: 2px
+    height: 24px
+  quiet-label:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.text-subtle}"
+    typography: "{typography.label-caps}"
+  secondary-action:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.accent}"
+    typography: "{typography.label-caps}"
+    rounded: "{rounded.full}"
+    padding: "{spacing.sm}"
+  telemetry-chip-signal:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.signal}"
+    typography: "{typography.label-caps}"
+    rounded: "{rounded.none}"
+    padding: "{spacing.xs}"
+  telemetry-chip-standby:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.ember}"
+    typography: "{typography.label-caps}"
+    rounded: "{rounded.none}"
+    padding: "{spacing.xs}"
+  telemetry-chip-neutral:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.steel}"
+    typography: "{typography.label-caps}"
+    rounded: "{rounded.none}"
+    padding: "{spacing.xs}"
+  telemetry-chip-critical:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.critical}"
+    typography: "{typography.label-caps}"
+    rounded: "{rounded.none}"
+    padding: "{spacing.xs}"
+  telemetry-chip-live:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.cyan}"
+    typography: "{typography.label-caps}"
+    rounded: "{rounded.none}"
+    padding: "{spacing.xs}"
+  telemetry-chip-warning:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.warning}"
+    typography: "{typography.label-caps}"
+    rounded: "{rounded.none}"
+    padding: "{spacing.xs}"
+  telemetry-chip-success:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.success}"
+    typography: "{typography.label-caps}"
+    rounded: "{rounded.none}"
+    padding: "{spacing.xs}"
 motion:
   profileDefault: flagship
   profiles:

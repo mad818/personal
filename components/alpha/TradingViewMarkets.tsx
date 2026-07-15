@@ -1,7 +1,7 @@
 "use client";
 
 // ── TradingView embeds (from legacy StockBot / sanity-next era in archive/) ──
-// Free widget scripts — dark theme to match Nexus. Requires CSP allowlist in next.config.js.
+// Free widget scripts — dark theme to match Nexus. The nonce CSP retains this host as a fallback.
 
 import { useEffect, useMemo, useRef, memo, type RefObject } from "react";
 

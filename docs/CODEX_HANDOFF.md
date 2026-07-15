@@ -28,7 +28,7 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 ### Security + ops constraints
 
 - Secrets live in `.env.local` (never commit). See `.env.example`.
-- Server routes are protected by `NEXUS_TOKEN` and CSP is enforced in `next.config.js`.
+- Server routes are protected by `NEXUS_TOKEN`; CSP is generated per request in middleware and inline scripts require a nonce.
 - Prefer server-side API routes for external fetches to avoid CSP/CORS issues.
 - All AI provider access goes through `lib/ai.ts`; do not call providers directly.
 - Use Zustand selectors such as `useStore(s => s.field)`, not `useStore().field`.

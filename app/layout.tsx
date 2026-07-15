@@ -2,7 +2,7 @@
 // Root layout: global styles, auth gate, navigation, health monitor.
 
 import type { Metadata, Viewport } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import "./design-md.generated.css";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
@@ -23,6 +23,7 @@ import {
   buildShellBootstrapGuardScript,
   getCriticalShellCss,
 } from "@/lib/shellBootstrapGuard";
+import { CONTENT_SECURITY_POLICY_NONCE_HEADER } from "@/lib/security/contentSecurityPolicy";
 
 assertNexusDoesNotChargeUsers();
 
@@ -53,6 +54,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const requestHeaders = await headers();
+  const nonce =
+    requestHeaders.get(CONTENT_SECURITY_POLICY_NONCE_HEADER) ?? undefined;
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(NEXUS_SESSION_COOKIE)?.value ?? "";
   const initiallyAuthed =
@@ -67,10 +71,11 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: getCriticalShellCss() }}
           suppressHydrationWarning
         />
-        <PersistedShellStateBootScript />
-        <SurfaceMotionBootScript />
+        <PersistedShellStateBootScript nonce={nonce} />
+        <SurfaceMotionBootScript nonce={nonce} />
         <script
           id="nexus-shell-bootstrap-guard"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: buildShellBootstrapGuardScript() }}
           suppressHydrationWarning
         />

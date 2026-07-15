@@ -35,7 +35,7 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 
 1. ~~**SSRF via DNS rebinding**~~ — **shipped 2026-06-22:** `lib/security/privateNetwork.ts` + post-DNS check in `api/headers`.
 2. ~~**Rate-limit in-memory is per-process**~~ — **shipped 2026-07-14:** the shared limiter now uses a bounded private `.nexus` ledger with restart, recovery, privacy, capacity, degraded-mode, LAN-start, and Docker-writeability proof.
-3. **CSP `unsafe-inline` on scripts** — Remove `'unsafe-inline'` from `script-src` by migrating to nonce-based CSP. Next.js 15 supports `nonce` via middleware; inject it into `<Script>` tags and the inline hydration block.
+3. ~~**CSP `unsafe-inline` on scripts**~~ — **shipped 2026-07-14:** middleware now generates a fresh 128-bit request nonce, Next.js and all three intentional Nexus boot scripts receive it, and production `script-src` no longer permits `'unsafe-inline'` or `'unsafe-eval'`.
 4. **Subresource Integrity (SRI) on TradingView embeds** — `s3.tradingview.com` scripts are whitelisted in CSP without SRI hashes. Add `integrity` + `crossorigin` attributes so supply-chain tampering is caught by the browser.
 5. ~~**Cookie `SameSite=Strict` audit**~~ — **shipped 2026-06-22:** `nexus_session_token` now uses `SameSite=Strict` (logout clear cookie aligned).
 6. ~~**Phone-tier route audit**~~ — **shipped 2026-07-14:** signed phone sessions now default-deny unsafe methods in middleware, with three exact workflow exceptions and local-only AI enforcement.
@@ -50,7 +50,7 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 - CI green: `npm run verify` + push Node runtime alignment (`CI-GREEN-NODE-RUNTIME`).
 
 **Should (security / quality)**
-- Nonce-based CSP (remove `unsafe-inline` on scripts).
+- ~~Nonce-based CSP (remove `unsafe-inline` on scripts).~~ Shipped 2026-07-14 with per-request render/response policy, active raw-script inventory, executable policy fixtures, and production HTTP proof.
 - ~~Persistent rate-limit store for LAN-exposed installs.~~ Shipped 2026-07-14 with private hashed identities, atomic recovery, bounded capacity, truthful status, and LAN fail-fast proof.
 - ~~Wire master-tier enforcement to settings mutations and any high-risk `/api/*` routes missing phone-tier checks.~~ Shipped 2026-07-14 as a centralized default-deny middleware boundary covering all active unsafe handlers.
 - Dependabot: merge postcss/prismjs fixes to `main` and wait for GitHub rescan.
@@ -89,6 +89,14 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
+
+- [x] NONCE-SCRIPT-CSP-HARDENING — Replace the web application's blanket inline-script permission with a fresh per-request nonce while preserving the API gateway and all non-script CSP behavior. Spec: `specs/features/nonce-script-csp-hardening.md`.
+  - Security thesis: only framework scripts and the three intentional Nexus boot scripts carrying the current response nonce may execute inline.
+  - [x] Reproduce the static `script-src 'unsafe-inline'` policy, inventory the active inline scripts, trace middleware early responses, and record the request/response contract.
+  - [x] Add the Edge-safe nonce policy, middleware propagation, root-layout nonce plumbing, and non-conflicting static headers.
+  - [x] Add focused runtime/static gates and canonical verification wiring.
+  - [x] Run focused, type, lint, canonical, build, runtime-header, publication, handoff, local-commit, push-attempt, and zero-RPG proof.
+  - Progress: middleware now creates and validates a fresh 128-bit nonce for every matched request, gives Next.js the same render-request policy returned on the response, and preserves the complete API route, connector, authentication, and phone-tier decision order. The root layout attaches the nonce to the persisted-shell, surface-motion, and bootstrap-guard scripts; production `script-src` retains strict-dynamic and the TradingView compatibility host without `'unsafe-inline'` or `'unsafe-eval'`, while development keeps only its required eval/WebSocket allowances. Static and executable gates inventory all three active raw scripts, preserve every previous non-script directive, reject header injection and invalid dev ports, and are wired into canonical verification. Benefits: unexpected injected inline JavaScript no longer inherits blanket execution permission, framework and application scripts share one request-specific trust boundary, API errors retain the policy, and future raw-script drift fails normal verification. Proof: focused CSP/auth/security, TypeScript, zero-warning lint, formatting, publication, and diff checks passed; the 82.1-second production build rendered all pages dynamically; a 6.6-second loopback HTTP gate proved distinct document/API nonces, matching rendered script attributes, and preserved security headers; final canonical verification passed in 169.1 seconds; all 19 final changed paths contained zero RPG paths.
 
 - [x] WHOLE-APP-TYPESCRIPT-ESLINT-PARSER-ALIGNMENT — Remove the redundant parser 7 override so the Next 15 ESLint preset owns its matching parser 8 line and TypeScript 5.9 verification stays warning-free. Spec: `specs/features/typescript-eslint-parser-alignment.md`.
   - Compatibility thesis: preserve every current rule and lint scope while removing only stale parser ownership.

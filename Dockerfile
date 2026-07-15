@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Production image for Next.js standalone output (`next.config.js` → output: 'standalone').
 # Build: docker build -t aegis-vector .
-# Run:   docker run --rm -p 3000:3000 -e ANTHROPIC_API_KEY=... -e NEXUS_TOKEN=... aegis-vector
+# Run:   docker run --rm -p 3000:3000 -v nexus-data:/app/.nexus -e NEXUS_TOKEN=... aegis-vector
 
 FROM node:20-alpine AS deps
 WORKDIR /app
@@ -22,7 +22,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 nextjs
+  && adduser --system --uid 1001 nextjs \
+  && mkdir -p /app/.nexus \
+  && chown nextjs:nodejs /app/.nexus
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

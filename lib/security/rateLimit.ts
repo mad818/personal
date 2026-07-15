@@ -1,10 +1,9 @@
 import { createHash } from "crypto";
 import type { NextRequest, NextResponse } from "next/server";
-
-type AttemptWindow = {
-  count: number;
-  resetAt: number;
-};
+import {
+  createDefaultRateLimitStore,
+  type PersistentRateLimitStore,
+} from "@/lib/security/rateLimitStore";
 
 export interface RateLimitConfig {
   bucket: string;
@@ -13,7 +12,17 @@ export interface RateLimitConfig {
   includeBearerToken?: boolean;
 }
 
-const RATE_LIMIT_BUCKETS = new Map<string, AttemptWindow>();
+declare global {
+  // eslint-disable-next-line no-var
+  var __NEXUS_RATE_LIMIT_STORE__: PersistentRateLimitStore | undefined;
+}
+
+function getRateLimitStore() {
+  if (!globalThis.__NEXUS_RATE_LIMIT_STORE__) {
+    globalThis.__NEXUS_RATE_LIMIT_STORE__ = createDefaultRateLimitStore();
+  }
+  return globalThis.__NEXUS_RATE_LIMIT_STORE__;
+}
 
 function hashValue(value: string) {
   return createHash("sha256").update(value).digest("hex");
@@ -59,37 +68,21 @@ export function getRequestIdentity(
   return hashValue(`${ip}:${bearer}`);
 }
 
-function pruneExpired(now: number) {
-  for (const [key, value] of Array.from(RATE_LIMIT_BUCKETS.entries())) {
-    if (value.resetAt <= now) RATE_LIMIT_BUCKETS.delete(key);
-  }
+function normalizedBucketName(bucket: string) {
+  const trimmed = bucket.trim();
+  return /^[a-z0-9][a-z0-9._-]{0,95}$/i.test(trimmed)
+    ? trimmed
+    : `bucket-${hashValue(trimmed)}`;
 }
 
 export function checkRateLimit(req: NextRequest, config: RateLimitConfig) {
-  const now = Date.now();
-  pruneExpired(now);
-
   const identity = getRequestIdentity(req, config);
-  const key = `${config.bucket}:${identity}`;
-  const current = RATE_LIMIT_BUCKETS.get(key);
+  const key = `${normalizedBucketName(config.bucket)}:${identity}`;
+  return getRateLimitStore().consume(key, config);
+}
 
-  if (current && current.resetAt > now && current.count >= config.maxAttempts) {
-    return {
-      ok: false as const,
-      retryAfterSec: Math.max(1, Math.ceil((current.resetAt - now) / 1000)),
-    };
-  }
-
-  const next =
-    current && current.resetAt > now
-      ? { count: current.count + 1, resetAt: current.resetAt }
-      : { count: 1, resetAt: now + config.windowMs };
-  RATE_LIMIT_BUCKETS.set(key, next);
-
-  return {
-    ok: true as const,
-    remaining: Math.max(0, config.maxAttempts - next.count),
-  };
+export function readRateLimitStoreStatus() {
+  return getRateLimitStore().getStatus();
 }
 
 export function applyRateLimitHeaders(
@@ -99,6 +92,7 @@ export function applyRateLimitHeaders(
 ) {
   response.headers.set("X-RateLimit-Limit", String(config.maxAttempts));
   response.headers.set("X-RateLimit-Window-Ms", String(config.windowMs));
+  response.headers.set("X-RateLimit-Store", readRateLimitStoreStatus().mode);
   if (retryAfterSec) {
     response.headers.set("Retry-After", String(retryAfterSec));
   }

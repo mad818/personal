@@ -15,6 +15,7 @@ import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
 import { readLocalDataPolicySummary } from "@/lib/security/localDataPolicy";
 import { readToolIsolationSummary } from "@/lib/security/toolIsolationPolicy";
+import { readRateLimitStoreStatus } from "@/lib/security/rateLimit";
 import {
   getDefaultEntrypoint,
   listSurfaceAliases,
@@ -324,6 +325,7 @@ export async function GET() {
     },
   };
   const localData = readLocalDataPolicySummary();
+  const rateLimitStore = readRateLimitStoreStatus();
 
   return protectedJson({
     status: "ok",
@@ -340,6 +342,7 @@ export async function GET() {
       highRiskRoutesEnabled: policies.highRiskRoutesEnabled,
       allowPaidApis: policies.allowPaidApis,
       tokenConfigured: auth.nexusTokenConfigured,
+      rateLimitStore: rateLimitStore.mode,
       localData,
       release: {
         buildChannel: readBuildChannel(),
@@ -369,6 +372,7 @@ export async function GET() {
       skillGovernance,
       toolIsolation,
       externalTools,
+      rateLimitStore,
       experiments,
     },
   });

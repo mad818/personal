@@ -34,7 +34,7 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 Concrete hardening items for future sprints — surgical, scoped, ordered by impact:
 
 1. ~~**SSRF via DNS rebinding**~~ — **shipped 2026-06-22:** `lib/security/privateNetwork.ts` + post-DNS check in `api/headers`.
-2. **Rate-limit in-memory is per-process** — `lib/security/rateLimit.ts` resets on every dev-server restart. For LAN-exposed deployments, back the rate-limit store with a lightweight persistent file or SQLite ledger so abuse windows survive restarts.
+2. ~~**Rate-limit in-memory is per-process**~~ — **shipped 2026-07-14:** the shared limiter now uses a bounded private `.nexus` ledger with restart, recovery, privacy, capacity, degraded-mode, LAN-start, and Docker-writeability proof.
 3. **CSP `unsafe-inline` on scripts** — Remove `'unsafe-inline'` from `script-src` by migrating to nonce-based CSP. Next.js 15 supports `nonce` via middleware; inject it into `<Script>` tags and the inline hydration block.
 4. **Subresource Integrity (SRI) on TradingView embeds** — `s3.tradingview.com` scripts are whitelisted in CSP without SRI hashes. Add `integrity` + `crossorigin` attributes so supply-chain tampering is caught by the browser.
 5. ~~**Cookie `SameSite=Strict` audit**~~ — **shipped 2026-06-22:** `nexus_session_token` now uses `SameSite=Strict` (logout clear cookie aligned).
@@ -51,7 +51,7 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 
 **Should (security / quality)**
 - Nonce-based CSP (remove `unsafe-inline` on scripts).
-- Persistent rate-limit store for LAN-exposed installs.
+- ~~Persistent rate-limit store for LAN-exposed installs.~~ Shipped 2026-07-14 with private hashed identities, atomic recovery, bounded capacity, truthful status, and LAN fail-fast proof.
 - Wire `requireMasterSessionForAction` to settings mutations and any high-risk `/api/*` routes missing phone-tier checks.
 - Dependabot: merge postcss/prismjs fixes to `main` and wait for GitHub rescan.
 
@@ -89,6 +89,14 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
+
+- [x] PERSISTENT-RATE-LIMIT-LEDGER — Make shared API abuse windows survive local runtime restarts without exposing raw request identities or adding hosted infrastructure. Spec: `specs/features/persistent-rate-limit-ledger.md`.
+  - Security thesis: persist only bucket names plus SHA-256 identities, keep writes recoverable and bounded, and deny new identities at capacity rather than evicting live protection.
+  - [x] Audit the current process-local limiter, LAN launcher, runtime storage conventions, Docker ownership, and status seam; write the implementation and evidence contract.
+  - [x] Add the durable store, degraded/disabled posture reporting, LAN writability gate, container directory ownership, and operator configuration.
+  - [x] Add focused static/runtime coverage and canonical verification wiring.
+  - [x] Run focused, type, lint, truthful full-audit, build, publication, handoff, local-commit, push-attempt, and zero-RPG-path proof.
+  - Progress: the shared route helper now persists versioned windows under ignored `.nexus/` storage by default, retains only bucket names plus SHA-256 identities, atomically rotates one recovery snapshot, prunes expiry, and denies unseen identities at the 10,000-entry ceiling without evicting live protection. Explicit memory mode and write failures report `memory_disabled` or `memory_degraded` through `X-RateLimit-Store` and protected status; the LAN launcher loads operator-local env first and proves ledger-directory writability before binding to `0.0.0.0`; the non-root container owns `/app/.nexus`. The focused validator compiles the real TypeScript store and proves cross-instance restart blocking, expiry, raw-IP/token absence, previous-snapshot recovery, invalid-ledger repair, unavailable-path degradation, explicit memory mode, capacity denial without eviction, and actual LAN fail-fast execution. Focused phone/security gates, explicit TypeScript, zero-warning lint, complete formatting, 183.4-second canonical verification, 82.1-second production build, publication safety, handoff, diff, local-commit, push-attempt, and zero-RPG-path proof passed. Remote publication remains external because this shell could not reach `github.com:443`.
 
 - [x] WHOLE-APP-FORMAT-COVERAGE-TRUTH — Make the canonical formatter check cover the same complete non-RPG active-source set as the writer and close the hidden drift without runtime change. Spec: `specs/features/whole-app-format-coverage-truth.md`.
   - Coverage thesis: the intended full glob resolves 707 files, the malformed check resolved only 272, and the updated non-RPG boundary intentionally covers 672 while excluding 35 direct game files. Safety thesis: complete no-write debug proof before bulk format. Compatibility thesis: whitespace/layout only across the declared non-RPG `app`/`lib`/`components` scope.

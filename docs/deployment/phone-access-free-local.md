@@ -30,6 +30,8 @@ NEXUS_ENABLE_HIGH_RISK_TOOLS=false
 NEXUS_HIGH_RISK_WRITES_REQUIRE_APPROVAL=true
 NEXUS_PHONE_LAN_ENABLED=false
 NEXUS_PHONE_LAN_PORT=3100
+# Default shown explicitly; writes only hashed rate-limit identities under .nexus/.
+NEXUS_RATE_LIMIT_PERSISTENCE=persistent
 ```
 
 `NEXUS_PHONE_LAN_ENABLED=false` is intentional. LAN exposure should be explicit for the session where you need phone access.
@@ -56,6 +58,14 @@ http://<LAN-IP>:3100/hq?focus=hq-chronicle
 ```
 
 If Windows asks for firewall permission, allow Node/Next on the private network only.
+
+## Restart-resistant rate limits
+
+The LAN launcher checks that the private rate-limit ledger directory is writable before it binds Nexus to the network. The default ledger is `.nexus/rate-limit-ledger.json`; it contains bucket names, SHA-256 request identities, counts, and reset times only. It never stores raw IP addresses or token values.
+
+Normal responses that use the shared limiter include `X-RateLimit-Store: persistent`. The protected `/api/status` payload reports the same posture. If a normal local runtime loses write access after startup, it continues limiting in memory and reports `memory_degraded`; fix the directory permissions before relying on restart durability. `phone:lan:start` refuses to start when its initial write probe fails.
+
+Set `NEXUS_RATE_LIMIT_LEDGER_PATH` only when another private writable data path is required. `NEXUS_RATE_LIMIT_PERSISTENCE=memory` is an explicit stateless opt-out and should not be used for LAN exposure. A container deployment must mount `/app/.nexus` as a persistent volume if limits must survive container replacement.
 
 ## Phone flow
 

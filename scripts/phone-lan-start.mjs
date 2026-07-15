@@ -2,6 +2,11 @@
 /* eslint-disable no-console */
 
 import { networkInterfaces } from "node:os";
+import { closeSync, mkdirSync, openSync, rmSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local", override: false });
 
 function readLanAddresses() {
   const addresses = [];
@@ -27,6 +32,27 @@ process.env.HOSTNAME = "0.0.0.0";
 process.env.NEXUS_RUNTIME_PORT = port;
 process.env.PORT = port;
 
+const rateLimitLedgerPath = resolve(
+  process.env.NEXUS_RATE_LIMIT_LEDGER_PATH ??
+    join(process.cwd(), ".nexus", "rate-limit-ledger.json"),
+);
+const rateLimitProbePath = join(
+  dirname(rateLimitLedgerPath),
+  `.rate-limit-write-probe-${process.pid}-${Date.now()}`,
+);
+try {
+  mkdirSync(dirname(rateLimitLedgerPath), { recursive: true });
+  closeSync(openSync(rateLimitProbePath, "wx", 0o600));
+  rmSync(rateLimitProbePath, { force: true });
+  process.env.NEXUS_RATE_LIMIT_LEDGER_PATH = rateLimitLedgerPath;
+} catch {
+  rmSync(rateLimitProbePath, { force: true });
+  console.error(
+    "phone:lan:start — durable rate-limit storage is unavailable; check NEXUS_RATE_LIMIT_LEDGER_PATH permissions before exposing Nexus to the LAN",
+  );
+  process.exit(1);
+}
+
 // Raise V8 heap limit to prevent OOM restarts from Next.js dev watcher.
 // The watcher can spike well past the 512 MB default when many files are watched.
 // Override via NODE_OPTIONS in .env.local if you need a different value.
@@ -40,6 +66,7 @@ console.log("desktop stays on; phone connects over the same network");
 console.log("network mode:", process.env.NEXUS_NETWORK_MODE);
 console.log("paid APIs:", process.env.NEXUS_ALLOW_PAID_APIS);
 console.log("high-risk tools:", process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS);
+console.log("durable rate limits: ready");
 if (!process.env.NEXUS_TOKEN) {
   console.log("warning: set NEXUS_TOKEN before using LAN access outside this machine");
 }

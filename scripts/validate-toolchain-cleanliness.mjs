@@ -30,6 +30,7 @@ const packageJson = JSON.parse(readRequired("package.json"));
 const lint = packageJson.scripts?.lint ?? "";
 const lintFix = packageJson.scripts?.["lint:fix"] ?? "";
 const verify = packageJson.scripts?.verify ?? "";
+const auditFull = packageJson.scripts?.["audit:full"] ?? "";
 
 for (const [label, command] of [
   ["lint", lint],
@@ -66,6 +67,33 @@ if (
   fail("verify must run both toolchain:check and lint");
 }
 
+if (auditFull !== "node scripts/audit.js") {
+  fail("audit:full must delegate exactly once to scripts/audit.js");
+}
+const auditSource = readRequired("scripts", "audit.js");
+if (auditSource.includes("--verified")) {
+  fail("audit.js must not trust a caller-supplied verified flag");
+}
+if (/\bnext\s+lint\b/.test(auditSource)) {
+  fail("audit.js still references the deprecated Next lint runner");
+}
+for (const [label, pattern] of [
+  ["npm CLI provenance", /process\.env\.npm_execpath/],
+  [
+    "canonical verify child",
+    /spawnSync\(process\.execPath, \[npmCli, "run", "verify"\]/,
+  ],
+  ["shell-free execution", /shell:\s*false/],
+  ["inherited verifier output", /stdio:\s*"inherit"/],
+  ["argument rejection", /process\.argv\.slice\(2\)/],
+  ["local verdict", /Local verification passed\./],
+  ["remote boundary", /remote CI remain separate external checks/],
+]) {
+  if (!pattern.test(auditSource)) {
+    fail(`audit.js is missing ${label}`);
+  }
+}
+
 const eslintConfig = JSON.parse(readRequired(".eslintrc.json"));
 const extensions = Array.isArray(eslintConfig.extends)
   ? eslintConfig.extends
@@ -91,5 +119,5 @@ if (typescriptOverride?.parser !== "@typescript-eslint/parser") {
 }
 
 console.log(
-  "ok toolchain-cleanliness (npm include=dev + direct active-scope ESLint)",
+  "ok toolchain-cleanliness (npm include=dev + direct ESLint + truthful full audit)",
 );

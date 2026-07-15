@@ -21,6 +21,6 @@ Make the next actionable Dependabot runtime patch obvious without opening the sa
 
 ## Acceptance
 
-- The command identifies `postcss` alert 85 as the current next direct npm runtime patch while the lock remains on `8.4.39`.
-- The command prints the patched floor `8.5.10` and the narrow install command.
+- When an imported direct npm runtime alert has an unsatisfied patched floor, the command prints the package, current lock version, patched floor, narrow install command, and proof commands.
+- When every imported direct-package floor is already satisfied locally, the command reports that no direct runtime target is actionable and requires fresh remote evidence before naming another package.
 - The check command exits successfully without network access.

@@ -7,6 +7,7 @@ const CONTENT_SECURITY_POLICY_NONCE_PATTERN = /^[A-Za-z0-9+/_-]{22,128}={0,2}$/;
 export interface ContentSecurityPolicyOptions {
   development: boolean;
   devPort?: string;
+  tradingViewEmbed?: boolean;
 }
 
 function normalizeDevelopmentPort(candidate?: string) {
@@ -71,14 +72,8 @@ export function buildContentSecurityPolicy(
   const imgSrc = [
     "img-src 'self' data: blob:",
     "https://*.basemaps.cartocdn.com",
-    "https://www.tradingview.com",
-    "https://s3.tradingview.com",
   ];
-  const frameSrc = [
-    "frame-src 'self'",
-    "https://www.tradingview.com",
-    "https://s.tradingview.com",
-  ];
+  const frameSrc = ["frame-src 'self'"];
   const mediaSrc = [
     "media-src 'self' data: blob:",
     "https://d8j0ntlcm91z4.cloudfront.net",
@@ -92,9 +87,17 @@ export function buildContentSecurityPolicy(
     connectSrc.push(`ws://127.0.0.1:${port}`, `ws://localhost:${port}`);
   }
 
-  scriptSrc.push("https://s3.tradingview.com");
+  if (options.tradingViewEmbed) {
+    scriptSrc.push("https://s3.tradingview.com");
+    imgSrc.push("https://www.tradingview.com", "https://s3.tradingview.com");
+    frameSrc.push(
+      "https://www.tradingview.com",
+      "https://s.tradingview.com",
+      "https://*.tradingview-widget.com",
+    );
+  }
 
-  return [
+  const directives = [
     "default-src 'self'",
     scriptSrc.join(" "),
     styleSrc.join(" "),
@@ -106,5 +109,14 @@ export function buildContentSecurityPolicy(
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-  ].join("; ");
+  ];
+
+  if (options.tradingViewEmbed) {
+    directives.push(
+      "sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox",
+      "frame-ancestors 'self'",
+    );
+  }
+
+  return directives.join("; ");
 }

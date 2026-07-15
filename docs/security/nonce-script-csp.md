@@ -17,10 +17,10 @@ matched document request. The policy builder lives in
 - Development adds only `'unsafe-eval'` and the two loopback WebSocket origins
   required by Next.js development tooling.
 
-The policy keeps `'strict-dynamic'` plus the existing self and TradingView
-sources. Modern browsers propagate trust from a nonce-bearing bootstrap script;
-the host sources remain useful fallbacks for browsers without
-`'strict-dynamic'` support.
+The default policy keeps `'strict-dynamic'` without a third-party script host.
+Modern browsers propagate trust from a nonce-bearing bootstrap script. The
+fixed `/embeds/tradingview` document receives a separate policy that adds only
+the TradingView sources it needs and repeats its opaque sandbox in CSP.
 
 This follows the [Next.js 15 nonce CSP
 guide](https://nextjs.org/docs/15/app/guides/content-security-policy): the nonce
@@ -72,6 +72,7 @@ supply-chain integrity review separate from nonce authorization.
 ## Explicit boundaries
 
 - `style-src 'unsafe-inline'` is unchanged; this work hardens scripts only.
-- TradingView SRI remains a separate backlog item.
+- TradingView's mutable classic-widget scripts are isolated in the fixed
+  sandbox route instead of receiving a brittle one-time SRI claim.
 - The Tauri shell owns an additional static CSP and requires its own desktop
   hardening and packaged-shell proof.

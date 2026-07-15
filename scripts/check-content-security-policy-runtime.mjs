@@ -35,7 +35,6 @@ assert.deepEqual(readDirective(production, "script-src"), [
   "'self'",
   `'nonce-${nonce}'`,
   "'strict-dynamic'",
-  "https://s3.tradingview.com",
 ]);
 assert.equal(
   readDirective(production, "script-src").includes("'unsafe-inline'"),
@@ -57,8 +56,6 @@ assert.deepEqual(readDirective(production, "img-src"), [
   "data:",
   "blob:",
   "https://*.basemaps.cartocdn.com",
-  "https://www.tradingview.com",
-  "https://s3.tradingview.com",
 ]);
 assert.deepEqual(readDirective(production, "font-src"), [
   "font-src",
@@ -102,8 +99,6 @@ assert.deepEqual(readDirective(production, "connect-src"), [
 assert.deepEqual(readDirective(production, "frame-src"), [
   "frame-src",
   "'self'",
-  "https://www.tradingview.com",
-  "https://s.tradingview.com",
 ]);
 assert.deepEqual(readDirective(production, "object-src"), [
   "object-src",
@@ -126,6 +121,29 @@ assert.ok(
 assert.ok(
   readDirective(development, "connect-src").includes("ws://localhost:3100"),
 );
+assert.equal(development.includes("s3.tradingview.com"), false);
+
+const tradingViewEmbed = buildContentSecurityPolicy(nonce, {
+  development: false,
+  tradingViewEmbed: true,
+});
+assert.ok(
+  readDirective(tradingViewEmbed, "script-src").includes(
+    "https://s3.tradingview.com",
+  ),
+);
+assert.ok(
+  readDirective(tradingViewEmbed, "frame-src").includes(
+    "https://*.tradingview-widget.com",
+  ),
+);
+assert.deepEqual(readDirective(tradingViewEmbed, "sandbox"), [
+  "sandbox",
+  "allow-scripts",
+  "allow-popups",
+  "allow-popups-to-escape-sandbox",
+]);
+assert.equal(tradingViewEmbed.includes("allow-same-origin"), false);
 
 const invalidPort = buildContentSecurityPolicy(nonce, {
   development: true,
@@ -156,5 +174,5 @@ assert.notEqual(secondPolicy, production);
 assert.equal(secondPolicy.includes(`'nonce-${nonce}'`), false);
 
 console.log(
-  "ok content-security-policy-runtime (128-bit unique nonces, nonce-only production scripts, preserved directives, dev fallback, and injection rejection)",
+  "ok content-security-policy-runtime (128-bit unique nonces, nonce-only production scripts, route-scoped TradingView sandbox, preserved directives, dev fallback, and injection rejection)",
 );

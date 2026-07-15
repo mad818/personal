@@ -57,6 +57,7 @@ export async function middleware(req: NextRequest) {
   const contentSecurityPolicy = buildContentSecurityPolicy(nonce, {
     development: process.env.NODE_ENV !== 'production',
     devPort: process.env.PORT,
+    tradingViewEmbed: pathname === '/embeds/tradingview',
   })
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set(CONTENT_SECURITY_POLICY_NONCE_HEADER, nonce)

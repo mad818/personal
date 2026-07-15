@@ -36,7 +36,7 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 1. ~~**SSRF via DNS rebinding**~~ — **shipped 2026-06-22:** `lib/security/privateNetwork.ts` + post-DNS check in `api/headers`.
 2. ~~**Rate-limit in-memory is per-process**~~ — **shipped 2026-07-14:** the shared limiter now uses a bounded private `.nexus` ledger with restart, recovery, privacy, capacity, degraded-mode, LAN-start, and Docker-writeability proof.
 3. ~~**CSP `unsafe-inline` on scripts**~~ — **shipped 2026-07-14:** middleware now generates a fresh 128-bit request nonce, Next.js and all three intentional Nexus boot scripts receive it, and production `script-src` no longer permits `'unsafe-inline'` or `'unsafe-eval'`.
-4. **Subresource Integrity (SRI) on TradingView embeds** — `s3.tradingview.com` scripts are whitelisted in CSP without SRI hashes. Add `integrity` + `crossorigin` attributes so supply-chain tampering is caught by the browser.
+4. ~~**Subresource Integrity (SRI) on TradingView embeds**~~ — **shipped 2026-07-15 as a stronger practical isolation boundary:** TradingView's mutable, unversioned bootstrap scripts now run only in a fixed opaque-origin sandbox route; normal Nexus documents no longer authorize TradingView script or frame hosts. Nexus does not make a brittle SRI claim that would fail on the provider's next same-URL update.
 5. ~~**Cookie `SameSite=Strict` audit**~~ — **shipped 2026-06-22:** `nexus_session_token` now uses `SameSite=Strict` (logout clear cookie aligned).
 6. ~~**Phone-tier route audit**~~ — **shipped 2026-07-14:** signed phone sessions now default-deny unsafe methods in middleware, with three exact workflow exceptions and local-only AI enforcement.
 7. ~~**`X-Forwarded-For` spoofing in rate limiter**~~ — **shipped 2026-06-22:** `getRequestIdentity` ignores `X-Forwarded-For` unless `NEXUS_TRUST_PROXY=true`.
@@ -56,7 +56,7 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 - Dependabot: merge postcss/prismjs fixes to `main` and wait for GitHub rescan.
 
 **Could (later, non-RPG)**
-- SRI on TradingView embeds.
+- ~~SRI on TradingView embeds.~~ Shipped 2026-07-15 as an opaque iframe/CSP sandbox with route-scoped provider hosts because the official bootstrap URLs are unversioned and mutable.
 - Host-header / DNS rebinding guard on other server-side fetch proxies (if any beyond `api/headers`).
 - Default `hqCompactOperatorLayout` onboarding hint for users who want the RPG playfield back (Settings toggle exists).
 - Playwright `hq:e2e` on Windows (spawn EPERM) — fix worker permissions or document WSL lane.
@@ -68,7 +68,7 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 - VAULT / COMMAND — run one Memory Ask query; confirm citations when local memory exists.
 
 **Should** (remaining)
-- TradingView SRI hashes when TradingView publishes stable embed hashes (lazy load + `crossOrigin` shipped).
+- ~~TradingView SRI hashes when TradingView publishes stable embed hashes.~~ Replaced 2026-07-15 by a fixed no-referrer, opaque-origin iframe/CSP sandbox; provider hosts are absent from normal Nexus documents.
 - Windows Playwright `spawn EPERM` — document WSL lane or fix worker spawn for `hq:e2e`.
 - Desktop Tauri: one-click restart runtime tray action.
 
@@ -82,7 +82,7 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 - [x] `pruneBotHistory` on Zustand hydrate (cap 120).
 - [x] RECON `RepoIntelPanel` memory-pages load failures surfaced.
 - [x] `LiveEventFusionStrip` links to `/intel?view=world` with `region` param + separate Source link.
-- [x] ALPHA TradingView lazy IntersectionObserver load + `crossOrigin` on embed scripts.
+- [x] ALPHA TradingView widgets lazy-load through a fixed opaque-origin sandbox route; direct provider scripts and TradingView CSP hosts are removed from normal Nexus documents.
 
 ## Next Up
 
@@ -90,13 +90,21 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [x] TRADINGVIEW-SANDBOX-ISOLATION — Replace direct third-party script execution in ALPHA with a fixed, opaque-origin sandboxed embed route and remove TradingView script/frame authorization from normal Nexus documents. Spec: `specs/features/tradingview-sandbox-isolation.md`.
+  - Security thesis: provider code may render the approved widgets but must not execute with Nexus origin authority; a mutable provider URL must not receive a brittle one-time SRI claim.
+  - [x] Audit the active embed/CSP/header path and confirm the provider's official classic widgets use unversioned scripts that inject iframes.
+  - [x] Add the fixed HTML builder, isolated route, iframe-only presentation, route-scoped CSP, and same-origin framing override.
+  - [x] Add focused runtime/static and production HTTP proof with canonical verification wiring.
+  - [x] Run focused, type, lint, canonical, build, publication, handoff, local-commit, one-push-attempt, and zero-RPG proof.
+  - Progress: ALPHA now renders the existing ticker and BTC chart through one fixed local iframe route whose parent and response CSP both omit `allow-same-origin`. The route accepts only `ticker` or `chart`, owns all provider URLs/configuration, requires the request nonce, sends no-referrer/no-store HTML, and never fetches TradingView server-side. Ordinary Nexus responses no longer authorize TradingView scripts, frames, or images; only the exact embed route receives the minimum provider sources and `SAMEORIGIN` framing override. Benefits: mutable provider code loses Nexus-origin authority, query injection cannot choose a script or configuration, the existing view and attribution remain intact, and drift fails canonical verification. Proof: focused TradingView/CSP/boundary/runtime gates, explicit TypeScript, zero-warning lint, formatting, publication safety, 83.0-second production build, 6.0-second production HTTP acceptance, and 195.9-second canonical verification passed; the final changed-path audit contains zero RPG paths.
+
 - [x] NONCE-SCRIPT-CSP-HARDENING — Replace the web application's blanket inline-script permission with a fresh per-request nonce while preserving the API gateway and all non-script CSP behavior. Spec: `specs/features/nonce-script-csp-hardening.md`.
   - Security thesis: only framework scripts and the three intentional Nexus boot scripts carrying the current response nonce may execute inline.
   - [x] Reproduce the static `script-src 'unsafe-inline'` policy, inventory the active inline scripts, trace middleware early responses, and record the request/response contract.
   - [x] Add the Edge-safe nonce policy, middleware propagation, root-layout nonce plumbing, and non-conflicting static headers.
   - [x] Add focused runtime/static gates and canonical verification wiring.
   - [x] Run focused, type, lint, canonical, build, runtime-header, publication, handoff, local-commit, push-attempt, and zero-RPG proof.
-  - Progress: middleware now creates and validates a fresh 128-bit nonce for every matched request, gives Next.js the same render-request policy returned on the response, and preserves the complete API route, connector, authentication, and phone-tier decision order. The root layout attaches the nonce to the persisted-shell, surface-motion, and bootstrap-guard scripts; production `script-src` retains strict-dynamic and the TradingView compatibility host without `'unsafe-inline'` or `'unsafe-eval'`, while development keeps only its required eval/WebSocket allowances. Static and executable gates inventory all three active raw scripts, preserve every previous non-script directive, reject header injection and invalid dev ports, and are wired into canonical verification. Benefits: unexpected injected inline JavaScript no longer inherits blanket execution permission, framework and application scripts share one request-specific trust boundary, API errors retain the policy, and future raw-script drift fails normal verification. Proof: focused CSP/auth/security, TypeScript, zero-warning lint, formatting, publication, and diff checks passed; the 82.1-second production build rendered all pages dynamically; a 6.6-second loopback HTTP gate proved distinct document/API nonces, matching rendered script attributes, and preserved security headers; final canonical verification passed in 169.1 seconds; all 19 final changed paths contained zero RPG paths.
+  - Progress: middleware now creates and validates a fresh 128-bit nonce for every matched request, gives Next.js the same render-request policy returned on the response, and preserves the complete API route, connector, authentication, and phone-tier decision order. The root layout attaches the nonce to the persisted-shell, surface-motion, and bootstrap-guard scripts; production `script-src` retains strict-dynamic without `'unsafe-inline'` or `'unsafe-eval'`, while development keeps only its required eval/WebSocket allowances. TradingView authorization is now isolated to its fixed sandbox response instead of normal Nexus documents. Static and executable gates inventory all three active raw scripts, preserve every previous non-script directive, reject header injection and invalid dev ports, and are wired into canonical verification. Benefits: unexpected injected inline JavaScript no longer inherits blanket execution permission, framework and application scripts share one request-specific trust boundary, API errors retain the policy, and future raw-script drift fails normal verification. Proof: focused CSP/auth/security, TypeScript, zero-warning lint, formatting, publication, and diff checks passed; the 82.1-second production build rendered all pages dynamically; a 6.6-second loopback HTTP gate proved distinct document/API nonces, matching rendered script attributes, and preserved security headers; final canonical verification passed in 169.1 seconds; all 19 final changed paths contained zero RPG paths.
 
 - [x] WHOLE-APP-TYPESCRIPT-ESLINT-PARSER-ALIGNMENT — Remove the redundant parser 7 override so the Next 15 ESLint preset owns its matching parser 8 line and TypeScript 5.9 verification stays warning-free. Spec: `specs/features/typescript-eslint-parser-alignment.md`.
   - Compatibility thesis: preserve every current rule and lint scope while removing only stale parser ownership.

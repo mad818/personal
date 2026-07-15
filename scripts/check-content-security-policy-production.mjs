@@ -64,6 +64,31 @@ function readNonce(policy) {
   return match[0].slice("'nonce-".length, -1);
 }
 
+function assertDefaultPolicy(policy) {
+  for (const host of [
+    "https://s3.tradingview.com",
+    "https://www.tradingview.com",
+    "https://s.tradingview.com",
+    "https://*.tradingview-widget.com",
+  ]) {
+    assert.equal(policy.includes(host), false, host);
+  }
+  assert.equal(policy.includes("sandbox "), false);
+  assert.equal(policy.includes("frame-ancestors"), false);
+}
+
+function assertTradingViewPolicy(policy) {
+  assert.ok(policy.includes("https://s3.tradingview.com"));
+  assert.ok(policy.includes("https://*.tradingview-widget.com"));
+  assert.ok(
+    policy.includes(
+      "sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox",
+    ),
+  );
+  assert.ok(policy.includes("frame-ancestors 'self'"));
+  assert.equal(policy.includes("allow-same-origin"), false);
+}
+
 function assertRenderedScripts(html, nonce) {
   const scriptTags = html.match(/<script\b[^>]*>/gi) ?? [];
   assert.ok(scriptTags.length > 3, "Expected framework and Nexus script tags.");
@@ -91,11 +116,41 @@ async function readDocument() {
   assert.equal(response.status, 200);
   const policy = response.headers.get("content-security-policy") ?? "";
   const nonce = readNonce(policy);
+  assertDefaultPolicy(policy);
   assert.equal(response.headers.get("x-frame-options"), "DENY");
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");
   const html = await response.text();
   assertRenderedScripts(html, nonce);
   return { nonce, policy };
+}
+
+async function readTradingViewEmbed(kind) {
+  const response = await fetch(
+    `${baseUrl}/embeds/tradingview?kind=${encodeURIComponent(kind)}`,
+    { cache: "no-store" },
+  );
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-frame-options"), "SAMEORIGIN");
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.match(
+    response.headers.get("content-type") ?? "",
+    /^text\/html; charset=utf-8/i,
+  );
+  assert.ok((response.headers.get("cache-control") ?? "").includes("no-store"));
+
+  const policy = response.headers.get("content-security-policy") ?? "";
+  const nonce = readNonce(policy);
+  assertTradingViewPolicy(policy);
+  const html = await response.text();
+  assert.ok(html.includes(`data-tradingview-kind="${kind}"`));
+  const scriptTags = html.match(/<script\b[^>]*>/gi) ?? [];
+  assert.equal(scriptTags.length, 1);
+  assert.match(scriptTags[0], new RegExp(`\\snonce=["']${nonce}["']`));
+  assert.match(
+    scriptTags[0],
+    /src="https:\/\/s3\.tradingview\.com\/external-embedding\/embed-widget-(?:ticker-tape|advanced-chart)\.js"/,
+  );
+  return nonce;
 }
 
 if (!existsSync(buildId)) {
@@ -127,11 +182,31 @@ try {
   assert.equal(apiResponse.status, 200);
   const apiPolicy = apiResponse.headers.get("content-security-policy") ?? "";
   const apiNonce = readNonce(apiPolicy);
+  assertDefaultPolicy(apiPolicy);
   assert.notEqual(apiNonce, first.nonce);
   assert.notEqual(apiNonce, second.nonce);
 
+  const tickerNonce = await readTradingViewEmbed("ticker");
+  const chartNonce = await readTradingViewEmbed("chart");
+  assert.notEqual(tickerNonce, chartNonce);
+
+  const invalidValue = 'chart"><script>alert(1)</script>';
+  const invalidResponse = await fetch(
+    `${baseUrl}/embeds/tradingview?kind=${encodeURIComponent(invalidValue)}`,
+    { cache: "no-store" },
+  );
+  assert.equal(invalidResponse.status, 400);
+  assert.equal(invalidResponse.headers.get("x-frame-options"), "SAMEORIGIN");
+  const invalidPolicy =
+    invalidResponse.headers.get("content-security-policy") ?? "";
+  readNonce(invalidPolicy);
+  assertTradingViewPolicy(invalidPolicy);
+  const invalidBody = await invalidResponse.text();
+  assert.equal(invalidBody, "Unsupported TradingView widget.");
+  assert.equal(invalidBody.includes(invalidValue), false);
+
   console.log(
-    "ok content-security-policy-production (distinct document/API nonces, nonce-only scripts, matching rendered tags, and preserved security headers)",
+    "ok content-security-policy-production (distinct document/API/embed nonces, default host removal, isolated TradingView policy, matching rendered scripts, framing headers, invalid-kind rejection, and preserved security headers)",
   );
 } finally {
   await stopProcessTree(child);

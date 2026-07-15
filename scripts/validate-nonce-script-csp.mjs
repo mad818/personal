@@ -112,7 +112,9 @@ for (const value of [
   "\"script-src 'self'\"",
   "\"'strict-dynamic'\"",
   "scriptSrc.push(\"'unsafe-eval'\")",
+  "if (options.tradingViewEmbed)",
   'scriptSrc.push("https://s3.tradingview.com")',
+  '"sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox"',
 ]) {
   requireText(policy, value, "contentSecurityPolicy.ts");
 }
@@ -128,6 +130,7 @@ for (const value of [
   "next-router-prefetch",
   "purpose",
   "prefetch",
+  "tradingViewEmbed: pathname === '/embeds/tradingview'",
 ]) {
   requireNormalizedText(middleware, value, "middleware.ts");
 }

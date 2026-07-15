@@ -81,6 +81,11 @@ module.exports = {
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
         ],
       },
+      {
+        // The fixed TradingView document is frameable only by Nexus itself.
+        source: '/embeds/tradingview',
+        headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }],
+      },
     ]
   },
 }

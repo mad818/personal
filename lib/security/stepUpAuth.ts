@@ -55,7 +55,9 @@ export function buildStepUpRequiredResponse(
   const response = protectedJson(
     {
       ok: false,
-      code: options.phoneTokenLimited ? "phone_token_limited" : "step_up_required",
+      code: options.phoneTokenLimited
+        ? "phone_token_limited"
+        : "step_up_required",
       error: options.phoneTokenLimited
         ? "This action needs the desktop NEXUS_TOKEN. Phone token sessions are limited to HQ chat and local AI."
         : "Sensitive action requires a fresh local revalidation before it can proceed.",

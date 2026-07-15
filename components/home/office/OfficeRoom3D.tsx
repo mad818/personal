@@ -219,7 +219,11 @@ function Furniture3D({
         onMoveWorld={tryMove}
       />
       <mesh
-        position={[worldPos.conferenceTable[0], 0.32, worldPos.conferenceTable[2]]}
+        position={[
+          worldPos.conferenceTable[0],
+          0.32,
+          worldPos.conferenceTable[2],
+        ]}
         castShadow
         receiveShadow
       >
@@ -230,7 +234,11 @@ function Furniture3D({
       {[-0.42, -0.22, 0, 0.22, 0.42].map((z, i) => (
         <mesh
           key={`table-grain-${i}`}
-          position={[worldPos.conferenceTable[0], 0.366, worldPos.conferenceTable[2] + z]}
+          position={[
+            worldPos.conferenceTable[0],
+            0.366,
+            worldPos.conferenceTable[2] + z,
+          ]}
           castShadow={false}
         >
           <boxGeometry args={[1.76, 0.004, 0.012]} />
@@ -243,7 +251,11 @@ function Furniture3D({
       ))}
       {/* Table accent strip + embedded terminal */}
       <mesh
-        position={[worldPos.conferenceTable[0], 0.37, worldPos.conferenceTable[2]]}
+        position={[
+          worldPos.conferenceTable[0],
+          0.37,
+          worldPos.conferenceTable[2],
+        ]}
         castShadow={false}
       >
         <boxGeometry args={[0.68, 0.03, 0.32]} />
@@ -255,12 +267,20 @@ function Furniture3D({
         />
       </mesh>
       <mesh
-        position={[worldPos.conferenceTable[0], 0.215, worldPos.conferenceTable[2]]}
+        position={[
+          worldPos.conferenceTable[0],
+          0.215,
+          worldPos.conferenceTable[2],
+        ]}
         castShadow
         receiveShadow={false}
       >
         <boxGeometry args={[1.48, 0.03, 0.08]} />
-        <meshStandardMaterial color="#273240" roughness={0.72} metalness={0.26} />
+        <meshStandardMaterial
+          color="#273240"
+          roughness={0.72}
+          metalness={0.26}
+        />
       </mesh>
       {[
         [-0.82, -0.47],
@@ -279,7 +299,11 @@ function Furniture3D({
           receiveShadow
         >
           <boxGeometry args={[0.08, 0.28, 0.08]} />
-          <meshStandardMaterial color="#202834" roughness={0.72} metalness={0.18} />
+          <meshStandardMaterial
+            color="#202834"
+            roughness={0.72}
+            metalness={0.18}
+          />
         </mesh>
       ))}
       {/* Conference chairs */}
@@ -966,9 +990,7 @@ function WallMountedPanels({
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {st
-                          ? `${st.totalTasks}T ${Math.round(conf)}%`
-                          : "IDLE"}
+                        {st ? `${st.totalTasks}T ${Math.round(conf)}%` : "IDLE"}
                       </span>
                     </div>
                   </div>
@@ -1653,8 +1675,7 @@ function StrategiumPulse({
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    const wave =
-      0.62 + (Math.sin(t * pulseRate * cue.tempoPulse) + 1) * 0.19;
+    const wave = 0.62 + (Math.sin(t * pulseRate * cue.tempoPulse) + 1) * 0.19;
     const sweep =
       0.4 +
       (Math.sin(t * (pulseRate * 0.55) * cue.tempoPulse + 1.3) + 1) * 0.16;
@@ -1791,8 +1812,7 @@ function MissionStateBeacon({
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    const pulse =
-      0.52 + (Math.sin(t * pulseRate * cue.tempoPulse) + 1) * 0.18;
+    const pulse = 0.52 + (Math.sin(t * pulseRate * cue.tempoPulse) + 1) * 0.18;
     if (housingRef.current) {
       const mat = housingRef.current.material as THREE.MeshStandardMaterial;
       mat.emissive.set(color);
@@ -1802,7 +1822,8 @@ function MissionStateBeacon({
       const mat = beamRef.current.material as THREE.MeshStandardMaterial;
       mat.emissive.set(color);
       mat.emissiveIntensity = 0.2 + pulse * (0.26 + cue.beaconStrength * 0.4);
-      beamRef.current.scale.x = 0.94 + pulse * (0.05 + cue.beaconStrength * 0.05);
+      beamRef.current.scale.x =
+        0.94 + pulse * (0.05 + cue.beaconStrength * 0.05);
     }
   });
 
@@ -1886,7 +1907,7 @@ function CityWindow({ nightFactor }: { nightFactor: number }) {
   const { gl } = useThree();
 
   const viewTex = useMemo(() => {
-      const t = new THREE.TextureLoader().load("/theme/tactical-command-map.svg");
+    const t = new THREE.TextureLoader().load("/theme/tactical-command-map.svg");
     t.colorSpace = THREE.SRGBColorSpace;
     t.minFilter = THREE.LinearFilter;
     t.magFilter = THREE.LinearFilter;
@@ -2003,10 +2024,7 @@ function DustParticles({ nightFactor }: { nightFactor: number }) {
   return (
     <points ref={ref}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[points, 3]}
-        />
+        <bufferAttribute attach="attributes-position" args={[points, 3]} />
       </bufferGeometry>
       <pointsMaterial
         color="#93c5fd"
@@ -3025,7 +3043,8 @@ function CinematicCameraRig({
 }) {
   const { camera } = useThree();
   const baseLookAt = useMemo(
-    () => new THREE.Vector3(preset.lookAt[0], preset.lookAt[1], preset.lookAt[2]),
+    () =>
+      new THREE.Vector3(preset.lookAt[0], preset.lookAt[1], preset.lookAt[2]),
     [preset],
   );
   const focusTarget = useMemo(() => new THREE.Vector3(), []);
@@ -3049,15 +3068,21 @@ function CinematicCameraRig({
         Math.abs(pointerX) * 0.1 * drift,
     );
     lookAtTarget.copy(baseLookAt);
-    lookAtTarget.x += Math.sin(t * 0.09) * 0.02 * drift + pointerX * 0.38 * drift;
-    lookAtTarget.y += Math.cos(t * 0.08) * 0.012 * drift + pointerY * 0.18 * drift;
+    lookAtTarget.x +=
+      Math.sin(t * 0.09) * 0.02 * drift + pointerX * 0.38 * drift;
+    lookAtTarget.y +=
+      Math.cos(t * 0.08) * 0.012 * drift + pointerY * 0.18 * drift;
     lookAtTarget.z += Math.cos(t * 0.1) * 0.018 * drift;
     if (focusPoint) {
       focusTarget.set(focusPoint[0], focusPoint[1], focusPoint[2]);
-      const focusBlend = 0.22 + cue.dispatchEmphasis * 0.22 + cue.lightingEmphasis * 0.1;
+      const focusBlend =
+        0.22 + cue.dispatchEmphasis * 0.22 + cue.lightingEmphasis * 0.1;
       lookAtTarget.lerp(focusTarget, Math.min(0.62, focusBlend));
     }
-    camera.position.lerp(positionTarget, Math.min(1, delta * (1.7 + cue.shadowContrast)));
+    camera.position.lerp(
+      positionTarget,
+      Math.min(1, delta * (1.7 + cue.shadowContrast)),
+    );
     camera.lookAt(lookAtTarget);
   });
 
@@ -3283,9 +3308,11 @@ function OfficeRoom3DInner({
     return { cpu, mem, disk };
   }, [msgCount, activeAgent, fuelPct]);
   const roomOperationalLights = useMemo<OfficeOperationalLight[]>(() => {
-    const hasAgentProof = (Object.values(agentStats ?? {}) as Array<{
-      lastConfidence?: number;
-    }>).some((stat) => Number(stat?.lastConfidence ?? 0) > 0);
+    const hasAgentProof = (
+      Object.values(agentStats ?? {}) as Array<{
+        lastConfidence?: number;
+      }>
+    ).some((stat) => Number(stat?.lastConfidence ?? 0) > 0);
     const hasData = articlesCount + pricesCount > 0;
     return [
       { id: "room-runtime", label: "Runtime", state: "on" },
@@ -3699,7 +3726,11 @@ function OfficeRoom3DInner({
             <meshStandardMaterial color="#0b1220" roughness={0.9} />
           </mesh>
           {[-0.24, 0, 0.24].map((y, i) => (
-            <mesh key={`uplink-band-${i}`} position={[0, y, 0.15]} castShadow={false}>
+            <mesh
+              key={`uplink-band-${i}`}
+              position={[0, y, 0.15]}
+              castShadow={false}
+            >
               <boxGeometry args={[0.18, 0.04, 0.02]} />
               <meshStandardMaterial
                 color="#0d2134"

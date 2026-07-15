@@ -85,7 +85,10 @@ function parseLegacyMetaProposal(aiResponse: string): HQMetaProposal | null {
     .map((line) => line.trim())
     .filter(Boolean);
   const get = (prefix: string) =>
-    lines.find((line) => line.startsWith(`${prefix}:`))?.slice(prefix.length + 1).trim() ?? "";
+    lines
+      .find((line) => line.startsWith(`${prefix}:`))
+      ?.slice(prefix.length + 1)
+      .trim() ?? "";
 
   const path = get("FILE");
   const old_string = get("OLD");
@@ -116,8 +119,10 @@ function parseMetaProposal(aiResponse: string): HQMetaProposal | null {
     try {
       const parsed = JSON.parse(payload) as Record<string, unknown>;
       const path = typeof parsed.file === "string" ? parsed.file.trim() : "";
-      const old_string = typeof parsed.old === "string" ? parsed.old.trim() : "";
-      const new_string = typeof parsed.new === "string" ? parsed.new.trim() : "";
+      const old_string =
+        typeof parsed.old === "string" ? parsed.old.trim() : "";
+      const new_string =
+        typeof parsed.new === "string" ? parsed.new.trim() : "";
       const reason =
         typeof parsed.reason === "string" && parsed.reason.trim()
           ? parsed.reason.trim()
@@ -175,7 +180,11 @@ export async function runHQMetaCommand(): Promise<HQMetaCommandResult> {
     };
   }
 
-  const aiResponse = await callAI(buildMetaPrompt(summarizeLearningEntries(entries)), 1024, "meta");
+  const aiResponse = await callAI(
+    buildMetaPrompt(summarizeLearningEntries(entries)),
+    1024,
+    "meta",
+  );
   const proposal = parseMetaProposal(aiResponse);
 
   if (!proposal) {

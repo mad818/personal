@@ -74,7 +74,8 @@ export default function GeocodingPlaygroundCard() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <div style={{ fontSize: "10px", color: "var(--text3)" }}>
-        Bounded Nominatim proxy — search addresses or reverse lookup coordinates.
+        Bounded Nominatim proxy — search addresses or reverse lookup
+        coordinates.
       </div>
 
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
@@ -160,7 +161,13 @@ export default function GeocodingPlaygroundCard() {
               <div style={{ fontSize: "11px", color: "var(--text)" }}>
                 {result.label}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "4px" }}>
+              <div
+                style={{
+                  fontSize: "10px",
+                  color: "var(--text3)",
+                  marginTop: "4px",
+                }}
+              >
                 {result.lat.toFixed(4)}, {result.lng.toFixed(4)} · {result.kind}
               </div>
             </div>

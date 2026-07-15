@@ -127,7 +127,10 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
-    const rawBody = (await req.json()) as { token?: unknown; elevate?: unknown };
+    const rawBody = (await req.json()) as {
+      token?: unknown;
+      elevate?: unknown;
+    };
     const token =
       typeof rawBody.token === "string"
         ? normalizeTokenCandidate(rawBody.token)
@@ -155,7 +158,12 @@ export async function POST(req: NextRequest) {
           : { count: 1, resetAt: now + WINDOW_MS };
       TOKEN_ATTEMPTS.set(clientId, active);
       const response = tokenJson(
-        { ok: false, code: "invalid_token", retryable: false, error: "Invalid token" },
+        {
+          ok: false,
+          code: "invalid_token",
+          retryable: false,
+          error: "Invalid token",
+        },
         401,
       );
       clearNexusSessionCookie(response);
@@ -181,7 +189,7 @@ export async function POST(req: NextRequest) {
     const session =
       existingSession && existingSession.authTier === login.tier
         ? existingSession
-        : (await createNexusSession(login.tier));
+        : await createNexusSession(login.tier);
     if (!session) {
       return tokenJson(
         {
@@ -209,7 +217,12 @@ export async function POST(req: NextRequest) {
     return response;
   } catch {
     return tokenJson(
-      { ok: false, code: "bad_request", retryable: false, error: "Bad request" },
+      {
+        ok: false,
+        code: "bad_request",
+        retryable: false,
+        error: "Bad request",
+      },
       400,
     );
   }

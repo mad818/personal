@@ -18,7 +18,9 @@ function pillStyle(active = false) {
   return {
     padding: "8px 10px",
     borderRadius: "999px",
-    border: active ? "1px solid rgba(120, 196, 255, 0.55)" : "1px solid var(--border)",
+    border: active
+      ? "1px solid rgba(120, 196, 255, 0.55)"
+      : "1px solid var(--border)",
     background: active ? "rgba(56, 122, 255, 0.18)" : "rgba(10, 15, 30, 0.58)",
     color: "var(--text)",
     fontSize: "11px",
@@ -39,7 +41,9 @@ function listCardStyle() {
 export default function SpecDrivenConsole() {
   const router = useRouter();
   const { normalizedParams } = useSessionHrefAutoHeal();
-  const [briefStatus, setBriefStatus] = useState<"" | "copied" | "requested" | "failed">("");
+  const [briefStatus, setBriefStatus] = useState<
+    "" | "copied" | "requested" | "failed"
+  >("");
 
   const selectedId = useMemo(() => {
     return normalizedParams.get("spec") ?? DEFAULT_SPEC_TEMPLATE_ID;
@@ -138,8 +142,12 @@ export default function SpecDrivenConsole() {
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <ShellBadge tone="accent">Spec first</ShellBadge>
-            <ShellBadge tone="muted">{selectedTemplate.primarySystemId}</ShellBadge>
-            <ShellBadge tone="muted">{selectedTemplate.impactSeedFile}</ShellBadge>
+            <ShellBadge tone="muted">
+              {selectedTemplate.primarySystemId}
+            </ShellBadge>
+            <ShellBadge tone="muted">
+              {selectedTemplate.impactSeedFile}
+            </ShellBadge>
           </div>
         </div>
 
@@ -161,14 +169,31 @@ export default function SpecDrivenConsole() {
           >
             Use outside Nexus
           </summary>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
-            <button type="button" onClick={() => void handleCopyBrief()} style={pillStyle()}>
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              flexWrap: "wrap",
+              marginTop: "10px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => void handleCopyBrief()}
+              style={pillStyle()}
+            >
               Copy starter
             </button>
-            <button type="button" onClick={handleDownloadBrief} style={pillStyle()}>
+            <button
+              type="button"
+              onClick={handleDownloadBrief}
+              style={pillStyle()}
+            >
               Download starter
             </button>
-            {briefStatus === "copied" ? <ShellBadge tone="success">Starter copied</ShellBadge> : null}
+            {briefStatus === "copied" ? (
+              <ShellBadge tone="success">Starter copied</ShellBadge>
+            ) : null}
             {briefStatus === "requested" ? (
               <ShellBadge tone="success">Download requested</ShellBadge>
             ) : null}
@@ -186,16 +211,30 @@ export default function SpecDrivenConsole() {
           }}
         >
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedTemplate.specSections.length} sections`}>
+            <SectionLabel
+              detail={`${selectedTemplate.specSections.length} sections`}
+            >
               Spec starter
             </SectionLabel>
             {selectedTemplate.specSections.map((entry) => (
               <article key={entry.title} style={listCardStyle()}>
                 <div style={{ display: "grid", gap: "6px" }}>
-                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      color: "var(--text)",
+                    }}
+                  >
                     {entry.title}
                   </div>
-                  <div style={{ fontSize: "12px", color: "var(--text2)", lineHeight: 1.6 }}>
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "var(--text2)",
+                      lineHeight: 1.6,
+                    }}
+                  >
                     {entry.prompt}
                   </div>
                 </div>
@@ -204,12 +243,16 @@ export default function SpecDrivenConsole() {
           </div>
 
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedTemplate.antiPatterns.length} traps`}>
+            <SectionLabel
+              detail={`${selectedTemplate.antiPatterns.length} traps`}
+            >
               Anti-patterns
             </SectionLabel>
             {selectedTemplate.antiPatterns.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
@@ -223,12 +266,16 @@ export default function SpecDrivenConsole() {
           }}
         >
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedTemplate.verification.length} checks`}>
+            <SectionLabel
+              detail={`${selectedTemplate.verification.length} checks`}
+            >
               Verification
             </SectionLabel>
             {selectedTemplate.verification.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>

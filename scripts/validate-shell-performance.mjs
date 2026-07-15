@@ -10,6 +10,11 @@ function read(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
 }
 
+function containsFormatIndependentSnippet(source, snippet) {
+  if (source.includes(snippet)) return true;
+  return source.replace(/\s+/g, "").includes(snippet.replace(/\s+/g, ""));
+}
+
 function collectFiles(rootPath, predicate) {
   if (!fs.existsSync(rootPath)) return [];
   const files = [];
@@ -39,16 +44,16 @@ for (const script of requiredScripts) {
 }
 
 const devServer = read("scripts/dev-server.mjs");
-if (!devServer.includes('process.argv.includes("--fresh")')) {
+if (!containsFormatIndependentSnippet(devServer, 'process.argv.includes("--fresh")')) {
   errors.push("scripts/dev-server.mjs: normal dev startup must preserve .next unless --fresh is explicit.");
 }
-if (!devServer.includes("fresh runtime")) {
+if (!containsFormatIndependentSnippet(devServer, "fresh runtime")) {
   errors.push("scripts/dev-server.mjs: fresh-start behavior must remain operator-visible.");
 }
-if (!devServer.includes('join(nextDir, "BUILD_ID")')) {
+if (!containsFormatIndependentSnippet(devServer, 'join(nextDir, "BUILD_ID")')) {
   errors.push("scripts/dev-server.mjs: development startup must detect incompatible production output.");
 }
-if (!devServer.includes("cleared incompatible production build before development runtime")) {
+if (!containsFormatIndependentSnippet(devServer, "cleared incompatible production build before development runtime")) {
   errors.push("scripts/dev-server.mjs: production-output cleanup must remain operator-visible.");
 }
 
@@ -59,13 +64,13 @@ for (const forbiddenImport of [
   "@/components/ui/GlobalDataLoader",
   "@/components/ui/MemorySpineSync",
 ]) {
-  if (rootChrome.includes(`from "${forbiddenImport}"`)) {
+  if (containsFormatIndependentSnippet(rootChrome, `from "${forbiddenImport}"`)) {
     errors.push(
       `components/ui/RootLayoutChrome.tsx: heavy shell service must not be statically imported (${forbiddenImport}).`,
     );
   }
 }
-if (!rootChrome.includes("<ShellBackgroundServices pathname={pathname} />")) {
+if (!containsFormatIndependentSnippet(rootChrome, "<ShellBackgroundServices pathname={pathname} />")) {
   errors.push("components/ui/RootLayoutChrome.tsx: missing route-aware background service boundary.");
 }
 
@@ -74,7 +79,7 @@ for (const forbiddenImport of [
   "@/components/settings/SettingsDrawer",
   "@/components/ui/NotificationCenter",
 ]) {
-  if (nav.includes(`from "${forbiddenImport}"`)) {
+  if (containsFormatIndependentSnippet(nav, `from "${forbiddenImport}"`)) {
     errors.push(
       `components/nav/Nav.tsx: closed overlay must not be statically imported (${forbiddenImport}).`,
     );
@@ -86,7 +91,7 @@ for (const snippet of [
   "settingsLoaded",
   "notificationsLoaded",
 ]) {
-  if (!nav.includes(snippet)) {
+  if (!containsFormatIndependentSnippet(nav, snippet)) {
     errors.push(`components/nav/Nav.tsx: missing click-activated overlay boundary "${snippet}"`);
   }
 }
@@ -98,7 +103,7 @@ for (const snippet of [
   "CronSchedulerRunner",
   "MemorySpineSync",
 ]) {
-  if (!shellServices.includes(snippet)) {
+  if (!containsFormatIndependentSnippet(shellServices, snippet)) {
     errors.push(`components/ui/ShellBackgroundServices.tsx: missing "${snippet}"`);
   }
 }
@@ -217,14 +222,14 @@ const dynamicBoundaryChecks = [
 
 for (const check of dynamicBoundaryChecks) {
   const source = read(check.file);
-  if (!source.includes('from "next/dynamic"')) {
+  if (!containsFormatIndependentSnippet(source, 'from "next/dynamic"')) {
     errors.push(`${check.file}: missing next/dynamic route-panel boundary.`);
   }
   for (const modulePath of check.modules) {
-    if (source.includes(`from "${modulePath}"`)) {
+    if (containsFormatIndependentSnippet(source, `from "${modulePath}"`)) {
       errors.push(`${check.file}: chamber-only panel must not be statically imported (${modulePath}).`);
     }
-    if (!source.includes(`import("${modulePath}")`)) {
+    if (!containsFormatIndependentSnippet(source, `import("${modulePath}")`)) {
       errors.push(`${check.file}: missing dynamic chamber import (${modulePath}).`);
     }
   }

@@ -508,7 +508,8 @@ function ChatMsg({
     useState<AssistantOperatorWorkflowFocus>();
   const cfg = msg.agent ? AGENTS[msg.agent] : null;
   const isLong = msg.text.length > TRUNCATE;
-  const operatorWorkflow = msg.actionModel?.operatorWorkflow ?? msg.operatorWorkflow;
+  const operatorWorkflow =
+    msg.actionModel?.operatorWorkflow ?? msg.operatorWorkflow;
 
   return (
     <div
@@ -715,7 +716,7 @@ export default function CommandBar() {
       { label: "FORGE", href: "/skills?view=forge", color: "#7c3aed" },
       { label: "SWEEP", href: "/intel?view=sweeps", color: "#00DDFF" },
       { label: "CONTROL", href: "/security?view=doctrine", color: "#f59e0b" },
-      ],
+    ],
     [],
   );
   const dockTempoColor =
@@ -819,7 +820,11 @@ export default function CommandBar() {
         return [
           { label: "TRIAGE", href: "/cyber?view=triage", color: "#ef4444" },
           { label: "CVES", href: "/cyber?view=cves", color: "#f87171" },
-          { label: "CONTROL", href: "/security?view=doctrine", color: "#f59e0b" },
+          {
+            label: "CONTROL",
+            href: "/security?view=doctrine",
+            color: "#f59e0b",
+          },
         ];
       case "/alpha":
         return [
@@ -830,7 +835,11 @@ export default function CommandBar() {
       case "/internal/skills":
         return [
           { label: "FORGE", href: "/skills?view=forge", color: "#7c3aed" },
-          { label: "BLACKSITE", href: "/skills?view=blacksite", color: "#a855f7" },
+          {
+            label: "BLACKSITE",
+            href: "/skills?view=blacksite",
+            color: "#a855f7",
+          },
           { label: "BRAIN", href: "/skills?view=brain", color: "#c084fc" },
         ];
       case "/hq":
@@ -852,202 +861,210 @@ export default function CommandBar() {
   );
   const routingTarget = routingPlan?.agent ?? dutyAgent;
 
-  const send = useCallback(async (options: {
-    forceAnswerHere?: boolean;
-    forceRouteAction?: boolean;
-    overrideText?: string;
-  } = {}) => {
-    const value = (options.overrideText ?? input).trim();
-    if (!value || activeAgent) return;
-    const dispatchPlan = resolveAssistantDispatch(value, {
-      forceAnswerHere: options.forceAnswerHere,
-      forceRouteAction: options.forceRouteAction,
-    });
+  const send = useCallback(
+    async (
+      options: {
+        forceAnswerHere?: boolean;
+        forceRouteAction?: boolean;
+        overrideText?: string;
+      } = {},
+    ) => {
+      const value = (options.overrideText ?? input).trim();
+      if (!value || activeAgent) return;
+      const dispatchPlan = resolveAssistantDispatch(value, {
+        forceAnswerHere: options.forceAnswerHere,
+        forceRouteAction: options.forceRouteAction,
+      });
 
-    if (dispatchPlan.localReply) {
-      const localReply = dispatchPlan.localReply;
+      if (dispatchPlan.localReply) {
+        const localReply = dispatchPlan.localReply;
+        setInput("");
+        setStatusLine("");
+        setMessages((prev) => [
+          ...prev,
+          { role: "user", text: value },
+          {
+            role: "agent",
+            agent: dispatchPlan.agent,
+            text: localReply,
+            sourceText: value,
+            actionModel: dispatchPlan.actionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          },
+        ]);
+        addLog({
+          type: "agent",
+          text: `${AGENTS[dispatchPlan.agent].name}: ${localReply}`,
+          color: AGENTS[dispatchPlan.agent].color,
+        });
+        return;
+      }
+
       setInput("");
       setStatusLine("");
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", text: value },
-        {
-          role: "agent",
-          agent: dispatchPlan.agent,
-          text: localReply,
+      setMessages((prev) => [...prev, { role: "user", text: value }]);
+
+      const target = dispatchPlan.agent;
+      setActiveAgent(target);
+
+      if (dispatchPlan.operatorChoiceNeeded && dispatchPlan.preparedWorkspace) {
+        const choiceText = `I can answer here, or open ${dispatchPlan.preparedWorkspace.label.replace(/^Open\s+/i, "")} so the workspace is in front. Which is better for this move?`;
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "agent",
+            agent: target,
+            text: choiceText,
+            sourceText: value,
+            actionModel: dispatchPlan.actionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          },
+        ]);
+        addLog({
+          type: "agent",
+          text: `${AGENTS[target].name}: ${choiceText}`,
+          color: AGENTS[target].color,
+        });
+        setActiveAgent(null);
+        return;
+      }
+
+      if (
+        dispatchPlan.answerMode === "route_action" &&
+        dispatchPlan.routeHref
+      ) {
+        const targetLabel =
+          dispatchPlan.preparedWorkspace?.label.replace(/^Open\s+/i, "") ??
+          dispatchPlan.routeHref;
+        const routeText = `Opening ${targetLabel}. I staged the right workspace so the next move is visible.`;
+        setTab(getTabFromHref(dispatchPlan.routeHref));
+        router.push(dispatchPlan.routeHref);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "agent",
+            agent: target,
+            text: routeText,
+            sourceText: value,
+            actionModel: dispatchPlan.actionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          },
+        ]);
+        addLog({
+          type: "agent",
+          text: `${AGENTS[target].name}: ${routeText}`,
+          color: AGENTS[target].color,
+        });
+        setActiveAgent(null);
+        return;
+      }
+
+      // Pass last 3 exchanges as conversation history
+      const history: { role: string; content: string }[] = messages
+        .slice(-6)
+        .map((m) => ({
+          role: m.role === "user" ? "user" : "assistant",
+          content: m.text,
+        }));
+      history.push({ role: "user", content: value });
+
+      const enrichedPrompt =
+        buildAgentPrompt(target, systemPrompt) + dispatchPlan.contextBlock;
+
+      try {
+        let lastToolLabel = "";
+
+        const result = await runAgent({
+          settings,
+          agentId: target,
+          toolCatalog: dispatchPlan.toolCatalog,
+          systemPrompt: enrichedPrompt,
+          messages: history,
+          maxIterations: 10,
+          onStep: (step: AgentStep) => {
+            // phase + task_plan handled by PhaseStrip / TaskPlanPanel
+            if (step.type === "phase" || step.type === "task_plan") return;
+            if (step.type === "tool_call") {
+              const label = stepLabel(step);
+              lastToolLabel = label;
+              setStatusLine(label);
+            } else if (step.type === "tool_result") {
+              // Clear status briefly then show next tool if any
+              setStatusLine("");
+            }
+          },
+        });
+
+        void lastToolLabel; // consumed by closure — no unused warning needed
+        const latestArtifact = useStore.getState().agentRunHistory[0];
+        const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
+          provider: latestArtifact?.providerUsed,
+          filesChanged: false,
+        });
+        const actionModel = mergeAssistantRuntimeReceipt(
+          dispatchPlan.actionModel,
+          runtimeReceipt,
+        );
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "agent",
+            agent: target,
+            text: result,
+            sourceText: value,
+            actionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          },
+        ]);
+        addLog({
+          type: "agent",
+          text: `${AGENTS[target].name}: ${result.slice(0, 80)}${result.length > 80 ? "…" : ""}`,
+          color: AGENTS[target].color,
+        });
+      } catch (err) {
+        const failure = resolveAssistantFailure(err);
+        const recoveryText = normalizeAssistantFailureMessage(err);
+        const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
+          recoveryCode: failure.recoveryCode,
+          filesChanged: false,
+        });
+        const recoveryActionModel = buildAssistantChatActionModel({
+          answerMode: "direct",
+          routeHref: null,
+          preparedWorkspace: null,
           sourceText: value,
-          actionModel: dispatchPlan.actionModel,
+          recoveryAction: failure.recoveryAction,
+          diagnostic: failure.diagnostic,
           operatorWorkflow: dispatchPlan.operatorWorkflow,
-        },
-      ]);
-      addLog({
-        type: "agent",
-        text: `${AGENTS[dispatchPlan.agent].name}: ${localReply}`,
-        color: AGENTS[dispatchPlan.agent].color,
-      });
-      return;
-    }
-
-    setInput("");
-    setStatusLine("");
-    setMessages((prev) => [...prev, { role: "user", text: value }]);
-
-    const target = dispatchPlan.agent;
-    setActiveAgent(target);
-
-    if (dispatchPlan.operatorChoiceNeeded && dispatchPlan.preparedWorkspace) {
-      const choiceText = `I can answer here, or open ${dispatchPlan.preparedWorkspace.label.replace(/^Open\s+/i, "")} so the workspace is in front. Which is better for this move?`;
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "agent",
-          agent: target,
-          text: choiceText,
-          sourceText: value,
-          actionModel: dispatchPlan.actionModel,
-          operatorWorkflow: dispatchPlan.operatorWorkflow,
-        },
-      ]);
-      addLog({
-        type: "agent",
-        text: `${AGENTS[target].name}: ${choiceText}`,
-        color: AGENTS[target].color,
-      });
-      setActiveAgent(null);
-      return;
-    }
-
-    if (dispatchPlan.answerMode === "route_action" && dispatchPlan.routeHref) {
-      const targetLabel =
-        dispatchPlan.preparedWorkspace?.label.replace(/^Open\s+/i, "") ??
-        dispatchPlan.routeHref;
-      const routeText = `Opening ${targetLabel}. I staged the right workspace so the next move is visible.`;
-      setTab(getTabFromHref(dispatchPlan.routeHref));
-      router.push(dispatchPlan.routeHref);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "agent",
-          agent: target,
-          text: routeText,
-          sourceText: value,
-          actionModel: dispatchPlan.actionModel,
-          operatorWorkflow: dispatchPlan.operatorWorkflow,
-        },
-      ]);
-      addLog({
-        type: "agent",
-        text: `${AGENTS[target].name}: ${routeText}`,
-        color: AGENTS[target].color,
-      });
-      setActiveAgent(null);
-      return;
-    }
-
-    // Pass last 3 exchanges as conversation history
-    const history: { role: string; content: string }[] = messages
-      .slice(-6)
-      .map((m) => ({
-        role: m.role === "user" ? "user" : "assistant",
-        content: m.text,
-      }));
-    history.push({ role: "user", content: value });
-
-    const enrichedPrompt =
-      buildAgentPrompt(target, systemPrompt) + dispatchPlan.contextBlock;
-
-    try {
-      let lastToolLabel = "";
-
-      const result = await runAgent({
-        settings,
-        agentId: target,
-        toolCatalog: dispatchPlan.toolCatalog,
-        systemPrompt: enrichedPrompt,
-        messages: history,
-        maxIterations: 10,
-        onStep: (step: AgentStep) => {
-          // phase + task_plan handled by PhaseStrip / TaskPlanPanel
-          if (step.type === "phase" || step.type === "task_plan") return;
-          if (step.type === "tool_call") {
-            const label = stepLabel(step);
-            lastToolLabel = label;
-            setStatusLine(label);
-          } else if (step.type === "tool_result") {
-            // Clear status briefly then show next tool if any
-            setStatusLine("");
-          }
-        },
-      });
-
-      void lastToolLabel; // consumed by closure — no unused warning needed
-      const latestArtifact = useStore.getState().agentRunHistory[0];
-      const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
-        provider: latestArtifact?.providerUsed,
-        filesChanged: false,
-      });
-      const actionModel = mergeAssistantRuntimeReceipt(
-        dispatchPlan.actionModel,
-        runtimeReceipt,
-      );
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "agent",
-          agent: target,
-          text: result,
-          sourceText: value,
-          actionModel,
-          operatorWorkflow: dispatchPlan.operatorWorkflow,
-        },
-      ]);
-      addLog({
-        type: "agent",
-        text: `${AGENTS[target].name}: ${result.slice(0, 80)}${result.length > 80 ? "…" : ""}`,
-        color: AGENTS[target].color,
-      });
-    } catch (err) {
-      const failure = resolveAssistantFailure(err);
-      const recoveryText = normalizeAssistantFailureMessage(err);
-      const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
-        recoveryCode: failure.recoveryCode,
-        filesChanged: false,
-      });
-      const recoveryActionModel = buildAssistantChatActionModel({
-        answerMode: "direct",
-        routeHref: null,
-        preparedWorkspace: null,
-        sourceText: value,
-        recoveryAction: failure.recoveryAction,
-        diagnostic: failure.diagnostic,
-        operatorWorkflow: dispatchPlan.operatorWorkflow,
-        runtimeReceipt,
-      });
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "agent",
-          agent: target,
-          text: recoveryText,
-          sourceText: value,
-          actionModel: recoveryActionModel,
-          operatorWorkflow: dispatchPlan.operatorWorkflow,
-        },
-      ]);
-    } finally {
-      setActiveAgent(null);
-      setStatusLine("");
-    }
-  }, [
-    input,
-    activeAgent,
-    systemPrompt,
-    settings,
-    messages,
-    addLog,
-    router,
-    setTab,
-  ]);
+          runtimeReceipt,
+        });
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "agent",
+            agent: target,
+            text: recoveryText,
+            sourceText: value,
+            actionModel: recoveryActionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          },
+        ]);
+      } finally {
+        setActiveAgent(null);
+        setStatusLine("");
+      }
+    },
+    [
+      input,
+      activeAgent,
+      systemPrompt,
+      settings,
+      messages,
+      addLog,
+      router,
+      setTab,
+    ],
+  );
 
   const handleChatAction = useCallback(
     (
@@ -1562,9 +1579,9 @@ export default function CommandBar() {
               </div>
             )}
 
-              {messages.map((msg, i) => (
-                <ChatMsg key={i} msg={msg} onAction={handleChatAction} />
-              ))}
+            {messages.map((msg, i) => (
+              <ChatMsg key={i} msg={msg} onAction={handleChatAction} />
+            ))}
 
             {/* Typing indicator with live step status */}
             {activeAgent && (
@@ -1713,12 +1730,10 @@ export default function CommandBar() {
         }}
         onClick={() => setExpanded((v) => !v)}
         onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow =
-            `0 4px 28px rgba(0,0,0,.55), 0 0 18px ${accentColor}33`;
+          e.currentTarget.style.boxShadow = `0 4px 28px rgba(0,0,0,.55), 0 0 18px ${accentColor}33`;
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow =
-            `0 4px 24px rgba(0,0,0,.45), 0 0 12px ${accentColor}18`;
+          e.currentTarget.style.boxShadow = `0 4px 24px rgba(0,0,0,.45), 0 0 12px ${accentColor}18`;
         }}
       >
         {/* Agent sprites — larger, proper scale */}

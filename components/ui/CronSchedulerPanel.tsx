@@ -52,7 +52,11 @@ interface Props {
   focus?: string | null;
 }
 
-export default function CronSchedulerPanel({ open, onClose, focus = null }: Props) {
+export default function CronSchedulerPanel({
+  open,
+  onClose,
+  focus = null,
+}: Props) {
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
   const jobs = useMemo(
@@ -78,11 +82,13 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
   const [workflowTopic, setWorkflowTopic] = useState("");
   const [error, setError] = useState("");
   const [auditMsg, setAuditMsg] = useState("");
-  const [auditFilters, setAuditFilters] = useState(
-    () => ({ ...DEFAULT_SCHEDULER_AUDIT_FILTERS }),
-  );
+  const [auditFilters, setAuditFilters] = useState(() => ({
+    ...DEFAULT_SCHEDULER_AUDIT_FILTERS,
+  }));
   const [auditFiltersHydrated, setAuditFiltersHydrated] = useState(false);
-  const [savedAuditViews, setSavedAuditViews] = useState<SavedSchedulerAuditView[]>([]);
+  const [savedAuditViews, setSavedAuditViews] = useState<
+    SavedSchedulerAuditView[]
+  >([]);
   const [savedAuditViewsHydrated, setSavedAuditViewsHydrated] = useState(false);
   const [showSaveAuditView, setShowSaveAuditView] = useState(false);
   const [newAuditViewName, setNewAuditViewName] = useState("");
@@ -141,16 +147,20 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
   );
   const schedulerAuditPayload = useMemo(
     () =>
-      buildSchedulerAuditExport(jobs, {
-        nativeReady: nativeBatchPosture.nativeReady,
-        mode: nativeBatchPosture.mode,
-        featureEnabled: nativeBatchPosture.featureEnabled,
-        paidApisAllowed: nativeBatchPosture.paidApisAllowed,
-        apiKeyConfigured: nativeBatchPosture.apiKeyConfigured,
-        reason: nativeBatchPosture.reason,
-      }, {
-        filters: auditFilters,
-      }),
+      buildSchedulerAuditExport(
+        jobs,
+        {
+          nativeReady: nativeBatchPosture.nativeReady,
+          mode: nativeBatchPosture.mode,
+          featureEnabled: nativeBatchPosture.featureEnabled,
+          paidApisAllowed: nativeBatchPosture.paidApisAllowed,
+          apiKeyConfigured: nativeBatchPosture.apiKeyConfigured,
+          reason: nativeBatchPosture.reason,
+        },
+        {
+          filters: auditFilters,
+        },
+      ),
     [jobs, nativeBatchPosture, auditFilters],
   );
   const focusTargetId =
@@ -270,7 +280,9 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
   };
 
   const applyMissionTemplate = (templateId: string) => {
-    const template = MISSION_TEMPLATES.find((candidate) => candidate.id === templateId);
+    const template = MISSION_TEMPLATES.find(
+      (candidate) => candidate.id === templateId,
+    );
     if (!template) return;
     setName(template.label);
     setPrompt(template.prompt);
@@ -452,7 +464,9 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
   };
 
   const removeSavedAuditView = (viewId: string, viewName: string) => {
-    setSavedAuditViews((current) => current.filter((view) => view.id !== viewId));
+    setSavedAuditViews((current) =>
+      current.filter((view) => view.id !== viewId),
+    );
     setAuditMsg(`Removed saved audit view ${viewName}.`);
   };
 
@@ -472,7 +486,9 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
     );
   };
 
-  const previewImportedSavedAuditViews = (incoming: SavedSchedulerAuditView[]) => {
+  const previewImportedSavedAuditViews = (
+    incoming: SavedSchedulerAuditView[],
+  ) => {
     if (!incoming.length) {
       setAuditMsg("No valid saved audit views were found in that file.");
       return;
@@ -482,7 +498,9 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
       incoming,
     );
     setPendingImportedAuditViews({ views: incoming, summary });
-    setAuditMsg(`Loaded import preview for ${summary.incomingCount} saved audit views.`);
+    setAuditMsg(
+      `Loaded import preview for ${summary.incomingCount} saved audit views.`,
+    );
   };
 
   const previewImportedSavedAuditViewsFromText = (
@@ -490,9 +508,13 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
     sourceLabel: "file" | "pasted JSON",
   ) => {
     try {
-      const incoming = coerceSavedSchedulerAuditViewsImport(JSON.parse(rawText));
+      const incoming = coerceSavedSchedulerAuditViewsImport(
+        JSON.parse(rawText),
+      );
       if (!incoming.length) {
-        setAuditMsg(`No valid saved audit views were found in the ${sourceLabel}.`);
+        setAuditMsg(
+          `No valid saved audit views were found in the ${sourceLabel}.`,
+        );
         return;
       }
       previewImportedSavedAuditViews(incoming);
@@ -505,7 +527,9 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
     }
   };
 
-  const mergeImportedSavedAuditViews = (incoming: SavedSchedulerAuditView[]) => {
+  const mergeImportedSavedAuditViews = (
+    incoming: SavedSchedulerAuditView[],
+  ) => {
     if (!incoming.length) {
       setAuditMsg("No valid saved audit views were found in that file.");
       return;
@@ -521,10 +545,12 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
 
       const allocateId = (preferredId: string, fallbackName: string) => {
         if (preferredId && !seenIds.has(preferredId)) return preferredId;
-        let candidate = `audit-view-${fallbackName
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-+|-+$/g, "") || "saved"}-${Date.now()}`;
+        let candidate = `audit-view-${
+          fallbackName
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "") || "saved"
+        }-${Date.now()}`;
         let suffix = 1;
         while (seenIds.has(candidate)) {
           candidate = `${candidate}-${suffix++}`;
@@ -545,7 +571,12 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
       }
 
       for (const view of current) {
-        if (incoming.some((candidate) => candidate.name.toLowerCase() === view.name.toLowerCase())) {
+        if (
+          incoming.some(
+            (candidate) =>
+              candidate.name.toLowerCase() === view.name.toLowerCase(),
+          )
+        ) {
           continue;
         }
         const id = allocateId(view.id, view.name);
@@ -620,9 +651,7 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
         SCHEDULER_AUDIT_VIEWS_STORAGE_KEY,
       );
       if (stored) {
-        setSavedAuditViews(
-          coerceSavedSchedulerAuditViews(JSON.parse(stored)),
-        );
+        setSavedAuditViews(coerceSavedSchedulerAuditViews(JSON.parse(stored)));
       }
     } catch {
       // Ignore storage read failures and fall back to no saved views.
@@ -823,7 +852,10 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
             />
           </div>
 
-          <div id="cron-scheduler-governance" style={{ scrollMarginTop: "96px" }}>
+          <div
+            id="cron-scheduler-governance"
+            style={{ scrollMarginTop: "96px" }}
+          >
             <CronSchedulerGovernanceSection
               jobs={jobs}
               nativeBatchPosture={nativeBatchPosture}
@@ -846,7 +878,9 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
                 setNewAuditViewName("");
               }}
               onExportSavedAuditViews={exportSavedAuditViews}
-              onImportSavedAuditViewsClick={() => importSavedViewsInputRef.current?.click()}
+              onImportSavedAuditViewsClick={() =>
+                importSavedViewsInputRef.current?.click()
+              }
               onTogglePasteAuditViews={() => {
                 setShowPasteAuditViews((current) => !current);
                 if (showPasteAuditViews) {
@@ -867,7 +901,9 @@ export default function CronSchedulerPanel({ open, onClose, focus = null }: Prop
                 setAuditFilters({ ...view.filters });
                 setAuditMsg(`Applied saved audit view ${view.name}.`);
               }}
-              onRemoveSavedAuditView={(view) => removeSavedAuditView(view.id, view.name)}
+              onRemoveSavedAuditView={(view) =>
+                removeSavedAuditView(view.id, view.name)
+              }
               onSetAuditFilters={setAuditFilters}
             />
           </div>

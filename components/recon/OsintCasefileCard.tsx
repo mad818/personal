@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions";
 import { ShellBadge } from "@/components/ui/shell";
 import { apiFetch } from "@/lib/apiFetch";
-import type { EvidenceStrength, ResearchSourceRef } from "@/lib/researchSources";
+import type {
+  EvidenceStrength,
+  ResearchSourceRef,
+} from "@/lib/researchSources";
 import {
   OSINT_CASEFLOW_PHASES,
   OSINT_PIVOT_OPTIONS,
@@ -82,9 +85,13 @@ export default function OsintCasefileCard({
 
     const loadPages = async () => {
       try {
-        const response = await apiFetch("/api/memory/pages?limit=12&workflowId=osint-casefile");
+        const response = await apiFetch(
+          "/api/memory/pages?limit=12&workflowId=osint-casefile",
+        );
         if (!response.ok) return;
-        const payload = (await response.json()) as { pages?: OsintCasefilePage[] };
+        const payload = (await response.json()) as {
+          pages?: OsintCasefilePage[];
+        };
         if (!cancelled && Array.isArray(payload.pages)) {
           setPages(payload.pages);
         }
@@ -120,7 +127,10 @@ export default function OsintCasefileCard({
   );
   const strongestPrior = rankedPages[0] ?? null;
   const savedMemoryQuery = useMemo(
-    () => [draft.subject, draft.goal, draft.nextReviewedMove].filter(Boolean).join(" · "),
+    () =>
+      [draft.subject, draft.goal, draft.nextReviewedMove]
+        .filter(Boolean)
+        .join(" · "),
     [draft.goal, draft.nextReviewedMove, draft.subject],
   );
 
@@ -180,7 +190,8 @@ export default function OsintCasefileCard({
           domain: route === "/cyber" ? "cyber" : "intel",
           memoryCompartment: "research",
           requestedVisibility: "internal",
-          workflowPackId: route === "/cyber" ? "cyber-triage" : "research-workflow",
+          workflowPackId:
+            route === "/cyber" ? "cyber-triage" : "research-workflow",
           tags: buildOsintCasefileTags(draft),
         }),
       });
@@ -207,12 +218,15 @@ export default function OsintCasefileCard({
       <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
         <ShellBadge tone="accent">OSINT casefile</ShellBadge>
         <ShellBadge tone="muted">Passive-first</ShellBadge>
-        <ShellBadge tone="muted">{route === "/cyber" ? "CYBER-originated" : "RECON-originated"}</ShellBadge>
+        <ShellBadge tone="muted">
+          {route === "/cyber" ? "CYBER-originated" : "RECON-originated"}
+        </ShellBadge>
       </div>
 
       <div className="nexus-shell-copy nexus-shell-copy--compact">
-        Keep case progression compact: {OSINT_CASEFLOW_PHASES.join(" → ")}. Save the durable subject,
-        passive findings, pivots, and next reviewed move before widening collection.
+        Keep case progression compact: {OSINT_CASEFLOW_PHASES.join(" → ")}. Save
+        the durable subject, passive findings, pivots, and next reviewed move
+        before widening collection.
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -286,8 +300,11 @@ export default function OsintCasefileCard({
             </button>
           </div>
           {reusedPage ? (
-            <div style={{ fontSize: "10px", color: "#93c5fd", lineHeight: 1.45 }}>
-              Draft seeded from {reusedPage.title}. Saving now will keep that prior casefile in the durable source trail.
+            <div
+              style={{ fontSize: "10px", color: "#93c5fd", lineHeight: 1.45 }}
+            >
+              Draft seeded from {reusedPage.title}. Saving now will keep that
+              prior casefile in the durable source trail.
             </div>
           ) : null}
         </div>
@@ -304,13 +321,25 @@ export default function OsintCasefileCard({
             gap: "6px",
           }}
         >
-          <div style={{ fontSize: "10px", fontWeight: 700, color: "#93c5fd", textTransform: "uppercase", letterSpacing: "0.6px" }}>
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 700,
+              color: "#93c5fd",
+              textTransform: "uppercase",
+              letterSpacing: "0.6px",
+            }}
+          >
             Strongest prior casefile
           </div>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+          <div
+            style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}
+          >
             {strongestPrior.title}
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}>
+          <div
+            style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}
+          >
             {strongestPrior.summary}
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -359,7 +388,10 @@ export default function OsintCasefileCard({
         aria-label="Passive findings"
         value={draft.passiveFindings}
         onChange={(event) => {
-          setDraft((current) => ({ ...current, passiveFindings: event.target.value }));
+          setDraft((current) => ({
+            ...current,
+            passiveFindings: event.target.value,
+          }));
           setStatus("idle");
         }}
         placeholder="Passive findings"
@@ -369,7 +401,10 @@ export default function OsintCasefileCard({
         aria-label="Pivot opportunities"
         value={draft.pivotOpportunities}
         onChange={(event) => {
-          setDraft((current) => ({ ...current, pivotOpportunities: event.target.value }));
+          setDraft((current) => ({
+            ...current,
+            pivotOpportunities: event.target.value,
+          }));
           setStatus("idle");
         }}
         placeholder="Pivot opportunities"
@@ -379,7 +414,10 @@ export default function OsintCasefileCard({
         aria-label="Evidence gaps"
         value={draft.evidenceGaps}
         onChange={(event) => {
-          setDraft((current) => ({ ...current, evidenceGaps: event.target.value }));
+          setDraft((current) => ({
+            ...current,
+            evidenceGaps: event.target.value,
+          }));
           setStatus("idle");
         }}
         placeholder="Evidence gaps"
@@ -389,14 +427,24 @@ export default function OsintCasefileCard({
         aria-label="Next reviewed move"
         value={draft.nextReviewedMove}
         onChange={(event) => {
-          setDraft((current) => ({ ...current, nextReviewedMove: event.target.value }));
+          setDraft((current) => ({
+            ...current,
+            nextReviewedMove: event.target.value,
+          }));
           setStatus("idle");
         }}
         placeholder="Next reviewed move"
         style={inputStyle(true)}
       />
 
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
         <button
           type="button"
           onClick={() => void saveCasefile()}
@@ -431,7 +479,10 @@ export default function OsintCasefileCard({
           routeHint="/vault?focus=vault-compiled-pages&workflowId=osint-casefile"
           extraTargets={[
             {
-              href: route === "/cyber" ? "/cyber?view=triage&focus=cyber-triage" : "/recon?view=osint&focus=recon-lookup",
+              href:
+                route === "/cyber"
+                  ? "/cyber?view=triage&focus=cyber-triage"
+                  : "/recon?view=osint&focus=recon-lookup",
               label: route === "/cyber" ? "Return to CYBER" : "Return to RECON",
               tab: route === "/cyber" ? "cyber" : "recon",
             },
@@ -441,8 +492,11 @@ export default function OsintCasefileCard({
       ) : null}
 
       {status === "error" ? (
-        <div style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}>
-          Subject, goal, and passive findings are required before the casefile can be filed.
+        <div
+          style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}
+        >
+          Subject, goal, and passive findings are required before the casefile
+          can be filed.
         </div>
       ) : null}
     </div>

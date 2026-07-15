@@ -63,7 +63,11 @@ export async function POST(req: NextRequest) {
     JSON.stringify(parsed.data),
     "utf-8",
   ).toString("base64url");
-  const scriptPath = join(PROJECT_ROOT, "scripts", "eval-runtime-experiment.js");
+  const scriptPath = join(
+    PROJECT_ROOT,
+    "scripts",
+    "eval-runtime-experiment.js",
+  );
   const result = await runCommand(
     process.execPath,
     [scriptPath, "--json", "--record", "--definition64", definition64],

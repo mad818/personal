@@ -46,7 +46,11 @@ async function ensureStateFile() {
   try {
     await readFile(DATA_FILE, "utf-8");
   } catch {
-    await writeFile(DATA_FILE, JSON.stringify(defaultState(), null, 2), "utf-8");
+    await writeFile(
+      DATA_FILE,
+      JSON.stringify(defaultState(), null, 2),
+      "utf-8",
+    );
   }
 }
 
@@ -66,8 +70,7 @@ export async function readAssimilationState(): Promise<AssimilationState> {
       securityScenarios: parsed.securityScenarios ?? fallback.securityScenarios,
       securityRuns: parsed.securityRuns ?? fallback.securityRuns,
       modelLabRuns: parsed.modelLabRuns ?? fallback.modelLabRuns,
-      geoDeltaSnapshots:
-        parsed.geoDeltaSnapshots ?? fallback.geoDeltaSnapshots,
+      geoDeltaSnapshots: parsed.geoDeltaSnapshots ?? fallback.geoDeltaSnapshots,
     };
   } catch {
     const fallback = defaultState();
@@ -135,7 +138,9 @@ export async function listAssetKits(): Promise<AssetKit[]> {
   return (await readAssimilationState()).assetKits;
 }
 
-export async function saveRegistryItem(item: RegistryItem): Promise<RegistryItem> {
+export async function saveRegistryItem(
+  item: RegistryItem,
+): Promise<RegistryItem> {
   const state = await readAssimilationState();
   const next: RegistryItem = {
     ...item,

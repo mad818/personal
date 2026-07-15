@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react"
-import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback"
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback";
 import {
   areVehicleConnectorProfilesEqual,
   buildVehicleConnectorProfileJson,
@@ -12,21 +12,22 @@ import {
   VEHICLE_CONNECTOR_TRANSPORT_LABELS,
   type VehicleConnectorProfile,
   type VehicleConnectorTransport,
-} from "@/lib/vehicle/hardwareReadiness"
-import { useStore } from "@/store/useStore"
+} from "@/lib/vehicle/hardwareReadiness";
+import { useStore } from "@/store/useStore";
 
 type FieldUpdater<K extends keyof VehicleConnectorProfile> = (
   key: K,
   value: VehicleConnectorProfile[K],
-) => void
+) => void;
 
 const TRANSPORT_NOTES: Record<VehicleConnectorTransport, string> = {
-  usb_serial: "Best first-arrival path for a Pixhawk on the bench. Keep the bridge local and observer-only.",
+  usb_serial:
+    "Best first-arrival path for a Pixhawk on the bench. Keep the bridge local and observer-only.",
   telemetry_radio:
     "Useful once the airframe leaves the bench. Keep transport diagnosis outside Nexus first if frames stall.",
   companion_link:
     "Future Jetson / companion path. Keep flight authority with ArduPilot and use Nexus as the operator console.",
-}
+};
 
 const CARD_STYLE: CSSProperties = {
   background: "var(--surf2)",
@@ -36,7 +37,7 @@ const CARD_STYLE: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: "8px",
-}
+};
 
 const LABEL_STYLE: CSSProperties = {
   fontSize: "9px",
@@ -44,7 +45,7 @@ const LABEL_STYLE: CSSProperties = {
   textTransform: "uppercase",
   letterSpacing: "0.08em",
   fontWeight: 700,
-}
+};
 
 const INPUT_STYLE: CSSProperties = {
   width: "100%",
@@ -55,9 +56,12 @@ const INPUT_STYLE: CSSProperties = {
   background: "rgba(9,14,28,0.45)",
   color: "var(--text)",
   fontSize: "12px",
-}
+};
 
-function buildConnectorSetupGuide(profile: VehicleConnectorProfile, stubCommand: string) {
+function buildConnectorSetupGuide(
+  profile: VehicleConnectorProfile,
+  stubCommand: string,
+) {
   return [
     `# Future connector onboarding — ${profile.airframeLabel}`,
     "",
@@ -80,44 +84,63 @@ function buildConnectorSetupGuide(profile: VehicleConnectorProfile, stubCommand:
     "```",
     "",
     "Local doc: docs/deployment/vehicle-passive-bridge-stub.md",
-  ].join("\n")
+  ].join("\n");
 }
 
 export default function VehicleConnectorOnboardingCard() {
-  const connectorProfile = useStore((state) => state.settings.vehicleConnectorProfile)
-  const updateSettings = useStore((state) => state.updateSettings)
-  const [healedProfile, setHealedProfile] = useState(false)
+  const connectorProfile = useStore(
+    (state) => state.settings.vehicleConnectorProfile,
+  );
+  const updateSettings = useStore((state) => state.updateSettings);
+  const [healedProfile, setHealedProfile] = useState(false);
   const normalizedProfile = useMemo(
     () => normalizeVehicleConnectorProfile(connectorProfile),
     [connectorProfile],
-  )
+  );
 
   useEffect(() => {
-    if (areVehicleConnectorProfilesEqual(connectorProfile, normalizedProfile)) return
-    updateSettings({ vehicleConnectorProfile: normalizedProfile })
-    setHealedProfile(true)
-  }, [connectorProfile, normalizedProfile, updateSettings])
+    if (areVehicleConnectorProfilesEqual(connectorProfile, normalizedProfile))
+      return;
+    updateSettings({ vehicleConnectorProfile: normalizedProfile });
+    setHealedProfile(true);
+  }, [connectorProfile, normalizedProfile, updateSettings]);
 
-  const profile = normalizedProfile
-  const stubCommand = useMemo(() => buildVehicleBridgeStubCommand(profile), [profile])
-  const connectorJson = useMemo(() => buildVehicleConnectorProfileJson(profile), [profile])
+  const profile = normalizedProfile;
+  const stubCommand = useMemo(
+    () => buildVehicleBridgeStubCommand(profile),
+    [profile],
+  );
+  const connectorJson = useMemo(
+    () => buildVehicleConnectorProfileJson(profile),
+    [profile],
+  );
   const setupGuide = useMemo(
     () => buildConnectorSetupGuide(profile, stubCommand),
     [profile, stubCommand],
-  )
+  );
 
-  const setField: FieldUpdater<keyof VehicleConnectorProfile> = (key, value) => {
+  const setField: FieldUpdater<keyof VehicleConnectorProfile> = (
+    key,
+    value,
+  ) => {
     updateSettings({
       vehicleConnectorProfile: normalizeVehicleConnectorProfile({
         ...profile,
         [key]: value,
       }),
-    })
-  }
+    });
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          flexWrap: "wrap",
+        }}
+      >
         <div
           style={{
             fontSize: "10px",
@@ -169,10 +192,13 @@ export default function VehicleConnectorOnboardingCard() {
         ) : null}
       </div>
 
-      <div style={{ fontSize: "12px", color: "var(--text2)", lineHeight: 1.65 }}>
-        This is the arrival-day connector profile, not a live hardware requirement. Save the expected
-        transport and bridge posture now so the first Pixhawk day is mostly matching cables and settings,
-        not improvising under pressure.
+      <div
+        style={{ fontSize: "12px", color: "var(--text2)", lineHeight: 1.65 }}
+      >
+        This is the arrival-day connector profile, not a live hardware
+        requirement. Save the expected transport and bridge posture now so the
+        first Pixhawk day is mostly matching cables and settings, not
+        improvising under pressure.
       </div>
 
       <div
@@ -195,15 +221,20 @@ export default function VehicleConnectorOnboardingCard() {
           <select
             value={profile.transport}
             onChange={(event) =>
-              setField("transport", event.target.value as VehicleConnectorTransport)
+              setField(
+                "transport",
+                event.target.value as VehicleConnectorTransport,
+              )
             }
             style={INPUT_STYLE}
           >
-            {Object.entries(VEHICLE_CONNECTOR_TRANSPORT_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            {Object.entries(VEHICLE_CONNECTOR_TRANSPORT_LABELS).map(
+              ([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ),
+            )}
           </select>
         </label>
         <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -218,7 +249,9 @@ export default function VehicleConnectorOnboardingCard() {
           <span style={LABEL_STYLE}>Baud</span>
           <select
             value={String(profile.baudRate)}
-            onChange={(event) => setField("baudRate", Number(event.target.value))}
+            onChange={(event) =>
+              setField("baudRate", Number(event.target.value))
+            }
             style={INPUT_STYLE}
           >
             {VEHICLE_BAUD_RATE_OPTIONS.map((baud) => (
@@ -241,7 +274,10 @@ export default function VehicleConnectorOnboardingCard() {
           <select
             value={profile.authority}
             onChange={(event) =>
-              setField("authority", event.target.value as VehicleConnectorProfile["authority"])
+              setField(
+                "authority",
+                event.target.value as VehicleConnectorProfile["authority"],
+              )
             }
             style={INPUT_STYLE}
           >
@@ -252,8 +288,12 @@ export default function VehicleConnectorOnboardingCard() {
       </div>
 
       <div style={CARD_STYLE}>
-        <div style={{ ...LABEL_STYLE, marginBottom: "2px" }}>Current transport note</div>
-        <div style={{ fontSize: "12px", color: "var(--text2)", lineHeight: 1.65 }}>
+        <div style={{ ...LABEL_STYLE, marginBottom: "2px" }}>
+          Current transport note
+        </div>
+        <div
+          style={{ fontSize: "12px", color: "var(--text2)", lineHeight: 1.65 }}
+        >
           {TRANSPORT_NOTES[profile.transport]}
         </div>
       </div>
@@ -266,7 +306,9 @@ export default function VehicleConnectorOnboardingCard() {
         }}
       >
         <div style={CARD_STYLE}>
-          <div style={{ ...LABEL_STYLE, marginBottom: "2px" }}>Arrival-day bridge command</div>
+          <div style={{ ...LABEL_STYLE, marginBottom: "2px" }}>
+            Arrival-day bridge command
+          </div>
           <pre
             style={{
               margin: 0,
@@ -285,39 +327,64 @@ export default function VehicleConnectorOnboardingCard() {
         </div>
 
         <div style={CARD_STYLE}>
-          <div style={{ ...LABEL_STYLE, marginBottom: "2px" }}>Ready when hardware arrives</div>
-          <div style={{ fontSize: "12px", color: "var(--text2)", lineHeight: 1.65 }}>
+          <div style={{ ...LABEL_STYLE, marginBottom: "2px" }}>
+            Ready when hardware arrives
+          </div>
+          <div
+            style={{
+              fontSize: "12px",
+              color: "var(--text2)",
+              lineHeight: 1.65,
+            }}
+          >
             Script: <code>scripts/vehicle-bridge-stub.mjs</code>
             <br />
             Docs: <code>docs/deployment/vehicle-passive-bridge-stub.md</code>
             <br />
             Local route: <code>/api/vehicle/telemetry</code>
           </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "auto" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              flexWrap: "wrap",
+              marginTop: "auto",
+            }}
+          >
             <button
               type="button"
-              onClick={() => void copyTextWithFeedback(stubCommand, "Bridge command")}
+              onClick={() =>
+                void copyTextWithFeedback(stubCommand, "Bridge command")
+              }
               className="nexus-shell-button"
             >
               Copy command
             </button>
             <button
               type="button"
-              onClick={() => void copyTextWithFeedback(connectorJson, "Connector profile")}
+              onClick={() =>
+                void copyTextWithFeedback(connectorJson, "Connector profile")
+              }
               className="nexus-shell-button"
             >
               Copy profile JSON
             </button>
             <button
               type="button"
-              onClick={() => void copyTextWithFeedback(setupGuide, "Setup guide")}
+              onClick={() =>
+                void copyTextWithFeedback(setupGuide, "Setup guide")
+              }
               className="nexus-shell-button"
             >
               Copy setup guide
             </button>
             <button
               type="button"
-              onClick={() => updateSettings({ vehicleConnectorProfile: DEFAULT_VEHICLE_CONNECTOR_PROFILE })}
+              onClick={() =>
+                updateSettings({
+                  vehicleConnectorProfile: DEFAULT_VEHICLE_CONNECTOR_PROFILE,
+                })
+              }
               className="nexus-shell-button"
             >
               Reset defaults
@@ -326,5 +393,5 @@ export default function VehicleConnectorOnboardingCard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -62,7 +62,8 @@ export async function GET() {
   const providers = {
     local: {
       ollamaEndpoint:
-        process.env.OLLAMA_ENDPOINT ?? "http://localhost:11434/v1/chat/completions",
+        process.env.OLLAMA_ENDPOINT ??
+        "http://localhost:11434/v1/chat/completions",
     },
     configured: {
       anthropic: present(process.env.ANTHROPIC_API_KEY),

@@ -22,7 +22,9 @@ type NetworkCheckKind = "local" | "external";
 function normalizeLocalApiPath(rawUrl: string) {
   const trimmed = rawUrl.trim();
   if (!trimmed.startsWith("/api/")) {
-    throw new Error("Only local /api/* paths are allowed for Nexus route checks.");
+    throw new Error(
+      "Only local /api/* paths are allowed for Nexus route checks.",
+    );
   }
   const parsed = new URL(trimmed, "http://localhost");
   if (parsed.hash) {
@@ -131,9 +133,9 @@ export async function POST(req: NextRequest) {
           ms: null,
           note: "Target URL is required.",
           target: "",
-      },
-      { status: 400 },
-    );
+        },
+        { status: 400 },
+      );
       return applyRateLimitHeaders(response, RATE_LIMIT);
     }
 

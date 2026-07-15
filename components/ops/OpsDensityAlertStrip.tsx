@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
 import { opsDensitySeverityColor } from "@/lib/designTokens";
-import { buildOpsDensityAlerts, type OpsDensityAlert } from "@/lib/opsDensityAlerts";
+import {
+  buildOpsDensityAlerts,
+  type OpsDensityAlert,
+} from "@/lib/opsDensityAlerts";
 
 function severityColor(severity: OpsDensityAlert["severity"]): string {
   return opsDensitySeverityColor(severity);
@@ -39,7 +42,11 @@ export default function OpsDensityAlertStrip() {
 
         if (flightsRes.status === "fulfilled" && flightsRes.value.ok) {
           const payload = (await flightsRes.value.json()) as {
-            flights?: Array<{ latitude?: number; longitude?: number; on_ground?: boolean }>;
+            flights?: Array<{
+              latitude?: number;
+              longitude?: number;
+              on_ground?: boolean;
+            }>;
           };
           for (const flight of payload.flights ?? []) {
             if (
@@ -102,7 +109,9 @@ export default function OpsDensityAlertStrip() {
             padding: "8px 10px",
           }}
         >
-          <div style={{ fontSize: "10px", color: "var(--text)" }}>{alert.summary}</div>
+          <div style={{ fontSize: "10px", color: "var(--text)" }}>
+            {alert.summary}
+          </div>
           <span
             style={{
               fontSize: "10px",

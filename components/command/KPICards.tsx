@@ -92,12 +92,11 @@ export default function KPICards() {
       icon: "🎯",
       label: "Buy Signals",
       val: hasPrices ? String(buySignals) : "—",
-      sub:
-        !hasPrices
-          ? "Loading market breadth"
-          : buySignals > 0
-            ? `of ${Object.keys(prices).length} assets`
-            : `Watching ${Object.keys(prices).length} assets`,
+      sub: !hasPrices
+        ? "Loading market breadth"
+        : buySignals > 0
+          ? `of ${Object.keys(prices).length} assets`
+          : `Watching ${Object.keys(prices).length} assets`,
       cls: buySignals >= 7 ? "up" : buySignals >= 4 ? "neutral" : "dn",
     },
     {
@@ -116,9 +115,7 @@ export default function KPICards() {
       label: "Alerts",
       val: unreadNotifications > 0 ? String(unreadNotifications) : "0",
       sub:
-        unreadNotifications > 0
-          ? "Unread notifications"
-          : "No unread alerts",
+        unreadNotifications > 0 ? "Unread notifications" : "No unread alerts",
     },
     {
       icon: "😱",

@@ -73,7 +73,9 @@ function extractUncheckedTasks(md: string): string[] {
 // Recursively list files up to `maxDepth` levels, skipping noise directories.
 // Returns an array of relative paths.
 function listTree(dir: string, maxDepth = 3, depth = 0): string[] {
-  return filterLocalDataTreeEntries(listSafeLocalTree(dir, ROOT, maxDepth, depth));
+  return filterLocalDataTreeEntries(
+    listSafeLocalTree(dir, ROOT, maxDepth, depth),
+  );
 }
 
 // Count .tsx/.ts files in a directory (non-recursive)
@@ -90,7 +92,8 @@ function countFiles(rel: string, ext = ".tsx"): number {
 
 function readContextBundle() {
   const agentsMd = safeRead("AGENTS.md") || safeRead("CLAUDE.md");
-  const standardsMd = safeRead("docs/STANDARDS.md") || safeRead("tasks/lessons.md");
+  const standardsMd =
+    safeRead("docs/STANDARDS.md") || safeRead("tasks/lessons.md");
   const stateMd = safeRead("docs/SYSTEM_STATE.md") || safeRead("tasks/todo.md");
   const bibleMd = safeRead("docs/PROJECT_BIBLE.md");
 

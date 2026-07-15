@@ -71,16 +71,22 @@ export default function AiExposureReviewCard({
   const [draft, setDraft] = useState<AiExposureReviewDraft>(EMPTY_DRAFT);
   const [status, setStatus] = useState<VaultStatus>("idle");
   const [pages, setPages] = useState<AiExposureReviewPage[]>([]);
-  const [reusedPage, setReusedPage] = useState<AiExposureReviewPage | null>(null);
+  const [reusedPage, setReusedPage] = useState<AiExposureReviewPage | null>(
+    null,
+  );
 
   useEffect(() => {
     let cancelled = false;
 
     const loadPages = async () => {
       try {
-        const response = await apiFetch("/api/memory/pages?limit=12&workflowId=ai-exposure-review");
+        const response = await apiFetch(
+          "/api/memory/pages?limit=12&workflowId=ai-exposure-review",
+        );
         if (!response.ok) return;
-        const payload = (await response.json()) as { pages?: AiExposureReviewPage[] };
+        const payload = (await response.json()) as {
+          pages?: AiExposureReviewPage[];
+        };
         if (!cancelled && Array.isArray(payload.pages)) {
           setPages(payload.pages);
         }
@@ -118,12 +124,18 @@ export default function AiExposureReviewCard({
 
   const strongestPrior = rankedPages[0] ?? null;
   const savedMemoryQuery = useMemo(
-    () => [draft.subject, draft.exposureProfile, draft.nextReviewedMove].filter(Boolean).join(" · "),
+    () =>
+      [draft.subject, draft.exposureProfile, draft.nextReviewedMove]
+        .filter(Boolean)
+        .join(" · "),
     [draft.exposureProfile, draft.nextReviewedMove, draft.subject],
   );
 
   const selectedPackSpecs = useMemo(
-    () => draft.packIds.map((packId) => AI_EXPOSURE_PACK_LOOKUP[packId]).filter(Boolean),
+    () =>
+      draft.packIds
+        .map((packId) => AI_EXPOSURE_PACK_LOOKUP[packId])
+        .filter(Boolean),
     [draft.packIds],
   );
 
@@ -184,7 +196,8 @@ export default function AiExposureReviewCard({
           domain: route === "/cyber" ? "cyber" : "intel",
           memoryCompartment: "research",
           requestedVisibility: "internal",
-          workflowPackId: route === "/cyber" ? "cyber-triage" : "research-workflow",
+          workflowPackId:
+            route === "/cyber" ? "cyber-triage" : "research-workflow",
           tags: buildAiExposureReviewTags(draft),
         }),
       });
@@ -192,7 +205,9 @@ export default function AiExposureReviewCard({
         throw new Error(`HTTP ${response.status}`);
       }
 
-      const payload = (await response.json()) as { page?: AiExposureReviewPage };
+      const payload = (await response.json()) as {
+        page?: AiExposureReviewPage;
+      };
       if (payload.page) {
         setPages((current) => [
           payload.page!,
@@ -212,11 +227,15 @@ export default function AiExposureReviewCard({
         <ShellBadge tone="accent">AI exposure review</ShellBadge>
         <ShellBadge tone="muted">Passive-first</ShellBadge>
         <ShellBadge tone="muted">Advisory only</ShellBadge>
-        <ShellBadge tone="muted">{route === "/cyber" ? "CYBER-originated" : "RECON-originated"}</ShellBadge>
+        <ShellBadge tone="muted">
+          {route === "/cyber" ? "CYBER-originated" : "RECON-originated"}
+        </ShellBadge>
       </div>
 
       <div className="nexus-shell-copy nexus-shell-copy--compact">
-        Use a pack to frame exposed endpoints, leaked key posture, vector-store or MCP surface risk, and unsafe agent deployment without widening into scanning, prompting, or exploitation.
+        Use a pack to frame exposed endpoints, leaked key posture, vector-store
+        or MCP surface risk, and unsafe agent deployment without widening into
+        scanning, prompting, or exploitation.
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -274,19 +293,39 @@ export default function AiExposureReviewCard({
               >
                 {pack.label}
               </div>
-              <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text3)",
+                  lineHeight: 1.5,
+                }}
+              >
                 {pack.summary}
               </div>
               <div style={{ display: "grid", gap: "4px" }}>
                 {pack.checklist.map((item) => (
-                  <div key={item} style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}>
+                  <div
+                    key={item}
+                    style={{
+                      fontSize: "10px",
+                      color: "var(--text3)",
+                      lineHeight: 1.45,
+                    }}
+                  >
                     - {item}
                   </div>
                 ))}
               </div>
               <div style={{ display: "grid", gap: "4px" }}>
                 {pack.safeFollowThrough.map((item) => (
-                  <div key={item} style={{ fontSize: "10px", color: "#93c5fd", lineHeight: 1.45 }}>
+                  <div
+                    key={item}
+                    style={{
+                      fontSize: "10px",
+                      color: "#93c5fd",
+                      lineHeight: 1.45,
+                    }}
+                  >
                     Next: {item}
                   </div>
                 ))}
@@ -318,10 +357,14 @@ export default function AiExposureReviewCard({
           >
             Strongest prior review
           </div>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+          <div
+            style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}
+          >
             {strongestPrior.title}
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}>
+          <div
+            style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}
+          >
             {strongestPrior.summary}
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -343,8 +386,11 @@ export default function AiExposureReviewCard({
             </button>
           </div>
           {reusedPage ? (
-            <div style={{ fontSize: "10px", color: "#93c5fd", lineHeight: 1.45 }}>
-              Draft seeded from {reusedPage.title}. Saving now keeps that prior advisory thread in the durable source trail.
+            <div
+              style={{ fontSize: "10px", color: "#93c5fd", lineHeight: 1.45 }}
+            >
+              Draft seeded from {reusedPage.title}. Saving now keeps that prior
+              advisory thread in the durable source trail.
             </div>
           ) : null}
         </div>
@@ -365,7 +411,10 @@ export default function AiExposureReviewCard({
         aria-label="Exposure profile"
         value={draft.exposureProfile}
         onChange={(event) => {
-          setDraft((current) => ({ ...current, exposureProfile: event.target.value }));
+          setDraft((current) => ({
+            ...current,
+            exposureProfile: event.target.value,
+          }));
           setStatus("idle");
         }}
         placeholder="Exposure profile"
@@ -375,7 +424,10 @@ export default function AiExposureReviewCard({
         aria-label="Passive evidence"
         value={draft.passiveEvidence}
         onChange={(event) => {
-          setDraft((current) => ({ ...current, passiveEvidence: event.target.value }));
+          setDraft((current) => ({
+            ...current,
+            passiveEvidence: event.target.value,
+          }));
           setStatus("idle");
         }}
         placeholder="Passive evidence"
@@ -385,7 +437,10 @@ export default function AiExposureReviewCard({
         aria-label="Containment guidance"
         value={draft.containmentGuidance}
         onChange={(event) => {
-          setDraft((current) => ({ ...current, containmentGuidance: event.target.value }));
+          setDraft((current) => ({
+            ...current,
+            containmentGuidance: event.target.value,
+          }));
           setStatus("idle");
         }}
         placeholder="Containment guidance"
@@ -395,7 +450,10 @@ export default function AiExposureReviewCard({
         aria-label="Advisory boundaries"
         value={draft.advisoryBoundaries}
         onChange={(event) => {
-          setDraft((current) => ({ ...current, advisoryBoundaries: event.target.value }));
+          setDraft((current) => ({
+            ...current,
+            advisoryBoundaries: event.target.value,
+          }));
           setStatus("idle");
         }}
         placeholder="Advisory boundaries"
@@ -405,14 +463,24 @@ export default function AiExposureReviewCard({
         aria-label="Next reviewed move"
         value={draft.nextReviewedMove}
         onChange={(event) => {
-          setDraft((current) => ({ ...current, nextReviewedMove: event.target.value }));
+          setDraft((current) => ({
+            ...current,
+            nextReviewedMove: event.target.value,
+          }));
           setStatus("idle");
         }}
         placeholder="Next reviewed move"
         style={inputStyle(true)}
       />
 
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
         <button
           type="button"
           onClick={() => void saveReview()}
@@ -447,7 +515,10 @@ export default function AiExposureReviewCard({
           routeHint="/vault?focus=vault-compiled-pages&workflowId=ai-exposure-review"
           extraTargets={[
             {
-              href: route === "/cyber" ? "/cyber?view=triage&focus=cyber-triage" : "/recon?view=osint&focus=recon-lookup",
+              href:
+                route === "/cyber"
+                  ? "/cyber?view=triage&focus=cyber-triage"
+                  : "/recon?view=osint&focus=recon-lookup",
               label: route === "/cyber" ? "Return to CYBER" : "Return to RECON",
               tab: route === "/cyber" ? "cyber" : "recon",
             },
@@ -457,8 +528,11 @@ export default function AiExposureReviewCard({
       ) : null}
 
       {status === "error" ? (
-        <div style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}>
-          Subject, exposure profile, passive evidence, and at least one pack are required before the advisory review can be filed.
+        <div
+          style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}
+        >
+          Subject, exposure profile, passive evidence, and at least one pack are
+          required before the advisory review can be filed.
         </div>
       ) : null}
     </div>

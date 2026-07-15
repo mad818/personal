@@ -29,28 +29,32 @@ export default function VaultStewardshipPanel({
       ? {
           href: "/vault?focus=vault-compiled-pages&compiledFilter=reverse-engineering",
           label: "Open RE prep notes",
-          detail: "Review durable reverse-engineering prep notes as their own archive-maintenance lane.",
+          detail:
+            "Review durable reverse-engineering prep notes as their own archive-maintenance lane.",
         }
       : null,
     snapshot.orphanCount > 0
       ? {
           href: "/vault?focus=vault-graph-focus&graphAudit=orphans",
           label: "Open orphan graph",
-          detail: "Jump straight into the focused graph recovery session instead of a broad archive view.",
+          detail:
+            "Jump straight into the focused graph recovery session instead of a broad archive view.",
         }
       : null,
     snapshot.routeLessCompiledCount > 0
       ? {
           href: "/vault?focus=vault-compiled-pages&compiledFilter=route-less",
           label: "Open route-less pages",
-          detail: "Use the exact compiled-page repair session for missing route continuity.",
+          detail:
+            "Use the exact compiled-page repair session for missing route continuity.",
         }
       : null,
     snapshot.untaggedCount > 0
       ? {
           href: "/vault?focus=vault-compiled-pages&compiledFilter=untagged",
           label: "Open untagged pages",
-          detail: "Use the exact compiled-page repair session for missing tag coverage.",
+          detail:
+            "Use the exact compiled-page repair session for missing tag coverage.",
         }
       : null,
   ].filter(Boolean) as Array<{ href: string; label: string; detail: string }>;
@@ -71,28 +75,44 @@ export default function VaultStewardshipPanel({
             detail:
               "Disconnected archive artifacts are currently the strongest repair target.",
           }
-        : repairActions[0] ?? null;
+        : (repairActions[0] ?? null);
   const sessionActions = [
     recommendedAction,
-    ...repairActions.filter((action) => action.href !== recommendedAction?.href),
+    ...repairActions.filter(
+      (action) => action.href !== recommendedAction?.href,
+    ),
   ].filter(Boolean) as Array<{ href: string; label: string; detail: string }>;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <CompactOperatorNote
         label="VAULT STEWARDSHIP"
-        tone={snapshot.orphanCount > 0 || snapshot.staleCount > 0 ? "caution" : "info"}
+        tone={
+          snapshot.orphanCount > 0 || snapshot.staleCount > 0
+            ? "caution"
+            : "info"
+        }
         summary={snapshot.summary}
         detail={snapshot.detail}
       >
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-          <ShellBadge tone="accent">Linked {snapshot.linkedCoverage}%</ShellBadge>
-          <ShellBadge tone="muted">Tagged {snapshot.taggedCoverage}%</ShellBadge>
+          <ShellBadge tone="accent">
+            Linked {snapshot.linkedCoverage}%
+          </ShellBadge>
+          <ShellBadge tone="muted">
+            Tagged {snapshot.taggedCoverage}%
+          </ShellBadge>
           <ShellBadge tone="muted">Routed {snapshot.routeCoverage}%</ShellBadge>
-          <ShellBadge tone={snapshot.reverseEngineeringPrepCount > 0 ? "accent" : "muted"}>
+          <ShellBadge
+            tone={snapshot.reverseEngineeringPrepCount > 0 ? "accent" : "muted"}
+          >
             RE prep {snapshot.reverseEngineeringPrepCount}
           </ShellBadge>
-          <ShellBadge tone={snapshot.reverseEngineeringBriefCount > 0 ? "accent" : "muted"}>
+          <ShellBadge
+            tone={
+              snapshot.reverseEngineeringBriefCount > 0 ? "accent" : "muted"
+            }
+          >
             RE briefs {snapshot.reverseEngineeringBriefCount}
           </ShellBadge>
           <ShellBadge tone={snapshot.orphanCount > 0 ? "accent" : "success"}>
@@ -119,7 +139,11 @@ export default function VaultStewardshipPanel({
         <StewardshipStatCard
           label="Thin topics"
           value={`${snapshot.gapTopicCount}`}
-          detail={snapshot.topGapTopics.length > 0 ? snapshot.topGapTopics.join(" · ") : "Topic coverage looks balanced"}
+          detail={
+            snapshot.topGapTopics.length > 0
+              ? snapshot.topGapTopics.join(" · ")
+              : "Topic coverage looks balanced"
+          }
         />
         <StewardshipStatCard
           label="RE prep"
@@ -196,7 +220,11 @@ export default function VaultStewardshipPanel({
             items={sessionActions}
             onOpen={(href) => router.push(href)}
             buttonClassName="nexus-shell-button"
-            buttonStyle={{ minHeight: "30px", padding: "0 12px", fontSize: "11px" }}
+            buttonStyle={{
+              minHeight: "30px",
+              padding: "0 12px",
+              fontSize: "11px",
+            }}
             maxPrimaryItems={1}
             showPrimaryCards={false}
           />
@@ -264,7 +292,9 @@ function StewardshipStatCard({
       <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--text)" }}>
         {value}
       </div>
-      <div style={{ fontSize: "11px", lineHeight: 1.45, color: "var(--text2)" }}>
+      <div
+        style={{ fontSize: "11px", lineHeight: 1.45, color: "var(--text2)" }}
+      >
         {detail}
       </div>
     </div>
@@ -302,11 +332,16 @@ function StewardshipList({
       >
         {label}
       </div>
-      <div style={{ fontSize: "11px", lineHeight: 1.45, color: "var(--text2)" }}>
+      <div
+        style={{ fontSize: "11px", lineHeight: 1.45, color: "var(--text2)" }}
+      >
         {hint}
       </div>
       {items.map((item) => (
-        <div key={item} style={{ fontSize: "11px", lineHeight: 1.45, color: "var(--text)" }}>
+        <div
+          key={item}
+          style={{ fontSize: "11px", lineHeight: 1.45, color: "var(--text)" }}
+        >
           {item}
         </div>
       ))}

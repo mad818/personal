@@ -30,7 +30,11 @@ export type ToolIsolationDescriptor = {
 };
 
 const PROJECT_ROOT = resolveRuntimeProjectRoot();
-const TOOL_ISOLATION_RUNNER = join(PROJECT_ROOT, "scripts", "tool-isolation-runner.mjs");
+const TOOL_ISOLATION_RUNNER = join(
+  PROJECT_ROOT,
+  "scripts",
+  "tool-isolation-runner.mjs",
+);
 
 const SANDBOX_APPROVED_EXEC_TOOLS = ["n8n_run_workflow"] as const;
 
@@ -82,9 +86,11 @@ export function resolveToolIsolationDescriptor(
     };
   }
 
-  if (!SANDBOX_APPROVED_EXEC_TOOLS.includes(
-    tool as (typeof SANDBOX_APPROVED_EXEC_TOOLS)[number],
-  )) {
+  if (
+    !SANDBOX_APPROVED_EXEC_TOOLS.includes(
+      tool as (typeof SANDBOX_APPROVED_EXEC_TOOLS)[number],
+    )
+  ) {
     return {
       tool,
       capability,
@@ -117,7 +123,10 @@ export function resolveToolIsolationDescriptor(
 
 export function readToolIsolationSummary() {
   const adapter = readToolIsolationAdapterInfo();
-  const n8nDescriptor = resolveToolIsolationDescriptor("n8n_run_workflow", "exec");
+  const n8nDescriptor = resolveToolIsolationDescriptor(
+    "n8n_run_workflow",
+    "exec",
+  );
   return {
     status: n8nDescriptor.status,
     adapterReady: adapter.available,

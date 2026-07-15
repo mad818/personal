@@ -32,7 +32,9 @@ export default function NexusCompanyMap() {
   const reduceMotion = useReducedMotion();
   const summary = useMemo(() => getCompanyMapSummary(), []);
   const [selectedId, setSelectedId] = useState(NEXUS_COMPANY_DEPARTMENTS[0].id);
-  const [copyState, setCopyState] = useState<"idle" | "copied" | "blocked">("idle");
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "blocked">(
+    "idle",
+  );
   const department = getCompanyDepartment(selectedId);
   const sources = department.sourceIds.map(getCompanySource);
   const brief = buildCompanyMissionBrief(selectedId);
@@ -51,7 +53,9 @@ export default function NexusCompanyMap() {
     if (event.key === "ArrowRight" || event.key === "ArrowDown") {
       nextIndex = (currentIndex + 1) % NEXUS_COMPANY_DEPARTMENTS.length;
     } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-      nextIndex = (currentIndex - 1 + NEXUS_COMPANY_DEPARTMENTS.length) % NEXUS_COMPANY_DEPARTMENTS.length;
+      nextIndex =
+        (currentIndex - 1 + NEXUS_COMPANY_DEPARTMENTS.length) %
+        NEXUS_COMPANY_DEPARTMENTS.length;
     } else if (event.key === "Home") {
       nextIndex = 0;
     } else if (event.key === "End") {
@@ -85,19 +89,26 @@ export default function NexusCompanyMap() {
       <header className="nexus-company-map__header">
         <div className="nexus-company-map__intro">
           <span className="nexus-company-map__eyebrow">
-            <span className="nexus-company-map__status-dot" aria-hidden="true" />
+            <span
+              className="nexus-company-map__status-dot"
+              aria-hidden="true"
+            />
             Company structure
           </span>
           <h2>Department routing map</h2>
           <p>
-            Select a department to stage a bounded HQ mission or inspect the reviewed capability sources behind it.
+            Select a department to stage a bounded HQ mission or inspect the
+            reviewed capability sources behind it.
           </p>
           <span className="nexus-company-map__guardrail">
             MAX coordinates the existing agent bench · no automatic installs
           </span>
         </div>
 
-        <dl className="nexus-company-map__metrics" aria-label="Company map inventory">
+        <dl
+          className="nexus-company-map__metrics"
+          aria-label="Company map inventory"
+        >
           {[
             ["Depts", summary.departmentCount],
             ["Sources", summary.sourceCount],
@@ -112,7 +123,11 @@ export default function NexusCompanyMap() {
         </dl>
       </header>
 
-      <nav className="nexus-company-map__department-rail" role="tablist" aria-label="Company departments">
+      <nav
+        className="nexus-company-map__department-rail"
+        role="tablist"
+        aria-label="Company departments"
+      >
         {NEXUS_COMPANY_DEPARTMENTS.map((item, index) => {
           const active = item.id === selectedId;
           const sourceLabel = `${item.sourceIds.length} source${item.sourceIds.length === 1 ? "" : "s"}`;
@@ -134,14 +149,22 @@ export default function NexusCompanyMap() {
                 <motion.span
                   className="nexus-company-map__department-marker"
                   layoutId="nexus-company-map-active-department"
-                  transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 36 }}
+                  transition={
+                    reduceMotion
+                      ? { duration: 0 }
+                      : { type: "spring", stiffness: 420, damping: 36 }
+                  }
                   aria-hidden="true"
                 />
               ) : null}
-              <span className="nexus-company-map__department-index">{String(index + 1).padStart(2, "0")}</span>
+              <span className="nexus-company-map__department-index">
+                {String(index + 1).padStart(2, "0")}
+              </span>
               <span className="nexus-company-map__department-copy">
                 <strong>{item.label}</strong>
-                <span>{COMPANY_AGENT_NAMES[item.leadAgentId]} · {sourceLabel}</span>
+                <span>
+                  {COMPANY_AGENT_NAMES[item.leadAgentId]} · {sourceLabel}
+                </span>
               </span>
             </button>
           );
@@ -157,17 +180,25 @@ export default function NexusCompanyMap() {
           className="nexus-company-map__mission"
           initial={reduceMotion ? false : { opacity: 0, y: 7 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
+          transition={{
+            duration: reduceMotion ? 0 : 0.2,
+            ease: [0.22, 1, 0.36, 1],
+          }}
         >
           <div className="nexus-company-map__lead-line">
             <span className="nexus-company-map__lead-identity">
-              <span className="nexus-company-map__lead-pulse" aria-hidden="true" />
+              <span
+                className="nexus-company-map__lead-pulse"
+                aria-hidden="true"
+              />
               <span>
                 <TinyLabel>Assigned lead</TinyLabel>
                 <strong>{COMPANY_AGENT_NAMES[department.leadAgentId]}</strong>
               </span>
             </span>
-            <span>{sources.length} reviewed source{sources.length === 1 ? "" : "s"}</span>
+            <span>
+              {sources.length} reviewed source{sources.length === 1 ? "" : "s"}
+            </span>
           </div>
 
           <div className="nexus-company-map__mission-copy">
@@ -192,14 +223,27 @@ export default function NexusCompanyMap() {
 
           <div className="nexus-company-map__handoff">
             <div className="nexus-ops-action-cluster">
-              <ShellButton active onClick={openInHq} className="nexus-company-map__primary-action">
+              <ShellButton
+                active
+                onClick={openInHq}
+                className="nexus-company-map__primary-action"
+              >
                 Stage mission in HQ
               </ShellButton>
               <ShellButton onClick={copyForChatGpt}>
-                {copyState === "copied" ? "Brief copied" : copyState === "blocked" ? "Copy blocked" : "Copy ChatGPT brief"}
+                {copyState === "copied"
+                  ? "Brief copied"
+                  : copyState === "blocked"
+                    ? "Copy blocked"
+                    : "Copy ChatGPT brief"}
               </ShellButton>
             </div>
-            <p className="nexus-company-map__action-status" data-state={copyState} role="status" aria-live="polite">
+            <p
+              className="nexus-company-map__action-status"
+              data-state={copyState}
+              role="status"
+              aria-live="polite"
+            >
               {copyState === "copied"
                 ? "ChatGPT brief copied to the clipboard."
                 : copyState === "blocked"
@@ -215,7 +259,10 @@ export default function NexusCompanyMap() {
           className="nexus-company-map__sources"
           initial={reduceMotion ? false : { opacity: 0, x: 7 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
+          transition={{
+            duration: reduceMotion ? 0 : 0.22,
+            ease: [0.22, 1, 0.36, 1],
+          }}
         >
           <div className="nexus-company-map__sources-header">
             <span>
@@ -230,7 +277,11 @@ export default function NexusCompanyMap() {
               const isExternal = source.url.startsWith("http");
 
               return (
-                <article key={source.id} className="nexus-company-map__source" data-kind={source.kind}>
+                <article
+                  key={source.id}
+                  className="nexus-company-map__source"
+                  data-kind={source.kind}
+                >
                   <div className="nexus-company-map__source-meta">
                     <span>{SOURCE_KIND_LABELS[source.kind]}</span>
                     <span>{source.posture.replaceAll("_", " ")}</span>

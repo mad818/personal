@@ -12,7 +12,10 @@ import {
 } from "@/lib/artifactClassification";
 import { ShellBadge } from "@/components/ui/shell";
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions";
-import { SurfaceEmpty, SurfaceSkeletonRows } from "@/components/ui/surfacePrimitives";
+import {
+  SurfaceEmpty,
+  SurfaceSkeletonRows,
+} from "@/components/ui/surfacePrimitives";
 import { buildCompiledPageHref } from "@/lib/xr1Workflows";
 import {
   countVaultArchiveBacklinks,
@@ -43,20 +46,25 @@ export default function VaultGraphFocusPanel({
   onSelectNode,
 }: VaultGraphFocusPanelProps) {
   const router = useRouter();
-  const [pageDetails, setPageDetails] = useState<Record<string, CompiledMemoryPageSummary>>({});
+  const [pageDetails, setPageDetails] = useState<
+    Record<string, CompiledMemoryPageSummary>
+  >({});
   const [loadingPageId, setLoadingPageId] = useState<string | null>(null);
 
   const selectedPageId = nodeId?.startsWith("page:") ? nodeId.slice(5) : null;
   const selectedArticle = useMemo(
-    () => (selectedPageId ? null : savedArticles.find((article) => article.id === nodeId) ?? null),
+    () =>
+      selectedPageId
+        ? null
+        : (savedArticles.find((article) => article.id === nodeId) ?? null),
     [nodeId, savedArticles, selectedPageId],
   );
   const selectedPageSummary = useMemo(
     () =>
       selectedPageId
-        ? pageDetails[selectedPageId] ??
+        ? (pageDetails[selectedPageId] ??
           compiledPages.find((page) => page.id === selectedPageId) ??
-          null
+          null)
         : null,
     [compiledPages, pageDetails, selectedPageId],
   );
@@ -75,10 +83,12 @@ export default function VaultGraphFocusPanel({
     return graph.edges
       .filter((edge) => edge.source === nodeId || edge.target === nodeId)
       .map((edge) => {
-        const relatedNodeId = edge.source === nodeId ? edge.target : edge.source;
+        const relatedNodeId =
+          edge.source === nodeId ? edge.target : edge.source;
         const relatedNode = nodeMap.get(relatedNodeId);
         const protectedReason =
-          restrictedCompiledNodeIds.has(nodeId) || restrictedCompiledNodeIds.has(relatedNodeId);
+          restrictedCompiledNodeIds.has(nodeId) ||
+          restrictedCompiledNodeIds.has(relatedNodeId);
         return {
           id: `${nodeId}:${relatedNodeId}`,
           nodeId: relatedNodeId,
@@ -142,11 +152,15 @@ export default function VaultGraphFocusPanel({
     if (!selectedArticle) return [];
     return (selectedArticle.archiveLinks ?? [])
       .map((link) => {
-        const linkedArticle = savedArticles.find((article) => article.id === link.targetId);
+        const linkedArticle = savedArticles.find(
+          (article) => article.id === link.targetId,
+        );
         const linkedPage =
           linkedArticle || !link.targetId.startsWith("page:")
             ? null
-            : compiledPages.find((page) => `page:${page.id}` === link.targetId) ?? null;
+            : (compiledPages.find(
+                (page) => `page:${page.id}` === link.targetId,
+              ) ?? null);
         return {
           ...link,
           title: linkedArticle?.title ?? linkedPage?.title ?? link.targetId,
@@ -155,7 +169,10 @@ export default function VaultGraphFocusPanel({
       .slice(0, 4);
   }, [compiledPages, savedArticles, selectedArticle]);
   const explicitBacklinks = useMemo(
-    () => (nodeId ? deriveVaultArchiveBacklinks(nodeId, savedArticles).slice(0, 4) : []),
+    () =>
+      nodeId
+        ? deriveVaultArchiveBacklinks(nodeId, savedArticles).slice(0, 4)
+        : [],
     [nodeId, savedArticles],
   );
   const backlinkCount = useMemo(
@@ -176,13 +193,18 @@ export default function VaultGraphFocusPanel({
         if (!res.ok) return;
         const data = (await res.json()) as { page?: CompiledMemoryPageSummary };
         if (!cancelled && data.page) {
-          setPageDetails((current) => ({ ...current, [selectedPageId]: data.page! }));
+          setPageDetails((current) => ({
+            ...current,
+            [selectedPageId]: data.page!,
+          }));
         }
       } catch {
         // silent
       } finally {
         if (!cancelled) {
-          setLoadingPageId((current) => (current === selectedPageId ? null : current));
+          setLoadingPageId((current) =>
+            current === selectedPageId ? null : current,
+          );
         }
       }
     };
@@ -204,7 +226,11 @@ export default function VaultGraphFocusPanel({
     );
   }
 
-  if (selectedPageId && loadingPageId === selectedPageId && !selectedPageSummary) {
+  if (
+    selectedPageId &&
+    loadingPageId === selectedPageId &&
+    !selectedPageSummary
+  ) {
     return <SurfaceSkeletonRows rows={3} height={64} />;
   }
 
@@ -244,18 +270,25 @@ export default function VaultGraphFocusPanel({
     return (
       <div style={{ display: "grid", gap: "10px" }}>
         <div style={{ display: "grid", gap: "4px" }}>
-          <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)" }}>
+          <div
+            style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)" }}
+          >
             {selectedArticle.title}
           </div>
           <div style={{ fontSize: "11px", color: "var(--text3)" }}>
-            Saved clip · {formatTimestamp(new Date(selectedArticle.date).getTime())}
+            Saved clip ·{" "}
+            {formatTimestamp(new Date(selectedArticle.date).getTime())}
           </div>
         </div>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
           <ShellBadge tone="accent">clip</ShellBadge>
-          {selectedArticle.cat ? <ShellBadge tone="muted">{selectedArticle.cat}</ShellBadge> : null}
-          {selectedArticle.src ? <ShellBadge tone="muted">{selectedArticle.src}</ShellBadge> : null}
+          {selectedArticle.cat ? (
+            <ShellBadge tone="muted">{selectedArticle.cat}</ShellBadge>
+          ) : null}
+          {selectedArticle.src ? (
+            <ShellBadge tone="muted">{selectedArticle.src}</ShellBadge>
+          ) : null}
           {(selectedArticle.tags ?? []).slice(0, 6).map((tag) => (
             <ShellBadge key={tag} tone="muted">
               {tag}
@@ -263,8 +296,11 @@ export default function VaultGraphFocusPanel({
           ))}
         </div>
 
-        <div style={{ fontSize: "12px", lineHeight: 1.55, color: "var(--text2)" }}>
-          {selectedArticle.desc || "No local summary recorded for this saved clip."}
+        <div
+          style={{ fontSize: "12px", lineHeight: 1.55, color: "var(--text2)" }}
+        >
+          {selectedArticle.desc ||
+            "No local summary recorded for this saved clip."}
         </div>
 
         {selectedArticle.archiveLinks?.length || backlinkCount ? (
@@ -278,27 +314,59 @@ export default function VaultGraphFocusPanel({
               background: "rgba(9, 14, 28, 0.42)",
             }}
           >
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+            <div
+              style={{
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "var(--text)",
+              }}
+            >
               Archive compounding
             </div>
             <div style={{ fontSize: "10px", color: "var(--text3)" }}>
               {(selectedArticle.archiveLinks ?? []).length} outbound link
-              {(selectedArticle.archiveLinks ?? []).length === 1 ? "" : "s"} · {backlinkCount} backlink
+              {(selectedArticle.archiveLinks ?? []).length === 1
+                ? ""
+                : "s"} · {backlinkCount} backlink
               {backlinkCount === 1 ? "" : "s"}
             </div>
             {explicitOutboundLinks.map((link) => (
-              <div key={`${selectedArticle.id}-${link.targetId}`} style={{ display: "grid", gap: "2px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", flexWrap: "wrap" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text2)" }}>{link.title}</span>
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                    <ShellBadge tone={link.state === "confirmed" ? "accent" : "muted"}>
+              <div
+                key={`${selectedArticle.id}-${link.targetId}`}
+                style={{ display: "grid", gap: "2px" }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "8px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span style={{ fontSize: "11px", color: "var(--text2)" }}>
+                    {link.title}
+                  </span>
+                  <div
+                    style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}
+                  >
+                    <ShellBadge
+                      tone={link.state === "confirmed" ? "accent" : "muted"}
+                    >
                       {link.state}
                     </ShellBadge>
                     <button
                       type="button"
-                      onClick={() => router.push(buildVaultGraphFocusHref({ nodeId: link.targetId }))}
+                      onClick={() =>
+                        router.push(
+                          buildVaultGraphFocusHref({ nodeId: link.targetId }),
+                        )
+                      }
                       className="nexus-shell-button"
-                      style={{ minHeight: "28px", padding: "0 10px", fontSize: "10px" }}
+                      style={{
+                        minHeight: "28px",
+                        padding: "0 10px",
+                        fontSize: "10px",
+                      }}
                     >
                       Open exact
                     </button>
@@ -310,15 +378,24 @@ export default function VaultGraphFocusPanel({
               </div>
             ))}
             {explicitBacklinks.map((link) => (
-              <div key={`${link.sourceId}-${link.reason}`} style={{ fontSize: "10px", color: "var(--text3)" }}>
-                Backlink from <strong style={{ color: "var(--text2)" }}>{link.sourceTitle}</strong> · {link.reason}
+              <div
+                key={`${link.sourceId}-${link.reason}`}
+                style={{ fontSize: "10px", color: "var(--text3)" }}
+              >
+                Backlink from{" "}
+                <strong style={{ color: "var(--text2)" }}>
+                  {link.sourceTitle}
+                </strong>{" "}
+                · {link.reason}
               </div>
             ))}
           </div>
         ) : null}
 
         <MissionContinuationActions
-          memoryQuery={[selectedArticle.title, selectedArticle.desc ?? ""].filter(Boolean).join("\n")}
+          memoryQuery={[selectedArticle.title, selectedArticle.desc ?? ""]
+            .filter(Boolean)
+            .join("\n")}
           promptText={[
             selectedArticle.title,
             selectedArticle.desc ?? "",
@@ -334,7 +411,11 @@ export default function VaultGraphFocusPanel({
             items={exactActions}
             onOpen={(href) => router.push(href)}
             buttonClassName="nexus-shell-button"
-            buttonStyle={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+            buttonStyle={{
+              minHeight: "32px",
+              padding: "0 12px",
+              fontSize: "11px",
+            }}
             maxPrimaryItems={1}
             showPrimaryCards={false}
           />
@@ -344,7 +425,11 @@ export default function VaultGraphFocusPanel({
             items={repairActions}
             onOpen={(href) => router.push(href)}
             buttonClassName="nexus-shell-button"
-            buttonStyle={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+            buttonStyle={{
+              minHeight: "32px",
+              padding: "0 12px",
+              fontSize: "11px",
+            }}
             maxPrimaryItems={1}
             showPrimaryCards={false}
           />
@@ -377,7 +462,13 @@ export default function VaultGraphFocusPanel({
               background: "rgba(9, 14, 28, 0.42)",
             }}
           >
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+            <div
+              style={{
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "var(--text)",
+              }}
+            >
               Linked context
             </div>
             {linkedContext.map((link) => (
@@ -391,14 +482,22 @@ export default function VaultGraphFocusPanel({
                     flexWrap: "wrap",
                   }}
                 >
-                  <div style={{ fontSize: "11px", color: "var(--text2)" }}>{link.title}</div>
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  <div style={{ fontSize: "11px", color: "var(--text2)" }}>
+                    {link.title}
+                  </div>
+                  <div
+                    style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}
+                  >
                     {onSelectNode ? (
                       <button
                         type="button"
                         onClick={() => onSelectNode(link.nodeId)}
                         className="nexus-shell-button"
-                        style={{ minHeight: "28px", padding: "0 10px", fontSize: "10px" }}
+                        style={{
+                          minHeight: "28px",
+                          padding: "0 10px",
+                          fontSize: "10px",
+                        }}
                       >
                         Inspect linked item
                       </button>
@@ -406,10 +505,16 @@ export default function VaultGraphFocusPanel({
                     <button
                       type="button"
                       onClick={() =>
-                        router.push(buildVaultGraphFocusHref({ nodeId: link.nodeId }))
+                        router.push(
+                          buildVaultGraphFocusHref({ nodeId: link.nodeId }),
+                        )
                       }
                       className="nexus-shell-button"
-                      style={{ minHeight: "28px", padding: "0 10px", fontSize: "10px" }}
+                      style={{
+                        minHeight: "28px",
+                        padding: "0 10px",
+                        fontSize: "10px",
+                      }}
                     >
                       Open exact
                     </button>
@@ -452,7 +557,9 @@ export default function VaultGraphFocusPanel({
   return (
     <div style={{ display: "grid", gap: "10px" }}>
       <div style={{ display: "grid", gap: "4px" }}>
-        <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)" }}
+        >
           {page.title}
         </div>
         <div style={{ fontSize: "11px", color: "var(--text3)" }}>
@@ -467,11 +574,17 @@ export default function VaultGraphFocusPanel({
           {page.visibility}
         </ShellBadge>
         <ShellBadge tone="muted">{page.sourceLabel}</ShellBadge>
-        {page.workflowLabel ? <ShellBadge tone="muted">{page.workflowLabel}</ShellBadge> : null}
-        {page.agentId ? <ShellBadge tone="muted">{page.agentId}</ShellBadge> : null}
+        {page.workflowLabel ? (
+          <ShellBadge tone="muted">{page.workflowLabel}</ShellBadge>
+        ) : null}
+        {page.agentId ? (
+          <ShellBadge tone="muted">{page.agentId}</ShellBadge>
+        ) : null}
       </div>
 
-      <div style={{ fontSize: "12px", lineHeight: 1.55, color: "var(--text2)" }}>
+      <div
+        style={{ fontSize: "12px", lineHeight: 1.55, color: "var(--text2)" }}
+      >
         {page.summary}
       </div>
 
@@ -486,25 +599,50 @@ export default function VaultGraphFocusPanel({
             background: "rgba(9, 14, 28, 0.42)",
           }}
         >
-          <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+          <div
+            style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}
+          >
             Archive backlinks
           </div>
           <div style={{ fontSize: "10px", color: "var(--text3)" }}>
-            {backlinkCount} saved clip backlink{backlinkCount === 1 ? "" : "s"} currently point at this durable page.
+            {backlinkCount} saved clip backlink{backlinkCount === 1 ? "" : "s"}{" "}
+            currently point at this durable page.
           </div>
           {explicitBacklinks.map((link) => (
-            <div key={`${link.sourceId}-${link.reason}`} style={{ display: "grid", gap: "2px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "11px", color: "var(--text2)" }}>{link.sourceTitle}</span>
+            <div
+              key={`${link.sourceId}-${link.reason}`}
+              style={{ display: "grid", gap: "2px" }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "8px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <span style={{ fontSize: "11px", color: "var(--text2)" }}>
+                  {link.sourceTitle}
+                </span>
                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                  <ShellBadge tone={link.state === "confirmed" ? "accent" : "muted"}>
+                  <ShellBadge
+                    tone={link.state === "confirmed" ? "accent" : "muted"}
+                  >
                     {link.state}
                   </ShellBadge>
                   <button
                     type="button"
-                    onClick={() => router.push(buildVaultGraphFocusHref({ nodeId: link.sourceId }))}
+                    onClick={() =>
+                      router.push(
+                        buildVaultGraphFocusHref({ nodeId: link.sourceId }),
+                      )
+                    }
                     className="nexus-shell-button"
-                    style={{ minHeight: "28px", padding: "0 10px", fontSize: "10px" }}
+                    style={{
+                      minHeight: "28px",
+                      padding: "0 10px",
+                      fontSize: "10px",
+                    }}
                   >
                     Open source clip
                   </button>
@@ -547,16 +685,22 @@ export default function VaultGraphFocusPanel({
           items={repairActions}
           onOpen={(href) => router.push(href)}
           buttonClassName="nexus-shell-button"
-          buttonStyle={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+          buttonStyle={{
+            minHeight: "32px",
+            padding: "0 12px",
+            fontSize: "11px",
+          }}
           maxPrimaryItems={1}
           showPrimaryCards={false}
         />
       ) : null}
 
-      <div style={{ fontSize: "11px", lineHeight: 1.55, color: "var(--text3)" }}>
+      <div
+        style={{ fontSize: "11px", lineHeight: 1.55, color: "var(--text3)" }}
+      >
         {page.contentWithheld
           ? "Restricted compiled page content is intentionally withheld from the graph drill-down surface."
-          : page.content ?? page.contentPreview}
+          : (page.content ?? page.contentPreview)}
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -572,14 +716,20 @@ export default function VaultGraphFocusPanel({
           {formatArtifactTypeLabel(page.artifactClassification.artifactType)}
         </ShellBadge>
         <ShellBadge tone="muted">
-          {formatArtifactParserHintLabel(page.artifactClassification.parserHint)}
+          {formatArtifactParserHintLabel(
+            page.artifactClassification.parserHint,
+          )}
         </ShellBadge>
         <ShellBadge tone="muted">{page.researchSignals.structure}</ShellBadge>
         {page.researchSignals.sourceCount > 0 ? (
-          <ShellBadge tone="muted">sources {page.researchSignals.sourceCount}</ShellBadge>
+          <ShellBadge tone="muted">
+            sources {page.researchSignals.sourceCount}
+          </ShellBadge>
         ) : null}
         {page.documentMetadata?.pageCount ? (
-          <ShellBadge tone="muted">pages {page.documentMetadata.pageCount}</ShellBadge>
+          <ShellBadge tone="muted">
+            pages {page.documentMetadata.pageCount}
+          </ShellBadge>
         ) : null}
         {!page.researchSignals.signalsWithheld
           ? page.researchSignals.documentHints.slice(0, 3).map((hint) => (
@@ -595,7 +745,8 @@ export default function VaultGraphFocusPanel({
         page.researchSignals.sectionHeadings.length > 0 ||
         (page.documentMetadata &&
           !page.documentMetadata.metadataWithheld &&
-          (page.documentMetadata.originLabel || page.documentMetadata.mimeType))) ? (
+          (page.documentMetadata.originLabel ||
+            page.documentMetadata.mimeType))) ? (
         <div
           style={{
             display: "grid",
@@ -623,10 +774,14 @@ export default function VaultGraphFocusPanel({
           ) : null}
           {page.documentMetadata &&
           !page.documentMetadata.metadataWithheld &&
-          (page.documentMetadata.originLabel || page.documentMetadata.mimeType) ? (
+          (page.documentMetadata.originLabel ||
+            page.documentMetadata.mimeType) ? (
             <div>
               <strong style={{ color: "var(--text)" }}>Document:</strong>{" "}
-              {[page.documentMetadata.originLabel, page.documentMetadata.mimeType]
+              {[
+                page.documentMetadata.originLabel,
+                page.documentMetadata.mimeType,
+              ]
                 .filter(Boolean)
                 .join(" · ")}
             </div>
@@ -645,7 +800,9 @@ export default function VaultGraphFocusPanel({
             background: "rgba(9, 14, 28, 0.42)",
           }}
         >
-          <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+          <div
+            style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}
+          >
             Linked context
           </div>
           {linkedContext.map((link) => (
@@ -659,8 +816,17 @@ export default function VaultGraphFocusPanel({
                   flexWrap: "wrap",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text2)" }}>{link.title}</span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span style={{ fontSize: "11px", color: "var(--text2)" }}>
+                    {link.title}
+                  </span>
                   <ShellBadge tone="muted">{link.type}</ShellBadge>
                 </div>
                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
@@ -669,7 +835,11 @@ export default function VaultGraphFocusPanel({
                       type="button"
                       onClick={() => onSelectNode(link.nodeId)}
                       className="nexus-shell-button"
-                      style={{ minHeight: "28px", padding: "0 10px", fontSize: "10px" }}
+                      style={{
+                        minHeight: "28px",
+                        padding: "0 10px",
+                        fontSize: "10px",
+                      }}
                     >
                       Inspect linked item
                     </button>
@@ -677,10 +847,16 @@ export default function VaultGraphFocusPanel({
                   <button
                     type="button"
                     onClick={() =>
-                      router.push(buildVaultGraphFocusHref({ nodeId: link.nodeId }))
+                      router.push(
+                        buildVaultGraphFocusHref({ nodeId: link.nodeId }),
+                      )
                     }
                     className="nexus-shell-button"
-                    style={{ minHeight: "28px", padding: "0 10px", fontSize: "10px" }}
+                    style={{
+                      minHeight: "28px",
+                      padding: "0 10px",
+                      fontSize: "10px",
+                    }}
                   >
                     Open exact
                   </button>

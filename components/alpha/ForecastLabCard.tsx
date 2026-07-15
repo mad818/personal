@@ -43,10 +43,13 @@ export default function ForecastLabCard() {
     setRunning(true);
     setRunMsg("");
     try {
-      const response = await apiFetch("/api/metrics/runtime-eval/forecast/run", {
-        method: "POST",
-        body: JSON.stringify({}),
-      });
+      const response = await apiFetch(
+        "/api/metrics/runtime-eval/forecast/run",
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+        },
+      );
       const data = (await response.json()) as {
         ok?: boolean;
         skipped?: boolean;
@@ -54,9 +57,13 @@ export default function ForecastLabCard() {
         output?: string;
       };
       if (!response.ok || !data.ok) {
-        setRunMsg(`Forecast run failed: ${(data.output || "unknown error").slice(0, 160)}`);
+        setRunMsg(
+          `Forecast run failed: ${(data.output || "unknown error").slice(0, 160)}`,
+        );
       } else if (data.skipped) {
-        setRunMsg(`Forecast bench skipped: ${data.reason ?? "cooldown active"}`);
+        setRunMsg(
+          `Forecast bench skipped: ${data.reason ?? "cooldown active"}`,
+        );
       } else {
         setRunMsg("Forecast baseline recorded.");
       }
@@ -124,12 +131,15 @@ export default function ForecastLabCard() {
         }
       >
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-          <ShellBadge tone="accent">{latest.provider?.label ?? "Native baseline"}</ShellBadge>
+          <ShellBadge tone="accent">
+            {latest.provider?.label ?? "Native baseline"}
+          </ShellBadge>
           <ShellBadge tone={latest.provider?.ready ? "success" : "muted"}>
             {latest.provider?.ready ? "Provider ready" : "Provider guarded"}
           </ShellBadge>
           <ShellBadge tone="muted">
-            {latest.summary?.assetsCovered ?? 0}/{latest.summary?.assetsRequested ?? 0} assets
+            {latest.summary?.assetsCovered ?? 0}/
+            {latest.summary?.assetsRequested ?? 0} assets
           </ShellBadge>
           <ShellBadge tone="muted">
             {latest.summary?.windows ?? 0} rolling windows
@@ -147,7 +157,9 @@ export default function ForecastLabCard() {
         <article className="nexus-shell-resource-card">
           <div className="nexus-shell-resource-card__meta">
             <span className="nexus-shell-resource-card__chip">MAPE</span>
-            <span className="nexus-shell-resource-card__chip">lower is better</span>
+            <span className="nexus-shell-resource-card__chip">
+              lower is better
+            </span>
           </div>
           <div className="nexus-shell-resource-card__title">
             {latest.summary?.meanAbsolutePercentageError ?? "—"}%
@@ -160,13 +172,16 @@ export default function ForecastLabCard() {
         <article className="nexus-shell-resource-card">
           <div className="nexus-shell-resource-card__meta">
             <span className="nexus-shell-resource-card__chip">Direction</span>
-            <span className="nexus-shell-resource-card__chip">higher is better</span>
+            <span className="nexus-shell-resource-card__chip">
+              higher is better
+            </span>
           </div>
           <div className="nexus-shell-resource-card__title">
             {latest.summary?.directionalAccuracy ?? "—"}%
           </div>
           <p className="nexus-shell-resource-card__description">
-            Directional hit rate for the native baseline across the active horizons.
+            Directional hit rate for the native baseline across the active
+            horizons.
           </p>
         </article>
       </div>
@@ -182,7 +197,9 @@ export default function ForecastLabCard() {
                 Horizon {entry.horizon}
               </div>
               <ShellBadge tone={entry.covered > 0 ? "success" : "muted"}>
-                {entry.covered > 0 ? `${entry.covered} assets` : "Insufficient history"}
+                {entry.covered > 0
+                  ? `${entry.covered} assets`
+                  : "Insufficient history"}
               </ShellBadge>
             </div>
           </div>

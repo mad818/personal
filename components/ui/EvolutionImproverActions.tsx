@@ -58,7 +58,8 @@ export default function EvolutionImproverActions({
             onClick={() => record(value)}
             style={{
               ...BUTTON,
-              borderColor: decision === value ? "var(--accent)" : "var(--border)",
+              borderColor:
+                decision === value ? "var(--accent)" : "var(--border)",
               color: decision === value ? "var(--text)" : "var(--text2)",
             }}
           >

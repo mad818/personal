@@ -45,7 +45,11 @@ import type {
   OfficeObjectId,
   OfficeObjectPos,
 } from "./types";
-import type { OfficeMissionState, OfficeVfxQuality, WallFrontTone } from "./officeRoom3DScene";
+import type {
+  OfficeMissionState,
+  OfficeVfxQuality,
+  WallFrontTone,
+} from "./officeRoom3DScene";
 
 const OfficeRoom3D = dynamic(
   () => import("./OfficeRoom3D").then((module) => module.OfficeRoom3D),
@@ -56,7 +60,10 @@ const OfficeRoom3D = dynamic(
 );
 
 const ArpgRoom3D = dynamic(
-  () => import("@/components/home/arpg/ArpgRoom3D").then((module) => module.ArpgRoom3D),
+  () =>
+    import("@/components/home/arpg/ArpgRoom3D").then(
+      (module) => module.ArpgRoom3D,
+    ),
   {
     ssr: false,
     loading: () => null,
@@ -123,7 +130,10 @@ const ARPG_STAGE_KEYBOARD_STEP_PX = 28;
 const ARPG_STAGE_KEYBOARD_LARGE_STEP_PX = 72;
 const ARPG_STAGE_CUSTOM_MAX_PX = 1280;
 
-function resolveArpgStageHeight(size: ArpgViewportSize, viewportHeight: number) {
+function resolveArpgStageHeight(
+  size: ArpgViewportSize,
+  viewportHeight: number,
+) {
   const option =
     ARPG_STAGE_SIZE_OPTIONS.find((entry) => entry.id === size) ??
     ARPG_STAGE_SIZE_OPTIONS[1];
@@ -138,7 +148,10 @@ function resolveArpgStageHeight(size: ArpgViewportSize, viewportHeight: number) 
     OFFICE_HEIGHT_MAX_PX,
     Math.max(option.minHeight, maxByViewport),
   );
-  const target = Math.max(option.minHeight, Math.round(baseHeight * option.ratio));
+  const target = Math.max(
+    option.minHeight,
+    Math.round(baseHeight * option.ratio),
+  );
   return Math.max(OFFICE_HEIGHT_MIN_PX, Math.min(maxAllowed, target));
 }
 
@@ -325,8 +338,8 @@ export default function HQConsoleShellSection({
   );
   const effectiveStageHeightPx =
     hqRoomMode === "arpg" && isGameFocus
-      ? arpgStageHeightOverridePx ?? presetStageHeightPx
-      : officeHeightPx ?? OFFICE_HEIGHT_MIN_PX;
+      ? (arpgStageHeightOverridePx ?? presetStageHeightPx)
+      : (officeHeightPx ?? OFFICE_HEIGHT_MIN_PX);
   const displayedStageHeightPx = hasMounted
     ? Math.round(effectiveStageHeightPx)
     : null;
@@ -527,8 +540,7 @@ export default function HQConsoleShellSection({
         className="nexus-hq-consoleShell__statusBar"
         style={{
           padding: "6px 16px",
-          background:
-            `linear-gradient(180deg, rgba(11,14,17,0.94), rgba(7,9,12,0.98)), radial-gradient(circle at 14% 24%, ${telemetryCue.accentColor}14, transparent 30%)`,
+          background: `linear-gradient(180deg, rgba(11,14,17,0.94), rgba(7,9,12,0.98)), radial-gradient(circle at 14% 24%, ${telemetryCue.accentColor}14, transparent 30%)`,
           borderBottom: `1px solid rgba(162,180,193,${0.12 + telemetryCue.alertWash * 0.16})`,
           display: "flex",
           alignItems: "center",
@@ -547,7 +559,9 @@ export default function HQConsoleShellSection({
               ? `0 0 ${8 + telemetryCue.dispatchEmphasis * 6}px ${telemetryCue.accentColor}`
               : "0 0 8px rgba(132,217,141,.68)",
             display: "inline-block",
-            animation: activeAgent ? "pulse-dot 2s ease-in-out infinite" : "none",
+            animation: activeAgent
+              ? "pulse-dot 2s ease-in-out infinite"
+              : "none",
           }}
         />
         <span
@@ -646,7 +660,9 @@ export default function HQConsoleShellSection({
             background: `linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), radial-gradient(circle at 100% 0%, ${telemetryCue.accentColor}12, transparent 36%)`,
           }}
           title={[
-            evalTrail ? `Recent grades: ${evalTrail}` : "No recent grade history",
+            evalTrail
+              ? `Recent grades: ${evalTrail}`
+              : "No recent grade history",
             evalUpdatedAt
               ? `Updated: ${new Date(evalUpdatedAt).toLocaleTimeString()}`
               : null,
@@ -720,546 +736,572 @@ export default function HQConsoleShellSection({
 
         {isGameFocus ? (
           <>
-        <div
-          aria-label="HQ room mode"
-          data-testid="hq-game-layout-tools"
-          role="group"
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: 12,
-            transform: "translateX(-50%)",
-            zIndex: 72,
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 6,
-            justifyContent: "center",
-            maxWidth: "calc(100% - 24px)",
-            padding: 4,
-            border: "1px solid rgba(255,214,150,.18)",
-            borderRadius: 999,
-            background: "rgba(10, 12, 14, 0.72)",
-            backdropFilter: "blur(12px)",
-            boxShadow: "0 12px 30px rgba(0,0,0,.26)",
-          }}
-        >
-          {[
-            { id: "arpg" as const, label: ARPG_GAME_TITLE },
-            { id: "command-room" as const, label: "Command room" },
-          ].map((mode) => {
-            const active = hqRoomMode === mode.id;
-            return (
-              <button
-                key={mode.id}
-                data-testid={`hq-room-mode-${mode.id}`}
-                type="button"
-                onClick={() => setHqRoomMode(mode.id)}
-                style={{
-                  border: `1px solid ${
-                    active ? "rgba(255,214,150,.42)" : "rgba(255,255,255,.08)"
-                  }`,
-                  borderRadius: 999,
-                  background: active
-                    ? "rgba(255, 195, 105, 0.16)"
-                    : "rgba(255,255,255,.035)",
-                  color: active ? "#ffe1a6" : "rgba(255,255,255,.68)",
-                  cursor: "pointer",
-                  fontSize: 9,
-                  fontWeight: 900,
-                  letterSpacing: ".08em",
-                  padding: "4px 8px",
-                  textTransform: "uppercase",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {mode.label}
-              </button>
-            );
-          })}
-          {hqRoomMode === "arpg" ? (
-            <>
-              <span
-                aria-hidden="true"
-                style={{
-                  alignSelf: "stretch",
-                  borderLeft: "1px solid rgba(255,214,150,.16)",
-                  margin: "2px 1px",
-                }}
-              />
-              <span
-                data-testid="arpg-stage-size-controls"
-                aria-label="Game window size"
-                style={{ display: "flex", gap: 3 }}
-              >
-                {ARPG_STAGE_SIZE_OPTIONS.map((option) => {
-                  const active = arpgViewportSize === option.id;
-                  return (
+            <div
+              aria-label="HQ room mode"
+              data-testid="hq-game-layout-tools"
+              role="group"
+              style={{
+                position: "absolute",
+                left: "50%",
+                top: 12,
+                transform: "translateX(-50%)",
+                zIndex: 72,
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 6,
+                justifyContent: "center",
+                maxWidth: "calc(100% - 24px)",
+                padding: 4,
+                border: "1px solid rgba(255,214,150,.18)",
+                borderRadius: 999,
+                background: "rgba(10, 12, 14, 0.72)",
+                backdropFilter: "blur(12px)",
+                boxShadow: "0 12px 30px rgba(0,0,0,.26)",
+              }}
+            >
+              {[
+                { id: "arpg" as const, label: ARPG_GAME_TITLE },
+                { id: "command-room" as const, label: "Command room" },
+              ].map((mode) => {
+                const active = hqRoomMode === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    data-testid={`hq-room-mode-${mode.id}`}
+                    type="button"
+                    onClick={() => setHqRoomMode(mode.id)}
+                    style={{
+                      border: `1px solid ${
+                        active
+                          ? "rgba(255,214,150,.42)"
+                          : "rgba(255,255,255,.08)"
+                      }`,
+                      borderRadius: 999,
+                      background: active
+                        ? "rgba(255, 195, 105, 0.16)"
+                        : "rgba(255,255,255,.035)",
+                      color: active ? "#ffe1a6" : "rgba(255,255,255,.68)",
+                      cursor: "pointer",
+                      fontSize: 9,
+                      fontWeight: 900,
+                      letterSpacing: ".08em",
+                      padding: "4px 8px",
+                      textTransform: "uppercase",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {mode.label}
+                  </button>
+                );
+              })}
+              {hqRoomMode === "arpg" ? (
+                <>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      alignSelf: "stretch",
+                      borderLeft: "1px solid rgba(255,214,150,.16)",
+                      margin: "2px 1px",
+                    }}
+                  />
+                  <span
+                    data-testid="arpg-stage-size-controls"
+                    aria-label="Game window size"
+                    style={{ display: "flex", gap: 3 }}
+                  >
+                    {ARPG_STAGE_SIZE_OPTIONS.map((option) => {
+                      const active = arpgViewportSize === option.id;
+                      return (
+                        <button
+                          key={option.id}
+                          data-testid={`arpg-size-${option.id}`}
+                          type="button"
+                          aria-pressed={active}
+                          title={option.title}
+                          onClick={() => applyArpgViewportSize(option.id)}
+                          style={{
+                            border: `1px solid ${
+                              active
+                                ? "rgba(255,214,150,.46)"
+                                : "rgba(255,255,255,.08)"
+                            }`,
+                            borderRadius: 999,
+                            background: active
+                              ? "rgba(255, 195, 105, 0.18)"
+                              : "rgba(255,255,255,.03)",
+                            color: active ? "#ffe1a6" : "rgba(255,255,255,.64)",
+                            cursor: "pointer",
+                            fontSize: 8,
+                            fontWeight: 950,
+                            letterSpacing: ".05em",
+                            lineHeight: 1,
+                            minWidth: option.id === "focus" ? 25 : 20,
+                            padding: "5px 5px",
+                          }}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
                     <button
-                      key={option.id}
-                      data-testid={`arpg-size-${option.id}`}
+                      data-testid="hq-reset-layout"
                       type="button"
-                      aria-pressed={active}
-                      title={option.title}
-                      onClick={() => applyArpgViewportSize(option.id)}
+                      title="Reset to the largest game-first layout"
+                      onClick={() => applyArpgViewportSize("focus")}
                       style={{
-                        border: `1px solid ${
-                          active
-                            ? "rgba(255,214,150,.46)"
-                            : "rgba(255,255,255,.08)"
-                        }`,
+                        border: "1px solid rgba(255,214,150,.32)",
                         borderRadius: 999,
-                        background: active
-                          ? "rgba(255, 195, 105, 0.18)"
-                          : "rgba(255,255,255,.03)",
-                        color: active ? "#ffe1a6" : "rgba(255,255,255,.64)",
+                        background: "rgba(255,195,105,.1)",
+                        color: "#ffe1a6",
                         cursor: "pointer",
                         fontSize: 8,
                         fontWeight: 950,
-                        letterSpacing: ".05em",
+                        letterSpacing: ".08em",
                         lineHeight: 1,
-                        minWidth: option.id === "focus" ? 25 : 20,
-                        padding: "5px 5px",
+                        padding: "5px 7px",
+                        textTransform: "uppercase",
                       }}
                     >
-                      {option.label}
+                      Reset
                     </button>
-                    );
-                  })}
-                <button
-                  data-testid="hq-reset-layout"
-                  type="button"
-                  title="Reset to the largest game-first layout"
-                  onClick={() => applyArpgViewportSize("focus")}
+                    <button
+                      data-testid="hq-lock-split"
+                      type="button"
+                      title="Prevent accidental game resize changes"
+                      onClick={onToggleSplitLock}
+                      style={{
+                        border: `1px solid ${
+                          splitDragLocked
+                            ? "rgba(16,185,129,.56)"
+                            : "rgba(255,214,150,.22)"
+                        }`,
+                        borderRadius: 999,
+                        background: splitDragLocked
+                          ? "rgba(16,185,129,.16)"
+                          : "rgba(255,255,255,.025)",
+                        color: splitDragLocked
+                          ? "#34d399"
+                          : "rgba(255,240,214,.72)",
+                        cursor: "pointer",
+                        fontSize: 8,
+                        fontWeight: 950,
+                        letterSpacing: ".08em",
+                        lineHeight: 1,
+                        padding: "5px 7px",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {splitDragLocked ? "UNLOCK SIZE" : "LOCK SIZE"}
+                    </button>
+                    <span
+                      data-testid="hq-game-resize-top-handle"
+                      role="separator"
+                      aria-label={
+                        splitDragLocked
+                          ? "Drag to unlock and resize the game window"
+                          : "Drag to resize the game window"
+                      }
+                      aria-orientation="horizontal"
+                      aria-valuemin={OFFICE_HEIGHT_MIN_PX}
+                      aria-valuemax={resolveArpgStageHeightMax(viewportHeight)}
+                      aria-valuenow={stageHeightControlValue}
+                      tabIndex={0}
+                      onPointerDown={startArpgStageResize}
+                      onMouseDown={startArpgStageMouseResize}
+                      onDoubleClick={resetArpgStageSize}
+                      onKeyDown={handleArpgStageResizeKey}
+                      title={
+                        splitDragLocked
+                          ? "Drag here to unlock and resize"
+                          : "Drag this chip up or down. Arrow keys resize. R resets."
+                      }
+                      style={{
+                        alignItems: "center",
+                        border: "1px solid rgba(255,214,150,.26)",
+                        borderRadius: 999,
+                        color: splitDragLocked ? "#34d399" : "#ffe1a6",
+                        cursor: "ns-resize",
+                        display: "inline-flex",
+                        fontSize: 8,
+                        fontWeight: 950,
+                        gap: 5,
+                        letterSpacing: ".07em",
+                        lineHeight: 1,
+                        padding: "5px 7px",
+                        textTransform: "uppercase",
+                        touchAction: "none",
+                        userSelect: "none",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: 18,
+                          height: 7,
+                          borderTop: "2px solid currentColor",
+                          borderBottom: "2px solid currentColor",
+                          opacity: 0.75,
+                        }}
+                      />
+                      {splitDragLocked ? "Drag unlock" : "Drag"}
+                      <span
+                        suppressHydrationWarning
+                        style={{ color: "rgba(255,255,255,.7)" }}
+                      >
+                        {stageHeightReadout}
+                      </span>
+                    </span>
+                    <label
+                      data-testid="hq-game-size-slider-shell"
+                      style={{
+                        alignItems: "center",
+                        border: "1px solid rgba(255,214,150,.18)",
+                        borderRadius: 999,
+                        color: "rgba(255,240,214,.74)",
+                        display: "inline-flex",
+                        fontSize: 8,
+                        fontWeight: 950,
+                        gap: 6,
+                        letterSpacing: ".08em",
+                        lineHeight: 1,
+                        padding: "4px 8px",
+                        textTransform: "uppercase",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Size
+                      <input
+                        data-testid="hq-game-size-slider"
+                        type="range"
+                        aria-label="Game window height"
+                        min={OFFICE_HEIGHT_MIN_PX}
+                        max={resolveArpgStageHeightMax(viewportHeight)}
+                        step={ARPG_STAGE_KEYBOARD_STEP_PX}
+                        value={stageHeightControlValue}
+                        onPointerDown={() => {
+                          if (splitDragLocked) onToggleSplitLock();
+                        }}
+                        onInput={(event) => {
+                          applyCustomArpgStageHeight(
+                            Number(event.currentTarget.value),
+                          );
+                        }}
+                        onChange={(event) => {
+                          applyCustomArpgStageHeight(
+                            Number(event.currentTarget.value),
+                          );
+                        }}
+                        onKeyDown={(event) => {
+                          if (
+                            event.key === "ArrowRight" ||
+                            event.key === "ArrowUp" ||
+                            event.key === "PageUp"
+                          ) {
+                            event.preventDefault();
+                            resizeArpgStageBy(
+                              event.key === "PageUp"
+                                ? ARPG_STAGE_KEYBOARD_LARGE_STEP_PX
+                                : ARPG_STAGE_KEYBOARD_STEP_PX,
+                            );
+                            return;
+                          }
+                          if (
+                            event.key === "ArrowLeft" ||
+                            event.key === "ArrowDown" ||
+                            event.key === "PageDown"
+                          ) {
+                            event.preventDefault();
+                            resizeArpgStageBy(
+                              event.key === "PageDown"
+                                ? -ARPG_STAGE_KEYBOARD_LARGE_STEP_PX
+                                : -ARPG_STAGE_KEYBOARD_STEP_PX,
+                            );
+                            return;
+                          }
+                          if (event.key === "Home") {
+                            event.preventDefault();
+                            applyCustomArpgStageHeight(OFFICE_HEIGHT_MIN_PX);
+                            return;
+                          }
+                          if (event.key === "End") {
+                            event.preventDefault();
+                            applyCustomArpgStageHeight(
+                              resolveArpgStageHeightMax(viewportHeight),
+                            );
+                          }
+                        }}
+                        style={{
+                          accentColor: "#ffc46f",
+                          cursor: "ew-resize",
+                          height: 12,
+                          width: 112,
+                        }}
+                      />
+                    </label>
+                  </span>
+                </>
+              ) : null}
+            </div>
+
+            <div style={{ position: "absolute", inset: 0 }}>
+              {hqRoomMode === "arpg" ? (
+                <div
+                  data-testid="arpg-playfield-frame"
+                  data-game-size={arpgViewportSize}
                   style={{
-                    border: "1px solid rgba(255,214,150,.32)",
+                    ...ARPG_PLAYFIELD_FRAME_STYLES[arpgViewportSize],
+                    position: "absolute",
+                    overflow: "hidden",
+                    border: "1px solid rgba(255, 214, 150, 0.18)",
+                    background:
+                      "linear-gradient(180deg, rgba(16, 10, 5, 0.72), rgba(4, 8, 10, 0.82))",
+                    boxShadow:
+                      arpgViewportSize === "focus"
+                        ? "none"
+                        : "0 20px 48px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.05)",
+                    transition:
+                      "inset 180ms ease, border-radius 180ms ease, box-shadow 180ms ease",
+                  }}
+                >
+                  <ArpgRoom3D
+                    activeAgent={activeAgent}
+                    dispatchBar={dispatchBar}
+                    motionProfile={effectiveProfile}
+                    motionIntensity={effectiveOfficeMotion}
+                    vfxQuality={effectiveOfficeVfxQuality}
+                    runtimeStatusLabel={runtimeStatusLabel}
+                    onSwitchToCommandRoom={() => setHqRoomMode("command-room")}
+                  />
+                </div>
+              ) : (
+                <div
+                  data-testid="hq-command-room-fallback"
+                  style={{ position: "absolute", inset: 0 }}
+                >
+                  <OfficeRoom3D
+                    officeLayout={officeLayout}
+                    agentPos={agentPos}
+                    activeAgent={activeAgent}
+                    missionState={roomMissionState}
+                    missionLabel={roomMissionLabel}
+                    missionNote={roomMissionNote}
+                    commandTempo={commandTempo}
+                    primaryFront={primaryFront}
+                    sceneMode={officeSceneMode}
+                    motionProfile={effectiveProfile}
+                    motionIntensity={effectiveOfficeMotion}
+                    cameraPreset={officeCameraPreset}
+                    vfxQuality={effectiveOfficeVfxQuality}
+                    controls={officeControls}
+                    dispatchBar={dispatchBar}
+                  />
+                </div>
+              )}
+            </div>
+
+            {hqRoomMode === "arpg" ? (
+              <div
+                data-testid="hq-game-resize-handle"
+                role="separator"
+                aria-label={
+                  splitDragLocked
+                    ? "Game window resize locked"
+                    : "Drag to resize the game window"
+                }
+                aria-orientation="horizontal"
+                aria-valuemin={OFFICE_HEIGHT_MIN_PX}
+                aria-valuemax={resolveArpgStageHeightMax(viewportHeight)}
+                aria-valuenow={stageHeightControlValue}
+                aria-disabled={splitDragLocked}
+                data-locked={splitDragLocked ? "true" : "false"}
+                data-custom-size={isCustomArpgStageHeight ? "true" : "false"}
+                tabIndex={0}
+                onPointerDown={startArpgStageResize}
+                onMouseDown={startArpgStageMouseResize}
+                onDoubleClick={resetArpgStageSize}
+                onKeyDown={handleArpgStageResizeKey}
+                title={
+                  splitDragLocked
+                    ? "Drag here to unlock and resize the game window"
+                    : "Drag up or down. Arrow keys resize. R resets."
+                }
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  bottom: 8,
+                  transform: "translateX(-50%)",
+                  zIndex: 88,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  maxWidth: "calc(100% - 28px)",
+                  padding: "5px 8px",
+                  border: `1px solid ${
+                    splitDragLocked
+                      ? "rgba(16,185,129,.34)"
+                      : "rgba(255,214,150,.3)"
+                  }`,
+                  borderRadius: 999,
+                  background: "rgba(8, 10, 12, 0.78)",
+                  boxShadow:
+                    "0 14px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05)",
+                  color: splitDragLocked ? "#34d399" : "#ffe1a6",
+                  cursor: "ns-resize",
+                  fontSize: 8,
+                  fontWeight: 950,
+                  letterSpacing: ".08em",
+                  lineHeight: 1,
+                  textTransform: "uppercase",
+                  touchAction: "none",
+                  userSelect: "none",
+                  backdropFilter: "blur(12px)",
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 38,
+                    height: 8,
+                    borderTop: "2px solid currentColor",
+                    borderBottom: "2px solid currentColor",
+                    opacity: splitDragLocked ? 0.58 : 0.86,
+                  }}
+                />
+                <span>{splitDragLocked ? "Drag to unlock" : "Drag size"}</span>
+                <button
+                  data-testid="hq-game-resize-shrink"
+                  type="button"
+                  aria-label="Make game window smaller"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    resizeArpgStageBy(-ARPG_STAGE_KEYBOARD_LARGE_STEP_PX);
+                  }}
+                  style={{
+                    border: "1px solid rgba(255,255,255,.12)",
+                    borderRadius: 999,
+                    background: "rgba(255,255,255,.04)",
+                    color: "rgba(255,255,255,.78)",
+                    cursor: "pointer",
+                    fontSize: 8,
+                    fontWeight: 950,
+                    lineHeight: 1,
+                    padding: "3px 6px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Less
+                </button>
+                <span
+                  data-testid="hq-game-resize-readout"
+                  suppressHydrationWarning
+                  style={{
+                    color: "rgba(255,255,255,.72)",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {stageHeightReadout}
+                </span>
+                <button
+                  data-testid="hq-game-resize-grow"
+                  type="button"
+                  aria-label="Make game window larger"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    resizeArpgStageBy(ARPG_STAGE_KEYBOARD_LARGE_STEP_PX);
+                  }}
+                  style={{
+                    border: "1px solid rgba(255,214,150,.24)",
                     borderRadius: 999,
                     background: "rgba(255,195,105,.1)",
                     color: "#ffe1a6",
                     cursor: "pointer",
                     fontSize: 8,
                     fontWeight: 950,
-                    letterSpacing: ".08em",
                     lineHeight: 1,
-                    padding: "5px 7px",
+                    padding: "3px 6px",
                     textTransform: "uppercase",
                   }}
                 >
-                  Reset
+                  More
                 </button>
-                <button
-                  data-testid="hq-lock-split"
-                  type="button"
-                  title="Prevent accidental game resize changes"
-                  onClick={onToggleSplitLock}
-                  style={{
-                    border: `1px solid ${
-                      splitDragLocked
-                        ? "rgba(16,185,129,.56)"
-                        : "rgba(255,214,150,.22)"
-                    }`,
-                    borderRadius: 999,
-                    background: splitDragLocked
-                      ? "rgba(16,185,129,.16)"
-                      : "rgba(255,255,255,.025)",
-                    color: splitDragLocked ? "#34d399" : "rgba(255,240,214,.72)",
-                    cursor: "pointer",
-                    fontSize: 8,
-                    fontWeight: 950,
-                    letterSpacing: ".08em",
-                    lineHeight: 1,
-                    padding: "5px 7px",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {splitDragLocked ? "UNLOCK SIZE" : "LOCK SIZE"}
-                </button>
-                <span
-                  data-testid="hq-game-resize-top-handle"
-                  role="separator"
-                  aria-label={
-                    splitDragLocked
-                      ? "Drag to unlock and resize the game window"
-                      : "Drag to resize the game window"
-                  }
-                  aria-orientation="horizontal"
-                  aria-valuemin={OFFICE_HEIGHT_MIN_PX}
-                  aria-valuemax={resolveArpgStageHeightMax(viewportHeight)}
-                  aria-valuenow={stageHeightControlValue}
-                  tabIndex={0}
-                  onPointerDown={startArpgStageResize}
-                  onMouseDown={startArpgStageMouseResize}
-                  onDoubleClick={resetArpgStageSize}
-                  onKeyDown={handleArpgStageResizeKey}
-                  title={
-                    splitDragLocked
-                      ? "Drag here to unlock and resize"
-                      : "Drag this chip up or down. Arrow keys resize. R resets."
-                  }
-                  style={{
-                    alignItems: "center",
-                    border: "1px solid rgba(255,214,150,.26)",
-                    borderRadius: 999,
-                    color: splitDragLocked ? "#34d399" : "#ffe1a6",
-                    cursor: "ns-resize",
-                    display: "inline-flex",
-                    fontSize: 8,
-                    fontWeight: 950,
-                    gap: 5,
-                    letterSpacing: ".07em",
-                    lineHeight: 1,
-                    padding: "5px 7px",
-                    textTransform: "uppercase",
-                    touchAction: "none",
-                    userSelect: "none",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                {isCustomArpgStageHeight ? (
                   <span
-                    aria-hidden="true"
+                    data-testid="hq-game-custom-size-chip"
                     style={{
-                      width: 18,
-                      height: 7,
-                      borderTop: "2px solid currentColor",
-                      borderBottom: "2px solid currentColor",
-                      opacity: 0.75,
+                      border: "1px solid rgba(255,214,150,.22)",
+                      borderRadius: 999,
+                      color: "#ffc46f",
+                      padding: "2px 5px",
                     }}
-                  />
-                  {splitDragLocked ? "Drag unlock" : "Drag"}
-                  <span
-                    suppressHydrationWarning
-                    style={{ color: "rgba(255,255,255,.7)" }}
                   >
-                    {stageHeightReadout}
+                    Custom
                   </span>
-                </span>
-                <label
-                  data-testid="hq-game-size-slider-shell"
-                  style={{
-                    alignItems: "center",
-                    border: "1px solid rgba(255,214,150,.18)",
-                    borderRadius: 999,
-                    color: "rgba(255,240,214,.74)",
-                    display: "inline-flex",
-                    fontSize: 8,
-                    fontWeight: 950,
-                    gap: 6,
-                    letterSpacing: ".08em",
-                    lineHeight: 1,
-                    padding: "4px 8px",
-                    textTransform: "uppercase",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Size
-                  <input
-                    data-testid="hq-game-size-slider"
-                    type="range"
-                    aria-label="Game window height"
-                    min={OFFICE_HEIGHT_MIN_PX}
-                    max={resolveArpgStageHeightMax(viewportHeight)}
-                    step={ARPG_STAGE_KEYBOARD_STEP_PX}
-                    value={stageHeightControlValue}
-                    onPointerDown={() => {
-                      if (splitDragLocked) onToggleSplitLock();
-                    }}
-                    onInput={(event) => {
-                      applyCustomArpgStageHeight(
-                        Number(event.currentTarget.value),
-                      );
-                    }}
-                    onChange={(event) => {
-                      applyCustomArpgStageHeight(
-                        Number(event.currentTarget.value),
-                      );
-                    }}
-                    onKeyDown={(event) => {
-                      if (
-                        event.key === "ArrowRight" ||
-                        event.key === "ArrowUp" ||
-                        event.key === "PageUp"
-                      ) {
-                        event.preventDefault();
-                        resizeArpgStageBy(
-                          event.key === "PageUp"
-                            ? ARPG_STAGE_KEYBOARD_LARGE_STEP_PX
-                            : ARPG_STAGE_KEYBOARD_STEP_PX,
-                        );
-                        return;
-                      }
-                      if (
-                        event.key === "ArrowLeft" ||
-                        event.key === "ArrowDown" ||
-                        event.key === "PageDown"
-                      ) {
-                        event.preventDefault();
-                        resizeArpgStageBy(
-                          event.key === "PageDown"
-                            ? -ARPG_STAGE_KEYBOARD_LARGE_STEP_PX
-                            : -ARPG_STAGE_KEYBOARD_STEP_PX,
-                        );
-                        return;
-                      }
-                      if (event.key === "Home") {
-                        event.preventDefault();
-                        applyCustomArpgStageHeight(OFFICE_HEIGHT_MIN_PX);
-                        return;
-                      }
-                      if (event.key === "End") {
-                        event.preventDefault();
-                        applyCustomArpgStageHeight(
-                          resolveArpgStageHeightMax(viewportHeight),
-                        );
-                      }
-                    }}
-                    style={{
-                      accentColor: "#ffc46f",
-                      cursor: "ew-resize",
-                      height: 12,
-                      width: 112,
-                    }}
-                  />
-                </label>
-              </span>
-            </>
-          ) : null}
-        </div>
-
-        <div style={{ position: "absolute", inset: 0 }}>
-          {hqRoomMode === "arpg" ? (
-            <div
-              data-testid="arpg-playfield-frame"
-              data-game-size={arpgViewportSize}
-              style={{
-                ...ARPG_PLAYFIELD_FRAME_STYLES[arpgViewportSize],
-                position: "absolute",
-                overflow: "hidden",
-                border: "1px solid rgba(255, 214, 150, 0.18)",
-                background:
-                  "linear-gradient(180deg, rgba(16, 10, 5, 0.72), rgba(4, 8, 10, 0.82))",
-                boxShadow:
-                  arpgViewportSize === "focus"
-                    ? "none"
-                    : "0 20px 48px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.05)",
-                transition:
-                  "inset 180ms ease, border-radius 180ms ease, box-shadow 180ms ease",
-              }}
-            >
-              <ArpgRoom3D
-                activeAgent={activeAgent}
-                dispatchBar={dispatchBar}
-                motionProfile={effectiveProfile}
-                motionIntensity={effectiveOfficeMotion}
-                vfxQuality={effectiveOfficeVfxQuality}
-                runtimeStatusLabel={runtimeStatusLabel}
-                onSwitchToCommandRoom={() => setHqRoomMode("command-room")}
-              />
-            </div>
-          ) : (
-            <div
-              data-testid="hq-command-room-fallback"
-              style={{ position: "absolute", inset: 0 }}
-            >
-              <OfficeRoom3D
-                officeLayout={officeLayout}
-                agentPos={agentPos}
-                activeAgent={activeAgent}
-                missionState={roomMissionState}
-                missionLabel={roomMissionLabel}
-                missionNote={roomMissionNote}
-                commandTempo={commandTempo}
-                primaryFront={primaryFront}
-                sceneMode={officeSceneMode}
-                motionProfile={effectiveProfile}
-                motionIntensity={effectiveOfficeMotion}
-                cameraPreset={officeCameraPreset}
-                vfxQuality={effectiveOfficeVfxQuality}
-                controls={officeControls}
-                dispatchBar={dispatchBar}
-              />
-            </div>
-          )}
-        </div>
-
-        {hqRoomMode === "arpg" ? (
-          <div
-            data-testid="hq-game-resize-handle"
-            role="separator"
-            aria-label={
-              splitDragLocked
-                ? "Game window resize locked"
-                : "Drag to resize the game window"
-            }
-            aria-orientation="horizontal"
-            aria-valuemin={OFFICE_HEIGHT_MIN_PX}
-            aria-valuemax={resolveArpgStageHeightMax(viewportHeight)}
-            aria-valuenow={stageHeightControlValue}
-            aria-disabled={splitDragLocked}
-            data-locked={splitDragLocked ? "true" : "false"}
-            data-custom-size={isCustomArpgStageHeight ? "true" : "false"}
-            tabIndex={0}
-            onPointerDown={startArpgStageResize}
-            onMouseDown={startArpgStageMouseResize}
-            onDoubleClick={resetArpgStageSize}
-            onKeyDown={handleArpgStageResizeKey}
-            title={
-              splitDragLocked
-                ? "Drag here to unlock and resize the game window"
-                : "Drag up or down. Arrow keys resize. R resets."
-            }
-            style={{
-              position: "absolute",
-              left: "50%",
-              bottom: 8,
-              transform: "translateX(-50%)",
-              zIndex: 88,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              maxWidth: "calc(100% - 28px)",
-              padding: "5px 8px",
-              border: `1px solid ${
-                splitDragLocked
-                  ? "rgba(16,185,129,.34)"
-                  : "rgba(255,214,150,.3)"
-              }`,
-              borderRadius: 999,
-              background: "rgba(8, 10, 12, 0.78)",
-              boxShadow:
-                "0 14px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05)",
-              color: splitDragLocked ? "#34d399" : "#ffe1a6",
-              cursor: "ns-resize",
-              fontSize: 8,
-              fontWeight: 950,
-              letterSpacing: ".08em",
-              lineHeight: 1,
-              textTransform: "uppercase",
-              touchAction: "none",
-              userSelect: "none",
-              backdropFilter: "blur(12px)",
-            }}
-          >
-            <span
-              aria-hidden="true"
-              style={{
-                width: 38,
-                height: 8,
-                borderTop: "2px solid currentColor",
-                borderBottom: "2px solid currentColor",
-                opacity: splitDragLocked ? 0.58 : 0.86,
-              }}
-            />
-            <span>{splitDragLocked ? "Drag to unlock" : "Drag size"}</span>
-            <button
-              data-testid="hq-game-resize-shrink"
-              type="button"
-              aria-label="Make game window smaller"
-              onPointerDown={(event) => event.stopPropagation()}
-              onMouseDown={(event) => event.stopPropagation()}
-              onClick={(event) => {
-                event.stopPropagation();
-                resizeArpgStageBy(-ARPG_STAGE_KEYBOARD_LARGE_STEP_PX);
-              }}
-              style={{
-                border: "1px solid rgba(255,255,255,.12)",
-                borderRadius: 999,
-                background: "rgba(255,255,255,.04)",
-                color: "rgba(255,255,255,.78)",
-                cursor: "pointer",
-                fontSize: 8,
-                fontWeight: 950,
-                lineHeight: 1,
-                padding: "3px 6px",
-                textTransform: "uppercase",
-              }}
-            >
-              Less
-            </button>
-            <span
-              data-testid="hq-game-resize-readout"
-              suppressHydrationWarning
-              style={{
-                color: "rgba(255,255,255,.72)",
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              {stageHeightReadout}
-            </span>
-            <button
-              data-testid="hq-game-resize-grow"
-              type="button"
-              aria-label="Make game window larger"
-              onPointerDown={(event) => event.stopPropagation()}
-              onMouseDown={(event) => event.stopPropagation()}
-              onClick={(event) => {
-                event.stopPropagation();
-                resizeArpgStageBy(ARPG_STAGE_KEYBOARD_LARGE_STEP_PX);
-              }}
-              style={{
-                border: "1px solid rgba(255,214,150,.24)",
-                borderRadius: 999,
-                background: "rgba(255,195,105,.1)",
-                color: "#ffe1a6",
-                cursor: "pointer",
-                fontSize: 8,
-                fontWeight: 950,
-                lineHeight: 1,
-                padding: "3px 6px",
-                textTransform: "uppercase",
-              }}
-            >
-              More
-            </button>
-            {isCustomArpgStageHeight ? (
-              <span
-                data-testid="hq-game-custom-size-chip"
-                style={{
-                  border: "1px solid rgba(255,214,150,.22)",
-                  borderRadius: 999,
-                  color: "#ffc46f",
-                  padding: "2px 5px",
-                }}
-              >
-                Custom
-              </span>
+                ) : null}
+              </div>
             ) : null}
-          </div>
-        ) : null}
 
-        {hqRoomMode === "command-room" ? (
-        <div className="nexus-hq-consoleShell__missionRail">
-          <div className="nexus-hq-consoleShell__missionCell">
-            <span className="nexus-hq-consoleShell__missionLabel">State</span>
-            <strong className="nexus-hq-consoleShell__missionValue">{roomMissionState}</strong>
-            <span className="nexus-hq-consoleShell__missionNote">{roomMissionLabel}</span>
-          </div>
-          <div className="nexus-hq-consoleShell__missionCell">
-            <span className="nexus-hq-consoleShell__missionLabel">Front</span>
-            <strong className="nexus-hq-consoleShell__missionValue">{primaryFront.label}</strong>
-            <span className="nexus-hq-consoleShell__missionNote">{primaryFront.note}</span>
-          </div>
-          <div className="nexus-hq-consoleShell__missionCell">
-            <span className="nexus-hq-consoleShell__missionLabel">Runtime</span>
-            <strong className="nexus-hq-consoleShell__missionValue">
-              {runtimeStatusLabel}
-            </strong>
-            <span className="nexus-hq-consoleShell__missionNote">{runtimePhaseLabel}</span>
-          </div>
-          <div className="nexus-hq-consoleShell__missionCell">
-            <span className="nexus-hq-consoleShell__missionLabel">Command note</span>
-            <strong className="nexus-hq-consoleShell__missionValue">{commandTempo}</strong>
-            <span className="nexus-hq-consoleShell__missionNote">{roomMissionNote}</span>
-          </div>
-        </div>
-        ) : null}
+            {hqRoomMode === "command-room" ? (
+              <div className="nexus-hq-consoleShell__missionRail">
+                <div className="nexus-hq-consoleShell__missionCell">
+                  <span className="nexus-hq-consoleShell__missionLabel">
+                    State
+                  </span>
+                  <strong className="nexus-hq-consoleShell__missionValue">
+                    {roomMissionState}
+                  </strong>
+                  <span className="nexus-hq-consoleShell__missionNote">
+                    {roomMissionLabel}
+                  </span>
+                </div>
+                <div className="nexus-hq-consoleShell__missionCell">
+                  <span className="nexus-hq-consoleShell__missionLabel">
+                    Front
+                  </span>
+                  <strong className="nexus-hq-consoleShell__missionValue">
+                    {primaryFront.label}
+                  </strong>
+                  <span className="nexus-hq-consoleShell__missionNote">
+                    {primaryFront.note}
+                  </span>
+                </div>
+                <div className="nexus-hq-consoleShell__missionCell">
+                  <span className="nexus-hq-consoleShell__missionLabel">
+                    Runtime
+                  </span>
+                  <strong className="nexus-hq-consoleShell__missionValue">
+                    {runtimeStatusLabel}
+                  </strong>
+                  <span className="nexus-hq-consoleShell__missionNote">
+                    {runtimePhaseLabel}
+                  </span>
+                </div>
+                <div className="nexus-hq-consoleShell__missionCell">
+                  <span className="nexus-hq-consoleShell__missionLabel">
+                    Command note
+                  </span>
+                  <strong className="nexus-hq-consoleShell__missionValue">
+                    {commandTempo}
+                  </strong>
+                  <span className="nexus-hq-consoleShell__missionNote">
+                    {roomMissionNote}
+                  </span>
+                </div>
+              </div>
+            ) : null}
 
-        {hqRoomMode === "command-room" ? (
-          <div
-            className="nexus-hq-consoleShell__briefings"
-            style={{ position: "absolute", right: 12, top: 52, zIndex: 55 }}
-          >
-            <ModeBriefingPanel onOpenTab={onOpenBriefingTab} />
-          </div>
-        ) : null}
+            {hqRoomMode === "command-room" ? (
+              <div
+                className="nexus-hq-consoleShell__briefings"
+                style={{ position: "absolute", right: 12, top: 52, zIndex: 55 }}
+              >
+                <ModeBriefingPanel onOpenTab={onOpenBriefingTab} />
+              </div>
+            ) : null}
           </>
         ) : (
           <div
@@ -1324,7 +1366,6 @@ export default function HQConsoleShellSection({
           </div>
         )}
       </div>
-
     </>
   );
 }

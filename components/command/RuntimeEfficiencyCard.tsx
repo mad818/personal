@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useStore } from "@/store/useStore";
 import type { AgentEfficiencyMetrics } from "@/store/useStore";
-import { SurfaceCallout, SurfaceEmpty } from "@/components/ui/surfacePrimitives";
+import {
+  SurfaceCallout,
+  SurfaceEmpty,
+} from "@/components/ui/surfacePrimitives";
 
 function fmtChars(value: number): string {
   return `${value.toLocaleString()} ch`;
@@ -17,7 +20,10 @@ function buildRecommendations(efficiency: AgentEfficiencyMetrics) {
     detail: string;
   }> = [];
 
-  if (efficiency.toolCatalogChars >= 14000 || efficiency.toolCatalogCount >= 16) {
+  if (
+    efficiency.toolCatalogChars >= 14000 ||
+    efficiency.toolCatalogCount >= 16
+  ) {
     notes.push({
       id: "tool-pack-heavy",
       tone: "warning",
@@ -102,7 +108,10 @@ export default function RuntimeEfficiencyCard({
       .map((segment) => `${segment.label}: ${fmtChars(segment.value)}`)
       .join(", ");
     const recommendationSummary = summary.recommendations
-      .map((recommendation) => `- ${recommendation.title}: ${recommendation.detail}`)
+      .map(
+        (recommendation) =>
+          `- ${recommendation.title}: ${recommendation.detail}`,
+      )
       .join("\n");
     return [
       "Runtime efficiency summary",

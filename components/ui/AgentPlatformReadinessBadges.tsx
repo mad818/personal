@@ -42,7 +42,9 @@ export function AgentPlatformReadinessBadges({
         MCP {mcpReady ? "live" : "descriptor"}
       </ShellBadge>
       {!compact && timesfmReady && readiness?.timesfm?.endpointUrl ? (
-        <span style={{ fontSize: "10px", color: "var(--text3)", width: "100%" }}>
+        <span
+          style={{ fontSize: "10px", color: "var(--text3)", width: "100%" }}
+        >
           Endpoint: {readiness.timesfm.endpointUrl}
         </span>
       ) : null}

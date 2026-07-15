@@ -170,9 +170,12 @@ export default function CVEFeed() {
         }}
       >
         <div style={{ fontSize: "32px", marginBottom: "10px" }}>🔒</div>
-        <div style={{ color: "var(--flo)", marginBottom: "8px" }}>{cveFetchError}</div>
+        <div style={{ color: "var(--flo)", marginBottom: "8px" }}>
+          {cveFetchError}
+        </div>
         <div style={{ fontSize: "11px", color: "var(--text3)" }}>
-          Check network access or add an NVD API key in Settings, then refresh CYBER.
+          Check network access or add an NVD API key in Settings, then refresh
+          CYBER.
         </div>
       </div>
     );

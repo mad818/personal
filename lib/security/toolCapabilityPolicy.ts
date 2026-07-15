@@ -88,7 +88,8 @@ export function getToolCapabilityClass(tool: string): ToolCapabilityClass {
 export function requiresToolStepUp(
   toolOrCapability: string | ToolCapabilityClass,
 ) {
-  const capability = TOOL_CAPABILITY_REGISTRY[toolOrCapability] ?? toolOrCapability;
+  const capability =
+    TOOL_CAPABILITY_REGISTRY[toolOrCapability] ?? toolOrCapability;
   return capability === "mutate" || capability === "exec";
 }
 
@@ -97,14 +98,15 @@ export async function readProtectedActionContext(
 ): Promise<ProtectedActionContext> {
   const stepUpState = await readStepUpAuthState(req);
   const connectorPolicy = readConnectorPolicy();
-  const connectorEnabled = Object.values(connectorPolicy).filter(Boolean).length;
+  const connectorEnabled =
+    Object.values(connectorPolicy).filter(Boolean).length;
   const connectorTotal = Object.keys(connectorPolicy).length;
   const networkMode =
     parseNetworkModeCookie(req.cookies.get(NEXUS_NETWORK_MODE_COOKIE)?.value) ??
     readNetworkMode();
   const highRiskEnabled =
     parseBooleanPolicyCookie(req.cookies.get(NEXUS_HIGH_RISK_COOKIE)?.value) ??
-    (process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true");
+    process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true";
 
   return {
     session: stepUpState.session,
@@ -165,7 +167,9 @@ export function resolveProtectedActionBlockedReason(
     case "connector_limited":
       return "connector_limited";
     case "blocked_policy":
-      return options.phoneTokenLimited ? "phone_token_limited" : "blocked_policy";
+      return options.phoneTokenLimited
+        ? "phone_token_limited"
+        : "blocked_policy";
     default:
       return undefined;
   }

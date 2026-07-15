@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback"
+import { useEffect, useMemo, useState } from "react";
+import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback";
 import {
   areVehicleChecklistStatesEqual,
   getVehicleFirstHardwareDayProgress,
@@ -9,43 +9,55 @@ import {
   VEHICLE_FIRST_HARDWARE_DAY_CATEGORY_LABELS,
   VEHICLE_FIRST_HARDWARE_DAY_CHECKLIST,
   VEHICLE_FIRST_HARDWARE_DAY_RECOVERY_FLOWS,
-} from "@/lib/vehicle/hardwareReadiness"
-import { useStore } from "@/store/useStore"
+} from "@/lib/vehicle/hardwareReadiness";
+import { useStore } from "@/store/useStore";
 
 function buildHardwareDayRunbook(checklistState: Record<string, boolean>) {
   const lines = [
     `# First Hardware Day — ${new Date().toISOString().slice(0, 16).replace("T", " ")}`,
     "",
     "## Checklist",
-  ]
+  ];
 
-  Object.entries(VEHICLE_FIRST_HARDWARE_DAY_CATEGORY_LABELS).forEach(([category, label]) => {
-    const items = VEHICLE_FIRST_HARDWARE_DAY_CHECKLIST.filter((item) => item.category === category)
-    if (!items.length) return
-    lines.push(`### ${label}`)
-    items.forEach((item) => {
-      lines.push(`- [${checklistState[item.id] ? "x" : " "}] ${item.label} — ${item.detail}`)
-    })
-    lines.push("")
-  })
+  Object.entries(VEHICLE_FIRST_HARDWARE_DAY_CATEGORY_LABELS).forEach(
+    ([category, label]) => {
+      const items = VEHICLE_FIRST_HARDWARE_DAY_CHECKLIST.filter(
+        (item) => item.category === category,
+      );
+      if (!items.length) return;
+      lines.push(`### ${label}`);
+      items.forEach((item) => {
+        lines.push(
+          `- [${checklistState[item.id] ? "x" : " "}] ${item.label} — ${item.detail}`,
+        );
+      });
+      lines.push("");
+    },
+  );
 
-  lines.push("## Recovery flows")
+  lines.push("## Recovery flows");
   VEHICLE_FIRST_HARDWARE_DAY_RECOVERY_FLOWS.forEach((flow) => {
-    lines.push(`### ${flow.label}`)
-    lines.push(`Trigger: ${flow.trigger}`)
-    flow.steps.forEach((step) => lines.push(`- ${step}`))
-    lines.push("")
-  })
+    lines.push(`### ${flow.label}`);
+    lines.push(`Trigger: ${flow.trigger}`);
+    flow.steps.forEach((step) => lines.push(`- ${step}`));
+    lines.push("");
+  });
 
-  return lines.join("\n")
+  return lines.join("\n");
 }
 
 export default function FirstHardwareDayCard() {
-  const checklistState = useStore((state) => state.settings.vehicleFirstHardwareChecklist ?? {})
-  const toggleItem = useStore((state) => state.toggleVehicleFirstHardwareChecklistItem)
-  const resetChecklist = useStore((state) => state.resetVehicleFirstHardwareChecklist)
-  const updateSettings = useStore((state) => state.updateSettings)
-  const [healedState, setHealedState] = useState(false)
+  const checklistState = useStore(
+    (state) => state.settings.vehicleFirstHardwareChecklist ?? {},
+  );
+  const toggleItem = useStore(
+    (state) => state.toggleVehicleFirstHardwareChecklistItem,
+  );
+  const resetChecklist = useStore(
+    (state) => state.resetVehicleFirstHardwareChecklist,
+  );
+  const updateSettings = useStore((state) => state.updateSettings);
+  const [healedState, setHealedState] = useState(false);
 
   const normalizedChecklistState = useMemo(
     () =>
@@ -54,7 +66,7 @@ export default function FirstHardwareDayCard() {
         VEHICLE_FIRST_HARDWARE_DAY_CHECKLIST.map((item) => item.id),
       ),
     [checklistState],
-  )
+  );
 
   useEffect(() => {
     if (
@@ -63,16 +75,24 @@ export default function FirstHardwareDayCard() {
         normalizedChecklistState,
         VEHICLE_FIRST_HARDWARE_DAY_CHECKLIST.map((item) => item.id),
       )
-    ) return
-    updateSettings({ vehicleFirstHardwareChecklist: normalizedChecklistState })
-    setHealedState(true)
-  }, [checklistState, normalizedChecklistState, updateSettings])
+    )
+      return;
+    updateSettings({ vehicleFirstHardwareChecklist: normalizedChecklistState });
+    setHealedState(true);
+  }, [checklistState, normalizedChecklistState, updateSettings]);
 
-  const progress = getVehicleFirstHardwareDayProgress(normalizedChecklistState)
+  const progress = getVehicleFirstHardwareDayProgress(normalizedChecklistState);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          flexWrap: "wrap",
+        }}
+      >
         <div
           style={{
             fontSize: "10px",
@@ -110,7 +130,13 @@ export default function FirstHardwareDayCard() {
             State repaired
           </span>
         ) : null}
-        <span style={{ marginLeft: "auto", fontSize: "10px", color: "var(--text3)" }}>
+        <span
+          style={{
+            marginLeft: "auto",
+            fontSize: "10px",
+            color: "var(--text3)",
+          }}
+        >
           {progress.completedCount}/{progress.totalCount} complete
         </span>
       </div>
@@ -127,7 +153,8 @@ export default function FirstHardwareDayCard() {
           style={{
             width: `${progress.percent}%`,
             height: "100%",
-            background: progress.remainingCount === 0 ? "#10b981" : "var(--accent)",
+            background:
+              progress.remainingCount === 0 ? "#10b981" : "var(--accent)",
             transition: "width var(--t)",
           }}
         />
@@ -142,7 +169,8 @@ export default function FirstHardwareDayCard() {
         }}
       >
         <span style={{ fontSize: "11px", color: "var(--text2)" }}>
-          Treat the first hardware day as a calm bring-up and evidence-capture day, not a performance day.
+          Treat the first hardware day as a calm bring-up and evidence-capture
+          day, not a performance day.
         </span>
         <button
           type="button"
@@ -157,78 +185,110 @@ export default function FirstHardwareDayCard() {
         >
           Copy runbook
         </button>
-        <button type="button" onClick={resetChecklist} className="nexus-shell-button">
+        <button
+          type="button"
+          onClick={resetChecklist}
+          className="nexus-shell-button"
+        >
           Reset
         </button>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-        {Object.entries(VEHICLE_FIRST_HARDWARE_DAY_CATEGORY_LABELS).map(([category, label]) => {
-          const items = VEHICLE_FIRST_HARDWARE_DAY_CHECKLIST.filter((item) => item.category === category)
-          if (!items.length) return null
-          const checked = items.filter((item) => normalizedChecklistState[item.id]).length
+        {Object.entries(VEHICLE_FIRST_HARDWARE_DAY_CATEGORY_LABELS).map(
+          ([category, label]) => {
+            const items = VEHICLE_FIRST_HARDWARE_DAY_CHECKLIST.filter(
+              (item) => item.category === category,
+            );
+            if (!items.length) return null;
+            const checked = items.filter(
+              (item) => normalizedChecklistState[item.id],
+            ).length;
 
-          return (
-            <div
-              key={category}
-              style={{
-                background: "var(--surf2)",
-                border: "1px solid var(--border)",
-                borderRadius: "var(--rs)",
-                padding: "10px 12px",
-              }}
-            >
+            return (
               <div
+                key={category}
                 style={{
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  color: "var(--text3)",
-                  marginBottom: "8px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
+                  background: "var(--surf2)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--rs)",
+                  padding: "10px 12px",
                 }}
               >
-                {label}
-                <span style={{ fontSize: "9px", color: checked === items.length ? "#10b981" : "var(--text3)" }}>
-                  {checked}/{items.length}
-                </span>
-              </div>
-              {items.map((item) => (
-                <label
-                  key={item.id}
+                <div
                   style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: "8px",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    color: "var(--text3)",
                     marginBottom: "8px",
-                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
                   }}
                 >
-                  <input
-                    type="checkbox"
-                    checked={Boolean(normalizedChecklistState[item.id])}
-                    onChange={() => toggleItem(item.id)}
-                    style={{ marginTop: "2px", accentColor: "var(--accent)", flexShrink: 0 }}
-                  />
-                  <span style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                  {label}
+                  <span
+                    style={{
+                      fontSize: "9px",
+                      color:
+                        checked === items.length ? "#10b981" : "var(--text3)",
+                    }}
+                  >
+                    {checked}/{items.length}
+                  </span>
+                </div>
+                {items.map((item) => (
+                  <label
+                    key={item.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "8px",
+                      marginBottom: "8px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={Boolean(normalizedChecklistState[item.id])}
+                      onChange={() => toggleItem(item.id)}
+                      style={{
+                        marginTop: "2px",
+                        accentColor: "var(--accent)",
+                        flexShrink: 0,
+                      }}
+                    />
                     <span
                       style={{
-                        fontSize: "11px",
-                        lineHeight: 1.4,
-                        color: normalizedChecklistState[item.id] ? "var(--text3)" : "var(--text2)",
-                        textDecoration: normalizedChecklistState[item.id] ? "line-through" : "none",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "2px",
                       }}
                     >
-                      {item.label}
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          lineHeight: 1.4,
+                          color: normalizedChecklistState[item.id]
+                            ? "var(--text3)"
+                            : "var(--text2)",
+                          textDecoration: normalizedChecklistState[item.id]
+                            ? "line-through"
+                            : "none",
+                        }}
+                      >
+                        {item.label}
+                      </span>
+                      <span style={{ fontSize: "9px", color: "var(--text3)" }}>
+                        {item.detail}
+                      </span>
                     </span>
-                    <span style={{ fontSize: "9px", color: "var(--text3)" }}>{item.detail}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          )
-        })}
+                  </label>
+                ))}
+              </div>
+            );
+          },
+        )}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -245,10 +305,22 @@ export default function FirstHardwareDayCard() {
               gap: "6px",
             }}
           >
-            <div style={{ fontSize: "11px", fontWeight: 800, color: "var(--text)" }}>
+            <div
+              style={{
+                fontSize: "11px",
+                fontWeight: 800,
+                color: "var(--text)",
+              }}
+            >
               {flow.label}
             </div>
-            <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}>
+            <div
+              style={{
+                fontSize: "10px",
+                color: "var(--text3)",
+                lineHeight: 1.55,
+              }}
+            >
               {flow.trigger}
             </div>
             <ul
@@ -271,7 +343,9 @@ export default function FirstHardwareDayCard() {
               type="button"
               onClick={() =>
                 void copyTextWithFeedback(
-                  [flow.label, `Trigger: ${flow.trigger}`, ...flow.steps].join("\n"),
+                  [flow.label, `Trigger: ${flow.trigger}`, ...flow.steps].join(
+                    "\n",
+                  ),
                   `${flow.label} recovery flow`,
                 )
               }
@@ -284,5 +358,5 @@ export default function FirstHardwareDayCard() {
         ))}
       </div>
     </div>
-  )
+  );
 }

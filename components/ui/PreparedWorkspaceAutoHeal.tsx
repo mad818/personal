@@ -3,7 +3,10 @@
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { pruneUnfinishedSessions } from "@/lib/assistantSessionMemory";
-import { isExactSessionHref, normalizeSessionHref } from "@/lib/exactSessionLinks";
+import {
+  isExactSessionHref,
+  normalizeSessionHref,
+} from "@/lib/exactSessionLinks";
 import { resolveAssistantSessionHref } from "@/lib/assistantSessionRecovery";
 import { useStore } from "@/store/useStore";
 
@@ -13,13 +16,17 @@ export default function PreparedWorkspaceAutoHeal() {
   const searchParams = useSearchParams();
   const preparedWorkspace = useStore((state) => state.preparedWorkspace);
   const unfinishedSessions = useStore((state) => state.unfinishedSessions);
-  const touchUnfinishedSession = useStore((state) => state.touchUnfinishedSession);
+  const touchUnfinishedSession = useStore(
+    (state) => state.touchUnfinishedSession,
+  );
   const pendingHrefRef = useRef<string | null>(null);
   const activeHrefRef = useRef<string | null>(null);
 
   const currentHref = useMemo(() => {
     if (!pathname) return "";
-    return searchParams?.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+    return searchParams?.toString()
+      ? `${pathname}?${searchParams.toString()}`
+      : pathname;
   }, [pathname, searchParams]);
 
   const normalizedCurrentHref = useMemo(
@@ -92,12 +99,7 @@ export default function PreparedWorkspaceAutoHeal() {
       window.history.replaceState(window.history.state, "", recoveryHref);
     }
     router.replace(recoveryHref);
-  }, [
-    normalizedCurrentHref,
-    pathname,
-    recoveryHref,
-    router,
-  ]);
+  }, [normalizedCurrentHref, pathname, recoveryHref, router]);
 
   return null;
 }

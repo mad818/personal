@@ -613,7 +613,10 @@ export default function ResourcesWorkbench() {
                   <ShellSegmentedTabs
                     items={UTILITY_VIEWS}
                     active={
-                      activeView as Extract<View, "registry" | "kits" | "escape">
+                      activeView as Extract<
+                        View,
+                        "registry" | "kits" | "escape"
+                      >
                     }
                     onChange={handleSubviewChange}
                     minButtonWidth={110}

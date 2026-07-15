@@ -922,11 +922,7 @@ function Hero({ accessHref }: { accessHref: string }) {
   );
 }
 
-function HomefrontCommandBackdrop({
-  reduceMotion,
-}: {
-  reduceMotion: boolean;
-}) {
+function HomefrontCommandBackdrop({ reduceMotion }: { reduceMotion: boolean }) {
   const patrolTransition = reduceMotion
     ? { duration: 0 }
     : {
@@ -952,10 +948,13 @@ function HomefrontCommandBackdrop({
     }
 
     setDroneSignal({ id: Date.now(), x, y });
-    signalTimeoutRef.current = setTimeout(() => {
-      setDroneSignal(null);
-      signalTimeoutRef.current = null;
-    }, reduceMotion ? 520 : 950);
+    signalTimeoutRef.current = setTimeout(
+      () => {
+        setDroneSignal(null);
+        signalTimeoutRef.current = null;
+      },
+      reduceMotion ? 520 : 950,
+    );
   };
 
   useEffect(() => {
@@ -1273,7 +1272,10 @@ function GuardianProtocolSection() {
                 </h3>
                 <div className="mt-9 space-y-4">
                   {GUARDIAN_PROTOCOL_TIMELINE.map(([time, event], index) => (
-                    <div key={event} className="grid grid-cols-[64px_1fr] gap-4">
+                    <div
+                      key={event}
+                      className="grid grid-cols-[64px_1fr] gap-4"
+                    >
                       <div className="text-xs text-white/38 font-body">
                         {time}
                       </div>
@@ -1308,9 +1310,7 @@ function GuardianProtocolSection() {
                     <motion.div
                       key={item}
                       animate={
-                        reduceMotion
-                          ? undefined
-                          : { opacity: [0.58, 1, 0.7] }
+                        reduceMotion ? undefined : { opacity: [0.58, 1, 0.7] }
                       }
                       className="rounded-full border border-white/10 px-3 py-2 text-center text-[10px] uppercase tracking-[0.16em] text-white/58 font-body"
                       transition={{

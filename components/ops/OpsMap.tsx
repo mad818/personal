@@ -62,7 +62,9 @@ async function fetchQuakes(): Promise<Quake[]> {
         place: eq.place ?? "",
         time: eq.time ?? 0,
       }))
-      .filter((eq: Quake) => Number.isFinite(eq.lat) && Number.isFinite(eq.lng));
+      .filter(
+        (eq: Quake) => Number.isFinite(eq.lat) && Number.isFinite(eq.lng),
+      );
   } catch {
     return [];
   }
@@ -962,7 +964,8 @@ export default function OpsMap() {
         <div
           style={{ marginTop: "6px", fontSize: "10px", color: "var(--text3)" }}
         >
-          Add a NASA FIRMS key in Settings for live fire data. Without one, the layer falls back to sample hotspots.
+          Add a NASA FIRMS key in Settings for live fire data. Without one, the
+          layer falls back to sample hotspots.
         </div>
       )}
       {activeLayers.has("geodep") && (

@@ -641,45 +641,44 @@ export default function WorldTopicHeatmap() {
 
   const savedIds = new Set(savedArticles.map((a) => a.id));
 
-  const fallbackWorldArticles: Article[] = (gdeltEvents as Record<
-    string,
-    unknown
-  >[]).reduce<Article[]>((acc, event, index) => {
-      const title = typeof event.title === "string" ? event.title : "";
-      const link =
-        typeof event.url === "string"
-          ? event.url
-          : typeof event.link === "string"
-            ? event.link
-            : "";
-      if (!title || !link) return acc;
-      const article = {
-        id: `gdelt-world-${index}`,
-        title,
-        desc: "",
-        link,
-        date:
-          typeof event.seendate === "string"
-            ? event.seendate
-            : typeof event.date === "string"
+  const fallbackWorldArticles: Article[] = (
+    gdeltEvents as Record<string, unknown>[]
+  ).reduce<Article[]>((acc, event, index) => {
+    const title = typeof event.title === "string" ? event.title : "";
+    const link =
+      typeof event.url === "string"
+        ? event.url
+        : typeof event.link === "string"
+          ? event.link
+          : "";
+    if (!title || !link) return acc;
+    const article = {
+      id: `gdelt-world-${index}`,
+      title,
+      desc: "",
+      link,
+      date:
+        typeof event.seendate === "string"
+          ? event.seendate
+          : typeof event.date === "string"
             ? event.date
-              : "",
-        src: "GDELT",
-        cat: "world",
-      } satisfies Article;
-      acc.push(article);
-      return acc;
-    }, []);
+            : "",
+      src: "GDELT",
+      cat: "world",
+    } satisfies Article;
+    acc.push(article);
+    return acc;
+  }, []);
 
   // Filter to world-relevant articles (cat=world or matches any world keyword)
-  const worldArticles = (articles.length > 0 ? articles : fallbackWorldArticles).filter(
-    (a) => {
-      if (a.cat === "world") return true;
-      const text = (a.title + " " + (a.desc ?? "")).toLowerCase();
-      const allKw = WORLD_TOPICS.flatMap((t) => t.keywords);
-      return allKw.filter((k) => text.includes(k)).length >= 2;
-    },
-  );
+  const worldArticles = (
+    articles.length > 0 ? articles : fallbackWorldArticles
+  ).filter((a) => {
+    if (a.cat === "world") return true;
+    const text = (a.title + " " + (a.desc ?? "")).toLowerCase();
+    const allKw = WORLD_TOPICS.flatMap((t) => t.keywords);
+    return allKw.filter((k) => text.includes(k)).length >= 2;
+  });
 
   // Bucket by topic
   const byTopic: Record<string, Article[]> = {};
@@ -727,8 +726,7 @@ export default function WorldTopicHeatmap() {
         }}
       >
         <span style={{ fontSize: "11px", color: "var(--text3)" }}>
-          {displayCount} geopolitical signals · {activeTopics} active
-          zones
+          {displayCount} geopolitical signals · {activeTopics} active zones
         </span>
         <span
           style={{

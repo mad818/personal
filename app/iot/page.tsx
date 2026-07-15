@@ -19,9 +19,12 @@ const AutomationRules = dynamic(
   () => import("@/components/iot/AutomationRules"),
   { ssr: false },
 );
-const DeviceRegistry = dynamic(() => import("@/components/iot/DeviceRegistry"), {
-  ssr: false,
-});
+const DeviceRegistry = dynamic(
+  () => import("@/components/iot/DeviceRegistry"),
+  {
+    ssr: false,
+  },
+);
 const DeviceStatusMatrix = dynamic(
   () => import("@/components/iot/DeviceStatusMatrix"),
   { ssr: false },
@@ -79,9 +82,7 @@ export default function IoTPage() {
 
         <ShellGrid columns="minmax(0, 1fr) minmax(0, 1fr)" gap="16px">
           <ShellPanel>
-            <SectionLabel detail="Sensor intake">
-              Sensor dashboard
-            </SectionLabel>
+            <SectionLabel detail="Sensor intake">Sensor dashboard</SectionLabel>
             <SensorDashboard />
           </ShellPanel>
           <ShellPanel>

@@ -36,7 +36,8 @@ export default function IntelOnlyAgentGate({
       <div className="nexus-intel-only-gate__copy">
         <strong>{posture.headline}</strong>
         <p>{posture.detail}</p>
-        {posture.requestedModel && posture.resolvedModel !== posture.requestedModel ? (
+        {posture.requestedModel &&
+        posture.resolvedModel !== posture.requestedModel ? (
           <p className="nexus-intel-only-gate__model">
             Configured {posture.requestedModel} · resolved{" "}
             {posture.resolvedModel ?? "none"}

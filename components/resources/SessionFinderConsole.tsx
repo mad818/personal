@@ -117,7 +117,9 @@ export default function SessionFinderConsole() {
         />
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           <ShellBadge tone="accent">{results.length} results</ShellBadge>
-          <ShellBadge tone="muted">Exact panels ranked above broad routes</ShellBadge>
+          <ShellBadge tone="muted">
+            Exact panels ranked above broad routes
+          </ShellBadge>
           <ShellBadge tone="muted">Overview + working context</ShellBadge>
           <ShellBadge tone="muted">Local memory only</ShellBadge>
         </div>
@@ -138,75 +140,123 @@ export default function SessionFinderConsole() {
                 primaryTarget.href !== primaryTarget.overviewHref;
               return (
                 <div style={{ display: "grid", gap: "10px" }}>
-              <div style={{ display: "grid", gap: "6px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: "8px",
-                    alignItems: "flex-start",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
-                    {entry.title}
-                  </div>
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                    <ShellBadge tone={primaryTarget.exact ? "accent" : "muted"}>
-                      {primaryTarget.targetLabel}
-                    </ShellBadge>
-                    <ShellBadge tone="muted">{entry.source}</ShellBadge>
-                  </div>
-                </div>
-                <div style={{ fontSize: "11px", color: "var(--text2)", lineHeight: 1.55 }}>
-                  {entry.detail}
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  onClick={() => handleOpen(primaryTarget.href)}
-                  className="nexus-shell-button"
-                  style={{ minHeight: "30px", padding: "0 12px", fontSize: "11px" }}
-                >
-                  {primaryTarget.label}
-                </button>
-                <ShellBadge tone="muted">{entry.kind}</ShellBadge>
-                {primaryTarget.exact && primaryTarget.href !== primaryTarget.overviewHref ? (
-                  <ShellBadge tone="accent">
-                    Continuation-ready
-                  </ShellBadge>
-                ) : null}
-                {entry.score >= 80 ? <ShellBadge tone="success">Strong match</ShellBadge> : null}
-              </div>
-              {primaryTarget.detail ? (
-                <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.55 }}>
-                  {primaryTarget.detail}
-                </div>
-              ) : null}
-              {showOverviewOverflow ? (
-                <details style={{ fontSize: "11px", color: "var(--text3)" }}>
-                  <summary style={{ cursor: "pointer", userSelect: "none" }}>
-                    View overview route
-                  </summary>
-                  <div style={{ display: "grid", gap: "8px", marginTop: "8px" }}>
-                    <div style={{ lineHeight: 1.55 }}>
-                      {primaryTarget.overviewLabel} stays available if you want the broader lane
-                      instead of the strongest exact session.
+                  <div style={{ display: "grid", gap: "6px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: "8px",
+                        alignItems: "flex-start",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          color: "var(--text)",
+                        }}
+                      >
+                        {entry.title}
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "6px",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <ShellBadge
+                          tone={primaryTarget.exact ? "accent" : "muted"}
+                        >
+                          {primaryTarget.targetLabel}
+                        </ShellBadge>
+                        <ShellBadge tone="muted">{entry.source}</ShellBadge>
+                      </div>
                     </div>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--text2)",
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      {entry.detail}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}
+                  >
                     <button
                       type="button"
-                      onClick={() => handleOpen(primaryTarget.overviewHref)}
+                      onClick={() => handleOpen(primaryTarget.href)}
                       className="nexus-shell-button"
-                      style={{ minHeight: "28px", padding: "0 10px", fontSize: "11px" }}
+                      style={{
+                        minHeight: "30px",
+                        padding: "0 12px",
+                        fontSize: "11px",
+                      }}
                     >
-                      Open overview
+                      {primaryTarget.label}
                     </button>
+                    <ShellBadge tone="muted">{entry.kind}</ShellBadge>
+                    {primaryTarget.exact &&
+                    primaryTarget.href !== primaryTarget.overviewHref ? (
+                      <ShellBadge tone="accent">Continuation-ready</ShellBadge>
+                    ) : null}
+                    {entry.score >= 80 ? (
+                      <ShellBadge tone="success">Strong match</ShellBadge>
+                    ) : null}
                   </div>
-                </details>
-              ) : null}
-            </div>
+                  {primaryTarget.detail ? (
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--text3)",
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      {primaryTarget.detail}
+                    </div>
+                  ) : null}
+                  {showOverviewOverflow ? (
+                    <details
+                      style={{ fontSize: "11px", color: "var(--text3)" }}
+                    >
+                      <summary
+                        style={{ cursor: "pointer", userSelect: "none" }}
+                      >
+                        View overview route
+                      </summary>
+                      <div
+                        style={{
+                          display: "grid",
+                          gap: "8px",
+                          marginTop: "8px",
+                        }}
+                      >
+                        <div style={{ lineHeight: 1.55 }}>
+                          {primaryTarget.overviewLabel} stays available if you
+                          want the broader lane instead of the strongest exact
+                          session.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleOpen(primaryTarget.overviewHref)}
+                          className="nexus-shell-button"
+                          style={{
+                            minHeight: "28px",
+                            padding: "0 10px",
+                            fontSize: "11px",
+                          }}
+                        >
+                          Open overview
+                        </button>
+                      </div>
+                    </details>
+                  ) : null}
+                </div>
               );
             })()}
           </article>

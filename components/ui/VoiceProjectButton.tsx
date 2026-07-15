@@ -23,7 +23,9 @@ export default function VoiceProjectButton({
 
   const existingProject = useMemo(() => {
     if (!sourceKey) return null;
-    return voiceProjects.find((project) => project.sourceKey === sourceKey) ?? null;
+    return (
+      voiceProjects.find((project) => project.sourceKey === sourceKey) ?? null
+    );
   }, [sourceKey, voiceProjects]);
 
   if (!text.trim()) return null;
@@ -42,7 +44,9 @@ export default function VoiceProjectButton({
           });
         upsertVoiceProject(project);
         setActiveVoiceProjectId(project.id);
-        router.push(`/resources?view=voice-lab&voiceProject=${encodeURIComponent(project.id)}`);
+        router.push(
+          `/resources?view=voice-lab&voiceProject=${encodeURIComponent(project.id)}`,
+        );
       }}
       style={{
         padding: "6px 10px",

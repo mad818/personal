@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions";
 import { ShellBadge } from "@/components/ui/shell";
 import { apiFetch } from "@/lib/apiFetch";
-import type { EvidenceStrength, ResearchSourceRef } from "@/lib/researchSources";
+import type {
+  EvidenceStrength,
+  ResearchSourceRef,
+} from "@/lib/researchSources";
 import {
   buildMarketReviewCoachSuggestions,
   buildCompiledPageHref,
@@ -76,9 +79,13 @@ export default function MarketReviewCard() {
 
     const loadPages = async () => {
       try {
-        const response = await apiFetch("/api/memory/pages?limit=12&workflowId=market-review");
+        const response = await apiFetch(
+          "/api/memory/pages?limit=12&workflowId=market-review",
+        );
         if (!response.ok) return;
-        const payload = (await response.json()) as { pages?: MarketReviewPage[] };
+        const payload = (await response.json()) as {
+          pages?: MarketReviewPage[];
+        };
         if (!cancelled && Array.isArray(payload.pages)) {
           setPages(payload.pages);
         }
@@ -104,7 +111,9 @@ export default function MarketReviewCard() {
   );
   const strongestPrior = rankedPages[0] ?? null;
   const newestReview = useMemo(
-    () => [...pages].sort((left, right) => right.updatedAt - left.updatedAt)[0] ?? null,
+    () =>
+      [...pages].sort((left, right) => right.updatedAt - left.updatedAt)[0] ??
+      null,
     [pages],
   );
   const coachSuggestions = useMemo(
@@ -139,7 +148,9 @@ export default function MarketReviewCard() {
   };
 
   const seedCoachFields = () => {
-    setDraft((current) => seedMarketReviewCoachFields(current, coachSuggestions));
+    setDraft((current) =>
+      seedMarketReviewCoachFields(current, coachSuggestions),
+    );
     setStatus("idle");
   };
 
@@ -205,8 +216,9 @@ export default function MarketReviewCard() {
       </div>
 
       <div className="nexus-shell-copy nexus-shell-copy--compact">
-        Capture one thesis-led review at a time. Prior setups stay reopenable in VAULT so Alpha can support
-        reflection and continuity without drifting into autonomous execution.
+        Capture one thesis-led review at a time. Prior setups stay reopenable in
+        VAULT so Alpha can support reflection and continuity without drifting
+        into autonomous execution.
       </div>
 
       {strongestPrior || newestReview ? (
@@ -237,7 +249,11 @@ export default function MarketReviewCard() {
                 type="button"
                 onClick={reuseStrongestPrior}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
                 title={strongestPrior.summary}
               >
                 Reuse strongest prior
@@ -248,7 +264,11 @@ export default function MarketReviewCard() {
                 type="button"
                 onClick={() => openExactReview(newestReview)}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
                 title={newestReview.title}
               >
                 Newest review
@@ -256,7 +276,9 @@ export default function MarketReviewCard() {
             ) : null}
             <button
               type="button"
-              onClick={() => router.push("/alpha?view=watchlist&focus=alpha-market-review")}
+              onClick={() =>
+                router.push("/alpha?view=watchlist&focus=alpha-market-review")
+              }
               className="nexus-shell-button"
               style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
             >
@@ -264,8 +286,11 @@ export default function MarketReviewCard() {
             </button>
           </div>
           {reusedPage ? (
-            <div style={{ fontSize: "10px", color: "#fde68a", lineHeight: 1.45 }}>
-              Draft seeded from {reusedPage.title}. Saving this review will keep a Vault artifact reference to that prior note.
+            <div
+              style={{ fontSize: "10px", color: "#fde68a", lineHeight: 1.45 }}
+            >
+              Draft seeded from {reusedPage.title}. Saving this review will keep
+              a Vault artifact reference to that prior note.
             </div>
           ) : null}
         </div>
@@ -282,13 +307,25 @@ export default function MarketReviewCard() {
             gap: "6px",
           }}
         >
-          <div style={{ fontSize: "10px", fontWeight: 700, color: "#a7f3d0", textTransform: "uppercase", letterSpacing: "0.6px" }}>
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 700,
+              color: "#a7f3d0",
+              textTransform: "uppercase",
+              letterSpacing: "0.6px",
+            }}
+          >
             Strongest prior review
           </div>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+          <div
+            style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}
+          >
             {strongestPrior.title}
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}>
+          <div
+            style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}
+          >
             {strongestPrior.summary}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -355,7 +392,10 @@ export default function MarketReviewCard() {
           aria-label="Market review invalidation"
           value={draft.invalidation}
           onChange={(event) => {
-            setDraft((current) => ({ ...current, invalidation: event.target.value }));
+            setDraft((current) => ({
+              ...current,
+              invalidation: event.target.value,
+            }));
             setStatus("idle");
           }}
           placeholder="Invalidation"
@@ -376,7 +416,10 @@ export default function MarketReviewCard() {
           type="text"
           value={draft.emotionalPosture}
           onChange={(event) => {
-            setDraft((current) => ({ ...current, emotionalPosture: event.target.value }));
+            setDraft((current) => ({
+              ...current,
+              emotionalPosture: event.target.value,
+            }));
             setStatus("idle");
           }}
           placeholder="Emotional posture"
@@ -386,7 +429,10 @@ export default function MarketReviewCard() {
           aria-label="Market review operator notes"
           value={draft.operatorNotes}
           onChange={(event) => {
-            setDraft((current) => ({ ...current, operatorNotes: event.target.value }));
+            setDraft((current) => ({
+              ...current,
+              operatorNotes: event.target.value,
+            }));
             setStatus("idle");
           }}
           placeholder="Operator notes"
@@ -413,8 +459,11 @@ export default function MarketReviewCard() {
           >
             Postmortem coach
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}>
-            Capture what to repeat, what to avoid, and the next rule so the next thesis reopens a lesson, not only a setup.
+          <div
+            style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}
+          >
+            Capture what to repeat, what to avoid, and the next rule so the next
+            thesis reopens a lesson, not only a setup.
           </div>
           {hasCoachSeedGap ? (
             <div
@@ -427,24 +476,51 @@ export default function MarketReviewCard() {
                 gap: "6px",
               }}
             >
-              <div style={{ fontSize: "10px", fontWeight: 700, color: "#fde68a" }}>
+              <div
+                style={{ fontSize: "10px", fontWeight: 700, color: "#fde68a" }}
+              >
                 Deterministic coach suggestions
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}>
-                <strong style={{ color: "var(--text)" }}>Repeat:</strong> {coachSuggestions.whatToRepeat}
+              <div
+                style={{
+                  fontSize: "10px",
+                  color: "var(--text3)",
+                  lineHeight: 1.45,
+                }}
+              >
+                <strong style={{ color: "var(--text)" }}>Repeat:</strong>{" "}
+                {coachSuggestions.whatToRepeat}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}>
-                <strong style={{ color: "var(--text)" }}>Avoid:</strong> {coachSuggestions.whatToAvoid}
+              <div
+                style={{
+                  fontSize: "10px",
+                  color: "var(--text3)",
+                  lineHeight: 1.45,
+                }}
+              >
+                <strong style={{ color: "var(--text)" }}>Avoid:</strong>{" "}
+                {coachSuggestions.whatToAvoid}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}>
-                <strong style={{ color: "var(--text)" }}>Next rule:</strong> {coachSuggestions.nextRule}
+              <div
+                style={{
+                  fontSize: "10px",
+                  color: "var(--text3)",
+                  lineHeight: 1.45,
+                }}
+              >
+                <strong style={{ color: "var(--text)" }}>Next rule:</strong>{" "}
+                {coachSuggestions.nextRule}
               </div>
               <div>
                 <button
                   type="button"
                   onClick={seedCoachFields}
                   className="nexus-shell-button"
-                  style={{ minHeight: "30px", padding: "0 10px", fontSize: "10px" }}
+                  style={{
+                    minHeight: "30px",
+                    padding: "0 10px",
+                    fontSize: "10px",
+                  }}
                 >
                   Seed coach fields
                 </button>
@@ -455,7 +531,10 @@ export default function MarketReviewCard() {
             aria-label="Market review repeat lesson"
             value={draft.whatToRepeat}
             onChange={(event) => {
-              setDraft((current) => ({ ...current, whatToRepeat: event.target.value }));
+              setDraft((current) => ({
+                ...current,
+                whatToRepeat: event.target.value,
+              }));
               setStatus("idle");
             }}
             placeholder="What to repeat"
@@ -465,7 +544,10 @@ export default function MarketReviewCard() {
             aria-label="Market review avoid lesson"
             value={draft.whatToAvoid}
             onChange={(event) => {
-              setDraft((current) => ({ ...current, whatToAvoid: event.target.value }));
+              setDraft((current) => ({
+                ...current,
+                whatToAvoid: event.target.value,
+              }));
               setStatus("idle");
             }}
             placeholder="What to avoid"
@@ -475,7 +557,10 @@ export default function MarketReviewCard() {
             aria-label="Market review next rule"
             value={draft.nextRule}
             onChange={(event) => {
-              setDraft((current) => ({ ...current, nextRule: event.target.value }));
+              setDraft((current) => ({
+                ...current,
+                nextRule: event.target.value,
+              }));
               setStatus("idle");
             }}
             placeholder="Next rule"
@@ -484,7 +569,14 @@ export default function MarketReviewCard() {
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
         <button
           type="button"
           onClick={() => void saveReview()}
@@ -529,7 +621,9 @@ export default function MarketReviewCard() {
       ) : null}
 
       {status === "error" ? (
-        <div style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}
+        >
           Asset, thesis, and setup are required before the review can be filed.
         </div>
       ) : null}

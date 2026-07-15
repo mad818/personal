@@ -1,6 +1,12 @@
 "use client";
 
-import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
+import {
+  startTransition,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import DataLoadingState from "@/components/ui/DataLoadingState";
 import { ShellBadge, ShellButton, SectionLabel } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
@@ -28,7 +34,9 @@ const NODE_TONE: Record<WorkflowNode["type"], string> = {
 type WorkflowAction = "save" | "clone" | "run" | "copy";
 
 function nodeLabel(type: WorkflowNode["type"]) {
-  return type.replace(/(^\w|-\w)/g, (chunk) => chunk.replace("-", "").toUpperCase());
+  return type.replace(/(^\w|-\w)/g, (chunk) =>
+    chunk.replace("-", "").toUpperCase(),
+  );
 }
 
 async function loadJson<T>(url: string): Promise<T> {
@@ -39,7 +47,9 @@ async function loadJson<T>(url: string): Promise<T> {
 
 export default function WorkflowForge() {
   const missionJobs = useStore((s) =>
-    (s.settings.scheduledJobs ?? []).filter((job) => (job.type ?? "mission") === "mission"),
+    (s.settings.scheduledJobs ?? []).filter(
+      (job) => (job.type ?? "mission") === "mission",
+    ),
   );
   const missionGovernance = useMemo(
     () => analyzeScheduledJobs(missionJobs),
@@ -75,13 +85,12 @@ export default function WorkflowForge() {
         startTransition(() => {
           setWorkflows(workflowPayload.workflows);
           setRuns(runPayload.runs);
-          setSelectedId(
-            (current) =>
-              workflowPayload.workflows.some(
-                (workflow) => workflow.id === current,
-              )
-                ? current
-                : workflowPayload.workflows[0]?.id || "",
+          setSelectedId((current) =>
+            workflowPayload.workflows.some(
+              (workflow) => workflow.id === current,
+            )
+              ? current
+              : workflowPayload.workflows[0]?.id || "",
           );
           setLoadState("ready");
         });
@@ -109,7 +118,9 @@ export default function WorkflowForge() {
   }, [deferredSearch, workflows]);
 
   const selectedWorkflow =
-    workflows.find((workflow) => workflow.id === selectedId) ?? filtered[0] ?? null;
+    workflows.find((workflow) => workflow.id === selectedId) ??
+    filtered[0] ??
+    null;
 
   useEffect(() => {
     if (!selectedWorkflow) return;
@@ -118,7 +129,9 @@ export default function WorkflowForge() {
   }, [selectedWorkflow]);
 
   async function refreshRuns() {
-    const runPayload = await loadJson<{ runs: WorkflowRun[] }>("/api/workflow-runs");
+    const runPayload = await loadJson<{ runs: WorkflowRun[] }>(
+      "/api/workflow-runs",
+    );
     setRuns(runPayload.runs);
   }
 
@@ -137,7 +150,9 @@ export default function WorkflowForge() {
         } satisfies WorkflowDefinition),
       });
       if (!response.ok) throw new Error("Workflow save failed");
-      const payload = (await response.json()) as { workflow: WorkflowDefinition };
+      const payload = (await response.json()) as {
+        workflow: WorkflowDefinition;
+      };
       setWorkflows((current) =>
         current.map((workflow) =>
           workflow.id === payload.workflow.id ? payload.workflow : workflow,
@@ -151,7 +166,8 @@ export default function WorkflowForge() {
     } catch {
       toast({
         title: "Workflow graph not saved",
-        message: "The protected workflow route rejected or could not complete the save.",
+        message:
+          "The protected workflow route rejected or could not complete the save.",
         severity: "high",
       });
     } finally {
@@ -176,7 +192,9 @@ export default function WorkflowForge() {
         body: JSON.stringify(next),
       });
       if (!response.ok) throw new Error("Workflow clone failed");
-      const payload = (await response.json()) as { workflow: WorkflowDefinition };
+      const payload = (await response.json()) as {
+        workflow: WorkflowDefinition;
+      };
       setWorkflows((current) => [payload.workflow, ...current]);
       setSelectedId(payload.workflow.id);
       toast({
@@ -187,7 +205,8 @@ export default function WorkflowForge() {
     } catch {
       toast({
         title: "Workflow template not cloned",
-        message: "The protected workflow route rejected or could not create the copy.",
+        message:
+          "The protected workflow route rejected or could not create the copy.",
         severity: "high",
       });
     } finally {
@@ -214,7 +233,8 @@ export default function WorkflowForge() {
     } catch {
       toast({
         title: "Workflow run failed",
-        message: "The run was not recorded. Review route readiness and try again.",
+        message:
+          "The run was not recorded. Review route readiness and try again.",
         severity: "high",
       });
     } finally {
@@ -237,7 +257,8 @@ export default function WorkflowForge() {
     } catch {
       toast({
         title: "Workflow JSON not copied",
-        message: "Clipboard access was unavailable. Keep the workflow open and try again.",
+        message:
+          "Clipboard access was unavailable. Keep the workflow open and try again.",
         severity: "medium",
       });
     } finally {
@@ -273,7 +294,8 @@ export default function WorkflowForge() {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "minmax(240px, 0.26fr) minmax(0, 0.48fr) minmax(260px, 0.26fr)",
+        gridTemplateColumns:
+          "minmax(240px, 0.26fr) minmax(0, 0.48fr) minmax(260px, 0.26fr)",
         gap: "16px",
         alignItems: "start",
       }}
@@ -286,7 +308,9 @@ export default function WorkflowForge() {
           background: "rgba(7, 10, 18, 0.78)",
         }}
       >
-        <SectionLabel detail={`${filtered.length} templates`}>Workflow Forge</SectionLabel>
+        <SectionLabel detail={`${filtered.length} templates`}>
+          Workflow Forge
+        </SectionLabel>
         <input
           aria-label="Search workflow templates"
           value={search}
@@ -379,11 +403,14 @@ export default function WorkflowForge() {
                   {selectedWorkflow.name}
                 </div>
                 <div style={{ fontSize: "12px", color: "var(--text2)" }}>
-                  v{selectedWorkflow.version} · {selectedWorkflow.tags.join(" · ")}
+                  v{selectedWorkflow.version} ·{" "}
+                  {selectedWorkflow.tags.join(" · ")}
                 </div>
               </div>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <ShellBadge tone="accent">{selectedWorkflow.approvalMode}</ShellBadge>
+                <ShellBadge tone="accent">
+                  {selectedWorkflow.approvalMode}
+                </ShellBadge>
                 <ShellBadge tone="success">
                   {selectedWorkflow.nodes.length} nodes
                 </ShellBadge>
@@ -419,7 +446,8 @@ export default function WorkflowForge() {
                         right: "-12px",
                         width: "12px",
                         height: "1px",
-                        background: "linear-gradient(to right, rgba(214, 165, 109, 0.55), rgba(214, 165, 109, 0.15))",
+                        background:
+                          "linear-gradient(to right, rgba(214, 165, 109, 0.55), rgba(214, 165, 109, 0.15))",
                       }}
                     />
                   )}
@@ -434,7 +462,13 @@ export default function WorkflowForge() {
                   >
                     {nodeLabel(node.type)}
                   </div>
-                  <div style={{ marginTop: "8px", fontSize: "14px", fontWeight: 800 }}>
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      fontSize: "14px",
+                      fontWeight: 800,
+                    }}
+                  >
                     {node.title}
                   </div>
                   <p
@@ -453,7 +487,14 @@ export default function WorkflowForge() {
 
             <div style={{ marginTop: "18px", display: "grid", gap: "12px" }}>
               <label style={{ display: "grid", gap: "6px" }}>
-                <span style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    color: "var(--text3)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                  }}
+                >
                   Mission summary
                 </span>
                 <textarea
@@ -472,7 +513,14 @@ export default function WorkflowForge() {
                 />
               </label>
               <label style={{ display: "grid", gap: "6px", maxWidth: "280px" }}>
-                <span style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    color: "var(--text3)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                  }}
+                >
                   Approval mode
                 </span>
                 <select
@@ -497,7 +545,14 @@ export default function WorkflowForge() {
               </label>
             </div>
 
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "16px" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                flexWrap: "wrap",
+                marginTop: "16px",
+              }}
+            >
               <ShellButton
                 onClick={() => void saveDraft()}
                 disabled={Boolean(busyAction)}
@@ -525,7 +580,9 @@ export default function WorkflowForge() {
             </div>
           </>
         ) : (
-          <p style={{ color: "var(--text3)" }}>No workflow template available yet.</p>
+          <p style={{ color: "var(--text3)" }}>
+            No workflow template available yet.
+          </p>
         )}
       </section>
 
@@ -537,7 +594,9 @@ export default function WorkflowForge() {
           background: "rgba(7, 10, 18, 0.78)",
         }}
       >
-        <SectionLabel detail="Mission Foundry linkage">Recent runs</SectionLabel>
+        <SectionLabel detail="Mission Foundry linkage">
+          Recent runs
+        </SectionLabel>
         <div style={{ display: "grid", gap: "10px", marginTop: "10px" }}>
           {runs.slice(0, 4).map((run) => (
             <div
@@ -549,20 +608,35 @@ export default function WorkflowForge() {
                 background: "rgba(10, 15, 30, 0.62)",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "8px",
+                }}
+              >
                 <strong style={{ fontSize: "12px" }}>{run.workflowName}</strong>
-                <ShellBadge tone={run.status === "completed" ? "success" : "muted"}>
+                <ShellBadge
+                  tone={run.status === "completed" ? "success" : "muted"}
+                >
                   {run.status}
                 </ShellBadge>
               </div>
-              <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text2)", lineHeight: 1.55 }}>
+              <p
+                style={{
+                  margin: "8px 0 0",
+                  fontSize: "11px",
+                  color: "var(--text2)",
+                  lineHeight: 1.55,
+                }}
+              >
                 {run.summary}
               </p>
             </div>
           ))}
         </div>
 
-        <SectionLabel detail={`${missionJobs.length} scheduled missions`} >
+        <SectionLabel detail={`${missionJobs.length} scheduled missions`}>
           Mission Foundry
         </SectionLabel>
         <div
@@ -574,7 +648,9 @@ export default function WorkflowForge() {
             background: "rgba(10, 15, 30, 0.62)",
           }}
         >
-          <div style={{ fontSize: "11px", fontWeight: 800, color: "var(--text)" }}>
+          <div
+            style={{ fontSize: "11px", fontWeight: 800, color: "var(--text)" }}
+          >
             Reviewed mission posture
           </div>
           <p
@@ -594,53 +670,83 @@ export default function WorkflowForge() {
           {missionJobs.slice(0, 4).map((job) => {
             const missionReview = getScheduledMissionReviewSummary(job);
             return (
-            <div
-              key={job.id}
-              style={{
-                padding: "12px",
-                borderRadius: "12px",
-                border: "1px solid var(--border)",
-                background: "rgba(10, 15, 30, 0.62)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
-                <strong style={{ fontSize: "12px" }}>{job.name}</strong>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <ShellBadge tone={job.enabled ? "accent" : "muted"}>
-                    {job.outputTarget ?? "none"}
-                  </ShellBadge>
-                  {missionReview.required ? (
-                    <ShellBadge
-                      tone={
-                        missionReview.status === "pending_review"
+              <div
+                key={job.id}
+                style={{
+                  padding: "12px",
+                  borderRadius: "12px",
+                  border: "1px solid var(--border)",
+                  background: "rgba(10, 15, 30, 0.62)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "8px",
+                  }}
+                >
+                  <strong style={{ fontSize: "12px" }}>{job.name}</strong>
+                  <div
+                    style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}
+                  >
+                    <ShellBadge tone={job.enabled ? "accent" : "muted"}>
+                      {job.outputTarget ?? "none"}
+                    </ShellBadge>
+                    {missionReview.required ? (
+                      <ShellBadge
+                        tone={
+                          missionReview.status === "pending_review"
                             ? "accent"
                             : missionReview.status === "cleared"
                               ? "success"
                               : "muted"
-                      }
-                    >
-                      {missionReview.status.replace(/_/g, " ")}
-                    </ShellBadge>
-                  ) : null}
+                        }
+                      >
+                        {missionReview.status.replace(/_/g, " ")}
+                      </ShellBadge>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-              <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text2)", lineHeight: 1.5 }}>
-                {job.prompt}
-              </p>
-              {missionReview.required ? (
-                <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text3)", lineHeight: 1.55 }}>
-                  {missionReview.scope ?? "Missing mission scope."}
-                  {missionReview.reentrySummary
-                    ? ` Re-entry: ${missionReview.reentrySummary}`
-                    : " Re-entry summary missing."}
+                <p
+                  style={{
+                    margin: "8px 0 0",
+                    fontSize: "11px",
+                    color: "var(--text2)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {job.prompt}
                 </p>
-              ) : null}
-            </div>
+                {missionReview.required ? (
+                  <p
+                    style={{
+                      margin: "8px 0 0",
+                      fontSize: "11px",
+                      color: "var(--text3)",
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    {missionReview.scope ?? "Missing mission scope."}
+                    {missionReview.reentrySummary
+                      ? ` Re-entry: ${missionReview.reentrySummary}`
+                      : " Re-entry summary missing."}
+                  </p>
+                ) : null}
+              </div>
             );
           })}
           {!missionJobs.length && (
-            <p style={{ margin: 0, color: "var(--text3)", fontSize: "12px", lineHeight: 1.6 }}>
-              Scheduler recipes will appear here as Mission Foundry links once they are armed in Auto Orders.
+            <p
+              style={{
+                margin: 0,
+                color: "var(--text3)",
+                fontSize: "12px",
+                lineHeight: 1.6,
+              }}
+            >
+              Scheduler recipes will appear here as Mission Foundry links once
+              they are armed in Auto Orders.
             </p>
           )}
         </div>

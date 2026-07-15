@@ -8,9 +8,7 @@ import {
   TASK_MODELS,
   type AITask,
 } from "@/lib/aiModelRouting";
-import {
-  resolveInstalledOllamaModel,
-} from "@/lib/ollamaModelResolver";
+import { resolveInstalledOllamaModel } from "@/lib/ollamaModelResolver";
 import { BRAND_NAME } from "@/lib/brand";
 import {
   applyRateLimitHeaders,
@@ -205,7 +203,8 @@ const FREE_DEFAULT_PROVIDERS = new Set(["ollama", "turboquant"]);
 const ALLOW_PAID_APIS = process.env.NEXUS_ALLOW_PAID_APIS === "true";
 
 function providerAllowedByPolicy(providerName: string, localOnlyMode: boolean) {
-  if (localOnlyMode) return providerName === "ollama" || providerName === "turboquant";
+  if (localOnlyMode)
+    return providerName === "ollama" || providerName === "turboquant";
   if (ALLOW_PAID_APIS) return true;
   return FREE_DEFAULT_PROVIDERS.has(providerName);
 }
@@ -267,7 +266,7 @@ async function callProvider(
             options?.url ?? p.url,
             readLocalAccelerationConfig().allowTailnet,
           ).toString()
-        : options?.url ?? p.url;
+        : (options?.url ?? p.url);
     const r = await fetch(requestUrl, {
       method: "POST",
       headers: p.headers(key),
@@ -295,7 +294,8 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json(
       {
         error: {
-          message: "AI route rate limit exceeded. Slow down and try again shortly.",
+          message:
+            "AI route rate limit exceeded. Slow down and try again shortly.",
         },
       },
       { status: 429 },
@@ -357,10 +357,7 @@ export async function POST(req: NextRequest) {
       resolvedSecondBrainMode,
     );
     if (
-      !isSecondBrainModeReady(
-        resolvedSecondBrainMode,
-        secondBrain.loadedFiles,
-      )
+      !isSecondBrainModeReady(resolvedSecondBrainMode, secondBrain.loadedFiles)
     ) {
       return NextResponse.json(
         {
@@ -405,7 +402,9 @@ export async function POST(req: NextRequest) {
         validatedLocalEndpoint = normalizeOllamaEndpoint(localEndpoint);
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Ollama endpoint is invalid.";
+          error instanceof Error
+            ? error.message
+            : "Ollama endpoint is invalid.";
         return NextResponse.json(
           {
             error: {
@@ -430,8 +429,7 @@ export async function POST(req: NextRequest) {
           {
             error: {
               code: "network_locked",
-              message:
-                `Provider "${provider}" is blocked while the network mode is isolated. Start Ollama or the optional TurboQuant local runtime, or switch to internal/connected mode first.`,
+              message: `Provider "${provider}" is blocked while the network mode is isolated. Start Ollama or the optional TurboQuant local runtime, or switch to internal/connected mode first.`,
               recoveryAction:
                 "Keep NEXUS_NETWORK_MODE=isolated for offline use and run Ollama or TurboQuant locally.",
             },
@@ -477,10 +475,9 @@ export async function POST(req: NextRequest) {
         {
           error: {
             code: localOnlyMode ? "ollama_required" : "provider_policy_blocked",
-            message:
-              localOnlyMode
-                ? "No local providers are available while the network mode is isolated. Start Ollama locally to continue."
-                : "No providers allowed by free-use policy. Set NEXUS_ALLOW_PAID_APIS=true to opt in.",
+            message: localOnlyMode
+              ? "No local providers are available while the network mode is isolated. Start Ollama locally to continue."
+              : "No providers allowed by free-use policy. Set NEXUS_ALLOW_PAID_APIS=true to opt in.",
             recoveryAction: localOnlyMode
               ? "Start Ollama and install the configured local model."
               : "Use Ollama locally, or explicitly opt in to BYOK cloud providers.",
@@ -593,10 +590,16 @@ export async function POST(req: NextRequest) {
         });
         if (providerName === "ollama") {
           if (ollamaResolutionReason) {
-            response.headers.set("X-Ollama-Resolution-Reason", ollamaResolutionReason);
+            response.headers.set(
+              "X-Ollama-Resolution-Reason",
+              ollamaResolutionReason,
+            );
           }
           if (ollamaRequestedModel) {
-            response.headers.set("X-Ollama-Requested-Model", ollamaRequestedModel);
+            response.headers.set(
+              "X-Ollama-Requested-Model",
+              ollamaRequestedModel,
+            );
           }
         }
         applyPrivacyShieldHeaders(response, protectedPayload.status);
@@ -610,10 +613,9 @@ export async function POST(req: NextRequest) {
       {
         error: {
           code: localOnlyMode ? "ollama_unavailable" : "provider_unavailable",
-          message:
-            localOnlyMode
-              ? "Local Ollama did not answer. Check that Ollama is running and the resolved model is installed."
-              : "All allowed AI providers are unavailable. Check Ollama first, then any explicitly configured BYOK provider keys.",
+          message: localOnlyMode
+            ? "Local Ollama did not answer. Check that Ollama is running and the resolved model is installed."
+            : "All allowed AI providers are unavailable. Check Ollama first, then any explicitly configured BYOK provider keys.",
           recoveryAction: localOnlyMode
             ? "Run ollama serve, then run npm run offline:local:check."
             : "Open provider health and keep paid APIs disabled unless you explicitly opt in.",

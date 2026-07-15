@@ -28,7 +28,8 @@ const SUMMARY_LABELS: Record<string, string> = {
 export default function TrustPostureStrip() {
   const { posture } = useProviderHealthPosture();
   const privacyShieldStatus = useStore((s) => s.privacyShieldStatus);
-  const [diagnostics, setDiagnostics] = useState<TrustDiagnosticsPayload | null>(null);
+  const [diagnostics, setDiagnostics] =
+    useState<TrustDiagnosticsPayload | null>(null);
   const [stepUpOpen, setStepUpOpen] = useState(false);
   const [revalidateNote, setRevalidateNote] = useState<string | null>(null);
 
@@ -40,9 +41,9 @@ export default function TrustPostureStrip() {
       });
       if (signal?.aborted) return;
       if (!response.ok) return;
-      const payload = (await response.json().catch(() => null)) as
-        | TrustDiagnosticsPayload
-        | null;
+      const payload = (await response
+        .json()
+        .catch(() => null)) as TrustDiagnosticsPayload | null;
       if (!payload) return;
       setDiagnostics(payload);
     } catch {

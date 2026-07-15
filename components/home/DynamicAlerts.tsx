@@ -11,7 +11,11 @@ import { buildSnapshot, resolveActiveUIRules } from "@/lib/uiRules";
 import type { UIRule } from "@/components/home/office/types";
 
 // ── Float cards ───────────────────────────────────────────────────────────────
-function FloatCard({ rule, snapshot, onDismiss }: {
+function FloatCard({
+  rule,
+  snapshot,
+  onDismiss,
+}: {
   rule: UIRule;
   snapshot: ReturnType<typeof buildSnapshot>;
   onDismiss: () => void;
@@ -23,22 +27,26 @@ function FloatCard({ rule, snapshot, onDismiss }: {
   useEffect(() => {
     if (!card || !rule.ttl) return;
     timerRef.current = setTimeout(onDismiss, rule.ttl);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [card, rule.id, rule.ttl, onDismiss]);
 
   if (!card) return null;
   const title = card.title;
-  const body  = card.body;
+  const body = card.body;
   const signalSpec = resolveSurfaceSignalMotionSpec("hq");
 
   return (
     <div
       className="nexus-command-ping"
       data-signal-state="stamp"
-      style={{
-        "--nexus-command-ping-color": card.color,
-        "--nexus-signal-alert-stamp-duration": `${signalSpec.alertStampMs}ms`,
-      } as CSSProperties}
+      style={
+        {
+          "--nexus-command-ping-color": card.color,
+          "--nexus-signal-alert-stamp-duration": `${signalSpec.alertStampMs}ms`,
+        } as CSSProperties
+      }
     >
       <button
         onClick={onDismiss}
@@ -49,8 +57,13 @@ function FloatCard({ rule, snapshot, onDismiss }: {
       </button>
       <div className="nexus-command-ping__eyebrow">Command ping</div>
       <div className="nexus-command-ping__header">
-        {card.emoji && <span className="nexus-command-ping__emoji">{card.emoji}</span>}
-        <span className="nexus-command-ping__title" style={{ color: card.color }}>
+        {card.emoji && (
+          <span className="nexus-command-ping__emoji">{card.emoji}</span>
+        )}
+        <span
+          className="nexus-command-ping__title"
+          style={{ color: card.color }}
+        >
           {title}
         </span>
       </div>
@@ -60,11 +73,18 @@ function FloatCard({ rule, snapshot, onDismiss }: {
 }
 
 // ── Nav badge portal ──────────────────────────────────────────────────────────
-function NavBadge({ rule, snapshot }: { rule: UIRule; snapshot: ReturnType<typeof buildSnapshot> }) {
+function NavBadge({
+  rule,
+  snapshot,
+}: {
+  rule: UIRule;
+  snapshot: ReturnType<typeof buildSnapshot>;
+}) {
   if (!rule.badge) return null;
-  const el = typeof document !== "undefined"
-    ? document.querySelector(`[data-nexus-tab="${rule.badge.tab}"]`)
-    : null;
+  const el =
+    typeof document !== "undefined"
+      ? document.querySelector(`[data-nexus-tab="${rule.badge.tab}"]`)
+      : null;
   if (!el) return null;
 
   const label = rule.badge.label;
@@ -97,11 +117,11 @@ function NavBadge({ rule, snapshot }: { rule: UIRule; snapshot: ReturnType<typeo
 // ── Main component ────────────────────────────────────────────────────────────
 export function DynamicAlerts() {
   const activeUIRuleIds = useStore((s) => s.activeUIRuleIds);
-  const dismissUIRule   = useStore((s) => s.dismissUIRule);
-  const signals   = useStore((s) => s.signals);
-  const cves      = useStore((s) => s.cves);
+  const dismissUIRule = useStore((s) => s.dismissUIRule);
+  const signals = useStore((s) => s.signals);
+  const cves = useStore((s) => s.cves);
   const worldRisk = useStore((s) => s.worldRisk);
-  const prices    = useStore((s) => s.prices);
+  const prices = useStore((s) => s.prices);
   const agentRuntime = useStore((s) => s.agentRuntime);
   const councilMode = useStore((s) => s.councilMode);
 
@@ -117,16 +137,18 @@ export function DynamicAlerts() {
   });
   const activeRules = resolveActiveUIRules(snapshot, activeUIRuleIds);
 
-  const floatCards = activeRules.filter((entry) => entry.rule.action === "float-card");
-  const navBadges  = activeRules.filter((entry) => entry.rule.action === "nav-badge");
+  const floatCards = activeRules.filter(
+    (entry) => entry.rule.action === "float-card",
+  );
+  const navBadges = activeRules.filter(
+    (entry) => entry.rule.action === "nav-badge",
+  );
 
   return (
     <>
       {/* Float cards — fixed bottom-right stack */}
       {floatCards.length > 0 && (
-        <div
-          className="nexus-command-ping-stack"
-        >
+        <div className="nexus-command-ping-stack">
           {floatCards.map((rule) => (
             <FloatCard
               key={rule.activationKey}

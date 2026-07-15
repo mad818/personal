@@ -5,7 +5,12 @@ import OfflineReadinessCallout from "@/components/ui/OfflineReadinessCallout";
 import OperatorStatusCard from "@/components/home/office/OperatorStatusCard";
 import ProviderResilienceCallout from "@/components/home/office/ProviderResilienceCallout";
 import TrustOperationsRail from "@/components/ui/TrustOperationsRail";
-import { OpsField, OpsRail, OpsStrip, ShellButton } from "@/components/ui/shell";
+import {
+  OpsField,
+  OpsRail,
+  OpsStrip,
+  ShellButton,
+} from "@/components/ui/shell";
 import type { AgentId } from "./types";
 import { AGENTS } from "./constants";
 import HQMissionRailSection from "./HQMissionRailSection";
@@ -110,7 +115,9 @@ export default function HQPreludePostureSection({
             <span className="nexus-shell-eyebrow">{eyebrow}</span>
             <div className="nexus-hq-tacticalRail__headingCopy">
               <h1 className="nexus-hq-tacticalRail__title">{title}</h1>
-              <p className="nexus-hq-tacticalRail__description">{description}</p>
+              <p className="nexus-hq-tacticalRail__description">
+                {description}
+              </p>
             </div>
           </div>
         }
@@ -134,23 +141,37 @@ export default function HQPreludePostureSection({
 
           <div className="nexus-hq-tacticalRail__pictureRail">
             {visualStats.map((stat) => (
-              <div key={stat.label} className="nexus-hq-tacticalRail__pictureReadout">
-                <span className="nexus-hq-tacticalRail__pictureLabel">{stat.label}</span>
-                <span className="nexus-hq-tacticalRail__pictureValue">{stat.value}</span>
+              <div
+                key={stat.label}
+                className="nexus-hq-tacticalRail__pictureReadout"
+              >
+                <span className="nexus-hq-tacticalRail__pictureLabel">
+                  {stat.label}
+                </span>
+                <span className="nexus-hq-tacticalRail__pictureValue">
+                  {stat.value}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
         <div className="nexus-hq-tacticalRail__tokens" aria-hidden="true">
-          <span className="nexus-hq-tacticalRail__token">{activeProfileLabel}</span>
+          <span className="nexus-hq-tacticalRail__token">
+            {activeProfileLabel}
+          </span>
           <span className="nexus-hq-tacticalRail__token">
             Eval {evalGrade.toUpperCase()}
           </span>
-          <span className="nexus-hq-tacticalRail__token">{activeAgentLabel} station</span>
+          <span className="nexus-hq-tacticalRail__token">
+            {activeAgentLabel} station
+          </span>
         </div>
 
-        <HQPreludePostureGrid cards={cards} activeAgentLabel={activeAgentLabel} />
+        <HQPreludePostureGrid
+          cards={cards}
+          activeAgentLabel={activeAgentLabel}
+        />
       </OpsField>
 
       <HQMissionRailSection
@@ -173,7 +194,8 @@ export default function HQPreludePostureSection({
         <div className="nexus-hq-tacticalRail__actionCopy">
           <span className="nexus-shell-eyebrow">Immediate control</span>
           <p className="nexus-hq-tacticalRail__actionNote">
-            Keep the hot front, protected actions, and field references one move from the chronicle.
+            Keep the hot front, protected actions, and field references one move
+            from the chronicle.
           </p>
         </div>
         <div className="nexus-shell-actions nexus-shell-actions--controls nexus-hq-tacticalRail__actions">

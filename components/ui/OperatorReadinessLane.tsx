@@ -53,8 +53,13 @@ interface OperatorReadinessLaneProps {
   showNextMoves?: boolean;
 }
 
-function summaryTone(score: number, tokenGateConfigured: boolean, configuredSecrets: number) {
-  if (!tokenGateConfigured || configuredSecrets === 0) return "warning" as const;
+function summaryTone(
+  score: number,
+  tokenGateConfigured: boolean,
+  configuredSecrets: number,
+) {
+  if (!tokenGateConfigured || configuredSecrets === 0)
+    return "warning" as const;
   if (score >= 75) return "success" as const;
   return "info" as const;
 }
@@ -85,9 +90,12 @@ export default function OperatorReadinessLane({
   const resolvedSurfaceId =
     surfaceId === "global"
       ? "global"
-      : resolveSurfaceCapabilityId(surfaceId) ?? "global";
-  const { snapshot: browserOps, loading: browserLoading, loadError } =
-    useBrowserOpsReadiness();
+      : (resolveSurfaceCapabilityId(surfaceId) ?? "global");
+  const {
+    snapshot: browserOps,
+    loading: browserLoading,
+    loadError,
+  } = useBrowserOpsReadiness();
   const showForecastPosture =
     resolvedSurfaceId === "alpha" ||
     resolvedSurfaceId === "hq" ||
@@ -208,7 +216,9 @@ export default function OperatorReadinessLane({
   const secretPosture = settingsReadiness?.secretPosture;
   const providerCounts = settingsReadiness?.providers.counts;
   const forecastLatest = showForecastPosture ? forecastPayload?.latest : null;
-  const schedulerLatest = showSchedulerPosture ? schedulerPayload?.latest : null;
+  const schedulerLatest = showSchedulerPosture
+    ? schedulerPayload?.latest
+    : null;
   const loading =
     settingsLoading ||
     browserLoading ||
@@ -220,13 +230,15 @@ export default function OperatorReadinessLane({
     (showSchedulerPosture ? schedulerLoadError : "") ||
     (showForecastPosture ? forecastLoadError : "");
   const forecastTone =
-    forecastPayload?.freshness?.stale || forecastLatest?.summary?.quality === "degraded"
+    forecastPayload?.freshness?.stale ||
+    forecastLatest?.summary?.quality === "degraded"
       ? ("muted" as const)
       : forecastLatest?.summary?.quality === "ready"
         ? ("success" as const)
         : ("accent" as const);
   const schedulerTone =
-    schedulerPayload?.freshness?.stale || schedulerLatest?.summary?.quality === "degraded"
+    schedulerPayload?.freshness?.stale ||
+    schedulerLatest?.summary?.quality === "degraded"
       ? ("muted" as const)
       : schedulerLatest?.summary?.quality === "ready"
         ? ("success" as const)
@@ -258,11 +270,14 @@ export default function OperatorReadinessLane({
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
           {secretPosture ? (
             <ShellBadge tone="accent">
-              Secrets {secretPosture.configuredCount}/{secretPosture.inventoryCount}
+              Secrets {secretPosture.configuredCount}/
+              {secretPosture.inventoryCount}
             </ShellBadge>
           ) : null}
           {providerCounts ? (
-            <ShellBadge tone="success">Providers {providerCounts.ready} ready</ShellBadge>
+            <ShellBadge tone="success">
+              Providers {providerCounts.ready} ready
+            </ShellBadge>
           ) : null}
           <ShellBadge tone="muted">{workflowOps.headline}</ShellBadge>
           <ShellBadge
@@ -275,9 +290,14 @@ export default function OperatorReadinessLane({
                   : "success"
             }
           >
-            Governance {capabilityAudit.governance.highRiskUngatedJobs > 0 ? "repair" : "aligned"}
+            Governance{" "}
+            {capabilityAudit.governance.highRiskUngatedJobs > 0
+              ? "repair"
+              : "aligned"}
           </ShellBadge>
-          <ShellBadge tone="muted">{memoryLifecycle.freshnessLabel} archive</ShellBadge>
+          <ShellBadge tone="muted">
+            {memoryLifecycle.freshnessLabel} archive
+          </ShellBadge>
           {showSchedulerPosture ? (
             <ShellBadge tone={schedulerTone}>
               Efficiency {schedulerLatest?.summary?.quality ?? "standby"}
@@ -288,7 +308,9 @@ export default function OperatorReadinessLane({
               Forecast {forecastLatest?.summary?.quality ?? "standby"}
             </ShellBadge>
           ) : null}
-          <ShellBadge tone="accent">Capability {capabilityAudit.score}</ShellBadge>
+          <ShellBadge tone="accent">
+            Capability {capabilityAudit.score}
+          </ShellBadge>
         </div>
       </SurfaceCallout>
 
@@ -312,9 +334,13 @@ export default function OperatorReadinessLane({
       >
         <article className="nexus-shell-resource-card">
           <div className="nexus-shell-resource-card__meta">
-            <span className="nexus-shell-resource-card__chip">Secret posture</span>
+            <span className="nexus-shell-resource-card__chip">
+              Secret posture
+            </span>
             {secretPosture?.localEnvOnly ? (
-              <span className="nexus-shell-resource-card__chip">local env only</span>
+              <span className="nexus-shell-resource-card__chip">
+                local env only
+              </span>
             ) : null}
           </div>
           <div className="nexus-shell-resource-card__title">
@@ -332,10 +358,14 @@ export default function OperatorReadinessLane({
         <article className="nexus-shell-resource-card">
           <div className="nexus-shell-resource-card__meta">
             <span className="nexus-shell-resource-card__chip">Providers</span>
-            <span className="nexus-shell-resource-card__chip">BYOK bounded</span>
+            <span className="nexus-shell-resource-card__chip">
+              BYOK bounded
+            </span>
           </div>
           <div className="nexus-shell-resource-card__title">
-            {providerCounts ? `${providerCounts.ready} ready lanes` : "Provider posture"}
+            {providerCounts
+              ? `${providerCounts.ready} ready lanes`
+              : "Provider posture"}
           </div>
           <p className="nexus-shell-resource-card__description">
             {providerCounts
@@ -361,8 +391,9 @@ export default function OperatorReadinessLane({
               : ""}
           </p>
           <p className="nexus-shell-resource-card__note">
-            {workflowOps.queuedCount} queued · {workflowOps.handoffCount} handoff ·{" "}
-            {browserOps?.guardedRouteCount ?? 0} guarded browser routes
+            {workflowOps.queuedCount} queued · {workflowOps.handoffCount}{" "}
+            handoff · {browserOps?.guardedRouteCount ?? 0} guarded browser
+            routes
             {showSchedulerPosture
               ? ` · cache ${schedulerLatest?.summary?.cacheObservedCoverage ?? 0}%`
               : ""}
@@ -371,7 +402,9 @@ export default function OperatorReadinessLane({
 
         <article className="nexus-shell-resource-card">
           <div className="nexus-shell-resource-card__meta">
-            <span className="nexus-shell-resource-card__chip">Governance plane</span>
+            <span className="nexus-shell-resource-card__chip">
+              Governance plane
+            </span>
             <span className="nexus-shell-resource-card__chip">
               {capabilityAudit.governance.baselinePackId}
             </span>
@@ -392,11 +425,13 @@ export default function OperatorReadinessLane({
 
         <article className="nexus-shell-resource-card">
           <div className="nexus-shell-resource-card__meta">
-            <span className="nexus-shell-resource-card__chip">Memory lifecycle</span>
             <span className="nexus-shell-resource-card__chip">
-            {memoryLifecycle.freshnessLabel}
-          </span>
-        </div>
+              Memory lifecycle
+            </span>
+            <span className="nexus-shell-resource-card__chip">
+              {memoryLifecycle.freshnessLabel}
+            </span>
+          </div>
           <div className="nexus-shell-resource-card__title">
             {memoryLifecycle.headline}
           </div>
@@ -413,8 +448,12 @@ export default function OperatorReadinessLane({
         {showSchedulerPosture ? (
           <article className="nexus-shell-resource-card">
             <div className="nexus-shell-resource-card__meta">
-              <span className="nexus-shell-resource-card__chip">Efficiency ops</span>
-              <span className="nexus-shell-resource-card__chip">eval-first</span>
+              <span className="nexus-shell-resource-card__chip">
+                Efficiency ops
+              </span>
+              <span className="nexus-shell-resource-card__chip">
+                eval-first
+              </span>
             </div>
             <div className="nexus-shell-resource-card__title">
               {schedulerLatest
@@ -437,8 +476,12 @@ export default function OperatorReadinessLane({
         {showForecastPosture ? (
           <article className="nexus-shell-resource-card">
             <div className="nexus-shell-resource-card__meta">
-              <span className="nexus-shell-resource-card__chip">Forecast lab</span>
-              <span className="nexus-shell-resource-card__chip">eval-first</span>
+              <span className="nexus-shell-resource-card__chip">
+                Forecast lab
+              </span>
+              <span className="nexus-shell-resource-card__chip">
+                eval-first
+              </span>
             </div>
             <div className="nexus-shell-resource-card__title">
               {forecastLatest
@@ -453,7 +496,9 @@ export default function OperatorReadinessLane({
             <p className="nexus-shell-resource-card__note">
               {forecastLatest
                 ? `${forecastLatest.summary?.windows ?? 0} windows · ${
-                    forecastLatest.ts ? timeAgo(forecastLatest.ts) : "freshness unknown"
+                    forecastLatest.ts
+                      ? timeAgo(forecastLatest.ts)
+                      : "freshness unknown"
                   }`
                 : "Calibrating baseline"}
             </p>

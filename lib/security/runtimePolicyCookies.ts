@@ -16,8 +16,12 @@ function buildPolicyCookieOptions(maxAge = POLICY_COOKIE_MAX_AGE_SECONDS) {
   };
 }
 
-export function parseNetworkModeCookie(raw?: string | null): NetworkMode | null {
-  const value = String(raw ?? "").trim().toLowerCase();
+export function parseNetworkModeCookie(
+  raw?: string | null,
+): NetworkMode | null {
+  const value = String(raw ?? "")
+    .trim()
+    .toLowerCase();
   if (value === "isolated" || value === "internal" || value === "connected") {
     return value;
   }
@@ -25,7 +29,9 @@ export function parseNetworkModeCookie(raw?: string | null): NetworkMode | null 
 }
 
 export function parseBooleanPolicyCookie(raw?: string | null): boolean | null {
-  const value = String(raw ?? "").trim().toLowerCase();
+  const value = String(raw ?? "")
+    .trim()
+    .toLowerCase();
   if (value === "true") return true;
   if (value === "false") return false;
   return null;

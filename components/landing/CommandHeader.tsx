@@ -53,10 +53,7 @@ export default function CommandHeader({
             aria-hidden="true"
             focusable="false"
           >
-            <path
-              d="M3 3h3l8 11V3h3v14h-3L6 6v11H3z"
-              fill="currentColor"
-            />
+            <path d="M3 3h3l8 11V3h3v14h-3L6 6v11H3z" fill="currentColor" />
           </svg>
           <div className="nexus-landing-header__brandCopy">
             <span className="nexus-landing-header__wordmark">Homefront</span>

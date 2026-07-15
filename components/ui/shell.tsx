@@ -744,7 +744,10 @@ function buildSequenceDelays(
 
 function compactHomefrontCopy(value: string, maxLength = 108) {
   if (value.length <= maxLength) return value;
-  const truncated = value.slice(0, maxLength - 3).replace(/\s+\S*$/, "").trim();
+  const truncated = value
+    .slice(0, maxLength - 3)
+    .replace(/\s+\S*$/, "")
+    .trim();
   return `${truncated || value.slice(0, maxLength - 3).trim()}...`;
 }
 
@@ -767,7 +770,9 @@ function isRouteHrefActive(
     if (target.pathname !== pathname) return false;
     const targetParams = Array.from(target.searchParams.entries());
     if (targetParams.length === 0) return true;
-    return targetParams.every(([key, value]) => searchParams.get(key) === value);
+    return targetParams.every(
+      ([key, value]) => searchParams.get(key) === value,
+    );
   } catch {
     return false;
   }
@@ -833,8 +838,11 @@ function HomefrontMediaPanel({
 }) {
   const usesGuardianMedia =
     spec.mediaMode === "guardian-image" || spec.mediaMode === "guardian-video";
-  const mediaSrc = usesGuardianMedia ? HOMEFRONT_GUARDIAN_HERO_IMAGE : art.plateSrc;
-  const showDrone = usesGuardianMedia || surface === "vehicle" || surface === "iot";
+  const mediaSrc = usesGuardianMedia
+    ? HOMEFRONT_GUARDIAN_HERO_IMAGE
+    : art.plateSrc;
+  const showDrone =
+    usesGuardianMedia || surface === "vehicle" || surface === "iot";
   const polish = spec.interiorPolish;
 
   return (
@@ -853,7 +861,9 @@ function HomefrontMediaPanel({
           fill
           sizes="(max-width: 980px) 100vw, 460px"
           className="nexus-homefront-mediaPanel__image"
-          style={{ objectPosition: usesGuardianMedia ? "50% 50%" : art.platePosition }}
+          style={{
+            objectPosition: usesGuardianMedia ? "50% 50%" : art.platePosition,
+          }}
         />
         {spec.mediaMode === "guardian-video" ? (
           <video
@@ -934,7 +944,8 @@ function HomefrontActionDock({
           const active =
             isRouteHrefActive(action.href, pathname, searchParams) ||
             (index === 0 &&
-              buildCurrentRouteHref(pathname, searchParams) === capability.route);
+              buildCurrentRouteHref(pathname, searchParams) ===
+                capability.route);
           return (
             <a
               key={`${surface}-${action.href}-${action.label}`}
@@ -950,11 +961,7 @@ function HomefrontActionDock({
   );
 }
 
-function HomefrontRouteTabs({
-  surface,
-}: {
-  surface: ShellSurface;
-}) {
+function HomefrontRouteTabs({ surface }: { surface: ShellSurface }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const spec = resolveHomefrontVisualSurfaceSpec(surface);
@@ -1014,7 +1021,9 @@ function HomefrontVisualParityBand({
     },
     {
       label: "Support",
-      value: polish ? humanizeRouteToken(polish.supportDensity) : spec.proofChips[0] ?? capability.category,
+      value: polish
+        ? humanizeRouteToken(polish.supportDensity)
+        : (spec.proofChips[0] ?? capability.category),
     },
   ];
 
@@ -1064,11 +1073,7 @@ function HomefrontVisualParityBand({
   );
 }
 
-function HomefrontWorkplaneSummary({
-  surface,
-}: {
-  surface: ShellSurface;
-}) {
+function HomefrontWorkplaneSummary({ surface }: { surface: ShellSurface }) {
   const spec = resolveHomefrontVisualSurfaceSpec(surface);
   const summary = spec.workplaneSummary;
   const polish = spec.interiorPolish;
@@ -1217,7 +1222,9 @@ function HomefrontActionControlRail({
       >
         <span>
           <em>Belongs here</em>
-          <strong>{compactHomefrontCopy(bestFor[0] ?? capability.title)}</strong>
+          <strong>
+            {compactHomefrontCopy(bestFor[0] ?? capability.title)}
+          </strong>
         </span>
         <span>
           <em>Use next</em>
@@ -1618,7 +1625,9 @@ export function ShellPage({
         data-focus-bias={atmosphere.focusBias}
         data-ingress={sequence.ingress.kind}
         data-interior-polish={visualSpec?.interiorPolish ? "true" : "false"}
-        data-support-density={visualSpec?.interiorPolish?.supportDensity ?? "standard"}
+        data-support-density={
+          visualSpec?.interiorPolish?.supportDensity ?? "standard"
+        }
         onPointerMove={handleStagePointerMove}
         onPointerLeave={handleStagePointerLeave}
         style={
@@ -1867,7 +1876,9 @@ export function ShellStage({
       data-focus-bias={atmosphere.focusBias}
       data-ingress={sequence.ingress.kind}
       data-interior-polish={visualSpec?.interiorPolish ? "true" : "false"}
-      data-support-density={visualSpec?.interiorPolish?.supportDensity ?? "standard"}
+      data-support-density={
+        visualSpec?.interiorPolish?.supportDensity ?? "standard"
+      }
       onPointerMove={handleStagePointerMove}
       onPointerLeave={handleStagePointerLeave}
       style={

@@ -14,7 +14,8 @@ import type { PhoneAcceptanceLiveStatus } from "@/lib/phoneAcceptanceStatus";
  * hide the "Install app" step rather than showing a button that does nothing.
  */
 function detectPwaCapable(): boolean {
-  if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+  if (typeof window === "undefined" || typeof navigator === "undefined")
+    return false;
   if (!("serviceWorker" in navigator)) return false;
   const ua = navigator.userAgent;
   const isIos = /iphone|ipad|ipod/i.test(ua);
@@ -63,10 +64,7 @@ export default function PhoneAcceptanceActionBar({
   }
 
   return (
-    <div
-      className="grid gap-2"
-      data-testid="phone-acceptance-action-bar"
-    >
+    <div className="grid gap-2" data-testid="phone-acceptance-action-bar">
       <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text3)]">
         Phone setup
       </div>

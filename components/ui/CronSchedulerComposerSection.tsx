@@ -3,7 +3,10 @@
 import type { ScheduledJob } from "@/store/useStore";
 import CompactOperatorNote from "@/components/ui/CompactOperatorNote";
 import CronSchedulerWorkflowTemplatesSection from "@/components/ui/CronSchedulerWorkflowTemplatesSection";
-import type { HQWorkflowCatalogItem, HQWorkflowCommandId } from "@/components/home/office/workflowCommands";
+import type {
+  HQWorkflowCatalogItem,
+  HQWorkflowCommandId,
+} from "@/components/home/office/workflowCommands";
 import {
   MISSION_REVIEW_EXPIRY_OPTIONS,
   MISSION_TEMPLATES,
@@ -331,7 +334,9 @@ export default function CronSchedulerComposerSection({
           <textarea
             aria-label="Mission re-entry summary"
             value={missionReentrySummary}
-            onChange={(event) => onMissionReentrySummaryChange(event.target.value)}
+            onChange={(event) =>
+              onMissionReentrySummaryChange(event.target.value)
+            }
             placeholder="Re-entry summary (how the operator should review and resume the mission)"
             rows={3}
             style={{
@@ -344,9 +349,9 @@ export default function CronSchedulerComposerSection({
             }}
           />
           <div style={{ color: "#6875a0", fontSize: 10, lineHeight: 1.5 }}>
-            Mission jobs stay local-first in this tranche. They can queue work for review,
-            but they do not authorize silent expansion, route sprawl, or background
-            follow-on missions by themselves.
+            Mission jobs stay local-first in this tranche. They can queue work
+            for review, but they do not authorize silent expansion, route
+            sprawl, or background follow-on missions by themselves.
           </div>
         </div>
       ) : null}

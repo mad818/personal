@@ -81,8 +81,7 @@ const VIEWS: { id: View; label: string }[] = [
 const TARGET_BRIEF_COPY: Record<View, string> = {
   osint:
     "Start broad with passive target lookup before narrowing into infrastructure or artifact-specific recon.",
-  pdns:
-    "Use passive DNS when the target is known and historical infrastructure context will change the next move.",
+  pdns: "Use passive DNS when the target is known and historical infrastructure context will change the next move.",
   headers:
     "Use headers audit when web-surface posture matters more than broad discovery.",
   metadata:
@@ -128,18 +127,22 @@ export default function ReconPage() {
       ? "recon-lookup"
       : focus === "recon-repo-intel"
         ? "recon-repo-intel"
-      : focus === "recon-opsec"
-        ? "recon-opsec"
-        : focus === "recon-headers"
-          ? "recon-headers"
-          : focus === "recon-binary"
-            ? "recon-binary"
-          : null;
+        : focus === "recon-opsec"
+          ? "recon-opsec"
+          : focus === "recon-headers"
+            ? "recon-headers"
+            : focus === "recon-binary"
+              ? "recon-binary"
+              : null;
 
   useSurfaceFocusScroll(focusTargetId);
 
   const targetBriefSpec = getSurfaceModuleSpec("recon", "target-brief");
-  const collectionWorkbenchSpec = getSurfaceModuleSpec("recon", "collection-workbench", view);
+  const collectionWorkbenchSpec = getSurfaceModuleSpec(
+    "recon",
+    "collection-workbench",
+    view,
+  );
   const binaryAnalysisSpec = getSurfaceModuleSpec("recon", "binary-analysis");
   const operatorSafetySpec = getSurfaceModuleSpec("recon", "operator-safety");
   const reconLayout = getOpsLayoutDescriptor("recon");
@@ -232,7 +235,10 @@ export default function ReconPage() {
         {view === "osint" && (
           <div id="recon-lookup" style={{ scrollMarginTop: "120px" }}>
             <OpsWorkplane className={reconLayout.workplaneClass}>
-              <OpsField title="OSINT lookup" detail="Domain, IP, email, username, and hash">
+              <OpsField
+                title="OSINT lookup"
+                detail="Domain, IP, email, username, and hash"
+              >
                 <LazyReconLookup />
               </OpsField>
               <OpsRail className={reconLayout.railClass}>
@@ -272,7 +278,10 @@ export default function ReconPage() {
 
         {view === "pdns" && (
           <OpsWorkplane className={reconLayout.workplaneClass}>
-            <OpsField title="Passive DNS" detail="Historical records and reverse-IP context">
+            <OpsField
+              title="Passive DNS"
+              detail="Historical records and reverse-IP context"
+            >
               <LazyPassiveDns />
             </OpsField>
           </OpsWorkplane>
@@ -281,7 +290,10 @@ export default function ReconPage() {
         {view === "headers" && (
           <div id="recon-headers" style={{ scrollMarginTop: "120px" }}>
             <OpsWorkplane className={reconLayout.workplaneClass}>
-              <OpsField title="HTTP headers audit" detail="Security header posture">
+              <OpsField
+                title="HTTP headers audit"
+                detail="Security header posture"
+              >
                 <LazyHeadersAudit />
               </OpsField>
             </OpsWorkplane>
@@ -299,7 +311,10 @@ export default function ReconPage() {
         {view === "binary" && (
           <div id="recon-binary" style={{ scrollMarginTop: "120px" }}>
             <OpsWorkplane className={reconLayout.workplaneClass}>
-              <OpsField title="Binary triage" detail="Local-only reverse-engineering prep">
+              <OpsField
+                title="Binary triage"
+                detail="Local-only reverse-engineering prep"
+              >
                 <LazyBinaryTriagePanel />
               </OpsField>
             </OpsWorkplane>
@@ -309,7 +324,11 @@ export default function ReconPage() {
         {view === "opsec" && (
           <div id="recon-opsec" style={{ scrollMarginTop: "120px" }}>
             <OpsRail className={reconLayout.railClass}>
-              <OpsField title="OPSEC panel" detail="Fingerprint and exposure checks" tone="muted">
+              <OpsField
+                title="OPSEC panel"
+                detail="Fingerprint and exposure checks"
+                tone="muted"
+              >
                 <LazyOpsecPanel />
               </OpsField>
             </OpsRail>

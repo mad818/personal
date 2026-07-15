@@ -62,7 +62,8 @@ export default function OfflineReadinessCallout({
   }, [status]);
 
   const title = useMemo(() => {
-    if (status === "local_only") return "Internet offline · local lane still ready";
+    if (status === "local_only")
+      return "Internet offline · local lane still ready";
     if (status === "runtime_unavailable") return "Local runtime unavailable";
     if (status === "connected") return "Local-first fallback is ready";
     return "Checking local runtime";

@@ -61,7 +61,14 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Active jobs</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
             {snapshot.activeJobs}
           </div>
         </div>
@@ -74,7 +81,14 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Durable outputs</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
             {snapshot.durableArtifactJobs}
           </div>
         </div>
@@ -87,7 +101,14 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Measured runs</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
             {snapshot.completedEfficiencySnapshots}
           </div>
         </div>
@@ -100,7 +121,14 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Queued native</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
             {snapshot.queuedJobs}
           </div>
         </div>
@@ -113,8 +141,17 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Prompt weight</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
-            {fmtChars(snapshot.measuredPromptChars || snapshot.totalPromptChars)}
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
+            {fmtChars(
+              snapshot.measuredPromptChars || snapshot.totalPromptChars,
+            )}
           </div>
         </div>
         <div
@@ -126,7 +163,14 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Low-cache runs</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
             {snapshot.lowCacheabilityRuns}
           </div>
         </div>
@@ -139,7 +183,14 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Unmeasured</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
             {snapshot.unmeasuredActiveJobs}
           </div>
         </div>
@@ -152,7 +203,14 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Approve-on-write</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
             {snapshot.approveOnWriteJobs}
           </div>
         </div>
@@ -165,7 +223,14 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Mission jobs</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
             {snapshot.missionJobs}
           </div>
         </div>
@@ -178,7 +243,14 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Review contracts</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
             {snapshot.missionReviewContractJobs}
           </div>
         </div>
@@ -191,7 +263,14 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Pending review</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
             {snapshot.pendingMissionReviews}
           </div>
         </div>
@@ -204,7 +283,14 @@ export default function SchedulerGovernanceCard({
           }}
         >
           <div style={{ color: "#6875a0", fontSize: 10 }}>Expired review</div>
-          <div style={{ marginTop: 4, color: "#ccd6f6", fontFamily: "monospace", fontSize: 12 }}>
+          <div
+            style={{
+              marginTop: 4,
+              color: "#ccd6f6",
+              fontFamily: "monospace",
+              fontSize: 12,
+            }}
+          >
             {snapshot.expiredMissionReviews}
           </div>
         </div>
@@ -225,7 +311,14 @@ export default function SchedulerGovernanceCard({
               <div style={{ color: "#ccd6f6", fontSize: 11, fontWeight: 700 }}>
                 {item.title}
               </div>
-              <div style={{ color: "#6875a0", fontSize: 10, marginTop: 4, lineHeight: 1.5 }}>
+              <div
+                style={{
+                  color: "#6875a0",
+                  fontSize: 10,
+                  marginTop: 4,
+                  lineHeight: 1.5,
+                }}
+              >
                 {item.detail}
               </div>
             </div>
@@ -245,7 +338,14 @@ export default function SchedulerGovernanceCard({
           <div style={{ color: "#cbd5e1", fontSize: 11, fontWeight: 700 }}>
             Reviewed mission posture
           </div>
-          <div style={{ color: "#6875a0", fontSize: 10, marginTop: 4, lineHeight: 1.5 }}>
+          <div
+            style={{
+              color: "#6875a0",
+              fontSize: 10,
+              marginTop: 4,
+              lineHeight: 1.5,
+            }}
+          >
             {snapshot.missionJobs > 0
               ? `${snapshot.missionReviewContractJobs}/${snapshot.missionJobs} active mission jobs carry a bounded review contract, ${snapshot.pendingMissionReviews} are waiting on operator review, and ${snapshot.expiredMissionReviews} have passed their review window.`
               : "No mission jobs are active yet, so overnight review posture is still defined by manual dispatch."}
@@ -298,15 +398,31 @@ export default function SchedulerGovernanceCard({
                 padding: "8px 10px",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ color: "#ccd6f6", fontSize: 11, fontWeight: 700 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexWrap: "wrap",
+                }}
+              >
+                <span
+                  style={{ color: "#ccd6f6", fontSize: 11, fontWeight: 700 }}
+                >
                   {workflow.command}
                 </span>
                 <span style={{ color: "#6875a0", fontSize: 10 }}>
                   {workflow.agent.toUpperCase()} · {workflow.route}
                 </span>
               </div>
-              <div style={{ color: "#6875a0", fontSize: 10, marginTop: 4, lineHeight: 1.5 }}>
+              <div
+                style={{
+                  color: "#6875a0",
+                  fontSize: 10,
+                  marginTop: 4,
+                  lineHeight: 1.5,
+                }}
+              >
                 {workflow.automationGuidance}
               </div>
             </div>
@@ -321,15 +437,31 @@ export default function SchedulerGovernanceCard({
                 padding: "8px 10px",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ color: "#fbbf24", fontSize: 11, fontWeight: 700 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexWrap: "wrap",
+                }}
+              >
+                <span
+                  style={{ color: "#fbbf24", fontSize: 11, fontWeight: 700 }}
+                >
                   {workflow.command}
                 </span>
                 <span style={{ color: "#cbd5e1", fontSize: 10 }}>
                   Review only
                 </span>
               </div>
-              <div style={{ color: "#cbd5e1", fontSize: 10, marginTop: 4, lineHeight: 1.5 }}>
+              <div
+                style={{
+                  color: "#cbd5e1",
+                  fontSize: 10,
+                  marginTop: 4,
+                  lineHeight: 1.5,
+                }}
+              >
                 {workflow.automationGuidance}
               </div>
             </div>

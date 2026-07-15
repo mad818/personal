@@ -184,7 +184,9 @@ export default function DeveloperFieldManual() {
                       {r.description}
                     </p>
                     {r.note && (
-                      <p className="nexus-shell-resource-card__note">{r.note}</p>
+                      <p className="nexus-shell-resource-card__note">
+                        {r.note}
+                      </p>
                     )}
                     {r.licenseHint && (
                       <p className="nexus-shell-resource-card__note">

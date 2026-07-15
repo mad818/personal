@@ -75,11 +75,17 @@ const LazyNetworkHealth = dynamic(
   { ssr: false },
 );
 const LazyProjectStackCard = dynamic(
-  () => import("@/components/command/ProjectStackCard").then((m) => ({ default: m.ProjectStackCard })),
+  () =>
+    import("@/components/command/ProjectStackCard").then((m) => ({
+      default: m.ProjectStackCard,
+    })),
   { ssr: false },
 );
 const LazyAgentHealthCard = dynamic(
-  () => import("@/components/command/AgentHealthCard").then((m) => ({ default: m.AgentHealthCard })),
+  () =>
+    import("@/components/command/AgentHealthCard").then((m) => ({
+      default: m.AgentHealthCard,
+    })),
   { ssr: false },
 );
 const LazyRuntimeEfficiencyCard = dynamic(
@@ -132,11 +138,13 @@ const COMMAND_BRIEF_VIEWS: Array<{ id: CommandBriefView; label: string }> = [
   { id: "world", label: "World" },
 ];
 
-const COMMAND_DISPATCH_VIEWS: Array<{ id: CommandDispatchView; label: string }> =
-  [
-    { id: "dispatch", label: "Dispatch" },
-    { id: "programs", label: "Programs" },
-  ];
+const COMMAND_DISPATCH_VIEWS: Array<{
+  id: CommandDispatchView;
+  label: string;
+}> = [
+  { id: "dispatch", label: "Dispatch" },
+  { id: "programs", label: "Programs" },
+];
 
 export default function CommandPage() {
   const { normalizedParams } = useSessionHrefAutoHeal();
@@ -147,7 +155,8 @@ export default function CommandPage() {
   const source = normalizedParams.get("source");
   const focus = normalizedParams.get("focus");
   const [briefView, setBriefView] = useState<CommandBriefView>("brief");
-  const [dispatchView, setDispatchView] = useState<CommandDispatchView>("dispatch");
+  const [dispatchView, setDispatchView] =
+    useState<CommandDispatchView>("dispatch");
   const [dispatchEfficiencyExpanded, setDispatchEfficiencyExpanded] = useState(
     () => focus === "runtime-efficiency",
   );
@@ -176,12 +185,12 @@ export default function CommandPage() {
     focus === "provider-health"
       ? "command-provider-health"
       : focus === "runtime-efficiency"
-      ? "command-runtime-efficiency"
-      : focus === "agent-health"
-        ? "command-agent-health"
-        : focus === "memory-spine"
-          ? "command-memory-spine"
-          : null;
+        ? "command-runtime-efficiency"
+        : focus === "agent-health"
+          ? "command-agent-health"
+          : focus === "memory-spine"
+            ? "command-memory-spine"
+            : null;
 
   useSurfaceFocusScroll(focusTargetId);
 
@@ -208,8 +217,14 @@ export default function CommandPage() {
   }, [focus, initialMemoryAsk]);
 
   const systemPostureSpec = getSurfaceModuleSpec("command", "system-posture");
-  const operationalBriefSpec = getSurfaceModuleSpec("command", "operational-brief");
-  const programsWorkflowsSpec = getSurfaceModuleSpec("command", "programs-workflows");
+  const operationalBriefSpec = getSurfaceModuleSpec(
+    "command",
+    "operational-brief",
+  );
+  const programsWorkflowsSpec = getSurfaceModuleSpec(
+    "command",
+    "programs-workflows",
+  );
   const contextMemorySpec = getSurfaceModuleSpec("command", "context-memory");
   const commandLayout = getOpsLayoutDescriptor("command");
 
@@ -320,12 +335,16 @@ export default function CommandPage() {
             />
           ) : null}
 
-          {commandGuidance.length ? <AssistantGuidanceStack items={commandGuidance} /> : null}
+          {commandGuidance.length ? (
+            <AssistantGuidanceStack items={commandGuidance} />
+          ) : null}
 
           <OpsStrip className="nexus-surface-route-strip nexus-command-mission-strip">
             <div className="nexus-surface-route-strip__grid">
               <div className="nexus-surface-route-strip__cell">
-                <span className="nexus-surface-route-strip__cellLabel">Snapshot</span>
+                <span className="nexus-surface-route-strip__cellLabel">
+                  Snapshot
+                </span>
                 <strong
                   className="nexus-surface-route-strip__cellValue"
                   data-tone="success"
@@ -337,28 +356,42 @@ export default function CommandPage() {
                 </span>
               </div>
               <div className="nexus-surface-route-strip__cell">
-                <span className="nexus-surface-route-strip__cellLabel">Provider health</span>
-                <strong className="nexus-surface-route-strip__cellValue">Switch operator</strong>
+                <span className="nexus-surface-route-strip__cellLabel">
+                  Provider health
+                </span>
+                <strong className="nexus-surface-route-strip__cellValue">
+                  Switch operator
+                </strong>
                 <span className="nexus-surface-route-strip__cellNote">
                   Provider chain one move away.
                 </span>
               </div>
               <div className="nexus-surface-route-strip__cell">
-                <span className="nexus-surface-route-strip__cellLabel">Runtime pressure</span>
-                <strong className="nexus-surface-route-strip__cellValue">Efficiency</strong>
+                <span className="nexus-surface-route-strip__cellLabel">
+                  Runtime pressure
+                </span>
+                <strong className="nexus-surface-route-strip__cellValue">
+                  Efficiency
+                </strong>
                 <span className="nexus-surface-route-strip__cellNote">
                   Waste and cache pressure staged.
                 </span>
               </div>
               <div className="nexus-surface-route-strip__cell">
-                <span className="nexus-surface-route-strip__cellLabel">Choir posture</span>
-                <strong className="nexus-surface-route-strip__cellValue">Agents</strong>
+                <span className="nexus-surface-route-strip__cellLabel">
+                  Choir posture
+                </span>
+                <strong className="nexus-surface-route-strip__cellValue">
+                  Agents
+                </strong>
                 <span className="nexus-surface-route-strip__cellNote">
                   Agent posture stays visible.
                 </span>
               </div>
               <div className="nexus-surface-route-strip__cell">
-                <span className="nexus-surface-route-strip__cellLabel">Continuity</span>
+                <span className="nexus-surface-route-strip__cellLabel">
+                  Continuity
+                </span>
                 <strong
                   className="nexus-surface-route-strip__cellValue"
                   data-tone="critical"
@@ -559,7 +592,10 @@ export default function CommandPage() {
                         compact
                         className="nexus-command-gridSpan"
                       >
-                        <div className="nexus-command-rail-preview" aria-label="Operator readiness preview">
+                        <div
+                          className="nexus-command-rail-preview"
+                          aria-label="Operator readiness preview"
+                        >
                           <span>
                             <strong>Guarded</strong>
                             <em>Policies inline</em>
@@ -591,7 +627,10 @@ export default function CommandPage() {
                         detail="Server-scored chain posture plus true local runtime reachability"
                         compact
                       >
-                        <div className="nexus-command-rail-preview" aria-label="Provider health preview">
+                        <div
+                          className="nexus-command-rail-preview"
+                          aria-label="Provider health preview"
+                        >
                           <span>
                             <strong>Chain</strong>
                             <em>Server scored</em>
@@ -629,7 +668,10 @@ export default function CommandPage() {
                         detail="Static stack context injected into agent prompts"
                         compact
                       >
-                        <div className="nexus-command-rail-preview" aria-label="Project stack preview">
+                        <div
+                          className="nexus-command-rail-preview"
+                          aria-label="Project stack preview"
+                        >
                           <span>
                             <strong>Stack</strong>
                             <em>Prompt ready</em>
@@ -658,7 +700,10 @@ export default function CommandPage() {
                         detail="Local-only operator memory with free-first posture"
                         compact
                       >
-                        <div className="nexus-command-rail-preview" aria-label="Memory spine preview">
+                        <div
+                          className="nexus-command-rail-preview"
+                          aria-label="Memory spine preview"
+                        >
                           <span>
                             <strong>Local</strong>
                             <em>Operator memory</em>
@@ -688,7 +733,10 @@ export default function CommandPage() {
                         compact
                         className="nexus-command-gridSpan"
                       >
-                        <div className="nexus-command-rail-preview nexus-command-rail-preview--wide" aria-label="Memory ask preview">
+                        <div
+                          className="nexus-command-rail-preview nexus-command-rail-preview--wide"
+                          aria-label="Memory ask preview"
+                        >
                           <span>
                             <strong>Ask</strong>
                             <em>Native recall</em>
@@ -715,7 +763,9 @@ export default function CommandPage() {
                               surface="command"
                               initialQuery={initialMemoryAsk}
                               initialCompare={initialMemoryCompare}
-                              autoRunOnInitialQuery={Boolean(initialMemoryAsk.trim())}
+                              autoRunOnInitialQuery={Boolean(
+                                initialMemoryAsk.trim(),
+                              )}
                             />
                           </div>
                         </details>
@@ -759,7 +809,10 @@ export default function CommandPage() {
                   detail="Waste, tool-pack posture, and cache pressure without another tall continuity desk"
                   compact
                 >
-                  <div className="nexus-command-rail-preview nexus-command-rail-preview--wide" aria-label="Runtime efficiency preview">
+                  <div
+                    className="nexus-command-rail-preview nexus-command-rail-preview--wide"
+                    aria-label="Runtime efficiency preview"
+                  >
                     <span>
                       <strong>Waste</strong>
                       <em>Prompt pressure</em>

@@ -52,7 +52,10 @@ function cell(label: string, value: string, color?: string) {
   );
 }
 
-export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelProps) {
+export default function TradeThesisPanel({
+  input,
+  onClose,
+}: TradeThesisPanelProps) {
   const [loading, setLoading] = useState(true);
   const [thesis, setThesis] = useState<TradeThesisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -148,14 +151,24 @@ export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelPro
         </div>
         <div
           id="nexus-trade-thesis-context"
-          style={{ fontSize: "11px", color: "var(--text3)", margin: "2px 0 14px" }}
+          style={{
+            fontSize: "11px",
+            color: "var(--text3)",
+            margin: "2px 0 14px",
+          }}
         >
-          {input.name ?? input.sym} · {fmtPrice(input.price)} · {fmtPct(input.chg24h)} · Score{" "}
-          {input.score}/100 · {input.label}
+          {input.name ?? input.sym} · {fmtPrice(input.price)} ·{" "}
+          {fmtPct(input.chg24h)} · Score {input.score}/100 · {input.label}
         </div>
 
         {loading ? (
-          <div style={{ textAlign: "center", padding: "30px", color: "var(--text3)" }}>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "30px",
+              color: "var(--text3)",
+            }}
+          >
             Generating trade thesis…
           </div>
         ) : thesis ? (
@@ -221,7 +234,13 @@ export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelPro
               >
                 Thesis
               </div>
-              <div style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text2)" }}>
+              <div
+                style={{
+                  fontSize: "12.5px",
+                  lineHeight: 1.6,
+                  color: "var(--text2)",
+                }}
+              >
                 {thesis.thesis}
               </div>
             </div>
@@ -241,7 +260,11 @@ export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelPro
               {thesis.risks.map((risk) => (
                 <div
                   key={risk}
-                  style={{ fontSize: "12px", color: "#f59e0b", lineHeight: 1.5 }}
+                  style={{
+                    fontSize: "12px",
+                    color: "#f59e0b",
+                    lineHeight: 1.5,
+                  }}
                 >
                   ⚠ {risk}
                 </div>
@@ -250,7 +273,11 @@ export default function TradeThesisPanel({ input, onClose }: TradeThesisPanelPro
             {error ? (
               <div
                 role="alert"
-                style={{ marginTop: "12px", fontSize: "11px", color: "var(--text3)" }}
+                style={{
+                  marginTop: "12px",
+                  fontSize: "11px",
+                  color: "var(--text3)",
+                }}
               >
                 {error}
               </div>

@@ -21,7 +21,10 @@ interface VaultGraphControlsSectionProps {
   selectedGraphNodeId: string | null;
   typeCounts: Record<string, number>;
   visibilityCounts: Record<string, number>;
-  onApplyPreset: (source: GraphSourceFilter, visibility: GraphVisibilityFilter) => void;
+  onApplyPreset: (
+    source: GraphSourceFilter,
+    visibility: GraphVisibilityFilter,
+  ) => void;
   onCopyGraphViewSummary: () => void | Promise<void>;
   onCopyVisibleGraphNodes: () => void | Promise<void>;
   onDownloadVisibleGraphNodes: () => void;
@@ -145,7 +148,10 @@ export default function VaultGraphControlsSection({
           type="button"
           onClick={() => onSetSourceFilter("all")}
           className="nexus-shell-button"
-          style={{ ...buttonStyle, opacity: graphSourceFilter === "all" ? 1 : 0.72 }}
+          style={{
+            ...buttonStyle,
+            opacity: graphSourceFilter === "all" ? 1 : 0.72,
+          }}
         >
           All nodes
         </button>
@@ -153,7 +159,10 @@ export default function VaultGraphControlsSection({
           type="button"
           onClick={() => onSetSourceFilter("clips")}
           className="nexus-shell-button"
-          style={{ ...buttonStyle, opacity: graphSourceFilter === "clips" ? 1 : 0.72 }}
+          style={{
+            ...buttonStyle,
+            opacity: graphSourceFilter === "clips" ? 1 : 0.72,
+          }}
         >
           Saved clips
         </button>
@@ -161,7 +170,10 @@ export default function VaultGraphControlsSection({
           type="button"
           onClick={() => onSetSourceFilter("compiled")}
           className="nexus-shell-button"
-          style={{ ...buttonStyle, opacity: graphSourceFilter === "compiled" ? 1 : 0.72 }}
+          style={{
+            ...buttonStyle,
+            opacity: graphSourceFilter === "compiled" ? 1 : 0.72,
+          }}
         >
           Compiled pages
         </button>
@@ -169,7 +181,10 @@ export default function VaultGraphControlsSection({
           type="button"
           onClick={() => onSetVisibilityFilter("all")}
           className="nexus-shell-button"
-          style={{ ...buttonStyle, opacity: graphVisibilityFilter === "all" ? 1 : 0.72 }}
+          style={{
+            ...buttonStyle,
+            opacity: graphVisibilityFilter === "all" ? 1 : 0.72,
+          }}
         >
           All visibility
         </button>
@@ -177,7 +192,10 @@ export default function VaultGraphControlsSection({
           type="button"
           onClick={() => onSetVisibilityFilter("safe")}
           className="nexus-shell-button"
-          style={{ ...buttonStyle, opacity: graphVisibilityFilter === "safe" ? 1 : 0.72 }}
+          style={{
+            ...buttonStyle,
+            opacity: graphVisibilityFilter === "safe" ? 1 : 0.72,
+          }}
         >
           Safe only
         </button>
@@ -185,7 +203,10 @@ export default function VaultGraphControlsSection({
           type="button"
           onClick={() => onSetVisibilityFilter("sensitive")}
           className="nexus-shell-button"
-          style={{ ...buttonStyle, opacity: graphVisibilityFilter === "sensitive" ? 1 : 0.72 }}
+          style={{
+            ...buttonStyle,
+            opacity: graphVisibilityFilter === "sensitive" ? 1 : 0.72,
+          }}
         >
           Sensitive topology
         </button>
@@ -193,7 +214,10 @@ export default function VaultGraphControlsSection({
           type="button"
           onClick={() => onSetVisibilityFilter("restricted")}
           className="nexus-shell-button"
-          style={{ ...buttonStyle, opacity: graphVisibilityFilter === "restricted" ? 1 : 0.72 }}
+          style={{
+            ...buttonStyle,
+            opacity: graphVisibilityFilter === "restricted" ? 1 : 0.72,
+          }}
         >
           Restricted only
         </button>
@@ -210,8 +234,17 @@ export default function VaultGraphControlsSection({
           background: "rgba(9, 14, 28, 0.36)",
         }}
       >
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
-          <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "10px",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}
+          >
             Node types
           </span>
           {(["clip", "report", "note"] as const).map((type) => (
@@ -238,8 +271,17 @@ export default function VaultGraphControlsSection({
             </span>
           ))}
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
-          <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "10px",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}
+          >
             Visibility
           </span>
           {(["safe", "internal", "restricted"] as const).map((visibility) => (

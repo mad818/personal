@@ -81,21 +81,43 @@ export default function ActionSessionCluster({
                   flexWrap: "wrap",
                 }}
               >
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{item.label}</div>
-                <ShellBadge tone={isExactSessionHref(normalizedHref) ? "accent" : "muted"}>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {item.label}
+                </div>
+                <ShellBadge
+                  tone={isExactSessionHref(normalizedHref) ? "accent" : "muted"}
+                >
                   {getSessionTargetLabel(normalizedHref)}
                 </ShellBadge>
               </div>
-              <div style={{ fontSize: "11px", color: "var(--text2)", lineHeight: 1.5 }}>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text2)",
+                  lineHeight: 1.5,
+                }}
+              >
                 {item.detail}
               </div>
               {item.context ? (
-                <div style={{ fontSize: "10px", color: "var(--text3)", wordBreak: "break-word" }}>
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "var(--text3)",
+                    wordBreak: "break-word",
+                  }}
+                >
                   {item.context}
                 </div>
               ) : null}
               {showHref ? (
-                <div style={{ fontSize: "10px", color: "var(--text3)", wordBreak: "break-word" }}>
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "var(--text3)",
+                    wordBreak: "break-word",
+                  }}
+                >
                   {normalizedHref}
                 </div>
               ) : null}
@@ -135,7 +157,8 @@ export default function ActionSessionCluster({
               fontSize: "11px",
             }}
           >
-            +{overflowItems.length} more session{overflowItems.length === 1 ? "" : "s"}
+            +{overflowItems.length} more session
+            {overflowItems.length === 1 ? "" : "s"}
           </span>
         ) : null}
       </div>

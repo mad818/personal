@@ -42,6 +42,9 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  applyPrivacyShieldHeaders(response, preview.status.active ? preview.status : null);
+  applyPrivacyShieldHeaders(
+    response,
+    preview.status.active ? preview.status : null,
+  );
   return response;
 }

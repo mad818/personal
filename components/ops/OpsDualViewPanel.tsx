@@ -30,8 +30,12 @@ function TrajectorySvg({ tracks }: { tracks: TrajectoryTrack[] }) {
     );
   }
 
-  const lats = tracks.flatMap((track) => track.points.map((point) => point.lat));
-  const lngs = tracks.flatMap((track) => track.points.map((point) => point.lng));
+  const lats = tracks.flatMap((track) =>
+    track.points.map((point) => point.lat),
+  );
+  const lngs = tracks.flatMap((track) =>
+    track.points.map((point) => point.lng),
+  );
   const minLat = Math.min(...lats);
   const maxLat = Math.max(...lats);
   const minLng = Math.min(...lngs);
@@ -68,7 +72,12 @@ function TrajectorySvg({ tracks }: { tracks: TrajectoryTrack[] }) {
               strokeWidth="1.5"
               opacity="0.85"
             />
-            <circle cx={head.x} cy={head.y} r="3.5" fill={designTokens.success} />
+            <circle
+              cx={head.x}
+              cy={head.y}
+              r="3.5"
+              fill={designTokens.success}
+            />
           </g>
         );
       })}
@@ -87,8 +96,13 @@ export default function OpsDualViewPanel() {
         });
         if (!response.ok) return;
         const payload = (await response.json()) as { flights?: unknown[] };
-        const flights = ((payload.flights ?? []) as Array<Record<string, unknown>>)
-          .filter((row) => row.latitude != null && row.longitude != null && !row.on_ground)
+        const flights = (
+          (payload.flights ?? []) as Array<Record<string, unknown>>
+        )
+          .filter(
+            (row) =>
+              row.latitude != null && row.longitude != null && !row.on_ground,
+          )
           .slice(0, 12)
           .map((row) => ({
             icao: String(row.icao24 ?? ""),
@@ -124,13 +138,19 @@ export default function OpsDualViewPanel() {
           padding: "10px",
         }}
       >
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}
+        >
           Overview
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}
+        >
           {sync.overviewLabel}
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "8px" }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", marginTop: "8px" }}
+        >
           Center {sync.centerLat.toFixed(2)}, {sync.centerLng.toFixed(2)}
         </div>
       </div>
@@ -143,10 +163,14 @@ export default function OpsDualViewPanel() {
           padding: "10px",
         }}
       >
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}
+        >
           Tactical trajectories
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}
+        >
           {sync.tacticalLabel}
         </div>
         <div style={{ marginTop: "8px" }}>

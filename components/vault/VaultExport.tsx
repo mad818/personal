@@ -27,8 +27,11 @@ export default function VaultExport({
   compiledPages = [],
 }: VaultExportProps) {
   const savedArticles = useStore((s) => s.savedArticles);
-  const [exporting, setExporting] = useState<"all" | "filtered" | "brain" | null>(null);
-  const [secondBrainMode, setSecondBrainMode] = useState<SecondBrainExportMode>("full");
+  const [exporting, setExporting] = useState<
+    "all" | "filtered" | "brain" | null
+  >(null);
+  const [secondBrainMode, setSecondBrainMode] =
+    useState<SecondBrainExportMode>("full");
 
   function downloadBlob(filename: string, content: string, mime: string) {
     return requestTextDownload({
@@ -77,7 +80,8 @@ export default function VaultExport({
     } catch {
       toast({
         title: "VAULT export not prepared",
-        message: "The browser could not start this download. Keep VAULT open and retry.",
+        message:
+          "The browser could not start this download. Keep VAULT open and retry.",
         severity: "medium",
       });
     } finally {
@@ -113,7 +117,8 @@ export default function VaultExport({
     } catch {
       toast({
         title: "Second-brain export not prepared",
-        message: "One or more browser download requests failed. Keep VAULT open and retry.",
+        message:
+          "One or more browser download requests failed. Keep VAULT open and retry.",
         severity: "medium",
       });
     } finally {
@@ -139,7 +144,9 @@ export default function VaultExport({
     transition: "border-color 0.2s, color 0.2s",
   };
 
-  const modeKeys = Object.keys(SECOND_BRAIN_EXPORT_MODE_LABELS) as SecondBrainExportMode[];
+  const modeKeys = Object.keys(
+    SECOND_BRAIN_EXPORT_MODE_LABELS,
+  ) as SecondBrainExportMode[];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -154,8 +161,15 @@ export default function VaultExport({
           disabled={exporting !== null}
           title="Export all saved articles as JSON"
         >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          >
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
@@ -172,8 +186,15 @@ export default function VaultExport({
           disabled={exporting !== null}
           title="Export filtered articles as JSON"
         >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          >
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
@@ -183,12 +204,21 @@ export default function VaultExport({
       </div>
 
       {/* Second Brain export row */}
-      <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "6px",
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
         {/* Mode picker */}
         <select
           aria-label="Second brain export mode"
           value={secondBrainMode}
-          onChange={(e) => setSecondBrainMode(e.target.value as SecondBrainExportMode)}
+          onChange={(e) =>
+            setSecondBrainMode(e.target.value as SecondBrainExportMode)
+          }
           disabled={exporting !== null}
           title="Second brain export mode"
           style={{
@@ -225,8 +255,15 @@ export default function VaultExport({
           disabled={exporting !== null}
           title="Export as Obsidian second-brain markdown pack"
         >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          >
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />

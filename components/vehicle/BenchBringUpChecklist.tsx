@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback"
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback";
 import {
   getVehicleBenchChecklistProgress,
   VEHICLE_BENCH_CHECKLIST,
   VEHICLE_CHECKLIST_CATEGORY_LABELS,
-} from "@/lib/vehicle/readiness"
+} from "@/lib/vehicle/readiness";
 import {
   areVehicleChecklistStatesEqual,
   buildVehicleBenchBridgeReadiness,
   normalizeVehicleChecklistState,
   normalizeVehicleConnectorProfile,
   VEHICLE_FIRST_HARDWARE_DAY_CHECKLIST,
-} from "@/lib/vehicle/hardwareReadiness"
-import { useStore } from "@/store/useStore"
+} from "@/lib/vehicle/hardwareReadiness";
+import { useStore } from "@/store/useStore";
 
 const BENCH_CATEGORIES = [
   "frame_power",
@@ -22,18 +22,22 @@ const BENCH_CATEGORIES = [
   "radio_modes",
   "gps_home",
   "failsafes",
-] as const
+] as const;
 
 export default function BenchBringUpChecklist() {
-  const checklistState = useStore((state) => state.settings.vehicleBenchChecklist ?? {})
+  const checklistState = useStore(
+    (state) => state.settings.vehicleBenchChecklist ?? {},
+  );
   const firstHardwareChecklistState = useStore(
     (state) => state.settings.vehicleFirstHardwareChecklist ?? {},
-  )
-  const connectorProfile = useStore((state) => state.settings.vehicleConnectorProfile)
-  const toggleItem = useStore((state) => state.toggleVehicleBenchChecklistItem)
-  const resetChecklist = useStore((state) => state.resetVehicleBenchChecklist)
-  const updateSettings = useStore((state) => state.updateSettings)
-  const [healedState, setHealedState] = useState(false)
+  );
+  const connectorProfile = useStore(
+    (state) => state.settings.vehicleConnectorProfile,
+  );
+  const toggleItem = useStore((state) => state.toggleVehicleBenchChecklistItem);
+  const resetChecklist = useStore((state) => state.resetVehicleBenchChecklist);
+  const updateSettings = useStore((state) => state.updateSettings);
+  const [healedState, setHealedState] = useState(false);
 
   const normalizedChecklistState = useMemo(
     () =>
@@ -42,7 +46,7 @@ export default function BenchBringUpChecklist() {
         VEHICLE_BENCH_CHECKLIST.map((item) => item.id),
       ),
     [checklistState],
-  )
+  );
 
   useEffect(() => {
     if (
@@ -51,12 +55,13 @@ export default function BenchBringUpChecklist() {
         normalizedChecklistState,
         VEHICLE_BENCH_CHECKLIST.map((item) => item.id),
       )
-    ) return
-    updateSettings({ vehicleBenchChecklist: normalizedChecklistState })
-    setHealedState(true)
-  }, [checklistState, normalizedChecklistState, updateSettings])
+    )
+      return;
+    updateSettings({ vehicleBenchChecklist: normalizedChecklistState });
+    setHealedState(true);
+  }, [checklistState, normalizedChecklistState, updateSettings]);
 
-  const progress = getVehicleBenchChecklistProgress(normalizedChecklistState)
+  const progress = getVehicleBenchChecklistProgress(normalizedChecklistState);
   const bridgeReadiness = useMemo(
     () =>
       buildVehicleBenchBridgeReadiness({
@@ -68,28 +73,44 @@ export default function BenchBringUpChecklist() {
         connectorProfile: normalizeVehicleConnectorProfile(connectorProfile),
       }),
     [connectorProfile, firstHardwareChecklistState, normalizedChecklistState],
-  )
+  );
 
   const copyChecklist = useCallback(() => {
-    const timestamp = new Date().toISOString().slice(0, 16).replace("T", " ")
-    const lines = [`# F450 Bench Bring-Up — ${timestamp}`, "", "> Props off only.", ""]
+    const timestamp = new Date().toISOString().slice(0, 16).replace("T", " ");
+    const lines = [
+      `# F450 Bench Bring-Up — ${timestamp}`,
+      "",
+      "> Props off only.",
+      "",
+    ];
 
     BENCH_CATEGORIES.forEach((category) => {
-      const items = VEHICLE_BENCH_CHECKLIST.filter((item) => item.category === category)
-      if (!items.length) return
-      lines.push(`## ${VEHICLE_CHECKLIST_CATEGORY_LABELS[category]}`)
+      const items = VEHICLE_BENCH_CHECKLIST.filter(
+        (item) => item.category === category,
+      );
+      if (!items.length) return;
+      lines.push(`## ${VEHICLE_CHECKLIST_CATEGORY_LABELS[category]}`);
       items.forEach((item) => {
-        lines.push(`- [${normalizedChecklistState[item.id] ? "x" : " "}] ${item.label} — ${item.detail}`)
-      })
-      lines.push("")
-    })
+        lines.push(
+          `- [${normalizedChecklistState[item.id] ? "x" : " "}] ${item.label} — ${item.detail}`,
+        );
+      });
+      lines.push("");
+    });
 
-    void copyTextWithFeedback(lines.join("\n"), "Bench checklist")
-  }, [normalizedChecklistState])
+    void copyTextWithFeedback(lines.join("\n"), "Bench checklist");
+  }, [normalizedChecklistState]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          flexWrap: "wrap",
+        }}
+      >
         <div
           style={{
             fontSize: "10px",
@@ -127,7 +148,13 @@ export default function BenchBringUpChecklist() {
             State repaired
           </span>
         ) : null}
-        <span style={{ marginLeft: "auto", fontSize: "10px", color: "var(--text3)" }}>
+        <span
+          style={{
+            marginLeft: "auto",
+            fontSize: "10px",
+            color: "var(--text3)",
+          }}
+        >
           {progress.completedCount}/{progress.totalCount} complete
         </span>
       </div>
@@ -144,7 +171,8 @@ export default function BenchBringUpChecklist() {
           style={{
             width: `${progress.percent}%`,
             height: "100%",
-            background: progress.remainingCount === 0 ? "#10b981" : "var(--accent)",
+            background:
+              progress.remainingCount === 0 ? "#10b981" : "var(--accent)",
             transition: "width var(--t)",
           }}
         />
@@ -155,14 +183,22 @@ export default function BenchBringUpChecklist() {
         style={{
           border: "1px solid var(--border)",
           borderRadius: "var(--rs)",
-          background: "linear-gradient(135deg, rgba(15,23,42,0.72), rgba(15,118,110,0.08))",
+          background:
+            "linear-gradient(135deg, rgba(15,23,42,0.72), rgba(15,118,110,0.08))",
           padding: "12px",
           display: "flex",
           flexDirection: "column",
           gap: "10px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "10px",
+            flexWrap: "wrap",
+          }}
+        >
           <div style={{ flex: "1 1 220px" }}>
             <div
               style={{
@@ -176,13 +212,27 @@ export default function BenchBringUpChecklist() {
             >
               Passive bridge gate
             </div>
-            <div style={{ fontSize: "13px", color: "var(--text)", fontWeight: 900 }}>
+            <div
+              style={{
+                fontSize: "13px",
+                color: "var(--text)",
+                fontWeight: 900,
+              }}
+            >
               {bridgeReadiness.reviewPosture === "ready_for_passive_bridge"
                 ? "Ready for observer-only bridge ingest"
                 : "Bench proof required before bridge ingest"}
             </div>
-            <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.5, marginTop: "4px" }}>
-              Next: {bridgeReadiness.nextAction}. Nexus does not arm, steer, or mode-switch the aircraft.
+            <div
+              style={{
+                fontSize: "10px",
+                color: "var(--text3)",
+                lineHeight: 1.5,
+                marginTop: "4px",
+              }}
+            >
+              Next: {bridgeReadiness.nextAction}. Nexus does not arm, steer, or
+              mode-switch the aircraft.
             </div>
           </div>
           <div
@@ -195,13 +245,22 @@ export default function BenchBringUpChecklist() {
               background: "rgba(255,255,255,0.035)",
             }}
           >
-            <div style={{ fontSize: "18px", color: "var(--text)", fontWeight: 900 }}>
+            <div
+              style={{
+                fontSize: "18px",
+                color: "var(--text)",
+                fontWeight: 900,
+              }}
+            >
               {bridgeReadiness.completedCount}/{bridgeReadiness.totalCount}
             </div>
             <div
               style={{
                 fontSize: "8px",
-                color: bridgeReadiness.reviewPosture === "ready_for_passive_bridge" ? "#10b981" : "#f59e0b",
+                color:
+                  bridgeReadiness.reviewPosture === "ready_for_passive_bridge"
+                    ? "#10b981"
+                    : "#f59e0b",
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
                 fontWeight: 800,
@@ -231,7 +290,13 @@ export default function BenchBringUpChecklist() {
             </span>
           ))}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "6px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+            gap: "6px",
+          }}
+        >
           {bridgeReadiness.gates.map((gate) => (
             <div
               key={gate.id}
@@ -239,7 +304,9 @@ export default function BenchBringUpChecklist() {
                 border: "1px solid var(--border)",
                 borderRadius: "12px",
                 padding: "8px",
-                background: gate.complete ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.025)",
+                background: gate.complete
+                  ? "rgba(16,185,129,0.08)"
+                  : "rgba(255,255,255,0.025)",
               }}
             >
               <div
@@ -253,7 +320,14 @@ export default function BenchBringUpChecklist() {
               >
                 {gate.complete ? "Cleared" : "Open"}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text2)", fontWeight: 800, marginTop: "3px" }}>
+              <div
+                style={{
+                  fontSize: "10px",
+                  color: "var(--text2)",
+                  fontWeight: 800,
+                  marginTop: "3px",
+                }}
+              >
                 {gate.label}
               </div>
             </div>
@@ -270,7 +344,8 @@ export default function BenchBringUpChecklist() {
         }}
       >
         <span style={{ fontSize: "10px", color: "var(--text2)" }}>
-          Use this to make the first bench session boring and repeatable before any real throttle.
+          Use this to make the first bench session boring and repeatable before
+          any real throttle.
         </span>
         <button
           type="button"
@@ -310,8 +385,12 @@ export default function BenchBringUpChecklist() {
       </div>
 
       {BENCH_CATEGORIES.map((category) => {
-        const items = VEHICLE_BENCH_CHECKLIST.filter((item) => item.category === category)
-        const checked = items.filter((item) => normalizedChecklistState[item.id]).length
+        const items = VEHICLE_BENCH_CHECKLIST.filter(
+          (item) => item.category === category,
+        );
+        const checked = items.filter(
+          (item) => normalizedChecklistState[item.id],
+        ).length;
 
         return (
           <div key={category}>
@@ -327,7 +406,12 @@ export default function BenchBringUpChecklist() {
               }}
             >
               {VEHICLE_CHECKLIST_CATEGORY_LABELS[category]}
-              <span style={{ fontSize: "9px", color: checked === items.length ? "#10b981" : "var(--text3)" }}>
+              <span
+                style={{
+                  fontSize: "9px",
+                  color: checked === items.length ? "#10b981" : "var(--text3)",
+                }}
+              >
                 {checked}/{items.length}
               </span>
             </div>
@@ -346,26 +430,42 @@ export default function BenchBringUpChecklist() {
                   type="checkbox"
                   checked={Boolean(normalizedChecklistState[item.id])}
                   onChange={() => toggleItem(item.id)}
-                  style={{ marginTop: "2px", accentColor: "var(--accent)", flexShrink: 0 }}
+                  style={{
+                    marginTop: "2px",
+                    accentColor: "var(--accent)",
+                    flexShrink: 0,
+                  }}
                 />
-                <span style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                <span
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "2px",
+                  }}
+                >
                   <span
                     style={{
                       fontSize: "11px",
                       lineHeight: 1.35,
-                      color: normalizedChecklistState[item.id] ? "var(--text3)" : "var(--text2)",
-                      textDecoration: normalizedChecklistState[item.id] ? "line-through" : "none",
+                      color: normalizedChecklistState[item.id]
+                        ? "var(--text3)"
+                        : "var(--text2)",
+                      textDecoration: normalizedChecklistState[item.id]
+                        ? "line-through"
+                        : "none",
                     }}
                   >
                     {item.label}
                   </span>
-                  <span style={{ fontSize: "9px", color: "var(--text3)" }}>{item.detail}</span>
+                  <span style={{ fontSize: "9px", color: "var(--text3)" }}>
+                    {item.detail}
+                  </span>
                 </span>
               </label>
             ))}
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

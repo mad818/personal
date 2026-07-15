@@ -32,9 +32,9 @@ export default function SecondBrainFileStatus() {
     setLoadIssue("");
     try {
       const response = await apiFetch("/api/second-brain");
-      const payload = (await response.json().catch(() => null)) as
-        | SecondBrainStatusPayload
-        | null;
+      const payload = (await response
+        .json()
+        .catch(() => null)) as SecondBrainStatusPayload | null;
       if (!response.ok || !payload) {
         setLoadIssue("Second-brain file status is unavailable.");
         return;
@@ -76,13 +76,20 @@ export default function SecondBrainFileStatus() {
           <strong style={{ color: "var(--text)", fontSize: "12px" }}>
             File-first second brain
           </strong>
-          <div style={{ color: "var(--text3)", fontSize: "10px", marginTop: "3px" }}>
-            Human files outrank AI memory. The AI has no background write authority.
+          <div
+            style={{
+              color: "var(--text3)",
+              fontSize: "10px",
+              marginTop: "3px",
+            }}
+          >
+            Human files outrank AI memory. The AI has no background write
+            authority.
           </div>
         </div>
         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
           <ShellBadge tone={status?.posture === "ready" ? "success" : "accent"}>
-            {loading ? "Checking" : status?.posture ?? "Unavailable"}
+            {loading ? "Checking" : (status?.posture ?? "Unavailable")}
           </ShellBadge>
           <ShellBadge tone="muted">Read-only context</ShellBadge>
           <ShellButton onClick={refresh} disabled={loading}>
@@ -115,7 +122,13 @@ export default function SecondBrainFileStatus() {
             >
               {file.path}
             </div>
-            <div style={{ color: "var(--text3)", fontSize: "10px", marginTop: "3px" }}>
+            <div
+              style={{
+                color: "var(--text3)",
+                fontSize: "10px",
+                marginTop: "3px",
+              }}
+            >
               {file.present
                 ? `${file.loadedCharacterCount.toLocaleString()} characters loaded${
                     file.truncated ? " · bounded" : ""

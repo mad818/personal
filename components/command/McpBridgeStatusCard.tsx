@@ -30,7 +30,7 @@ export default function McpBridgeStatusCard() {
           setGatewayNote(
             gateway.liveExecutionReady
               ? `${gateway.message ?? "MCP gateway live-ready."}`
-              : gateway.message ?? null,
+              : (gateway.message ?? null),
           );
         }
       } catch {
@@ -52,10 +52,14 @@ export default function McpBridgeStatusCard() {
       }}
     >
       <div>
-        <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}
+        >
           MCP bridge posture
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}
+        >
           mcporter-aligned · bounded POST when allowlist configured
         </div>
       </div>
@@ -85,7 +89,9 @@ export default function McpBridgeStatusCard() {
               padding: "8px 10px",
             }}
           >
-            <div style={{ fontSize: "9px", color: "var(--text3)" }}>{stat.label}</div>
+            <div style={{ fontSize: "9px", color: "var(--text3)" }}>
+              {stat.label}
+            </div>
             <div
               style={{
                 marginTop: "4px",
@@ -101,7 +107,9 @@ export default function McpBridgeStatusCard() {
       </div>
 
       {gatewayNote ? (
-        <div style={{ fontSize: "10px", color: "var(--text3)" }}>{gatewayNote}</div>
+        <div style={{ fontSize: "10px", color: "var(--text3)" }}>
+          {gatewayNote}
+        </div>
       ) : null}
 
       <ul

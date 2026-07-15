@@ -24,9 +24,7 @@ export function readSandboxAdapterDescriptor(): SandboxAdapterDescriptor {
   };
 }
 
-export function resolveSandboxExecution(
-  tool: string,
-): ToolIsolationDescriptor {
+export function resolveSandboxExecution(tool: string): ToolIsolationDescriptor {
   return resolveToolIsolationDescriptor(tool, "exec");
 }
 

@@ -67,7 +67,8 @@ export default function GeoDeltaPanel({ theater }: { theater: SweepTheater }) {
   if (!latest) {
     return (
       <div style={{ color: "var(--text3)", fontSize: "12px" }}>
-        No geo delta snapshot is stored for this theater yet. Run a sweep to seed the first before/after evidence chain.
+        No geo delta snapshot is stored for this theater yet. Run a sweep to
+        seed the first before/after evidence chain.
       </div>
     );
   }
@@ -93,7 +94,14 @@ export default function GeoDeltaPanel({ theater }: { theater: SweepTheater }) {
           <div style={{ marginTop: "10px", fontSize: "18px", fontWeight: 900 }}>
             {latest.title}
           </div>
-          <p style={{ margin: "8px 0 0", fontSize: "12px", color: "var(--text2)", lineHeight: 1.6 }}>
+          <p
+            style={{
+              margin: "8px 0 0",
+              fontSize: "12px",
+              color: "var(--text2)",
+              lineHeight: 1.6,
+            }}
+          >
             {latest.observations.map((item) => item.beforeLabel).join(" · ")}
           </p>
         </article>
@@ -106,13 +114,31 @@ export default function GeoDeltaPanel({ theater }: { theater: SweepTheater }) {
           }}
         >
           <SectionLabel detail="After">Current anomalies</SectionLabel>
-          <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "10px" }}>
-            <div style={{ fontSize: "18px", fontWeight: 900 }}>{latest.summary}</div>
-            <ShellBadge tone={latest.severity === "high" ? "accent" : "success"}>
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              alignItems: "center",
+              marginTop: "10px",
+            }}
+          >
+            <div style={{ fontSize: "18px", fontWeight: 900 }}>
+              {latest.summary}
+            </div>
+            <ShellBadge
+              tone={latest.severity === "high" ? "accent" : "success"}
+            >
               {latest.severity}
             </ShellBadge>
           </div>
-          <p style={{ margin: "8px 0 0", fontSize: "12px", color: "var(--text2)", lineHeight: 1.6 }}>
+          <p
+            style={{
+              margin: "8px 0 0",
+              fontSize: "12px",
+              color: "var(--text2)",
+              lineHeight: 1.6,
+            }}
+          >
             {latest.observations.map((item) => item.afterLabel).join(" · ")}
           </p>
         </article>
@@ -135,16 +161,39 @@ export default function GeoDeltaPanel({ theater }: { theater: SweepTheater }) {
               background: "rgba(8, 12, 22, 0.86)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "8px",
+                alignItems: "center",
+              }}
+            >
               <strong style={{ fontSize: "12px" }}>{observation.label}</strong>
-              <ShellBadge tone={observation.severity === "high" ? "accent" : "muted"}>
+              <ShellBadge
+                tone={observation.severity === "high" ? "accent" : "muted"}
+              >
                 {observation.severity}
               </ShellBadge>
             </div>
-            <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text2)", lineHeight: 1.55 }}>
+            <p
+              style={{
+                margin: "8px 0 0",
+                fontSize: "11px",
+                color: "var(--text2)",
+                lineHeight: 1.55,
+              }}
+            >
               {observation.note}
             </p>
-            <div style={{ marginTop: "10px", fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}>
+            <div
+              style={{
+                marginTop: "10px",
+                fontSize: "10px",
+                color: "var(--text3)",
+                lineHeight: 1.55,
+              }}
+            >
               {observation.lat.toFixed(1)}, {observation.lon.toFixed(1)}
               <br />
               {observation.beforeLabel} → {observation.afterLabel}

@@ -26,9 +26,19 @@ export default function CronSchedulerAuditFiltersSection({
 }: Props) {
   return (
     <>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexWrap: "wrap",
+        }}
+      >
         {SCHEDULER_AUDIT_FILTER_PRESETS.map((preset) => {
-          const active = areSchedulerAuditFiltersEqual(auditFilters, preset.filters);
+          const active = areSchedulerAuditFiltersEqual(
+            auditFilters,
+            preset.filters,
+          );
           return (
             <button
               key={preset.id}
@@ -52,7 +62,14 @@ export default function CronSchedulerAuditFiltersSection({
           );
         })}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexWrap: "wrap",
+        }}
+      >
         <select
           aria-label="Scheduler audit lane"
           value={auditFilters.lane}
@@ -123,7 +140,9 @@ export default function CronSchedulerAuditFiltersSection({
         {hasActiveAuditFilters ? (
           <button
             type="button"
-            onClick={() => onSetAuditFilters({ ...DEFAULT_SCHEDULER_AUDIT_FILTERS })}
+            onClick={() =>
+              onSetAuditFilters({ ...DEFAULT_SCHEDULER_AUDIT_FILTERS })
+            }
             style={{
               borderRadius: 6,
               border: "1px solid rgba(79,110,247,.3)",

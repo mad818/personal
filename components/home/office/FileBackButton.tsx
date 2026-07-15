@@ -22,15 +22,20 @@ import { deriveVaultArchiveLinks } from "@/lib/vaultCrossLinker";
 import type { CompiledMemoryPageSummary } from "@/components/vault/vaultGraphPageUtils";
 
 interface FileBackButtonProps {
-  text:    string;
+  text: string;
   agentId: AgentId;
   suggestion?: VaultCaptureSuggestion | null;
 }
 
 function derive(text: string): { title: string; tldr: string } {
-  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
-  const title = (lines[0] ?? "Agent response").replace(/^#+\s*/, "").slice(0, 80);
-  const tldr  = lines.slice(1, 3).join(" ").slice(0, 120) || title;
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const title = (lines[0] ?? "Agent response")
+    .replace(/^#+\s*/, "")
+    .slice(0, 80);
+  const tldr = lines.slice(1, 3).join(" ").slice(0, 120) || title;
   return { title, tldr };
 }
 
@@ -45,19 +50,29 @@ function parseTags(value: string) {
   );
 }
 
-const VISIBILITY_OPTIONS: MemoryVisibility[] = ["safe", "internal", "restricted"];
+const VISIBILITY_OPTIONS: MemoryVisibility[] = [
+  "safe",
+  "internal",
+  "restricted",
+];
 
-export function FileBackButton({ text, agentId, suggestion = null }: FileBackButtonProps) {
+export function FileBackButton({
+  text,
+  agentId,
+  suggestion = null,
+}: FileBackButtonProps) {
   const savedArticles = useStore((s) => s.savedArticles);
-  const [open, setOpen]   = useState(false);
-  const [done, setDone]   = useState(false);
+  const [open, setOpen] = useState(false);
+  const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const [compiledPages, setCompiledPages] = useState<CompiledMemoryPageSummary[]>([]);
+  const [compiledPages, setCompiledPages] = useState<
+    CompiledMemoryPageSummary[]
+  >([]);
 
   const derived = derive(text);
   const [title, setTitle] = useState(suggestion?.title ?? derived.title);
-  const [tldr,  setTldr]  = useState(suggestion?.summary ?? derived.tldr);
+  const [tldr, setTldr] = useState(suggestion?.summary ?? derived.tldr);
   const [tagsText, setTagsText] = useState(
     suggestion?.tags?.length
       ? suggestion.tags.join(", ")
@@ -91,7 +106,8 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
 
   const parsedTags = useMemo(() => parseTags(tagsText), [tagsText]);
   const previewDomain = useMemo(
-    () => guessMemoryDomain([title, tldr, text, parsedTags.join(" ")].join(" ")),
+    () =>
+      guessMemoryDomain([title, tldr, text, parsedTags.join(" ")].join(" ")),
     [parsedTags, text, title, tldr],
   );
   const detectedVisibility = useMemo(
@@ -157,7 +173,16 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
         savedArticles,
         compiledPages,
       }),
-    [compiledPages, derived.title, derived.tldr, parsedTags, previewDomain, savedArticles, title, tldr],
+    [
+      compiledPages,
+      derived.title,
+      derived.tldr,
+      parsedTags,
+      previewDomain,
+      savedArticles,
+      title,
+      tldr,
+    ],
   );
   const routeHint = suggestion?.routeHint ?? "/hq";
   const sourceRefs = suggestion?.sourceRefs ?? [];
@@ -166,7 +191,9 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
   if (!suggestion && text.length < 200) return null;
   if (done) {
     return (
-      <span style={{ fontSize: "10px", color: "var(--flo)", paddingLeft: "4px" }}>
+      <span
+        style={{ fontSize: "10px", color: "var(--flo)", paddingLeft: "4px" }}
+      >
         Filed to VAULT
       </span>
     );
@@ -190,8 +217,12 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
         <div style={{ fontSize: "10px", fontWeight: "bold", color: "#bfdbfe" }}>
           SAVE TO VAULT
         </div>
-        <div style={{ fontSize: "11px", color: "var(--text)" }}>{suggestion.title}</div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}>
+        <div style={{ fontSize: "11px", color: "var(--text)" }}>
+          {suggestion.title}
+        </div>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}
+        >
           {suggestion.summary}
         </div>
         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
@@ -227,14 +258,14 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
         onClick={() => setOpen(true)}
         title="File this answer to the VAULT"
         style={{
-          background:   "transparent",
-          border:       "1px solid var(--border)",
+          background: "transparent",
+          border: "1px solid var(--border)",
           borderRadius: "4px",
-          color:        "var(--text2)",
-          cursor:       "pointer",
-          fontSize:     "10px",
-          padding:      "2px 7px",
-          marginLeft:   "4px",
+          color: "var(--text2)",
+          cursor: "pointer",
+          fontSize: "10px",
+          padding: "2px 7px",
+          marginLeft: "4px",
         }}
       >
         + VAULT
@@ -266,13 +297,13 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
         throw new Error(`VAULT filing failed (${response.status}).`);
       }
       toggleSavedArticleWithIndex({
-        id:    `filed-${Date.now()}-${agentId}`,
+        id: `filed-${Date.now()}-${agentId}`,
         title: previewItem.title,
-        desc:  previewItem.summary,
-        link:  "",
-        date:  new Date().toISOString(),
-        tags:  previewItem.tags,
-        cat:   previewDomain,
+        desc: previewItem.summary,
+        link: "",
+        date: new Date().toISOString(),
+        tags: previewItem.tags,
+        cat: previewDomain,
         archiveLinks: suggestedArchiveLinks,
       });
       setDone(true);
@@ -280,7 +311,8 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
     } catch {
       toast({
         title: "VAULT answer not filed",
-        message: "The filing form is still open. Check the VAULT route and retry.",
+        message:
+          "The filing form is still open. Check the VAULT route and retry.",
         severity: "medium",
       });
     } finally {
@@ -289,57 +321,61 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
   };
 
   const INPUT: React.CSSProperties = {
-    width:        "100%",
-    padding:      "3px 6px",
-    background:   "var(--surf3)",
-    border:       "1px solid var(--border)",
+    width: "100%",
+    padding: "3px 6px",
+    background: "var(--surf3)",
+    border: "1px solid var(--border)",
     borderRadius: "3px",
-    color:        "var(--text)",
-    fontSize:     "10px",
-    boxSizing:    "border-box",
+    color: "var(--text)",
+    fontSize: "10px",
+    boxSizing: "border-box",
   };
 
   return (
     <div
       style={{
-        marginLeft:    "4px",
-        padding:       "8px 10px",
-        background:    "var(--surf2)",
-        border:        "1px solid var(--border)",
-        borderRadius:  "6px",
-        display:       "flex",
+        marginLeft: "4px",
+        padding: "8px 10px",
+        background: "var(--surf2)",
+        border: "1px solid var(--border)",
+        borderRadius: "6px",
+        display: "flex",
         flexDirection: "column",
-        gap:           "5px",
-        minWidth:      "260px",
-        maxWidth:      "400px",
+        gap: "5px",
+        minWidth: "260px",
+        maxWidth: "400px",
       }}
     >
-      <div style={{ fontSize: "9px", color: "var(--text2)", fontWeight: "bold" }}>
+      <div
+        style={{ fontSize: "9px", color: "var(--text2)", fontWeight: "bold" }}
+      >
         FILE TO VAULT
       </div>
       <input
         aria-label="Vault file-back title"
         style={INPUT}
         value={title}
-        onChange={e => setTitle(e.target.value)}
+        onChange={(e) => setTitle(e.target.value)}
         placeholder="Title…"
       />
       <input
         aria-label="Vault file-back summary"
         style={INPUT}
         value={tldr}
-        onChange={e => setTldr(e.target.value)}
+        onChange={(e) => setTldr(e.target.value)}
         placeholder="TLDR…"
       />
       <input
         aria-label="Vault file-back tags"
         style={INPUT}
         value={tagsText}
-        onChange={e => setTagsText(e.target.value)}
+        onChange={(e) => setTagsText(e.target.value)}
         placeholder="Tags (comma separated)…"
       />
       <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-        <div style={{ fontSize: "9px", color: "var(--text2)", fontWeight: "bold" }}>
+        <div
+          style={{ fontSize: "9px", color: "var(--text2)", fontWeight: "bold" }}
+        >
           VISIBILITY
         </div>
         <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
@@ -379,13 +415,17 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
           gap: "4px",
         }}
       >
-        <div style={{ fontSize: "9px", color: "var(--text2)", fontWeight: "bold" }}>
+        <div
+          style={{ fontSize: "9px", color: "var(--text2)", fontWeight: "bold" }}
+        >
           SAFE PREVIEW
         </div>
         <div style={{ fontSize: "10px", color: "var(--text)" }}>
           {previewItem.title}
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text2)", lineHeight: 1.4 }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text2)", lineHeight: 1.4 }}
+        >
           {previewItem.summary}
         </div>
         <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
@@ -404,20 +444,31 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
         </div>
         {effectiveVisibility !== requestedVisibility ? (
           <div style={{ fontSize: "9px", color: "#f59e0b" }}>
-            Protection escalated automatically based on detected sensitive content.
+            Protection escalated automatically based on detected sensitive
+            content.
           </div>
         ) : (
           <div style={{ fontSize: "9px", color: "var(--text3)" }}>
-            Manual filing can raise sensitivity, but it never downgrades detected protection.
+            Manual filing can raise sensitivity, but it never downgrades
+            detected protection.
           </div>
         )}
         {suggestedArchiveLinks.length > 0 ? (
           <div style={{ display: "grid", gap: "4px" }}>
-            <div style={{ fontSize: "9px", color: "var(--text2)", fontWeight: "bold" }}>
+            <div
+              style={{
+                fontSize: "9px",
+                color: "var(--text2)",
+                fontWeight: "bold",
+              }}
+            >
               Suggested archive links
             </div>
             {suggestedArchiveLinks.slice(0, 3).map((link) => (
-              <div key={link.targetId} style={{ fontSize: "9px", color: "var(--text3)" }}>
+              <div
+                key={link.targetId}
+                style={{ fontSize: "9px", color: "var(--text3)" }}
+              >
                 {link.targetId} · {link.reason}
               </div>
             ))}
@@ -425,7 +476,8 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
         ) : null}
         {sourceRefs.length > 0 ? (
           <div style={{ fontSize: "9px", color: "var(--text3)" }}>
-            {sourceRefs.length} source ref{sourceRefs.length === 1 ? "" : "s"} will be carried into the saved note.
+            {sourceRefs.length} source ref{sourceRefs.length === 1 ? "" : "s"}{" "}
+            will be carried into the saved note.
           </div>
         ) : null}
       </div>
@@ -435,15 +487,15 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
           onClick={() => void fileToVault()}
           disabled={saving}
           style={{
-            flex:         1,
-            padding:      "3px 0",
+            flex: 1,
+            padding: "3px 0",
             borderRadius: "3px",
-            border:       "1px solid var(--accent)",
-            background:   "transparent",
-            color:        "var(--accent)",
-            cursor:       saving ? "not-allowed" : "pointer",
-            fontSize:     "10px",
-            fontWeight:   "bold",
+            border: "1px solid var(--accent)",
+            background: "transparent",
+            color: "var(--accent)",
+            cursor: saving ? "not-allowed" : "pointer",
+            fontSize: "10px",
+            fontWeight: "bold",
           }}
         >
           {saving ? "Filing..." : "File"}
@@ -453,13 +505,13 @@ export function FileBackButton({ text, agentId, suggestion = null }: FileBackBut
           onClick={() => setOpen(false)}
           disabled={saving}
           style={{
-            padding:      "3px 8px",
+            padding: "3px 8px",
             borderRadius: "3px",
-            border:       "1px solid var(--border)",
-            background:   "transparent",
-            color:        "var(--text2)",
-            cursor:       saving ? "not-allowed" : "pointer",
-            fontSize:     "10px",
+            border: "1px solid var(--border)",
+            background: "transparent",
+            color: "var(--text2)",
+            cursor: saving ? "not-allowed" : "pointer",
+            fontSize: "10px",
           }}
         >
           Cancel

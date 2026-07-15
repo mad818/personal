@@ -577,7 +577,9 @@ export default function HomeChat() {
       }
 
       const routeFromPrompt =
-        dispatchPlan.answerMode === "route_action" ? dispatchPlan.routeHref : null;
+        dispatchPlan.answerMode === "route_action"
+          ? dispatchPlan.routeHref
+          : null;
       if (
         routeFromPrompt &&
         routeFromPrompt !== pathname &&
@@ -733,7 +735,16 @@ export default function HomeChat() {
         setLiveSteps([]);
       }
     },
-    [loading, settings, chatHistory, addMsg, pathname, router, setTab, intelPosture.degraded],
+    [
+      loading,
+      settings,
+      chatHistory,
+      addMsg,
+      pathname,
+      router,
+      setTab,
+      intelPosture.degraded,
+    ],
   );
 
   const handleChatAction = useCallback(

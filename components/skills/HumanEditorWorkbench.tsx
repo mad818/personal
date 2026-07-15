@@ -42,7 +42,9 @@ export default function HumanEditorWorkbench() {
   );
 
   const activeMode = useMemo(
-    () => HUMAN_EDITOR_MODES.find((item) => item.id === mode) ?? HUMAN_EDITOR_MODES[0],
+    () =>
+      HUMAN_EDITOR_MODES.find((item) => item.id === mode) ??
+      HUMAN_EDITOR_MODES[0],
     [mode],
   );
   const violations = useMemo(
@@ -134,7 +136,13 @@ export default function HumanEditorWorkbench() {
               </ShellButton>
             ))}
           </div>
-          <p style={{ margin: "8px 0 0", color: "var(--text3)", fontSize: "11px" }}>
+          <p
+            style={{
+              margin: "8px 0 0",
+              color: "var(--text3)",
+              fontSize: "11px",
+            }}
+          >
             {activeMode.summary}
           </p>
         </div>
@@ -142,19 +150,24 @@ export default function HumanEditorWorkbench() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
             gap: "14px",
             alignItems: "start",
           }}
         >
           <label style={{ display: "grid", gap: "7px" }}>
-            <SectionLabel detail={`${sourceText.length}/${HUMAN_EDITOR_MAX_INPUT_CHARS} characters`}>
+            <SectionLabel
+              detail={`${sourceText.length}/${HUMAN_EDITOR_MAX_INPUT_CHARS} characters`}
+            >
               Source text
             </SectionLabel>
             <textarea
               value={sourceText}
               onChange={(event) => {
-                setSourceText(event.target.value.slice(0, HUMAN_EDITOR_MAX_INPUT_CHARS));
+                setSourceText(
+                  event.target.value.slice(0, HUMAN_EDITOR_MAX_INPUT_CHARS),
+                );
                 setResult("");
                 setError("");
                 setCopyState("idle");
@@ -163,7 +176,10 @@ export default function HumanEditorWorkbench() {
               placeholder="Paste the post, email, paragraph, or other prose here."
               style={fieldStyle}
             />
-            <ShellButton onClick={rewrite} disabled={busy || !sourceText.trim()}>
+            <ShellButton
+              onClick={rewrite}
+              disabled={busy || !sourceText.trim()}
+            >
               {busy ? "Rewriting…" : `Rewrite with ${activeMode.label}`}
             </ShellButton>
           </label>

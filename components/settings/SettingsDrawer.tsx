@@ -25,7 +25,8 @@ const LOCAL_FIELDS: {
 }[] = [
   {
     key: "aiProvider",
-    label: "Preferred AI lane (ollama | groq | google | anthropic | openai | minimax)",
+    label:
+      "Preferred AI lane (ollama | groq | google | anthropic | openai | minimax)",
   },
   {
     key: "localEndpoint",
@@ -118,7 +119,9 @@ const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
   NEXUS_DEPLOYMENT_PROFILE: "local-dev",
 };
 
-function coerceSecurityConfig(config?: Partial<SecurityConfig>): SecurityConfig {
+function coerceSecurityConfig(
+  config?: Partial<SecurityConfig>,
+): SecurityConfig {
   return {
     NEXUS_NETWORK_MODE:
       config?.NEXUS_NETWORK_MODE === "internal" ||
@@ -376,7 +379,8 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
               Settings
             </span>
             <span className="nexus-sidepanel__subtitle">
-              {BRAND_NAME} preferences, provider posture, and deployment policy in one place.
+              {BRAND_NAME} preferences, provider posture, and deployment policy
+              in one place.
             </span>
           </div>
           <button
@@ -399,747 +403,221 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
               gap: "20px",
             }}
           >
-          <div
-            style={{
-              padding: "12px",
-              border: "1px solid var(--border)",
-              borderRadius: 10,
-              background:
-                "linear-gradient(180deg, rgba(103,232,249,0.08) 0%, rgba(8,18,26,0.78) 100%)",
-            }}
-          >
             <div
               style={{
-                fontSize: "10px",
-                fontWeight: 700,
-                color: "var(--accent)",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-                marginBottom: "8px",
+                padding: "12px",
+                border: "1px solid var(--border)",
+                borderRadius: 10,
+                background:
+                  "linear-gradient(180deg, rgba(103,232,249,0.08) 0%, rgba(8,18,26,0.78) 100%)",
               }}
             >
-              Provider posture
-            </div>
-            <div style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.55, marginBottom: 12 }}>
-              {BRAND_NAME} keeps the primary operator lane free-first. Local and free-tier providers stay in the main path; paid-compatible lanes remain advanced and hidden unless you opt in.
-            </div>
-            <div style={{ display: "grid", gap: 8 }}>
-              {[...primaryProviders, ...advancedProviders].map((provider) => {
-                const configured = provider.envKey ? keyStatus[provider.envKey] === true : true;
-                const advancedLocked =
-                  provider.surface === "advanced" &&
-                  securityConfig.NEXUS_ALLOW_PAID_APIS !== "true";
-                return (
-                  <div
-                    key={provider.id}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "minmax(0, 1fr) auto auto",
-                      gap: 10,
-                      alignItems: "center",
-                      padding: "10px 12px",
-                      borderRadius: 10,
-                      background: "rgba(255,255,255,0.025)",
-                      border: "1px solid rgba(125,211,252,0.14)",
-                    }}
-                  >
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)" }}>
-                        {provider.label}
-                      </div>
-                      <div style={{ fontSize: 11, color: "var(--text3)", lineHeight: 1.45 }}>
-                        {provider.description}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: "var(--text2)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.08em",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {BILLING_TIER_LABELS[provider.billingTier]}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: advancedLocked
-                          ? "var(--text3)"
-                          : configured
-                            ? "var(--fhi)"
-                            : "var(--fmd)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.08em",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {advancedLocked
-                        ? "hidden"
-                        : configured
-                          ? "ready"
-                          : provider.envKey
-                            ? "needs key"
-                            : "local"}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── Server-Side API Keys section ── */}
-          <div>
-            <div
-              style={{
-                fontSize: "10px",
-                fontWeight: 700,
-                color: "var(--accent)",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-                marginBottom: "12px",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
-              🔒 API Keys
-              <span
+              <div
                 style={{
                   fontSize: "10px",
-                  color: "var(--text3)",
-                  fontWeight: 400,
-                  textTransform: "none",
+                  fontWeight: 700,
+                  color: "var(--accent)",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                  marginBottom: "8px",
                 }}
               >
-                — stored server-side in .env.local, never in the browser session
-              </span>
-            </div>
-
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-            >
-              {SENSITIVE_FIELDS.map(({ key, label, envKey, placeholder }) => {
-                const isSet = keyStatus[envKey] === true;
-                return (
-                  <label
-                    key={key}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "4px",
-                    }}
-                  >
-                    <span
+                Provider posture
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "var(--text2)",
+                  lineHeight: 1.55,
+                  marginBottom: 12,
+                }}
+              >
+                {BRAND_NAME} keeps the primary operator lane free-first. Local
+                and free-tier providers stay in the main path; paid-compatible
+                lanes remain advanced and hidden unless you opt in.
+              </div>
+              <div style={{ display: "grid", gap: 8 }}>
+                {[...primaryProviders, ...advancedProviders].map((provider) => {
+                  const configured = provider.envKey
+                    ? keyStatus[provider.envKey] === true
+                    : true;
+                  const advancedLocked =
+                    provider.surface === "advanced" &&
+                    securityConfig.NEXUS_ALLOW_PAID_APIS !== "true";
+                  return (
+                    <div
+                      key={provider.id}
                       style={{
-                        fontSize: "10px",
-                        fontWeight: 700,
-                        color: "var(--text3)",
-                        textTransform: "uppercase",
-                        display: "flex",
+                        display: "grid",
+                        gridTemplateColumns: "minmax(0, 1fr) auto auto",
+                        gap: 10,
                         alignItems: "center",
-                        gap: "6px",
+                        padding: "10px 12px",
+                        borderRadius: 10,
+                        background: "rgba(255,255,255,0.025)",
+                        border: "1px solid rgba(125,211,252,0.14)",
                       }}
                     >
-                      {label}
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "var(--text)",
+                          }}
+                        >
+                          {provider.label}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: "var(--text3)",
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          {provider.description}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "var(--text2)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.08em",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {BILLING_TIER_LABELS[provider.billingTier]}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: advancedLocked
+                            ? "var(--text3)"
+                            : configured
+                              ? "var(--fhi)"
+                              : "var(--fmd)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.08em",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {advancedLocked
+                          ? "hidden"
+                          : configured
+                            ? "ready"
+                            : provider.envKey
+                              ? "needs key"
+                              : "local"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Server-Side API Keys section ── */}
+            <div>
+              <div
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "var(--accent)",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                  marginBottom: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                🔒 API Keys
+                <span
+                  style={{
+                    fontSize: "10px",
+                    color: "var(--text3)",
+                    fontWeight: 400,
+                    textTransform: "none",
+                  }}
+                >
+                  — stored server-side in .env.local, never in the browser
+                  session
+                </span>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                }}
+              >
+                {SENSITIVE_FIELDS.map(({ key, label, envKey, placeholder }) => {
+                  const isSet = keyStatus[envKey] === true;
+                  return (
+                    <label
+                      key={key}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                      }}
+                    >
                       <span
                         style={{
                           fontSize: "10px",
                           fontWeight: 700,
-                          color: isSet ? "var(--fhi)" : "var(--text3)",
+                          color: "var(--text3)",
+                          textTransform: "uppercase",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
                         }}
                       >
-                        {isSet ? "● set" : "○ not set"}
+                        {label}
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            color: isSet ? "var(--fhi)" : "var(--text3)",
+                          }}
+                        >
+                          {isSet ? "● set" : "○ not set"}
+                        </span>
                       </span>
-                    </span>
-                    <input
-                      type="password"
-                      value={sensitiveEdits[envKey] ?? ""}
-                      placeholder={
-                        isSet
-                          ? "••••••••••••• (already set)"
-                          : (placeholder ?? "Paste key…")
-                      }
-                      onChange={(e) =>
-                        handleSensitiveChange(envKey, e.target.value)
-                      }
-                      style={{
-                        background: "var(--surf2)",
-                        border: "1px solid var(--border2)",
-                        borderRadius: "6px",
-                        color: "var(--text)",
-                        fontSize: "12px",
-                        padding: "7px 10px",
-                        outline: "none",
-                        width: "100%",
-                        boxSizing: "border-box",
-                        fontFamily: "monospace",
-                      }}
-                    />
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── Security profile / route policy controls ── */}
-          <div
-            style={{
-              padding: "10px",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              background: "var(--surf2)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "10px",
-                fontWeight: 700,
-                color: "var(--accent)",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-                marginBottom: "12px",
-              }}
-            >
-              Security Profile (server)
-            </div>
-
-            <label
-              style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}
-            >
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  color: "var(--text3)",
-                  textTransform: "uppercase",
-                }}
-              >
-                Network Mode
-              </span>
-              <select
-                value={securityConfig.NEXUS_NETWORK_MODE}
-                onChange={(e) =>
-                  setSecurityConfig((prev) => ({
-                    ...prev,
-                    NEXUS_NETWORK_MODE: e.target.value as SecurityConfig["NEXUS_NETWORK_MODE"],
-                  }))
-                }
-                style={{
-                  background: "var(--surf)",
-                  border: "1px solid var(--border2)",
-                  borderRadius: "6px",
-                  color: "var(--text)",
-                  fontSize: "12px",
-                  padding: "7px 10px",
-                  outline: "none",
-                  width: "100%",
-                  boxSizing: "border-box",
-                }}
-              >
-                <option value="isolated">isolated (default safe)</option>
-                <option value="internal">internal</option>
-                <option value="connected">connected</option>
-              </select>
-            </label>
-
-            <label
-              style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}
-            >
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  color: "var(--text3)",
-                  textTransform: "uppercase",
-                }}
-              >
-                Deployment Profile
-              </span>
-              <select
-                value={securityConfig.NEXUS_DEPLOYMENT_PROFILE}
-                onChange={(e) =>
-                  setSecurityConfig((prev) => ({
-                    ...prev,
-                    NEXUS_DEPLOYMENT_PROFILE:
-                      e.target.value as SecurityConfig["NEXUS_DEPLOYMENT_PROFILE"],
-                  }))
-                }
-                style={{
-                  background: "var(--surf)",
-                  border: "1px solid var(--border2)",
-                  borderRadius: "6px",
-                  color: "var(--text)",
-                  fontSize: "12px",
-                  padding: "7px 10px",
-                  outline: "none",
-                  width: "100%",
-                  boxSizing: "border-box",
-                }}
-              >
-                <option value="local-dev">local-dev</option>
-                <option value="web-self-hosted">web-self-hosted</option>
-                <option value="desktop-secure">desktop-secure</option>
-              </select>
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <input
-                type="checkbox"
-                checked={securityConfig.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true"}
-                onChange={(e) =>
-                  setSecurityConfig((prev) => ({
-                    ...prev,
-                    NEXUS_ENABLE_HIGH_RISK_TOOLS: e.target.checked ? "true" : "false",
-                  }))
-                }
-              />
-              <span style={{ fontSize: 12, color: "var(--text)" }}>
-                Enable high-risk API routes
-              </span>
-            </label>
-
-            {/* Advanced provider unlock — requires explicit operator confirmation */}
-            {securityConfig.NEXUS_ALLOW_PAID_APIS !== "true" && !advancedConfirmed ? (
-              <div
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: 8,
-                  background: "rgba(245,158,11,0.08)",
-                  border: "1px solid rgba(245,158,11,0.28)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 6,
-                }}
-              >
-                <span style={{ fontSize: 11, color: "#f59e0b", fontWeight: 700 }}>
-                  Advanced lanes hidden (Ollama-first posture)
-                </span>
-                <span style={{ fontSize: 11, color: "var(--text3)", lineHeight: 1.45 }}>
-                  Paid-compatible providers (Groq, OpenAI, Anthropic, Google, MiniMax) stay off by default. Enabling them routes inference to third-party APIs using your BYOK keys — Nexus never charges you.
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setAdvancedConfirmed(true)}
-                  style={{
-                    alignSelf: "flex-start",
-                    background: "rgba(245,158,11,0.15)",
-                    border: "1px solid rgba(245,158,11,0.4)",
-                    borderRadius: 6,
-                    color: "#f59e0b",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    padding: "5px 10px",
-                    cursor: "pointer",
-                  }}
-                >
-                  I understand — show advanced lanes
-                </button>
-              </div>
-            ) : (
-              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <input
-                  type="checkbox"
-                  checked={securityConfig.NEXUS_ALLOW_PAID_APIS === "true"}
-                  onChange={(e) => {
-                    setSecurityConfig((prev) => ({
-                      ...prev,
-                      NEXUS_ALLOW_PAID_APIS: e.target.checked ? "true" : "false",
-                    }));
-                    if (!e.target.checked) setAdvancedConfirmed(false);
-                  }}
-                />
-                <span style={{ fontSize: 12, color: "var(--text)" }}>
-                  Unlock advanced paid-compatible AI lanes
-                </span>
-              </label>
-            )}
-
-            <label
-              style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 10 }}
-            >
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  color: "var(--text3)",
-                  textTransform: "uppercase",
-                }}
-              >
-                Connector Policy JSON (optional overrides)
-              </span>
-              <textarea
-                value={securityConfig.NEXUS_CONNECTOR_POLICY_JSON}
-                onChange={(e) =>
-                  setSecurityConfig((prev) => ({
-                    ...prev,
-                    NEXUS_CONNECTOR_POLICY_JSON: e.target.value,
-                  }))
-                }
-                rows={4}
-                placeholder='{"news":true,"flights":false}'
-                style={{
-                  background: "var(--surf)",
-                  border: "1px solid var(--border2)",
-                  borderRadius: "6px",
-                  color: "var(--text)",
-                  fontSize: "12px",
-                  padding: "7px 10px",
-                  outline: "none",
-                  width: "100%",
-                  boxSizing: "border-box",
-                  fontFamily: "monospace",
-                  resize: "vertical",
-                }}
-              />
-            </label>
-
-            <div
-              style={{
-                marginTop: 12,
-                padding: "10px 12px",
-                borderRadius: 8,
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid var(--border2)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  color: "var(--text3)",
-                  textTransform: "uppercase",
-                }}
-              >
-                Release Scope
-              </span>
-              <span style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.45 }}>
-                Supported surface policy: {releaseInfo?.supportedSurfacePolicy ?? RELEASE_DEFAULTS.supportedSurfacePolicy}. Canonical deployment lane: {releaseInfo?.canonicalDeploymentLane ?? RELEASE_DEFAULTS.canonicalDeploymentLane}.
-              </span>
-              <span style={{ fontSize: 12, color: "var(--text2)" }}>
-                GA nav tabs: {releaseInfo?.surfaces.gaNav ?? 7}. Beta surfaces: {releaseInfo?.surfaces.beta ?? 0}. Internal surfaces: {releaseInfo?.surfaces.internal ?? 0}.
-              </span>
-              <span style={{ fontSize: 12, color: "var(--text2)" }}>
-                Default entrypoint: {releaseInfo?.defaultEntrypoint ?? RELEASE_DEFAULTS.defaultEntrypoint}. Shell version: {releaseInfo?.uiShellVersion ?? RELEASE_DEFAULTS.uiShellVersion}.
-              </span>
-              <span style={{ fontSize: 12, color: "var(--text3)" }}>
-                Build: {releaseInfo?.buildChannel ?? "dev"} / {releaseInfo?.buildVersion ?? "local-dev"}
-              </span>
-            </div>
-          </div>
-
-          <div
-            style={{
-              padding: "10px",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              background: "var(--surf2)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "10px",
-                fontWeight: 700,
-                color: "var(--text3)",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-                marginBottom: "12px",
-              }}
-            >
-              Release Preferences (local)
-            </div>
-
-            <label
-              style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}
-            >
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  color: "var(--text3)",
-                  textTransform: "uppercase",
-                }}
-              >
-                Preferred deployment lane
-              </span>
-              <select
-                value={settings.deploymentLanePreference}
-                onChange={(e) =>
-                  updateSettings({
-                    deploymentLanePreference:
-                      e.target.value as Settings["deploymentLanePreference"],
-                  })
-                }
-                style={{
-                  background: "var(--surf)",
-                  border: "1px solid var(--border2)",
-                  borderRadius: "6px",
-                  color: "var(--text)",
-                  fontSize: "12px",
-                  padding: "7px 10px",
-                  outline: "none",
-                  width: "100%",
-                  boxSizing: "border-box",
-                }}
-              >
-                <option value="webFirst">webFirst</option>
-                <option value="dualTrack">dualTrack</option>
-                <option value="desktopFirst">desktopFirst</option>
-              </select>
-            </label>
-
-            <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  color: "var(--text3)",
-                  textTransform: "uppercase",
-                }}
-              >
-                Surface visibility preference
-              </span>
-              <select
-                value={settings.surfaceVisibilityPreference}
-                onChange={(e) =>
-                  updateSettings({
-                    surfaceVisibilityPreference:
-                      e.target.value as Settings["surfaceVisibilityPreference"],
-                  })
-                }
-                style={{
-                  background: "var(--surf)",
-                  border: "1px solid var(--border2)",
-                  borderRadius: "6px",
-                  color: "var(--text)",
-                  fontSize: "12px",
-                  padding: "7px 10px",
-                  outline: "none",
-                  width: "100%",
-                  boxSizing: "border-box",
-                }}
-              >
-                <option value="gaOnly">gaOnly</option>
-                <option value="includeBeta">includeBeta</option>
-              </select>
-            </label>
-          </div>
-
-          {/* ── Local settings section ── */}
-          <div>
-            <div
-              style={{
-                fontSize: "10px",
-                fontWeight: 700,
-                color: "var(--text3)",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-                marginBottom: "12px",
-              }}
-            >
-              App Settings
-            </div>
-
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-            >
-              <label
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "4px",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    color: "var(--text3)",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Local Model Name
-                </span>
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                  <input
-                    type="text"
-                    value={settings.localModel}
-                    placeholder="qwen3:8b"
-                    onChange={(e) =>
-                      updateSettings({ localModel: e.target.value })
-                    }
-                    style={{
-                      background: "var(--surf2)",
-                      border: "1px solid var(--border2)",
-                      borderRadius: "6px",
-                      color: "var(--text)",
-                      fontSize: "12px",
-                      padding: "7px 10px",
-                      outline: "none",
-                      flex: "1 1 160px",
-                      minWidth: 0,
-                      boxSizing: "border-box",
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => void refreshOllamaCatalog()}
-                    disabled={ollamaCatalogLoading}
-                    style={{
-                      background: "var(--surf3)",
-                      border: "1px solid var(--border2)",
-                      borderRadius: "6px",
-                      color: "var(--text)",
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      padding: "7px 10px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {ollamaCatalogLoading ? "Refreshing…" : "Refresh from Ollama"}
-                  </button>
-                </div>
-                {ollamaCatalog?.models?.length ? (
-                  <select
-                    value={settings.localModel}
-                    onChange={(e) =>
-                      updateSettings({ localModel: e.target.value })
-                    }
-                    style={{
-                      background: "var(--surf2)",
-                      border: "1px solid var(--border2)",
-                      borderRadius: "6px",
-                      color: "var(--text)",
-                      fontSize: "12px",
-                      padding: "7px 10px",
-                      outline: "none",
-                      width: "100%",
-                      boxSizing: "border-box",
-                    }}
-                  >
-                    {ollamaCatalog.models.map((model) => (
-                      <option key={model.name} value={model.name}>
-                        {model.name}
-                      </option>
-                    ))}
-                  </select>
-                ) : null}
-                {ollamaCatalog ? (
-                  <span style={{ fontSize: "11px", color: "var(--text3)" }}>
-                    {ollamaCatalog.reachable
-                      ? `Resolved: ${ollamaCatalog.resolvedModel ?? "none"} (${ollamaCatalog.resolutionReason})`
-                      : "Ollama not reachable at the configured endpoint."}
-                  </span>
-                ) : null}
-              </label>
-              {LOCAL_FIELDS.map(({ key, label, type, placeholder }) => {
-                const val = settings[key];
-                if (Array.isArray(val) || typeof val === "object") return null;
-                return (
-                  <label
-                    key={key}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "4px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "10px",
-                        fontWeight: 700,
-                        color: "var(--text3)",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {label}
-                    </span>
-                    <input
-                      type={type ?? "text"}
-                      value={String(val ?? "")}
-                      placeholder={placeholder}
-                      onChange={(e) =>
-                        updateSettings({
-                          [key]: e.target.value,
-                        } as Partial<Settings>)
-                      }
-                      style={{
-                        background: "var(--surf2)",
-                        border: "1px solid var(--border2)",
-                        borderRadius: "6px",
-                        color: "var(--text)",
-                        fontSize: "12px",
-                        padding: "7px 10px",
-                        outline: "none",
-                        width: "100%",
-                        boxSizing: "border-box",
-                      }}
-                    />
-                  </label>
-                );
-              })}
-              <div
-                data-testid="personal-ai-profile-status"
-                style={{
-                  padding: "10px 12px",
-                  border: "1px solid var(--border2)",
-                  borderRadius: 8,
-                  background: personalAIProfile.active
-                    ? "rgba(16,185,129,0.07)"
-                    : "var(--surf2)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 6,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 10,
-                    alignItems: "center",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 800,
-                      color: personalAIProfile.active
-                        ? "var(--fhi)"
-                        : "var(--text3)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    Personal AI Profile
-                  </span>
-                  <span style={{ fontSize: 10, color: "var(--text3)" }}>
-                    {personalAIProfile.activeSectionCount}/
-                    {personalAIProfile.totalSectionCount} active
-                  </span>
-                </div>
-                <span style={{ fontSize: 11, color: "var(--text2)", lineHeight: 1.45 }}>
-                  {personalAIProfile.active
-                    ? `Available to MAX and the specialist runtime: ${personalAIProfile.sections
-                        .map((section) => section.label)
-                        .join(", ")}.`
-                    : "Add goals, skills, learning, or working context to activate consistent personalization."}
-                </span>
-                <span style={{ fontSize: 10, color: "var(--text3)", lineHeight: 1.4 }}>
-                  Uses only what you enter here. It cannot grant tool access, approve actions,
-                  or infer emotions and personal traits.
-                </span>
+                      <input
+                        type="password"
+                        value={sensitiveEdits[envKey] ?? ""}
+                        placeholder={
+                          isSet
+                            ? "••••••••••••• (already set)"
+                            : (placeholder ?? "Paste key…")
+                        }
+                        onChange={(e) =>
+                          handleSensitiveChange(envKey, e.target.value)
+                        }
+                        style={{
+                          background: "var(--surf2)",
+                          border: "1px solid var(--border2)",
+                          borderRadius: "6px",
+                          color: "var(--text)",
+                          fontSize: "12px",
+                          padding: "7px 10px",
+                          outline: "none",
+                          width: "100%",
+                          boxSizing: "border-box",
+                          fontFamily: "monospace",
+                        }}
+                      />
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Operational profiles: auto-jobs controls */}
+            {/* ── Security profile / route policy controls ── */}
             <div
               style={{
-                marginTop: 14,
                 padding: "10px",
                 border: "1px solid var(--border)",
                 borderRadius: 8,
@@ -1153,10 +631,10 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                   color: "var(--accent)",
                   textTransform: "uppercase",
                   letterSpacing: "1px",
-                  marginBottom: 10,
+                  marginBottom: "12px",
                 }}
               >
-                Operational Auto Jobs
+                Security Profile (server)
               </div>
 
               <label
@@ -1175,33 +653,33 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                     textTransform: "uppercase",
                   }}
                 >
-                  HQ Layout
+                  Network Mode
                 </span>
-                <label
+                <select
+                  value={securityConfig.NEXUS_NETWORK_MODE}
+                  onChange={(e) =>
+                    setSecurityConfig((prev) => ({
+                      ...prev,
+                      NEXUS_NETWORK_MODE: e.target
+                        .value as SecurityConfig["NEXUS_NETWORK_MODE"],
+                    }))
+                  }
                   style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 8,
+                    background: "var(--surf)",
+                    border: "1px solid var(--border2)",
+                    borderRadius: "6px",
+                    color: "var(--text)",
+                    fontSize: "12px",
+                    padding: "7px 10px",
+                    outline: "none",
+                    width: "100%",
+                    boxSizing: "border-box",
                   }}
                 >
-                  <input
-                    type="checkbox"
-                    checked={Boolean(settings.hqCompactOperatorLayout)}
-                    onChange={(e) =>
-                      updateSettings({
-                        hqCompactOperatorLayout: e.target.checked,
-                        ...(e.target.checked
-                          ? { hqConsoleFocusMode: "chat" }
-                          : {}),
-                      } as Partial<Settings>)
-                    }
-                  />
-                  <span style={{ fontSize: 12, color: "var(--text)", lineHeight: 1.45 }}>
-                    Compact HQ (chat-first) — hide RPG playfield, sector rail,
-                    strategium deck, and full readiness checklists. Phone always
-                    uses compact layout.
-                  </span>
-                </label>
+                  <option value="isolated">isolated (default safe)</option>
+                  <option value="internal">internal</option>
+                  <option value="connected">connected</option>
+                </select>
               </label>
 
               <label
@@ -1220,14 +698,16 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                     textTransform: "uppercase",
                   }}
                 >
-                  Office VFX Quality
+                  Deployment Profile
                 </span>
                 <select
-                  value={String(settings.officeVfxQuality ?? "low")}
+                  value={securityConfig.NEXUS_DEPLOYMENT_PROFILE}
                   onChange={(e) =>
-                    updateSettings({
-                      officeVfxQuality: e.target.value as any,
-                    } as Partial<Settings>)
+                    setSecurityConfig((prev) => ({
+                      ...prev,
+                      NEXUS_DEPLOYMENT_PROFILE: e.target
+                        .value as SecurityConfig["NEXUS_DEPLOYMENT_PROFILE"],
+                    }))
                   }
                   style={{
                     background: "var(--surf)",
@@ -1241,9 +721,9 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                     boxSizing: "border-box",
                   }}
                 >
-                  <option value="off">Off</option>
-                  <option value="low">Low (recommended)</option>
-                  <option value="high">High</option>
+                  <option value="local-dev">local-dev</option>
+                  <option value="web-self-hosted">web-self-hosted</option>
+                  <option value="desktop-secure">desktop-secure</option>
                 </select>
               </label>
 
@@ -1257,60 +737,260 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
               >
                 <input
                   type="checkbox"
-                  checked={Boolean(settings.enableWarAutoJobs)}
+                  checked={
+                    securityConfig.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true"
+                  }
                   onChange={(e) =>
-                    updateSettings({
-                      enableWarAutoJobs: e.target.checked,
-                    } as Partial<Settings>)
+                    setSecurityConfig((prev) => ({
+                      ...prev,
+                      NEXUS_ENABLE_HIGH_RISK_TOOLS: e.target.checked
+                        ? "true"
+                        : "false",
+                    }))
                   }
                 />
                 <span style={{ fontSize: 12, color: "var(--text)" }}>
-                  Enable War Room auto jobs
+                  Enable high-risk API routes
                 </span>
               </label>
+
+              {/* Advanced provider unlock — requires explicit operator confirmation */}
+              {securityConfig.NEXUS_ALLOW_PAID_APIS !== "true" &&
+              !advancedConfirmed ? (
+                <div
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    background: "rgba(245,158,11,0.08)",
+                    border: "1px solid rgba(245,158,11,0.28)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 6,
+                  }}
+                >
+                  <span
+                    style={{ fontSize: 11, color: "#f59e0b", fontWeight: 700 }}
+                  >
+                    Advanced lanes hidden (Ollama-first posture)
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: "var(--text3)",
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    Paid-compatible providers (Groq, OpenAI, Anthropic, Google,
+                    MiniMax) stay off by default. Enabling them routes inference
+                    to third-party APIs using your BYOK keys — Nexus never
+                    charges you.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAdvancedConfirmed(true)}
+                    style={{
+                      alignSelf: "flex-start",
+                      background: "rgba(245,158,11,0.15)",
+                      border: "1px solid rgba(245,158,11,0.4)",
+                      borderRadius: 6,
+                      color: "#f59e0b",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "5px 10px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    I understand — show advanced lanes
+                  </button>
+                </div>
+              ) : (
+                <label
+                  style={{ display: "flex", alignItems: "center", gap: 8 }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={securityConfig.NEXUS_ALLOW_PAID_APIS === "true"}
+                    onChange={(e) => {
+                      setSecurityConfig((prev) => ({
+                        ...prev,
+                        NEXUS_ALLOW_PAID_APIS: e.target.checked
+                          ? "true"
+                          : "false",
+                      }));
+                      if (!e.target.checked) setAdvancedConfirmed(false);
+                    }}
+                  />
+                  <span style={{ fontSize: 12, color: "var(--text)" }}>
+                    Unlock advanced paid-compatible AI lanes
+                  </span>
+                </label>
+              )}
 
               <label
                 style={{
                   display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  marginBottom: 8,
+                  flexDirection: "column",
+                  gap: 4,
+                  marginTop: 10,
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={Boolean(settings.enableNightOpsAutoJobs)}
-                  onChange={(e) =>
-                    updateSettings({
-                      enableNightOpsAutoJobs: e.target.checked,
-                    } as Partial<Settings>)
-                  }
-                />
-                <span style={{ fontSize: 12, color: "var(--text)" }}>
-                  Enable Night Ops auto jobs
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    color: "var(--text3)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Connector Policy JSON (optional overrides)
                 </span>
+                <textarea
+                  value={securityConfig.NEXUS_CONNECTOR_POLICY_JSON}
+                  onChange={(e) =>
+                    setSecurityConfig((prev) => ({
+                      ...prev,
+                      NEXUS_CONNECTOR_POLICY_JSON: e.target.value,
+                    }))
+                  }
+                  rows={4}
+                  placeholder='{"news":true,"flights":false}'
+                  style={{
+                    background: "var(--surf)",
+                    border: "1px solid var(--border2)",
+                    borderRadius: "6px",
+                    color: "var(--text)",
+                    fontSize: "12px",
+                    padding: "7px 10px",
+                    outline: "none",
+                    width: "100%",
+                    boxSizing: "border-box",
+                    fontFamily: "monospace",
+                    resize: "vertical",
+                  }}
+                />
               </label>
+
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid var(--border2)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    color: "var(--text3)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Release Scope
+                </span>
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "var(--text2)",
+                    lineHeight: 1.45,
+                  }}
+                >
+                  Supported surface policy:{" "}
+                  {releaseInfo?.supportedSurfacePolicy ??
+                    RELEASE_DEFAULTS.supportedSurfacePolicy}
+                  . Canonical deployment lane:{" "}
+                  {releaseInfo?.canonicalDeploymentLane ??
+                    RELEASE_DEFAULTS.canonicalDeploymentLane}
+                  .
+                </span>
+                <span style={{ fontSize: 12, color: "var(--text2)" }}>
+                  GA nav tabs: {releaseInfo?.surfaces.gaNav ?? 7}. Beta
+                  surfaces: {releaseInfo?.surfaces.beta ?? 0}. Internal
+                  surfaces: {releaseInfo?.surfaces.internal ?? 0}.
+                </span>
+                <span style={{ fontSize: 12, color: "var(--text2)" }}>
+                  Default entrypoint:{" "}
+                  {releaseInfo?.defaultEntrypoint ??
+                    RELEASE_DEFAULTS.defaultEntrypoint}
+                  . Shell version:{" "}
+                  {releaseInfo?.uiShellVersion ??
+                    RELEASE_DEFAULTS.uiShellVersion}
+                  .
+                </span>
+                <span style={{ fontSize: 12, color: "var(--text3)" }}>
+                  Build: {releaseInfo?.buildChannel ?? "dev"} /{" "}
+                  {releaseInfo?.buildVersion ?? "local-dev"}
+                </span>
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: "10px",
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+                background: "var(--surf2)",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "var(--text3)",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                  marginBottom: "12px",
+                }}
+              >
+                Release Preferences (local)
+              </div>
 
               <label
                 style={{
                   display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  marginBottom: 8,
+                  flexDirection: "column",
+                  gap: 4,
+                  marginBottom: 10,
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={Boolean(settings.agentHighRiskWritesRequireApproval)}
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    color: "var(--text3)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Preferred deployment lane
+                </span>
+                <select
+                  value={settings.deploymentLanePreference}
                   onChange={(e) =>
                     updateSettings({
-                      agentHighRiskWritesRequireApproval: e.target.checked,
-                    } as Partial<Settings>)
+                      deploymentLanePreference: e.target
+                        .value as Settings["deploymentLanePreference"],
+                    })
                   }
-                />
-                <span style={{ fontSize: 12, color: "var(--text)" }}>
-                  Require approval for high-risk write tools
-                </span>
+                  style={{
+                    background: "var(--surf)",
+                    border: "1px solid var(--border2)",
+                    borderRadius: "6px",
+                    color: "var(--text)",
+                    fontSize: "12px",
+                    padding: "7px 10px",
+                    outline: "none",
+                    width: "100%",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  <option value="webFirst">webFirst</option>
+                  <option value="dualTrack">dualTrack</option>
+                  <option value="desktopFirst">desktopFirst</option>
+                </select>
               </label>
 
               <label
@@ -1324,22 +1004,16 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                     textTransform: "uppercase",
                   }}
                 >
-                  Global Auto Job Cooldown (minutes)
+                  Surface visibility preference
                 </span>
-                <input
-                  type="number"
-                  min={10}
-                  max={180}
-                  value={Number(settings.autoOpsJobCooldownMin ?? 30)}
-                  onChange={(e) => {
-                    const n = Number(e.target.value);
-                    const safe = Number.isFinite(n)
-                      ? Math.max(10, Math.min(180, n))
-                      : 30;
+                <select
+                  value={settings.surfaceVisibilityPreference}
+                  onChange={(e) =>
                     updateSettings({
-                      autoOpsJobCooldownMin: safe,
-                    } as Partial<Settings>);
-                  }}
+                      surfaceVisibilityPreference: e.target
+                        .value as Settings["surfaceVisibilityPreference"],
+                    })
+                  }
                   style={{
                     background: "var(--surf)",
                     border: "1px solid var(--border2)",
@@ -1351,15 +1025,473 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                     width: "100%",
                     boxSizing: "border-box",
                   }}
-                />
+                >
+                  <option value="gaOnly">gaOnly</option>
+                  <option value="includeBeta">includeBeta</option>
+                </select>
               </label>
             </div>
 
-            <PMHealthStrip />
-            <PMChecklist />
-            <RuntimeEvalTrend />
+            {/* ── Local settings section ── */}
+            <div>
+              <div
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "var(--text3)",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                  marginBottom: "12px",
+                }}
+              >
+                App Settings
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                }}
+              >
+                <label
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      color: "var(--text3)",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Local Model Name
+                  </span>
+                  <div
+                    style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}
+                  >
+                    <input
+                      type="text"
+                      value={settings.localModel}
+                      placeholder="qwen3:8b"
+                      onChange={(e) =>
+                        updateSettings({ localModel: e.target.value })
+                      }
+                      style={{
+                        background: "var(--surf2)",
+                        border: "1px solid var(--border2)",
+                        borderRadius: "6px",
+                        color: "var(--text)",
+                        fontSize: "12px",
+                        padding: "7px 10px",
+                        outline: "none",
+                        flex: "1 1 160px",
+                        minWidth: 0,
+                        boxSizing: "border-box",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void refreshOllamaCatalog()}
+                      disabled={ollamaCatalogLoading}
+                      style={{
+                        background: "var(--surf3)",
+                        border: "1px solid var(--border2)",
+                        borderRadius: "6px",
+                        color: "var(--text)",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        padding: "7px 10px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {ollamaCatalogLoading
+                        ? "Refreshing…"
+                        : "Refresh from Ollama"}
+                    </button>
+                  </div>
+                  {ollamaCatalog?.models?.length ? (
+                    <select
+                      value={settings.localModel}
+                      onChange={(e) =>
+                        updateSettings({ localModel: e.target.value })
+                      }
+                      style={{
+                        background: "var(--surf2)",
+                        border: "1px solid var(--border2)",
+                        borderRadius: "6px",
+                        color: "var(--text)",
+                        fontSize: "12px",
+                        padding: "7px 10px",
+                        outline: "none",
+                        width: "100%",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      {ollamaCatalog.models.map((model) => (
+                        <option key={model.name} value={model.name}>
+                          {model.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : null}
+                  {ollamaCatalog ? (
+                    <span style={{ fontSize: "11px", color: "var(--text3)" }}>
+                      {ollamaCatalog.reachable
+                        ? `Resolved: ${ollamaCatalog.resolvedModel ?? "none"} (${ollamaCatalog.resolutionReason})`
+                        : "Ollama not reachable at the configured endpoint."}
+                    </span>
+                  ) : null}
+                </label>
+                {LOCAL_FIELDS.map(({ key, label, type, placeholder }) => {
+                  const val = settings[key];
+                  if (Array.isArray(val) || typeof val === "object")
+                    return null;
+                  return (
+                    <label
+                      key={key}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          color: "var(--text3)",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {label}
+                      </span>
+                      <input
+                        type={type ?? "text"}
+                        value={String(val ?? "")}
+                        placeholder={placeholder}
+                        onChange={(e) =>
+                          updateSettings({
+                            [key]: e.target.value,
+                          } as Partial<Settings>)
+                        }
+                        style={{
+                          background: "var(--surf2)",
+                          border: "1px solid var(--border2)",
+                          borderRadius: "6px",
+                          color: "var(--text)",
+                          fontSize: "12px",
+                          padding: "7px 10px",
+                          outline: "none",
+                          width: "100%",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    </label>
+                  );
+                })}
+                <div
+                  data-testid="personal-ai-profile-status"
+                  style={{
+                    padding: "10px 12px",
+                    border: "1px solid var(--border2)",
+                    borderRadius: 8,
+                    background: personalAIProfile.active
+                      ? "rgba(16,185,129,0.07)"
+                      : "var(--surf2)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 6,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      alignItems: "center",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 800,
+                        color: personalAIProfile.active
+                          ? "var(--fhi)"
+                          : "var(--text3)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                      }}
+                    >
+                      Personal AI Profile
+                    </span>
+                    <span style={{ fontSize: 10, color: "var(--text3)" }}>
+                      {personalAIProfile.activeSectionCount}/
+                      {personalAIProfile.totalSectionCount} active
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: "var(--text2)",
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    {personalAIProfile.active
+                      ? `Available to MAX and the specialist runtime: ${personalAIProfile.sections
+                          .map((section) => section.label)
+                          .join(", ")}.`
+                      : "Add goals, skills, learning, or working context to activate consistent personalization."}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      color: "var(--text3)",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    Uses only what you enter here. It cannot grant tool access,
+                    approve actions, or infer emotions and personal traits.
+                  </span>
+                </div>
+              </div>
+
+              {/* Operational profiles: auto-jobs controls */}
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: "10px",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  background: "var(--surf2)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    color: "var(--accent)",
+                    textTransform: "uppercase",
+                    letterSpacing: "1px",
+                    marginBottom: 10,
+                  }}
+                >
+                  Operational Auto Jobs
+                </div>
+
+                <label
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                    marginBottom: 10,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      color: "var(--text3)",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    HQ Layout
+                  </span>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 8,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={Boolean(settings.hqCompactOperatorLayout)}
+                      onChange={(e) =>
+                        updateSettings({
+                          hqCompactOperatorLayout: e.target.checked,
+                          ...(e.target.checked
+                            ? { hqConsoleFocusMode: "chat" }
+                            : {}),
+                        } as Partial<Settings>)
+                      }
+                    />
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: "var(--text)",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      Compact HQ (chat-first) — hide RPG playfield, sector rail,
+                      strategium deck, and full readiness checklists. Phone
+                      always uses compact layout.
+                    </span>
+                  </label>
+                </label>
+
+                <label
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                    marginBottom: 10,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      color: "var(--text3)",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Office VFX Quality
+                  </span>
+                  <select
+                    value={String(settings.officeVfxQuality ?? "low")}
+                    onChange={(e) =>
+                      updateSettings({
+                        officeVfxQuality: e.target.value as any,
+                      } as Partial<Settings>)
+                    }
+                    style={{
+                      background: "var(--surf)",
+                      border: "1px solid var(--border2)",
+                      borderRadius: "6px",
+                      color: "var(--text)",
+                      fontSize: "12px",
+                      padding: "7px 10px",
+                      outline: "none",
+                      width: "100%",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    <option value="off">Off</option>
+                    <option value="low">Low (recommended)</option>
+                    <option value="high">High</option>
+                  </select>
+                </label>
+
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 8,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={Boolean(settings.enableWarAutoJobs)}
+                    onChange={(e) =>
+                      updateSettings({
+                        enableWarAutoJobs: e.target.checked,
+                      } as Partial<Settings>)
+                    }
+                  />
+                  <span style={{ fontSize: 12, color: "var(--text)" }}>
+                    Enable War Room auto jobs
+                  </span>
+                </label>
+
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 8,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={Boolean(settings.enableNightOpsAutoJobs)}
+                    onChange={(e) =>
+                      updateSettings({
+                        enableNightOpsAutoJobs: e.target.checked,
+                      } as Partial<Settings>)
+                    }
+                  />
+                  <span style={{ fontSize: 12, color: "var(--text)" }}>
+                    Enable Night Ops auto jobs
+                  </span>
+                </label>
+
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 8,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={Boolean(
+                      settings.agentHighRiskWritesRequireApproval,
+                    )}
+                    onChange={(e) =>
+                      updateSettings({
+                        agentHighRiskWritesRequireApproval: e.target.checked,
+                      } as Partial<Settings>)
+                    }
+                  />
+                  <span style={{ fontSize: 12, color: "var(--text)" }}>
+                    Require approval for high-risk write tools
+                  </span>
+                </label>
+
+                <label
+                  style={{ display: "flex", flexDirection: "column", gap: 4 }}
+                >
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      color: "var(--text3)",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Global Auto Job Cooldown (minutes)
+                  </span>
+                  <input
+                    type="number"
+                    min={10}
+                    max={180}
+                    value={Number(settings.autoOpsJobCooldownMin ?? 30)}
+                    onChange={(e) => {
+                      const n = Number(e.target.value);
+                      const safe = Number.isFinite(n)
+                        ? Math.max(10, Math.min(180, n))
+                        : 30;
+                      updateSettings({
+                        autoOpsJobCooldownMin: safe,
+                      } as Partial<Settings>);
+                    }}
+                    style={{
+                      background: "var(--surf)",
+                      border: "1px solid var(--border2)",
+                      borderRadius: "6px",
+                      color: "var(--text)",
+                      fontSize: "12px",
+                      padding: "7px 10px",
+                      outline: "none",
+                      width: "100%",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </label>
+              </div>
+
+              <PMHealthStrip />
+              <PMChecklist />
+              <RuntimeEvalTrend />
+            </div>
           </div>
-        </div>
         </div>
 
         {/* Footer */}

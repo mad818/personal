@@ -4,10 +4,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import {
-  motion,
-  useReducedMotion,
-} from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import type { CSSProperties, ReactNode } from "react";
 import { useStore } from "@/store/useStore";
 import {

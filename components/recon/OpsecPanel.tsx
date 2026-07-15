@@ -111,9 +111,9 @@ function DotIcon({ result }: { result: Check["result"] }) {
         ? "#ef4444"
         : result === "unknown"
           ? "#7ba7d4"
-        : result === "checking"
-          ? "#f59e0b"
-          : "var(--text3)";
+          : result === "checking"
+            ? "#f59e0b"
+            : "var(--text3)";
   return (
     <span
       style={{
@@ -258,7 +258,8 @@ export default function OpsecPanel() {
               marginTop: "2px",
             }}
           >
-            Runs in this browser. WebRTC contacts Google STUN; Tor status is not sent to Tor Project.
+            Runs in this browser. WebRTC contacts Google STUN; Tor status is not
+            sent to Tor Project.
           </div>
         </div>
         <button

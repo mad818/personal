@@ -16,7 +16,9 @@ export async function POST(req: NextRequest) {
   const failurePath = sanitizeAuthReturnPath(
     String(form.get("failureNext") ?? nextPath),
   );
-  const submittedToken = normalizeTokenCandidate(String(form.get("token") ?? ""));
+  const submittedToken = normalizeTokenCandidate(
+    String(form.get("token") ?? ""),
+  );
   const configuredToken = getConfiguredNexusToken();
 
   if (!configuredToken) {
@@ -36,7 +38,10 @@ export async function POST(req: NextRequest) {
     return response;
   }
 
-  const response = NextResponse.redirect(buildSafeAuthRedirectUrl(req, nextPath), 303);
+  const response = NextResponse.redirect(
+    buildSafeAuthRedirectUrl(req, nextPath),
+    303,
+  );
   const session = await createNexusSession(login.tier);
   if (!session) {
     const url = buildSafeAuthRedirectUrl(req, failurePath);
@@ -50,7 +55,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const response = NextResponse.redirect(buildSafeAuthRedirectUrl(req, "/hq"), 303);
+  const response = NextResponse.redirect(
+    buildSafeAuthRedirectUrl(req, "/hq"),
+    303,
+  );
   clearNexusSessionCookie(response);
   return response;
 }

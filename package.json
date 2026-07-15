@@ -180,8 +180,8 @@
     "desktop:start-runtime": "node scripts/start-runtime.mjs",
     "desktop:tauri:dev": "node scripts/ensure-tauri-icon.mjs && cd desktop/src-tauri && npx --yes --package @tauri-apps/cli tauri dev",
     "desktop:tauri:build": "node scripts/ensure-tauri-icon.mjs && cd desktop/src-tauri && npx --yes --package @tauri-apps/cli tauri build",
-    "format:write": "prettier --write \"{app,lib,components}/**/*.{ts,tsx,mdx}\" --cache",
-    "format:check": "prettier --check \"{app,lib,components}**/*.{ts,tsx,mdx}\" --cache",
+    "format:write": "prettier --write \"{app,lib,components}/**/*.{ts,tsx,mdx}\" \"!app/hq/**/*.{ts,tsx,mdx}\" \"!components/home/arpg/**/*.{ts,tsx,mdx}\" \"!lib/arpg*.{ts,tsx,mdx}\" \"!lib/arpg*/**/*.{ts,tsx,mdx}\" --cache",
+    "format:check": "prettier --check \"{app,lib,components}/**/*.{ts,tsx,mdx}\" \"!app/hq/**/*.{ts,tsx,mdx}\" \"!components/home/arpg/**/*.{ts,tsx,mdx}\" \"!lib/arpg*.{ts,tsx,mdx}\" \"!lib/arpg*/**/*.{ts,tsx,mdx}\" --cache",
     "prepare": "husky"
   },
   "dependencies": {

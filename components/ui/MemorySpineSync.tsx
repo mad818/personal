@@ -51,7 +51,10 @@ export default function MemorySpineSync() {
           .map((artifact) => `${artifact.runId}:${artifact.finishedAt}`)
           .join("|")}`,
         `briefings:${modeBriefings.length}:${modeBriefings
-          .map((briefing) => `${briefing.id}:${briefing.createdAt}:${briefing.status}`)
+          .map(
+            (briefing) =>
+              `${briefing.id}:${briefing.createdAt}:${briefing.status}`,
+          )
           .join("|")}`,
       ].join("||"),
     [agentRunHistory, modeBriefings, savedArticles],

@@ -52,7 +52,13 @@ export default function AIHardeningCoveragePanel() {
                 >
                   {stage.label}
                 </div>
-                <div style={{ fontSize: "11px", color: "var(--text2)", lineHeight: 1.5 }}>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--text2)",
+                    lineHeight: 1.5,
+                  }}
+                >
                   {stage.detail}
                 </div>
               </div>
@@ -69,7 +75,9 @@ export default function AIHardeningCoveragePanel() {
       </div>
 
       <div style={{ display: "grid", gap: "10px" }}>
-        <SectionLabel detail={`${AI_HARDENING_COVERAGE.length} tracked surfaces`}>
+        <SectionLabel
+          detail={`${AI_HARDENING_COVERAGE.length} tracked surfaces`}
+        >
           Coverage map
         </SectionLabel>
         {AI_HARDENING_COVERAGE.map((item) => (
@@ -85,22 +93,44 @@ export default function AIHardeningCoveragePanel() {
                 }}
               >
                 <div style={{ display: "grid", gap: "5px" }}>
-                  <div style={{ fontSize: "12px", color: "var(--text)", fontWeight: 700 }}>
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "var(--text)",
+                      fontWeight: 700,
+                    }}
+                  >
                     {item.title}
                   </div>
-                  <div style={{ fontSize: "11px", color: "var(--text2)", lineHeight: 1.5 }}>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "var(--text2)",
+                      lineHeight: 1.5,
+                    }}
+                  >
                     {item.summary}
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                  <ShellBadge tone={item.status === "visible_evidence" ? "success" : "accent"}>
+                  <ShellBadge
+                    tone={
+                      item.status === "visible_evidence" ? "success" : "accent"
+                    }
+                  >
                     {getAIHardeningCoverageStatusLabel(item.status)}
                   </ShellBadge>
                   <ShellBadge tone="muted">{item.surface}</ShellBadge>
                 </div>
               </div>
 
-              <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text3)",
+                  lineHeight: 1.5,
+                }}
+              >
                 {item.nextStrengtheningMove}
               </div>
 
@@ -108,7 +138,11 @@ export default function AIHardeningCoveragePanel() {
                 items={item.actions}
                 onOpen={(href) => router.push(href)}
                 buttonClassName="nexus-shell-button"
-                buttonStyle={{ minHeight: "30px", padding: "0 12px", fontSize: "11px" }}
+                buttonStyle={{
+                  minHeight: "30px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               />
             </div>
           </article>

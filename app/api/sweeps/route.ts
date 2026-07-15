@@ -72,7 +72,10 @@ export async function POST(req: NextRequest) {
     return res;
   }
 
-  const body = (await req.json()) as { theater?: string; persistSnapshot?: boolean };
+  const body = (await req.json()) as {
+    theater?: string;
+    persistSnapshot?: boolean;
+  };
   if (body.persistSnapshot) {
     const masterRequired = await requireMasterSessionForAction(req, {
       action: "tools_mutate_exec",

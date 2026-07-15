@@ -14,4 +14,3 @@ export function sanitizeHtml(input: string): string {
     .replace(/javascript:/gi, "")
     .trim();
 }
-

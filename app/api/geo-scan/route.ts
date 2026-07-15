@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server";
 
 const SAMPLE_DETECTIONS = [
-  { lat: 37.7749, lng: -122.4194, label: "Port logistics cluster", confidence: 0.74 },
-  { lat: 25.7617, lng: -80.1918, label: "Maritime staging node", confidence: 0.68 },
-  { lat: 35.6895, lng: 139.6917, label: "Dense urban traffic pattern", confidence: 0.63 },
+  {
+    lat: 37.7749,
+    lng: -122.4194,
+    label: "Port logistics cluster",
+    confidence: 0.74,
+  },
+  {
+    lat: 25.7617,
+    lng: -80.1918,
+    label: "Maritime staging node",
+    confidence: 0.68,
+  },
+  {
+    lat: 35.6895,
+    lng: 139.6917,
+    label: "Dense urban traffic pattern",
+    confidence: 0.63,
+  },
 ];
 
 /**

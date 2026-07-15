@@ -25,14 +25,19 @@ export async function GET() {
     storage: {
       pathHint: "data/subscription-escape.json",
       configured: Boolean(process.env.NEXUS_SUBSCRIPTION_ESCAPE_FILE),
-      resolvedPath: process.env.NODE_ENV === "development" ? getSubscriptionEscapeStoragePath() : undefined,
+      resolvedPath:
+        process.env.NODE_ENV === "development"
+          ? getSubscriptionEscapeStoragePath()
+          : undefined,
     },
   });
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as { state?: Partial<SubscriptionEscapeState> };
+    const body = (await req.json()) as {
+      state?: Partial<SubscriptionEscapeState>;
+    };
     if (!body?.state) {
       return protectedJson(
         { error: "Missing subscription escape state payload." },

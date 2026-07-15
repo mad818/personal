@@ -44,7 +44,11 @@ const MODE_CONTENT: Record<
   },
 };
 
-export default function VaultModeOrientationSection({ mode }: { mode: VaultMode }) {
+export default function VaultModeOrientationSection({
+  mode,
+}: {
+  mode: VaultMode;
+}) {
   const content = MODE_CONTENT[mode];
 
   return (

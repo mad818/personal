@@ -24,9 +24,7 @@ export default function ProviderHealthStrip({
       }
       compact
       icon="AI"
-      title={
-        surface === "command" ? "Provider health" : "Provider resilience"
-      }
+      title={surface === "command" ? "Provider health" : "Provider resilience"}
       description={posture.summaryDescription}
     >
       <div className="flex flex-wrap gap-2">

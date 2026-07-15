@@ -261,7 +261,11 @@ export default function MetadataExtractor() {
         <div
           role="status"
           aria-live="polite"
-          style={{ color: "var(--text3)", fontSize: "11px", marginBottom: "10px" }}
+          style={{
+            color: "var(--text3)",
+            fontSize: "11px",
+            marginBottom: "10px",
+          }}
         >
           Reading file metadata locally…
         </div>
@@ -303,7 +307,10 @@ export default function MetadataExtractor() {
             >
               <tbody>
                 {rows.map((r, i) => (
-                  <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <tr
+                    key={i}
+                    style={{ borderBottom: "1px solid var(--border)" }}
+                  >
                     <th
                       scope="row"
                       style={{

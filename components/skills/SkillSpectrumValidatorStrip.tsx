@@ -13,8 +13,9 @@ export default function SkillSpectrumValidatorStrip() {
   const blocked = useMemo(() => listBlockedSkillCapabilities(), []);
   const reviewCount = useMemo(
     () =>
-      SKILL_CAPABILITY_POLICIES.filter((policy) => policy.riskLevel === "review")
-        .length,
+      SKILL_CAPABILITY_POLICIES.filter(
+        (policy) => policy.riskLevel === "review",
+      ).length,
     [],
   );
 
@@ -43,7 +44,9 @@ export default function SkillSpectrumValidatorStrip() {
         {summary}
       </div>
       {blocked.length > 0 ? (
-        <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}
+        >
           Blocked tokens: {blocked.join(", ")}. CI runs{" "}
           <code>npm run agentshield:check</code> against skill markdown.
         </div>

@@ -74,18 +74,22 @@ export default function RepoAssimilationQueueCard() {
       }}
     >
       <div>
-        <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}
+        >
           Assimilation queue
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}
+        >
           {summary.headline}
         </div>
       </div>
 
       {items.length === 0 ? (
         <div style={{ fontSize: "10px", color: "var(--text3)" }}>
-          Run a repo assimilation brief from Repo intel to populate adopt/adapt/reject
-          evidence here.
+          Run a repo assimilation brief from Repo intel to populate
+          adopt/adapt/reject evidence here.
         </div>
       ) : (
         items.map((item) => (
@@ -106,7 +110,13 @@ export default function RepoAssimilationQueueCard() {
                 alignItems: "center",
               }}
             >
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+              <div
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "var(--text)",
+                }}
+              >
                 {item.title}
               </div>
               <span
@@ -120,7 +130,13 @@ export default function RepoAssimilationQueueCard() {
                 {item.decision}
               </span>
             </div>
-            <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "4px" }}>
+            <div
+              style={{
+                fontSize: "10px",
+                color: "var(--text3)",
+                marginTop: "4px",
+              }}
+            >
               {item.smallestSlice}
             </div>
             {(() => {

@@ -208,15 +208,22 @@ const checks = [
 
 const errors = [];
 
+function containsFormatIndependentPhrase(source, phrase) {
+  if (source.includes(phrase)) return true;
+  const normalizedSource = source.replace(/\s+/g, " ");
+  const normalizedPhrase = phrase.replace(/\s+/g, " ").trim();
+  return normalizedSource.includes(normalizedPhrase);
+}
+
 for (const check of checks) {
   const source = fs.readFileSync(path.join(repoRoot, check.file), "utf8");
   for (const phrase of check.forbidden) {
-    if (source.includes(phrase)) {
+    if (containsFormatIndependentPhrase(source, phrase)) {
       errors.push(`${check.file}: remove stale phrase "${phrase}"`);
     }
   }
   for (const phrase of check.required) {
-    if (!source.includes(phrase)) {
+    if (!containsFormatIndependentPhrase(source, phrase)) {
       errors.push(`${check.file}: missing polish proof phrase "${phrase}"`);
     }
   }

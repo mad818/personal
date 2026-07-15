@@ -72,7 +72,9 @@ export default function RuntimeEvalTrend() {
               body: JSON.stringify({}),
             });
             if (!response.ok) {
-              throw new Error(`Runtime evaluation failed (${response.status}).`);
+              throw new Error(
+                `Runtime evaluation failed (${response.status}).`,
+              );
             }
             await refresh();
           }
@@ -484,8 +486,8 @@ export default function RuntimeEvalTrend() {
                 {latestExperiment.title}
               </div>
               <div style={{ fontSize: 10, color: "var(--text3)" }}>
-                {latestExperiment.variantKind?.replaceAll("_", " ")} · score delta{" "}
-                {Number(latestExperiment.scoreDelta ?? 0) >= 0 ? "+" : ""}
+                {latestExperiment.variantKind?.replaceAll("_", " ")} · score
+                delta {Number(latestExperiment.scoreDelta ?? 0) >= 0 ? "+" : ""}
                 {latestExperiment.scoreDelta ?? 0}
               </div>
               <div style={{ fontSize: 10, color: "var(--text3)" }}>
@@ -614,7 +616,10 @@ export default function RuntimeEvalTrend() {
               Open Status
             </button>
             {runMsg && (
-              <span role="status" style={{ fontSize: 10, color: "var(--text3)" }}>
+              <span
+                role="status"
+                style={{ fontSize: 10, color: "var(--text3)" }}
+              >
                 {runMsg}
               </span>
             )}

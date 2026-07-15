@@ -107,10 +107,7 @@ export async function POST(req: NextRequest) {
   const workflows = await listWorkflows();
   const workflow = workflows.find((entry) => entry.id === body.workflowId);
   if (!workflow) {
-    return NextResponse.json(
-      { error: "Workflow not found." },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: "Workflow not found." }, { status: 404 });
   }
   const run = buildRun(workflow);
   await saveWorkflowRun(run);

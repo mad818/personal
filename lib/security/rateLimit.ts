@@ -46,7 +46,9 @@ function getDirectClientIp(req: NextRequest) {
 
 export function getRequestIdentity(
   req: NextRequest,
-  { includeBearerToken = false }: Pick<RateLimitConfig, "includeBearerToken"> = {},
+  {
+    includeBearerToken = false,
+  }: Pick<RateLimitConfig, "includeBearerToken"> = {},
 ) {
   const ip = getDirectClientIp(req);
   const authHeader = req.headers.get("authorization") ?? "";

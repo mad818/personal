@@ -1,29 +1,29 @@
-"use client"
+"use client";
 
-import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry"
+import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry";
 
 function formatBridgeAge(freshnessMs: number | null) {
-  if (freshnessMs === null) return "No bridge ingest yet"
-  if (freshnessMs < 1_000) return "Just now"
-  if (freshnessMs < 60_000) return `${Math.round(freshnessMs / 1_000)}s ago`
-  return `${Math.round(freshnessMs / 60_000)}m ago`
+  if (freshnessMs === null) return "No bridge ingest yet";
+  if (freshnessMs < 1_000) return "Just now";
+  if (freshnessMs < 60_000) return `${Math.round(freshnessMs / 1_000)}s ago`;
+  return `${Math.round(freshnessMs / 60_000)}m ago`;
 }
 
 function labelSourceMode(mode: "simulation" | "replay" | "live_bridge") {
-  if (mode === "replay") return "Replay buffer"
-  if (mode === "live_bridge") return "Fresh live bridge"
-  return "Simulation fallback"
+  if (mode === "replay") return "Replay buffer";
+  if (mode === "live_bridge") return "Fresh live bridge";
+  return "Simulation fallback";
 }
 
 export default function VehicleBridgeStatusCard() {
-  const { bridgeStatus, sourceMode } = useVehicleTelemetry()
+  const { bridgeStatus, sourceMode } = useVehicleTelemetry();
 
   const statusColor =
     sourceMode === "live_bridge"
       ? "#10b981"
       : bridgeStatus.available
         ? "#f59e0b"
-        : "var(--text3)"
+        : "var(--text3)";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -87,34 +87,70 @@ export default function VehicleBridgeStatusCard() {
         }}
       >
         <div>
-          <div style={{ fontSize: "9px", color: "var(--text3)", textTransform: "uppercase" }}>
+          <div
+            style={{
+              fontSize: "9px",
+              color: "var(--text3)",
+              textTransform: "uppercase",
+            }}
+          >
             Bridge
           </div>
-          <div style={{ fontSize: "12px", fontWeight: 800, color: "var(--text)" }}>
-            {bridgeStatus.bridgeLabel ?? bridgeStatus.bridgeId ?? "Simulation only"}
+          <div
+            style={{ fontSize: "12px", fontWeight: 800, color: "var(--text)" }}
+          >
+            {bridgeStatus.bridgeLabel ??
+              bridgeStatus.bridgeId ??
+              "Simulation only"}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: "9px", color: "var(--text3)", textTransform: "uppercase" }}>
+          <div
+            style={{
+              fontSize: "9px",
+              color: "var(--text3)",
+              textTransform: "uppercase",
+            }}
+          >
             Last ingest
           </div>
-          <div style={{ fontSize: "12px", fontWeight: 800, color: statusColor }}>
+          <div
+            style={{ fontSize: "12px", fontWeight: 800, color: statusColor }}
+          >
             {formatBridgeAge(bridgeStatus.freshnessMs)}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: "9px", color: "var(--text3)", textTransform: "uppercase" }}>
+          <div
+            style={{
+              fontSize: "9px",
+              color: "var(--text3)",
+              textTransform: "uppercase",
+            }}
+          >
             Authority
           </div>
-          <div style={{ fontSize: "12px", fontWeight: 800, color: "var(--text)" }}>
-            {bridgeStatus.authority === "advisory" ? "Advisory ingest" : "Passive observer"}
+          <div
+            style={{ fontSize: "12px", fontWeight: 800, color: "var(--text)" }}
+          >
+            {bridgeStatus.authority === "advisory"
+              ? "Advisory ingest"
+              : "Passive observer"}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: "9px", color: "var(--text3)", textTransform: "uppercase" }}>
+          <div
+            style={{
+              fontSize: "9px",
+              color: "var(--text3)",
+              textTransform: "uppercase",
+            }}
+          >
             Frames ingested
           </div>
-          <div style={{ fontSize: "12px", fontWeight: 800, color: "var(--text)" }}>
+          <div
+            style={{ fontSize: "12px", fontWeight: 800, color: "var(--text)" }}
+          >
             {bridgeStatus.ingestedFrames}
           </div>
         </div>
@@ -154,12 +190,15 @@ export default function VehicleBridgeStatusCard() {
             </span>{" "}
             returns the latest merged bridge snapshot for the operator UI.
           </div>
-          <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.5 }}>
-            Nexus never becomes the flight controller in this lane. Fresh bridge data can replace
-            the simulation view, but arming, stabilization, and failsafes stay outside the app.
+          <div
+            style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.5 }}
+          >
+            Nexus never becomes the flight controller in this lane. Fresh bridge
+            data can replace the simulation view, but arming, stabilization, and
+            failsafes stay outside the app.
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

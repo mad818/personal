@@ -11,24 +11,21 @@ const DOCTRINE_PLATES: readonly DoctrinePlate[] = [
     index: "01",
     eyebrow: "Deployment",
     title: "Runs on your machine",
-    body:
-      "No subscription. No cloud dependency. Bring your own keys. Storage stays local.",
+    body: "No subscription. No cloud dependency. Bring your own keys. Storage stays local.",
     tone: "amber",
   },
   {
     index: "02",
     eyebrow: "Entrypoint",
     title: "HQ is where work begins",
-    body:
-      "The assistant orchestrates every surface from one work-first command interface.",
+    body: "The assistant orchestrates every surface from one work-first command interface.",
     tone: "blue",
   },
   {
     index: "03",
     eyebrow: "Continuity",
     title: "Work compounds across sessions",
-    body:
-      "Vault and the memory spine keep decisions live across restarts. Nothing is lost to a closed tab.",
+    body: "Vault and the memory spine keep decisions live across restarts. Nothing is lost to a closed tab.",
     tone: "steel",
   },
 ];

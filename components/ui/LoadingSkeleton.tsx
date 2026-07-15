@@ -39,7 +39,10 @@ export function LoadingSkeleton({
 
   return (
     <div
-      className={cn("nexus-loading-skeleton", `nexus-loading-skeleton--${variant}`)}
+      className={cn(
+        "nexus-loading-skeleton",
+        `nexus-loading-skeleton--${variant}`,
+      )}
       style={{
         width,
         height,

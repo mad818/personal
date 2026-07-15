@@ -3,7 +3,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/apiFetch";
-import { SurfaceEmpty, SurfaceSkeletonRows } from "@/components/ui/surfacePrimitives";
+import {
+  SurfaceEmpty,
+  SurfaceSkeletonRows,
+} from "@/components/ui/surfacePrimitives";
 
 interface AgentHealth {
   agent: string;
@@ -70,8 +73,7 @@ export function AgentHealthCard() {
           {agents.length > 0 && (
             <span className="text-[9px] text-[var(--text3)]">
               {Math.round(
-                (agents.reduce((s, a) => s + a.passRate, 0) /
-                  agents.length) *
+                (agents.reduce((s, a) => s + a.passRate, 0) / agents.length) *
                   100,
               )}
               % avg
@@ -92,7 +94,9 @@ export function AgentHealthCard() {
             />
           )}
 
-          {loading && agents.length === 0 ? <SurfaceSkeletonRows rows={3} height={18} /> : null}
+          {loading && agents.length === 0 ? (
+            <SurfaceSkeletonRows rows={3} height={18} />
+          ) : null}
 
           {agents.map((a) => {
             const pct = Math.round(a.passRate * 100);

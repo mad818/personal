@@ -304,9 +304,11 @@ export default function ConflictFeed({
           }}
         >
           <span>
-            Region filter: <strong style={{ color: "var(--text)" }}>{regionLabel}</strong>
+            Region filter:{" "}
+            <strong style={{ color: "var(--text)" }}>{regionLabel}</strong>
             {" · "}
-            {regionFiltered.length} headline{regionFiltered.length === 1 ? "" : "s"}
+            {regionFiltered.length} headline
+            {regionFiltered.length === 1 ? "" : "s"}
           </span>
         </div>
       ) : null}
@@ -336,7 +338,10 @@ export default function ConflictFeed({
         </div>
       )}
 
-      {items.length > 0 && regionFilter && regionFiltered.length === 0 && !loading ? (
+      {items.length > 0 &&
+      regionFilter &&
+      regionFiltered.length === 0 &&
+      !loading ? (
         <div
           style={{
             padding: "24px",
@@ -345,7 +350,8 @@ export default function ConflictFeed({
             fontSize: "12px",
           }}
         >
-          No current headlines match {regionLabel}. Try Show all or refresh the feed.
+          No current headlines match {regionLabel}. Try Show all or refresh the
+          feed.
         </div>
       ) : null}
 

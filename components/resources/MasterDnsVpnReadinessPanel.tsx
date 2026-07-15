@@ -65,7 +65,14 @@ export default function MasterDnsVpnReadinessPanel() {
         borderTop: "1px solid var(--border)",
       }}
     >
-      <div style={{ display: "flex", gap: "8px", justifyContent: "space-between", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+        }}
+      >
         <SectionLabel detail="External, operator-managed">
           Emergency external transport
         </SectionLabel>
@@ -95,13 +102,27 @@ export default function MasterDnsVpnReadinessPanel() {
           {config?.proxyHost ?? "loopback pending"}
         </ShellBadge>
       </div>
-      <p style={{ margin: 0, color: "var(--text2)", fontSize: "12px", lineHeight: 1.5 }}>
+      <p
+        style={{
+          margin: 0,
+          color: "var(--text2)",
+          fontSize: "12px",
+          lineHeight: 1.5,
+        }}
+      >
         {readiness?.summary ??
           "Readiness is unavailable. Configure the external client through local environment settings."}{" "}
         This transport does not unlock public links. {readiness?.warning}
       </p>
       {readiness?.blockers?.length ? (
-        <p style={{ margin: 0, color: "var(--text3)", fontSize: "11px", lineHeight: 1.5 }}>
+        <p
+          style={{
+            margin: 0,
+            color: "var(--text3)",
+            fontSize: "11px",
+            lineHeight: 1.5,
+          }}
+        >
           {readiness.blockers.join(" ")}
         </p>
       ) : null}

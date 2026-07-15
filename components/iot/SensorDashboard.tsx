@@ -688,7 +688,11 @@ export default function SensorDashboard() {
               {/* Sparkline */}
               {!boolVal && (
                 <div style={{ marginBottom: "6px" }}>
-                  <SensorSparkline color={s.color} sensorId={s.id} value={s.value} />
+                  <SensorSparkline
+                    color={s.color}
+                    sensorId={s.id}
+                    value={s.value}
+                  />
                 </div>
               )}
 

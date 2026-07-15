@@ -9,9 +9,8 @@ import {
 import { ShellStack } from "@/components/ui/shell";
 
 export default function ForecastLabReadinessPanel() {
-  const [readiness, setReadiness] = useState<AgentPlatformReadinessSnapshot | null>(
-    null,
-  );
+  const [readiness, setReadiness] =
+    useState<AgentPlatformReadinessSnapshot | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -39,8 +38,8 @@ export default function ForecastLabReadinessPanel() {
       <AgentPlatformReadinessBadges readiness={readiness} />
       {!readiness?.timesfm?.available ? (
         <div style={{ fontSize: "10px", color: "var(--text3)" }}>
-          Set `TIMESFM_ENDPOINT` for `timesfm_forecast`. World Bank macro works with no
-          key via `world_bank_macro`.
+          Set `TIMESFM_ENDPOINT` for `timesfm_forecast`. World Bank macro works
+          with no key via `world_bank_macro`.
         </div>
       ) : null}
     </ShellStack>

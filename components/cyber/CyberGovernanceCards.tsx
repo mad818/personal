@@ -74,13 +74,31 @@ export default function CyberGovernanceCards() {
                   opacity: active ? 1 : 0.82,
                 }}
               >
-                <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    color: "var(--text)",
+                  }}
+                >
                   {active ? "Reviewed" : "Review"} · {item.label}
                 </span>
-                <span style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    color: "var(--text3)",
+                    lineHeight: 1.45,
+                  }}
+                >
                   {item.question}
                 </span>
-                <span style={{ fontSize: "10px", color: "#93c5fd", lineHeight: 1.45 }}>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    color: "#93c5fd",
+                    lineHeight: 1.45,
+                  }}
+                >
                   Pass: {item.passCriteria}
                 </span>
               </button>
@@ -97,7 +115,9 @@ export default function CyberGovernanceCards() {
         <div className="nexus-shell-copy nexus-shell-copy--compact">
           {summarizeSkillSpectrumPolicies()}
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}
+        >
           Blocked capability tokens:{" "}
           {listBlockedSkillCapabilities().join(", ") || "none"}
         </div>
@@ -109,15 +129,24 @@ export default function CyberGovernanceCards() {
           <ShellBadge tone="muted">Governance reference</ShellBadge>
         </div>
         <div className="nexus-shell-copy nexus-shell-copy--compact">
-          Record autonomy posture notes per domain. This is review language only — not a conformance claim.
+          Record autonomy posture notes per domain. This is review language only
+          — not a conformance claim.
         </div>
         <div style={{ display: "grid", gap: "8px" }}>
           {AGENT_AUTONOMY_REVIEW_DOMAINS.map((domain) => (
             <label key={domain.id} style={{ display: "grid", gap: "4px" }}>
-              <span style={{ fontSize: "10px", fontWeight: 700, color: "#93c5fd" }}>
+              <span
+                style={{ fontSize: "10px", fontWeight: 700, color: "#93c5fd" }}
+              >
                 {domain.label}
               </span>
-              <span style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}>
+              <span
+                style={{
+                  fontSize: "10px",
+                  color: "var(--text3)",
+                  lineHeight: 1.45,
+                }}
+              >
                 {domain.summary}
               </span>
               <textarea

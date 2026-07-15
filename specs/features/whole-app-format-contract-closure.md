@@ -1,5 +1,7 @@
 # Whole-App Format Contract Closure
 
+> Correction (2026-07-15): the historical glob in this tranche omitted `/` after the brace group and resolved only 272 files, not the declared source tree. `WHOLE-APP-FORMAT-COVERAGE-TRUTH` and `specs/features/whole-app-format-coverage-truth.md` supersede the coverage claim with a corrected 672-file non-RPG scope and complete baseline.
+
 ## One-sentence contract
 
 Every file in the declared active-source Prettier scope must match the canonical formatter, and that check must run inside the same verifier used by the trustworthy full audit.

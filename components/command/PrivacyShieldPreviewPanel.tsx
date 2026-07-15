@@ -25,10 +25,14 @@ function normalizePreview(value: unknown): PrivacyShieldPreviewPayload | null {
     provider: preview.provider,
     policy: preview.policy,
     protectedKinds: Array.isArray(preview.protectedKinds)
-      ? preview.protectedKinds.filter((kind): kind is string => typeof kind === "string")
+      ? preview.protectedKinds.filter(
+          (kind): kind is string => typeof kind === "string",
+        )
       : [],
     protectedFields: Array.isArray(preview.protectedFields)
-      ? preview.protectedFields.filter((field): field is string => typeof field === "string")
+      ? preview.protectedFields.filter(
+          (field): field is string => typeof field === "string",
+        )
       : [],
     protectedCount:
       typeof preview.protectedCount === "number" &&
@@ -54,7 +58,9 @@ function normalizePreview(value: unknown): PrivacyShieldPreviewPayload | null {
 export default function PrivacyShieldPreviewPanel() {
   const setPrivacyShieldStatus = useStore((s) => s.setPrivacyShieldStatus);
   const [text, setText] = useState(SAMPLE_TEXT);
-  const [preview, setPreview] = useState<PrivacyShieldPreviewPayload | null>(null);
+  const [preview, setPreview] = useState<PrivacyShieldPreviewPayload | null>(
+    null,
+  );
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
 
@@ -102,7 +108,9 @@ export default function PrivacyShieldPreviewPanel() {
             Local redaction posture for cloud-bound dispatch.
           </p>
         </div>
-        <ShellBadge tone={preview?.dispatchMode === "blocked" ? "accent" : "muted"}>
+        <ShellBadge
+          tone={preview?.dispatchMode === "blocked" ? "accent" : "muted"}
+        >
           {preview?.dispatchMode ?? "idle"}
         </ShellBadge>
       </div>
@@ -119,22 +127,30 @@ export default function PrivacyShieldPreviewPanel() {
           {busy ? "Checking" : "Preview shield"}
         </ShellButton>
         {note ? (
-          <span className="text-[11px] font-bold text-[var(--text3)]">{note}</span>
+          <span className="text-[11px] font-bold text-[var(--text3)]">
+            {note}
+          </span>
         ) : null}
       </div>
 
       {preview ? (
         <div className="mt-3 grid gap-3">
           <div className="flex flex-wrap gap-2">
-            <ShellBadge tone="muted">{preview.policy ?? "local policy"}</ShellBadge>
-            <ShellBadge tone="muted">{preview.protectedCount} protected</ShellBadge>
+            <ShellBadge tone="muted">
+              {preview.policy ?? "local policy"}
+            </ShellBadge>
+            <ShellBadge tone="muted">
+              {preview.protectedCount} protected
+            </ShellBadge>
             {(preview.protectedFields ?? []).map((field) => (
               <ShellBadge key={field} tone="muted">
                 {field.replace(/_/g, " ")}
               </ShellBadge>
             ))}
           </div>
-          <p className="text-xs leading-5 text-[var(--text2)]">{preview.summary}</p>
+          <p className="text-xs leading-5 text-[var(--text2)]">
+            {preview.summary}
+          </p>
           {preview.blockedReason ? (
             <p className="text-xs font-bold leading-5 text-[var(--text2)]">
               {preview.blockedReason}

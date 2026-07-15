@@ -6,7 +6,11 @@
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { ArticlesLoader, CVEsLoader, OTXLoader } from "@/components/ui/DataLoader";
+import {
+  ArticlesLoader,
+  CVEsLoader,
+  OTXLoader,
+} from "@/components/ui/DataLoader";
 import MissionHandoffStrip from "@/components/ui/MissionHandoffStrip";
 import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
 import {
@@ -36,7 +40,14 @@ import { getOpsLayoutDescriptor } from "@/lib/opsLayoutRegistry";
 import { getSurfaceModuleSpec } from "@/lib/surfaceRedesignRegistry";
 import { useStore } from "@/store/useStore";
 
-type CyberView = "triage" | "vuln-review" | "matrix" | "cves" | "otx" | "cisa" | "drone";
+type CyberView =
+  | "triage"
+  | "vuln-review"
+  | "matrix"
+  | "cves"
+  | "otx"
+  | "cisa"
+  | "drone";
 
 const CHAMBER_VIEWS: Array<{ id: CyberChamberId; label: string }> = [
   { id: "triage", label: "🧠 TRIAGE" },
@@ -79,7 +90,15 @@ export default function CyberPage() {
   const urlView = useMemo(() => {
     const v = (normalizedParams.get("view") ?? "").toLowerCase();
     return (
-      ["triage", "vuln-review", "matrix", "cves", "otx", "cisa", "drone"] as CyberView[]
+      [
+        "triage",
+        "vuln-review",
+        "matrix",
+        "cves",
+        "otx",
+        "cisa",
+        "drone",
+      ] as CyberView[]
     ).includes(v as CyberView)
       ? (v as CyberView)
       : null;
@@ -130,23 +149,27 @@ export default function CyberPage() {
       ? "cyber-triage"
       : focus === "cyber-vuln-review"
         ? "cyber-vuln-review"
-      : focus === "cyber-matrix"
-        ? "cyber-matrix"
-        : focus === "cyber-cves"
-          ? "cyber-cves"
-          : focus === "cyber-otx"
-            ? "cyber-otx"
-            : focus === "cyber-cisa"
-              ? "cyber-cisa"
-              : focus === "cyber-drone"
-                ? "cyber-drone"
-                : null;
+        : focus === "cyber-matrix"
+          ? "cyber-matrix"
+          : focus === "cyber-cves"
+            ? "cyber-cves"
+            : focus === "cyber-otx"
+              ? "cyber-otx"
+              : focus === "cyber-cisa"
+                ? "cyber-cisa"
+                : focus === "cyber-drone"
+                  ? "cyber-drone"
+                  : null;
 
   useSurfaceFocusScroll(focusTargetId);
 
   const threatBriefSpec = getSurfaceModuleSpec("cyber", "threat-brief");
   const priorityGridSpec = getSurfaceModuleSpec("cyber", "priority-grid");
-  const evidenceFeedsSpec = getSurfaceModuleSpec("cyber", "evidence-feeds", view);
+  const evidenceFeedsSpec = getSurfaceModuleSpec(
+    "cyber",
+    "evidence-feeds",
+    view,
+  );
   const physicalOpsSpec = getSurfaceModuleSpec("cyber", "physical-ops");
   const cyberLayout = getOpsLayoutDescriptor("cyber");
   const cyberGovernancePack = getWorkflowPack("cyber-triage");
@@ -157,7 +180,12 @@ export default function CyberPage() {
     getAssistantWorkspace("vault-compiled-pages"),
   ];
 
-  if (!threatBriefSpec || !priorityGridSpec || !evidenceFeedsSpec || !physicalOpsSpec) {
+  if (
+    !threatBriefSpec ||
+    !priorityGridSpec ||
+    !evidenceFeedsSpec ||
+    !physicalOpsSpec
+  ) {
     return null;
   }
 
@@ -174,12 +202,12 @@ export default function CyberPage() {
       eyebrow="Threat containment board"
       title="Threat desk"
       description="Triage, evidence, and repair on one desk."
-        actions={
-          <>
-            <ShellBadge tone="accent">Approval-staged triage</ShellBadge>
-            <ShellBadge tone="muted">Repair-first posture</ShellBadge>
-          </>
-        }
+      actions={
+        <>
+          <ShellBadge tone="accent">Approval-staged triage</ShellBadge>
+          <ShellBadge tone="muted">Repair-first posture</ShellBadge>
+        </>
+      }
     >
       <CVEsLoader />
       <OTXLoader />
@@ -189,7 +217,9 @@ export default function CyberPage() {
         <OpsStrip className="nexus-surface-route-strip">
           <div className="nexus-surface-route-strip__grid">
             <div className="nexus-surface-route-strip__cell">
-              <span className="nexus-surface-route-strip__cellLabel">Triage queue</span>
+              <span className="nexus-surface-route-strip__cellLabel">
+                Triage queue
+              </span>
               <strong className="nexus-surface-route-strip__cellValue">
                 {cves.length}
               </strong>
@@ -198,30 +228,39 @@ export default function CyberPage() {
               </span>
             </div>
             <div className="nexus-surface-route-strip__cell">
-              <span className="nexus-surface-route-strip__cellLabel">Evidence source</span>
+              <span className="nexus-surface-route-strip__cellLabel">
+                Evidence source
+              </span>
               <strong className="nexus-surface-route-strip__cellValue">
                 {evidenceView.toUpperCase()}
               </strong>
               <span className="nexus-surface-route-strip__cellNote">
-                CVEs, OTX, and KEV now share one evidence lane instead of three peer tabs.
+                CVEs, OTX, and KEV now share one evidence lane instead of three
+                peer tabs.
               </span>
             </div>
             <div className="nexus-surface-route-strip__cell">
-              <span className="nexus-surface-route-strip__cellLabel">Signal pressure</span>
+              <span className="nexus-surface-route-strip__cellLabel">
+                Signal pressure
+              </span>
               <strong className="nexus-surface-route-strip__cellValue">
                 {articles.length}
               </strong>
               <span className="nexus-surface-route-strip__cellNote">
-                Threat-intelligence signals stay nearby without taking over the first screen.
+                Threat-intelligence signals stay nearby without taking over the
+                first screen.
               </span>
             </div>
             <div className="nexus-surface-route-strip__cell">
-              <span className="nexus-surface-route-strip__cellLabel">Pulse count</span>
+              <span className="nexus-surface-route-strip__cellLabel">
+                Pulse count
+              </span>
               <strong className="nexus-surface-route-strip__cellValue">
                 {otxPulses.length}
               </strong>
               <span className="nexus-surface-route-strip__cellNote">
-                OTX pulse volume remains visible even when the chamber is focused elsewhere.
+                OTX pulse volume remains visible even when the chamber is
+                focused elsewhere.
               </span>
             </div>
           </div>
@@ -295,7 +334,10 @@ export default function CyberPage() {
             <OpsWorkplane className={cyberLayout.workplaneClass}>
               <div className="nexus-surface-chamber-shell__body">
                 <div className="nexus-surface-chamber-shell__lead">
-                  <OpsField title="Priority queue" detail="Action framing for the hottest cyber pressure">
+                  <OpsField
+                    title="Priority queue"
+                    detail="Action framing for the hottest cyber pressure"
+                  >
                     <LazyTriageView />
                   </OpsField>
                 </div>
@@ -317,7 +359,13 @@ export default function CyberPage() {
                           gap: "10px",
                         }}
                       >
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "6px",
+                          }}
+                        >
                           <ShellBadge tone="accent">
                             {governanceRiskLabel(cyberGovernancePack.riskTier)}
                           </ShellBadge>
@@ -334,7 +382,13 @@ export default function CyberPage() {
                         <p className="nexus-shell-copy nexus-shell-copy--compact">
                           {cyberGovernancePack.nextMove}
                         </p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "6px",
+                          }}
+                        >
                           {cyberGovernancePack.domainTags.map((tag) => (
                             <ShellBadge key={tag} tone="muted">
                               {tag}
@@ -356,7 +410,12 @@ export default function CyberPage() {
                               }}
                             >
                               <span>{workspace.label}</span>
-                              <span style={{ color: "var(--text3)", fontSize: "10px" }}>
+                              <span
+                                style={{
+                                  color: "var(--text3)",
+                                  fontSize: "10px",
+                                }}
+                              >
                                 staged
                               </span>
                             </a>

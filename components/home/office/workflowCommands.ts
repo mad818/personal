@@ -186,7 +186,8 @@ const HQ_WORKFLOW_DEFINITIONS: HQWorkflowDefinition[] = [
     route: "/intel",
     aliases: ["deepresearch", "deep-research"],
     fallbackTopic: "the highest-priority current operating topic",
-    promptExample: "/deepresearch AI chip export controls and NVIDIA supplier exposure",
+    promptExample:
+      "/deepresearch AI chip export controls and NVIDIA supplier exposure",
     risk: "low",
     posture: "research",
     outputTarget: "compiled_memory_page",
@@ -346,7 +347,8 @@ Keep the brief metadata-grounded, operator-grade, and explicitly local-first.
     agent: "nova",
     route: "/recon",
     aliases: ["compare-repos", "repo-compare"],
-    fallbackTopic: "the 2 or 3 public GitHub repos that need a Nexus fit comparison",
+    fallbackTopic:
+      "the 2 or 3 public GitHub repos that need a Nexus fit comparison",
     promptExample:
       "/compare-repos https://github.com/vercel/next.js vs https://github.com/remix-run/remix",
     risk: "low",
@@ -387,8 +389,10 @@ Keep the brief metadata-grounded, operator-grade, and explicitly local-first.
     agent: "nova",
     route: "/intel",
     aliases: ["lit", "lit-review", "litreview", "literature-review"],
-    fallbackTopic: "the most relevant papers or technical sources for the current issue",
-    promptExample: "/lit-review browser tool-use prompt caching and agent reliability",
+    fallbackTopic:
+      "the most relevant papers or technical sources for the current issue",
+    promptExample:
+      "/lit-review browser tool-use prompt caching and agent reliability",
     risk: "low",
     posture: "research",
     outputTarget: "compiled_memory_page",
@@ -402,7 +406,8 @@ Keep the brief metadata-grounded, operator-grade, and explicitly local-first.
       cronSuggestion: "30 9 * * 1-5",
       outputTarget: "review",
       approvalPolicy: "human_gate",
-      topicPlaceholder: "the most relevant papers or technical sources for the current issue",
+      topicPlaceholder:
+        "the most relevant papers or technical sources for the current issue",
     },
     hookNotes: [
       "Biases toward papers, standards, and technical documentation.",
@@ -438,8 +443,10 @@ Keep it operator-grade and concise.
     id: "audit",
     label: "Claim audit",
     aliases: ["audit", "claim-audit", "paper-audit"],
-    fallbackTopic: "the claim, paper, or public artifact that needs source verification",
-    promptExample: "/audit does this paper's public code support its headline claim?",
+    fallbackTopic:
+      "the claim, paper, or public artifact that needs source verification",
+    promptExample:
+      "/audit does this paper's public code support its headline claim?",
     purpose:
       "Compare claims against direct sources, public documentation, repositories, counter-evidence, and coverage gaps.",
   }),
@@ -456,8 +463,10 @@ Keep it operator-grade and concise.
     id: "recipe",
     label: "Research recipe",
     aliases: ["recipe", "ml-recipe"],
-    fallbackTopic: "the implementation or training objective that needs ranked methods",
-    promptExample: "/recipe fine-tune a small local model for structured extraction",
+    fallbackTopic:
+      "the implementation or training objective that needs ranked methods",
+    promptExample:
+      "/recipe fine-tune a small local model for structured extraction",
     purpose:
       "Rank implementable methods with datasets, code anchors, tradeoffs, resource posture, and verification status.",
   }),
@@ -474,8 +483,10 @@ Keep it operator-grade and concise.
     id: "autoresearch",
     label: "Autoresearch plan",
     aliases: ["autoresearch", "auto-research"],
-    fallbackTopic: "the bounded experiment idea that needs one measurable objective",
-    promptExample: "/autoresearch reduce local agent response latency without lowering citation quality",
+    fallbackTopic:
+      "the bounded experiment idea that needs one measurable objective",
+    promptExample:
+      "/autoresearch reduce local agent response latency without lowering citation quality",
     purpose:
       "Define a bounded experiment loop, one measurable objective, variants, acceptance criteria, and stop conditions without executing it.",
   }),
@@ -492,7 +503,8 @@ Keep it operator-grade and concise.
       cronSuggestion: "0 9 * * 1-5",
       outputTarget: "review",
       approvalPolicy: "human_gate",
-      topicPlaceholder: "the topic that needs a recurring material-change watch",
+      topicPlaceholder:
+        "the topic that needs a recurring material-change watch",
     },
   }),
   buildFeynmanWorkflowDefinition({
@@ -513,7 +525,8 @@ Keep it operator-grade and concise.
     route: "/intel",
     aliases: ["compare"],
     fallbackTopic: "the top competing options relevant to the current decision",
-    promptExample: "/compare Anthropic prompt caching vs OpenAI batch processing for scheduled missions",
+    promptExample:
+      "/compare Anthropic prompt caching vs OpenAI batch processing for scheduled missions",
     risk: "low",
     posture: "research",
     outputTarget: "compiled_memory_page",
@@ -527,7 +540,8 @@ Keep it operator-grade and concise.
       cronSuggestion: "0 13 * * 1-5",
       outputTarget: "review",
       approvalPolicy: "human_gate",
-      topicPlaceholder: "the top competing options relevant to the current decision",
+      topicPlaceholder:
+        "the top competing options relevant to the current decision",
     },
     hookNotes: [
       "Produces operator-grade comparison output with explicit recommendation sections.",
@@ -557,7 +571,8 @@ Use short rows, explicit tradeoffs, and compact operator language.
     route: "/hq",
     aliases: ["brief"],
     fallbackTopic: "the current operating picture",
-    promptExample: "/brief current operating picture across markets, cyber, and geopolitics",
+    promptExample:
+      "/brief current operating picture across markets, cyber, and geopolitics",
     risk: "low",
     posture: "briefing",
     outputTarget: "compiled_memory_page",
@@ -599,7 +614,8 @@ Keep the writing brief, direct, and free of filler.
     route: "/cyber",
     aliases: ["threat-hunt", "threathunt"],
     fallbackTopic: "the current highest-priority cyber posture",
-    promptExample: "/threat-hunt suspicious outbound traffic and recent credential-theft indicators",
+    promptExample:
+      "/threat-hunt suspicious outbound traffic and recent credential-theft indicators",
     risk: "medium",
     posture: "defensive",
     outputTarget: "compiled_memory_page",
@@ -638,7 +654,8 @@ Ground every recommendation in evidence or clearly stated uncertainty.
     route: "/cyber",
     aliases: ["evidence-pack", "evidencepack"],
     fallbackTopic: "the active security incident that needs triage packaging",
-    promptExample: "/evidence-pack exposed admin panel and suspicious login sequence",
+    promptExample:
+      "/evidence-pack exposed admin panel and suspicious login sequence",
     risk: "medium",
     posture: "defensive",
     outputTarget: "compiled_memory_page",
@@ -729,7 +746,9 @@ export function buildHQWorkflowScheduledDraft(
   workflowId: HQWorkflowCommandId,
   topic?: string,
 ): HQWorkflowScheduledDraft | null {
-  const workflow = HQ_WORKFLOW_DEFINITIONS.find((item) => item.id === workflowId);
+  const workflow = HQ_WORKFLOW_DEFINITIONS.find(
+    (item) => item.id === workflowId,
+  );
   if (!workflow || !workflow.schedulerDefaults) return null;
 
   const resolvedTopic = normalizeTopic(
@@ -761,7 +780,9 @@ export function resolveHQWorkflowCommand(
   const workflowId = HQ_WORKFLOW_ALIAS_TO_ID[rawCommand];
   if (!workflowId) return null;
 
-  const workflow = HQ_WORKFLOW_DEFINITIONS.find((item) => item.id === workflowId);
+  const workflow = HQ_WORKFLOW_DEFINITIONS.find(
+    (item) => item.id === workflowId,
+  );
   if (!workflow) return null;
 
   const topic = normalizeTopic(match[2] ?? "", workflow.fallbackTopic);

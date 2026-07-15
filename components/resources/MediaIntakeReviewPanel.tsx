@@ -155,8 +155,7 @@ export default function MediaIntakeReviewPanel({
   const actionDialog = useActionDialog();
 
   const activeQueue = useMemo(
-    () =>
-      intakeItems.filter((item) => ACTIVE_INTAKE_STATUSES.has(item.status)),
+    () => intakeItems.filter((item) => ACTIVE_INTAKE_STATUSES.has(item.status)),
     [intakeItems],
   );
   const importedCount = intakeItems.filter(
@@ -347,7 +346,11 @@ export default function MediaIntakeReviewPanel({
                 <option value="book">Book</option>
               </select>
             </label>
-            <button type="button" onClick={addToReview} style={buttonStyle(true)}>
+            <button
+              type="button"
+              onClick={addToReview}
+              style={buttonStyle(true)}
+            >
               Add to review
             </button>
           </div>
@@ -428,7 +431,9 @@ export default function MediaIntakeReviewPanel({
                       {item.rawName}
                     </p>
                   </div>
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <div
+                    style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}
+                  >
                     <ShellBadge tone="muted">
                       {MEDIA_ESCAPE_KIND_LABELS[item.kind]}
                     </ShellBadge>

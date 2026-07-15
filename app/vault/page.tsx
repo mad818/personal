@@ -202,11 +202,13 @@ export default function VaultPage() {
   const [chamber, setChamber] = useState<VaultChamberId>("archive");
   const [memoryView, setMemoryView] = useState<MemoryBriefView>("spine");
   const [archiveLane, setArchiveLane] = useState<ArchiveLaneView>("intake");
-  const [archiveMemoryExpanded, setArchiveMemoryExpanded] = useState(
-    () => Boolean(focusToMemoryView(focus)),
+  const [archiveMemoryExpanded, setArchiveMemoryExpanded] = useState(() =>
+    Boolean(focusToMemoryView(focus)),
   );
   const [publishStewardExpanded, setPublishStewardExpanded] = useState(false);
-  const [compiledPages, setCompiledPages] = useState<CompiledMemoryPageSummary[]>([]);
+  const [compiledPages, setCompiledPages] = useState<
+    CompiledMemoryPageSummary[]
+  >([]);
   const [compiledLoading, setCompiledLoading] = useState(false);
   const [graphSourceFilter, setGraphSourceFilter] =
     useState<GraphSourceFilter>("all");
@@ -452,7 +454,8 @@ export default function VaultPage() {
   const focusTargetId =
     focus === "vault-graph-focus"
       ? "vault-relations"
-      : focus === "vault-compiled-pages" || focus === "vault-export-second-brain"
+      : focus === "vault-compiled-pages" ||
+          focus === "vault-export-second-brain"
         ? "vault-publish"
         : focusToMemoryView(focus)
           ? "vault-memory-brief"
@@ -461,8 +464,14 @@ export default function VaultPage() {
   useSurfaceFocusScroll(focusTargetId);
 
   const memoryBriefSpec = getSurfaceModuleSpec("vault", "memory-brief");
-  const archiveWorkbenchSpec = getSurfaceModuleSpec("vault", "archive-workbench");
-  const durableArtifactsSpec = getSurfaceModuleSpec("vault", "durable-artifacts");
+  const archiveWorkbenchSpec = getSurfaceModuleSpec(
+    "vault",
+    "archive-workbench",
+  );
+  const durableArtifactsSpec = getSurfaceModuleSpec(
+    "vault",
+    "durable-artifacts",
+  );
   const relationsSpec = getSurfaceModuleSpec("vault", "relations");
 
   const archiveCount = compiledPages.length + savedArticles.length;
@@ -611,7 +620,10 @@ export default function VaultPage() {
           className="nexus-shell-segmented--compactLane"
         />
 
-        <div className="nexus-vault-mission-strip" aria-label="Vault chamber orientation">
+        <div
+          className="nexus-vault-mission-strip"
+          aria-label="Vault chamber orientation"
+        >
           <div className="nexus-vault-mission-strip__lead">
             <span className="nexus-vault-mission-strip__eyebrow">
               Active chamber
@@ -619,7 +631,10 @@ export default function VaultPage() {
             <strong>{activeChamberLabel}</strong>
             <p>{chamberPosture.summary}</p>
           </div>
-          <div className="nexus-vault-mission-strip__signals" aria-label="Vault quick status">
+          <div
+            className="nexus-vault-mission-strip__signals"
+            aria-label="Vault quick status"
+          >
             {vaultMissionSignals.map((signal) => (
               <span key={signal.label}>
                 <span>{signal.label}</span>
@@ -641,10 +656,23 @@ export default function VaultPage() {
           <div id="vault-archive" style={{ scrollMarginTop: "120px" }}>
             <div className="nexus-surface-chamber-shell">
               <div className="nexus-surface-chamber-shell__body">
-                <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.railClass}`}>
-                  <div id="vault-memory-brief" style={{ scrollMarginTop: "120px" }}>
-                    <OpsField title={memoryBriefSpec.title} detail={memoryBriefSpec.detail} tone="muted" compact>
-                      <div className="nexus-vault-rail-preview" aria-label="Memory brief preview">
+                <OpsRail
+                  className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.railClass}`}
+                >
+                  <div
+                    id="vault-memory-brief"
+                    style={{ scrollMarginTop: "120px" }}
+                  >
+                    <OpsField
+                      title={memoryBriefSpec.title}
+                      detail={memoryBriefSpec.detail}
+                      tone="muted"
+                      compact
+                    >
+                      <div
+                        className="nexus-vault-rail-preview"
+                        aria-label="Memory brief preview"
+                      >
                         <span>{chamberPosture.supportSignal}</span>
                         <span>{memoryView}</span>
                         <span>{compiledLoading ? "Refreshing" : "Ready"}</span>
@@ -665,7 +693,9 @@ export default function VaultPage() {
                               onChange={setMemoryView}
                               minButtonWidth={110}
                             />
-                            {memoryView === "spine" ? <LazyMemorySpineOverview /> : null}
+                            {memoryView === "spine" ? (
+                              <LazyMemorySpineOverview />
+                            ) : null}
                             {memoryView === "project" ? (
                               <LazyMemoryPalacePanel compartment="project" />
                             ) : null}
@@ -682,7 +712,9 @@ export default function VaultPage() {
                               <LazyMemoryPalacePanel compartment="study" />
                             ) : null}
                             {memoryView === "stewardship" ? (
-                              <LazyVaultStewardshipPanel compiledPages={compiledPages} />
+                              <LazyVaultStewardshipPanel
+                                compiledPages={compiledPages}
+                              />
                             ) : null}
                           </div>
                         </div>
@@ -691,8 +723,13 @@ export default function VaultPage() {
                   </div>
                 </OpsRail>
 
-                <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${vaultLayout.workplaneClass}`}>
-                  <OpsField title={archiveWorkbenchSpec.title} detail={archiveWorkbenchSpec.detail}>
+                <OpsWorkplane
+                  className={`nexus-surface-chamber-shell__lead ${vaultLayout.workplaneClass}`}
+                >
+                  <OpsField
+                    title={archiveWorkbenchSpec.title}
+                    detail={archiveWorkbenchSpec.detail}
+                  >
                     <div className="nexus-surface-subtabs">
                       <ShellSegmentedTabs
                         items={ARCHIVE_LANE_VIEWS}

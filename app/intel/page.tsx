@@ -62,7 +62,9 @@ export default function IntelPage() {
 
   const urlSeg = useMemo(() => {
     const v = (normalizedParams.get("view") ?? "").toLowerCase();
-    return (["news", "world", "markets", "sweeps"] as Segment[]).includes(v as Segment)
+    return (["news", "world", "markets", "sweeps"] as Segment[]).includes(
+      v as Segment,
+    )
       ? (v as Segment)
       : null;
   }, [normalizedParams]);
@@ -114,7 +116,10 @@ export default function IntelPage() {
 
   const newsBriefSpec = getSurfaceModuleSpec("intel", "news-brief");
   const theaterPostureSpec = getSurfaceModuleSpec("intel", "theater-posture");
-  const crossDomainImpactSpec = getSurfaceModuleSpec("intel", "cross-domain-impact");
+  const crossDomainImpactSpec = getSurfaceModuleSpec(
+    "intel",
+    "cross-domain-impact",
+  );
   const forecastPostureSpec = getSurfaceModuleSpec("intel", "forecast-posture");
   const sweepWorkbenchSpec = getSurfaceModuleSpec("intel", "sweep-workbench");
   const intelLayout = getOpsLayoutDescriptor("intel");
@@ -235,20 +240,37 @@ export default function IntelPage() {
           </div>
         ) : null}
 
-        <ShellSegmentedTabs items={SEGMENTS} active={seg} onChange={handleSegmentChange} />
+        <ShellSegmentedTabs
+          items={SEGMENTS}
+          active={seg}
+          onChange={handleSegmentChange}
+        />
 
-        {intelGuidance.length ? <AssistantGuidanceStack items={intelGuidance} /> : null}
+        {intelGuidance.length ? (
+          <AssistantGuidanceStack items={intelGuidance} />
+        ) : null}
 
         {seg === "news" && (
           <div id="intel-news" style={{ scrollMarginTop: "120px" }}>
             <OpsWorkplane className={intelLayout.workplaneClass}>
-              <ShellGrid columns="minmax(0, 1.05fr) minmax(320px, 0.95fr)" align="start" gap="12px">
-                <OpsField title="Topic heatmap" detail="What changed across the narrative field">
+              <ShellGrid
+                columns="minmax(0, 1.05fr) minmax(320px, 0.95fr)"
+                align="start"
+                gap="12px"
+              >
+                <OpsField
+                  title="Topic heatmap"
+                  detail="What changed across the narrative field"
+                >
                   <LazyTopicHeatmap />
                 </OpsField>
                 <OpsRail className={intelLayout.railClass}>
-                  <OpsField title="Conflict feed" detail="Why it matters in live reporting" tone="muted">
-                  <LazyConflictFeed regionFilter={regionFilter} />
+                  <OpsField
+                    title="Conflict feed"
+                    detail="Why it matters in live reporting"
+                    tone="muted"
+                  >
+                    <LazyConflictFeed regionFilter={regionFilter} />
                   </OpsField>
                 </OpsRail>
               </ShellGrid>
@@ -256,9 +278,7 @@ export default function IntelPage() {
           </div>
         )}
 
-        {(seg === "news" || seg === "world") && (
-          <LazyLiveEventFusionStrip />
-        )}
+        {(seg === "news" || seg === "world") && <LazyLiveEventFusionStrip />}
 
         {seg !== "news" ? (
           <LazyIntelDeferredSegment

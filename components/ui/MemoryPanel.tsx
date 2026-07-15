@@ -313,7 +313,8 @@ export default function MemoryPanel({ open, onClose }: MemoryPanelProps) {
     } catch {
       toast({
         title: "Memory export not prepared",
-        message: "IndexedDB could not prepare the export. Keep Memory open and retry.",
+        message:
+          "IndexedDB could not prepare the export. Keep Memory open and retry.",
         severity: "medium",
       });
     }

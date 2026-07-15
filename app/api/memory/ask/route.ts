@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  buildMemoryAskResponse,
-  type MemoryAskLayer,
-} from "@/lib/memoryAsk";
+import { buildMemoryAskResponse, type MemoryAskLayer } from "@/lib/memoryAsk";
 import { protectedJson } from "@/lib/protectedApi";
 
 export const dynamic = "force-dynamic";

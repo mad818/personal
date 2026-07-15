@@ -60,16 +60,23 @@ export async function POST(req: NextRequest) {
             staged: await stageNightShiftProposal({
               proposal: body.proposal,
               sources: Array.isArray(body.sources)
-                ? (body.sources as Array<{ id?: unknown; fingerprint?: unknown }>)
+                ? (body.sources as Array<{
+                    id?: unknown;
+                    fingerprint?: unknown;
+                  }>)
                 : [],
             }),
           },
           { status: 201 },
         );
       case "approve":
-        return json({ promoted: await approveNightShiftProposal(body.proposalId) });
+        return json({
+          promoted: await approveNightShiftProposal(body.proposalId),
+        });
       case "reject":
-        return json({ rejected: await rejectNightShiftProposal(body.proposalId) });
+        return json({
+          rejected: await rejectNightShiftProposal(body.proposalId),
+        });
       case "audit":
         return json({ audit: await runNightShiftAudit() }, { status: 201 });
       default:

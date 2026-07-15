@@ -62,17 +62,23 @@ export default function SecurityPostureStrip() {
       }}
     >
       <div>
-        <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}
+        >
           Security posture
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}
+        >
           Local trust, isolation, and operator-token readiness
         </div>
       </div>
 
       {rollup ? (
         <>
-          <div style={{ fontSize: "11px", color: "var(--text)" }}>{rollup.headline}</div>
+          <div style={{ fontSize: "11px", color: "var(--text)" }}>
+            {rollup.headline}
+          </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <span style={{ fontSize: "10px", color: "var(--text3)" }}>
               Network · {rollup.networkMode}

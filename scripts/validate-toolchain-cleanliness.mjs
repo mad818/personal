@@ -4,6 +4,15 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = process.cwd();
+const activeSourceDirectories = ["app", "lib", "components"];
+const activeSourceExtensions = new Set([".ts", ".tsx", ".mdx"]);
+const activeSourceScopes = [
+  "{app,lib,components}/**/*.{ts,tsx,mdx}",
+  "!app/hq/**/*.{ts,tsx,mdx}",
+  "!components/home/arpg/**/*.{ts,tsx,mdx}",
+  "!lib/arpg*.{ts,tsx,mdx}",
+  "!lib/arpg*/**/*.{ts,tsx,mdx}",
+];
 
 function fail(message) {
   console.error(`x toolchain-cleanliness: ${message}`);
@@ -31,6 +40,7 @@ const lint = packageJson.scripts?.lint ?? "";
 const lintFix = packageJson.scripts?.["lint:fix"] ?? "";
 const verify = packageJson.scripts?.verify ?? "";
 const verifyFull = packageJson.scripts?.["verify:full"] ?? "";
+const formatWrite = packageJson.scripts?.["format:write"] ?? "";
 const formatCheck = packageJson.scripts?.["format:check"] ?? "";
 const auditFull = packageJson.scripts?.["audit:full"] ?? "";
 
@@ -69,14 +79,99 @@ if (
 ) {
   fail("verify must run toolchain:check, format:check, and lint");
 }
-if (
-  formatCheck !==
-  'prettier --check "{app,lib,components}**/*.{ts,tsx,mdx}" --cache'
-) {
-  fail(
-    "format:check must retain the exact cached active-source Prettier scope",
+
+function inspectFormatterCommand(command, expectedMode) {
+  const quotedScopes = activeSourceScopes
+    .map((scope) => `"${scope}"`)
+    .join(" ");
+  const expectedCommand = `prettier --${expectedMode} ${quotedScopes} --cache`;
+  if (command !== expectedCommand) {
+    return {
+      error: `must use the exact cached non-RPG active-source scopes: ${activeSourceScopes.join(", ")}`,
+      scopes: [],
+    };
+  }
+  return { error: "", scopes: [...activeSourceScopes] };
+}
+
+for (const fixture of [
+  {
+    label: "missing slash",
+    command: 'prettier --check "{app,lib,components}**/*.{ts,tsx,mdx}" --cache',
+    mode: "check",
+  },
+  {
+    label: "missing RPG exclusions",
+    command:
+      'prettier --check "{app,lib,components}/**/*.{ts,tsx,mdx}" --cache',
+    mode: "check",
+  },
+  {
+    label: "missing cache",
+    command: `prettier --check ${activeSourceScopes.map((scope) => `"${scope}"`).join(" ")}`,
+    mode: "check",
+  },
+  {
+    label: "wrong mode",
+    command: `prettier --write ${activeSourceScopes.map((scope) => `"${scope}"`).join(" ")} --cache`,
+    mode: "check",
+  },
+]) {
+  if (!inspectFormatterCommand(fixture.command, fixture.mode).error) {
+    fail(`formatter command fixture did not reject ${fixture.label}`);
+  }
+}
+
+const writeContract = inspectFormatterCommand(formatWrite, "write");
+if (writeContract.error) {
+  fail(`format:write ${writeContract.error}`);
+}
+const checkContract = inspectFormatterCommand(formatCheck, "check");
+if (checkContract.error) {
+  fail(`format:check ${checkContract.error}`);
+}
+if (JSON.stringify(writeContract.scopes) !== JSON.stringify(checkContract.scopes)) {
+  fail("format:write and format:check must resolve the same source scope");
+}
+
+function isDirectRpgSource(relativePath) {
+  return (
+    relativePath.startsWith("app/hq/") ||
+    relativePath.startsWith("components/home/arpg/") ||
+    relativePath.startsWith("lib/arpg")
   );
 }
+
+function collectActiveSources(directory) {
+  const directoryPath = path.join(root, directory);
+  if (!fs.existsSync(directoryPath)) {
+    fail(`active source directory ${directory} is missing`);
+  }
+  const files = [];
+  const pending = [directoryPath];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const entryPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        pending.push(entryPath);
+      } else if (entry.isFile() && activeSourceExtensions.has(path.extname(entry.name))) {
+        const relativePath = path
+          .relative(root, entryPath)
+          .replaceAll(path.sep, "/");
+        if (!isDirectRpgSource(relativePath)) {
+          files.push(relativePath);
+        }
+      }
+    }
+  }
+  if (files.length === 0) {
+    fail(`active source directory ${directory} has no format-contract files`);
+  }
+  return files.sort();
+}
+
+const activeSourceInventory = activeSourceDirectories.flatMap(collectActiveSources);
 if (verifyFull !== "npm run verify") {
   fail("verify:full must remain a compatibility alias for canonical verify");
 }
@@ -133,5 +228,5 @@ if (typescriptOverride?.parser !== "@typescript-eslint/parser") {
 }
 
 console.log(
-  "ok toolchain-cleanliness (npm include=dev + ESLint + Prettier + truthful full audit)",
+  `ok toolchain-cleanliness (npm include=dev + ESLint + Prettier ${activeSourceInventory.length}-file non-RPG scope + truthful full audit)`,
 );

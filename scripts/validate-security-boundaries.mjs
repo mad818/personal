@@ -3,6 +3,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import ts from "typescript";
 
 const root = process.cwd();
 
@@ -69,18 +70,65 @@ function addFinding(findings, message) {
   findings.push(message);
 }
 
+function getObjectProperty(object, propertyName) {
+  return object.properties.find(
+    (property) =>
+      ts.isPropertyAssignment(property) &&
+      ((ts.isIdentifier(property.name) && property.name.text === propertyName) ||
+        (ts.isStringLiteralLike(property.name) &&
+          property.name.text === propertyName)),
+  );
+}
+
 function parsePolicies(src) {
   const policies = [];
-  const re =
-    /\{\s*prefix:\s*"([^"]+)",\s*routeClass:\s*"([^"]+)",\s*public:\s*(true|false)\s*\}/g;
-  let match;
-  while ((match = re.exec(src)) !== null) {
-    policies.push({
-      prefix: match[1],
-      routeClass: match[2],
-      public: match[3] === "true",
-    });
+  const sourceFile = ts.createSourceFile(
+    "routePolicy.ts",
+    src,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
+
+  function visit(node) {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === "ROUTE_POLICIES" &&
+      node.initializer &&
+      ts.isArrayLiteralExpression(node.initializer)
+    ) {
+      for (const element of node.initializer.elements) {
+        if (!ts.isObjectLiteralExpression(element)) continue;
+        const prefixProperty = getObjectProperty(element, "prefix");
+        const routeClassProperty = getObjectProperty(element, "routeClass");
+        const publicProperty = getObjectProperty(element, "public");
+        if (
+          !prefixProperty ||
+          !routeClassProperty ||
+          !publicProperty ||
+          !ts.isPropertyAssignment(prefixProperty) ||
+          !ts.isPropertyAssignment(routeClassProperty) ||
+          !ts.isPropertyAssignment(publicProperty) ||
+          !ts.isStringLiteralLike(prefixProperty.initializer) ||
+          !ts.isStringLiteralLike(routeClassProperty.initializer) ||
+          (publicProperty.initializer.kind !== ts.SyntaxKind.TrueKeyword &&
+            publicProperty.initializer.kind !== ts.SyntaxKind.FalseKeyword)
+        ) {
+          continue;
+        }
+        policies.push({
+          prefix: prefixProperty.initializer.text,
+          routeClass: routeClassProperty.initializer.text,
+          public: publicProperty.initializer.kind === ts.SyntaxKind.TrueKeyword,
+        });
+      }
+      return;
+    }
+    ts.forEachChild(node, visit);
   }
+
+  visit(sourceFile);
   return policies;
 }
 

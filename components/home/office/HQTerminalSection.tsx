@@ -191,7 +191,9 @@ export default function HQTerminalSection({
       /local model|ollama|runtime model/i.test(step.content),
   );
   const showLiveWatchdog =
-    Boolean(activeAgent) && waitingOnLocalRuntime && liveExecutionElapsedMs > 15000;
+    Boolean(activeAgent) &&
+    waitingOnLocalRuntime &&
+    liveExecutionElapsedMs > 15000;
   const providerHealthHref = "/command?focus=provider-health";
 
   useEffect(() => {
@@ -217,7 +219,9 @@ export default function HQTerminalSection({
               highRiskEnabled?: boolean;
             };
           };
-          session = auth.summary?.authenticated ? "session armed" : "session required";
+          session = auth.summary?.authenticated
+            ? "session armed"
+            : "session required";
           networkMode = auth.summary?.networkMode ?? networkMode;
           blockedReason = auth.summary?.highRiskEnabled
             ? "high-risk enabled"
@@ -261,7 +265,11 @@ export default function HQTerminalSection({
           agentHealth = "agent health locked";
         } else if (healthResponse.ok) {
           const health = (await healthResponse.json()) as {
-            agents?: Array<{ passRate?: number; passCount?: number; failCount?: number }>;
+            agents?: Array<{
+              passRate?: number;
+              passCount?: number;
+              failCount?: number;
+            }>;
           };
           const aggregate = health.agents?.[0];
           agentHealth =
@@ -367,12 +375,14 @@ export default function HQTerminalSection({
                 ? (AGENTS[message.agent]?.color ?? activeColor)
                 : activeColor;
               const operatorWorkflow =
-                message.actionModel?.operatorWorkflow ?? message.operatorWorkflow;
+                message.actionModel?.operatorWorkflow ??
+                message.operatorWorkflow;
               const thinkingTrace =
                 message.role === "agent"
                   ? extractThinkingTrace(message.text)
                   : null;
-              const safeMessageText = thinkingTrace?.visibleText ?? message.text;
+              const safeMessageText =
+                thinkingTrace?.visibleText ?? message.text;
               const parsedEvidence =
                 message.role === "agent"
                   ? parseInlineEvidencePosture(safeMessageText)
@@ -472,7 +482,8 @@ export default function HQTerminalSection({
                       />
                     </div>
                   ) : null}
-                  {message.role === "agent" && message.assistantGuidance?.length ? (
+                  {message.role === "agent" &&
+                  message.assistantGuidance?.length ? (
                     <AssistantGuidanceStack items={message.assistantGuidance} />
                   ) : null}
                   {message.role === "agent" && operatorVisibleText ? (
@@ -525,7 +536,9 @@ export default function HQTerminalSection({
                   {message.role === "agent" &&
                   shouldShowAssistantOperatorWorkflow(operatorWorkflow) ? (
                     <AssistantOperatorWorkflowPanel
-                      workflow={operatorWorkflow as AssistantOperatorWorkflowState}
+                      workflow={
+                        operatorWorkflow as AssistantOperatorWorkflowState
+                      }
                       focus={workflowFocusByMessage[index]}
                       compact
                     />
@@ -593,8 +606,9 @@ export default function HQTerminalSection({
                     <div>
                       <strong>Local model is still responding.</strong>
                       <span>
-                        This is usually Ollama loading or a slow model turn. Short
-                        pings now answer locally; real tasks stay in the runtime.
+                        This is usually Ollama loading or a slow model turn.
+                        Short pings now answer locally; real tasks stay in the
+                        runtime.
                       </span>
                     </div>
                     <a
@@ -756,23 +770,23 @@ export default function HQTerminalSection({
           ) : null}
         </div>
         {!hqCompactOperator ? (
-        <div className="nexus-hq-assistant-readiness">
-          <span className="nexus-hq-assistant-readiness__label">
-            Assistant readiness
-          </span>
-          <span>{liveReadiness.session}</span>
-          <span>{providerLabel}</span>
-          <span>{liveReadiness.resolvedModel}</span>
-          <span>{liveReadiness.ollama}</span>
-          <span>{liveReadiness.agentHealth}</span>
-          <span>{liveReadiness.networkMode}</span>
-          <span>
-            {readinessPlan.agent.toUpperCase()} ·{" "}
-            {readinessPlan.answerMode.replace(/_/g, " ")}
-          </span>
-          <span>{readinessToolGroups || "base tools"}</span>
-          <span>{liveReadiness.blockedReason}</span>
-        </div>
+          <div className="nexus-hq-assistant-readiness">
+            <span className="nexus-hq-assistant-readiness__label">
+              Assistant readiness
+            </span>
+            <span>{liveReadiness.session}</span>
+            <span>{providerLabel}</span>
+            <span>{liveReadiness.resolvedModel}</span>
+            <span>{liveReadiness.ollama}</span>
+            <span>{liveReadiness.agentHealth}</span>
+            <span>{liveReadiness.networkMode}</span>
+            <span>
+              {readinessPlan.agent.toUpperCase()} ·{" "}
+              {readinessPlan.answerMode.replace(/_/g, " ")}
+            </span>
+            <span>{readinessToolGroups || "base tools"}</span>
+            <span>{liveReadiness.blockedReason}</span>
+          </div>
         ) : null}
         <div className="nexus-hq-composer__topline">
           <PersonaModeBar />
@@ -789,9 +803,7 @@ export default function HQTerminalSection({
                 })
               }
             >
-              {settings.hqCompactOperatorLayout
-                ? "Show full HQ"
-                : "Compact HQ"}
+              {settings.hqCompactOperatorLayout ? "Show full HQ" : "Compact HQ"}
             </button>
           ) : null}
         </div>

@@ -95,16 +95,34 @@ export default function PapersResearchPanel() {
                 padding: "10px 12px",
               }}
             >
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+              <div
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "var(--text)",
+                }}
+              >
                 {paper.title}
               </div>
               {paper.authors.length > 0 ? (
-                <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "4px" }}>
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "var(--text3)",
+                    marginTop: "4px",
+                  }}
+                >
                   {paper.authors.join(", ")}
                 </div>
               ) : null}
               {paper.summary ? (
-                <div style={{ fontSize: "10px", color: "var(--text2)", marginTop: "6px" }}>
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "var(--text2)",
+                    marginTop: "6px",
+                  }}
+                >
                   {paper.summary}
                 </div>
               ) : null}

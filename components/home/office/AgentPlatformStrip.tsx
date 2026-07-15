@@ -8,9 +8,8 @@ import {
 } from "@/components/ui/AgentPlatformReadinessBadges";
 
 export default function AgentPlatformStrip() {
-  const [readiness, setReadiness] = useState<AgentPlatformReadinessSnapshot | null>(
-    null,
-  );
+  const [readiness, setReadiness] =
+    useState<AgentPlatformReadinessSnapshot | null>(null);
 
   useEffect(() => {
     void (async () => {

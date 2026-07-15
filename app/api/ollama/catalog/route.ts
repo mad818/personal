@@ -18,7 +18,9 @@ import { protectedJson } from "@/lib/protectedApi";
 export const dynamic = "force-dynamic";
 
 function isAiTask(value: string | null): value is AITask {
-  return Boolean(value && Object.prototype.hasOwnProperty.call(TASK_MODELS, value));
+  return Boolean(
+    value && Object.prototype.hasOwnProperty.call(TASK_MODELS, value),
+  );
 }
 
 export async function GET(req: NextRequest) {

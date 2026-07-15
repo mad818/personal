@@ -4,7 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SpeakButton } from "@/components/ui/SpeakButton";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
-import { SurfaceCallout, SurfaceEmpty } from "@/components/ui/surfacePrimitives";
+import {
+  SurfaceCallout,
+  SurfaceEmpty,
+} from "@/components/ui/surfacePrimitives";
 import { apiFetch } from "@/lib/apiFetch";
 import {
   buildVoiceProjectFromText,
@@ -18,13 +21,20 @@ import {
 } from "@/lib/voiceLab";
 import { useStore } from "@/store/useStore";
 
-const EFFECT_PRESETS: VoiceEffectPreset[] = ["briefing", "clean", "warm", "urgent"];
+const EFFECT_PRESETS: VoiceEffectPreset[] = [
+  "briefing",
+  "clean",
+  "warm",
+  "urgent",
+];
 
 function buttonStyle(active = false) {
   return {
     padding: "8px 10px",
     borderRadius: "999px",
-    border: active ? "1px solid rgba(120, 196, 255, 0.55)" : "1px solid var(--border)",
+    border: active
+      ? "1px solid rgba(120, 196, 255, 0.55)"
+      : "1px solid var(--border)",
     background: active ? "rgba(56, 122, 255, 0.18)" : "rgba(10, 15, 30, 0.58)",
     color: "var(--text)",
     fontSize: "11px",
@@ -97,7 +107,8 @@ export default function VoiceLabConsole({
   const [draftText, setDraftText] = useState("");
   const [rendering, setRendering] = useState(false);
   const [projectDraft, setProjectDraft] = useState("");
-  const [effectPreset, setEffectPreset] = useState<VoiceEffectPreset>("briefing");
+  const [effectPreset, setEffectPreset] =
+    useState<VoiceEffectPreset>("briefing");
   const [engine, setEngine] = useState<VoiceLabEngineId>("local-runtime");
 
   const syncVoiceProjectParam = useCallback(
@@ -123,9 +134,13 @@ export default function VoiceLabConsole({
     let cancelled = false;
     const loadStatus = async () => {
       try {
-        const response = await apiFetch("/api/voice/status", { cache: "no-store" });
+        const response = await apiFetch("/api/voice/status", {
+          cache: "no-store",
+        });
         if (!response.ok) throw new Error("Voice status unavailable");
-        const payload = (await response.json()) as { runtime?: VoiceRuntimeStatus };
+        const payload = (await response.json()) as {
+          runtime?: VoiceRuntimeStatus;
+        };
         if (!cancelled) {
           setRuntime(payload.runtime ?? null);
           setLoadError("");
@@ -158,7 +173,9 @@ export default function VoiceLabConsole({
 
   useEffect(() => {
     if (!activeProject) return;
-    setProjectDraft(activeProject.segments.map((segment) => segment.text).join("\n\n"));
+    setProjectDraft(
+      activeProject.segments.map((segment) => segment.text).join("\n\n"),
+    );
     setEffectPreset(activeProject.effectPreset);
     setEngine(activeProject.engine);
     setActiveVoiceProjectId(activeProject.id);
@@ -177,7 +194,12 @@ export default function VoiceLabConsole({
     if (activeProjectId && requestedProjectId !== activeProjectId) {
       syncVoiceProjectParam(activeProjectId);
     }
-  }, [activeProject, projectId, setActiveVoiceProjectId, syncVoiceProjectParam]);
+  }, [
+    activeProject,
+    projectId,
+    setActiveVoiceProjectId,
+    syncVoiceProjectParam,
+  ]);
 
   const profileOptions = useMemo(
     () =>
@@ -229,7 +251,9 @@ export default function VoiceLabConsole({
           effectPreset,
         },
       ],
-      lastRenderedAt: resetRenderState ? undefined : activeProject.lastRenderedAt,
+      lastRenderedAt: resetRenderState
+        ? undefined
+        : activeProject.lastRenderedAt,
       renderStatus: resetRenderState ? "idle" : activeProject.renderStatus,
       updatedAt: Date.now(),
     });
@@ -377,17 +401,27 @@ export default function VoiceLabConsole({
             Voice profiles
           </SectionLabel>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <button type="button" style={buttonStyle()} onClick={() => handleAddProfile("browser")}>
+            <button
+              type="button"
+              style={buttonStyle()}
+              onClick={() => handleAddProfile("browser")}
+            >
               Add browser fallback
             </button>
-            <button type="button" style={buttonStyle()} onClick={() => handleAddProfile("clone")}>
+            <button
+              type="button"
+              style={buttonStyle()}
+              onClick={() => handleAddProfile("clone")}
+            >
               Add clone slot
             </button>
           </div>
           <div style={{ display: "grid", gap: "8px" }}>
             {profileOptions.map((profile) => (
               <div key={profile.id} style={{ ...cardStyle(), padding: "10px" }}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{profile.label}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {profile.label}
+                </div>
               </div>
             ))}
           </div>
@@ -429,7 +463,9 @@ export default function VoiceLabConsole({
             <select
               aria-label="Voice engine"
               value={engine}
-              onChange={(event) => setEngine(event.target.value as VoiceLabEngineId)}
+              onChange={(event) =>
+                setEngine(event.target.value as VoiceLabEngineId)
+              }
               style={{
                 padding: "8px 10px",
                 borderRadius: "10px",
@@ -444,7 +480,9 @@ export default function VoiceLabConsole({
             <select
               aria-label="Voice effect preset"
               value={effectPreset}
-              onChange={(event) => setEffectPreset(event.target.value as VoiceEffectPreset)}
+              onChange={(event) =>
+                setEffectPreset(event.target.value as VoiceEffectPreset)
+              }
               style={{
                 padding: "8px 10px",
                 borderRadius: "10px",
@@ -459,10 +497,16 @@ export default function VoiceLabConsole({
                 </option>
               ))}
             </select>
-            <button type="button" style={buttonStyle()} onClick={handleCreateProject}>
+            <button
+              type="button"
+              style={buttonStyle()}
+              onClick={handleCreateProject}
+            >
               Create project
             </button>
-            {draftText.trim() ? <SpeakButton text={draftText} size="md" /> : null}
+            {draftText.trim() ? (
+              <SpeakButton text={draftText} size="md" />
+            ) : null}
           </div>
         </div>
       </div>
@@ -473,11 +517,17 @@ export default function VoiceLabConsole({
         </SectionLabel>
         {activeProject ? (
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <ShellBadge tone={activeProject.engine === "browser" ? "muted" : "accent"}>
-              {activeProject.engine === "browser" ? "Browser readback" : "Runtime render"}
+            <ShellBadge
+              tone={activeProject.engine === "browser" ? "muted" : "accent"}
+            >
+              {activeProject.engine === "browser"
+                ? "Browser readback"
+                : "Runtime render"}
             </ShellBadge>
             <ShellBadge
-              tone={activeProject.renderStatus === "rendered" ? "success" : "muted"}
+              tone={
+                activeProject.renderStatus === "rendered" ? "success" : "muted"
+              }
             >
               {activeProject.renderStatus === "rendered"
                 ? "Rendered"
@@ -524,12 +574,20 @@ export default function VoiceLabConsole({
                     <div style={{ color: "var(--text2)", fontSize: "11px" }}>
                       {project.summary}
                     </div>
-                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                    <div
+                      style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}
+                    >
                       <ShellBadge tone="muted">{project.engine}</ShellBadge>
-                      <ShellBadge tone="muted">{project.effectPreset}</ShellBadge>
+                      <ShellBadge tone="muted">
+                        {project.effectPreset}
+                      </ShellBadge>
                       {project.renderStatus ? (
                         <ShellBadge
-                          tone={project.renderStatus === "rendered" ? "success" : "accent"}
+                          tone={
+                            project.renderStatus === "rendered"
+                              ? "success"
+                              : "accent"
+                          }
                         >
                           {project.renderStatus}
                         </ShellBadge>
@@ -542,15 +600,30 @@ export default function VoiceLabConsole({
 
             {activeProject ? (
               <div style={{ display: "grid", gap: "10px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", flexWrap: "wrap" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "10px",
+                    flexWrap: "wrap",
+                  }}
+                >
                   <div style={{ display: "grid", gap: "4px" }}>
-                    <strong style={{ color: "var(--text)" }}>{activeProject.title}</strong>
+                    <strong style={{ color: "var(--text)" }}>
+                      {activeProject.title}
+                    </strong>
                     <span style={{ color: "var(--text2)", fontSize: "12px" }}>
                       {activeProject.summary}
                     </span>
                   </div>
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    <button type="button" style={buttonStyle()} onClick={handleSaveProject}>
+                  <div
+                    style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}
+                  >
+                    <button
+                      type="button"
+                      style={buttonStyle()}
+                      onClick={handleSaveProject}
+                    >
                       Save edits
                     </button>
                     <button
@@ -561,7 +634,8 @@ export default function VoiceLabConsole({
                       title={
                         activeProject.engine === "browser"
                           ? "Use browser readback for this project, or switch to Local runtime for audio export."
-                          : !runtime?.runtimeAvailable || runtime.features.render === false
+                          : !runtime?.runtimeAvailable ||
+                              runtime.features.render === false
                             ? "Local voice runtime is required for rendered audio exports."
                             : "Render a local audio export."
                       }
@@ -575,7 +649,10 @@ export default function VoiceLabConsole({
                     >
                       Delete
                     </button>
-                    <SpeakButton text={projectDraft || activeProject.summary} size="md" />
+                    <SpeakButton
+                      text={projectDraft || activeProject.summary}
+                      size="md"
+                    />
                   </div>
                 </div>
                 <textarea

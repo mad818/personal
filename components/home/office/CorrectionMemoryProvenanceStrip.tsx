@@ -47,8 +47,13 @@ export default function CorrectionMemoryProvenanceStrip({
       {relevant.map((entry) => {
         const line = buildCorrectionProvenanceLine(entry);
         return (
-          <div key={entry.id} style={{ fontSize: "10px", color: "var(--text3)" }}>
-            <div style={{ color: "var(--text)", fontWeight: 600 }}>{line.rule}</div>
+          <div
+            key={entry.id}
+            style={{ fontSize: "10px", color: "var(--text3)" }}
+          >
+            <div style={{ color: "var(--text)", fontWeight: 600 }}>
+              {line.rule}
+            </div>
             <div style={{ marginTop: "4px" }}>
               {line.routeSurface ? `${line.routeSurface} · ` : ""}
               {line.agent ? `${line.agent.toUpperCase()} · ` : ""}

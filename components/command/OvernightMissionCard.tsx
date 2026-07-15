@@ -29,10 +29,14 @@ export default function OvernightMissionCard() {
       }}
     >
       <div>
-        <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}
+        >
           Overnight mission handoff
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}
+        >
           gnhf pattern — bounded missions with morning re-entry
         </div>
       </div>
@@ -59,7 +63,9 @@ export default function OvernightMissionCard() {
               padding: "8px 10px",
             }}
           >
-            <div style={{ fontSize: "9px", color: "var(--text3)" }}>{stat.label}</div>
+            <div style={{ fontSize: "9px", color: "var(--text3)" }}>
+              {stat.label}
+            </div>
             <div
               style={{
                 marginTop: "4px",
@@ -103,7 +109,9 @@ export default function OvernightMissionCard() {
               }}
             >
               <span style={{ color: "var(--text)" }}>{line.jobName}</span>
-              <span style={{ color: statusColor(line.status), fontWeight: 700 }}>
+              <span
+                style={{ color: statusColor(line.status), fontWeight: 700 }}
+              >
                 {line.status.replaceAll("_", " ")}
               </span>
             </div>

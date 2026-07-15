@@ -64,7 +64,10 @@ export async function GET(req: NextRequest) {
           "settings_writes",
           trustContext,
         ),
-        verification: resolveProtectedActionDescriptor("verification", trustContext),
+        verification: resolveProtectedActionDescriptor(
+          "verification",
+          trustContext,
+        ),
         mutateExecTools: resolveProtectedActionDescriptor(
           "tools_mutate_exec",
           trustContext,

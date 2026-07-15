@@ -55,10 +55,14 @@ export default function MementoCycleStrip({
       }}
     >
       <div>
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}
+        >
           Memento cycle · {state.phase}
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}
+        >
           {state.detail}
         </div>
       </div>

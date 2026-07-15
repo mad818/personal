@@ -21,9 +21,7 @@ function formatScopeLabel(entry: CorrectionMemoryEntry) {
   return parts.length ? parts.join(" · ") : "general correction";
 }
 
-function sortCorrections(
-  entries: CorrectionMemoryEntry[],
-) {
+function sortCorrections(entries: CorrectionMemoryEntry[]) {
   return [...entries].sort((left, right) => {
     const statusRank = (value: typeof left.status) =>
       value === "proposed" ? 3 : value === "approved" ? 2 : 1;
@@ -67,8 +65,7 @@ export default function MemorySpineStatusCard() {
   const archivedCorrections = sortedCorrections.filter(
     (entry) => entry.status === "archived",
   );
-  const latestCorrection =
-    sortedCorrections[0] ?? null;
+  const latestCorrection = sortedCorrections[0] ?? null;
   const latestMemoryUpdate =
     snapshot.latestUpdatedAt && snapshot.latestUpdatedAt > 0
       ? timeAgo(new Date(snapshot.latestUpdatedAt).toISOString())
@@ -117,12 +114,23 @@ export default function MemorySpineStatusCard() {
             }
           >
             <div className="flex flex-wrap gap-2">
-              <ShellBadge tone="accent">Proposed {proposedCorrections.length}</ShellBadge>
-              <ShellBadge tone="muted">Approved {approvedCorrections.length}</ShellBadge>
-              <ShellBadge tone="muted">Archived {archivedCorrections.length}</ShellBadge>
+              <ShellBadge tone="accent">
+                Proposed {proposedCorrections.length}
+              </ShellBadge>
+              <ShellBadge tone="muted">
+                Approved {approvedCorrections.length}
+              </ShellBadge>
+              <ShellBadge tone="muted">
+                Archived {archivedCorrections.length}
+              </ShellBadge>
               {latestCorrection ? (
                 <ShellBadge tone="muted">
-                  Updated {timeAgo(new Date(latestCorrection.provenance.createdAt).toISOString())}
+                  Updated{" "}
+                  {timeAgo(
+                    new Date(
+                      latestCorrection.provenance.createdAt,
+                    ).toISOString(),
+                  )}
                 </ShellBadge>
               ) : null}
             </div>
@@ -155,12 +163,17 @@ export default function MemorySpineStatusCard() {
             </div>
           </div>
 
-          <details className="nexus-surface-disclosure" open={proposedCorrections.length > 0}>
+          <details
+            className="nexus-surface-disclosure"
+            open={proposedCorrections.length > 0}
+          >
             <summary>Review correction proposals</summary>
             <div className="nexus-surface-disclosure__body">
               {proposedCorrections.length === 0 ? (
                 <div className="text-[10px] leading-5 text-[var(--text3)]">
-                  No pending proposals right now. When HQ detects a reusable operator correction, it lands here for approval instead of entering prompts automatically.
+                  No pending proposals right now. When HQ detects a reusable
+                  operator correction, it lands here for approval instead of
+                  entering prompts automatically.
                 </div>
               ) : (
                 <div className="flex flex-col gap-2">
@@ -223,7 +236,9 @@ export default function MemorySpineStatusCard() {
                     >
                       <div className="flex flex-wrap items-center gap-2">
                         <ShellBadge tone="muted">Approved</ShellBadge>
-                        <ShellBadge tone="muted">{entry.sensitivity}</ShellBadge>
+                        <ShellBadge tone="muted">
+                          {entry.sensitivity}
+                        </ShellBadge>
                         <span className="text-[10px] text-[var(--text3)]">
                           {formatScopeLabel(entry)}
                         </span>
@@ -235,7 +250,8 @@ export default function MemorySpineStatusCard() {
                         {entry.content.preferredBehavior}
                       </div>
                       <div className="mt-2 text-[10px] text-[var(--text3)]">
-                        Applied {entry.appliedCount} time{entry.appliedCount === 1 ? "" : "s"}
+                        Applied {entry.appliedCount} time
+                        {entry.appliedCount === 1 ? "" : "s"}
                         {entry.lastAppliedAt
                           ? ` · last used ${timeAgo(new Date(entry.lastAppliedAt).toISOString())}`
                           : ""}

@@ -1,7 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { OpsField, OpsStrip, ShellButton, ShellStack } from "@/components/ui/shell";
+import {
+  OpsField,
+  OpsStrip,
+  ShellButton,
+  ShellStack,
+} from "@/components/ui/shell";
 
 const STUDY_ACTIONS = [
   {
@@ -55,16 +60,18 @@ export default function StudyWorkbenchConsole() {
           compact
         >
           <p className="nexus-shell-copy nexus-shell-copy--compact">
-            Guided learning and research stay assistant-first here: frame the question, review
-            sources, synthesize evidence, then open the exact workspace without creating a
-            separate scholar surface.
+            Guided learning and research stay assistant-first here: frame the
+            question, review sources, synthesize evidence, then open the exact
+            workspace without creating a separate scholar surface.
           </p>
         </OpsField>
       </OpsStrip>
       <div className="nexus-ops-brief-list" aria-label="Study actions">
         {STUDY_ACTIONS.map((action) => (
           <article key={action.id} className="nexus-ops-brief-item">
-            <span className="nexus-ops-brief-item__eyebrow">{action.detail}</span>
+            <span className="nexus-ops-brief-item__eyebrow">
+              {action.detail}
+            </span>
             <span className="nexus-ops-brief-item__title">{action.title}</span>
             <p className="nexus-ops-brief-item__summary">{action.summary}</p>
             <div className="nexus-ops-action-cluster">

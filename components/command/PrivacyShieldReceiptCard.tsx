@@ -28,10 +28,14 @@ export default function PrivacyShieldReceiptCard() {
       }}
     >
       <div>
-        <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}
+        >
           Privacy receipt
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}
+        >
           Operator-facing redaction posture for cloud-bound dispatch
         </div>
       </div>
@@ -45,7 +49,13 @@ export default function PrivacyShieldReceiptCard() {
             {receipt.summary}
           </div>
           {receipt.blockedReason ? (
-            <div style={{ fontSize: "10px", color: designTokens.warning, fontWeight: 600 }}>
+            <div
+              style={{
+                fontSize: "10px",
+                color: designTokens.warning,
+                fontWeight: 600,
+              }}
+            >
               {receipt.blockedReason}
             </div>
           ) : null}

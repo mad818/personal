@@ -45,7 +45,9 @@ export default function SecondBrainNightShiftWorkbench() {
   const updateSettings = useStore((state) => state.updateSettings);
   const scheduledJobs = settings.scheduledJobs ?? [];
   const [status, setStatus] = useState<NightShiftStatus | null>(null);
-  const [selected, setSelected] = useState<NightShiftProposalEnvelope | null>(null);
+  const [selected, setSelected] = useState<NightShiftProposalEnvelope | null>(
+    null,
+  );
   const [title, setTitle] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [captureText, setCaptureText] = useState("");
@@ -96,7 +98,9 @@ export default function SecondBrainNightShiftWorkbench() {
         }),
       });
       if (!response.ok) throw new Error(`Capture failed (${response.status}).`);
-      const result = await readJson<{ capture: { filename: string } }>(response);
+      const result = await readJson<{ capture: { filename: string } }>(
+        response,
+      );
       setTitle("");
       setSourceUrl("");
       setCaptureText("");
@@ -118,7 +122,9 @@ export default function SecondBrainNightShiftWorkbench() {
       const response = await apiFetch(
         `/api/second-brain/night-shift?proposalId=${encodeURIComponent(proposalId)}`,
       );
-      const result = await readJson<{ proposal: NightShiftProposalEnvelope }>(response);
+      const result = await readJson<{ proposal: NightShiftProposalEnvelope }>(
+        response,
+      );
       setSelected(result.proposal);
       setError("");
     } catch {
@@ -133,7 +139,8 @@ export default function SecondBrainNightShiftWorkbench() {
         method: "POST",
         body: JSON.stringify({ action, proposalId: selected.id }),
       });
-      if (!response.ok) throw new Error(`Decision failed (${response.status}).`);
+      if (!response.ok)
+        throw new Error(`Decision failed (${response.status}).`);
       if (action === "approve") {
         const result = await readJson<{
           promoted: { atoms: number; threads: number; briefings: number };
@@ -172,7 +179,9 @@ export default function SecondBrainNightShiftWorkbench() {
       (job) => !templateIds.has(job.templateId),
     );
     if (additions.length === 0) {
-      setMessage("Night shift and weekly audit schedules are already installed.");
+      setMessage(
+        "Night shift and weekly audit schedules are already installed.",
+      );
       return;
     }
     updateSettings({ scheduledJobs: [...additions, ...scheduledJobs] });
@@ -181,9 +190,10 @@ export default function SecondBrainNightShiftWorkbench() {
     );
   };
 
-  const installedScheduleCount = scheduledJobs.filter((job) =>
-    job.templateId === "second-brain-night-shift" ||
-    job.templateId === "second-brain-weekly-audit",
+  const installedScheduleCount = scheduledJobs.filter(
+    (job) =>
+      job.templateId === "second-brain-night-shift" ||
+      job.templateId === "second-brain-weekly-audit",
   ).length;
 
   return (
@@ -210,12 +220,21 @@ export default function SecondBrainNightShiftWorkbench() {
             <strong style={{ color: "var(--text)", fontSize: "13px" }}>
               Second Brain Night Shift
             </strong>
-            <div style={{ color: "var(--text3)", fontSize: "10px", marginTop: "3px" }}>
-              Private Markdown refinery · automatic desk work · human-gated knowledge
+            <div
+              style={{
+                color: "var(--text3)",
+                fontSize: "10px",
+                marginTop: "3px",
+              }}
+            >
+              Private Markdown refinery · automatic desk work · human-gated
+              knowledge
             </div>
           </div>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-            <ShellBadge tone={status?.posture === "ready" ? "success" : "accent"}>
+            <ShellBadge
+              tone={status?.posture === "ready" ? "success" : "accent"}
+            >
               {status?.posture ?? "Checking"}
             </ShellBadge>
             <ShellBadge tone="muted">Git ignored</ShellBadge>
@@ -247,8 +266,16 @@ export default function SecondBrainNightShiftWorkbench() {
                 background: "var(--surf)",
               }}
             >
-              <div style={{ color: "var(--text3)", fontSize: "9px" }}>{label}</div>
-              <div style={{ color: "var(--text)", fontSize: "16px", fontWeight: 800 }}>
+              <div style={{ color: "var(--text3)", fontSize: "9px" }}>
+                {label}
+              </div>
+              <div
+                style={{
+                  color: "var(--text)",
+                  fontSize: "16px",
+                  fontWeight: 800,
+                }}
+              >
                 {count}
               </div>
             </div>
@@ -269,19 +296,29 @@ export default function SecondBrainNightShiftWorkbench() {
               <input
                 aria-label="Raw capture source URL"
                 value={sourceUrl}
-                onChange={(event) => setSourceUrl(event.target.value.slice(0, 2_048))}
+                onChange={(event) =>
+                  setSourceUrl(event.target.value.slice(0, 2_048))
+                }
                 placeholder="Source URL (optional; never fetched automatically)"
                 style={fieldStyle}
               />
               <textarea
                 aria-label="Raw capture text"
                 value={captureText}
-                onChange={(event) => setCaptureText(event.target.value.slice(0, 24_000))}
+                onChange={(event) =>
+                  setCaptureText(event.target.value.slice(0, 24_000))
+                }
                 placeholder="Paste the thought, quote, article text, or rough note exactly as captured."
                 rows={7}
                 style={{ ...fieldStyle, resize: "vertical" }}
               />
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "8px",
+                }}
+              >
                 <span style={{ color: "var(--text3)", fontSize: "10px" }}>
                   {captureText.length.toLocaleString()} / 24,000 characters
                 </span>
@@ -315,10 +352,14 @@ export default function SecondBrainNightShiftWorkbench() {
             Refresh
           </ShellButton>
         </div>
-        <div style={{ color: "var(--text3)", fontSize: "10px", lineHeight: 1.5 }}>
-          Live vault: <code>{status?.liveVaultPath ?? "data/second-brain"}</code>. The
-          03:00 refinery stages proposals only. The Sunday 22:00 audit reports only.
-          Scheduled work requires the Nexus desktop or web runtime to remain open.
+        <div
+          style={{ color: "var(--text3)", fontSize: "10px", lineHeight: 1.5 }}
+        >
+          Live vault:{" "}
+          <code>{status?.liveVaultPath ?? "data/second-brain"}</code>. The 03:00
+          refinery stages proposals only. The Sunday 22:00 audit reports only.
+          Scheduled work requires the Nexus desktop or web runtime to remain
+          open.
         </div>
 
         {status?.pending.length ? (
@@ -346,8 +387,8 @@ export default function SecondBrainNightShiftWorkbench() {
                     {proposal.id}
                   </div>
                   <div style={{ color: "var(--text3)", fontSize: "10px" }}>
-                    {proposal.atomCount} atoms · {proposal.threadCount} threads ·{" "}
-                    {proposal.frictionCount} friction · {proposal.outcome}
+                    {proposal.atomCount} atoms · {proposal.threadCount} threads
+                    · {proposal.frictionCount} friction · {proposal.outcome}
                   </div>
                 </div>
                 <ShellButton onClick={() => void openProposal(proposal.id)}>
@@ -369,7 +410,9 @@ export default function SecondBrainNightShiftWorkbench() {
               gap: "9px",
             }}
           >
-            <SectionLabel detail={`${selected.sources.length} immutable source file(s)`}>
+            <SectionLabel
+              detail={`${selected.sources.length} immutable source file(s)`}
+            >
               Review {selected.id}
             </SectionLabel>
             {selected.proposal.outcome === "blocked" ? (
@@ -385,29 +428,52 @@ export default function SecondBrainNightShiftWorkbench() {
                     </strong>
                     <span style={{ color: "var(--text3)", fontSize: "10px" }}>
                       {atom.certainty} · {atom.sourceIds.length} source(s) ·{" "}
-                      {atom.links.length} link(s) · {atom.friction.length} friction
+                      {atom.links.length} link(s) · {atom.friction.length}{" "}
+                      friction
                     </span>
-                    <span style={{ color: "var(--text2)", fontSize: "11px", lineHeight: 1.5 }}>
+                    <span
+                      style={{
+                        color: "var(--text2)",
+                        fontSize: "11px",
+                        lineHeight: 1.5,
+                      }}
+                    >
                       {atom.claim}
                     </span>
                   </div>
                 ))}
-                <div style={{ color: "var(--text2)", fontSize: "11px", lineHeight: 1.5 }}>
-                  Attention: {selected.proposal.briefing.attention || "No decision identified."}
+                <div
+                  style={{
+                    color: "var(--text2)",
+                    fontSize: "11px",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Attention:{" "}
+                  {selected.proposal.briefing.attention ||
+                    "No decision identified."}
                 </div>
               </>
             )}
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               <ShellButton
                 onClick={() => decide("approve")}
-                disabled={Boolean(busy) || selected.proposal.outcome === "blocked"}
+                disabled={
+                  Boolean(busy) || selected.proposal.outcome === "blocked"
+                }
               >
                 {busy === "approve" ? "Promoting…" : "Approve promotion"}
               </ShellButton>
-              <ShellButton onClick={() => decide("reject")} disabled={Boolean(busy)}>
+              <ShellButton
+                onClick={() => decide("reject")}
+                disabled={Boolean(busy)}
+              >
                 {busy === "reject" ? "Archiving…" : "Reject proposal"}
               </ShellButton>
-              <ShellButton onClick={() => setSelected(null)} disabled={Boolean(busy)}>
+              <ShellButton
+                onClick={() => setSelected(null)}
+                disabled={Boolean(busy)}
+              >
                 Close review
               </ShellButton>
             </div>
@@ -415,7 +481,10 @@ export default function SecondBrainNightShiftWorkbench() {
         ) : null}
 
         {message ? (
-          <div role="status" style={{ color: "var(--green)", fontSize: "11px" }}>
+          <div
+            role="status"
+            style={{ color: "var(--green)", fontSize: "11px" }}
+          >
             {message}
           </div>
         ) : null}

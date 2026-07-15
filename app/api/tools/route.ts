@@ -55,9 +55,7 @@ import {
 import { applyProtectedActionHeaders } from "@/lib/security/protectedActionTelemetry";
 import { buildStepUpRequiredResponse } from "@/lib/security/stepUpAuth";
 import { runToolInIsolation } from "@/lib/security/toolIsolationRunner";
-import {
-  applyToolIsolationHeaders,
-} from "@/lib/security/toolIsolationTelemetry";
+import { applyToolIsolationHeaders } from "@/lib/security/toolIsolationTelemetry";
 import {
   resolveToolIsolationDescriptor,
   type ToolIsolationDescriptor,
@@ -102,7 +100,10 @@ interface ToolResult {
   meta: ToolResponseMeta;
 }
 
-function withToolResult(result: string, meta: ToolResponseMeta = {}): ToolResult {
+function withToolResult(
+  result: string,
+  meta: ToolResponseMeta = {},
+): ToolResult {
   return { result, meta };
 }
 
@@ -114,10 +115,12 @@ async function ensureWorkspace() {
   await fs.mkdir(WORKSPACE, { recursive: true });
 }
 
-function getToolProtectedAction(capability: ReturnType<typeof getToolCapabilityClass>) {
-  return (capability === "networked"
-    ? "tools_networked"
-    : "tools_mutate_exec") as ProtectedActionKind;
+function getToolProtectedAction(
+  capability: ReturnType<typeof getToolCapabilityClass>,
+) {
+  return (
+    capability === "networked" ? "tools_networked" : "tools_mutate_exec"
+  ) as ProtectedActionKind;
 }
 
 function buildToolBlockedMessage(status: ProtectedActionStatus) {
@@ -186,7 +189,10 @@ async function webSearch(query: string): Promise<string> {
       if (!lower.includes("site:twitch.tv")) {
         queries.unshift(`site:twitch.tv ${value}`);
       }
-      if (!lower.includes("site:x.com") && !lower.includes("site:twitter.com")) {
+      if (
+        !lower.includes("site:x.com") &&
+        !lower.includes("site:twitter.com")
+      ) {
         queries.push(`site:x.com OR site:twitter.com ${value}`);
       }
     }
@@ -238,10 +244,7 @@ async function webSearch(query: string): Promise<string> {
     if (!collected.length) return "";
     return collected
       .slice(0, 8)
-      .map(
-        (a, i) =>
-          `${i + 1}. ${a.title}\n   Source: ${a.source} | ${a.url}`,
-      )
+      .map((a, i) => `${i + 1}. ${a.title}\n   Source: ${a.source} | ${a.url}`)
       .join("\n\n");
   }
 
@@ -645,7 +648,10 @@ function resolveProjectPath(relPath: string): {
   )
     return { safe: "", blocked: `"${topLevel}" is off-limits.` };
   if (isSensitiveLocalDataPath(cleaned))
-    return { safe: "", blocked: `"${cleaned}" is treated as sensitive local data.` };
+    return {
+      safe: "",
+      blocked: `"${cleaned}" is treated as sensitive local data.`,
+    };
   const full = path.join(PROJECT_ROOT, cleaned);
   return { safe: full, blocked: null };
 }
@@ -667,9 +673,12 @@ async function readProjectFile(
     );
   const normalizedPath = normalizeProjectPathKey(relPath);
   if (isSensitiveLocalDataPath(normalizedPath)) {
-    return withToolResult(`Blocked: "${relPath}" is treated as sensitive local data.`, {
-      duplicateRead: false,
-    });
+    return withToolResult(
+      `Blocked: "${relPath}" is treated as sensitive local data.`,
+      {
+        duplicateRead: false,
+      },
+    );
   }
   const duplicateRead = recordDuplicateRead(
     runId,
@@ -722,7 +731,9 @@ async function listProjectFiles(
   try {
     const entries = await fs.readdir(targetPath, { withFileTypes: true });
     const lines = entries
-      .filter((e) => !isSensitiveLocalDataPath(path.posix.join(cleanDir, e.name)))
+      .filter(
+        (e) => !isSensitiveLocalDataPath(path.posix.join(cleanDir, e.name)),
+      )
       .map((e) => `${e.isDirectory() ? "📁" : "📄"} ${e.name}`);
     const result = lines.length ? lines.join("\n") : "Directory is empty.";
     cachePut(cacheKey, result);
@@ -992,7 +1003,10 @@ async function feynmanResearch(
 
   let continuitySession: FeynmanContinuitySession | null = null;
   try {
-    continuitySession = await startFeynmanContinuitySession({ workflow, topic });
+    continuitySession = await startFeynmanContinuitySession({
+      workflow,
+      topic,
+    });
   } catch {
     // Research remains available when local continuity storage is unavailable.
   }
@@ -1047,7 +1061,9 @@ async function feynmanResearch(
       try {
         await degradeFeynmanContinuitySession(
           continuitySession.id,
-          error instanceof Error ? error.message : "Feynman research workflow failed.",
+          error instanceof Error
+            ? error.message
+            : "Feynman research workflow failed.",
         );
       } catch {
         // Preserve the original workflow failure.
@@ -1061,12 +1077,16 @@ async function feynmanResearch(
   }
 }
 
-async function deepResearch(topic: string, origin: string): Promise<ToolResult> {
+async function deepResearch(
+  topic: string,
+  origin: string,
+): Promise<ToolResult> {
   return feynmanResearch("deepresearch", topic, origin);
 }
 
 function formatFeynmanSessionIndex(sessions: FeynmanContinuitySession[]) {
-  if (sessions.length === 0) return "No local Feynman continuity sessions exist yet.";
+  if (sessions.length === 0)
+    return "No local Feynman continuity sessions exist yet.";
   return sessions
     .map(
       (session, index) =>
@@ -1075,7 +1095,9 @@ function formatFeynmanSessionIndex(sessions: FeynmanContinuitySession[]) {
     .join("\n");
 }
 
-async function feynmanOutputs(input: Record<string, string> = {}): Promise<ToolResult> {
+async function feynmanOutputs(
+  input: Record<string, string> = {},
+): Promise<ToolResult> {
   const action = (input.action ?? "list").trim().toLowerCase();
   try {
     switch (action) {
@@ -1084,19 +1106,29 @@ async function feynmanOutputs(input: Record<string, string> = {}): Promise<ToolR
         if (!query) {
           return withToolResult("feynman_outputs search requires query.");
         }
-        const sessions = await searchFeynmanContinuitySessions(query, { limit: 20 });
+        const sessions = await searchFeynmanContinuitySessions(query, {
+          limit: 20,
+        });
         return withToolResult(
-          [`# Feynman Session Search · ${query}`, "", formatFeynmanSessionIndex(sessions)].join(
-            "\n",
-          ),
+          [
+            `# Feynman Session Search · ${query}`,
+            "",
+            formatFeynmanSessionIndex(sessions),
+          ].join("\n"),
         );
       }
       case "resume": {
         const session = input.session_id?.trim()
           ? await getFeynmanContinuitySession(input.session_id.trim())
-          : (await searchFeynmanContinuitySessions(input.query ?? "", { limit: 1 }))[0];
+          : (
+              await searchFeynmanContinuitySessions(input.query ?? "", {
+                limit: 1,
+              })
+            )[0];
         if (!session) {
-          return withToolResult("No matching Feynman continuity session was found.");
+          return withToolResult(
+            "No matching Feynman continuity session was found.",
+          );
         }
         return withToolResult(buildFeynmanResumeContext(session));
       }
@@ -1111,7 +1143,10 @@ async function feynmanOutputs(input: Record<string, string> = {}): Promise<ToolR
             "feynman_outputs export format must be plan, notebook, report, evidence, claims, review, provenance, preview, or pdf.",
           );
         }
-        const exportArtifact = await readFeynmanContinuityArtifact(sessionId, artifact);
+        const exportArtifact = await readFeynmanContinuityArtifact(
+          sessionId,
+          artifact,
+        );
         return withToolResult(
           [
             `# Feynman ${artifact} export`,
@@ -1159,7 +1194,9 @@ async function feynmanOutputs(input: Record<string, string> = {}): Promise<ToolR
       ].join("\n"),
     );
   } catch {
-    return withToolResult("Could not read Feynman outputs from the local VAULT.");
+    return withToolResult(
+      "Could not read Feynman outputs from the local VAULT.",
+    );
   }
 }
 
@@ -1401,7 +1438,9 @@ async function secEdgarSearch(
     const fFilter = forms ? `&forms=${encodeURIComponent(forms)}` : "";
     const url = `https://efts.sec.gov/LATEST/search-index?q=%22${q}%22&dateRange=custom&startdt=2024-01-01&enddt=2026-12-31${fFilter}&hits.hits.total.value=1&hits.hits._source=file_date,display_names,form_type,period_of_report,entity_name,biz_location`;
     const r = await fetch(url, {
-      headers: { "User-Agent": `${TOOL_USER_AGENT} research@aegis-vector.local` },
+      headers: {
+        "User-Agent": `${TOOL_USER_AGENT} research@aegis-vector.local`,
+      },
       signal: AbortSignal.timeout(10_000),
     });
     if (!r.ok) return `SEC EDGAR returned HTTP ${r.status}`;
@@ -1546,7 +1585,8 @@ export async function POST(req: NextRequest) {
 
       if (capability === "networked" && capabilityStatus !== "ready") {
         const blockedReason =
-          resolveProtectedActionBlockedReason(capabilityStatus) ?? "blocked_policy";
+          resolveProtectedActionBlockedReason(capabilityStatus) ??
+          "blocked_policy";
         const response = NextResponse.json(
           {
             result: "Tool execution blocked.",
@@ -1586,7 +1626,8 @@ export async function POST(req: NextRequest) {
 
         if (capabilityStatus !== "ready") {
           const blockedReason =
-            resolveProtectedActionBlockedReason(capabilityStatus) ?? "blocked_policy";
+            resolveProtectedActionBlockedReason(capabilityStatus) ??
+            "blocked_policy";
           const response = NextResponse.json(
             {
               result: "Tool execution blocked.",
@@ -1620,7 +1661,9 @@ export async function POST(req: NextRequest) {
         {
           result: "Tool execution blocked.",
           error: buildToolIsolationBlockedMessage(toolIsolationMeta),
-          ...(protectedActionMeta ? { protectedAction: protectedActionMeta } : {}),
+          ...(protectedActionMeta
+            ? { protectedAction: protectedActionMeta }
+            : {}),
           toolIsolation: toolIsolationMeta,
         },
         { status: 403 },
@@ -1689,7 +1732,9 @@ export async function POST(req: NextRequest) {
         break;
       case "patch_project_file":
         // Evict any cached reads for this file path before patching
-        cacheEvict(`read_project_file:${normalizeProjectPathKey(input.path ?? "")}`);
+        cacheEvict(
+          `read_project_file:${normalizeProjectPathKey(input.path ?? "")}`,
+        );
         cacheEvict("list_project_files:");
         result = await patchProjectFile(
           input.path ?? "",
@@ -1698,7 +1743,9 @@ export async function POST(req: NextRequest) {
         );
         break;
       case "create_project_file":
-        cacheEvict(`read_project_file:${normalizeProjectPathKey(input.path ?? "")}`);
+        cacheEvict(
+          `read_project_file:${normalizeProjectPathKey(input.path ?? "")}`,
+        );
         cacheEvict("list_project_files:");
         result = await createProjectFile(input.path ?? "", input.content ?? "");
         break;
@@ -1813,7 +1860,10 @@ export async function POST(req: NextRequest) {
         const payload = input.payload
           ? (JSON.parse(input.payload) as Record<string, unknown>)
           : {};
-        const toolResult = await n8nRunWorkflow(input.workflow_id ?? "", payload);
+        const toolResult = await n8nRunWorkflow(
+          input.workflow_id ?? "",
+          payload,
+        );
         result = toolResult.result;
         meta = toolResult.meta;
         break;
@@ -1822,14 +1872,12 @@ export async function POST(req: NextRequest) {
         result = `Unknown tool: ${tool}`;
     }
 
-    const response = NextResponse.json(
-      {
-        result,
-        ...(protectedActionMeta ? { protectedAction: protectedActionMeta } : {}),
-        ...(toolIsolationMeta ? { toolIsolation: toolIsolationMeta } : {}),
-        ...(meta.externalTool ? { externalTool: meta.externalTool } : {}),
-      },
-    );
+    const response = NextResponse.json({
+      result,
+      ...(protectedActionMeta ? { protectedAction: protectedActionMeta } : {}),
+      ...(toolIsolationMeta ? { toolIsolation: toolIsolationMeta } : {}),
+      ...(meta.externalTool ? { externalTool: meta.externalTool } : {}),
+    });
     response.headers.set("X-Tool-Capability", capability);
     if (protectedActionMeta) {
       applyProtectedActionHeaders(response, protectedActionMeta);

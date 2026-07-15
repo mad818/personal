@@ -179,7 +179,9 @@ export function buildStrategiumFronts({
       id: "vector",
       label: "Vector",
       value:
-        fgValue == null ? "No sentiment" : `${fgValue} ${fearGreedLabel || ""}`.trim(),
+        fgValue == null
+          ? "No sentiment"
+          : `${fgValue} ${fearGreedLabel || ""}`.trim(),
       note:
         fgValue == null
           ? "Fear and greed feed has not reported yet."
@@ -358,7 +360,10 @@ export function buildRoomMissionState({
   dispatchBar,
   dispatchedTo,
   routingAgent,
-}: Pick<RoomMissionArgs, "activeAgent" | "dispatchBar" | "dispatchedTo" | "routingAgent">) {
+}: Pick<
+  RoomMissionArgs,
+  "activeAgent" | "dispatchBar" | "dispatchedTo" | "routingAgent"
+>) {
   if (activeAgent) return "executing" as const;
   if (dispatchBar || dispatchedTo) return "handoff" as const;
   if (routingAgent) return "routing" as const;
@@ -370,7 +375,10 @@ export function buildRoomMissionLabel({
   dispatchedTo,
   primaryFrontLabel,
   routingAgent,
-}: Pick<RoomMissionArgs, "activeAgent" | "dispatchedTo" | "primaryFrontLabel" | "routingAgent">) {
+}: Pick<
+  RoomMissionArgs,
+  "activeAgent" | "dispatchedTo" | "primaryFrontLabel" | "routingAgent"
+>) {
   if (activeAgent) return `${AGENTS[activeAgent].name} executing`;
   if (dispatchedTo) return `Handoff to ${AGENTS[dispatchedTo].name}`;
   if (routingAgent) return `${AGENTS[routingAgent].name} routing`;
@@ -477,7 +485,9 @@ export function buildSessionRecap({
   };
 }
 
-export function buildStrategiumShortcuts(primaryFrontLabel: string): StrategiumShortcut[] {
+export function buildStrategiumShortcuts(
+  primaryFrontLabel: string,
+): StrategiumShortcut[] {
   return [
     {
       key: "/",
@@ -547,11 +557,12 @@ export function buildStrategiumVerbs({
     {
       id: "approve",
       label: "Approve",
-      note:
-        hasPendingLesson
-          ? "Review the current lesson proposal and promote only what deserves memory."
-          : "Open archive memory and sanction the next control review or handoff deliberately.",
-      href: hasPendingLesson ? "/resources?view=registry" : "/security?view=doctrine",
+      note: hasPendingLesson
+        ? "Review the current lesson proposal and promote only what deserves memory."
+        : "Open archive memory and sanction the next control review or handoff deliberately.",
+      href: hasPendingLesson
+        ? "/resources?view=registry"
+        : "/security?view=doctrine",
       tone: hasPendingLesson ? "warning" : "steady",
     },
   ];

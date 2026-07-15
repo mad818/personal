@@ -22,7 +22,10 @@ import type {
   PhoneAcceptanceLiveStatusItem,
 } from "@/lib/phoneAcceptanceStatus";
 import { buildPhoneHandoffQrMatrix } from "@/lib/phoneHandoffQr";
-import { promptForPhoneAcceptanceAction, type PhoneAcceptanceActionId } from "@/lib/phoneAcceptanceActions";
+import {
+  promptForPhoneAcceptanceAction,
+  type PhoneAcceptanceActionId,
+} from "@/lib/phoneAcceptanceActions";
 import { usePhonePosture } from "@/hooks/usePhonePosture";
 import PhoneAcceptanceActionBar from "@/components/ui/PhoneAcceptanceActionBar";
 import { useStore } from "@/store/useStore";
@@ -92,7 +95,9 @@ function ReadinessRow({ item }: { item: FreeLocalReadinessSection }) {
       <div className="mt-1 text-sm font-black text-[var(--text)]">
         {item.value}
       </div>
-      <p className="mt-1 text-xs leading-5 text-[var(--text2)]">{item.detail}</p>
+      <p className="mt-1 text-xs leading-5 text-[var(--text2)]">
+        {item.detail}
+      </p>
     </div>
   );
 }
@@ -140,7 +145,11 @@ function ChecklistStep({ step }: { step: PhoneAcceptanceStep }) {
   );
 }
 
-function LiveStatusProofItem({ item }: { item: PhoneAcceptanceLiveStatusItem }) {
+function LiveStatusProofItem({
+  item,
+}: {
+  item: PhoneAcceptanceLiveStatusItem;
+}) {
   return (
     <div className="rounded-xl border border-white/10 bg-black/20 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -218,34 +227,39 @@ export default function FreeLocalReadinessPanel({
     }
   }, []);
 
-  const refresh = useCallback(async (signal?: AbortSignal) => {
-    setLoading(true);
-    setLoadError(null);
-    try {
-      const params = new URLSearchParams();
-      if (settings.localModel) params.set("model", settings.localModel);
-      const url = `/api/free-local-readiness${params.toString() ? `?${params.toString()}` : ""}`;
-      const response = await apiFetch(url, { cache: "no-store", signal });
-      if (signal?.aborted) return;
-      if (response.status === 401 || response.status === 403) {
+  const refresh = useCallback(
+    async (signal?: AbortSignal) => {
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const params = new URLSearchParams();
+        if (settings.localModel) params.set("model", settings.localModel);
+        const url = `/api/free-local-readiness${params.toString() ? `?${params.toString()}` : ""}`;
+        const response = await apiFetch(url, { cache: "no-store", signal });
+        if (signal?.aborted) return;
+        if (response.status === 401 || response.status === 403) {
+          setSnapshot(null);
+          setLoadError(
+            "Session required. Log in with NEXUS_TOKEN, then refresh readiness.",
+          );
+          return;
+        }
+        if (!response.ok) {
+          setSnapshot(null);
+          setLoadError(`Readiness check failed with HTTP ${response.status}.`);
+          return;
+        }
+        setSnapshot((await response.json()) as FreeLocalReadinessSnapshot);
+      } catch {
+        if (signal?.aborted) return;
         setSnapshot(null);
-        setLoadError("Session required. Log in with NEXUS_TOKEN, then refresh readiness.");
-        return;
+        setLoadError("Readiness check could not reach the local runtime.");
+      } finally {
+        if (!signal?.aborted) setLoading(false);
       }
-      if (!response.ok) {
-        setSnapshot(null);
-        setLoadError(`Readiness check failed with HTTP ${response.status}.`);
-        return;
-      }
-      setSnapshot((await response.json()) as FreeLocalReadinessSnapshot);
-    } catch {
-      if (signal?.aborted) return;
-      setSnapshot(null);
-      setLoadError("Readiness check could not reach the local runtime.");
-    } finally {
-      if (!signal?.aborted) setLoading(false);
-    }
-  }, [settings.localModel]);
+    },
+    [settings.localModel],
+  );
 
   const refreshPhoneAcceptanceStatus = useCallback(
     async (signal?: AbortSignal) => {
@@ -441,7 +455,11 @@ export default function FreeLocalReadinessPanel({
   );
 
   useEffect(() => {
-    if (!snapshot || browserStorage === "checking" || receiptPingedRef.current) {
+    if (
+      !snapshot ||
+      browserStorage === "checking" ||
+      receiptPingedRef.current
+    ) {
       return;
     }
 
@@ -559,18 +577,28 @@ export default function FreeLocalReadinessPanel({
               <ShellBadge tone={badgeTone(snapshot.overallStatus)}>
                 {formatFreeLocalStatusLabel(snapshot.overallStatus)}
               </ShellBadge>
-              <ShellBadge tone={snapshot.paidApisAllowed.allowed ? "accent" : "success"}>
-                Paid APIs {snapshot.paidApisAllowed.allowed ? "allowed" : "blocked"}
+              <ShellBadge
+                tone={snapshot.paidApisAllowed.allowed ? "accent" : "success"}
+              >
+                Paid APIs{" "}
+                {snapshot.paidApisAllowed.allowed ? "allowed" : "blocked"}
               </ShellBadge>
-              <ShellBadge tone={snapshot.networkMode.mode === "isolated" ? "success" : "muted"}>
+              <ShellBadge
+                tone={
+                  snapshot.networkMode.mode === "isolated" ? "success" : "muted"
+                }
+              >
                 Network {snapshot.networkMode.mode}
               </ShellBadge>
-              <ShellBadge tone={snapshot.ollama.reachable ? "success" : "accent"}>
+              <ShellBadge
+                tone={snapshot.ollama.reachable ? "success" : "accent"}
+              >
                 Ollama {snapshot.ollama.reachable ? "ready" : "offline"}
               </ShellBadge>
               <ShellBadge
                 tone={
-                  snapshot.ollama.reachable && snapshot.resolvedModel.resolvedModel
+                  snapshot.ollama.reachable &&
+                  snapshot.resolvedModel.resolvedModel
                     ? "success"
                     : "accent"
                 }
@@ -583,11 +611,16 @@ export default function FreeLocalReadinessPanel({
               {loadError ? "recovery needed" : "checking"}
             </ShellBadge>
           )}
-          <ShellBadge tone={storageTone}>{storageLabel(browserStorage)}</ShellBadge>
+          <ShellBadge tone={storageTone}>
+            {storageLabel(browserStorage)}
+          </ShellBadge>
           <ShellButton onClick={() => void refresh()} disabled={loading}>
             {loading ? "Checking..." : "Run local check"}
           </ShellButton>
-          <a className="nexus-shell-button" href="/command?focus=provider-health">
+          <a
+            className="nexus-shell-button"
+            href="/command?focus=provider-health"
+          >
             Open provider health
           </a>
         </div>
@@ -632,7 +665,10 @@ export default function FreeLocalReadinessPanel({
                 </ShellBadge>
                 <ShellButton
                   onClick={() =>
-                    void copyToClipboard("Acceptance steps", phoneAcceptanceBrief)
+                    void copyToClipboard(
+                      "Acceptance steps",
+                      phoneAcceptanceBrief,
+                    )
                   }
                 >
                   {copiedTarget === "Acceptance steps"
@@ -660,7 +696,9 @@ export default function FreeLocalReadinessPanel({
                       )
                     }
                   >
-                    {copiedTarget === "Phone home" ? "Copied" : "Copy phone URL"}
+                    {copiedTarget === "Phone home"
+                      ? "Copied"
+                      : "Copy phone URL"}
                   </ShellButton>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
@@ -711,13 +749,15 @@ export default function FreeLocalReadinessPanel({
 
             {phoneLanReady && snapshot.phoneLan.hqLanUrls.length > 1 ? (
               <div className="mt-2 text-[11px] leading-5 text-[var(--text3)]">
-                Other detected HQ URLs: {snapshot.phoneLan.hqLanUrls.slice(1).join(" · ")}
+                Other detected HQ URLs:{" "}
+                {snapshot.phoneLan.hqLanUrls.slice(1).join(" · ")}
               </div>
             ) : null}
 
             {copiedTarget === "Copy blocked" ? (
               <div className="mt-2 text-[11px] font-bold text-amber-200">
-                Browser blocked clipboard access. Select the URL text and copy it manually.
+                Browser blocked clipboard access. Select the URL text and copy
+                it manually.
               </div>
             ) : null}
           </div>
@@ -763,8 +803,8 @@ export default function FreeLocalReadinessPanel({
                     : "Waiting for phone receipt proof"}
                 </div>
                 <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--text2)]">
-                  Protected receipts update here with booleans, counts, and sanitized
-                  timestamps only.
+                  Protected receipts update here with booleans, counts, and
+                  sanitized timestamps only.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -808,8 +848,8 @@ export default function FreeLocalReadinessPanel({
               </>
             ) : (
               <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs leading-5 text-[var(--text2)]">
-                Receipt status will appear after the protected local receipt API is
-                reachable from this session.
+                Receipt status will appear after the protected local receipt API
+                is reachable from this session.
               </div>
             )}
           </div>
@@ -882,7 +922,9 @@ export default function FreeLocalReadinessPanel({
                 Runbook: {repoSync.recoveryDocPath}
               </p>
             </div>
-            <ShellBadge tone={repoSync.status === "ready" ? "success" : "accent"}>
+            <ShellBadge
+              tone={repoSync.status === "ready" ? "success" : "accent"}
+            >
               {repoSync.status}
             </ShellBadge>
           </div>

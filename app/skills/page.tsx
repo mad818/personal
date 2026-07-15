@@ -176,13 +176,34 @@ const MEMORY_ACTIONS = [
 ];
 
 const PLAYBOOK_ACTIONS = [
-  { label: "Deep research", href: "/resources?view=playbooks&playbook=deep-research-briefing" },
-  { label: "Market review", href: "/resources?view=playbooks&playbook=market-review-loop" },
-  { label: "OSINT casefile", href: "/resources?view=playbooks&playbook=osint-casefile-loop" },
-  { label: "Repo intel", href: "/resources?view=playbooks&playbook=repo-intel-briefing" },
-  { label: "Vulnerability review", href: "/resources?view=playbooks&playbook=vulnerability-review-loop" },
-  { label: "Voice Lab", href: "/resources?view=playbooks&playbook=voice-lab-local" },
-  { label: "Radar readiness", href: "/resources?view=playbooks&playbook=radar-readiness-session" },
+  {
+    label: "Deep research",
+    href: "/resources?view=playbooks&playbook=deep-research-briefing",
+  },
+  {
+    label: "Market review",
+    href: "/resources?view=playbooks&playbook=market-review-loop",
+  },
+  {
+    label: "OSINT casefile",
+    href: "/resources?view=playbooks&playbook=osint-casefile-loop",
+  },
+  {
+    label: "Repo intel",
+    href: "/resources?view=playbooks&playbook=repo-intel-briefing",
+  },
+  {
+    label: "Vulnerability review",
+    href: "/resources?view=playbooks&playbook=vulnerability-review-loop",
+  },
+  {
+    label: "Voice Lab",
+    href: "/resources?view=playbooks&playbook=voice-lab-local",
+  },
+  {
+    label: "Radar readiness",
+    href: "/resources?view=playbooks&playbook=radar-readiness-session",
+  },
 ];
 
 export default function SkillsPage() {
@@ -231,13 +252,13 @@ export default function SkillsPage() {
       ? "skills-forge"
       : focus === "skills-prompt-forge"
         ? "skills-prompt-forge"
-      : focus === "skills-blacksite"
-        ? "skills-blacksite"
-        : focus === "skills-brain"
-          ? "skills-brain"
-          : focus === "skills-library"
-            ? "skills-library"
-            : null;
+        : focus === "skills-blacksite"
+          ? "skills-blacksite"
+          : focus === "skills-brain"
+            ? "skills-brain"
+            : focus === "skills-library"
+              ? "skills-library"
+              : null;
 
   useSurfaceFocusScroll(focusTargetId);
   const skillsLayout = getOpsLayoutDescriptor("skills");
@@ -356,9 +377,14 @@ export default function SkillsPage() {
             <ShellStack>
               <div className="nexus-surface-chamber-shell">
                 <div className="nexus-surface-chamber-shell__body">
-                  <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${skillsLayout.workplaneClass}`}>
+                  <OpsWorkplane
+                    className={`nexus-surface-chamber-shell__lead ${skillsLayout.workplaneClass}`}
+                  >
                     <ShellStack gap="12px">
-                      <OpsField title="Intelligence metrics" detail="Skill spread and current maturation">
+                      <OpsField
+                        title="Intelligence metrics"
+                        detail="Skill spread and current maturation"
+                      >
                         <div
                           style={{
                             display: "grid",
@@ -370,14 +396,25 @@ export default function SkillsPage() {
                           <LearningProgressRing />
                         </div>
                       </OpsField>
-                      <OpsField title="Knowledge graph" detail="Domain relationships and reusable knowledge hubs" tone="muted">
+                      <OpsField
+                        title="Knowledge graph"
+                        detail="Domain relationships and reusable knowledge hubs"
+                        tone="muted"
+                      >
                         <KnowledgeGraphViz />
                       </OpsField>
                     </ShellStack>
                   </OpsWorkplane>
-                  <OpsRail className={`nexus-surface-chamber-shell__support ${skillsLayout.railClass}`}>
+                  <OpsRail
+                    className={`nexus-surface-chamber-shell__support ${skillsLayout.railClass}`}
+                  >
                     <ShellStack gap="12px">
-                      <OpsField title="System brain" detail="System health, hubs, and improvement queue" tone="muted" compact>
+                      <OpsField
+                        title="System brain"
+                        detail="System health, hubs, and improvement queue"
+                        tone="muted"
+                        compact
+                      >
                         <SystemBrain />
                       </OpsField>
                       <TrustOperationsRail
@@ -411,12 +448,24 @@ export default function SkillsPage() {
                           detail="Default teaching and review profiles"
                           tone="muted"
                         >
-                          <div className="nexus-ops-brief-list" aria-label="Tutor lanes">
+                          <div
+                            className="nexus-ops-brief-list"
+                            aria-label="Tutor lanes"
+                          >
                             {TUTOR_LANES.map((lane) => (
-                              <article key={lane.title} className="nexus-ops-brief-item">
-                                <span className="nexus-ops-brief-item__eyebrow">{lane.eyebrow}</span>
-                                <span className="nexus-ops-brief-item__title">{lane.title}</span>
-                                <p className="nexus-ops-brief-item__summary">{lane.summary}</p>
+                              <article
+                                key={lane.title}
+                                className="nexus-ops-brief-item"
+                              >
+                                <span className="nexus-ops-brief-item__eyebrow">
+                                  {lane.eyebrow}
+                                </span>
+                                <span className="nexus-ops-brief-item__title">
+                                  {lane.title}
+                                </span>
+                                <p className="nexus-ops-brief-item__summary">
+                                  {lane.summary}
+                                </p>
                               </article>
                             ))}
                           </div>
@@ -425,19 +474,33 @@ export default function SkillsPage() {
                           title="Workflow packs"
                           detail="Durable loops that reopen exact lanes"
                         >
-                          <div className="nexus-ops-brief-list" aria-label="Workflow packs">
+                          <div
+                            className="nexus-ops-brief-list"
+                            aria-label="Workflow packs"
+                          >
                             {WORKFLOW_PACKS.map((lane) => (
-                              <article key={lane.title} className="nexus-ops-brief-item">
-                                <span className="nexus-ops-brief-item__eyebrow">{lane.eyebrow}</span>
-                                <span className="nexus-ops-brief-item__title">{lane.title}</span>
-                                <p className="nexus-ops-brief-item__summary">{lane.summary}</p>
+                              <article
+                                key={lane.title}
+                                className="nexus-ops-brief-item"
+                              >
+                                <span className="nexus-ops-brief-item__eyebrow">
+                                  {lane.eyebrow}
+                                </span>
+                                <span className="nexus-ops-brief-item__title">
+                                  {lane.title}
+                                </span>
+                                <p className="nexus-ops-brief-item__summary">
+                                  {lane.summary}
+                                </p>
                               </article>
                             ))}
                           </div>
                         </OpsField>
                       </ShellStack>
                     </div>
-                    <OpsInspector className={`nexus-surface-chamber-shell__support ${skillsLayout.inspectorClass}`}>
+                    <OpsInspector
+                      className={`nexus-surface-chamber-shell__support ${skillsLayout.inspectorClass}`}
+                    >
                       <ShellStack gap="12px">
                         <OpsField
                           title="Memory recalls"
@@ -446,13 +509,17 @@ export default function SkillsPage() {
                           compact
                         >
                           <p className="nexus-shell-copy nexus-shell-copy--compact">
-                            Guided learning stays assistant-first here. Repo-bound memory writes under
+                            Guided learning stays assistant-first here.
+                            Repo-bound memory writes under
                             <code> .nexus/project-memory </code>
                             and reopens through VAULT.
                           </p>
                           <div className="nexus-ops-action-cluster">
                             {MEMORY_ACTIONS.map((action) => (
-                              <ShellButton key={action.href} onClick={() => router.push(action.href)}>
+                              <ShellButton
+                                key={action.href}
+                                onClick={() => router.push(action.href)}
+                              >
                                 {action.label}
                               </ShellButton>
                             ))}
@@ -465,7 +532,10 @@ export default function SkillsPage() {
                         >
                           <div className="nexus-ops-action-cluster">
                             {PLAYBOOK_ACTIONS.map((action) => (
-                              <ShellButton key={action.href} onClick={() => router.push(action.href)}>
+                              <ShellButton
+                                key={action.href}
+                                onClick={() => router.push(action.href)}
+                              >
                                 {action.label}
                               </ShellButton>
                             ))}
@@ -478,7 +548,11 @@ export default function SkillsPage() {
                           compact
                         >
                           <div className="nexus-ops-action-cluster">
-                            <ShellButton onClick={() => router.push("/resources?view=study")}>
+                            <ShellButton
+                              onClick={() =>
+                                router.push("/resources?view=study")
+                              }
+                            >
                               Open study workbench
                             </ShellButton>
                           </div>
@@ -497,19 +571,34 @@ export default function SkillsPage() {
             <ShellStack>
               <div className="nexus-surface-chamber-shell">
                 <div className="nexus-surface-chamber-shell__body">
-                  <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${skillsLayout.workplaneClass}`}>
+                  <OpsWorkplane
+                    className={`nexus-surface-chamber-shell__lead ${skillsLayout.workplaneClass}`}
+                  >
                     <ShellStack gap="12px">
-                      <OpsField title="Skill library" detail="Actionable capability catalog">
+                      <OpsField
+                        title="Skill library"
+                        detail="Actionable capability catalog"
+                      >
                         <SkillLibrary onNewEvent={handleNewEvent} />
                       </OpsField>
-                      <OpsField title="Agency role library" detail="Curated specialist role packs">
+                      <OpsField
+                        title="Agency role library"
+                        detail="Curated specialist role packs"
+                      >
                         <AgencyRoleLibrary />
                       </OpsField>
                     </ShellStack>
                   </OpsWorkplane>
-                  <OpsRail className={`nexus-surface-chamber-shell__support ${skillsLayout.railClass}`}>
+                  <OpsRail
+                    className={`nexus-surface-chamber-shell__support ${skillsLayout.railClass}`}
+                  >
                     <ShellStack gap="12px">
-                      <OpsField title="Learning log" detail="Recent learning signals" tone="muted" compact>
+                      <OpsField
+                        title="Learning log"
+                        detail="Recent learning signals"
+                        tone="muted"
+                        compact
+                      >
                         <LearningLog newEvent={latestEvent} />
                       </OpsField>
                       <TrustOperationsRail
@@ -524,7 +613,11 @@ export default function SkillsPage() {
 
               <div className="nexus-surface-continuity-strip">
                 <OpsStrip className={skillsLayout.continuityClass}>
-                  <OpsField title="Knowledge base" detail="Acquired intelligence and reusable notes" tone="muted">
+                  <OpsField
+                    title="Knowledge base"
+                    detail="Acquired intelligence and reusable notes"
+                    tone="muted"
+                  >
                     <KnowledgeBase />
                   </OpsField>
                 </OpsStrip>

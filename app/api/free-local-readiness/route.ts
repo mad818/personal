@@ -2,10 +2,7 @@ import { existsSync, readFileSync } from "fs";
 import { networkInterfaces } from "os";
 import { join } from "path";
 import { NextRequest } from "next/server";
-import {
-  DEFAULT_LOCAL_MODEL,
-  type AITask,
-} from "@/lib/aiModelRouting";
+import { DEFAULT_LOCAL_MODEL, type AITask } from "@/lib/aiModelRouting";
 import {
   getConfiguredNexusToken,
   isNexusAuthEnabled,
@@ -188,8 +185,9 @@ export async function GET(req: NextRequest) {
   const paidApisAllowed = process.env.NEXUS_ALLOW_PAID_APIS === "true";
   const requestedModel =
     req.nextUrl.searchParams.get("model")?.trim() || DEFAULT_LOCAL_MODEL;
-  const task = (req.nextUrl.searchParams.get("task")?.trim() ||
-    "default") as AITask | "default";
+  const task = (req.nextUrl.searchParams.get("task")?.trim() || "default") as
+    | AITask
+    | "default";
 
   const [catalog, running, resolution, agentHealth] = await Promise.all([
     listReachableOllamaModels(),

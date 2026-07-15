@@ -8,7 +8,9 @@ function simulationTone(mode: InternalWorkbenchMeta["simulation"]["mode"]) {
   return "default" as const;
 }
 
-function simulationBadgeTone(mode: InternalWorkbenchMeta["simulation"]["mode"]) {
+function simulationBadgeTone(
+  mode: InternalWorkbenchMeta["simulation"]["mode"],
+) {
   if (mode === "live") return "success" as const;
   if (mode === "derived") return "accent" as const;
   return "muted" as const;

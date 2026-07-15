@@ -4,7 +4,11 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import DataLoadingState from "@/components/ui/DataLoadingState";
 import { SectionLabel, ShellBadge, ShellButton } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
-import type { AssetKit, RegistryCostTier, RegistryItem } from "@/lib/assimilation/types";
+import type {
+  AssetKit,
+  RegistryCostTier,
+  RegistryItem,
+} from "@/lib/assimilation/types";
 
 interface Props {
   compact?: boolean;
@@ -20,7 +24,10 @@ const COST_LABELS: Record<RegistryCostTier, string> = {
   license_check: "License check",
 };
 
-export default function RegistryConsole({ compact = false, view = "all" }: Props) {
+export default function RegistryConsole({
+  compact = false,
+  view = "all",
+}: Props) {
   const [items, setItems] = useState<RegistryItem[]>([]);
   const [kits, setKits] = useState<AssetKit[]>([]);
   const [search, setSearch] = useState("");
@@ -69,7 +76,13 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
     return items.filter((item) => {
       const matchesTerm =
         !term ||
-        [item.title, item.summary, item.tags.join(" "), item.owner, item.custody]
+        [
+          item.title,
+          item.summary,
+          item.tags.join(" "),
+          item.owner,
+          item.custody,
+        ]
           .join(" ")
           .toLowerCase()
           .includes(term);
@@ -83,7 +96,10 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
     return kits.filter((kit) =>
       !term
         ? true
-        : [kit.title, kit.summary, kit.owner].join(" ").toLowerCase().includes(term),
+        : [kit.title, kit.summary, kit.owner]
+            .join(" ")
+            .toLowerCase()
+            .includes(term),
     );
   }, [deferredSearch, kits]);
 
@@ -124,7 +140,14 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
           }}
         >
           <label style={{ display: "grid", gap: "6px" }}>
-            <span style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <span
+              style={{
+                fontSize: "10px",
+                color: "var(--text3)",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
               Search registry
             </span>
             <input
@@ -141,7 +164,14 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
             />
           </label>
           <label style={{ display: "grid", gap: "6px", minWidth: "180px" }}>
-            <span style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <span
+              style={{
+                fontSize: "10px",
+                color: "var(--text3)",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
               Cost posture
             </span>
             <select
@@ -170,7 +200,9 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
 
       {view !== "kits" && (
         <div style={{ display: "grid", gap: "10px" }}>
-          <SectionLabel detail={`${visibleItems.length} assets`}>Registry items</SectionLabel>
+          <SectionLabel detail={`${visibleItems.length} assets`}>
+            Registry items
+          </SectionLabel>
           <div
             style={{
               display: "grid",
@@ -190,21 +222,59 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
                   background: "rgba(10, 15, 30, 0.62)",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "8px",
+                    alignItems: "center",
+                  }}
+                >
                   <strong style={{ fontSize: "13px" }}>{item.title}</strong>
-                  <ShellBadge tone={item.status === "ready" ? "success" : item.status === "watch" ? "accent" : "muted"}>
+                  <ShellBadge
+                    tone={
+                      item.status === "ready"
+                        ? "success"
+                        : item.status === "watch"
+                          ? "accent"
+                          : "muted"
+                    }
+                  >
                     {item.status}
                   </ShellBadge>
                 </div>
-                <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text2)", lineHeight: 1.55 }}>
+                <p
+                  style={{
+                    margin: "8px 0 0",
+                    fontSize: "11px",
+                    color: "var(--text2)",
+                    lineHeight: 1.55,
+                  }}
+                >
                   {item.summary}
                 </p>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    flexWrap: "wrap",
+                    marginTop: "10px",
+                  }}
+                >
                   <ShellBadge tone="muted">{item.type}</ShellBadge>
-                  <ShellBadge tone="accent">{COST_LABELS[item.costTier]}</ShellBadge>
+                  <ShellBadge tone="accent">
+                    {COST_LABELS[item.costTier]}
+                  </ShellBadge>
                   <ShellBadge tone="muted">{item.custody}</ShellBadge>
                 </div>
-                <div style={{ marginTop: "10px", fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}>
+                <div
+                  style={{
+                    marginTop: "10px",
+                    fontSize: "10px",
+                    color: "var(--text3)",
+                    lineHeight: 1.55,
+                  }}
+                >
                   Owner: {item.owner}
                   <br />
                   License: {item.license}
@@ -238,7 +308,9 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
 
       {view !== "items" && (
         <div style={{ display: "grid", gap: "10px" }}>
-          <SectionLabel detail={`${visibleKits.length} bundles`}>Registry kits</SectionLabel>
+          <SectionLabel detail={`${visibleKits.length} bundles`}>
+            Registry kits
+          </SectionLabel>
           <div
             style={{
               display: "grid",
@@ -258,16 +330,39 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
                   background: "rgba(214, 165, 109, 0.08)",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "8px",
+                    alignItems: "center",
+                  }}
+                >
                   <strong style={{ fontSize: "13px" }}>{kit.title}</strong>
-                  <ShellBadge tone={kit.status === "ready" ? "success" : "accent"}>
+                  <ShellBadge
+                    tone={kit.status === "ready" ? "success" : "accent"}
+                  >
                     {kit.status}
                   </ShellBadge>
                 </div>
-                <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text2)", lineHeight: 1.55 }}>
+                <p
+                  style={{
+                    margin: "8px 0 0",
+                    fontSize: "11px",
+                    color: "var(--text2)",
+                    lineHeight: 1.55,
+                  }}
+                >
                   {kit.summary}
                 </p>
-                <div style={{ marginTop: "10px", fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}>
+                <div
+                  style={{
+                    marginTop: "10px",
+                    fontSize: "10px",
+                    color: "var(--text3)",
+                    lineHeight: 1.55,
+                  }}
+                >
                   Owner: {kit.owner}
                   <br />
                   Items: {kit.itemIds.length}

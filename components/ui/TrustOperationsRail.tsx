@@ -35,7 +35,8 @@ export default function TrustOperationsRail({
 }) {
   const { posture } = useProviderHealthPosture();
   const privacyShieldStatus = useStore((s) => s.privacyShieldStatus);
-  const [diagnostics, setDiagnostics] = useState<TrustDiagnosticsPayload | null>(null);
+  const [diagnostics, setDiagnostics] =
+    useState<TrustDiagnosticsPayload | null>(null);
   const [stepUpOpen, setStepUpOpen] = useState(false);
   const [statusNote, setStatusNote] = useState<string | null>(null);
 
@@ -45,9 +46,9 @@ export default function TrustOperationsRail({
         cache: "no-store",
       });
       if (!response.ok) return;
-      const payload = (await response.json().catch(() => null)) as
-        | TrustDiagnosticsPayload
-        | null;
+      const payload = (await response
+        .json()
+        .catch(() => null)) as TrustDiagnosticsPayload | null;
       if (!payload) return;
       setDiagnostics(payload);
     } catch {
@@ -135,21 +136,31 @@ export default function TrustOperationsRail({
             <div className="nexus-trust-operations__grid">
               {trustRows.map((row) => (
                 <div key={row.label} className="nexus-trust-operations__row">
-                  <span className="nexus-trust-operations__label">{row.label}</span>
-                  <span className="nexus-trust-operations__value">{row.value}</span>
+                  <span className="nexus-trust-operations__label">
+                    {row.label}
+                  </span>
+                  <span className="nexus-trust-operations__value">
+                    {row.value}
+                  </span>
                 </div>
               ))}
             </div>
             <div className="nexus-trust-operations__grid nexus-trust-operations__grid--actions">
               {actionRows.map((row) => (
                 <div key={row.label} className="nexus-trust-operations__row">
-                  <span className="nexus-trust-operations__label">{row.label}</span>
-                  <span className="nexus-trust-operations__value">{row.value}</span>
+                  <span className="nexus-trust-operations__label">
+                    {row.label}
+                  </span>
+                  <span className="nexus-trust-operations__value">
+                    {row.value}
+                  </span>
                 </div>
               ))}
             </div>
             <div className="nexus-trust-operations__footer">
-              <ShellButton onClick={handleRevalidate}>Refresh access</ShellButton>
+              <ShellButton onClick={handleRevalidate}>
+                Refresh access
+              </ShellButton>
               {statusNote ? (
                 <span
                   role="status"

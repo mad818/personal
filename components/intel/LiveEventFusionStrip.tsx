@@ -32,12 +32,28 @@ function extractRegion(title: string): string {
   return m ? m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase() : "";
 }
 
-function isFuseable(
-  title: string,
-): FusedEvent["impact"] | null {
+function isFuseable(title: string): FusedEvent["impact"] | null {
   const t = title.toLowerCase();
-  const critKW = ["nuclear", "airstrike", "killed", "casualties", "invasion", "missile", "bomb", "strike"];
-  const highKW = ["troops", "offensive", "sanctions", "drone", "blockade", "coup", "war", "conflict"];
+  const critKW = [
+    "nuclear",
+    "airstrike",
+    "killed",
+    "casualties",
+    "invasion",
+    "missile",
+    "bomb",
+    "strike",
+  ];
+  const highKW = [
+    "troops",
+    "offensive",
+    "sanctions",
+    "drone",
+    "blockade",
+    "coup",
+    "war",
+    "conflict",
+  ];
   if (critKW.some((k) => t.includes(k))) return "critical";
   if (highKW.some((k) => t.includes(k))) return "high";
   return null;
@@ -110,10 +126,20 @@ export default function LiveEventFusionStrip() {
           borderBottom: "1px solid rgba(239,68,68,0.14)",
         }}
       >
-        <span style={{ fontSize: 10, fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            color: "#ef4444",
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+          }}
+        >
           🗺 Geo-fused events
         </span>
-        <span style={{ fontSize: 10, color: "var(--text3)", marginLeft: "auto" }}>
+        <span
+          style={{ fontSize: 10, color: "var(--text3)", marginLeft: "auto" }}
+        >
           <a
             href="/intel?view=world&focus=intel-world"
             style={{ color: "var(--accent)", textDecoration: "none" }}

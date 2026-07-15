@@ -11,7 +11,10 @@ interface Props {
   activeAgentLabel?: string | null;
 }
 
-export default function HQPreludePostureGrid({ cards, activeAgentLabel }: Props) {
+export default function HQPreludePostureGrid({
+  cards,
+  activeAgentLabel,
+}: Props) {
   const summaryCards = cards.slice(0, 4);
   const recallCard = cards[4] ?? null;
 
@@ -36,8 +39,12 @@ export default function HQPreludePostureGrid({ cards, activeAgentLabel }: Props)
             className="nexus-hq-tacticalRail__statusStrip"
             data-strip-kind="summary"
           >
-            <span className="nexus-hq-tacticalRail__statusLabel">{card.label}</span>
-            <span className="nexus-hq-tacticalRail__statusValue">{card.value}</span>
+            <span className="nexus-hq-tacticalRail__statusLabel">
+              {card.label}
+            </span>
+            <span className="nexus-hq-tacticalRail__statusValue">
+              {card.value}
+            </span>
             <p className="nexus-hq-tacticalRail__statusNote" title={card.note}>
               {card.note}
             </p>
@@ -49,9 +56,16 @@ export default function HQPreludePostureGrid({ cards, activeAgentLabel }: Props)
             className="nexus-hq-tacticalRail__statusStrip nexus-hq-tacticalRail__statusStrip--recall"
             data-strip-kind="recall"
           >
-            <span className="nexus-hq-tacticalRail__statusLabel">{recallCard.label}</span>
-            <span className="nexus-hq-tacticalRail__statusValue">{recallCard.value}</span>
-            <p className="nexus-hq-tacticalRail__statusNote" title={recallCard.note}>
+            <span className="nexus-hq-tacticalRail__statusLabel">
+              {recallCard.label}
+            </span>
+            <span className="nexus-hq-tacticalRail__statusValue">
+              {recallCard.value}
+            </span>
+            <p
+              className="nexus-hq-tacticalRail__statusNote"
+              title={recallCard.note}
+            >
               {recallCard.note}
             </p>
           </div>

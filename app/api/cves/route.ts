@@ -23,10 +23,9 @@ interface KevEntry {
 }
 
 function mapKevToNvdLikeVulnerability(entry: KevEntry) {
-  const isRansomware =
-    String(entry.knownRansomwareCampaignUse ?? "")
-      .toLowerCase()
-      .includes("known");
+  const isRansomware = String(entry.knownRansomwareCampaignUse ?? "")
+    .toLowerCase()
+    .includes("known");
   return {
     cve: {
       id: entry.cveID,

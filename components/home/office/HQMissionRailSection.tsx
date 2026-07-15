@@ -105,10 +105,14 @@ export default function HQMissionRailSection({
               {String(index + 1).padStart(2, "0")}
             </span>
             <div className="nexus-hq-tacticalBoard__body">
-              <span className="nexus-hq-tacticalBoard__label">{item.label}</span>
+              <span className="nexus-hq-tacticalBoard__label">
+                {item.label}
+              </span>
               <span className="nexus-hq-tacticalBoard__note">{item.note}</span>
             </div>
-            <span className="nexus-hq-tacticalBoard__action">{item.actionLabel}</span>
+            <span className="nexus-hq-tacticalBoard__action">
+              {item.actionLabel}
+            </span>
           </button>
         ))}
       </div>

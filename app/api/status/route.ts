@@ -226,7 +226,9 @@ export async function GET() {
         href: surface.href,
         aliases: surface.aliases ?? [],
       })),
-      nav: PRODUCT_SURFACES.filter((surface) => surface.inNav).map((surface) => surface.href),
+      nav: PRODUCT_SURFACES.filter((surface) => surface.inNav).map(
+        (surface) => surface.href,
+      ),
       aliases: listSurfaceAliases(),
     },
     connectorReadiness,

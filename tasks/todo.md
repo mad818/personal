@@ -298,6 +298,12 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] AGENT-INSTRUCTION-PATH-TRUTH — Align root agent instructions with the current framework, route matrix, and real project skill locations.
+  - Current pass: replace dead `.Codex` references, update the root and generated-handoff Next/React facts plus GA-route facts from current manifests, identify legacy `.claude` rules as non-canonical, and add a focused regression gate.
+  - Guardrail: no `.agents` or `.claude` mutation, RPG file change, product/runtime behavior change, new agent system, instruction duplication, or claim that legacy compatibility files are current authority.
+  - Design: `specs/features/agent-instruction-path-truth.md`.
+  - Progress: complete. Root `AGENTS.md` now reflects React 19 / Next.js 15, the eight GA release-matrix routes, the four tracked `.agents/skills/*/SKILL.md` entrypoints, and the real authority chain; dead `.Codex` paths are gone and `.claude/rules/` is explicitly legacy. The handoff generator derives framework majors from `package.json`, keeps the archived HTML boundary current, and regenerates both canonical handoffs. `npm run agent:instructions:check` verifies those facts plus every referenced page/skill/guide path and canonical verify wiring. The full rerun also exposed and repaired a publication-scan collision in the static desktop-isolation auth fixture without changing its value or behavior. Proof: focused instruction/isolation/publication fixtures, handoff freshness, formatting, explicit TypeScript, uninterrupted 166.7-second canonical verification, 81.5-second production build, zero-RPG-path audit, and diff checks passed.
+
 - [x] DESKTOP-ISOLATION-STATUS — Consolidate CP2.2 application isolation evidence without claiming packaged-shell or OS-level no-outbound proof.
   - Current pass: evaluate the complete route-policy inventory against isolated mode, verify the secure local profile, optionally read only live health/protected status, and expose distinct static/live verdicts.
   - Guardrail: no service start, connector/provider/high-risk request, file/env/evidence mutation, secret output, packet-capture claim, CP2.2 closure, or RPG file change.

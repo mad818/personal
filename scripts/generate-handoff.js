@@ -44,6 +44,16 @@ function formatTodoItem(item) {
   return `- ${item.id} — ${text}`;
 }
 
+function getMajorVersion(version, dependencyName) {
+  const match = String(version ?? "").match(/\d+/);
+  if (!match) {
+    throw new Error(
+      `package.json is missing a readable ${dependencyName} dependency version`,
+    );
+  }
+  return Number.parseInt(match[0], 10);
+}
+
 function getTopTodoLines(todoPathAbs) {
   const raw = fs.readFileSync(todoPathAbs, "utf8");
   const lines = raw.split(/\r?\n/);
@@ -85,6 +95,8 @@ function buildHandoff() {
   const packageJson = JSON.parse(
     fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"),
   );
+  const nextMajor = getMajorVersion(packageJson.dependencies?.next, "Next.js");
+  const reactMajor = getMajorVersion(packageJson.dependencies?.react, "React");
   const verifyCmd = packageJson?.scripts?.verify
     ? "npm run verify"
     : "npx tsc --noEmit";
@@ -119,9 +131,9 @@ function buildHandoff() {
     "### Project pulse",
     "",
     "- Nexus Prime is a local-first, self-hosted command-and-intelligence dashboard for markets, cyber, recon, resources, and operator AI.",
-    "- Next.js 14 app is the active surface (`app/`, `components/`, `lib/`, `store/`).",
-    "- `nexus-final.html` remains as legacy reference and should stay single-file.",
-    "- Current product push is Homefront command-intelligence polish; the `/hq` RPG world is a personal/private lane and should not be used as public Nexus positioning.",
+    `- Next.js ${nextMajor} / React ${reactMajor} is the active application stack (\`app/\`, \`components/\`, \`lib/\`, \`store/\`).`,
+    "- The legacy HTML app is archived under `archive/`; active development stays in the React application.",
+    "- Current product work follows the evidence-backed queue in `tasks/todo.md`.",
     "",
     "### Machine + commands",
     "",

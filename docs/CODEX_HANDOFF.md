@@ -14,9 +14,9 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 ### Project pulse
 
 - Nexus Prime is a local-first, self-hosted command-and-intelligence dashboard for markets, cyber, recon, resources, and operator AI.
-- Next.js 14 app is the active surface (`app/`, `components/`, `lib/`, `store/`).
-- `nexus-final.html` remains as legacy reference and should stay single-file.
-- Current product push is Homefront command-intelligence polish; the `/hq` RPG world is a personal/private lane and should not be used as public Nexus positioning.
+- Next.js 15 / React 19 is the active application stack (`app/`, `components/`, `lib/`, `store/`).
+- The legacy HTML app is archived under `archive/`; active development stays in the React application.
+- Current product work follows the evidence-backed queue in `tasks/todo.md`.
 
 ### Machine + commands
 

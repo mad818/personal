@@ -14,14 +14,14 @@ For second-brain capture, refinement, briefings, atom/thread maintenance, or aud
 
 **Product invariant:** Nexus Prime is **free (MIT)** — **no in-app charges**, subscriptions, or Nexus-side billing. Optional keys are BYOK. See `lib/productGuarantees.ts` and `assertNexusDoesNotChargeUsers()` in `app/layout.tsx`.
 
-Nexus Prime is a unified React/Next.js 14 intelligence dashboard at `localhost:3000`, with a native **desktop app for Windows and macOS** via Tauri (`desktop/`).
+Nexus Prime is a unified React 19 / Next.js 15 intelligence dashboard at `localhost:3000`, with a native **desktop app for Windows and macOS** via Tauri (`desktop/`). The current package manifest is authoritative for exact patch versions.
 The legacy HTML app (`nexus-final.html`) has been archived to `archive/`. Do not restore it or reference it in new code — all development happens in the React app.
 
 ## Commands
 
 ```
 npm run dev      # start dev server (localhost:3000)
-npm run verify   # type-check + lint + path safety (same as CI)
+npm run verify   # canonical full local verification lane
 npx tsc --noEmit # type-check only
 # PWA: public/manifest.json + public/icon.svg — Chrome/Edge Install; iPhone Safari → Add to Home Screen
 # Desktop (Tauri):
@@ -57,7 +57,7 @@ git add / git commit / git push   # end of session — push updates handoff via 
 ```
 app/[tab]/page.tsx        ← one route per tab
 components/[tab]/         ← one folder per tab
-components/home/office/   ← AgentOffice sub-components (all split files here)
+components/home/office/   ← HQ assistant/office sub-components
 store/useStore.ts         ← Zustand state (replaces S{} from the HTML app)
 lib/ai.ts                 ← callAI, streamAI, buildSystemPrompt
 lib/liveContext.ts        ← buildLiveContext, buildCapabilitiesBlock
@@ -76,15 +76,16 @@ app/api/                  ← Next.js server routes
 
 ## Tab map (React app)
 
-| Label      | Route    | Page file              |
-| ---------- | -------- | ---------------------- |
-| 🤖 HQ      | /home    | `app/home/page.tsx`    |
-| ⚡ COMMAND | /command | `app/command/page.tsx` |
-| 📡 INTEL   | /intel   | `app/intel/page.tsx`   |
-| 🎯 ALPHA   | /alpha   | `app/alpha/page.tsx`   |
-| 🔒 CYBER   | /cyber   | `app/cyber/page.tsx`   |
-| 🕵️ RECON   | /recon   | `app/recon/page.tsx`   |
-| 🗂 VAULT   | /vault   | `app/vault/page.tsx`   |
+| Label            | Route        | Page file                |
+| ---------------- | ------------ | ------------------------ |
+| CITADEL (HQ)     | `/hq`        | `app/hq/page.tsx`        |
+| VECTOR (COMMAND) | `/command`   | `app/command/page.tsx`   |
+| SPECTRA (INTEL)  | `/intel`     | `app/intel/page.tsx`     |
+| QUANT (ALPHA)    | `/alpha`     | `app/alpha/page.tsx`     |
+| BASTION (CYBER)  | `/cyber`     | `app/cyber/page.tsx`     |
+| PARALLAX (RECON) | `/recon`     | `app/recon/page.tsx`     |
+| ARCHIVE (VAULT)  | `/vault`     | `app/vault/page.tsx`     |
+| FIELD MANUAL     | `/resources` | `app/resources/page.tsx` |
 
 <important if="making any code change">
 ## Operating principles
@@ -98,23 +99,25 @@ app/api/                  ← Next.js server routes
 
 ## Skills (read before starting the relevant work)
 
-| Skill                               | Trigger                             |
-| ----------------------------------- | ----------------------------------- |
-| @.Codex/skills/add-feature/SKILL.md | New feature in nexus-final.html     |
-| @.Codex/skills/add-tab/SKILL.md     | New top-level tab                   |
-| @.Codex/skills/add-api/SKILL.md     | New external data source or API key |
-| @.Codex/skills/fix-bug/SKILL.md     | Any bug in nexus-final.html         |
+| Skill                                 | Trigger                                  |
+| ------------------------------------- | ---------------------------------------- |
+| `.agents/skills/add-feature/SKILL.md` | New self-contained React/Next.js feature |
+| `.agents/skills/add-tab/SKILL.md`     | New top-level React route/tab            |
+| `.agents/skills/add-api/SKILL.md`     | New external data source or API key      |
+| `.agents/skills/fix-bug/SKILL.md`     | React/Next.js or active app bug          |
+
+Resolve a selected skill's supporting guide relative to its own directory; the sibling `GUIDE.md` is the authoritative deep guide.
 
 **External ecosystem (ideas only, not copied code):** `docs/ideas/assimilated-ecosystem.md` — maps other OSS projects (PM workflows, Coolify, autoresearch, routers, etc.) to Nexus patterns.
 
 **Handoff supplement (optional, committed):** `docs/handoff-supplement.md` — narrative + `blob/main` links merged into `docs/AGENT_HANDOFF.md` and its compatibility copies by `scripts/generate-handoff.js`.
 
-## Rules (auto-loaded by path — do not repeat here)
+## Rule authority
 
-@.Codex/rules/security.md
-@.Codex/rules/architecture.md
-@.Codex/rules/html-app.md
-@.Codex/rules/agents.md
+- `AGENTS.md` is the root repository instruction file.
+- `SECOND_BRAIN.md`, `docs/AGENT_HANDOFF.md`, `tasks/todo.md`, and `tasks/lessons.md` provide current context and corrections.
+- Current manifests, source, and generated release state outrank stale prose when facts such as versions or routes drift.
+- `.claude/rules/` is legacy compatibility material and is not current Codex authority; do not use it to override this file or verified repository state.
 
 ## Project files
 

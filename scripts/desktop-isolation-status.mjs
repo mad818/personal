@@ -12,7 +12,8 @@ import { buildSecureRuntimeProfile } from "./secure-runtime-gate.mjs";
 
 const HEALTH_TIMEOUT_MS = 5_000;
 const INTERNAL_AUTH_HEADER = "x-nexus-internal-auth";
-const FIXTURE_TOKEN = "desktop-isolation-static-fixture-token-1234567890";
+const STATIC_PROFILE_AUTH_FIXTURE =
+  "desktop-isolation-static-fixture-token-1234567890";
 
 export class DesktopIsolationUsageError extends Error {}
 
@@ -68,7 +69,7 @@ export function normalizeDesktopIsolationTarget(value) {
 export function buildStaticIsolationEvidence() {
   const profile = buildSecureRuntimeProfile({
     profile: "local",
-    token: FIXTURE_TOKEN,
+    token: STATIC_PROFILE_AUTH_FIXTURE,
     port: "3100",
   });
 

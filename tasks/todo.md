@@ -18,6 +18,10 @@ See [docs/plans/nexus-completion-program-2026.md](../docs/plans/nexus-completion
 
 - [ ] CP2.1 — Web release rehearsal: Docker + target deployment + diagnostics snapshot + rollback proof
 - [ ] CP2.2 — Desktop isolation validation: secure runtime, no-outbound proof in isolated mode, capability lockdown evidence
+  - Current pass: add one no-write `desktop:isolation:status` command that proves the complete static route-policy/secure-profile contract and optionally verifies a protected live runtime reports `desktop-secure`, isolated network mode, paid APIs blocked, high-risk routes disabled, and approval-gated writes.
+  - Guardrail: no RPG file changes, connector probes, provider calls, packet-capture claim, runtime auto-start, `.env.local` mutation, token output, artifact write, or CP2.2 completion claim without packaged desktop-shell and OS-level no-outbound evidence.
+  - Design: `specs/features/desktop-isolation-status.md`.
+  - Progress: application-level isolation status is complete and verify-gated. The static command proves the loopback-bound secure profile and evaluates all 90 route policies: 52 local-only policies remain available while all 31 connector and 7 high-risk policies are denied in isolated mode. Optional `--live` reads only health and protected status and requires `desktop-secure`, isolated mode, paid APIs blocked, high-risk routes disabled, strict tools, token configuration, and approval-gated writes. CP2.2 remains open for packaged desktop-shell provenance and OS-level no-outbound capture; neither is inferred from route policy. Proof: human/JSON static status, missing-live-config and bypass rejection, focused static/runtime fixtures, explicit type-check, 164.3-second canonical verification, 82.2-second production build, publication safety, and zero-RPG-path audit passed.
 - [ ] CP2.3 — Desktop trust chain: checksum verification, signing status record, SBOM status record. The status-record command and canonical SBOM now exist; remaining release work is real packaged artifacts, checksums for those artifacts, and configured signing strategy.
 - [ ] CP2.4 — Final launch gate: `type-check`, `lint`, `verify`, `route:integrity`, `eval:agent-runtime:ci`, `release:smoke`, auth E2E
   - Current pass: repair the missing executable contract with one fixed-command `cp2:launch:gate` runner. Static mode must own the existing release gate plus runtime evaluation; explicit `--live` mode must require a reachable operator-managed target and token before route integrity, smoke, and auth E2E run.
@@ -293,6 +297,12 @@ Blocked or manual watchlist, not the active queue:
 - [ ] FD2 remains blocked on the real staged Coolify hostname in repo-root `.env.local`, so release-proof work still stays out of this replay stack.
 
 ## In Progress
+
+- [x] DESKTOP-ISOLATION-STATUS — Consolidate CP2.2 application isolation evidence without claiming packaged-shell or OS-level no-outbound proof.
+  - Current pass: evaluate the complete route-policy inventory against isolated mode, verify the secure local profile, optionally read only live health/protected status, and expose distinct static/live verdicts.
+  - Guardrail: no service start, connector/provider/high-risk request, file/env/evidence mutation, secret output, packet-capture claim, CP2.2 closure, or RPG file change.
+  - Design: `specs/features/desktop-isolation-status.md`.
+  - Progress: complete. Static mode reads no env file or target, exercises the full secure-profile and route-policy inventory, and returns `static_ready_live_app_proof_pending`. Live mode is limited to `/api/health` plus protected `/api/status`, fails closed on missing/unsafe posture, and can return only `live_app_isolation_passed_packaged_proof_pending`. Both success states keep `cp22Complete: false` with packaged-shell and OS capture blockers. Proof: `npm run desktop:isolation:status`, JSON output, focused fixtures, fail-closed CLI probes, `npx tsc --noEmit`, `npm run verify`, `npm run build`, and diff checks passed.
 
 - [x] CP2.4-LAUNCH-GATE-CONTRACT-REPAIR — Restore the missing final-launch command as a safe static/live gate while keeping real target acceptance open.
   - Current pass: add one shell-free fixed-command orchestrator, explicit target health/token preconditions, external-runtime Playwright posture, compatibility aliases, focused fixtures, and canonical verification coverage.

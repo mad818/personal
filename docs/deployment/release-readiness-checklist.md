@@ -72,6 +72,7 @@ Use this checklist for both deployment lanes before promoting a release.
 - [ ] `npm run desktop:build-runtime`
 - [ ] `npm run desktop:start-runtime`
 - [ ] `npm run desktop:tauri:dev` or packaged build launches cleanly
+- [ ] `npm run desktop:isolation:status` passes statically; rerun with `--live` against the operator-managed desktop-secure runtime
 - [ ] isolated mode blocks outbound connectors by default
 - [ ] capability lockdown checks pass
 - [ ] checksums are generated for the target build

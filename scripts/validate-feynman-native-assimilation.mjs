@@ -56,6 +56,7 @@ for (const needle of [
 
 for (const workflow of [
   "deepresearch",
+  "rank",
   "lit-review",
   "review",
   "audit",
@@ -75,8 +76,10 @@ requireText(tools, "feynman_outputs", "tools route");
 requireText(tools, "huggingface_inspect", "tools route");
 requireText(tools, "runFeynmanResearch", "tools route engine wiring");
 requireText(agent, 'feynman_research: "tier0"', "agent risk map");
+requireText(agent, 'feynman_paper_rank: "tier0"', "agent risk map");
 requireText(agent, 'feynman_outputs: "tier0"', "agent risk map");
 requireText(agent, 'name: "feynman_research"', "agent tool catalog");
+requireText(agent, 'name: "feynman_paper_rank"', "agent tool catalog");
 requireText(agent, 'name: "feynman_outputs"', "agent tool catalog");
 requireText(agent, 'name: "huggingface_inspect"', "agent tool catalog");
 requireText(postRun, "claim-audit", "durable artifact tags");
@@ -85,6 +88,7 @@ requireText(memoryPagesRoute, "listCompiledMemoryPages", "compiled pages API rea
 requireText(memoryPagesRoute, "createCompiledMemoryPage", "compiled pages API write");
 requireText(memoryPagesRoute, "toCompiledMemoryPageSummary", "compiled pages API visibility");
 requireText(toolPolicy, 'feynman_research: "networked"', "network policy");
+requireText(toolPolicy, 'feynman_paper_rank: "analyze"', "local rank policy");
 requireText(toolPolicy, 'feynman_outputs: "read"', "local output policy");
 requireText(toolPolicy, 'huggingface_inspect: "networked"', "network policy");
 requireText(spec, "No silent execution", "feature guardrail");
@@ -99,7 +103,7 @@ if (!parity.capabilities?.some((capability) => capability.disposition === "pendi
 
 if (
   packageJson.scripts?.["feynman:check"] !==
-  "node scripts/validate-feynman-native-assimilation.mjs && npm run feynman:runtime:check && npm run feynman:continuity:check && npm run feynman:progressive:check && npm run feynman:huggingface:check"
+  "node scripts/validate-feynman-native-assimilation.mjs && npm run feynman:runtime:check && npm run feynman:rank:check && npm run feynman:continuity:check && npm run feynman:progressive:check && npm run feynman:huggingface:check"
 ) {
   console.error("x feynman-native: package.json is missing feynman:check");
   process.exit(1);

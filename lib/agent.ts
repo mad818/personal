@@ -85,6 +85,7 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   fetch_url: "tier0",
   deep_research: "tier0",
   feynman_research: "tier0",
+  feynman_paper_rank: "tier0",
   feynman_outputs: "tier0",
   huggingface_inspect: "tier0",
   compare_repos: "tier0",
@@ -216,6 +217,27 @@ export const AGENT_TOOLS = [
         },
       },
       required: ["workflow", "topic"],
+    },
+  },
+  {
+    name: "feynman_paper_rank",
+    description:
+      "Rank 2-25 already gathered paper candidates into a transparent local read-first order. Supply only direct metadata; do not invent years, citations, graph scores, code links, or data links. Returns every score component, missing signals, formula, and limitations without fetching or executing anything.",
+    input_schema: {
+      type: "object",
+      properties: {
+        topic: {
+          type: "string",
+          description:
+            "The research question or topic used for read-order relevance.",
+        },
+        candidates_json: {
+          type: "string",
+          description:
+            "A JSON array of 2-25 paper objects. Each needs title; optional direct fields are id, abstract, url, year, citationCount, graphPrestige, codeUrl, dataUrl, methodologyText, and reproducibilityText.",
+        },
+      },
+      required: ["topic", "candidates_json"],
     },
   },
   {
@@ -693,6 +715,8 @@ const SPECIALIST_DELEGATE_INTENT_RE =
   /\b(?:delegate|sub-?agent|specialist worker|central orchestrator)\b/i;
 const FEYNMAN_WORKFLOW_INTENT_RE =
   /\bfeynman_research\b|(?:^|\s)\/(?:deepresearch|deep-research|lit|lit-review|literature-review|review|audit|replicate|recipe|compare|draft|autoresearch|watch)\b|\b(?:deep research|literature review|peer review|paper audit|claim audit|experiment replication|replication plan|implementation recipe|research recipe|comparison matrix|paper draft|research watch|autoresearch)\b/i;
+const FEYNMAN_PAPER_RANK_INTENT_RE =
+  /\bfeynman_paper_rank\b|(?:^|\s)\/(?:rank|paper-rank)\b|\b(?:paper rank|what should i read first|rank (?:these|the) papers)\b/i;
 const FEYNMAN_OUTPUTS_INTENT_RE =
   /\bfeynman_outputs\b|(?:^|\s)\/outputs\b|\bfeynman outputs\b|\b(?:search|find|resume|continue|preview|export|pdf)\b.{0,40}\b(?:feynman|research session|research output)\b|\b(?:feynman|research session|research output)\b.{0,40}\b(?:search|find|resume|continue|preview|export|pdf)\b/i;
 const HUGGING_FACE_INTENT_RE =
@@ -742,6 +766,7 @@ export function getAgentToolCatalog(
     (!codeIntent && normalizedAgent !== "orbit");
   const deepResearchIntent = hasDeepResearchIntent(userMessage);
   const feynmanWorkflowIntent = FEYNMAN_WORKFLOW_INTENT_RE.test(userMessage);
+  const feynmanPaperRankIntent = FEYNMAN_PAPER_RANK_INTENT_RE.test(userMessage);
   const feynmanOutputsIntent = FEYNMAN_OUTPUTS_INTENT_RE.test(userMessage);
   const huggingFaceIntent = HUGGING_FACE_INTENT_RE.test(userMessage);
   const repoCompareIntent = hasRepoCompareSignal(userMessage);
@@ -777,6 +802,14 @@ export function getAgentToolCatalog(
   ) {
     groups.add("feynman_research");
     names.add("feynman_research");
+  }
+
+  if (
+    feynmanPaperRankIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("feynman_paper_rank");
+    names.add("feynman_paper_rank");
   }
 
   if (

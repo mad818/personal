@@ -71,6 +71,7 @@ const TOOL_CAPABILITY_REGISTRY: Record<string, ToolCapabilityClass> = {
   assimilate_repo: "analyze",
   deep_research: "networked",
   feynman_research: "networked",
+  feynman_paper_rank: "analyze",
   feynman_outputs: "read",
   rss_fetch: "networked",
   hf_papers_search: "networked",

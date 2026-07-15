@@ -3,6 +3,7 @@ import type { AgentId } from "./types";
 
 export type HQWorkflowCommandId =
   | "deepresearch"
+  | "rank"
   | "vault-weekly"
   | "operator"
   | "repo-assimilation"
@@ -379,6 +380,41 @@ Return a compact response with EXACTLY these sections:
 5. Boundaries and risks
 6. ORBIT handoff
 Keep the brief metadata-grounded, operator-grade, and explicitly local-first.
+[END WORKFLOW DIRECTIVE]
+`,
+  },
+  {
+    id: "rank",
+    label: "Paper rank",
+    source: "feynman",
+    agent: "nova",
+    route: "/intel",
+    aliases: ["rank", "paper-rank", "read-first"],
+    fallbackTopic:
+      "the paper candidates that need a transparent read-first order",
+    promptExample:
+      "/rank which local-first agent memory papers should I read first?",
+    risk: "low",
+    posture: "research",
+    outputTarget: "compiled_memory_page",
+    outputLayer: "knowledge",
+    defensiveOnly: false,
+    automationReady: false,
+    automationPosture: "review_only",
+    automationGuidance:
+      "Paper ranking stays explicit and review-only because its metadata and research question require operator judgment.",
+    hookNotes: [
+      "Ranks already gathered paper metadata locally without another provider or credential.",
+      "Keeps every available score component and missing signal visible to the operator.",
+    ],
+    buildUserPrompt: (topic) =>
+      `Decide what to read first for: ${topic}\n\nGather direct paper metadata, then use feynman_paper_rank with a JSON string containing 2-25 candidates. Do not invent missing metadata.`,
+    systemDirective: `
+[WORKFLOW DIRECTIVE — FEYNMAN PAPER RANK]
+Treat this as transparent read-order triage, not peer review or completed replication.
+Gather direct metadata when needed, then use feynman_paper_rank with the topic and a candidates_json string containing 2-25 papers.
+Do not invent a paper's year, citation count, graph prestige, code link, data link, or evidence text. Leave unavailable fields out.
+Return the read-order question, ranked list, complete score audit, missing evidence, limitations, and the strongest next paper to read.
 [END WORKFLOW DIRECTIVE]
 `,
   },

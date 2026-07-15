@@ -5,12 +5,14 @@
   "status": "in_progress",
   "source": {
     "url": "https://github.com/companion-inc/feynman",
-    "version": "0.2.58",
-    "reviewedAt": "2026-06-07",
+    "version": "0.3.5",
+    "reviewedAt": "2026-07-15",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/companion-inc/feynman/blob/main/README.md",
       "https://github.com/companion-inc/feynman/blob/main/AGENTS.md",
+      "https://github.com/companion-inc/feynman/releases/tag/v0.3.5",
+      "https://github.com/companion-inc/feynman/blob/main/src/rank/paper-rank.ts",
       "https://github.com/companion-inc/feynman/tree/main/skills",
       "https://github.com/companion-inc/feynman/tree/main/extensions/research-tools",
       "https://github.com/companion-inc/feynman/tree/main/.feynman/agents"
@@ -97,6 +99,18 @@
         "lib/feynmanProgressiveResearch.ts",
         "lib/feynmanResearch.ts",
         "scripts/check-feynman-progressive-research-runtime.mjs"
+      ]
+    },
+    {
+      "id": "paper-read-order-ranking",
+      "title": "Transparent PaperRank read-order triage with available-signal weighting and missing-component receipts",
+      "sourceEvidence": "src/rank/paper-rank.ts and README.md PaperRank command",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperRank.ts",
+        "app/api/tools/route.ts",
+        "components/home/office/workflowCommands.ts",
+        "scripts/check-feynman-paper-rank-runtime.mjs"
       ]
     },
     {

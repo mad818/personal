@@ -11,6 +11,11 @@ import {
   type FeynmanWorkflowId,
 } from "@/lib/feynmanResearch";
 import {
+  formatFeynmanPaperRank,
+  parseFeynmanPaperRankInput,
+  rankFeynmanPapers,
+} from "@/lib/feynmanPaperRank";
+import {
   formatHuggingFaceInspection,
   inspectHuggingFaceRepository,
   inspectHuggingFaceTopic,
@@ -1077,6 +1082,24 @@ async function feynmanResearch(
   }
 }
 
+function feynmanPaperRank(input: Record<string, string>): ToolResult {
+  try {
+    const parsed = parseFeynmanPaperRankInput(
+      input.topic ?? "",
+      input.candidates_json ?? "",
+    );
+    return withToolResult(
+      formatFeynmanPaperRank(
+        rankFeynmanPapers(parsed.topic, parsed.candidates),
+      ),
+    );
+  } catch {
+    return withToolResult(
+      "feynman_paper_rank: provide a topic and candidates_json containing a valid JSON array of 2-25 paper objects with direct metadata and a title for each paper.",
+    );
+  }
+}
+
 async function deepResearch(
   topic: string,
   origin: string,
@@ -1819,6 +1842,13 @@ export async function POST(req: NextRequest) {
             input.topic ?? input.question ?? input.artifact ?? "",
             resolveInternalServiceOrigin(),
           );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "feynman_paper_rank":
+        {
+          const toolResult = feynmanPaperRank(input);
           result = toolResult.result;
           meta = toolResult.meta;
         }

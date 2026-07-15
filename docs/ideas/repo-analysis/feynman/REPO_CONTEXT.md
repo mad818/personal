@@ -13,7 +13,7 @@ Feynman is a TypeScript scientific-research workbench that combines paper discov
 
 ## How it works
 
-The CLI dispatches workflow commands into a research session. Researchers gather evidence; writers synthesize; verifiers check claims and provenance; reviewers decide whether the output is complete enough to advance. Artifacts, notebooks, citations, and session state make the result inspectable. PaperRank is a read-order triage layer: it combines available relevance, citation, graph, methodology, and reproducibility signals while recording missing components.
+The CLI dispatches workflow commands into a research session. Researchers gather evidence; writers synthesize; verifiers check claims and provenance; reviewers decide whether the output is complete enough to advance. Artifacts, notebooks, citations, and session state make the result inspectable. PaperRank orders what to read next, while the Alpha tools fetch paper metadata, selected sections, questions, annotations, and linked code through separate actions.
 
 ## File map
 
@@ -21,6 +21,7 @@ The CLI dispatches workflow commands into a research session. Researchers gather
 - `src/index.ts` — runtime guard and CLI bootstrap.
 - `src/cli.ts` — command registration and top-level dispatch.
 - `src/rank/paper-rank.ts` — PaperRank weights, component availability, and score explanation.
+- `extensions/research-tools/alpha.ts` — paper metadata, section reads, Q&A, annotations, and linked-code tools.
 - `src/workflows/` — research workflow definitions and orchestration.
 - `src/tools/` — external research, code, and experiment integrations.
 - `src/ui/` and `src/workbench/` — interactive research surfaces.
@@ -31,7 +32,7 @@ The CLI dispatches workflow commands into a research session. Researchers gather
 - Install/run upstream: its documented `feynman` CLI on a supported Node runtime.
 - Research: workflow commands such as deep research, literature review, replication, and paper inspection.
 - Read-order triage: `feynman rank`.
-- Nexus adaptation: HQ workflow commands and protected tools through `/api/tools`; no upstream runtime is required for the adapted deterministic ranking engine.
+- Nexus adaptation: HQ workflow commands and protected tools through `/api/tools`; no upstream runtime is required for deterministic ranking or bounded public arXiv inspection.
 
 ## Dependencies and boundaries
 
@@ -45,32 +46,35 @@ The CLI dispatches workflow commands into a research session. Researchers gather
 ### Use now
 
 1. Preserve the shipped Researcher/Writer/Verifier/Reviewer workflow and provenance model.
-2. Add a native deterministic PaperRank engine for already gathered metadata.
-3. Expose it through the existing protected tool route and an HQ `Paper rank` workflow.
-4. Show the component formula, missing signals, and limitations so the ranking remains auditable.
+2. Use the native deterministic PaperRank engine for already gathered metadata.
+3. Inspect one public arXiv paper through a protected, arXiv-only tool that reports metadata, requested sections, missing sections, and discovered repository links.
+4. Keep ranking formulas, missing inputs, source URLs, byte caps, and inspection limits visible so both paths remain auditable.
 
 ### Keep pending or excluded
 
-1. Keep paper retrieval, code audit, local replication, isolated experiments, bounded autoresearch, and recurring watches as separate reviewed tranches.
+1. Keep semantic paper search, paper Q&A, annotations, code audit, local replication, isolated experiments, bounded autoresearch, and recurring watches as separate reviewed tranches.
 2. Exclude paid cloud-compute parity and broad credential surfaces from Nexus's free/local product contract.
 3. Never treat a PaperRank result as peer review, truth, completed replication, or calibrated researcher preference.
 
 ## Benefits
 
 - Reduces reading overload with a repeatable first-pass order.
+- Pulls requested arXiv sections into one bounded receipt without another account, key, or dependency.
 - Makes every ranking component and missing input visible.
-- Reuses the research metadata Nexus already collects without another service or key.
+- Preserves usable abstract evidence when arXiv HTML is unavailable and names what could not be read.
 - Keeps scientific judgment with the operator while giving NOVA and JANSKY a precise tool contract.
 
 ## Open questions
 
 - Whether later ranking should accept an explicit operator preference profile instead of the fixed upstream weights.
 - Which approved citation-graph source, if any, should supply graph prestige rather than requiring it as direct input.
-- Whether paper retrieval and PaperRank should eventually share one reviewed candidate-bundle artifact.
+- Whether paper inspection and PaperRank should eventually share one reviewed candidate-bundle artifact.
+- Whether a future paper Q&A lane can preserve the same source and token boundaries without creating hidden annotations or provider coupling.
 
 ## Primary evidence
 
 - Repository: https://github.com/companion-inc/feynman
 - Reviewed release: https://github.com/companion-inc/feynman/releases/tag/v0.3.5
 - PaperRank implementation: https://github.com/companion-inc/feynman/blob/main/src/rank/paper-rank.ts
+- Paper inspection tools: https://github.com/companion-inc/feynman/blob/main/extensions/research-tools/alpha.ts
 - Contributor contract: https://github.com/companion-inc/feynman/blob/main/AGENTS.md

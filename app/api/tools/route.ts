@@ -16,6 +16,12 @@ import {
   rankFeynmanPapers,
 } from "@/lib/feynmanPaperRank";
 import {
+  formatFeynmanPaperInspection,
+  inspectFeynmanPaper,
+  normalizeFeynmanPaperReference,
+  parseFeynmanPaperSections,
+} from "@/lib/feynmanPaperInspection";
+import {
   formatHuggingFaceInspection,
   inspectHuggingFaceRepository,
   inspectHuggingFaceTopic,
@@ -1100,6 +1106,28 @@ function feynmanPaperRank(input: Record<string, string>): ToolResult {
   }
 }
 
+async function feynmanPaperInspect(
+  input: Record<string, string>,
+): Promise<ToolResult> {
+  try {
+    const reference = normalizeFeynmanPaperReference(
+      input.paper ?? input.reference ?? input.arxiv_id ?? "",
+    );
+    const sections = parseFeynmanPaperSections(input.sections ?? "");
+    return withToolResult(
+      formatFeynmanPaperInspection(
+        await inspectFeynmanPaper(reference, sections),
+      ),
+    );
+  } catch (error) {
+    return withToolResult(
+      error instanceof Error
+        ? `feynman_paper_inspect: ${error.message}`
+        : "feynman_paper_inspect failed.",
+    );
+  }
+}
+
 async function deepResearch(
   topic: string,
   origin: string,
@@ -1849,6 +1877,13 @@ export async function POST(req: NextRequest) {
       case "feynman_paper_rank":
         {
           const toolResult = feynmanPaperRank(input);
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "feynman_paper_inspect":
+        {
+          const toolResult = await feynmanPaperInspect(input);
           result = toolResult.result;
           meta = toolResult.meta;
         }

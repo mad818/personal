@@ -114,11 +114,22 @@
       ]
     },
     {
-      "id": "paper-search-read-ask-annotate-code",
-      "title": "Semantic paper search, full paper/section reads, paper Q&A, local annotations, and paper-repository code reads",
+      "id": "public-paper-metadata-and-section-inspection",
+      "title": "Bounded public arXiv metadata and requested-section inspection with missing-section receipts",
+      "sourceEvidence": "extensions/research-tools/alpha.ts",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperInspection.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-paper-inspection-runtime.mjs"
+      ]
+    },
+    {
+      "id": "paper-search-question-answer-annotations",
+      "title": "Semantic paper search, paper Q&A, and persistent local annotations",
       "sourceEvidence": "extensions/research-tools/alpha.ts",
       "disposition": "pending",
-      "reason": "Current Nexus paper search is a daily-paper signal and lacks the complete paper inspection tool family."
+      "reason": "Nexus now performs bounded public arXiv metadata and section inspection, but its daily-paper signal is not semantic search and it does not yet provide paper-scoped Q&A or persistent annotations."
     },
     {
       "id": "hugging-face-inspection",

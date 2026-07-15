@@ -10,10 +10,12 @@ Use this runbook after the metadata-only Dependabot audit identifies concrete pa
 - Prefer runtime-critical alerts first, then dev-only alerts that affect verification, then transitive alerts by parent package.
 - Keep retired `archive/` dependency files under archival names only; do not restore live manifest names in `archive/`.
 - Keep package upgrades separate from unrelated UI or product work.
+- Treat lockfile `hasInstallScript` plus installed `preinstall`, `install`, and `postinstall` hooks as consumer execution risk. Keep `prepare` and publish/package-author scripts as separate metadata unless the lockfile marks a consumer hook.
+- Review every consumer install-hook entry in `docs/security/dependency-lifecycle-review.json` by exact path, version, integrity, platform posture, and allowed hook names; `npm run dependency:risk:check` must fail on new, changed, missing-integrity, or stale entries.
 
 ## Upgrade Order
 
-1. Run `npm run dependency:risk:posture`.
+1. Run `npm run dependency:risk:check`; resolve every lifecycle review drift finding before upgrading.
 2. Run `npm run dependabot:audit:classify`.
 3. Export GitHub Dependabot metadata from normal PowerShell when the Codex shell cannot reach GitHub:
 
@@ -55,5 +57,6 @@ Record sanitized evidence only:
 - `docs/metrics/dependency-risk-posture-*.json`
 - `docs/metrics/dependabot-security-audit-*.json`
 - `docs/metrics/infra-hardening-*.json`
+- `docs/security/dependency-lifecycle-review.json`
 
 Never paste Dependabot alert pages containing account details, private org data, or auth state into committed files.

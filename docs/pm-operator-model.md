@@ -6,8 +6,8 @@ This is how to **run** Nexus (and any parallel AI tooling) as a small org: **you
 
 | Role                  | Who                                                                 | Job                                                             |
 | --------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
-| **Product manager**   | You (Max)                                                           | Priorities, scope, acceptance, unblock, say no, merge direction |
-| **Engineering squad** | In-app specialists (MAX / EL / DUSTIN / …) + Codex-first IDE agents | Execute: code, research, review, ops                            |
+| **Product manager**   | You (Mario)                                                         | Priorities, scope, acceptance, unblock, say no, merge direction |
+| **Engineering squad** | In-app specialists (JANSKY / ORBIT / NOVA / CIPHER / FLUX) + Codex-first IDE agents | Execute: code, research, review, ops                            |
 | **Quality / SRE**     | CI (Quality Gates), `npm run verify`, runtime eval                  | Objective “is the factory green?”                               |
 
 ## What “keep them running at all times” means
@@ -24,9 +24,9 @@ It is **not** “every model is always streaming.” It **is**:
 
 | PM habit                 | In this repo                                                        |
 | ------------------------ | ------------------------------------------------------------------- |
-| Roadmap                  | `tasks/todo.md`, `tasks/vision-roadmap.md`, `specs/features/`       |
+| Roadmap                  | `tasks/todo.md`, `docs/SYSTEM_STATE.md`, `specs/features/`          |
 | Spec before build        | `specs/features/*.md` before large features                         |
-| Code + review            | HQ **EL (orbit)** for edits; MAX for synthesis                      |
+| Code + review            | HQ **ORBIT (EL)** for edits; **JANSKY (MAX)** for synthesis         |
 | Health check             | **Settings** diagnostics, `/api/status`, **Quality Gates** workflow |
 | Lessons                  | `tasks/lessons.md` after any correction                             |
 | Handoff between sessions | `docs/AGENT_HANDOFF.md` + `npm run handoff:write`                   |
@@ -68,7 +68,7 @@ pending → assigned → in_progress → review → done
 | `blocked`     | Waiting on spec, key, or external | Agent — escalate in one sentence |
 
 Tasks stay in `tasks/todo.md`. State transitions are written as comments:
-`- [ ] [assigned:EL] Fix price sparkline null guard`
+`- [ ] [assigned:ORBIT] Fix price sparkline null guard`
 
 ## Optional extensions (later)
 
@@ -78,4 +78,4 @@ Tasks stay in `tasks/todo.md`. State transitions are written as comments:
 
 ---
 
-_Keep this doc aligned with `.claude/rules/agents.md` and `components/home/office/prompts.ts`._
+_Keep this doc aligned with root `AGENTS.md`, `tasks/lessons.md`, and `components/home/office/prompts.ts`._

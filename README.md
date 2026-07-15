@@ -6,7 +6,7 @@
 
 # Homefront
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-06b6d4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Codex](https://img.shields.io/badge/Codex-OpenAI-111827?style=for-the-badge)](https://openai.com/codex)
@@ -33,7 +33,7 @@
 
 ## What it is
 
-**Homefront** is a local-first command-and-intelligence workspace (Next.js 14, MIT) with a native **desktop app for Windows and macOS** (Tauri). It is self-hosted, free-first, and does not charge end users in-app: optional providers are bring-your-own, and paid-compatible AI lanes stay hidden unless you explicitly opt in. Markets, geopolitics, cyber, recon, maps, and operator AI all run on your machine with no cloud app backend and no database. Run it in your browser at `localhost:3000`, or as a native desktop window via Tauri. Curated links live at **`/resources`**; secrets stay in **`.env.local`** (gitignored).
+**Homefront** is a local-first command-and-intelligence workspace (Next.js 15 / React 19, MIT) with a native **desktop app for Windows and macOS** (Tauri). It is self-hosted, free-first, and does not charge end users in-app: optional providers are bring-your-own, and paid-compatible AI lanes stay hidden unless you explicitly opt in. Markets, geopolitics, cyber, recon, maps, and operator AI all run on your machine with no cloud app backend and no database. Run it in your browser at `localhost:3000`, or as a native desktop window via Tauri. Curated links live at **`/resources`**; secrets stay in **`.env.local`** (gitignored).
 
 ---
 
@@ -175,7 +175,7 @@ flowchart TD
 
 </div>
 
-The graphic is the cheat sheet; in one line: **Next.js 14 App Router + TypeScript 5 + Zustand + Tailwind/Radix**, **server `/api/*` routes** for AI and tools (keys never shipped to the browser), **Leaflet** maps, **Framer Motion**, **Sonner**, **D3** sparklines. The pipeline strip under [At a glance](#at-a-glance) shows how data and LLM traffic flow.
+The graphic is the cheat sheet; in one line: **Next.js 15 App Router + React 19 + TypeScript 5 + Zustand + Tailwind/Radix**, **server `/api/*` routes** for AI and tools (keys never shipped to the browser), **Leaflet** maps, **Framer Motion**, **Sonner**, **D3** sparklines. The pipeline strip under [At a glance](#at-a-glance) shows how data and LLM traffic flow.
 
 ---
 

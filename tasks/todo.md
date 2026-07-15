@@ -35,7 +35,7 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 
 1. ~~**SSRF via DNS rebinding**~~ — **shipped 2026-06-22:** `lib/security/privateNetwork.ts` + post-DNS check in `api/headers`.
 2. **Rate-limit in-memory is per-process** — `lib/security/rateLimit.ts` resets on every dev-server restart. For LAN-exposed deployments, back the rate-limit store with a lightweight persistent file or SQLite ledger so abuse windows survive restarts.
-3. **CSP `unsafe-inline` on scripts** — Remove `'unsafe-inline'` from `script-src` by migrating to nonce-based CSP. Next.js 14 supports `nonce` via middleware; inject it into `<Script>` tags and the inline hydration block.
+3. **CSP `unsafe-inline` on scripts** — Remove `'unsafe-inline'` from `script-src` by migrating to nonce-based CSP. Next.js 15 supports `nonce` via middleware; inject it into `<Script>` tags and the inline hydration block.
 4. **Subresource Integrity (SRI) on TradingView embeds** — `s3.tradingview.com` scripts are whitelisted in CSP without SRI hashes. Add `integrity` + `crossorigin` attributes so supply-chain tampering is caught by the browser.
 5. ~~**Cookie `SameSite=Strict` audit**~~ — **shipped 2026-06-22:** `nexus_session_token` now uses `SameSite=Strict` (logout clear cookie aligned).
 6. **Phone-tier route audit** — Audit every `/api/*` route for phone-token tier bypass. `requireMasterSessionForAction()` added in `lib/security/masterSession.ts`; wire to any route that only checks step-up today.
@@ -297,6 +297,12 @@ Blocked or manual watchlist, not the active queue:
 - [ ] FD2 remains blocked on the real staged Coolify hostname in repo-root `.env.local`, so release-proof work still stays out of this replay stack.
 
 ## In Progress
+
+- [x] CURRENT-DOC-STACK-TRUTH — Reconcile public and operator-facing framework, route, and active-surface claims with current repository authority.
+  - Current pass: update README text/graphics, canonical architecture/design/operator docs, and current backlog wording; label dated roadmaps as historical; add one focused manifest/release-matrix regression gate.
+  - Guardrail: no runtime, dependency, component, API, provider, state, `.agents`, `.claude`, historical-body rewrite, visual redesign, raster generation, or RPG file change.
+  - Design: `specs/features/current-documentation-stack-truth.md`.
+  - Progress: complete. README badge/summary/stack copy and all five visible README/social SVG labels now agree on Next.js 15, while current architecture and Figma rules also identify React 19. Architecture maps all eight GA release-matrix routes, keeps the HTML app archived, and states the real release-hardening blockers. The PM playbook uses the current agent roster and authority chain instead of the historical vision roadmap or legacy Claude rule path. The March vision roadmap and comprehensive 2026 roadmap retain their period bodies beneath explicit historical notices, and the docs index labels the latter accordingly. `npm run docs:stack:check` derives framework majors from `package.json`, verifies GA route labels, current/public text and SVGs, operator authority, historical boundaries, and canonical verify wiring. Proof: focused docs gate, current-surface stale-text audit, SVG XML parsing, explicit TypeScript, 165.8-second canonical verification, 80.4-second production build, publication safety, zero-RPG-path audit, and diff checks passed.
 
 - [x] AGENT-INSTRUCTION-PATH-TRUTH — Align root agent instructions with the current framework, route matrix, and real project skill locations.
   - Current pass: replace dead `.Codex` references, update the root and generated-handoff Next/React facts plus GA-route facts from current manifests, identify legacy `.claude` rules as non-canonical, and add a focused regression gate.

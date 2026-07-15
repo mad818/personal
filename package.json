@@ -252,7 +252,6 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/react-syntax-highlighter": "^15.5.13",
-    "@typescript-eslint/parser": "^7.14.1",
     "autoprefixer": "^10.4.27",
     "dotenv": "^16.4.5",
     "eslint": "^8.56.0",

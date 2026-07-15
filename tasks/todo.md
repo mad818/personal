@@ -90,6 +90,13 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [x] WHOLE-APP-TYPESCRIPT-ESLINT-PARSER-ALIGNMENT — Remove the redundant parser 7 override so the Next 15 ESLint preset owns its matching parser 8 line and TypeScript 5.9 verification stays warning-free. Spec: `specs/features/typescript-eslint-parser-alignment.md`.
+  - Compatibility thesis: preserve every current rule and lint scope while removing only stale parser ownership.
+  - [x] Prove the effective TypeScript parser is root `7.18.0` while `eslint-config-next` already carries compatible `8.58.2`; reproduce the earlier warning context without claiming it appears on every run.
+  - [x] Remove the direct parser dependency and root override, update the lockfile offline, and make toolchain validation reject either regression.
+  - [x] Run focused dependency/parser proof, lint, type, canonical, build, publication, handoff, commit, push-attempt, and zero-RPG checks.
+  - Progress: TypeScript linting now inherits the matching parser/plugin 8.58.2 pair already owned by `eslint-config-next`; the direct parser 7 declaration, root override, and obsolete lock tree are gone. Before/after config comparison proves all 238 rules and settings are unchanged. The toolchain gate resolves the effective parser and verifies its lock ownership, matching plugin, and TypeScript peer range; the refreshed desktop SBOM contains 1,256 components. Focused toolchain/dependency/security proof, zero-warning lint, explicit TypeScript, 173.9-second canonical verification, 62.9-second production build, publication safety, handoff, diff checks, local commit, push attempt, and zero-RPG-path proof passed.
+
 - [x] PHONE-TIER-MUTATION-BOUNDARY — Enforce the documented phone-token limit centrally so phone sessions retain read/local-assistant use but cannot mutate operator state through unguarded API routes. Spec: `specs/features/phone-tier-mutation-boundary.md`.
   - Security thesis: signed tier plus HTTP method and exact path decide the gateway outcome before route code; future mutations default to blocked.
   - [x] Reproduce the boolean-session middleware gap and inventory 29 unsafe handlers: one public login, three exact phone exceptions, and 25 default-denied protected mutations.

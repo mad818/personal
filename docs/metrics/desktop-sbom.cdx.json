@@ -1,7 +1,7 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:ddea6c54-a2f9-8405-0976-d2d25ce2c25a",
+  "serialNumber": "urn:uuid:f1db8ea7-2a6c-eb6b-4813-3915553ca33a",
   "version": 1,
   "metadata": {
     "component": {
@@ -13,7 +13,7 @@
     "properties": [
       {
         "name": "nexus:component-count",
-        "value": "1269"
+        "value": "1256"
       },
       {
         "name": "nexus:generator",
@@ -21,7 +21,7 @@
       },
       {
         "name": "nexus:lock-digest-sha256",
-        "value": "ddea6c54a2f984050976d2d25ce2c25ac3f9ed6f78e25e3e94cc783058e04816"
+        "value": "f1db8ea72a6ceb6b48133915553ca33a7576af74ca053d57b41355249e580229"
       },
       {
         "name": "nexus:network-required",
@@ -14306,34 +14306,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40typescript-eslint/parser@7.18.0",
-      "name": "@typescript-eslint/parser",
-      "version": "7.18.0",
-      "purl": "pkg:npm/%40typescript-eslint/parser@7.18.0",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "e19f8bf08d8eaa1655f2a035df6338c0d2f7d32a591983905417cc8310c7fcae545f43cda93bb573acdaf524f9afdfad6afbc78935a60672b3a4227f1a5545b6"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "BSD-2-Clause"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/%40typescript-eslint/parser@8.58.2",
       "name": "@typescript-eslint/parser",
       "version": "8.58.2",
@@ -14380,34 +14352,6 @@
         {
           "alg": "SHA-512",
           "content": "0aae947e9659935e7eafcec1908879ac3a62dfc5b86fe4a39dbf304023cf0c3c1e4bf2d10858c2c958846f31e4e429377f64037e09a5c6a49aed2edc943b657e"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40typescript-eslint/scope-manager@7.18.0",
-      "name": "@typescript-eslint/scope-manager",
-      "version": "7.18.0",
-      "purl": "pkg:npm/%40typescript-eslint/scope-manager@7.18.0",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "8e385d204fc53c5d81ed9d6ecdcea2de858a6c67076fced0c3b0168fa8e612a34e7c315b256b63b7f5dfc02a6f364a465a57096a8839bd347e555f3ec3d25f94"
         }
       ],
       "licenses": [
@@ -14502,34 +14446,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40typescript-eslint/types@7.18.0",
-      "name": "@typescript-eslint/types",
-      "version": "7.18.0",
-      "purl": "pkg:npm/%40typescript-eslint/types@7.18.0",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "899aa2f83b35cb8103614b6538e0be6949b19c4f714bfc828a092303b5e94ca57a9c205ddc7a7f3d118699dc277e45764e133262574fd704699bf89df7db294d"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/%40typescript-eslint/types@8.58.2",
       "name": "@typescript-eslint/types",
       "version": "8.58.2",
@@ -14553,34 +14469,6 @@
       "licenses": [
         {
           "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40typescript-eslint/typescript-estree@7.18.0",
-      "name": "@typescript-eslint/typescript-estree",
-      "version": "7.18.0",
-      "purl": "pkg:npm/%40typescript-eslint/typescript-estree@7.18.0",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "68fd6ffc148f9e7ca1307b6cf1c7f5a90e90d48170c11bc040646f045916968dff947dbd3970373edb3e735d27c51c4806b0e7a0cab386077055ee5fd83e8ecc"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "BSD-2-Clause"
         }
       ]
     },
@@ -14632,34 +14520,6 @@
         {
           "alg": "SHA-512",
           "content": "4197e31cd1333d8f3e974f9f21732fb90dac265a65078ce00d9bc0f8d9af66c66fdc443039c7350ee214d552544d667f44aa2e04c843c8d681331e2c5afaf344"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40typescript-eslint/visitor-keys@7.18.0",
-      "name": "@typescript-eslint/visitor-keys",
-      "version": "7.18.0",
-      "purl": "pkg:npm/%40typescript-eslint/visitor-keys@7.18.0",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "703174fc67fcd50a58df163224a0d5d7867076689de7ebae10d8631f612a15a1749e2fb2032abf2f331a2097613495d923bb8bcf022503e57ba16a329fa0aeae"
         }
       ],
       "licenses": [
@@ -15790,34 +15650,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/array-union@2.1.0",
-      "name": "array-union",
-      "version": "2.1.0",
-      "purl": "pkg:npm/array-union@2.1.0",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "1c6cb1a0e4d853208ceacb547ba1098277781287b0008ef331d7ea3be9068e79599810f3fdc479a5ff2bfdc4785aaeb4b0bfe9d0891c8d41043f04b7185ac8cb"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/array.prototype.findlast@1.2.5",
       "name": "array.prototype.findlast",
       "version": "1.2.5",
@@ -16396,34 +16228,6 @@
         {
           "alg": "SHA-512",
           "content": "f592e9ad64ba1043668443a98c2616d9cf159263af72420965f92beeb056e9d39b99f809fcbd46a52616e47a68f650f3e03d7e9f40a4cfcad4ec5c070d0886ff"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/brace-expansion@2.1.1",
-      "name": "brace-expansion",
-      "version": "2.1.1",
-      "purl": "pkg:npm/brace-expansion@2.1.1",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "591d5c511363baf04b31904c6ea33452813e5807dd51c115d5c703f0f54154e23e677343e3e4996cdf11b1f4f66ccb86d6ac33e5116f3ee912666e5f1760f978"
         }
       ],
       "licenses": [
@@ -18529,34 +18333,6 @@
       "licenses": [
         {
           "expression": "BSD-3-Clause"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/dir-glob@3.0.1",
-      "name": "dir-glob",
-      "version": "3.0.1",
-      "purl": "pkg:npm/dir-glob@3.0.1",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "5a4ad6a7d191e0a5df28663338b993b86562d545857f0b37efb9fd71ce79fed6fa0eeab217aa5c43901b88712c85a0e963dbfaa1a4abd9708389d1a633077320"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
         }
       ]
     },
@@ -20983,34 +20759,6 @@
         {
           "alg": "SHA-512",
           "content": "0e92ca6cd5385b2969c49ca442e8df09cc185a257f2619b9d06a28d30ad520b02fe633abf5df87f944773e14820f6ac2084220d2e73e1be9ae053c03e782610d"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/globby@11.1.0",
-      "name": "globby",
-      "version": "11.1.0",
-      "purl": "pkg:npm/globby@11.1.0",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "8e121768ecf2d6c6fc232a1c6abb964a7d538e69c156cf00ca1732f37ae6c4d27cab6b96282023dc29c963e2a91925c2b9e00f7348b4e6456f54ab4fd6df52de"
         }
       ],
       "licenses": [
@@ -26481,34 +26229,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/minimatch@9.0.9",
-      "name": "minimatch",
-      "version": "9.0.9",
-      "purl": "pkg:npm/minimatch@9.0.9",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "381c0137d00be1daa61139694b6cdab31faf4de59c956ce46e57d993b2930398f78de38e373fed4429d9a26532bcd83cdf02f966ff52b3a1cc2570202fc47662"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "ISC"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/minimist@1.2.8",
       "name": "minimist",
       "version": "1.2.8",
@@ -26688,7 +26408,7 @@
         },
         {
           "name": "nexus:npm-scope",
-          "value": "development"
+          "value": "runtime"
         }
       ],
       "hashes": [
@@ -27573,34 +27293,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/path-type@4.0.0",
-      "name": "path-type",
-      "version": "4.0.0",
-      "purl": "pkg:npm/path-type@4.0.0",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "80329bf1a64c0de0ffb595acf4febeab427d33091d97ac4c57c4e39c63f7a89549d3a6dd32091b0652d4f0875f3ac22c173d815b5acd553dd7b8d125f333c0bf"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/phaser@4.0.0",
       "name": "phaser",
       "version": "4.0.0",
@@ -28060,7 +27752,7 @@
         },
         {
           "name": "nexus:npm-scope",
-          "value": "development"
+          "value": "runtime"
         }
       ],
       "hashes": [
@@ -30009,34 +29701,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/slash@3.0.0",
-      "name": "slash",
-      "version": "3.0.0",
-      "purl": "pkg:npm/slash@3.0.0",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "83d43585a79bcb7e8e492b706f89ed08618668ab1a5528d0ebc7c1c6841cbad9797d2d6fb98d7c1f7c12b778c5c85b6b931f8acf45751bce40e0cc80743322d9"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/slice-ansi@8.0.0",
       "name": "slice-ansi",
       "version": "8.0.0",
@@ -31455,34 +31119,6 @@
         {
           "alg": "SHA-512",
           "content": "b663292b4d018d9894c95cafac12bb9277ab3609a0bdc57f28b572ba66bf482f9340dd7aec6acc45c880353cf4f7e937cd6f0bf2deb48d63b51a97e465d8d36b"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/ts-api-utils@1.4.3",
-      "name": "ts-api-utils",
-      "version": "1.4.3",
-      "purl": "pkg:npm/ts-api-utils@1.4.3",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "development"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "8b778c1bbed44cc0f4859860452e7ada9bfcdd10baba44800b618c35673ef5d89e87ffa30cce6ee581be3475fa54d0d11d0707c26b131dcb4ff4b85b0b75b157"
         }
       ],
       "licenses": [

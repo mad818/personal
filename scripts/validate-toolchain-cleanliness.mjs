@@ -2,6 +2,7 @@
 /* eslint-disable no-console */
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 const activeSourceDirectories = ["app", "lib", "components"];
@@ -36,6 +37,7 @@ if (!/^\s*include\s*=\s*dev\s*$/m.test(npmConfig)) {
 }
 
 const packageJson = JSON.parse(readRequired("package.json"));
+const packageLock = JSON.parse(readRequired("package-lock.json"));
 const lint = packageJson.scripts?.lint ?? "";
 const lintFix = packageJson.scripts?.["lint:fix"] ?? "";
 const verify = packageJson.scripts?.verify ?? "";
@@ -130,7 +132,9 @@ const checkContract = inspectFormatterCommand(formatCheck, "check");
 if (checkContract.error) {
   fail(`format:check ${checkContract.error}`);
 }
-if (JSON.stringify(writeContract.scopes) !== JSON.stringify(checkContract.scopes)) {
+if (
+  JSON.stringify(writeContract.scopes) !== JSON.stringify(checkContract.scopes)
+) {
   fail("format:write and format:check must resolve the same source scope");
 }
 
@@ -155,7 +159,10 @@ function collectActiveSources(directory) {
       const entryPath = path.join(current, entry.name);
       if (entry.isDirectory()) {
         pending.push(entryPath);
-      } else if (entry.isFile() && activeSourceExtensions.has(path.extname(entry.name))) {
+      } else if (
+        entry.isFile() &&
+        activeSourceExtensions.has(path.extname(entry.name))
+      ) {
         const relativePath = path
           .relative(root, entryPath)
           .replaceAll(path.sep, "/");
@@ -171,7 +178,8 @@ function collectActiveSources(directory) {
   return files.sort();
 }
 
-const activeSourceInventory = activeSourceDirectories.flatMap(collectActiveSources);
+const activeSourceInventory =
+  activeSourceDirectories.flatMap(collectActiveSources);
 if (verifyFull !== "npm run verify") {
   fail("verify:full must remain a compatibility alias for canonical verify");
 }
@@ -217,16 +225,138 @@ for (const requiredConfig of [
   }
 }
 
-const typescriptOverride = (eslintConfig.overrides ?? []).find(
-  (override) =>
-    Array.isArray(override.files) &&
-    override.files.includes("*.ts") &&
-    override.files.includes("*.tsx"),
+if (
+  packageJson.dependencies?.["@typescript-eslint/parser"] ||
+  packageJson.devDependencies?.["@typescript-eslint/parser"]
+) {
+  fail("package.json must let eslint-config-next own the TypeScript parser");
+}
+if (
+  packageLock.packages?.[""]?.dependencies?.["@typescript-eslint/parser"] ||
+  packageLock.packages?.[""]?.devDependencies?.["@typescript-eslint/parser"]
+) {
+  fail("package-lock.json still records a direct TypeScript parser dependency");
+}
+
+const parserOverrides = (eslintConfig.overrides ?? []).filter(
+  (override) => override?.parser === "@typescript-eslint/parser",
 );
-if (typescriptOverride?.parser !== "@typescript-eslint/parser") {
-  fail(".eslintrc.json must retain the TypeScript parser override");
+if (parserOverrides.length > 0) {
+  fail(".eslintrc.json must not override the parser supplied by Next");
+}
+
+const parserLockEntries = Object.entries(packageLock.packages ?? {}).filter(
+  ([packagePath]) =>
+    packagePath === "node_modules/@typescript-eslint/parser" ||
+    packagePath.endsWith("/node_modules/@typescript-eslint/parser"),
+);
+if (parserLockEntries.length === 0) {
+  fail(
+    "package-lock.json is missing the parser supplied by eslint-config-next",
+  );
+}
+for (const [packagePath, entry] of parserLockEntries) {
+  const major = Number.parseInt(entry.version?.split(".")[0] ?? "", 10);
+  if (!Number.isInteger(major) || major < 8) {
+    fail(`${packagePath} must stay on the Next-compatible parser 8+ line`);
+  }
+}
+
+function versionTuple(version) {
+  const match = /^(\d+)\.(\d+)\.(\d+)/.exec(version ?? "");
+  if (!match) fail(`cannot parse semantic version ${version}`);
+  return match.slice(1).map(Number);
+}
+
+function compareVersions(left, right) {
+  for (let index = 0; index < 3; index += 1) {
+    if (left[index] !== right[index]) return left[index] - right[index];
+  }
+  return 0;
+}
+
+function supportsVersion(range, version) {
+  const minimum = />=(\d+\.\d+\.\d+)/.exec(range ?? "")?.[1];
+  const maximum = /<(\d+\.\d+\.\d+)/.exec(range ?? "")?.[1];
+  if (!minimum || !maximum) return false;
+  const candidate = versionTuple(version);
+  return (
+    compareVersions(candidate, versionTuple(minimum)) >= 0 &&
+    compareVersions(candidate, versionTuple(maximum)) < 0
+  );
+}
+
+const eslintBin = path.join(root, "node_modules", "eslint", "bin", "eslint.js");
+const configResult = spawnSync(
+  process.execPath,
+  [eslintBin, "--print-config", "app/layout.tsx"],
+  {
+    cwd: root,
+    encoding: "utf8",
+    shell: false,
+    timeout: 30_000,
+  },
+);
+if (configResult.status !== 0 || !configResult.stdout) {
+  fail(
+    `ESLint config resolution failed: ${configResult.stderr?.trim() || `exit ${configResult.status}`}`,
+  );
+}
+const resolvedEslintConfig = JSON.parse(configResult.stdout);
+const resolvedParserPath = resolvedEslintConfig.parser;
+if (
+  typeof resolvedParserPath !== "string" ||
+  !resolvedParserPath.includes("@typescript-eslint")
+) {
+  fail("TypeScript files must resolve through @typescript-eslint/parser");
+}
+const parserDistIndex = resolvedParserPath.lastIndexOf(
+  `${path.sep}dist${path.sep}`,
+);
+if (parserDistIndex < 0) {
+  fail(`cannot locate the resolved parser manifest from ${resolvedParserPath}`);
+}
+const parserManifestPath = path.join(
+  resolvedParserPath.slice(0, parserDistIndex),
+  "package.json",
+);
+const parserManifest = JSON.parse(fs.readFileSync(parserManifestPath, "utf8"));
+const parserMajor = Number.parseInt(
+  parserManifest.version?.split(".")[0] ?? "",
+  10,
+);
+if (!Number.isInteger(parserMajor) || parserMajor < 8) {
+  fail(
+    `resolved TypeScript parser ${parserManifest.version} must be version 8+`,
+  );
+}
+const pluginLockEntries = Object.entries(packageLock.packages ?? {}).filter(
+  ([packagePath]) =>
+    packagePath === "node_modules/@typescript-eslint/eslint-plugin" ||
+    packagePath.endsWith("/node_modules/@typescript-eslint/eslint-plugin"),
+);
+if (
+  !pluginLockEntries.some(
+    ([, entry]) => entry.version === parserManifest.version,
+  )
+) {
+  fail(
+    `resolved parser ${parserManifest.version} must have a matching TypeScript ESLint plugin`,
+  );
+}
+const lockedTypeScriptVersion =
+  packageLock.packages?.["node_modules/typescript"]?.version;
+if (
+  !supportsVersion(
+    parserManifest.peerDependencies?.typescript,
+    lockedTypeScriptVersion,
+  )
+) {
+  fail(
+    `resolved parser ${parserManifest.version} does not declare support for TypeScript ${lockedTypeScriptVersion}`,
+  );
 }
 
 console.log(
-  `ok toolchain-cleanliness (npm include=dev + ESLint + Prettier ${activeSourceInventory.length}-file non-RPG scope + truthful full audit)`,
+  `ok toolchain-cleanliness (npm include=dev + ESLint parser ${parserManifest.version} for TypeScript ${lockedTypeScriptVersion} + Prettier ${activeSourceInventory.length}-file non-RPG scope + truthful full audit)`,
 );

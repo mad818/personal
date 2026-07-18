@@ -17,7 +17,9 @@ Make `npm run orbit:next` select the next locally actionable, non-RPG top-level 
 ## Classification contract
 
 - RPG classification is limited to explicit task identifiers and product language such as `ARPG`, `Aether Reliquary`, full-game production, game asset pipelines, or game-focus work.
+- A human-owned top-level task may declare `Queue posture: blocked_external` or `Queue posture: blocked_manual` in its indented evidence. ORBIT treats that narrow marker as authoritative after the RPG exclusion check and exposes a distinct deterministic reason code.
 - Blocked/manual classification requires explicit task evidence such as remaining physical/manual acceptance, remote-only closure, GitHub reachability, a staged hostname, packaged artifact/signing prerequisites, or merge/acceptance dependencies.
+- A declared blocked posture may not be inferred from generic prose, may not declare local readiness, and never marks the underlying task complete.
 - General words such as `external`, `approval`, `review`, or `local` do not block a task by themselves.
 - Actionable work remains visible even when its guardrails mention things it must not do.
 
@@ -31,5 +33,5 @@ Make `npm run orbit:next` select the next locally actionable, non-RPG top-level 
 ## Verification
 
 - Static validator covers package wiring, no-write/no-network boundaries, CLI modes, and canonical verification integration.
-- Runtime fixtures cover top-level parsing, nested checklist suppression, each classification class, false-positive guardrails, fallback behavior, JSON receipts, and the current real queue.
+- Runtime fixtures cover top-level parsing, nested checklist suppression, each classification class, declared external/manual blockers, false-positive guardrails, fallback behavior, zero-actionable truth, JSON receipts, and the current real queue.
 - Focused ORBIT check, TypeScript, lint/format, publication/security checks, canonical verification, handoff, and zero-RPG changed-path audit.

@@ -74,6 +74,20 @@ function classifyPendingTask(task) {
     return { ...task, classification: "excluded_rpg", reason: "rpg_scope" };
   }
 
+  const declaredPosture = context.match(
+    /^\s*-\s+Queue posture:\s+`?(blocked_external|blocked_manual)`?\b/im,
+  )?.[1];
+  if (declaredPosture) {
+    return {
+      ...task,
+      classification: "blocked_or_manual",
+      reason:
+        declaredPosture === "blocked_manual"
+          ? "declared_manual_prerequisite"
+          : "declared_external_prerequisite",
+    };
+  }
+
   if (
     /remaining physical|physical phone|physical device|real phone\/iPad/i.test(
       context,

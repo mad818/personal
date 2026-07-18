@@ -26,6 +26,8 @@ const fixture = `# Tasks
   - Remaining physical phone proof is required.
 - [ ] MW6-ARPG-WORK — Expand Aether Reliquary.
   - Build more game content.
+- [ ] DECLARED-SANDBOX — Run an approved sandbox experiment.
+  - Queue posture: blocked_external — the required sandbox is absent.
 - [ ] LOCAL-USEFUL — Improve the local operator queue.
   - Guardrail: no external writes; operator approval and local review remain explicit.
 - [x] COMPLETE — Ignore completed work.
@@ -39,16 +41,22 @@ const lines = fixture.split(/\r?\n/);
 const nextUpLines = getSectionLines(lines, "## Next Up");
 assert.ok(nextUpLines);
 const blocks = parseTopLevelPendingTaskBlocks(nextUpLines);
-assert.equal(blocks.length, 4);
+assert.equal(blocks.length, 5);
 assert.deepEqual(
   blocks.map((task) => task.key),
-  ["REMOTE-CI", "PHONE-PROOF", "MW6-ARPG-WORK", "LOCAL-USEFUL"],
+  [
+    "REMOTE-CI",
+    "PHONE-PROOF",
+    "MW6-ARPG-WORK",
+    "DECLARED-SANDBOX",
+    "LOCAL-USEFUL",
+  ],
 );
 assert.equal(
   blocks.some((task) => task.task.includes("nested step")),
   false,
 );
-assert.equal(blocks[3].context.includes("COMPLETE"), false);
+assert.equal(blocks[4].context.includes("COMPLETE"), false);
 
 const classifications = blocks.map(classifyPendingTask);
 assert.deepEqual(
@@ -57,6 +65,7 @@ assert.deepEqual(
     ["blocked_or_manual", "remote_state_required"],
     ["blocked_or_manual", "physical_or_manual_proof"],
     ["excluded_rpg", "rpg_scope"],
+    ["blocked_or_manual", "declared_external_prerequisite"],
     ["actionable", "local_ready"],
   ],
 );
@@ -66,9 +75,9 @@ assert.equal(queue.source, "next_up");
 assert.equal(queue.next.key, "LOCAL-USEFUL");
 assert.equal(queue.next.section, "next_up");
 assert.deepEqual(queue.counts, {
-  total: 4,
+  total: 5,
   actionable: 1,
-  blockedOrManual: 2,
+  blockedOrManual: 3,
   excludedRpg: 1,
 });
 assert.equal(
@@ -80,7 +89,7 @@ const human = formatOrbitQueue(queue);
 assert.match(human, /ORBIT NEXT ACTIONABLE TASK/);
 assert.match(human, /LOCAL-USEFUL/);
 assert.doesNotMatch(human, /Aether Reliquary/);
-assert.match(human, /1 actionable, 2 blocked\/manual, 1 RPG-excluded/);
+assert.match(human, /1 actionable, 3 blocked\/manual, 1 RPG-excluded/);
 
 const all = formatOrbitQueue(queue, { all: true });
 assert.match(all, /QUEUE REVIEW/);
@@ -90,7 +99,7 @@ assert.match(all, /MW6-ARPG-WORK/);
 const receipt = buildOrbitReceipt(queue);
 assert.equal(receipt.command, "orbit:next");
 assert.equal(receipt.next.key, "LOCAL-USEFUL");
-assert.equal(receipt.tasks.length, 4);
+assert.equal(receipt.tasks.length, 5);
 assert.ok(
   receipt.tasks.every(
     (task) => task.task.length <= 500 && task.key.length <= 500,
@@ -100,10 +109,22 @@ assert.ok(
 
 const noActionable = buildOrbitQueue(`## Next Up
 - [ ] PHONE — Remaining manual acceptance is required.
+- [ ] SANDBOX — Execute the approved experiment.
+  - Queue posture: blocked_external — sandbox evidence is absent.
+- [ ] DEVICE — Complete device review.
+  - Queue posture: blocked_manual — physical acceptance is required.
 - [ ] MW6-ARPG — Aether Reliquary production work.
 `);
 assert.equal(noActionable.next, null);
 assert.equal(noActionable.firstBlocker.key, "PHONE");
+assert.equal(
+  noActionable.tasks.find((task) => task.key === "SANDBOX")?.reason,
+  "declared_external_prerequisite",
+);
+assert.equal(
+  noActionable.tasks.find((task) => task.key === "DEVICE")?.reason,
+  "declared_manual_prerequisite",
+);
 assert.match(
   formatOrbitQueue(noActionable),
   /No locally actionable non-RPG task is currently proven/,
@@ -141,12 +162,20 @@ assert.deepEqual(parseArgs(["--all", "--json"]), {
 assert.throws(() => parseArgs(["--unknown"]));
 
 const currentQueue = buildOrbitQueue(fs.readFileSync("tasks/todo.md", "utf8"));
-assert.ok(currentQueue.next, "the current queue must expose local work");
-assert.equal(currentQueue.next.classification, "actionable");
-assert.notEqual(currentQueue.next.key, "CI-GREEN-NODE-RUNTIME");
+assert.equal(
+  currentQueue.next,
+  null,
+  "the current queue must not invent local work while every non-RPG task is blocked",
+);
+const currentFeynman = currentQueue.tasks.find(
+  (task) => task.key === "FEYNMAN-SOURCE-PARITY",
+);
+assert.equal(currentFeynman?.classification, "blocked_or_manual");
+assert.equal(currentFeynman?.reason, "declared_external_prerequisite");
+assert.equal(currentQueue.counts.actionable, 0);
 assert.ok(currentQueue.counts.blockedOrManual >= 1);
 assert.ok(currentQueue.counts.excludedRpg >= 1);
 
 console.log(
-  `ok orbit-actionable-next-runtime (next=${currentQueue.next.key}, actionable=${currentQueue.counts.actionable}, blocked/manual=${currentQueue.counts.blockedOrManual}, RPG-excluded=${currentQueue.counts.excludedRpg})`,
+  `ok orbit-actionable-next-runtime (next=${currentQueue.next?.key ?? "none"}, actionable=${currentQueue.counts.actionable}, blocked/manual=${currentQueue.counts.blockedOrManual}, RPG-excluded=${currentQueue.counts.excludedRpg})`,
 );

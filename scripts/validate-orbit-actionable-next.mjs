@@ -37,6 +37,8 @@ for (const needle of [
   'reason: "physical_or_manual_proof"',
   'reason: "remote_state_required"',
   'reason: "external_prerequisite"',
+  '"declared_external_prerequisite"',
+  '"declared_manual_prerequisite"',
   'reason: "rpg_scope"',
   'reason: "local_ready"',
   "MAX_CLASSIFIED_TASKS = 200",
@@ -74,6 +76,8 @@ for (const guardrail of [
   "--json",
   "--all",
   "General words such as `external`, `approval`, `review`, or `local` do not block a task",
+  "Queue posture: blocked_external",
+  "Queue posture: blocked_manual",
   "Do not mutate `tasks/todo.md`",
 ]) {
   requireText(spec, guardrail, "feature contract");
@@ -88,6 +92,11 @@ if (
 requireText(todo, "- [x] CI-GREEN-NODE-RUNTIME", "closed CI task");
 requireText(todo, "f2bbe74", "runtime-alignment commit proof");
 requireText(todo, "e44c0ae", "published remote-head proof");
+requireText(
+  todo,
+  "Queue posture: `blocked_external`",
+  "current explicit blocked posture",
+);
 
 if (packageJson.scripts?.["orbit:next"] !== "node scripts/orbit.js") {
   fail("orbit:next package command changed unexpectedly");

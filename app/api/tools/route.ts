@@ -30,6 +30,14 @@ import {
   normalizeFeynmanPaperQuestion,
 } from "@/lib/feynmanPaperQuestion";
 import {
+  FEYNMAN_PAPER_CODE_AUDIT_LIMITS,
+  auditFeynmanPaperCodeAuditAnswer,
+  buildFeynmanPaperCodeAuditPrompt,
+  formatFeynmanPaperCodeAudit,
+  parseFeynmanPaperCodeAuditInput,
+  resolveFeynmanPaperCodeRepository,
+} from "@/lib/feynmanPaperCodeAudit";
+import {
   formatHuggingFaceInspection,
   inspectHuggingFaceRepository,
   inspectHuggingFaceTopic,
@@ -1180,6 +1188,64 @@ async function feynmanPaperAsk(
   }
 }
 
+async function feynmanPaperCodeAudit(
+  input: Record<string, string>,
+  origin: string,
+): Promise<ToolResult> {
+  try {
+    const reference = normalizeFeynmanPaperReference(
+      input.paper ?? input.reference ?? input.arxiv_id ?? "",
+    );
+    const parsed = parseFeynmanPaperCodeAuditInput(
+      input.question ?? "",
+      input.repository ?? input.repository_url ?? "",
+      input.code_evidence_json ?? "",
+    );
+    const inspection = await inspectFeynmanPaper(reference, [
+      ...FEYNMAN_PAPER_SECTIONS,
+    ]);
+    const repositoryUrl = resolveFeynmanPaperCodeRepository(
+      inspection,
+      parsed.requestedRepositoryUrl,
+    );
+    const prompt = buildFeynmanPaperCodeAuditPrompt(
+      inspection,
+      parsed.question,
+      repositoryUrl,
+      parsed.codeEvidence,
+    );
+    const aiResult = await callInternalAi({
+      origin,
+      task: "research",
+      maxTokens: FEYNMAN_PAPER_CODE_AUDIT_LIMITS.maximumOutputTokens,
+      timeoutMs: 45_000,
+      messages: [
+        { role: "system", content: prompt.systemPrompt },
+        { role: "user", content: prompt.userPrompt },
+      ],
+    });
+    if (!aiResult.ok || !aiResult.text.trim()) {
+      return withToolResult(
+        "feynman_paper_code_audit: Evidence was collected, but internal AI auditing was unavailable. Check local AI and retry.",
+      );
+    }
+    const audit = auditFeynmanPaperCodeAuditAnswer(
+      aiResult.text,
+      prompt.paperEvidenceSections,
+      prompt.codeEvidencePaths,
+    );
+    return withToolResult(
+      formatFeynmanPaperCodeAudit(inspection, prompt, audit),
+    );
+  } catch (error) {
+    return withToolResult(
+      error instanceof Error
+        ? `feynman_paper_code_audit: ${error.message}`
+        : "feynman_paper_code_audit failed.",
+    );
+  }
+}
+
 async function deepResearch(
   topic: string,
   origin: string,
@@ -1943,6 +2009,16 @@ export async function POST(req: NextRequest) {
       case "feynman_paper_ask":
         {
           const toolResult = await feynmanPaperAsk(
+            input,
+            resolveInternalServiceOrigin(),
+          );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "feynman_paper_code_audit":
+        {
+          const toolResult = await feynmanPaperCodeAudit(
             input,
             resolveInternalServiceOrigin(),
           );

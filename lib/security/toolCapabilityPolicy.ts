@@ -74,6 +74,7 @@ const TOOL_CAPABILITY_REGISTRY: Record<string, ToolCapabilityClass> = {
   feynman_paper_rank: "analyze",
   feynman_paper_inspect: "networked",
   feynman_paper_ask: "networked",
+  feynman_paper_code_audit: "networked",
   feynman_outputs: "read",
   rss_fetch: "networked",
   hf_papers_search: "networked",

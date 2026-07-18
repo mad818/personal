@@ -168,8 +168,12 @@
       "id": "paper-code-audit",
       "title": "Line-by-line paper claim versus public codebase audit",
       "sourceEvidence": "skills/paper-code-audit/SKILL.md and alpha_read_code",
-      "disposition": "pending",
-      "reason": "Current audit mode performs generic source synthesis and does not resolve a paper's repository or compare claims to implementation artifacts."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperCodeAudit.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-paper-code-audit-runtime.mjs"
+      ]
     },
     {
       "id": "local-replication-execution",

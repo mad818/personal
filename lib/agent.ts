@@ -88,6 +88,7 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   feynman_paper_rank: "tier0",
   feynman_paper_inspect: "tier0",
   feynman_paper_ask: "tier0",
+  feynman_paper_code_audit: "tier0",
   feynman_outputs: "tier0",
   huggingface_inspect: "tier0",
   compare_repos: "tier0",
@@ -282,6 +283,37 @@ export const AGENT_TOOLS = [
         },
       },
       required: ["paper", "question"],
+    },
+  },
+  {
+    name: "feynman_paper_code_audit",
+    description:
+      "Compare one explicit question about a public arXiv paper with bounded, caller-supplied public-code excerpts. Resolves only a GitHub repository disclosed by the paper, makes one internal AI call, and returns paired paper/code citation receipts. Gather direct code excerpts first. This does not clone, install, build, test, execute, annotate, persist, or claim full repository coverage.",
+    input_schema: {
+      type: "object",
+      properties: {
+        paper: {
+          type: "string",
+          description:
+            "A modern or legacy arXiv ID, or a canonical HTTPS arxiv.org abs, pdf, or html paper URL.",
+        },
+        question: {
+          type: "string",
+          description:
+            "One explicit 4-600 character implementation-audit question.",
+        },
+        repository: {
+          type: "string",
+          description:
+            "Optional canonical GitHub repository root URL. Required when the paper discloses more than one repository and must exactly match one disclosed link.",
+        },
+        code_evidence_json: {
+          type: "string",
+          description:
+            "A JSON array of 1-8 objects with repository-relative path and bounded excerpt strings, gathered from direct public code evidence.",
+        },
+      },
+      required: ["paper", "question", "code_evidence_json"],
     },
   },
   {
@@ -765,6 +797,8 @@ const FEYNMAN_PAPER_INSPECTION_INTENT_RE =
   /\bfeynman_paper_inspect\b|(?:^|\s)\/(?:paper-inspect|inspect-paper)\b|https:\/\/(?:www\.)?arxiv\.org\/(?:abs|pdf|html)\/[^\s]+|\b(?:inspect|read|extract|show)\b.{0,30}\b(?:arxiv|paper sections?)\b/i;
 const FEYNMAN_PAPER_QUESTION_INTENT_RE =
   /\bfeynman_paper_ask\b|(?:^|\s)\/(?:paper-ask|ask-paper)\b|\b(?:ask|answer|explain)\b.{0,80}\b(?:arxiv|paper)\b|\b(?:what|why|how|does|do|is|are|can|which)\b.{0,160}\b(?:arxiv|paper)\b|https:\/\/(?:www\.)?arxiv\.org\/(?:abs|pdf|html)\/[^\s]+.{0,160}\b(?:what|why|how|does|do|is|are|can|which)\b/i;
+const FEYNMAN_PAPER_CODE_AUDIT_INTENT_RE =
+  /\bfeynman_paper_code_audit\b|(?:^|\s)\/(?:paper-code-audit|audit-paper-code)\b|\b(?:audit|compare|check)\b.{0,80}\b(?:paper|arxiv)\b.{0,80}\b(?:code|repo(?:sitory)?|implementation)\b|\b(?:code|repo(?:sitory)?|implementation)\b.{0,80}\b(?:against|versus|vs\.?|to)\b.{0,40}\b(?:paper|arxiv)\b/i;
 const FEYNMAN_OUTPUTS_INTENT_RE =
   /\bfeynman_outputs\b|(?:^|\s)\/outputs\b|\bfeynman outputs\b|\b(?:search|find|resume|continue|preview|export|pdf)\b.{0,40}\b(?:feynman|research session|research output)\b|\b(?:feynman|research session|research output)\b.{0,40}\b(?:search|find|resume|continue|preview|export|pdf)\b/i;
 const HUGGING_FACE_INTENT_RE =
@@ -819,6 +853,8 @@ export function getAgentToolCatalog(
     FEYNMAN_PAPER_INSPECTION_INTENT_RE.test(userMessage);
   const feynmanPaperQuestionIntent =
     FEYNMAN_PAPER_QUESTION_INTENT_RE.test(userMessage);
+  const feynmanPaperCodeAuditIntent =
+    FEYNMAN_PAPER_CODE_AUDIT_INTENT_RE.test(userMessage);
   const feynmanOutputsIntent = FEYNMAN_OUTPUTS_INTENT_RE.test(userMessage);
   const huggingFaceIntent = HUGGING_FACE_INTENT_RE.test(userMessage);
   const repoCompareIntent = hasRepoCompareSignal(userMessage);
@@ -878,6 +914,17 @@ export function getAgentToolCatalog(
   ) {
     groups.add("feynman_paper_question");
     names.add("feynman_paper_ask");
+  }
+
+  if (
+    feynmanPaperCodeAuditIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("research");
+    groups.add("feynman_paper_code_audit");
+    names.add("web_search");
+    names.add("fetch_url");
+    names.add("feynman_paper_code_audit");
   }
 
   if (

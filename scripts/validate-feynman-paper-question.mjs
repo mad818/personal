@@ -59,7 +59,7 @@ for (const forbidden of ["fetch(", "callInternalAi", "node:fs", "writeFile"]) {
 }
 
 const routeHandler = route.match(
-  /async function feynmanPaperAsk[\s\S]*?\n}\n\nasync function deepResearch/,
+  /async function feynmanPaperAsk[\s\S]*?\n}\n\nasync function feynmanPaperCodeAudit/,
 )?.[0];
 if (!routeHandler) fail("protected route handler is missing");
 for (const needle of [

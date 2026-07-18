@@ -87,6 +87,7 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   feynman_research: "tier0",
   feynman_paper_rank: "tier0",
   feynman_paper_inspect: "tier0",
+  feynman_paper_ask: "tier0",
   feynman_outputs: "tier0",
   huggingface_inspect: "tier0",
   compare_repos: "tier0",
@@ -260,6 +261,27 @@ export const AGENT_TOOLS = [
         },
       },
       required: ["paper"],
+    },
+  },
+  {
+    name: "feynman_paper_ask",
+    description:
+      "Answer one explicit question about one public arXiv paper using only bounded section-labeled evidence from the existing inspection lane. Returns an AI answer plus valid/invalid citation, missing-section, warning, and source receipts. Makes one internal AI call and does not persist, annotate, search semantically, read repository code, clone, install, or execute anything.",
+    input_schema: {
+      type: "object",
+      properties: {
+        paper: {
+          type: "string",
+          description:
+            "A modern or legacy arXiv ID, or a canonical HTTPS arxiv.org abs, pdf, or html paper URL.",
+        },
+        question: {
+          type: "string",
+          description:
+            "One explicit 4-600 character question to answer only from the bounded paper evidence.",
+        },
+      },
+      required: ["paper", "question"],
     },
   },
   {
@@ -741,6 +763,8 @@ const FEYNMAN_PAPER_RANK_INTENT_RE =
   /\bfeynman_paper_rank\b|(?:^|\s)\/(?:rank|paper-rank)\b|\b(?:paper rank|what should i read first|rank (?:these|the) papers)\b/i;
 const FEYNMAN_PAPER_INSPECTION_INTENT_RE =
   /\bfeynman_paper_inspect\b|(?:^|\s)\/(?:paper-inspect|inspect-paper)\b|https:\/\/(?:www\.)?arxiv\.org\/(?:abs|pdf|html)\/[^\s]+|\b(?:inspect|read|extract|show)\b.{0,30}\b(?:arxiv|paper sections?)\b/i;
+const FEYNMAN_PAPER_QUESTION_INTENT_RE =
+  /\bfeynman_paper_ask\b|(?:^|\s)\/(?:paper-ask|ask-paper)\b|\b(?:ask|answer|explain)\b.{0,80}\b(?:arxiv|paper)\b|\b(?:what|why|how|does|do|is|are|can|which)\b.{0,160}\b(?:arxiv|paper)\b|https:\/\/(?:www\.)?arxiv\.org\/(?:abs|pdf|html)\/[^\s]+.{0,160}\b(?:what|why|how|does|do|is|are|can|which)\b/i;
 const FEYNMAN_OUTPUTS_INTENT_RE =
   /\bfeynman_outputs\b|(?:^|\s)\/outputs\b|\bfeynman outputs\b|\b(?:search|find|resume|continue|preview|export|pdf)\b.{0,40}\b(?:feynman|research session|research output)\b|\b(?:feynman|research session|research output)\b.{0,40}\b(?:search|find|resume|continue|preview|export|pdf)\b/i;
 const HUGGING_FACE_INTENT_RE =
@@ -793,6 +817,8 @@ export function getAgentToolCatalog(
   const feynmanPaperRankIntent = FEYNMAN_PAPER_RANK_INTENT_RE.test(userMessage);
   const feynmanPaperInspectionIntent =
     FEYNMAN_PAPER_INSPECTION_INTENT_RE.test(userMessage);
+  const feynmanPaperQuestionIntent =
+    FEYNMAN_PAPER_QUESTION_INTENT_RE.test(userMessage);
   const feynmanOutputsIntent = FEYNMAN_OUTPUTS_INTENT_RE.test(userMessage);
   const huggingFaceIntent = HUGGING_FACE_INTENT_RE.test(userMessage);
   const repoCompareIntent = hasRepoCompareSignal(userMessage);
@@ -844,6 +870,14 @@ export function getAgentToolCatalog(
   ) {
     groups.add("feynman_paper_inspection");
     names.add("feynman_paper_inspect");
+  }
+
+  if (
+    feynmanPaperQuestionIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("feynman_paper_question");
+    names.add("feynman_paper_ask");
   }
 
   if (

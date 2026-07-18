@@ -85,11 +85,11 @@ if (capability?.disposition !== "adapted") {
   process.exit(1);
 }
 const pendingPaperTools = parity.capabilities?.find(
-  (entry) => entry.id === "paper-search-question-answer-annotations",
+  (entry) => entry.id === "semantic-paper-search-and-annotations",
 );
 if (pendingPaperTools?.disposition !== "pending") {
   console.error(
-    "x feynman-paper-inspection: semantic search, Q&A, and annotations must remain pending",
+    "x feynman-paper-inspection: semantic search and annotations must remain pending",
   );
   process.exit(1);
 }

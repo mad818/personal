@@ -16,11 +16,19 @@ import {
   rankFeynmanPapers,
 } from "@/lib/feynmanPaperRank";
 import {
+  FEYNMAN_PAPER_SECTIONS,
   formatFeynmanPaperInspection,
   inspectFeynmanPaper,
   normalizeFeynmanPaperReference,
   parseFeynmanPaperSections,
 } from "@/lib/feynmanPaperInspection";
+import {
+  FEYNMAN_PAPER_QUESTION_LIMITS,
+  auditFeynmanPaperQuestionAnswer,
+  buildFeynmanPaperQuestionPrompt,
+  formatFeynmanPaperQuestionAnswer,
+  normalizeFeynmanPaperQuestion,
+} from "@/lib/feynmanPaperQuestion";
 import {
   formatHuggingFaceInspection,
   inspectHuggingFaceRepository,
@@ -1128,6 +1136,50 @@ async function feynmanPaperInspect(
   }
 }
 
+async function feynmanPaperAsk(
+  input: Record<string, string>,
+  origin: string,
+): Promise<ToolResult> {
+  try {
+    const reference = normalizeFeynmanPaperReference(
+      input.paper ?? input.reference ?? input.arxiv_id ?? "",
+    );
+    const question = normalizeFeynmanPaperQuestion(input.question ?? "");
+    const inspection = await inspectFeynmanPaper(reference, [
+      ...FEYNMAN_PAPER_SECTIONS,
+    ]);
+    const prompt = buildFeynmanPaperQuestionPrompt(inspection, question);
+    const aiResult = await callInternalAi({
+      origin,
+      task: "research",
+      maxTokens: FEYNMAN_PAPER_QUESTION_LIMITS.maximumOutputTokens,
+      timeoutMs: 45_000,
+      messages: [
+        { role: "system", content: prompt.systemPrompt },
+        { role: "user", content: prompt.userPrompt },
+      ],
+    });
+    if (!aiResult.ok || !aiResult.text.trim()) {
+      return withToolResult(
+        "feynman_paper_ask: Paper evidence was collected, but internal AI answering was unavailable. Check local AI and retry.",
+      );
+    }
+    const audit = auditFeynmanPaperQuestionAnswer(
+      aiResult.text,
+      prompt.evidenceSections,
+    );
+    return withToolResult(
+      formatFeynmanPaperQuestionAnswer(inspection, question, audit),
+    );
+  } catch (error) {
+    return withToolResult(
+      error instanceof Error
+        ? `feynman_paper_ask: ${error.message}`
+        : "feynman_paper_ask failed.",
+    );
+  }
+}
+
 async function deepResearch(
   topic: string,
   origin: string,
@@ -1884,6 +1936,16 @@ export async function POST(req: NextRequest) {
       case "feynman_paper_inspect":
         {
           const toolResult = await feynmanPaperInspect(input);
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "feynman_paper_ask":
+        {
+          const toolResult = await feynmanPaperAsk(
+            input,
+            resolveInternalServiceOrigin(),
+          );
           result = toolResult.result;
           meta = toolResult.meta;
         }

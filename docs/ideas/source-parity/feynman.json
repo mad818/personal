@@ -125,11 +125,22 @@
       ]
     },
     {
-      "id": "paper-search-question-answer-annotations",
-      "title": "Semantic paper search, paper Q&A, and persistent local annotations",
+      "id": "bounded-paper-question-answering",
+      "title": "Explicit section-grounded paper Q&A with bounded evidence and citation-audit receipts",
+      "sourceEvidence": "extensions/research-tools/alpha.ts",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperQuestion.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-paper-question-runtime.mjs"
+      ]
+    },
+    {
+      "id": "semantic-paper-search-and-annotations",
+      "title": "Semantic paper search and persistent local annotations",
       "sourceEvidence": "extensions/research-tools/alpha.ts",
       "disposition": "pending",
-      "reason": "Nexus now performs bounded public arXiv metadata and section inspection, but its daily-paper signal is not semantic search and it does not yet provide paper-scoped Q&A or persistent annotations."
+      "reason": "Nexus now adapts explicit bounded paper Q&A over inspected arXiv sections, but its daily-paper signal is not semantic search and it does not provide persistent annotations."
     },
     {
       "id": "hugging-face-inspection",

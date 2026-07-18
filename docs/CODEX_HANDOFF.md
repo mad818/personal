@@ -36,8 +36,8 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 ### What’s next (from `tasks/todo.md`)
 
 - CI-GREEN-NODE-RUNTIME — Align GitHub Actions with the supported Node runtime, rerun the full local verification lane, push the committed fixes, and confirm every PR #47 workflow is green.
+- PACKAGE-MANAGER-RUNTIME-TRUTH — Make the supported Node/npm contract match the package lock, CI workflows, documentation, and tracked desktop runtime metadata.
 - FREE-LOCAL-PHONE-ACCEPTANCE — Desktop LAN runtime proof, the phone checklist, the protected receipt lane, assistant receipt bridge, live receipt status, capture-status artifact, direct-HQ QR handoff, `npm run ops:preflight`, `npm run...
-- LOCAL-AI-OFFLINE-OPERATIONS — Authenticated desktop proof remains captured from the local session: Free Local Readiness returned `ready`, `isolated`, paid APIs `blocked`, Ollama `reachable`, resolved model `gemma4:latest`, agent health `100%`,...
 - Full queue: `tasks/todo.md` -> `## Next Up`.
 
 ### Where to look

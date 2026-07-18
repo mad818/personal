@@ -38,6 +38,61 @@ if (!/^\s*include\s*=\s*dev\s*$/m.test(npmConfig)) {
 
 const packageJson = JSON.parse(readRequired("package.json"));
 const packageLock = JSON.parse(readRequired("package-lock.json"));
+const desktopPackageJson = JSON.parse(
+  readRequired("desktop", "packaged-runtime", "package.json"),
+);
+const supportedNodeRange = ">=24 <25";
+const supportedNpmRange = ">=11 <12";
+
+function assertNpmManifest(manifest, label) {
+  const managerMatch = /^npm@(\d+)\.(\d+)\.(\d+)$/.exec(
+    manifest.packageManager ?? "",
+  );
+  if (!managerMatch || Number.parseInt(managerMatch[1], 10) !== 11) {
+    fail(`${label} packageManager must pin an npm 11 release`);
+  }
+  if (manifest.engines?.node !== supportedNodeRange) {
+    fail(`${label} engines.node must equal ${supportedNodeRange}`);
+  }
+  if (manifest.engines?.npm !== supportedNpmRange) {
+    fail(`${label} engines.npm must equal ${supportedNpmRange}`);
+  }
+}
+
+assertNpmManifest(packageJson, "package.json");
+assertNpmManifest(desktopPackageJson, "desktop packaged runtime");
+if (desktopPackageJson.packageManager !== packageJson.packageManager) {
+  fail("desktop packaged runtime packageManager must match package.json");
+}
+if (!fs.existsSync(path.join(root, "package-lock.json"))) {
+  fail("package-lock.json must remain the active root lockfile");
+}
+for (const retiredLockfile of ["pnpm-lock.yaml", "yarn.lock"]) {
+  if (fs.existsSync(path.join(root, retiredLockfile))) {
+    fail(`${retiredLockfile} conflicts with the npm package-manager contract`);
+  }
+}
+
+const workflowDirectory = path.join(root, ".github", "workflows");
+const nodeWorkflowFiles = fs
+  .readdirSync(workflowDirectory)
+  .filter((fileName) => /\.ya?ml$/i.test(fileName))
+  .map((fileName) => ({
+    fileName,
+    source: fs.readFileSync(path.join(workflowDirectory, fileName), "utf8"),
+  }))
+  .filter(({ source }) => source.includes("actions/setup-node"));
+if (nodeWorkflowFiles.length === 0) {
+  fail("GitHub Actions must retain at least one setup-node workflow");
+}
+for (const { fileName, source } of nodeWorkflowFiles) {
+  if (!/node-version:\s*['\"]?24['\"]?(?:\s|$)/m.test(source)) {
+    fail(`${fileName} must use the supported Node 24 runtime`);
+  }
+  if (/\bpnpm\b/i.test(source)) {
+    fail(`${fileName} must not bypass the npm lockfile with pnpm`);
+  }
+}
 const lint = packageJson.scripts?.lint ?? "";
 const lintFix = packageJson.scripts?.["lint:fix"] ?? "";
 const verify = packageJson.scripts?.verify ?? "";
@@ -358,5 +413,5 @@ if (
 }
 
 console.log(
-  `ok toolchain-cleanliness (npm include=dev + ESLint parser ${parserManifest.version} for TypeScript ${lockedTypeScriptVersion} + Prettier ${activeSourceInventory.length}-file non-RPG scope + truthful full audit)`,
+  `ok toolchain-cleanliness (npm 11 + Node 24 + npm include=dev + ESLint parser ${parserManifest.version} for TypeScript ${lockedTypeScriptVersion} + Prettier ${activeSourceInventory.length}-file non-RPG scope + truthful full audit)`,
 );

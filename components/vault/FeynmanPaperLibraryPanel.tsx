@@ -6,6 +6,7 @@ import type {
   FeynmanPaperLibrarySummary,
   FeynmanPaperRetrievalMode,
 } from "@/lib/feynmanPaperLibrary";
+import FeynmanResearchWatchPanel from "./FeynmanResearchWatchPanel";
 
 type LibraryResponse = {
   papers: FeynmanPaperLibrarySummary[];
@@ -212,6 +213,7 @@ export default function FeynmanPaperLibraryPanel() {
 
   return (
     <section className="grid gap-4" aria-label="Feynman local paper library">
+      <FeynmanResearchWatchPanel />
       <div className="grid gap-3 rounded-[var(--r)] border border-[var(--border)] bg-[var(--surf2)] p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>

@@ -134,7 +134,6 @@ for (const pendingId of [
   "local-replication-execution",
   "docker-isolated-experiments",
   "autoresearch-loop",
-  "recurring-research-watch",
 ]) {
   const pending = parity.capabilities?.find(
     (capability) => capability.id === pendingId,
@@ -142,6 +141,15 @@ for (const pendingId of [
   if (pending?.disposition !== "pending") {
     fail(`${pendingId} must remain pending`);
   }
+}
+const recurringWatch = parity.capabilities?.find(
+  (capability) => capability.id === "recurring-research-watch",
+);
+if (
+  recurringWatch?.disposition !== "adapted" ||
+  !recurringWatch.proof?.includes("lib/feynmanResearchWatch.ts")
+) {
+  fail("recurring research watch must remain adapted with direct proof");
 }
 const semanticLibrary = parity.capabilities?.find(
   (capability) => capability.id === "semantic-paper-search-and-annotations",

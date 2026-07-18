@@ -326,7 +326,7 @@ export const FEYNMAN_WORKFLOW_CONTRACTS: Record<
       "Cadence must be explicit and bounded.",
     ],
     reviewerChecks: [
-      "Flag any language that implies a recurring job is already enabled.",
+      "Flag any language that implies a recurring job is enabled before operator approval.",
       "Check whether the source set is small enough for review.",
     ],
     acceptanceChecks: [
@@ -334,7 +334,7 @@ export const FEYNMAN_WORKFLOW_CONTRACTS: Record<
       "Contains scheduler approval gate.",
     ],
     approvalBoundary:
-      "Scheduler template only. Explicit operator approval is required before creating or enabling a recurring automation.",
+      "Explicit operator approval is required before creating or enabling recurrence. Once approved, the bounded public arXiv check runs without a model call and stores local review receipts.",
   },
 };
 

@@ -148,13 +148,17 @@ function buildFeynmanWorkflowDefinition(input: {
       ? "candidate_with_human_gate"
       : "review_only",
     automationGuidance: input.automationReady
-      ? "This Feynman workflow can become a reviewed scheduler mission, but enabling recurring work always requires a human gate."
+      ? input.id === "watch"
+        ? "A reviewed watch can become a weekday public-arXiv check. Enabling recurrence requires a human gate; approved runs are daily-cached and make no model call."
+        : "This Feynman workflow can become a reviewed scheduler mission, but enabling recurring work always requires a human gate."
       : "This Feynman workflow stays explicit and review-only.",
     schedulerDefaults: input.schedulerDefaults,
     hookNotes: [
       outputsOnly
         ? "Searches and resumes local Feynman continuity sessions and reads real compiled pages from the local VAULT."
-        : "Files the cited, claim-audited, provenance-backed result into the local VAULT.",
+        : input.id === "watch"
+          ? "Approved schedules compare bounded public arXiv IDs and update timestamps, then file local receipts for VAULT review without a model call."
+          : "Files the cited, claim-audited, provenance-backed result into the local VAULT.",
       "Uses the shared Researcher, Writer, Verifier, and Reviewer engine.",
     ],
     buildUserPrompt: (topic) =>

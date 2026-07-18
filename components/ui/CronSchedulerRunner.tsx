@@ -17,6 +17,12 @@ import {
   runNightShiftAuditClient,
   stagePreparedNightShift,
 } from "@/lib/secondBrainNightShiftClient";
+import {
+  extractFeynmanResearchWatchTopic,
+  FEYNMAN_RESEARCH_WATCH_CLIENT_TEMPLATE_ID,
+  runFeynmanResearchWatchClient,
+  summarizeFeynmanResearchWatchRun,
+} from "@/lib/feynmanResearchWatchClient";
 
 function fieldMatches(expr: string, value: number): boolean {
   const part = expr.trim();
@@ -224,8 +230,14 @@ export default function CronSchedulerRunner() {
           let status: ScheduledJob["lastStatus"] = "ok";
           let summary = "Completed.";
           try {
-            const systemPrompt = buildCachedSystemPrompt(settings);
-            if (job.templateId === NIGHT_SHIFT_REFINERY_TEMPLATE_ID) {
+            if (job.templateId === FEYNMAN_RESEARCH_WATCH_CLIENT_TEMPLATE_ID) {
+              const result = await runFeynmanResearchWatchClient({
+                id: job.id,
+                topic: extractFeynmanResearchWatchTopic(job.prompt),
+              });
+              summary = summarizeFeynmanResearchWatchRun(result).slice(0, 200);
+            } else if (job.templateId === NIGHT_SHIFT_REFINERY_TEMPLATE_ID) {
+              const systemPrompt = buildCachedSystemPrompt(settings);
               const result = await stagePreparedNightShift({
                 baseSystemPrompt: systemPrompt,
                 singleFlightKey: `scheduled:${job.id}:${Math.floor(Date.now() / 60000)}`,
@@ -239,6 +251,7 @@ export default function CronSchedulerRunner() {
                   200,
                 );
             } else {
+              const systemPrompt = buildCachedSystemPrompt(settings);
               const result = await callNonInteractiveAI({
                 systemPrompt,
                 userPrompt: `${profile.promptPrefix}\n\n[Scheduled Task]\n${job.prompt}`,

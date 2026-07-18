@@ -214,8 +214,14 @@
       "id": "recurring-research-watch",
       "title": "Baseline survey plus operator-approved recurring material-change checks",
       "sourceEvidence": "skills/watch/SKILL.md",
-      "disposition": "pending",
-      "reason": "Current watch mode returns a scheduler template but does not create, enable, run, or reconcile a real approved recurring watch."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanResearchWatch.ts",
+        "app/api/feynman/watch/run/route.ts",
+        "components/ui/CronSchedulerRunner.tsx",
+        "components/vault/FeynmanResearchWatchPanel.tsx",
+        "scripts/check-feynman-research-watch-runtime.mjs"
+      ]
     },
     {
       "id": "session-search-resume",

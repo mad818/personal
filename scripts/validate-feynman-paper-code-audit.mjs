@@ -131,7 +131,6 @@ for (const proof of [
   }
 }
 for (const pendingId of [
-  "semantic-paper-search-and-annotations",
   "local-replication-execution",
   "docker-isolated-experiments",
   "autoresearch-loop",
@@ -143,6 +142,15 @@ for (const pendingId of [
   if (pending?.disposition !== "pending") {
     fail(`${pendingId} must remain pending`);
   }
+}
+const semanticLibrary = parity.capabilities?.find(
+  (capability) => capability.id === "semantic-paper-search-and-annotations",
+);
+if (
+  semanticLibrary?.disposition !== "adapted" ||
+  !semanticLibrary.proof?.includes("lib/feynmanPaperLibrary.ts")
+) {
+  fail("semantic paper library must remain adapted with direct proof");
 }
 if (parity.status !== "in_progress") {
   fail("unrelated Feynman source parity must remain open");

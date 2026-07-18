@@ -122,11 +122,14 @@ for (const proof of [
     fail(`bounded paper question answering proof is missing ${proof}`);
   }
 }
-const pending = parity.capabilities?.find(
+const semanticLibrary = parity.capabilities?.find(
   (capability) => capability.id === "semantic-paper-search-and-annotations",
 );
-if (pending?.disposition !== "pending") {
-  fail("semantic paper search and annotations must remain pending");
+if (semanticLibrary?.disposition !== "adapted") {
+  fail("semantic paper search and annotations must remain adapted");
+}
+if (!semanticLibrary.proof?.includes("lib/feynmanPaperLibrary.ts")) {
+  fail("semantic paper library proof is missing");
 }
 if (parity.status !== "in_progress") {
   fail("unrelated Feynman source parity must remain open");

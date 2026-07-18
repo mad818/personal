@@ -139,8 +139,14 @@
       "id": "semantic-paper-search-and-annotations",
       "title": "Semantic paper search and persistent local annotations",
       "sourceEvidence": "extensions/research-tools/alpha.ts",
-      "disposition": "pending",
-      "reason": "Nexus now adapts explicit bounded paper Q&A over inspected arXiv sections, but its daily-paper signal is not semantic search and it does not provide persistent annotations."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperLibrary.ts",
+        "app/api/feynman/papers/route.ts",
+        "app/api/feynman/papers/import/route.ts",
+        "components/vault/FeynmanPaperLibraryPanel.tsx",
+        "scripts/check-feynman-paper-library-runtime.mjs"
+      ]
     },
     {
       "id": "hugging-face-inspection",

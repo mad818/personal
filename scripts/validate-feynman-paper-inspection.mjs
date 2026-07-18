@@ -84,12 +84,18 @@ if (capability?.disposition !== "adapted") {
   );
   process.exit(1);
 }
-const pendingPaperTools = parity.capabilities?.find(
+const semanticPaperTools = parity.capabilities?.find(
   (entry) => entry.id === "semantic-paper-search-and-annotations",
 );
-if (pendingPaperTools?.disposition !== "pending") {
+if (semanticPaperTools?.disposition !== "adapted") {
   console.error(
-    "x feynman-paper-inspection: semantic search and annotations must remain pending",
+    "x feynman-paper-inspection: semantic search and annotations must remain adapted",
+  );
+  process.exit(1);
+}
+if (!semanticPaperTools.proof?.includes("lib/feynmanPaperLibrary.ts")) {
+  console.error(
+    "x feynman-paper-inspection: semantic paper library proof is missing",
   );
   process.exit(1);
 }

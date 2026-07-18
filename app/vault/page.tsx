@@ -60,6 +60,10 @@ const LazyMemoryAskPanel = dynamic(
   () => import("@/components/vault/MemoryAskPanel"),
   { ssr: false },
 );
+const LazyFeynmanPaperLibraryPanel = dynamic(
+  () => import("@/components/vault/FeynmanPaperLibraryPanel"),
+  { ssr: false },
+);
 const LazyVaultStewardshipPanel = dynamic(
   () => import("@/components/vault/VaultStewardshipPanel"),
   { ssr: false },
@@ -94,7 +98,7 @@ type MemoryBriefView =
   | "study"
   | "stewardship";
 
-type ArchiveLaneView = "intake" | "clips" | "ask";
+type ArchiveLaneView = "intake" | "clips" | "papers" | "ask";
 
 const CHAMBERS: Array<{ id: VaultChamberId; label: string }> = [
   { id: "archive", label: "Archive" },
@@ -115,6 +119,7 @@ const MEMORY_VIEWS: Array<{ id: MemoryBriefView; label: string }> = [
 const ARCHIVE_LANE_VIEWS: Array<{ id: ArchiveLaneView; label: string }> = [
   { id: "intake", label: "Intake" },
   { id: "clips", label: "Saved clips" },
+  { id: "papers", label: "Papers" },
   { id: "ask", label: "Ask memory" },
 ];
 
@@ -751,6 +756,14 @@ export default function VaultPage() {
                           detail="Curated article memory inside the archive"
                         >
                           <LazySavedArticles />
+                        </OpsField>
+                      ) : null}
+                      {archiveLane === "papers" ? (
+                        <OpsField
+                          title="Feynman paper library"
+                          detail="Local vector retrieval and private annotations without a chat call"
+                        >
+                          <LazyFeynmanPaperLibraryPanel />
                         </OpsField>
                       ) : null}
                       {archiveLane === "ask" ? (

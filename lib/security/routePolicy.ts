@@ -74,6 +74,12 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
     public: false,
   },
   { prefix: "/api/feynman/artifacts", routeClass: "local_only", public: false },
+  {
+    prefix: "/api/feynman/papers/import",
+    routeClass: "connector_opt_in",
+    public: false,
+  },
+  { prefix: "/api/feynman/papers", routeClass: "local_only", public: false },
   { prefix: "/api/token", routeClass: "local_only", public: true },
   { prefix: "/api/health", routeClass: "local_only", public: true },
   { prefix: "/api/auth-diagnostics", routeClass: "local_only", public: true },

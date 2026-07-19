@@ -90,6 +90,14 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [x] OPERATIONAL-READ-STATE-TRUTH — Stop CISA KEV and Agent Health outages from appearing as verified empty data. Spec: `specs/features/operational-read-state-truth.md`.
+  - Truth thesis: connector failure is unavailable state, not an empty security catalog, and a failed local diagnostic read is not proof that no metrics exist.
+  - [x] Make the CISA proxy fail with a safe non-2xx response so sweep evidence and clients can classify upstream failure.
+  - [x] Give CISA Feed, unified CYBER triage, and Agent Health checked payloads, retained-data refresh behavior, accessible status/error states, and local retry.
+  - [x] Add focused runtime/static coverage, canonical verification wiring, correction lesson, and zero-phone/PWA/RPG proof.
+  - Guardrail: no phone/PWA acceptance work, RPG changes, provider calls, new dependency, raw upstream error disclosure, or fabricated fallback security records.
+  - Progress: the CISA proxy now returns a fixed safe HTTP 502 for upstream HTTP, network, JSON, or entry-shape failure, so sweep evidence can classify the source as unavailable. CISA Feed, unified CYBER triage, and Agent Health validate successful payloads before replacing data, retain the last verified result during refresh/failure, separate verified empty from unavailable, ignore stale completions, and expose accessible local retry. Focused static/runtime fixtures, explicit TypeScript, zero-warning lint, complete active-source formatting, surface/accessibility gates, the 186.3-second canonical verifier, and the 89.7-second production build across all 39 pages passed. The final changed-path audit contains zero phone/PWA acceptance and RPG paths.
+
 - [x] SETTINGS-SERVER-STATUS-TRUTH — Keep Settings API-key and security posture honest when the local settings route is loading or unavailable. Spec: `specs/features/settings-server-status-truth.md`.
   - Truth thesis: a failed or malformed `GET /api/settings` is unknown state, never proof that every server-side key is unset.
   - [x] Add one response-checked loader shared by drawer-open and post-save refresh paths, with stale-response protection.

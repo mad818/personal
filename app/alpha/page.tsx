@@ -215,7 +215,7 @@ export default function AlphaPage() {
         </>
       }
     >
-      <PricesLoader />
+      <PricesLoader showStatus />
 
       <ShellStack>
         <OpsStrip className="nexus-surface-route-strip">

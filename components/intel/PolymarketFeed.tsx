@@ -3,19 +3,17 @@
 
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { apiFetch } from "@/lib/apiFetch";
-
-interface Market {
-  id: string;
-  title: string;
-  probability: number;
-  volume: number;
-  category: string;
-  endDate: string;
-}
+import {
+  isPredictionMarketsSuccess,
+  type VerifiedPredictionMarket as Market,
+} from "@/lib/coreMarketFeedTypes";
+import { useStore } from "@/store/useStore";
 
 type SortKey = "prob_hi" | "prob_lo" | "volume" | "closing";
+const PREDICTIONS_UNAVAILABLE =
+  "Prediction markets are temporarily unavailable.";
 
 function bracketLabel(p: number): { label: string; color: string } {
   if (p >= 80 || p <= 20) return { label: "Extreme", color: "#ef4444" };
@@ -98,51 +96,50 @@ function SummaryBar({ markets }: { markets: Market[] }) {
 export default function PolymarketFeed() {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [sort, setSort] = useState<SortKey>("prob_hi");
   const [search, setSearch] = useState("");
+  const updateFeedStatus = useStore((state) => state.updateFeedStatus);
+  const requestIdRef = useRef(0);
 
   const load = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
+    updateFeedStatus("polymarket", { lastAttemptAt: Date.now() });
     try {
-      const r = await apiFetch("/api/polymarket");
-      const d = (await r.json()) as Record<string, unknown>;
-      const raw = (d.events as Record<string, unknown>[]) ?? [];
-      setMarkets(
-        raw.slice(0, 50).map((e) => {
-          const eRaw = e as Record<string, unknown>;
-          const mArr = eRaw.markets as
-            | Array<Record<string, unknown>>
-            | undefined;
-          let prob = 50;
-          try {
-            const prices = mArr?.[0]?.outcomePrices;
-            if (typeof prices === "string") {
-              prob = Math.round(
-                parseFloat((JSON.parse(prices) as string[])[0] ?? "0.5") * 100,
-              );
-            }
-          } catch {
-            /* silent */
-          }
-          return {
-            id: String(eRaw.id ?? ""),
-            title: String(eRaw.title ?? eRaw.question ?? ""),
-            probability: prob,
-            volume: Math.round(parseFloat(String(eRaw.volume ?? "0"))),
-            category: String(eRaw.category ?? "General"),
-            endDate: String(eRaw.endDate ?? ""),
-          };
-        }),
-      );
+      const response = await apiFetch("/api/polymarket", {
+        cache: "no-store",
+      });
+      const payload: unknown = await response.json();
+      if (!response.ok || !isPredictionMarketsSuccess(payload)) {
+        throw new Error(PREDICTIONS_UNAVAILABLE);
+      }
+      if (requestId !== requestIdRef.current) return;
+      const completedAt = Date.now();
+      setMarkets(payload.markets);
+      setError("");
+      updateFeedStatus("polymarket", {
+        lastSuccessAt: completedAt,
+        lastError: null,
+      });
     } catch {
-      /* silent */
+      if (requestId !== requestIdRef.current) return;
+      const completedAt = Date.now();
+      setError(PREDICTIONS_UNAVAILABLE);
+      updateFeedStatus("polymarket", {
+        lastFailureAt: completedAt,
+        lastError: PREDICTIONS_UNAVAILABLE,
+      });
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
-  }, []);
+  }, [updateFeedStatus]);
 
   useEffect(() => {
-    load();
+    void load();
+    return () => {
+      requestIdRef.current += 1;
+    };
   }, [load]);
 
   const query = search.trim().toLowerCase();
@@ -226,7 +223,34 @@ export default function PolymarketFeed() {
         >
           {loading ? "Loading…" : "↻ Refresh"}
         </button>
+        {loading && (
+          <span
+            role="status"
+            style={{ fontSize: "10px", color: "var(--text3)" }}
+          >
+            Refreshing verified markets…
+          </span>
+        )}
       </div>
+
+      {error && (
+        <div
+          role="alert"
+          style={{
+            padding: "9px 11px",
+            marginBottom: "12px",
+            border: "1px solid var(--border2)",
+            borderRadius: "8px",
+            background: "var(--surf2)",
+            color: "var(--fmd)",
+            fontSize: "11px",
+          }}
+        >
+          {markets.length > 0
+            ? "Prediction market refresh failed; showing the last verified markets."
+            : PREDICTIONS_UNAVAILABLE}
+        </div>
+      )}
 
       {/* Summary bar */}
       <SummaryBar markets={markets} />
@@ -268,7 +292,7 @@ export default function PolymarketFeed() {
         </div>
       )}
 
-      {!markets.length && !loading && (
+      {!markets.length && !loading && !error && (
         <div
           style={{
             padding: "40px",
@@ -277,7 +301,7 @@ export default function PolymarketFeed() {
             fontSize: "13px",
           }}
         >
-          Hit Refresh to fetch live prediction market odds.
+          No verified prediction markets are available yet.
         </div>
       )}
 

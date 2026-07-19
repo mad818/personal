@@ -1,56 +1,38 @@
-// ── api/prices ──────────────────────────────────────────────
-// Crypto prices API: CoinGecko and CEX price data with sparklines.
-
-import { NextResponse } from "next/server";
-// lets us attach the API key server-side (never exposed to the browser).
+import type { NextRequest } from "next/server";
+import { executePriceFeed } from "@/lib/coreMarketFeedsServer";
+import { protectedJson } from "@/lib/protectedApi";
+import {
+  applyRateLimitHeaders,
+  checkRateLimit,
+} from "@/lib/security/rateLimit";
 
 export const dynamic = "force-dynamic";
 
-const DEFAULT_COINS = [
-  "bitcoin",
-  "ethereum",
-  "solana",
-  "binancecoin",
-  "ripple",
-  "cardano",
-  "avalanche-2",
-  "polkadot",
-  "chainlink",
-  "uniswap",
-].join(",");
+const PRICE_FEED_RATE_LIMIT = {
+  bucket: "api-prices",
+  windowMs: 60_000,
+  maxAttempts: 40,
+} as const;
 
-const BASE = "https://api.coingecko.com/api/v3";
-const HEADERS = { Accept: "application/json" };
+function respond(body: unknown, status: number, retryAfterSec?: number) {
+  const response = protectedJson(body, { status });
+  applyRateLimitHeaders(response, PRICE_FEED_RATE_LIMIT, retryAfterSec);
+  return response;
+}
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const mode = searchParams.get("mode") ?? "markets"; // 'markets' | 'sparklines'
-  // Optional custom coin list from client — falls back to defaults
-  const coins = searchParams.get("coins") ?? DEFAULT_COINS;
-
-  try {
-    const cgKey = process.env.COINGECKO_KEY ?? "";
-    const keyParam = cgKey ? `&x_cg_demo_api_key=${cgKey}` : "";
-
-    const sparkline = mode === "sparklines" ? "true" : "false";
-    const url = `${BASE}/coins/markets?vs_currency=usd&ids=${coins}&order=market_cap_desc&per_page=50&sparkline=${sparkline}${keyParam}`;
-
-    const r = await fetch(url, {
-      headers: HEADERS,
-      signal: AbortSignal.timeout(12000),
-    });
-
-    if (!r.ok) {
-      return NextResponse.json(
-        { error: `CoinGecko ${r.status}`, data: [] },
-        { status: 200 },
-      );
-    }
-
-    const data = await r.json();
-    return NextResponse.json({ data });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Unknown";
-    return NextResponse.json({ error: msg, data: [] }, { status: 200 });
+export async function GET(req: NextRequest) {
+  const rateLimit = checkRateLimit(req, PRICE_FEED_RATE_LIMIT);
+  if (!rateLimit.ok) {
+    return respond(
+      { ok: false, error: "Price feed rate limit reached. Try again shortly." },
+      429,
+      rateLimit.retryAfterSec,
+    );
   }
+
+  const result = await executePriceFeed({
+    mode: req.nextUrl.searchParams.get("mode"),
+    coins: req.nextUrl.searchParams.get("coins"),
+  });
+  return respond(result.body, result.status);
 }

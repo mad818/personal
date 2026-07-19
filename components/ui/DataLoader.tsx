@@ -17,6 +17,7 @@ import { useOTX } from "@/hooks/useOTX";
 import { useStore } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
 import { subscribeVisiblePolling } from "@/lib/visiblePolling";
+import { ShellButton } from "@/components/ui/shell";
 
 function startVisiblePolling(
   key: string,
@@ -27,12 +28,45 @@ function startVisiblePolling(
 }
 
 // ── Prices (ALPHA + COMMAND tabs) ─────────────────────────────────────────────
-export function PricesLoader() {
-  const { fetchPrices } = usePrices();
+export function PricesLoader({ showStatus = false }: { showStatus?: boolean }) {
+  const { fetchPrices, loading, stop } = usePrices();
+  const priceStatus = useStore((state) => state.feedStatus.prices);
   useEffect(() => {
-    return startVisiblePolling("prices", fetchPrices, 60_000);
-  }, [fetchPrices]);
-  return null;
+    const unsubscribe = startVisiblePolling("prices", fetchPrices, 60_000);
+    return () => {
+      unsubscribe();
+      stop();
+    };
+  }, [fetchPrices, stop]);
+
+  if (!showStatus || !priceStatus.lastError) return null;
+  return (
+    <div
+      role="alert"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "12px",
+        padding: "10px 12px",
+        marginBottom: "12px",
+        border: "1px solid var(--border2)",
+        borderRadius: "8px",
+        background: "var(--surf2)",
+        color: "var(--fmd)",
+        fontSize: "11px",
+      }}
+    >
+      <span>{priceStatus.lastError}</span>
+      <ShellButton
+        onClick={() => fetchPrices()}
+        disabled={loading}
+        title="Retry the verified crypto price feeds"
+      >
+        {loading ? "Retrying…" : "Retry prices"}
+      </ShellButton>
+    </div>
+  );
 }
 
 // ── Articles (SIGNALS tab) ────────────────────────────────────────────────────

@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useState, useCallback, useEffect } from "react";
+import { memo, useState, useCallback, useEffect, useRef } from "react";
 import { useStore, DEFAULT_SETTINGS, Settings } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
+import {
+  loadSettingsServerSnapshot,
+  type SettingsServerLoadState,
+} from "@/lib/settingsServerStatus";
 import RuntimeEvalTrend from "@/components/ui/RuntimeEvalTrend";
 import { PMHealthStrip } from "@/components/settings/PMHealthStrip";
 import { PMChecklist } from "@/components/settings/PMChecklist";
@@ -195,6 +199,9 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
   );
   // Server-side key status from GET /api/settings
   const [keyStatus, setKeyStatus] = useState<Record<string, boolean>>({});
+  const [serverSettingsStatus, setServerSettingsStatus] =
+    useState<SettingsServerLoadState>("idle");
+  const serverSettingsRequestRef = useRef(0);
   const [securityConfig, setSecurityConfig] = useState<SecurityConfig>(
     DEFAULT_SECURITY_CONFIG,
   );
@@ -221,29 +228,55 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
     (provider) => provider.surface === "advanced",
   );
 
-  // Load key status whenever drawer opens
-  useEffect(() => {
-    if (!open) return;
-    apiFetch("/api/settings")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.status) setKeyStatus(d.status);
-        if (d.config) {
-          const nextSecurityConfig = coerceSecurityConfig({
-            ...d.config,
-            NEXUS_CONNECTOR_POLICY_JSON: d.config.NEXUS_CONNECTOR_POLICY_JSON
-              ? JSON.stringify(d.config.NEXUS_CONNECTOR_POLICY_JSON, null, 0)
+  const refreshServerSettings = useCallback(async (): Promise<boolean> => {
+    const requestId = ++serverSettingsRequestRef.current;
+    setServerSettingsStatus("loading");
+
+    const result = await loadSettingsServerSnapshot(() =>
+      apiFetch("/api/settings"),
+    );
+    if (requestId !== serverSettingsRequestRef.current) return false;
+
+    if (!result.ok) {
+      setServerSettingsStatus("error");
+      return false;
+    }
+
+    setKeyStatus(result.snapshot.status);
+    if (result.snapshot.config) {
+      const config = result.snapshot.config;
+      const connectorPolicy = config.NEXUS_CONNECTOR_POLICY_JSON;
+      const nextSecurityConfig = coerceSecurityConfig({
+        ...config,
+        NEXUS_CONNECTOR_POLICY_JSON:
+          typeof connectorPolicy === "string"
+            ? connectorPolicy
+            : connectorPolicy
+              ? JSON.stringify(connectorPolicy, null, 0)
               : "",
-          });
-          setSecurityConfig(nextSecurityConfig);
-          setInitialSecurityConfig(nextSecurityConfig);
-        }
-        if (d.release) setReleaseInfo(d.release);
-      })
-      .catch(() => {
-        /* non-fatal */
-      });
-  }, [open]);
+      } as Partial<SecurityConfig>);
+      setSecurityConfig(nextSecurityConfig);
+      setInitialSecurityConfig(nextSecurityConfig);
+    }
+    if (result.snapshot.release) {
+      setReleaseInfo(result.snapshot.release as ReleaseInfo);
+    }
+    setServerSettingsStatus("ready");
+    return true;
+  }, []);
+
+  // Load key status whenever drawer opens. Closing invalidates any pending result.
+  useEffect(() => {
+    if (!open) {
+      serverSettingsRequestRef.current += 1;
+      return;
+    }
+    void refreshServerSettings();
+    return () => {
+      serverSettingsRequestRef.current += 1;
+      setServerSettingsStatus("idle");
+    };
+  }, [open, refreshServerSettings]);
 
   const refreshOllamaCatalog = useCallback(async () => {
     setOllamaCatalogLoading(true);
@@ -299,16 +332,10 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
         if (d.needsRestart) {
           setSaveErr("Keys saved. Restart the dev server to apply them.");
         }
-        // Refresh key status
-        apiFetch("/api/settings")
-          .then((r2) => r2.json())
-          .then((d2) => {
-            if (d2.status) setKeyStatus(d2.status);
-          })
-          .catch(() => {});
         // Clear the in-memory edits
         setSensitiveEdits({});
-        setInitialSecurityConfig(securityConfig);
+        const refreshed = await refreshServerSettings();
+        if (!refreshed) setInitialSecurityConfig(securityConfig);
       } catch {
         setSaveErr("Could not reach the server. Is Next.js running?");
         setSaving(false);
@@ -319,7 +346,12 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 1800);
-  }, [initialSecurityConfig, securityConfig, sensitiveEdits]);
+  }, [
+    initialSecurityConfig,
+    refreshServerSettings,
+    securityConfig,
+    sensitiveEdits,
+  ]);
 
   const reset = useCallback(() => {
     updateSettings(DEFAULT_SETTINGS);
@@ -545,6 +577,51 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                 </span>
               </div>
 
+              {serverSettingsStatus !== "idle" && (
+                <div
+                  role={serverSettingsStatus === "error" ? "alert" : "status"}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "8px",
+                    margin: "-4px 0 12px",
+                    color:
+                      serverSettingsStatus === "error"
+                        ? "var(--flo)"
+                        : "var(--text3)",
+                    fontSize: "10px",
+                    lineHeight: 1.4,
+                  }}
+                >
+                  <span>
+                    {serverSettingsStatus === "loading"
+                      ? "Checking server settings status…"
+                      : serverSettingsStatus === "ready"
+                        ? "Server settings status verified."
+                        : "Server settings status unavailable. Key state is unknown."}
+                  </span>
+                  {serverSettingsStatus === "error" && (
+                    <button
+                      type="button"
+                      onClick={() => void refreshServerSettings()}
+                      style={{
+                        border: "1px solid var(--border2)",
+                        borderRadius: "5px",
+                        background: "var(--surf2)",
+                        color: "var(--text)",
+                        padding: "3px 7px",
+                        fontSize: "10px",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Retry server status
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div
                 style={{
                   display: "flex",
@@ -553,7 +630,15 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                 }}
               >
                 {SENSITIVE_FIELDS.map(({ key, label, envKey, placeholder }) => {
-                  const isSet = keyStatus[envKey] === true;
+                  const hasVerifiedStatus = serverSettingsStatus === "ready";
+                  const isSet = hasVerifiedStatus && keyStatus[envKey] === true;
+                  const keyStatusLabel = !hasVerifiedStatus
+                    ? serverSettingsStatus === "loading"
+                      ? "… checking"
+                      : "? unknown"
+                    : isSet
+                      ? "● set"
+                      : "○ not set";
                   return (
                     <label
                       key={key}
@@ -579,10 +664,13 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                           style={{
                             fontSize: "10px",
                             fontWeight: 700,
-                            color: isSet ? "var(--fhi)" : "var(--text3)",
+                            color:
+                              hasVerifiedStatus && isSet
+                                ? "var(--fhi)"
+                                : "var(--text3)",
                           }}
                         >
-                          {isSet ? "● set" : "○ not set"}
+                          {keyStatusLabel}
                         </span>
                       </span>
                       <input

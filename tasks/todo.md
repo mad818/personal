@@ -90,6 +90,14 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [x] SETTINGS-SERVER-STATUS-TRUTH — Keep Settings API-key and security posture honest when the local settings route is loading or unavailable. Spec: `specs/features/settings-server-status-truth.md`.
+  - Truth thesis: a failed or malformed `GET /api/settings` is unknown state, never proof that every server-side key is unset.
+  - [x] Add one response-checked loader shared by drawer-open and post-save refresh paths, with stale-response protection.
+  - [x] Distinguish checking, verified, and unavailable states in visible and accessible feedback; provide a local retry.
+  - [x] Add focused runtime/static coverage, canonical verification wiring, correction lesson, and zero-RPG-path proof.
+  - Guardrail: no phone/PWA acceptance work, RPG changes, provider calls, new dependency, secret persistence in the browser, or mutation of `.env.local` during validation.
+  - Progress: Settings now shows checking, verified, or unavailable server state and renders `set` / `not set` only after a validated boolean status map. Drawer-open and post-save reads share one non-throwing `response.ok`-checked loader; stale completions are ignored, failed follow-up reads do not turn successful writes into failures, and an accessible alert provides retry. Focused static/runtime fixtures, explicit TypeScript, zero-warning lint, complete active-source formatting, the 300.8-second canonical verifier, and the 115.3-second production build across all 39 pages passed. The first canonical run reached ORBIT and stopped only because this completed item was still marked open; no product gate failed before that bookkeeping correction. The final implementation diff contains zero phone/PWA acceptance and RPG paths.
+
 - [x] TRADINGVIEW-SANDBOX-ISOLATION — Replace direct third-party script execution in ALPHA with a fixed, opaque-origin sandboxed embed route and remove TradingView script/frame authorization from normal Nexus documents. Spec: `specs/features/tradingview-sandbox-isolation.md`.
   - Security thesis: provider code may render the approved widgets but must not execute with Nexus origin authority; a mutable provider URL must not receive a brittle one-time SRI claim.
   - [x] Audit the active embed/CSP/header path and confirm the provider's official classic widgets use unversioned scripts that inject iframes.

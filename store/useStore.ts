@@ -429,7 +429,6 @@ export const DEFAULT_SETTINGS = {
   finnhubKey:    '',
   nvdKey:        '',
   guardianKey:   '',
-  fredKey:       '',
   otxKey:        '',
   aisstreamKey:  '',
   firmsKey:      '',

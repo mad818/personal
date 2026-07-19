@@ -48,11 +48,6 @@ export function buildContentSecurityPolicy(
   ];
   const connectSrc = [
     "connect-src 'self'",
-    "https://api.coingecko.com",
-    "https://services.nvd.nist.gov",
-    "https://api.alternative.me",
-    "https://mempool.space",
-    "https://api.stlouisfed.org",
     "https://stream.mux.com",
     "https://*.mux.com",
   ];

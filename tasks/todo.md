@@ -90,6 +90,14 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [x] MARKET-RATES-SERVER-TRUTH — Keep FRED credentials behind Nexus and stop FX/commodity outages from looking like verified empty data. Spec: `specs/features/market-rates-server-truth.md`.
+  - Privacy thesis: the browser reads only same-origin market routes; FRED and other provider URLs plus keys remain server-owned.
+  - [x] Add validated server loaders, safe source-state contracts, bounded upstreams, protected no-store responses, and route limits for FX and commodities.
+  - [x] Migrate Market Rates away from client FRED state while preserving verified data during refresh and rendering independent FX, metals, and energy failures honestly.
+  - [x] Remove obsolete provider browser CSP hosts and add focused runtime/static coverage, correction lesson, canonical wiring, and zero-phone/PWA/RPG proof.
+  - Guardrail: no new provider, dependency, paid default, client key, raw upstream error, fabricated quote, phone/PWA acceptance work, RPG change, or live provider call during validation.
+  - Progress: the active panel now calls only protected same-origin FX and commodity routes through `apiFetch`; fixed provider URLs, `FRED_KEY`, timeouts, response-size ceilings, payload validation, source-state classification, and safe failures live on the server. FX, metals, and energy settle independently, partial results remain usable, failed refreshes retain the last verified client data, and accessible status/error/retry feedback distinguishes loading, partial, retained, and unavailable states. Five obsolete provider hosts are gone from browser CSP and the legacy persisted FRED-key field is scrubbed without restoring a client default. Focused fixtures, explicit TypeScript, zero-warning lint, formatting, CSP, protected-route/security boundaries, publication safety, the 195.3-second canonical verifier, and the 87.4-second production build passed without live provider traffic. The final changed-path audit contains zero phone/PWA acceptance and RPG paths.
+
 - [x] RECON-SERVER-CONNECTOR-BOUNDARY — Keep RECON lookup targets and optional provider credentials behind one closed Nexus server boundary. Spec: `specs/features/recon-server-connector-boundary.md`.
   - Privacy thesis: the browser may call only the authenticated same-origin Nexus route; the server alone selects approved provider endpoints and reads optional BYOK credentials.
   - [x] Add a validated operation contract, bounded provider executor, safe error taxonomy, protected route, and rate limit.

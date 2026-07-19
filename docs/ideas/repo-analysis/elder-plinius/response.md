@@ -5,7 +5,7 @@
 **Intent detected:** both
 
 **Plan headline:**
-Adapt six product-safe patterns through Nexus's existing Company Map, AI boundary, eval gates, evidence model, AgentShield scanner, and human review surfaces. Keep offensive, jailbreak, direct-provider, unlicensed, and copyleft implementation outside the runtime.
+Adapt seven product-safe patterns through Nexus's existing Company Map, AI boundary, eval gates, evidence model, AgentShield scanner, local binary triage, and human review surfaces. Keep offensive, jailbreak, direct-provider, unlicensed, and copyleft implementation outside the runtime.
 
 **Files created:**
 - REPO_CONTEXT.md

@@ -293,6 +293,19 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
       "Treat Unicode visibility as a security caveat and request sanitized evidence; do not claim semantic steganography is detectable or that the upstream engine is installed.",
   },
   {
+    id: "pliny-st3gg",
+    label: "ST3GG media-tail defense",
+    url: "https://github.com/elder-plinius/ST3GG",
+    kind: "reference",
+    posture: "adapted",
+    purpose:
+      "Format-level trailing-data indicators for defensive media and document triage without extracting hidden content.",
+    codexPath:
+      "Use the Nexus-owned browser-local PNG/JPEG/PDF tail detector; AGPL code, payload creation, decoding, statistical steganalysis, AI agents, and upstream dependencies stay external.",
+    chatgptPath:
+      "Treat post-terminator bytes as a review indicator rather than proof; normal chat cannot inspect a local file unless the operator supplies bounded evidence.",
+  },
+  {
     id: "pliny-autostorygen",
     label: "AutoStoryGen staged drafting pattern",
     url: "https://github.com/elder-plinius/AutoStoryGen",
@@ -449,6 +462,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "pliny-leakhub",
       "pliny-parseltongue",
       "pliny-glossopetrae",
+      "pliny-st3gg",
     ],
     boundary:
       "Graphify is optional repo intelligence; durable knowledge follows Nexus source and retention controls.",
@@ -509,6 +523,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "pliny-leakhub",
       "pliny-parseltongue",
       "pliny-glossopetrae",
+      "pliny-st3gg",
     ],
     boundary:
       "Nexus can organize issues and evidence but cannot replace qualified legal or compliance counsel.",

@@ -28,6 +28,20 @@ export interface BinaryIocCandidates {
   emails: string[];
 }
 
+export type BinaryMediaTailCategory =
+  | "png_after_iend"
+  | "jpeg_after_eoi"
+  | "pdf_after_eof";
+
+export interface BinaryMediaTailIndicator {
+  category: BinaryMediaTailCategory;
+  label: string;
+  offset: number;
+  trailingBytes: number;
+  embeddedFormat: string | null;
+  detail: string;
+}
+
 export interface BinaryTriageInput {
   format: BinaryFormatMatch;
   entropy: number;
@@ -35,6 +49,7 @@ export interface BinaryTriageInput {
   iocs: BinaryIocCandidates;
   sampleBytes: number;
   totalBytes: number;
+  mediaTailIndicators?: readonly BinaryMediaTailIndicator[];
 }
 
 export interface BinaryTriageReport {
@@ -48,6 +63,7 @@ export interface BinaryTriageReport {
   sampleBytes: number;
   printableStrings: string[];
   iocs: BinaryIocCandidates;
+  mediaTailIndicators: BinaryMediaTailIndicator[];
   notes: string[];
 }
 
@@ -119,6 +135,191 @@ function uniqueStrings(values: string[]) {
   return Array.from(
     new Set(values.map((value) => value.trim()).filter(Boolean)),
   );
+}
+
+const MEDIA_SIGNATURES: readonly {
+  label: string;
+  bytes: readonly number[];
+}[] = [
+  { label: "ZIP archive", bytes: [0x50, 0x4b, 0x03, 0x04] },
+  { label: "RAR archive", bytes: [0x52, 0x61, 0x72, 0x21, 0x1a, 0x07] },
+  { label: "7-Zip archive", bytes: [0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c] },
+  { label: "GZip archive", bytes: [0x1f, 0x8b] },
+  { label: "PDF document", bytes: [0x25, 0x50, 0x44, 0x46, 0x2d] },
+  { label: "PNG image", bytes: [0x89, 0x50, 0x4e, 0x47] },
+  { label: "JPEG image", bytes: [0xff, 0xd8, 0xff] },
+  { label: "PE executable", bytes: [0x4d, 0x5a] },
+  { label: "ELF executable", bytes: [0x7f, 0x45, 0x4c, 0x46] },
+];
+
+function startsWithBytes(
+  bytes: Uint8Array,
+  expected: readonly number[],
+  offset = 0,
+) {
+  if (offset < 0 || bytes.length - offset < expected.length) return false;
+  return expected.every((value, index) => bytes[offset + index] === value);
+}
+
+function identifyNestedFormat(bytes: Uint8Array, offset: number) {
+  return (
+    MEDIA_SIGNATURES.find((signature) =>
+      startsWithBytes(bytes, signature.bytes, offset),
+    )?.label ?? null
+  );
+}
+
+function buildMediaTailIndicator(
+  bytes: Uint8Array,
+  category: BinaryMediaTailCategory,
+  label: string,
+  offset: number,
+): BinaryMediaTailIndicator | null {
+  if (offset < 0 || offset >= bytes.length) return null;
+  const trailingBytes = bytes.length - offset;
+  const embeddedFormat = identifyNestedFormat(bytes, offset);
+  return {
+    category,
+    label,
+    offset,
+    trailingBytes,
+    embeddedFormat,
+    detail: embeddedFormat
+      ? `${trailingBytes} trailing byte${trailingBytes === 1 ? "" : "s"} begin with a ${embeddedFormat} signature. Treat this as a review indicator, not proof of steganography or maliciousness.`
+      : `${trailingBytes} trailing byte${trailingBytes === 1 ? "" : "s"} follow the file terminator. Treat this as a review indicator, not proof of steganography or maliciousness.`,
+  };
+}
+
+function detectPngTail(bytes: Uint8Array) {
+  if (
+    !startsWithBytes(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+  ) {
+    return null;
+  }
+
+  let offset = 8;
+  let chunkCount = 0;
+  while (offset + 12 <= bytes.length && chunkCount < 4096) {
+    const chunkLength = new DataView(
+      bytes.buffer,
+      bytes.byteOffset + offset,
+      4,
+    ).getUint32(0, false);
+    const chunkEnd = offset + 12 + chunkLength;
+    if (chunkEnd > bytes.length) return null;
+    const isIend =
+      chunkLength === 0 &&
+      startsWithBytes(bytes, [0x49, 0x45, 0x4e, 0x44], offset + 4);
+    if (isIend) {
+      return buildMediaTailIndicator(
+        bytes,
+        "png_after_iend",
+        "Data after PNG IEND",
+        chunkEnd,
+      );
+    }
+    offset = chunkEnd;
+    chunkCount += 1;
+  }
+  return null;
+}
+
+function detectJpegTail(bytes: Uint8Array) {
+  if (!startsWithBytes(bytes, [0xff, 0xd8, 0xff])) return null;
+
+  let offset = 2;
+  while (offset < bytes.length) {
+    if (bytes[offset] !== 0xff) return null;
+    while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
+    if (offset >= bytes.length) return null;
+    const marker = bytes[offset]!;
+    offset += 1;
+
+    if (marker === 0xd9) {
+      return buildMediaTailIndicator(
+        bytes,
+        "jpeg_after_eoi",
+        "Data after JPEG EOI",
+        offset,
+      );
+    }
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
+    if (offset + 2 > bytes.length) return null;
+    const segmentLength = (bytes[offset]! << 8) | bytes[offset + 1]!;
+    if (segmentLength < 2 || offset + segmentLength > bytes.length) return null;
+
+    if (marker !== 0xda) {
+      offset += segmentLength;
+      continue;
+    }
+
+    offset += segmentLength;
+    while (offset + 1 < bytes.length) {
+      if (bytes[offset] !== 0xff) {
+        offset += 1;
+        continue;
+      }
+      const entropyMarkerStart = offset;
+      while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
+      if (offset >= bytes.length) return null;
+      const entropyMarker = bytes[offset]!;
+      offset += 1;
+      if (
+        entropyMarker === 0x00 ||
+        (entropyMarker >= 0xd0 && entropyMarker <= 0xd7)
+      ) {
+        continue;
+      }
+      if (entropyMarker === 0xd9) {
+        return buildMediaTailIndicator(
+          bytes,
+          "jpeg_after_eoi",
+          "Data after JPEG EOI",
+          offset,
+        );
+      }
+      offset = entropyMarkerStart;
+      break;
+    }
+  }
+  return null;
+}
+
+function findLastSequence(bytes: Uint8Array, sequence: readonly number[]) {
+  for (let offset = bytes.length - sequence.length; offset >= 0; offset -= 1) {
+    if (startsWithBytes(bytes, sequence, offset)) return offset;
+  }
+  return -1;
+}
+
+function detectPdfTail(bytes: Uint8Array) {
+  if (!startsWithBytes(bytes, [0x25, 0x50, 0x44, 0x46, 0x2d])) return null;
+  const eof = [0x25, 0x25, 0x45, 0x4f, 0x46] as const;
+  const eofOffset = findLastSequence(bytes, eof);
+  if (eofOffset < 0) return null;
+  let offset = eofOffset + eof.length;
+  while (
+    offset < bytes.length &&
+    [0x09, 0x0a, 0x0c, 0x0d, 0x20].includes(bytes[offset]!)
+  ) {
+    offset += 1;
+  }
+  return buildMediaTailIndicator(
+    bytes,
+    "pdf_after_eof",
+    "Data after PDF EOF",
+    offset,
+  );
+}
+
+/**
+ * Detect bounded, format-level trailing-data indicators without returning,
+ * decoding, or executing appended content.
+ */
+export function detectBinaryMediaTailIndicators(bytes: Uint8Array) {
+  const indicator =
+    detectPngTail(bytes) ?? detectJpegTail(bytes) ?? detectPdfTail(bytes);
+  return indicator ? [indicator] : [];
 }
 
 function extractMarkdownSectionLines(content: string, heading: string) {
@@ -217,6 +418,11 @@ function buildReverseEngineeringNextSteps(source: BinaryTriageBriefSource) {
   if (tagSet.has("script")) {
     steps.push(
       "Read the full script/source directly and normalize suspicious commands, persistence logic, or outbound endpoints into durable analyst notes.",
+    );
+  }
+  if (tagSet.has("media-tail-indicator")) {
+    steps.push(
+      "Validate the trailing-data indicator with a dedicated local forensic tool before extracting or making claims about the appended content.",
     );
   }
   steps.push(
@@ -443,6 +649,10 @@ export function extractIocCandidates(strings: string[]): BinaryIocCandidates {
 export function buildBinaryTriageNotes(input: BinaryTriageInput) {
   const notes: string[] = [];
 
+  for (const indicator of input.mediaTailIndicators ?? []) {
+    notes.push(`${indicator.label}: ${indicator.detail}`);
+  }
+
   if (input.format.category === "executable" && input.entropy >= 7.2) {
     notes.push(
       "High-entropy executable sample; packing or obfuscation is plausible.",
@@ -542,6 +752,9 @@ export function buildBinaryTriageVaultDraft(
     "reverse-engineering-prep",
     report.format.id,
     report.format.category,
+    report.mediaTailIndicators.length > 0
+      ? "media-tail-indicator"
+      : "no-media-tail-indicator",
     networkIndicatorCount > 0 ? "network-iocs" : "no-network-iocs",
     "continuity:reverse-engineering",
     "route:recon",
@@ -578,6 +791,14 @@ export function buildBinaryTriageVaultDraft(
       `- Domains: ${report.iocs.domains.join(", ") || "none"}`,
       `- IPv4: ${report.iocs.ipv4.join(", ") || "none"}`,
       `- Emails: ${report.iocs.emails.join(", ") || "none"}`,
+      "",
+      "## Media-tail indicators",
+      ...(report.mediaTailIndicators.length > 0
+        ? report.mediaTailIndicators.map(
+            (indicator) =>
+              `- ${indicator.label}: ${indicator.trailingBytes} trailing byte${indicator.trailingBytes === 1 ? "" : "s"} at offset ${indicator.offset}${indicator.embeddedFormat ? `; nested signature: ${indicator.embeddedFormat}` : ""}.`,
+          )
+        : ["- No PNG, JPEG, or PDF post-terminator bytes detected."]),
       "",
       "## Printable strings sample",
       ...(report.printableStrings.length > 0

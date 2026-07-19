@@ -5,7 +5,7 @@
   "status": "in_progress",
   "source": {
     "url": "https://github.com/elder-plinius?tab=repositories",
-    "version": "profile and GLOSSOPETRAE 3.1.0 reviewed 2026-07-18",
+    "version": "profile, GLOSSOPETRAE 3.1.0, and ST3GG 3.0.0 reviewed 2026-07-18",
     "reviewedAt": "2026-07-18",
     "license": "mixed",
     "primaryEvidence": [
@@ -17,7 +17,11 @@
       "https://github.com/elder-plinius/GLOSSOPETRAE",
       "https://github.com/elder-plinius/GLOSSOPETRAE/blob/main/README.md",
       "https://github.com/elder-plinius/GLOSSOPETRAE/blob/main/package.json",
-      "https://github.com/elder-plinius/GLOSSOPETRAE/blob/main/VALIDATION.md"
+      "https://github.com/elder-plinius/GLOSSOPETRAE/blob/main/VALIDATION.md",
+      "https://github.com/elder-plinius/ST3GG",
+      "https://github.com/elder-plinius/ST3GG/blob/main/README.md",
+      "https://github.com/elder-plinius/ST3GG/blob/main/pyproject.toml",
+      "https://github.com/elder-plinius/ST3GG/blob/main/analysis_tools.py"
     ]
   },
   "capabilities": [
@@ -79,6 +83,19 @@
       ]
     },
     {
+      "id": "media-tail-indicator-defense",
+      "title": "Flag data appended after logical PNG, JPEG, or PDF terminators without decoding it",
+      "sourceEvidence": "ST3GG 3.0.0 README blue-team, polyglot, PNG trailing-data, and analysis sections plus analysis_tools.py PNG IEND inspection",
+      "disposition": "implemented",
+      "reason": "Nexus independently adds a bounded browser-local indicator to its existing RECON binary triage and persists only derived evidence.",
+      "proof": [
+        "lib/binaryTriage.ts",
+        "components/recon/BinaryTriagePanel.tsx",
+        "scripts/check-st3gg-media-tail-runtime.mjs",
+        "docs/ideas/repo-analysis/elder-plinius/st3gg/REPO_CONTEXT.md"
+      ]
+    },
+    {
       "id": "measured-improvement-loop",
       "title": "Generate, inspect, measure, and propose iterative improvements",
       "sourceEvidence": "ourobopus README and Python entry-point inventory",
@@ -130,11 +147,19 @@
       "reason": "Nexus adopts the visibility-gap defense only; the dual-use engine, payload creation, decoding, provider-backed experiments, and AGPL implementation stay external."
     },
     {
+      "id": "steganography-creation-decoding-runtime",
+      "title": "Create, extract, decode, brute-force, or automate steganographic payloads across files and network channels",
+      "sourceEvidence": "ST3GG 3.0.0 README offense, encode/decode, AI-agent, network, and advanced-technique sections",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus implements one defensive format-level indicator only; the AGPL suite, payload handling, statistical engine, covert channels, providers, and dependencies remain external."
+    },
+    {
       "id": "remaining-portfolio",
       "title": "Assess the remaining public repositories individually for additional product-safe capabilities",
       "sourceEvidence": "elder-plinius repository profile reporting 45 public repositories",
       "disposition": "pending",
-      "reason": "This bounded pass reviewed the five strongest fits; further implementation requires a concrete Nexus need plus repository-specific license and security review."
+      "reason": "This bounded pass reviewed the seven strongest fits; further implementation requires a concrete Nexus need plus repository-specific license and security review."
     }
   ]
 }

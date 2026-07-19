@@ -10,6 +10,7 @@ import {
   buildBinaryTriageVaultDraft,
   buildBinaryTriageNotes,
   computeByteEntropy,
+  detectBinaryMediaTailIndicators,
   detectBinaryFormat,
   extractIocCandidates,
   extractPrintableStrings,
@@ -49,6 +50,14 @@ function buildCopyReport(report: BinaryTriageReport) {
     `Entropy: ${report.entropy.toFixed(2)} / 8.00`,
     `SHA-256: ${report.sha256}`,
     `SHA-1: ${report.sha1}`,
+    "",
+    "Media-tail indicators:",
+    ...(report.mediaTailIndicators.length > 0
+      ? report.mediaTailIndicators.map(
+          (indicator) =>
+            `- ${indicator.label}: ${indicator.trailingBytes} trailing byte${indicator.trailingBytes === 1 ? "" : "s"} at offset ${indicator.offset}${indicator.embeddedFormat ? `; nested signature: ${indicator.embeddedFormat}` : ""}`,
+        )
+      : ["- none"]),
     "",
     "Notes:",
     ...report.notes.map((note) => `- ${note}`),
@@ -172,6 +181,7 @@ export default function BinaryTriagePanel() {
       const entropy = computeByteEntropy(sample);
       const printableStrings = extractPrintableStrings(sample, 6, 80);
       const iocs = extractIocCandidates(printableStrings);
+      const mediaTailIndicators = detectBinaryMediaTailIndicators(bytes);
       const notes = buildBinaryTriageNotes({
         format,
         entropy,
@@ -179,6 +189,7 @@ export default function BinaryTriagePanel() {
         iocs,
         sampleBytes: sample.length,
         totalBytes: file.size,
+        mediaTailIndicators,
       });
 
       setReport({
@@ -192,6 +203,7 @@ export default function BinaryTriagePanel() {
         sampleBytes: sample.length,
         printableStrings,
         iocs,
+        mediaTailIndicators,
         notes,
       });
     } catch (nextError) {

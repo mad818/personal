@@ -5,27 +5,136 @@
   "status": "in_progress",
   "source": {
     "url": "https://github.com/elder-plinius?tab=repositories",
-    "version": "profile reviewed 2026-07-13",
-    "reviewedAt": "2026-07-13",
+    "version": "profile and GLOSSOPETRAE 3.1.0 reviewed 2026-07-18",
+    "reviewedAt": "2026-07-18",
     "license": "mixed",
     "primaryEvidence": [
       "https://github.com/elder-plinius/AutoTemp",
       "https://github.com/elder-plinius/LEAKHUB",
       "https://github.com/elder-plinius/P4RS3LT0NGV3",
       "https://github.com/elder-plinius/AutoStoryGen",
-      "https://github.com/elder-plinius/ourobopus"
+      "https://github.com/elder-plinius/ourobopus",
+      "https://github.com/elder-plinius/GLOSSOPETRAE",
+      "https://github.com/elder-plinius/GLOSSOPETRAE/blob/main/README.md",
+      "https://github.com/elder-plinius/GLOSSOPETRAE/blob/main/package.json",
+      "https://github.com/elder-plinius/GLOSSOPETRAE/blob/main/VALIDATION.md"
     ]
   },
   "capabilities": [
-    { "id": "multi-candidate-evaluation", "title": "Generate multiple model candidates and compare them with explicit rubrics, variance, cost, and operator selection", "sourceEvidence": "AutoTemp README features and benchmarking sections", "disposition": "adapted", "reason": "The Company Map now directs Operations and Engineering to reuse this pattern through existing Nexus AI and evaluation gates.", "proof": ["lib/nexusCompanyMap.ts", "scripts/check-nexus-company-map-runtime.mjs"] },
-    { "id": "prompt-claim-verification", "title": "Track provenance, corroboration, and verification state for prompt-transparency claims", "sourceEvidence": "LeakHub README feature and project-structure sections", "disposition": "adapted", "reason": "Research and Trust guidance now uses the evidence pattern defensively without adding submissions, rewards, OAuth, or a leak database.", "proof": ["lib/nexusCompanyMap.ts", "docs/ideas/repo-analysis/elder-plinius/REPO_CONTEXT.md"] },
-    { "id": "text-transform-taxonomy", "title": "Catalog local text normalization, encodings, ciphers, Unicode transforms, and steganography indicators", "sourceEvidence": "P4RS3LT0NGV3 README transform taxonomy", "disposition": "adapted", "reason": "Nexus exposes the taxonomy as a review-first defensive reference without copying AGPL implementation.", "proof": ["lib/nexusCompanyMap.ts", "docs/ideas/repo-analysis/elder-plinius/REPO_CONTEXT.md"] },
-    { "id": "staged-creative-drafting", "title": "Separate creative generation into plan, draft, critique, and revision stages", "sourceEvidence": "AutoStoryGen README and Python entry-point inventory", "disposition": "adapted", "reason": "Marketing guidance now points to a human-gated staged workflow through the existing AI boundary.", "proof": ["lib/nexusCompanyMap.ts", "scripts/check-nexus-company-map-runtime.mjs"] },
-    { "id": "measured-improvement-loop", "title": "Generate, inspect, measure, and propose iterative improvements", "sourceEvidence": "ourobopus README and Python entry-point inventory", "disposition": "adapted", "reason": "Operations and Engineering guidance maps the loop onto existing evals, lessons, rollback criteria, and proposed edits.", "proof": ["lib/nexusCompanyMap.ts", "scripts/check-nexus-company-map-runtime.mjs"] },
-    { "id": "direct-provider-clients", "title": "Call model providers directly from each standalone application", "sourceEvidence": "AutoTemp, AutoStoryGen, and ourobopus setup and file inventories", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus requires all AI calls to use lib/ai.ts and does not add duplicate provider authorities." },
-    { "id": "offensive-red-team-runtime", "title": "Run jailbreak, prompt-exfiltration, autonomous offensive-security, hardware-control, or adversarial-evasion tooling", "sourceEvidence": "Profile repository descriptions for T3MP3ST, CL4R1T4S, L1B3RT4S, V3SP3R, OBLITERATUS, and related projects", "disposition": "excluded", "conflict": "security", "reason": "These runtime goals conflict with Nexus's defensive, advisory, and review-gated product boundary." },
-    { "id": "community-leak-marketplace", "title": "Collect and reward submissions of leaked system prompts", "sourceEvidence": "LeakHub README submission, verification, request, and points features", "disposition": "excluded", "conflict": "legal", "reason": "Nexus adopts evidence hygiene only and will not solicit, publish, or gamify potentially stolen confidential material." },
-    { "id": "hidden-message-creation", "title": "Create invisible-text, zero-width, emoji, whitespace, and Unicode-tag steganographic payloads", "sourceEvidence": "P4RS3LT0NGV3 README steganography section", "disposition": "excluded", "conflict": "security", "reason": "Defensive recognition can be useful, but payload creation is outside this integration." },
-    { "id": "remaining-portfolio", "title": "Assess the remaining public repositories individually for additional product-safe capabilities", "sourceEvidence": "elder-plinius repository profile reporting 45 public repositories", "disposition": "pending", "reason": "This bounded pass reviewed the five strongest fits; further implementation requires a concrete Nexus need plus repository-specific license and security review." }
+    {
+      "id": "multi-candidate-evaluation",
+      "title": "Generate multiple model candidates and compare them with explicit rubrics, variance, cost, and operator selection",
+      "sourceEvidence": "AutoTemp README features and benchmarking sections",
+      "disposition": "adapted",
+      "reason": "The Company Map now directs Operations and Engineering to reuse this pattern through existing Nexus AI and evaluation gates.",
+      "proof": [
+        "lib/nexusCompanyMap.ts",
+        "scripts/check-nexus-company-map-runtime.mjs"
+      ]
+    },
+    {
+      "id": "prompt-claim-verification",
+      "title": "Track provenance, corroboration, and verification state for prompt-transparency claims",
+      "sourceEvidence": "LeakHub README feature and project-structure sections",
+      "disposition": "adapted",
+      "reason": "Research and Trust guidance now uses the evidence pattern defensively without adding submissions, rewards, OAuth, or a leak database.",
+      "proof": [
+        "lib/nexusCompanyMap.ts",
+        "docs/ideas/repo-analysis/elder-plinius/REPO_CONTEXT.md"
+      ]
+    },
+    {
+      "id": "text-transform-taxonomy",
+      "title": "Catalog local text normalization, encodings, ciphers, Unicode transforms, and steganography indicators",
+      "sourceEvidence": "P4RS3LT0NGV3 README transform taxonomy",
+      "disposition": "adapted",
+      "reason": "Nexus exposes the taxonomy as a review-first defensive reference without copying AGPL implementation.",
+      "proof": [
+        "lib/nexusCompanyMap.ts",
+        "docs/ideas/repo-analysis/elder-plinius/REPO_CONTEXT.md"
+      ]
+    },
+    {
+      "id": "unicode-hidden-channel-defense",
+      "title": "Detect Unicode channels that can be invisible to or reordered by a different model monitor",
+      "sourceEvidence": "GLOSSOPETRAE 3.1.0 README tokenizer covert-channel findings, detection flip, experiment controls, and AGPL boundary",
+      "disposition": "implemented",
+      "reason": "Nexus independently implements only a read-only detector for tracked skill instructions and preserves ordinary multilingual text and emoji.",
+      "proof": [
+        "lib/skillSpectrumPolicy.ts",
+        "scripts/validate-skill-capabilities.mjs",
+        "scripts/check-glossopetrae-hidden-channel-runtime.mjs",
+        "docs/ideas/repo-analysis/elder-plinius/glossopetrae/REPO_CONTEXT.md"
+      ]
+    },
+    {
+      "id": "staged-creative-drafting",
+      "title": "Separate creative generation into plan, draft, critique, and revision stages",
+      "sourceEvidence": "AutoStoryGen README and Python entry-point inventory",
+      "disposition": "adapted",
+      "reason": "Marketing guidance now points to a human-gated staged workflow through the existing AI boundary.",
+      "proof": [
+        "lib/nexusCompanyMap.ts",
+        "scripts/check-nexus-company-map-runtime.mjs"
+      ]
+    },
+    {
+      "id": "measured-improvement-loop",
+      "title": "Generate, inspect, measure, and propose iterative improvements",
+      "sourceEvidence": "ourobopus README and Python entry-point inventory",
+      "disposition": "adapted",
+      "reason": "Operations and Engineering guidance maps the loop onto existing evals, lessons, rollback criteria, and proposed edits.",
+      "proof": [
+        "lib/nexusCompanyMap.ts",
+        "scripts/check-nexus-company-map-runtime.mjs"
+      ]
+    },
+    {
+      "id": "direct-provider-clients",
+      "title": "Call model providers directly from each standalone application",
+      "sourceEvidence": "AutoTemp, AutoStoryGen, and ourobopus setup and file inventories",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus requires all AI calls to use lib/ai.ts and does not add duplicate provider authorities."
+    },
+    {
+      "id": "offensive-red-team-runtime",
+      "title": "Run jailbreak, prompt-exfiltration, autonomous offensive-security, hardware-control, or adversarial-evasion tooling",
+      "sourceEvidence": "Profile repository descriptions for T3MP3ST, CL4R1T4S, L1B3RT4S, V3SP3R, OBLITERATUS, and related projects",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "These runtime goals conflict with Nexus's defensive, advisory, and review-gated product boundary."
+    },
+    {
+      "id": "community-leak-marketplace",
+      "title": "Collect and reward submissions of leaked system prompts",
+      "sourceEvidence": "LeakHub README submission, verification, request, and points features",
+      "disposition": "excluded",
+      "conflict": "legal",
+      "reason": "Nexus adopts evidence hygiene only and will not solicit, publish, or gamify potentially stolen confidential material."
+    },
+    {
+      "id": "hidden-message-creation",
+      "title": "Create invisible-text, zero-width, emoji, whitespace, and Unicode-tag steganographic payloads",
+      "sourceEvidence": "P4RS3LT0NGV3 README steganography section",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Defensive recognition can be useful, but payload creation is outside this integration."
+    },
+    {
+      "id": "procedural-language-and-covert-channel-runtime",
+      "title": "Generate procedural languages, covert messages, tokenizer exploits, semantic steganography, or guardrail-evasion attributes",
+      "sourceEvidence": "GLOSSOPETRAE 3.1.0 README engine, covert-channel, special-attribute, experiment, and research-application sections",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus adopts the visibility-gap defense only; the dual-use engine, payload creation, decoding, provider-backed experiments, and AGPL implementation stay external."
+    },
+    {
+      "id": "remaining-portfolio",
+      "title": "Assess the remaining public repositories individually for additional product-safe capabilities",
+      "sourceEvidence": "elder-plinius repository profile reporting 45 public repositories",
+      "disposition": "pending",
+      "reason": "This bounded pass reviewed the five strongest fits; further implementation requires a concrete Nexus need plus repository-specific license and security review."
+    }
   ]
 }

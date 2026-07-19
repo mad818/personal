@@ -106,6 +106,20 @@ export interface CssHiddenPromptFinding {
   excerpt: string;
 }
 
+export type UnicodeHiddenPromptCategory =
+  | "unicode_tag"
+  | "bidi_control"
+  | "zero_width_format"
+  | "private_use";
+
+export interface UnicodeHiddenPromptFinding {
+  line: number;
+  column: number;
+  codePoint: string;
+  category: UnicodeHiddenPromptCategory;
+  excerpt: string;
+}
+
 const CSS_HIDDEN_PATTERNS: RegExp[] = [
   /display\s*:\s*none/i,
   /visibility\s*:\s*hidden/i,
@@ -190,5 +204,100 @@ export function detectCssHiddenPromptSmuggling(
       excerpt: line.slice(0, 120),
     });
   }
+  return findings;
+}
+
+const MAX_UNICODE_HIDDEN_FINDINGS = 50;
+
+function classifyHiddenCodePoint(
+  codePoint: number,
+): UnicodeHiddenPromptCategory | null {
+  if (codePoint >= 0xe0000 && codePoint <= 0xe007f) {
+    return "unicode_tag";
+  }
+  if (
+    codePoint === 0x061c ||
+    codePoint === 0x200e ||
+    codePoint === 0x200f ||
+    (codePoint >= 0x202a && codePoint <= 0x202e) ||
+    (codePoint >= 0x2066 && codePoint <= 0x2069)
+  ) {
+    return "bidi_control";
+  }
+  if (
+    codePoint === 0x00ad ||
+    codePoint === 0x034f ||
+    codePoint === 0x115f ||
+    codePoint === 0x1160 ||
+    codePoint === 0x200b ||
+    (codePoint >= 0x2060 && codePoint <= 0x2064) ||
+    codePoint === 0x3164 ||
+    codePoint === 0xfeff ||
+    codePoint === 0xffa0
+  ) {
+    return "zero_width_format";
+  }
+  if (
+    (codePoint >= 0xe000 && codePoint <= 0xf8ff) ||
+    (codePoint >= 0xf0000 && codePoint <= 0xffffd) ||
+    (codePoint >= 0x100000 && codePoint <= 0x10fffd)
+  ) {
+    return "private_use";
+  }
+  return null;
+}
+
+function formatCodePoint(codePoint: number): string {
+  return `U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`;
+}
+
+function buildUnicodeFindingExcerpt(line: string): string {
+  const printable = Array.from(line, (character) => {
+    const codePoint = character.codePointAt(0) ?? 0;
+    return classifyHiddenCodePoint(codePoint)
+      ? `<${formatCodePoint(codePoint)}>`
+      : character;
+  }).join("");
+  return printable.slice(0, 120);
+}
+
+/**
+ * Detect Unicode channels that can hide or reorder prompt content before a
+ * model or monitor sees it. This is a read-only defensive adaptation of the
+ * visibility-gap lesson documented by elder-plinius/GLOSSOPETRAE.
+ *
+ * Normal multilingual text, combining marks, variation selectors, and emoji
+ * joiners remain allowed. A single leading UTF-8 BOM is also accepted.
+ */
+export function detectUnicodeHiddenPromptSmuggling(
+  content: string,
+): UnicodeHiddenPromptFinding[] {
+  const findings: UnicodeHiddenPromptFinding[] = [];
+  const lines = content.split(/\r?\n/);
+
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+    const line = lines[lineIndex] ?? "";
+    const characters = Array.from(line);
+    for (
+      let columnIndex = 0;
+      columnIndex < characters.length;
+      columnIndex += 1
+    ) {
+      const codePoint = characters[columnIndex]?.codePointAt(0) ?? 0;
+      if (lineIndex === 0 && columnIndex === 0 && codePoint === 0xfeff)
+        continue;
+      const category = classifyHiddenCodePoint(codePoint);
+      if (!category) continue;
+      findings.push({
+        line: lineIndex + 1,
+        column: columnIndex + 1,
+        codePoint: formatCodePoint(codePoint),
+        category,
+        excerpt: buildUnicodeFindingExcerpt(line),
+      });
+      if (findings.length >= MAX_UNICODE_HIDDEN_FINDINGS) return findings;
+    }
+  }
+
   return findings;
 }

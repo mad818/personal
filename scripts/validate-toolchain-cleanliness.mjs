@@ -38,6 +38,7 @@ if (!/^\s*include\s*=\s*dev\s*$/m.test(npmConfig)) {
 
 const packageJson = JSON.parse(readRequired("package.json"));
 const packageLock = JSON.parse(readRequired("package-lock.json"));
+const nextConfig = readRequired("next.config.js");
 const desktopPackageJson = JSON.parse(
   readRequired("desktop", "packaged-runtime", "package.json"),
 );
@@ -61,6 +62,14 @@ function assertNpmManifest(manifest, label) {
 
 assertNpmManifest(packageJson, "package.json");
 assertNpmManifest(desktopPackageJson, "desktop packaged runtime");
+if (!/webpackBuildWorker:\s*false/.test(nextConfig)) {
+  fail("next.config.js must keep Windows webpack compilation in-process");
+}
+if (!/serverMinification:\s*false/.test(nextConfig)) {
+  fail(
+    "next.config.js must retain the proven Windows prerender worker stability setting",
+  );
+}
 if (desktopPackageJson.packageManager !== packageJson.packageManager) {
   fail("desktop packaged runtime packageManager must match package.json");
 }
@@ -413,5 +422,5 @@ if (
 }
 
 console.log(
-  `ok toolchain-cleanliness (npm 11 + Node 24 + npm include=dev + ESLint parser ${parserManifest.version} for TypeScript ${lockedTypeScriptVersion} + Prettier ${activeSourceInventory.length}-file non-RPG scope + truthful full audit)`,
+  `ok toolchain-cleanliness (npm 11 + Node 24 + stable Windows Next build workers + npm include=dev + ESLint parser ${parserManifest.version} for TypeScript ${lockedTypeScriptVersion} + Prettier ${activeSourceInventory.length}-file non-RPG scope + truthful full audit)`,
 );

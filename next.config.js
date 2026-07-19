@@ -14,6 +14,9 @@ module.exports = {
     // Windows local proof can reject Next's webpack worker spawn with EPERM.
     // Keep compiler work in-process to reduce local build-worker failures.
     webpackBuildWorker: false,
+    // Next 15's minified server bundle exits silently when the Windows
+    // prerender worker starts; the unminified server bundle completes all pages.
+    serverMinification: false,
   },
   eslint: {
     ignoreDuringBuilds: skipDuplicateBuildChecks,

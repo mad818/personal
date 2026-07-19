@@ -280,6 +280,19 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
       "Use the taxonomy for explanation or defensive decoding guidance; do not imply the external transform runtime is installed.",
   },
   {
+    id: "pliny-glossopetrae",
+    label: "GLOSSOPETRAE visibility-gap defense",
+    url: "https://github.com/elder-plinius/GLOSSOPETRAE",
+    kind: "reference",
+    posture: "adapted",
+    purpose:
+      "Defensive awareness that Unicode content visible to one tokenizer can be missed or reordered by a different model monitor.",
+    codexPath:
+      "Use the Nexus-owned read-only skill scanner for tag, bidi-control, zero-width, and private-use channels; AGPL code, payload creation, decoding, and provider experiments stay external.",
+    chatgptPath:
+      "Treat Unicode visibility as a security caveat and request sanitized evidence; do not claim semantic steganography is detectable or that the upstream engine is installed.",
+  },
+  {
     id: "pliny-autostorygen",
     label: "AutoStoryGen staged drafting pattern",
     url: "https://github.com/elder-plinius/AutoStoryGen",
@@ -435,6 +448,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "nexus-native",
       "pliny-leakhub",
       "pliny-parseltongue",
+      "pliny-glossopetrae",
     ],
     boundary:
       "Graphify is optional repo intelligence; durable knowledge follows Nexus source and retention controls.",
@@ -494,6 +508,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "nexus-native",
       "pliny-leakhub",
       "pliny-parseltongue",
+      "pliny-glossopetrae",
     ],
     boundary:
       "Nexus can organize issues and evidence but cannot replace qualified legal or compliance counsel.",

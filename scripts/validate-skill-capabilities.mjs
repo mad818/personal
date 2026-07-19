@@ -2,10 +2,18 @@
 /* eslint-disable no-console */
 import fs from "node:fs";
 import path from "node:path";
-import { evaluateSkillCapabilities, detectCssHiddenPromptSmuggling } from "../lib/skillSpectrumPolicy.ts";
+import {
+  detectCssHiddenPromptSmuggling,
+  detectUnicodeHiddenPromptSmuggling,
+  evaluateSkillCapabilities,
+} from "../lib/skillSpectrumPolicy.ts";
 
 const root = process.cwd();
-const skillsDir = path.join(root, ".claude", "skills");
+const skillRoots = [
+  path.join(root, ".agents", "skills"),
+  path.join(root, ".claude", "skills"),
+  path.join(root, "docs", "ideas", "skills"),
+];
 
 function fail(message) {
   console.error(`x skill-capabilities: ${message}`);
@@ -14,10 +22,13 @@ function fail(message) {
 
 function walk(dir, output = []) {
   if (!fs.existsSync(dir)) return output;
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+  for (const entry of fs
+    .readdirSync(dir, { withFileTypes: true })
+    .sort((a, b) => a.name.localeCompare(b.name))) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full, output);
-    else if (entry.name === "SKILL.md" || entry.name === "GUIDE.md") output.push(full);
+    else if (entry.name === "SKILL.md" || entry.name === "GUIDE.md")
+      output.push(full);
   }
   return output;
 }
@@ -27,15 +38,30 @@ const capabilityRe =
 
 let scanned = 0;
 let blocked = 0;
-let cssScanned = 0;
+let contentScanned = 0;
 
-for (const skillFile of walk(skillsDir)) {
+for (const skillRoot of skillRoots) {
+  if (!fs.existsSync(skillRoot)) {
+    fail(`required skill root is missing: ${path.relative(root, skillRoot)}`);
+  }
+}
+
+const skillFiles = skillRoots.flatMap((skillRoot) => walk(skillRoot)).sort();
+
+for (const skillFile of skillFiles) {
   const text = fs.readFileSync(skillFile, "utf8");
-  cssScanned += 1;
+  contentScanned += 1;
   const cssFindings = detectCssHiddenPromptSmuggling(text);
   if (cssFindings.length) {
     fail(
       `${path.relative(root, skillFile)} has CSS-hidden prompt smuggling (line ${cssFindings[0].line}): ${cssFindings[0].excerpt}`,
+    );
+  }
+  const unicodeFindings = detectUnicodeHiddenPromptSmuggling(text);
+  if (unicodeFindings.length) {
+    const finding = unicodeFindings[0];
+    fail(
+      `${path.relative(root, skillFile)} has Unicode hidden-channel content (${finding.category} ${finding.codePoint}, line ${finding.line}, column ${finding.column}): ${finding.excerpt}`,
     );
   }
   const declared = [...new Set(text.match(capabilityRe) ?? [])];
@@ -53,5 +79,5 @@ for (const skillFile of walk(skillsDir)) {
 }
 
 console.log(
-  `ok skill-capabilities (${cssScanned} skill markdown file(s) CSS-scanned, ${scanned} with capability declarations, ${blocked} blocked)`,
+  `ok skill-capabilities (${skillRoots.length} roots, ${contentScanned} skill markdown file(s) CSS/Unicode-scanned, ${scanned} with capability declarations, ${blocked} blocked)`,
 );

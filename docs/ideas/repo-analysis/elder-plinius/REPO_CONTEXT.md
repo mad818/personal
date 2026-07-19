@@ -2,7 +2,7 @@
 
 ## What this is
 
-`elder-plinius` is a public GitHub portfolio of AI experiments, prompt-transparency projects, text utilities, red-team tools, and agent prototypes. Nexus reviewed the portfolio as an idea source, then selected five patterns that fit existing product boundaries without vendoring an upstream application.
+`elder-plinius` is a public GitHub portfolio of AI experiments, prompt-transparency projects, text utilities, red-team tools, and agent prototypes. Nexus reviewed the portfolio as an idea source, then selected six patterns that fit existing product boundaries without vendoring an upstream application.
 
 ## Stack
 
@@ -22,6 +22,7 @@ The repositories are independent experiments, not one composable platform. Nexus
 - `P4RS3LT0NGV3/src/transformers/` — large taxonomy of encodings, ciphers, Unicode transforms, and text mutations.
 - `AutoStoryGen/app.py` — staged agentic story-generation interface.
 - `ourobopus/ouro.py` — small self-review and improvement-loop prototype.
+- `GLOSSOPETRAE/README.md` and `experiments/` — model/monitor Unicode visibility-gap evidence used only for defensive skill inspection.
 
 ## Entry points
 
@@ -43,6 +44,7 @@ Start with each repository README and license. In Nexus, the entry point is `lib
 3. Surface P4RS3LT0NGV3's normalization/encoding taxonomy in Research and Trust, excluding hidden-message creation and copied AGPL code.
 4. Surface AutoStoryGen's plan/draft/critique/revise stages in Marketing and creative work.
 5. Surface ourobopus's measure/propose/review loop in Operations and Engineering without autonomous self-modification.
+6. Apply GLOSSOPETRAE's tokenizer-visibility lesson as a local Unicode hidden-channel scan in the existing AgentShield skill-review lane.
 
 ### To extend / modify
 
@@ -50,6 +52,6 @@ Add future capabilities only through existing Nexus routes, `lib/ai.ts`, protect
 
 ## Open questions
 
-- The profile reports 45 repositories, but this pass goes deep only on the five strongest product-safe patterns.
+- The profile reports 45 repositories, but this work goes deep only on the six strongest product-safe patterns reviewed so far.
 - AutoTemp shows no license on the reviewed repository page, so it remains an idea-only reference.
 - Offensive red-team, jailbreak, prompt-exfiltration, Flipper-control, and adversarial-image projects are not runtime candidates for Nexus.

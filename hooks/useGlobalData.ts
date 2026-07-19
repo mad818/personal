@@ -16,7 +16,6 @@ export function useGlobalData() {
   const setThreatIntel = useStore((s) => s.setThreatIntel)
   const setThreatIntelLoaded = useStore((s) => s.setThreatIntelLoaded)
   const setWeather     = useStore((s) => s.setWeather)
-  const setFearGreed   = useStore((s) => s.setFearGreed)
   const setDefiData    = useStore((s) => s.setDefiData)
   const setHackerNews  = useStore((s) => s.setHackerNews)
   const setSecFilings  = useStore((s) => s.setSecFilings)
@@ -68,16 +67,6 @@ export function useGlobalData() {
     }
   }, [setWeather])
 
-  const fetchFearGreed = useCallback(async () => {
-    try {
-      const r = await apiFetch('/api/fear-greed', { signal: AbortSignal.timeout(10000) })
-      const d = await r.json()
-      setFearGreed({ current: d.current, history: d.history ?? [] })
-    } catch {
-      // silent
-    }
-  }, [setFearGreed])
-
   const fetchDefi = useCallback(async () => {
     try {
       const r = await apiFetch('/api/defi?type=tvl', { signal: AbortSignal.timeout(10000) })
@@ -126,7 +115,6 @@ export function useGlobalData() {
       fetchGdelt(),
       fetchThreatIntel(),
       fetchWeather(),
-      fetchFearGreed(),
       fetchDefi(),
       fetchHackerNews(),
       fetchSecFilings(),
@@ -137,7 +125,6 @@ export function useGlobalData() {
     fetchGdelt,
     fetchThreatIntel,
     fetchWeather,
-    fetchFearGreed,
     fetchDefi,
     fetchHackerNews,
     fetchSecFilings,
@@ -149,7 +136,6 @@ export function useGlobalData() {
     fetchGdelt,
     fetchThreatIntel,
     fetchWeather,
-    fetchFearGreed,
     fetchDefi,
     fetchHackerNews,
     fetchSecFilings,

@@ -11,6 +11,7 @@
 
 import { useEffect } from "react";
 import { usePrices } from "@/hooks/usePrices";
+import { useFearGreed } from "@/hooks/useFearGreed";
 import { useArticles } from "@/hooks/useArticles";
 import { useCVEs } from "@/hooks/useCVEs";
 import { useOTX } from "@/hooks/useOTX";
@@ -147,30 +148,19 @@ export function WorldRiskLoader() {
 
 // ── Fear & Greed (COMMAND tab) ────────────────────────────────────────────────
 export function FearGreedLoader() {
-  const setSignals = useStore((s) => s.setSignals);
+  const { fetchFearGreed, cancelFearGreed } = useFearGreed();
 
   useEffect(() => {
-    async function fetchFearGreed() {
-      try {
-        const r = await apiFetch("/api/fear-greed", {
-          signal: AbortSignal.timeout(10_000),
-        });
-        const d = await r.json();
-        const entry = d?.current;
-        if (entry?.value != null) {
-          setSignals({
-            fg: {
-              value: Number(entry.value),
-              label: entry.classification ?? "",
-            },
-          });
-        }
-      } catch {
-        /* silent */
-      }
-    }
-    return startVisiblePolling("fearGreed", fetchFearGreed, 10 * 60_000);
-  }, [setSignals]);
+    const unsubscribe = startVisiblePolling(
+      "fearGreed",
+      fetchFearGreed,
+      10 * 60_000,
+    );
+    return () => {
+      unsubscribe();
+      cancelFearGreed();
+    };
+  }, [cancelFearGreed, fetchFearGreed]);
 
   return null;
 }

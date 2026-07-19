@@ -349,6 +349,7 @@ export type FeedStatusKey =
   | 'conflict'
   | 'polymarket'
   | 'marketRates'
+  | 'fearGreed'
   | 'cisaKev'
   | 'weather'
   | 'flights'
@@ -369,6 +370,7 @@ export const DEFAULT_FEED_STATUS: Record<FeedStatusKey, FeedStatus> = {
   conflict:     { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   polymarket:   { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   marketRates:  { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  fearGreed:    { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   cisaKev:      { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   weather:      { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   flights:      { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
@@ -682,8 +684,15 @@ export interface FearGreedData {
   current: {
     value:                 number | string
     value_classification?: string
+    classification?:       string
+    timestamp?:            string
   }
-  history: GeoRecord[]
+  history: Array<{
+    value:                 number | string
+    value_classification?: string
+    classification?:       string
+    timestamp?:            string
+  }>
 }
 
 export interface DefiData {

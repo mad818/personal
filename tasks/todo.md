@@ -90,6 +90,14 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [x] RECON-SERVER-CONNECTOR-BOUNDARY — Keep RECON lookup targets and optional provider credentials behind one closed Nexus server boundary. Spec: `specs/features/recon-server-connector-boundary.md`.
+  - Privacy thesis: the browser may call only the authenticated same-origin Nexus route; the server alone selects approved provider endpoints and reads optional BYOK credentials.
+  - [x] Add a validated operation contract, bounded provider executor, safe error taxonomy, protected route, and rate limit.
+  - [x] Migrate OSINT and passive-DNS panels without changing their lookup coverage or result presentation; remove browser key reads and obsolete provider CSP hosts.
+  - [x] Add focused runtime/static regression coverage, canonical verification wiring, correction lesson, and zero-phone/PWA/RPG proof.
+  - Guardrail: no arbitrary upstream URL, client-carried credential, raw upstream error, provider expansion, phone/PWA acceptance work, RPG change, new dependency, or live provider call during validation.
+  - Progress: the OSINT and passive-DNS panels now call one same-origin authenticated route through `apiFetch`; a closed 15-operation contract validates every domain, IP, email, username, hash, and URL before selecting fixed provider endpoints. HIBP, VirusTotal, and Shodan keys are server-only, legacy browser defaults are removed, provider calls have fixed time and response-size bounds, and the route returns only fixed invalid/key/rate-limit/unavailable failures. Thirteen obsolete third-party browser CSP hosts are gone while all existing lookup and result panels remain. Focused runtime/static fixtures, explicit TypeScript, zero-warning lint, active-source formatting, CSP, security boundaries, publication safety, the 195.9-second canonical verifier, and the 89.4-second production build across all 39 pages passed without live provider traffic. The final changed-path audit contains zero phone/PWA acceptance and RPG paths.
+
 - [x] OPERATIONAL-READ-STATE-TRUTH — Stop CISA KEV and Agent Health outages from appearing as verified empty data. Spec: `specs/features/operational-read-state-truth.md`.
   - Truth thesis: connector failure is unavailable state, not an empty security catalog, and a failed local diagnostic read is not proof that no metrics exist.
   - [x] Make the CISA proxy fail with a safe non-2xx response so sweep evidence and clients can classify upstream failure.

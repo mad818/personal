@@ -7,20 +7,17 @@ export interface AgentPlatformReadinessSnapshot {
   markitdown?: boolean;
   timesfm?: {
     available?: boolean;
-    endpointUrl?: string | null;
   };
   mcpGateway?: {
-    liveReady?: boolean;
+    configured?: boolean;
     allowlistCount?: number;
   };
 }
 
 export function AgentPlatformReadinessBadges({
   readiness,
-  compact = false,
 }: {
   readiness: AgentPlatformReadinessSnapshot | null;
-  compact?: boolean;
 }) {
   if (!readiness) {
     return (
@@ -30,32 +27,25 @@ export function AgentPlatformReadinessBadges({
     );
   }
 
-  const timesfmReady = readiness?.timesfm?.available ?? false;
-  const firecrawlReady = readiness?.firecrawl ?? false;
-  const markitdownReady = readiness?.markitdown ?? false;
-  const mcpReady = readiness?.mcpGateway?.liveReady ?? false;
+  const timesfmConfigured = readiness?.timesfm?.available ?? false;
+  const firecrawlConfigured = readiness?.firecrawl ?? false;
+  const markitdownConfigured = readiness?.markitdown ?? false;
+  const mcpConfigured = readiness?.mcpGateway?.configured ?? false;
 
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-      <ShellBadge tone={timesfmReady ? "success" : "muted"}>
-        TimesFM {timesfmReady ? "ready" : "off"}
+      <ShellBadge tone={timesfmConfigured ? "success" : "muted"}>
+        TimesFM {timesfmConfigured ? "configured" : "off"}
       </ShellBadge>
-      <ShellBadge tone={firecrawlReady ? "success" : "muted"}>
-        Firecrawl {firecrawlReady ? "BYOK" : "off"}
+      <ShellBadge tone={firecrawlConfigured ? "success" : "muted"}>
+        Firecrawl {firecrawlConfigured ? "key set" : "off"}
       </ShellBadge>
-      <ShellBadge tone={markitdownReady ? "success" : "muted"}>
-        MarkItDown {markitdownReady ? "ready" : "off"}
+      <ShellBadge tone={markitdownConfigured ? "success" : "muted"}>
+        MarkItDown {markitdownConfigured ? "found" : "off"}
       </ShellBadge>
-      <ShellBadge tone={mcpReady ? "success" : "muted"}>
-        MCP {mcpReady ? "live" : "descriptor"}
+      <ShellBadge tone={mcpConfigured ? "success" : "muted"}>
+        MCP {mcpConfigured ? "configured" : "off"}
       </ShellBadge>
-      {!compact && timesfmReady && readiness?.timesfm?.endpointUrl ? (
-        <span
-          style={{ fontSize: "10px", color: "var(--text3)", width: "100%" }}
-        >
-          Endpoint: {readiness.timesfm.endpointUrl}
-        </span>
-      ) : null}
     </div>
   );
 }

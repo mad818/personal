@@ -134,7 +134,7 @@ export default function CameraGrid() {
     "cam-03": true,
   });
 
-  // Listen for typed eventBus camera alerts (emitted by wsManager)
+  // Listen for typed camera alerts from any active eventBus producer.
   useEventBus("camera:alert", (data) => {
     const id = data?.cameraId;
     if (!id) return;

@@ -20,9 +20,9 @@
       "sourceEvidence": "Repository scanner positioning for agent configs and permissions",
       "disposition": "adapted",
       "proof": [
-        "lib/agentShieldPosture.ts",
         "lib/homefrontSourceIntelligence.ts",
-        "scripts/validate-ai-exposure-assimilation.mjs"
+        "lib/skillSpectrumPolicy.ts",
+        "scripts/agentshield-check.mjs"
       ],
       "adaptationNotes": "Operator checklist for tool scope, secrets, mutation gates, and audit trail — no bundled scanner runtime."
     },
@@ -32,7 +32,6 @@
       "sourceEvidence": "Repository scanner focus includes MCP servers and permission posture",
       "disposition": "adapted",
       "proof": [
-        "lib/agentShieldPosture.ts",
         "components/ui/TrustOperationsRail.tsx",
         "lib/trustPostureDescriptor.ts"
       ],

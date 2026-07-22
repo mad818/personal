@@ -20,9 +20,10 @@
       "sourceEvidence": "agentmemory: episodic store, recency decay, semantic retrieval, benchmark harness",
       "disposition": "adapted",
       "proof": [
-        "lib/assimilation/reconCodeIntelBridge.ts"
+        "lib/episodicMemoryStore.ts",
+        "components/home/office/officeCommandCenterPostRun.ts"
       ],
-      "adaptationNotes": "AGENTMEMORY_NEXUS_ROUTES documents the integration points; full implementation tracked as pending below."
+      "adaptationNotes": "Proof points directly to the reachable episodic store and HQ post-run seam; pending capabilities remain explicit below."
     },
     {
       "id": "episodic-memory-store",

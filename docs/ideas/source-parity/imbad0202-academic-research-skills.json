@@ -20,9 +20,11 @@
       "sourceEvidence": "academic-research-skills: structured paper search, citation extraction, methodology critique, reproducibility checks",
       "disposition": "adapted",
       "proof": [
-        "lib/assimilation/reconCodeIntelBridge.ts"
+        "lib/feynmanResearch.ts",
+        "lib/feynmanWorkflowContracts.ts",
+        "components/intel/PapersResearchPanel.tsx"
       ],
-      "adaptationNotes": "ACADEMIC_SKILLS_NEXUS_ROUTES maps to feynmanResearch.ts, feynmanWorkflowContracts.ts, and PapersResearchPanel as the integration surface."
+      "adaptationNotes": "Proof points directly to the reachable research workflow and INTEL panel instead of a detached route-reference object."
     },
     {
       "id": "structured-paper-search-skill",

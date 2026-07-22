@@ -20,12 +20,11 @@
       "sourceEvidence": "README describes automatic memory capture after agent runs",
       "disposition": "adapted",
       "proof": [
-        "lib/passiveSessionMemory.ts",
-        "components/home/office/OfficeCommandCenter.tsx",
-        "store/useStore.ts",
-        "scripts/validate-passive-session-memory.mjs"
+        "lib/episodicMemoryStore.ts",
+        "components/home/office/officeCommandCenterPostRun.ts",
+        "app/api/tools/route.ts"
       ],
-      "adaptationNotes": "Persisted passiveMemoryTrail in client settings instead of a background daemon writing to /.auto-memory/."
+      "adaptationNotes": "Substantive HQ runs use the existing bounded episodic-memory and protected remember paths instead of a detached passive trail or background daemon."
     },
     {
       "id": "next-session-memory-injection",
@@ -33,9 +32,9 @@
       "sourceEvidence": "Memory replay into subsequent sessions",
       "disposition": "adapted",
       "proof": [
-        "lib/passiveSessionMemory.ts",
+        "lib/episodicMemoryStore.ts",
         "lib/liveContext.ts",
-        "components/home/office/OfficeCommandCenter.tsx"
+        "components/home/office/officeCommandCenterPostRun.ts"
       ]
     },
     {

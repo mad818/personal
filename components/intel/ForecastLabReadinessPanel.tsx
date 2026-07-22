@@ -58,8 +58,8 @@ export default function ForecastLabReadinessPanel() {
       <AgentPlatformReadinessBadges readiness={readiness} />
       {readiness && !readiness.timesfm?.available ? (
         <div style={{ fontSize: "10px", color: "var(--text3)" }}>
-          Set `TIMESFM_ENDPOINT` for `timesfm_forecast`. World Bank macro works
-          with no key via `world_bank_macro`.
+          Set `TIMESFM_ENDPOINT` to advertise an operator-managed advisory
+          forecast endpoint. Nexus does not call it from this panel.
         </div>
       ) : null}
       {error ? (

@@ -9,6 +9,7 @@ import {
 import { readTimesfmSpikeStatus } from "@/lib/experiments";
 import { gradeFromEvalScore } from "@/lib/helpers";
 import { readLatestRuntimeExperimentSummary } from "@/lib/runtimeExperimentLedger";
+import { readAgentPlatformReadiness } from "@/lib/agentPlatformReadiness";
 import { resolveRuntimeProjectRoot } from "@/lib/serverEnvRuntime";
 import { summarizeSkillGovernance } from "@/lib/skillMetadata";
 import { readNetworkMode } from "@/lib/security/routePolicy";
@@ -326,6 +327,7 @@ export async function GET() {
   };
   const localData = readLocalDataPolicySummary();
   const rateLimitStore = readRateLimitStoreStatus();
+  const agentPlatform = readAgentPlatformReadiness();
 
   return protectedJson({
     status: "ok",
@@ -361,6 +363,7 @@ export async function GET() {
       arch: runtimeIdentity.arch,
     },
     readiness: {
+      agentPlatform,
       aiProviders: providers,
       dataSources,
       auth,

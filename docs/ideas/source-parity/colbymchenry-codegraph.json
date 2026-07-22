@@ -20,9 +20,10 @@
       "sourceEvidence": "codegraph: static call-graph + symbol index exported as JSON for agent query-time use",
       "disposition": "adapted",
       "proof": [
-        "lib/assimilation/reconCodeIntelBridge.ts"
+        "app/api/project/route.ts",
+        "components/recon/RepoIntelPanel.tsx"
       ],
-      "adaptationNotes": "CODEGRAPH_NEXUS_ROUTES documents RepoIntelPanel and agent.ts as the integration surface."
+      "adaptationNotes": "The protected project route and reachable RECON panel are the actual integration surface; no detached route-reference module is treated as product proof."
     },
     {
       "id": "static-call-graph-export",
@@ -30,7 +31,6 @@
       "sourceEvidence": "codegraph core: parse source → emit call edges as JSON at index time",
       "disposition": "adapted",
       "proof": [
-        "lib/codegraphIndex.ts",
         "scripts/build-codegraph.mjs",
         "lib/projectArchitecture.ts"
       ],
@@ -38,13 +38,14 @@
     },
     {
       "id": "agent-query-api",
-      "title": "Agent-callable API: callers-of, callees-of, definitions-of, usages-of queries",
+      "title": "Protected graph and dependency-neighbor query API",
       "sourceEvidence": "codegraph query API used by LLM agents to navigate large codebases without reading full files",
       "disposition": "adapted",
       "proof": [
-        "lib/codegraphIndex.ts"
+        "app/api/project/route.ts",
+        "lib/projectArchitecture.ts"
       ],
-      "adaptationNotes": "queryCodegraphNeighbors + buildCodegraphSnapshot; full symbol defs deferred."
+      "adaptationNotes": "The protected project API returns import neighbors plus ownership, hotspot, and security context; full symbol definitions and usages remain deferred."
     },
     {
       "id": "incremental-reindex",

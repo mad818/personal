@@ -193,21 +193,15 @@ assert.deepEqual(parseArgs(["--all", "--json"]), {
 assert.throws(() => parseArgs(["--unknown"]));
 
 const currentQueue = buildOrbitQueue(fs.readFileSync("tasks/todo.md", "utf8"));
-const currentReconciliation = currentQueue.tasks.find(
-  (task) => task.key === "DETACHED-COMPONENT-RECONCILIATION",
+const currentActionableTasks = currentQueue.tasks.filter(
+  (task) => task.classification === "actionable",
 );
-if (currentReconciliation) {
-  assert.equal(currentReconciliation.classification, "actionable");
-  assert.equal(currentReconciliation.reason, "local_ready");
-  assert.equal(currentQueue.next?.key, "DETACHED-COMPONENT-RECONCILIATION");
-  assert.equal(currentQueue.counts.actionable, 1);
+assert.equal(currentQueue.counts.actionable, currentActionableTasks.length);
+if (currentActionableTasks.length > 0) {
+  assert.equal(currentQueue.next?.key, currentActionableTasks[0].key);
+  assert.equal(currentQueue.next?.reason, "local_ready");
 } else {
-  assert.equal(
-    currentQueue.next,
-    null,
-    "the current queue must not invent local work after the reconciliation task closes",
-  );
-  assert.equal(currentQueue.counts.actionable, 0);
+  assert.equal(currentQueue.next, null);
 }
 const currentFeynman = currentQueue.tasks.find(
   (task) => task.key === "FEYNMAN-SOURCE-PARITY",

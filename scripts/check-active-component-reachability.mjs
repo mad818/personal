@@ -6,7 +6,7 @@ import path from "node:path";
 import ts from "typescript";
 
 const root = process.cwd();
-const graphRoots = ["app", "components", "lib", "store"];
+const graphRoots = ["app", "components", "hooks", "lib", "store"];
 const codeExtensions = new Set([".ts", ".tsx", ".js", ".jsx"]);
 const resolvedExtensions = [".ts", ".tsx", ".js", ".jsx", ".css", ".json"];
 
@@ -17,6 +17,14 @@ const reviewedDetachedComponents = new Set([
 const exactScopeExclusions = new Set([
   // This shared-path palette remains a dependency of private RPG tooling.
   "components/home/office/palette.tsx",
+]);
+
+const scriptOnlyRuntimeFiles = new Map([
+  [
+    "lib/localAccelerationAcceptance.ts",
+    "scripts/check-local-acceleration-acceptance.mjs",
+  ],
+  ["lib/nexusMotionTaste.ts", "scripts/validate-nexus-motion-taste.mjs"],
 ]);
 
 function fail(message) {
@@ -207,6 +215,64 @@ if (unreviewed.length > 0) {
 const reachableComponentCount = inScopeComponents.filter((file) =>
   reachable.has(file),
 ).length;
+
+function isPrivateRpgLibrary(file) {
+  return file.startsWith("lib/arpg") || file.includes("/arpg/");
+}
+
+const packageSource = fs.readFileSync(path.join(root, "package.json"), "utf8");
+for (const [runtimeFile, importer] of scriptOnlyRuntimeFiles) {
+  if (!fileSet.has(runtimeFile)) {
+    fail(`script-only runtime inventory contains a missing path: ${runtimeFile}`);
+  }
+  if (reachable.has(runtimeFile)) {
+    fail(
+      `script-only runtime path is now application-reachable and must leave the inventory: ${runtimeFile}`,
+    );
+  }
+
+  const absoluteImporter = path.join(root, importer);
+  if (!fs.existsSync(absoluteImporter)) {
+    fail(`script-only importer is missing: ${importer}`);
+  }
+  const importedRuntimeFiles = collectImportSpecifiers(
+    importer,
+    fs.readFileSync(absoluteImporter, "utf8"),
+  )
+    .map((specifier) => resolveLocalSpecifier(importer, specifier))
+    .filter(Boolean);
+  if (!importedRuntimeFiles.includes(runtimeFile)) {
+    fail(`${importer} no longer imports script-only runtime path ${runtimeFile}`);
+  }
+  if (!packageSource.includes(importer)) {
+    fail(`${importer} is not reachable from a maintained package command`);
+  }
+}
+
+const runtimeHelperFiles = files.filter(
+  (file) =>
+    codeExtensions.has(path.extname(file)) &&
+    (file.startsWith("hooks/") || file.startsWith("lib/")) &&
+    !isPrivateRpgLibrary(file),
+);
+const unreviewedRuntimeHelpers = runtimeHelperFiles.filter(
+  (file) => !reachable.has(file) && !scriptOnlyRuntimeFiles.has(file),
+);
+if (unreviewedRuntimeHelpers.length > 0) {
+  fail(
+    `${unreviewedRuntimeHelpers.length} unreviewed unreachable hook/library file(s):\n${unreviewedRuntimeHelpers
+      .sort()
+      .map((file) => `- ${file}`)
+      .join("\n")}`,
+  );
+}
+
+const reachableHookCount = runtimeHelperFiles.filter(
+  (file) => file.startsWith("hooks/") && reachable.has(file),
+).length;
+const reachableLibraryCount = runtimeHelperFiles.filter(
+  (file) => file.startsWith("lib/") && reachable.has(file),
+).length;
 console.log(
-  `ok active-component-reachability (reachable=${reachableComponentCount}; reviewed-detached=${reviewedDetachedComponents.size}; private-tooling-exclusions=${exactScopeExclusions.size}; unreviewed=0)`,
+  `ok active-source-reachability (components=${reachableComponentCount}; hooks=${reachableHookCount}; libraries=${reachableLibraryCount}; script-only=${scriptOnlyRuntimeFiles.size}; private-component-exclusions=${exactScopeExclusions.size}; unreviewed=0)`,
 );

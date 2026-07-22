@@ -29,13 +29,9 @@
       "id": "session-read-cache-hints",
       "title": "Suppress irrelevant intel sections when the session is anchored on codebase reads",
       "sourceEvidence": "Context optimizer session cache and allow/deny lists",
-      "disposition": "adapted",
-      "proof": [
-        "lib/contextSessionCache.ts",
-        "lib/liveContext.ts",
-        "components/home/office/OfficeCommandCenter.tsx",
-        "scripts/validate-context-session-cache.mjs"
-      ]
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The detached session-read cache never entered the HQ runtime. Nexus keeps query-aware live-context pruning without maintaining an unmeasured second cache."
     },
     {
       "id": "agent-scoped-live-context",

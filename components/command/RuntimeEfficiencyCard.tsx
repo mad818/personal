@@ -264,7 +264,7 @@ export default function RuntimeEfficiencyCard({
                     </div>
                     <div className="h-1.5 overflow-hidden rounded-full bg-[var(--surf3)]">
                       <div
-                        className="h-full rounded-full bg-[var(--accent)] transition-all duration-500"
+                        className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-500"
                         style={{
                           width: `${Math.max(
                             6,

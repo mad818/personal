@@ -44,6 +44,17 @@ It is a reference for shell, route, and interaction work. It is not a runtime de
 - Motion should follow one sequence: environment fade, route plate lock-in, workplane reveal, support rail arrival, continuity pulse.
 - Scene sweeps and hover response should feel deliberate and cinematic, not busy or game-like.
 
+## Motion Decision Gate
+
+Before adding motion, decide its frequency, purpose, input mode, surface, and exact animated property. Constant or frequent keyboard actions remain immediate. Decorative movement cannot compete with data, and rare delight belongs outside operational workplanes.
+
+- Immediate feedback targets 160ms or less; other frequent motion targets 180ms or less.
+- Occasional state or spatial transitions target 300ms or less.
+- Only rare overlay transitions may extend to 500ms.
+- Animate named properties such as `opacity`, `transform`, or `width`; never use `transition-all` or a broad `transition: var(--t)`.
+- Prefer transform and opacity when they express the change, and preserve the global `prefers-reduced-motion` fallback.
+- Frequent keyboard operations, decorative data motion, and repeated explanatory sequences fail the gate.
+
 ## Anti-Patterns
 
 - Reintroducing boxed dashboard mosaics as the first impression

@@ -15,7 +15,7 @@ const PERSONA_OPTS: { mode: PersonaMode; label: string; tip: string }[] = [
   {
     mode: "direct",
     label: "D",
-    tip: "Direct — blunt, signal-first, no filler",
+    tip: "Direct — action first, concrete steps, one next move",
   },
   {
     mode: "deep",
@@ -67,7 +67,8 @@ export function PersonaModeBar() {
             cursor: "pointer",
             fontSize: "11px",
             fontWeight: "bold",
-            transition: "var(--t)",
+            transition:
+              "background var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast), transform var(--motion-fast)",
             padding: 0,
           }}
         >
@@ -85,8 +86,8 @@ export function PersonaModeBar() {
       <button
         title={
           councilMode
-            ? "Council mode ON — query goes to 3 agents"
-            : "Enable Council mode — parallel dispatch"
+            ? "Council mode ON — 3 parallel calls; Merge adds 1 pinned JANSKY call. Use /diverge for isolated ideation frames."
+            : "Enable Council mode — 3 parallel calls; /diverge activates isolated ideation frames"
         }
         onClick={toggleCouncil}
         style={{
@@ -100,7 +101,8 @@ export function PersonaModeBar() {
           cursor: "pointer",
           fontSize: "10px",
           fontWeight: "bold",
-          transition: "var(--t)",
+          transition:
+            "background var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast)",
           whiteSpace: "nowrap",
         }}
       >

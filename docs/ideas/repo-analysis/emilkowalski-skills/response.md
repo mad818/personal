@@ -1,12 +1,12 @@
 # emilkowalski/skills — Analysis complete
 
-**What it is:** Five Markdown agent skills for UI, motion judgment, animation review, audit planning, motion vocabulary, and Apple-inspired web interaction.
+**What it is:** A Markdown skill collection for UI and motion judgment, strict review, audits, opportunity discovery, vocabulary, Apple-inspired interaction, and UI-library selection.
 
 **Stack:** Markdown Agent Skills; no application runtime or provider dependency
 
-**Intent detected:** both use and extend
+**Nexus decision:** Adapt the deterministic motion rules into the existing taste contract and a focused validator. Keep subjective opportunity discovery and library selection external.
 
-**Plan headline:** Add the collection to the Design department as a review-first Codex source under the existing Nexus taste contract. Selectively adapt proven rules later instead of replacing the design system or installing the pack automatically.
+**Benefit:** Short, purpose-led motion budgets and property-specific transitions reduce visual noise, accessibility drift, and accidental layout animation.
 
 **Files created:**
 
@@ -15,4 +15,4 @@
 - `.cursorrules`
 - `response.md`
 
-**Open question:** Whether to install the skills for Codex or retain them as an external review reference.
+**Proof:** `docs/NEXUS_TASTE_CONTRACT.md`, `lib/nexusMotionTaste.ts`, and `npm run motion:taste:check`.

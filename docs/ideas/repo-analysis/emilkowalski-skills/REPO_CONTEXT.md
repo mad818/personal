@@ -2,7 +2,7 @@
 
 ## What this is
 
-`emilkowalski/skills` is a small MIT collection of Markdown agent skills for design engineers. It focuses on animation judgment, strict review, codebase-wide motion audits, precise animation vocabulary, and Apple-inspired interaction principles translated to the web. It is design guidance, not an application runtime or a replacement for Nexus's taste contract.
+`emilkowalski/skills` is a small MIT collection of Markdown agent skills for design engineers. It focuses on animation judgment, strict review, codebase-wide motion audits, opportunity discovery, precise animation vocabulary, Apple-inspired interaction principles, and UI-library selection. It is design guidance, not an application runtime or a replacement for Nexus's taste contract.
 
 ## Stack
 
@@ -15,8 +15,10 @@
 - `skills/emil-design-eng/SKILL.md` — primary UI and animation decision guidance.
 - `skills/review-animations/SKILL.md` — strict review of an implementation or diff.
 - `skills/improve-animations/SKILL.md` — codebase-wide, evidence-led audit that can write selected implementation plans without changing source code.
+- `skills/find-animation-opportunities/SKILL.md` — identifies motion opportunities after reading the real product surface.
 - `skills/animation-vocabulary/SKILL.md` — maps vague motion descriptions to precise terms.
 - `skills/apple-design/SKILL.md` — fluid, physical, interruptible, accessible web interaction guidance.
+- `skills/pick-ui-library/SKILL.md` — recommends a library based on product and interaction needs.
 - `README.md` — install command and collection overview.
 - `LICENSE` — MIT terms.
 
@@ -34,19 +36,18 @@
 
 ### To use / integrate
 
-1. Keep the collection review-first and optional; do not bulk-install it into Nexus.
-2. Use selected skills for bounded Codex design reviews when they do not conflict with the Nexus taste contract.
-3. Treat audit findings as proposals that require confirmation against actual file lines and current interaction frequency.
+1. Keep the collection external; the selected rules are now project-owned, so do not bulk-install it into Nexus.
+2. Use `lib/nexusMotionTaste.ts` for the frequency, purpose, input-mode, and duration decision.
+3. Use `npm run motion:taste:check` for high-confidence active non-RPG anti-patterns.
 4. Preserve reduced-motion support and existing project tokens.
 
 ### To extend / adapt
 
-1. Translate only accepted animation rules into the existing taste contract and validators.
-2. Keep codebase-wide audits read-only until Mario selects findings for implementation.
+1. Expand the validator only for deterministic, low-false-positive rules.
+2. Keep subjective opportunity discovery human-reviewed and task-scoped.
 3. Avoid hard-coding an external aesthetic or importing examples wholesale.
 4. Verify every accepted change visually and with the normal Nexus type/lint gates.
 
-## Open questions
+## Decision
 
-- Whether Mario wants the collection installed as a Codex skill or used only as a linked review reference.
-- Which motion rules should eventually become Nexus-owned automated checks after real UI review.
+Nexus adapted the bounded, deterministic motion rules into its own contract and validator. The external pack remains a cited reference; full installation, ambient opportunity generation, and UI-library selection are excluded because they duplicate project authority or add unnecessary dependency churn.

@@ -2,4 +2,4 @@
 
 Read `REPO_CONTEXT.md` before work involving Emil Kowalski's skills.
 
-The Nexus taste contract remains authoritative. Use these skills as review-first guidance, confirm findings against real code, preserve reduced-motion behavior, and do not bulk-install or overwrite project design rules without Mario's explicit authorization.
+The Nexus taste contract and `lib/nexusMotionTaste.ts` remain authoritative. Confirm findings against real code, preserve reduced-motion behavior, run `npm run motion:taste:check`, and do not bulk-install or overwrite project design rules.

@@ -2,26 +2,113 @@
   "schemaVersion": 1,
   "id": "emilkowalski-skills",
   "name": "emilkowalski/skills",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/emilkowalski/skills",
-    "version": "main snapshot reviewed 2026-07-13; no tagged release",
-    "reviewedAt": "2026-07-13",
+    "version": "main snapshot reviewed 2026-07-21; no tagged release",
+    "reviewedAt": "2026-07-21",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/emilkowalski/skills/blob/main/README.md",
-      "https://github.com/emilkowalski/skills/tree/main/skills",
+      "https://github.com/emilkowalski/skills/blob/main/skills/emil-design-eng/SKILL.md",
+      "https://github.com/emilkowalski/skills/blob/main/skills/improve-animations/SKILL.md",
+      "https://github.com/emilkowalski/skills/blob/main/skills/find-animation-opportunities/SKILL.md",
       "https://github.com/emilkowalski/skills/blob/main/LICENSE"
     ]
   },
   "capabilities": [
-    { "id": "design-engineering-guidance", "title": "Guide UI implementation and review with detailed animation, interaction, and visual-polish rules", "sourceEvidence": "README reference list and skills/emil-design-eng/SKILL.md", "disposition": "pending", "reason": "The Company Map links the source, but Nexus has not yet reconciled its complete rule set against the authoritative Nexus taste contract." },
-    { "id": "animation-decision-framework", "title": "Decide whether an interaction should animate based on frequency and purpose before choosing motion", "sourceEvidence": "skills/emil-design-eng/SKILL.md Animation Decision Framework", "disposition": "pending", "reason": "Nexus has motion guidance but lacks focused proof that this complete frequency-and-purpose framework is encoded and enforced." },
-    { "id": "strict-animation-review", "title": "Review animations against explicit easing, duration, origin, physicality, accessibility, and performance rules", "sourceEvidence": "README review-animations entry and skills/review-animations/SKILL.md", "disposition": "pending", "reason": "No source-specific review command or acceptance proof was added in this tranche." },
-    { "id": "whole-codebase-animation-audit", "title": "Recon and audit all interactive UI across eight motion categories with evidence-backed severity", "sourceEvidence": "README improve-animations section and skills/improve-animations/SKILL.md", "disposition": "pending", "reason": "A real Nexus audit must confirm findings against current files and interaction frequency before claiming this capability." },
-    { "id": "review-gated-plan-writing", "title": "Pause after vetted findings, then write self-contained implementation plans only for selected items without touching source code", "sourceEvidence": "skills/improve-animations/SKILL.md phases 3 and 4", "disposition": "pending", "reason": "This review-gated planning pattern is compatible with Nexus, but no dedicated animation-plan workflow was implemented." },
-    { "id": "animation-vocabulary", "title": "Map vague motion descriptions to precise animation terms for better design and AI instructions", "sourceEvidence": "README animation-vocabulary entry and skills/animation-vocabulary/SKILL.md", "disposition": "pending", "reason": "Nexus does not yet expose or validate this glossary as a project-owned capability." },
-    { "id": "apple-inspired-web-motion", "title": "Translate responsive, physical, interruptible, velocity-aware, and reduced-motion interaction principles to web interfaces", "sourceEvidence": "skills/apple-design/SKILL.md", "disposition": "pending", "reason": "Useful rules require selective review against Nexus product identity, accessibility, performance, and existing motion conventions." },
-    { "id": "cross-host-skill-install", "title": "Install the full Markdown skill collection through the cross-host skills CLI", "sourceEvidence": "README Install section", "disposition": "pending", "reason": "Nexus records the Codex-compatible path but intentionally does not bulk-install external skill packs." }
+    {
+      "id": "design-engineering-guidance",
+      "title": "Guide UI implementation and review with detailed animation, interaction, and visual-polish rules",
+      "sourceEvidence": "README reference list and skills/emil-design-eng/SKILL.md",
+      "disposition": "adapted",
+      "proof": ["docs/NEXUS_TASTE_CONTRACT.md", "lib/nexusMotionTaste.ts"],
+      "adaptationNotes": "Translated the accepted motion rules into a project-owned contract; Nexus visual identity remains authoritative."
+    },
+    {
+      "id": "animation-decision-framework",
+      "title": "Decide whether an interaction should animate based on frequency and purpose before choosing motion",
+      "sourceEvidence": "skills/emil-design-eng/SKILL.md Animation Decision Framework",
+      "disposition": "adapted",
+      "proof": ["lib/nexusMotionTaste.ts", "npm run motion:taste:check"],
+      "adaptationNotes": "The pure gate evaluates frequency, purpose, input mode, and surface before assigning a duration budget."
+    },
+    {
+      "id": "strict-animation-review",
+      "title": "Review animations against explicit easing, duration, property, accessibility, and performance rules",
+      "sourceEvidence": "README review-animations entry and skills/review-animations/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/validate-nexus-motion-taste.mjs",
+        "docs/NEXUS_TASTE_CONTRACT.md"
+      ],
+      "adaptationNotes": "The focused gate rejects high-confidence broad-transition anti-patterns and preserves reduced-motion proof."
+    },
+    {
+      "id": "whole-codebase-animation-audit",
+      "title": "Recon and audit interactive UI across multiple motion categories with evidence-backed severity",
+      "sourceEvidence": "README improve-animations section and skills/improve-animations/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/validate-nexus-motion-taste.mjs",
+        "components/command/RuntimeEfficiencyCard.tsx",
+        "components/command/AgentHealthCard.tsx",
+        "components/home/office/PersonaModeBar.tsx",
+        "components/ui/SpeakButton.tsx"
+      ],
+      "adaptationNotes": "Nexus uses a deterministic active non-RPG scan for high-confidence patterns instead of claiming subjective automated review of every animation category."
+    },
+    {
+      "id": "review-gated-plan-writing",
+      "title": "Pause after vetted findings, then write implementation plans only for selected items",
+      "sourceEvidence": "skills/improve-animations/SKILL.md phases 3 and 4",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus already uses specs/features, tasks/todo.md, and explicit task authorization; a parallel design-plan store would duplicate authority."
+    },
+    {
+      "id": "animation-opportunity-finder",
+      "title": "Find places where motion could improve comprehension or delight",
+      "sourceEvidence": "skills/find-animation-opportunities/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus does not run ambient opportunity generation; motion is added only for a requested feature or confirmed usability problem."
+    },
+    {
+      "id": "animation-vocabulary",
+      "title": "Map vague motion descriptions to precise animation terms",
+      "sourceEvidence": "README animation-vocabulary entry and skills/animation-vocabulary/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "A full external glossary would add documentation surface without improving the bounded project-owned gate."
+    },
+    {
+      "id": "apple-inspired-web-motion",
+      "title": "Translate responsive, physical, interruptible, and reduced-motion interaction principles to web interfaces",
+      "sourceEvidence": "skills/apple-design/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "docs/NEXUS_TASTE_CONTRACT.md",
+        "app/globals.css",
+        "lib/nexusMotionTaste.ts"
+      ],
+      "adaptationNotes": "Accepted principles are expressed as property scoping, short budgets, interaction-frequency limits, and reduced-motion preservation."
+    },
+    {
+      "id": "ui-library-selection",
+      "title": "Recommend UI libraries based on interaction and product needs",
+      "sourceEvidence": "skills/pick-ui-library/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus already has an established React, Tailwind, and component stack; automatic library selection would introduce unnecessary dependencies."
+    },
+    {
+      "id": "cross-host-skill-install",
+      "title": "Install the full Markdown skill collection through the cross-host skills CLI",
+      "sourceEvidence": "README Install section",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The useful rules are project-owned and verified, so Nexus does not need to bulk-install the external pack."
+    }
   ]
 }

@@ -72,6 +72,7 @@ import {
   sortCouncilResults,
   type CouncilMember,
 } from "@/lib/personaEngine";
+import { getCouncilIdeationFrameLabel } from "@/lib/councilDivergence";
 import { useStore } from "@/store/useStore";
 import {
   buildCorrectionMemoryPromptBlock,
@@ -1325,6 +1326,7 @@ export default function OfficeCommandCenter() {
           target,
           intent: assistantContext.intent,
           routeHint: routeFromPrompt,
+          input: agentInput,
         });
         const councilBuilds = await Promise.all(
           members.map(async (member) => ({
@@ -1348,7 +1350,12 @@ export default function OfficeCommandCenter() {
           type: "thinking",
           content: `Council convened: ${members
             .map(
-              (member) => `${member.agent.toUpperCase()} [${member.persona}]`,
+              (member) =>
+                `${member.agent.toUpperCase()} [${member.persona}${
+                  member.frame
+                    ? ` · ${getCouncilIdeationFrameLabel(member.frame)}`
+                    : ""
+                }]`,
             )
             .join(" · ")}`,
         };
@@ -1371,9 +1378,11 @@ export default function OfficeCommandCenter() {
                 councilIntroStep,
                 ...sorted.map((entry) => ({
                   type: "thinking" as const,
-                  content: `${entry.agent.toUpperCase()} [${entry.persona}] ready in ${(
-                    entry.duration / 1000
-                  ).toFixed(1)}s`,
+                  content: `${entry.agent.toUpperCase()} [${entry.persona}${
+                    entry.frame
+                      ? ` · ${getCouncilIdeationFrameLabel(entry.frame)}`
+                      : ""
+                  }] ready in ${(entry.duration / 1000).toFixed(1)}s`,
                 })),
               ];
               setLiveSteps([...latestCouncilSteps]);
@@ -1390,7 +1399,12 @@ export default function OfficeCommandCenter() {
           clearPreparedWorkspace();
           const councilSummary = `Council complete: ${results
             .map(
-              (result) => `${result.agent.toUpperCase()} [${result.persona}]`,
+              (result) =>
+                `${result.agent.toUpperCase()} [${result.persona}${
+                  result.frame
+                    ? ` · ${getCouncilIdeationFrameLabel(result.frame)}`
+                    : ""
+                }]`,
             )
             .join(
               " · ",

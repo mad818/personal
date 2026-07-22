@@ -206,13 +206,39 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
     label: "Emil's Design Engineering Skills",
     url: "https://github.com/emilkowalski/skills",
     kind: "codex_skill",
-    posture: "review_first",
+    posture: "adapted",
     purpose:
-      "Animation decisions, strict motion review, audit planning, and precise design vocabulary.",
+      "Frequency-and-purpose motion decisions plus strict, accessible property-scoped animation review; the benefit is quieter operational UI and fewer accidental layout transitions.",
     codexPath:
-      "Review selected skills under the Nexus taste contract; install only after an explicit operator decision.",
+      "Use docs/NEXUS_TASTE_CONTRACT.md, lib/nexusMotionTaste.ts, and npm run motion:taste:check; no external pack install is required.",
     chatgptPath:
-      "Attach a selected design brief or expose a reviewed design-review app workflow; normal chat does not inherit local skills.",
+      "Use the project-owned motion decision brief in a design conversation; normal chat does not inherit the local validator.",
+  },
+  {
+    id: "ayghri-focus-output",
+    label: "ayghri/i-have-adhd Focus Output",
+    url: "https://github.com/ayghri/i-have-adhd",
+    kind: "codex_skill",
+    posture: "adapted",
+    purpose:
+      "Action-first output, short numbered sequences, one concrete next move, and visible recovery state; the benefit is lower resumption cost without inferring any diagnosis.",
+    codexPath:
+      "Use the opt-in Direct persona contract in lib/personaEngine.ts; keep lists bounded and estimates evidence-based.",
+    chatgptPath:
+      "Ask for Direct mode behavior explicitly; this is response shaping, not medical inference or a hidden personal profile.",
+  },
+  {
+    id: "udit-capped-divergence",
+    label: "UditAkhourii/adhd Capped Divergence",
+    url: "https://github.com/UditAkhourii/adhd",
+    kind: "codex_skill",
+    posture: "adapted",
+    purpose:
+      "Three isolated ideation frames followed by an optional critic pass; the benefit is wider option coverage with an explicit three-call cap and a single pinned merge call.",
+    codexPath:
+      "Enable Council and use /diverge, diverge:, divergent council, brainstorm wide, or ideate widely; Merge adds one JANSKY call.",
+    chatgptPath:
+      "Use the same three-frame brief manually; Nexus does not claim the upstream CLI's larger multi-agent runtime inside normal chat.",
   },
   {
     id: "frontend-slides",
@@ -388,6 +414,8 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "davidondrej-skills",
       "pliny-autotemp",
       "pliny-ourobopus",
+      "ayghri-focus-output",
+      "udit-capped-divergence",
     ],
     boundary:
       "MAX delegates at most three advisory specialist missions and remains the only operator-facing synthesizer.",

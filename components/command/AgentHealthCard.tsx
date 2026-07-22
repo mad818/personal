@@ -206,7 +206,7 @@ export function AgentHealthCard() {
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-[var(--surf3)] overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all duration-500"
+                    className="h-full rounded-full transition-[width] duration-500"
                     style={{
                       width: `${pct}%`,
                       background:

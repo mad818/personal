@@ -7,6 +7,9 @@ import type { AgentStep } from "@/lib/agent";
 import type { AssistantChatActionModel } from "@/lib/assistantChatActions";
 import type { AssistantOperatorWorkflowState } from "@/lib/assistantOperatorWorkflow";
 import type { VaultCaptureSuggestion } from "@/lib/vaultCapture";
+import type { CouncilIdeationFrameId } from "@/lib/councilDivergence";
+
+export type { CouncilIdeationFrameId } from "@/lib/councilDivergence";
 
 // ── Emotion ───────────────────────────────────────────────────────────────────
 // The seven states the crab mascot can display.
@@ -222,6 +225,7 @@ export interface AgentPersona {
 export interface CouncilResult {
   agent: AgentId;
   persona: PersonaMode;
+  frame?: CouncilIdeationFrameId;
   answer: string;
   duration: number; // ms
 }

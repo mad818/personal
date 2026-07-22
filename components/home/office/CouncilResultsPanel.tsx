@@ -6,6 +6,7 @@
 import { useStore } from "@/store/useStore";
 import type { CouncilResult } from "@/components/home/office/types";
 import { AGENTS } from "@/components/home/office/constants";
+import { getCouncilIdeationFrameLabel } from "@/lib/councilDivergence";
 
 const PERSONA_COLORS: Record<string, string> = {
   formal: "var(--accent)",
@@ -84,6 +85,18 @@ function ResultColumn({
           {(result.duration / 1000).toFixed(1)}s
         </span>
       </div>
+      {result.frame ? (
+        <div
+          style={{
+            color: "var(--accent)",
+            fontSize: "10px",
+            fontWeight: "bold",
+            letterSpacing: "0.04em",
+          }}
+        >
+          FRAME · {getCouncilIdeationFrameLabel(result.frame)}
+        </div>
+      ) : null}
       {/* Answer */}
       <div
         style={{
@@ -134,6 +147,7 @@ export function CouncilResultsPanel({
 }: CouncilResultsPanelProps) {
   const results = useStore((s) => s.councilResults);
   const councilMode = useStore((s) => s.councilMode);
+  const divergent = results.some((result) => result.frame);
 
   if (!councilMode || results.length === 0) return null;
 
@@ -155,7 +169,7 @@ export function CouncilResultsPanel({
         <span
           style={{ fontSize: "12px", fontWeight: "bold", color: "var(--text)" }}
         >
-          ⚡ Council Results
+          ⚡ {divergent ? "Divergent Council Results" : "Council Results"}
         </span>
         <span style={{ fontSize: "11px", color: "var(--text2)" }}>
           {results.length} response{results.length !== 1 ? "s" : ""}
@@ -174,9 +188,9 @@ export function CouncilResultsPanel({
               fontSize: "10px",
               fontWeight: "bold",
             }}
-            title="Merge all council answers for JANSKY to synthesize"
+            title="One pinned JANSKY call to critique and synthesize these answers"
           >
-            Merge → JANSKY
+            {divergent ? "Focus" : "Merge"} → JANSKY
           </button>
         )}
       </div>

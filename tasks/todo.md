@@ -45,17 +45,20 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 ## Audit backlog (2026-06-22)
 
 **Must (operational)**
+
 - Restart LAN server with `npm run phone:lan:start` when Next.js memory-restarts; compact HQ reduces load.
 - Desktop local AI proof: one Ollama prompt on PC HQ → `npm run offline:local:report`.
 - CI green: `npm run verify` + push Node runtime alignment (`CI-GREEN-NODE-RUNTIME`).
 
 **Should (security / quality)**
+
 - ~~Nonce-based CSP (remove `unsafe-inline` on scripts).~~ Shipped 2026-07-14 with per-request render/response policy, active raw-script inventory, executable policy fixtures, and production HTTP proof.
 - ~~Persistent rate-limit store for LAN-exposed installs.~~ Shipped 2026-07-14 with private hashed identities, atomic recovery, bounded capacity, truthful status, and LAN fail-fast proof.
 - ~~Wire master-tier enforcement to settings mutations and any high-risk `/api/*` routes missing phone-tier checks.~~ Shipped 2026-07-14 as a centralized default-deny middleware boundary covering all active unsafe handlers.
 - Dependabot: merge postcss/prismjs fixes to `main` and wait for GitHub rescan.
 
 **Could (later, non-RPG)**
+
 - ~~SRI on TradingView embeds.~~ Shipped 2026-07-15 as an opaque iframe/CSP sandbox with route-scoped provider hosts because the official bootstrap URLs are unversioned and mutable.
 - Host-header / DNS rebinding guard on other server-side fetch proxies (if any beyond `api/headers`).
 - Default `hqCompactOperatorLayout` onboarding hint for users who want the RPG playfield back (Settings toggle exists).
@@ -64,15 +67,18 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 ## Expanded backlog (2026-06-22)
 
 **Must** (manual verify)
+
 - INTEL `/intel?view=sweeps` — run a theater sweep on desktop; confirm geo snapshot + source cards.
 - VAULT / COMMAND — run one Memory Ask query; confirm citations when local memory exists.
 
 **Should** (remaining)
+
 - ~~TradingView SRI hashes when TradingView publishes stable embed hashes.~~ Replaced 2026-07-15 by a fixed no-referrer, opaque-origin iframe/CSP sandbox; provider hosts are absent from normal Nexus documents.
 - Windows Playwright `spawn EPERM` — document WSL lane or fix worker spawn for `hq:e2e`.
 - Desktop Tauri: one-click restart runtime tray action.
 
 **Shipped this pass**
+
 - [x] INTEL `region` query param wired — auto-opens world view, filters ConflictFeed, banner with Show all theaters.
 - [x] VAULT `VaultLibrarianPanel` surfaces librarian audit-page load failures.
 - [x] Skills forge `SkillSpectrumValidatorStrip` — SkillSpector safe/review/blocked summary on Workflow Forge.
@@ -89,6 +95,15 @@ Concrete hardening items for future sprints — surgical, scoped, ordered by imp
 Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
+
+- [x] FOCUS-MOTION-DIVERGENT-COUNCIL — Assimilate three supplied skill repositories into existing Nexus design and HQ assistant behavior without adding plugins, dependencies, diagnosis claims, or expensive defaults. Spec: `specs/features/focus-motion-divergent-council.md`.
+  - Value thesis: improve interface restraint and operator follow-through while making wider ideation an explicit, capped choice instead of a silent model-usage multiplier.
+  - [x] Encode and enforce a project-owned motion decision contract; remove active property-agnostic transition drift.
+  - [x] Strengthen Direct mode with action-first, bounded, matter-of-fact output behavior without claiming or inferring ADHD.
+  - [x] Adapt divergent-then-critic reasoning into the existing Council with exactly three isolated branches and one optional pinned merge call.
+  - [x] Record scoped repo analyses, exhaustive parity, Company Map benefits/boundaries, deterministic regression, canonical wiring, and zero-phone/PWA/RPG proof.
+  - Guardrail: no external plugin install, runtime dependency, provider expansion, automatic multi-agent trigger, ten-call loop, diagnosis/personal-data field, hidden reasoning exposure, phone/PWA work, RPG change, or copied upstream runtime.
+  - Progress: complete. Motion, focus-output, capped-divergence, source-parity, Company Map, TypeScript, lint, format, toolchain, publication/security, performance, and zero-phone/PWA/RPG gates pass. Direct mode remains opt-in; divergent Council requires an explicit phrase, runs three calls, and Merge/Use pins one JANSKY call instead of re-fanning Council. Canonical `npm run verify` passed in 212.6 seconds. The ordinary Windows build compiled but its static worker exited silently at `0/39`; `--debug-prerender` proved all 39 pages, then the repository's post-verify production path (duplicate lint/type checks skipped only after canonical proof) passed in 63.7 seconds with generated performance budgets green.
 
 - [x] SENTIMENT-FEED-TRUTH — Stop missing Fear & Greed evidence from becoming a fabricated neutral COMMAND score or duplicated provider traffic. Spec: `specs/features/sentiment-feed-truth.md`.
   - Truth thesis: unavailable sentiment is unknown, never `50`; the last verified value remains visibly usable and comes from one normalized loading path.

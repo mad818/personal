@@ -135,7 +135,8 @@ export function SpeakButton({
         color: speaking ? "#fff" : "var(--text2)",
         cursor: "pointer",
         flexShrink: 0,
-        transition: "var(--t)",
+        transition:
+          "background var(--motion-fast), color var(--motion-fast), opacity var(--motion-fast), transform var(--motion-fast)",
         opacity: 0.75,
       }}
       onMouseEnter={(e) => {

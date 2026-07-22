@@ -6,7 +6,7 @@ think Zapier/Make, but running on **your** server, **your** data, no subscriptio
 Nexus Prime treats n8n the same way it treats Coolify: a **companion service** that
 runs alongside the dashboard. It is never bundled into Nexus and never required to
 run the dashboard. When n8n is running, Nexus can trigger webhooks and workflows via
-the `n8n_run_workflow` tool available to agents in the AgentOffice.
+the `n8n_run_workflow` tool available to agents through the HQ command center.
 
 ---
 
@@ -70,10 +70,10 @@ which proxies to the n8n REST API.
 
 ## Nexus integration points
 
-| What | Where |
-|------|-------|
-| Agent tool | `n8n_run_workflow` in `app/api/tools/route.ts` |
-| n8n API proxy | `/api/tools` route, `N8N_BASE_URL` + `N8N_API_KEY` env vars |
+| What           | Where                                                                              |
+| -------------- | ---------------------------------------------------------------------------------- |
+| Agent tool     | `n8n_run_workflow` in `app/api/tools/route.ts`                                     |
+| n8n API proxy  | `/api/tools` route, `N8N_BASE_URL` + `N8N_API_KEY` env vars                        |
 | Trigger format | `POST /webhook/<id>` (webhook node) or `POST /api/v1/workflows/<id>/execute` (API) |
 
 ---

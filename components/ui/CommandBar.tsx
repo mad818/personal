@@ -53,7 +53,7 @@ import { getTabFromHref } from "@/lib/missionHandoff";
 import { normalizeSurfaceHref } from "@/lib/releaseMatrix";
 import type { OperationalPhase } from "@/store/useStore";
 
-// ── Palette (mirrors AgentOffice) ─────────────────────────────────────────────
+// ── Palette (mirrors the current HQ agent palette) ────────────────────────────
 const P: Record<string, string> = {
   " ": "",
   _: "",

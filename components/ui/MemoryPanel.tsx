@@ -4,7 +4,7 @@
 // Slide-in panel for browsing, searching, and deleting agent memories
 // stored in IndexedDB via lib/memoryStore.ts.
 //
-// Access: toggle button in AgentOffice zone header.
+// Access: toggle button in the OfficeCommandCenter header.
 
 import { useState, useEffect, useCallback } from "react";
 import {

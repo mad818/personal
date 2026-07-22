@@ -104,7 +104,7 @@ export const AGENT_MEETING: Record<AgentId, { x: number; y: number }> = {
 //   Conference table (reviewing solo) → x: 50, y: 52
 //
 // When visiting a colleague's desk during a management round, JANSKY
-// uses each agent's AGENT_HOME position — wired in AgentOffice.tsx.
+// uses each agent's AGENT_HOME position — wired in OfficeCommandCenter.tsx.
 export const AGENT_BREAK: Record<AgentId, Array<{ x: number; y: number }>> = {
   // Boss — water cooler + solo conf-table review (management rounds handled separately)
   jansky: [

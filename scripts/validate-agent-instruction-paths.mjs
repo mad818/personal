@@ -31,6 +31,7 @@ function major(version) {
 }
 
 const agents = readRequired("AGENTS.md");
+const claude = readRequired("CLAUDE.md");
 const packageJson = JSON.parse(readRequired("package.json"));
 const releaseMatrix = JSON.parse(readRequired("lib", "release-matrix.json"));
 const secondBrain = readRequired("SECOND_BRAIN.md");
@@ -128,6 +129,16 @@ requireText(
   "legacy compatibility material",
   "AGENTS.md legacy boundary",
 );
+requireText(claude, "legacy compatibility pointer", "CLAUDE.md boundary");
+requireText(claude, "AGENTS.md", "CLAUDE.md authority pointer");
+requireText(claude, "Do not expand this file", "CLAUDE.md drift guard");
+for (const forbidden of [
+  "Next.js 14",
+  "AgentOffice sub-components",
+  "All async fetches: wrapped in `try/catch` with silent failure",
+]) {
+  forbidText(claude, forbidden, "CLAUDE.md");
+}
 
 for (const [source, needle, label] of [
   [secondBrain, "AGENTS.md", "SECOND_BRAIN.md"],

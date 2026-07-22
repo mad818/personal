@@ -34,8 +34,7 @@
       "proof": [
         "components/ui/TrustOperationsRail.tsx",
         "lib/trustPostureDescriptor.ts",
-        "app/command/page.tsx",
-        "scripts/validate-mcporter-assimilation.mjs"
+        "app/command/page.tsx"
       ],
       "adaptationNotes": "The shared trust rail reports protected MCP bridge posture without adding a second status card or generic execution surface."
     },

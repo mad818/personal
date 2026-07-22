@@ -23,8 +23,7 @@
         "lib/schedulerGovernance.ts",
         "components/ui/OperatorReadinessLane.tsx",
         "components/ui/CronSchedulerComposerSection.tsx",
-        "app/command/page.tsx",
-        "scripts/validate-gnhf-assimilation.mjs"
+        "app/command/page.tsx"
       ],
       "adaptationNotes": "COMMAND summarizes scheduled mission readiness while the scheduler contract preserves scope, expiry, and re-entry guidance; no unbounded daemon."
     },

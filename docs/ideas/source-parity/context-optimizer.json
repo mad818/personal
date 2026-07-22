@@ -21,8 +21,7 @@
       "disposition": "adapted",
       "proof": [
         "lib/liveContext.ts",
-        "components/home/office/OfficeCommandCenter.tsx",
-        "scripts/validate-dynamic-context-assembly.mjs"
+        "components/home/office/OfficeCommandCenter.tsx"
       ]
     },
     {
@@ -39,8 +38,7 @@
       "sourceEvidence": "Per-agent context budgeting in optimizer workflows",
       "disposition": "adapted",
       "proof": [
-        "lib/liveContext.ts",
-        "scripts/validate-dynamic-context-assembly.mjs"
+        "lib/liveContext.ts"
       ]
     },
     {

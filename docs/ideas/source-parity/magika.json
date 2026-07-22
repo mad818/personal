@@ -22,8 +22,7 @@
       "proof": [
         "lib/artifactClassification.ts",
         "lib/memoryPagesStore.ts",
-        "components/vault/CompiledMemoryPagesPanel.tsx",
-        "scripts/validate-artifact-classification.mjs"
+        "components/vault/CompiledMemoryPagesPanel.tsx"
       ],
       "adaptationNotes": "Native heuristic classifier mirrors Magika outputs without vendoring the Python model runtime."
     },

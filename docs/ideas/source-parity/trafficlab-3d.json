@@ -27,8 +27,7 @@
       "sourceEvidence": "TrafficLab movement metrics and trajectory visualization",
       "disposition": "adapted",
       "proof": [
-        "components/ops/OpsMap.tsx",
-        "scripts/validate-trafficlab-assimilation.mjs"
+        "components/ops/OpsMap.tsx"
       ],
       "adaptationNotes": "The existing free-flight layer rotates markers by heading and shows live speed and heading in the map tooltip."
     },

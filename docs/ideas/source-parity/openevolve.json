@@ -29,9 +29,7 @@
       "proof": [
         "lib/runtimeExperimentContracts.ts",
         "lib/runtimeExperimentLedger.ts",
-        "components/ui/RuntimeEvalTrend.tsx",
-        "scripts/validate-openevolve-assimilation.mjs",
-        "scripts/validate-runtime-experiment-improver.mjs"
+        "components/ui/RuntimeEvalTrend.tsx"
       ]
     },
     {

@@ -96,6 +96,14 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [x] MAINTAINED-SCRIPT-REACHABILITY — Reconcile non-RPG scripts against real package/runtime ownership, remove broken or proof-only files, and prevent background Git mutation from surviving as unowned tooling. Spec: `specs/features/maintained-script-reachability.md`.
+  - [x] Add deterministic package/live-root reachability with exact phone/RPG exclusions.
+  - [x] Expose the useful Homefront generation and desktop-signing operator scripts through stable package commands.
+  - [x] Retire broken, superseded, background-mutation, and file-existence-only scripts; correct source-parity proof to live seams.
+  - [x] Prove canonical verification, production build, handoff freshness, and zero phone/PWA/RPG changed implementation paths.
+  - Guardrail: do not execute media generation, signing probes, GitHub mutations, startup installation, provider calls, phone/PWA work, or RPG work.
+  - Progress: complete. A canonical script graph now starts from every root package target, follows direct cross-script references, preserves exactly two live runtime-owned helpers, protects ten exact deferred phone/RPG exclusions, and proves 224 scripts with 210 package roots and zero unreviewed files. Four useful Homefront/desktop-signing tools now have explicit operator commands; twenty-six broken, superseded, implicit-Git-mutation, or proof-only scripts and the dead `seed` command left active maintenance. Eleven source-parity matrices now point directly at live product seams, and the signing guide no longer advertises a nonexistent status field. Focused ownership/parity/docs/type/lint/format/publication checks passed, canonical verification passed in 199.9 seconds, and `build:verified` passed in 255.3 seconds with a 30.8-second optimized compile, all 39 static pages, and performance budgets green. No phone/PWA or RPG implementation path changed.
+
 - [x] ACTIVE-RUNTIME-HELPER-RECONCILIATION — Make the non-RPG hook/library tree match the application and maintained tooling, repair Forecast Lab readiness truth, and stop dead helpers from serving as implementation proof. Spec: `specs/features/active-runtime-helper-reconciliation.md`.
   - [x] Add app-root reachability enforcement for hooks and libraries with a narrow maintained script-only inventory.
   - [x] Wire sanitized agent-platform readiness into protected status and remove unused execution surfaces from readiness modules.

@@ -43,8 +43,7 @@
       "sourceEvidence": "Assimilation target: OPS map AI geospatial layer",
       "disposition": "adapted",
       "proof": [
-        "components/ops/OpsMap.tsx",
-        "scripts/validate-geodeep-assimilation.mjs"
+        "components/ops/OpsMap.tsx"
       ],
       "adaptationNotes": "Graceful sample/empty fallback when sidecar is offline."
     },

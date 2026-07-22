@@ -30,6 +30,26 @@ function major(version) {
   return match ? Number.parseInt(match[0], 10) : null;
 }
 
+function markdownSection(source, heading) {
+  const marker = `## ${heading}`;
+  const markerIndex = source.indexOf(marker);
+  if (markerIndex < 0) fail(`missing ${marker} section`);
+  const contentStart = markerIndex + marker.length;
+  const nextHeading = source.indexOf("\n## ", contentStart);
+  return source.slice(
+    contentStart,
+    nextHeading < 0 ? source.length : nextHeading,
+  );
+}
+
+function firstTopLevelCompletedTaskId(source) {
+  return source.match(/^- \[x\] ([A-Z][A-Z0-9-]*)\s+—/m)?.[1] ?? null;
+}
+
+function firstShippedTaskId(source) {
+  return source.match(/^- ([A-Z][A-Z0-9-]*)\b/m)?.[1] ?? null;
+}
+
 const packageJson = JSON.parse(readRequired("package.json"));
 const releaseMatrix = JSON.parse(readRequired("lib/release-matrix.json"));
 const readme = readRequired("README.md");
@@ -37,6 +57,7 @@ const architecture = readRequired("docs/architecture.md");
 const figmaRules = readRequired("docs/NEXUS_FIGMA_IMPLEMENTATION_RULES.md");
 const pmModel = readRequired("docs/pm-operator-model.md");
 const docsIndex = readRequired("docs/README.md");
+const systemState = readRequired("docs/SYSTEM_STATE.md");
 const todo = readRequired("tasks/todo.md");
 const visionSnapshot = readRequired("tasks/vision-roadmap.md");
 const comprehensiveSnapshot = readRequired(
@@ -63,6 +84,7 @@ const currentSurfaces = new Map([
   ["docs/NEXUS_FIGMA_IMPLEMENTATION_RULES.md", figmaRules],
   ["docs/pm-operator-model.md", pmModel],
   ["docs/README.md", docsIndex],
+  ["docs/SYSTEM_STATE.md", systemState],
   ["tasks/todo.md", todo],
 ]);
 for (const svgPath of svgPaths) {
@@ -155,6 +177,33 @@ requireText(
   "docs index roadmap label",
 );
 
+const fixtureTaskId = firstTopLevelCompletedTaskId(`
+- [ ] NOT-SHIPPED — unchecked work
+  - [x] NESTED-SUBTASK — nested proof is not a shipment
+- [x] FIXTURE-SHIPPED — newest completed top-level work
+`);
+if (fixtureTaskId !== "FIXTURE-SHIPPED") {
+  fail("top-level completed-task selection fixture drifted");
+}
+
+const newestCompletedTaskId = firstTopLevelCompletedTaskId(
+  markdownSection(todo, "Next Up"),
+);
+if (!newestCompletedTaskId) {
+  fail("tasks/todo.md Next Up has no completed top-level shipment");
+}
+const latestShippedTaskId = firstShippedTaskId(
+  markdownSection(systemState, "Latest Shipped"),
+);
+if (!latestShippedTaskId) {
+  fail("docs/SYSTEM_STATE.md Latest Shipped has no task bullet");
+}
+if (latestShippedTaskId !== newestCompletedTaskId) {
+  fail(
+    `latest shipped task ${latestShippedTaskId} does not match newest completed Next Up task ${newestCompletedTaskId}`,
+  );
+}
+
 if (
   packageJson.scripts?.["docs:stack:check"] !==
   "node scripts/validate-current-documentation-stack.mjs"
@@ -168,5 +217,5 @@ requireText(
 );
 
 console.log(
-  "ok current-documentation-stack (manifest, README/SVGs, architecture, design, operator, and historical boundaries)",
+  `ok current-documentation-stack (latest=${latestShippedTaskId}; manifest, README/SVGs, system state, architecture, design, operator, and historical boundaries)`,
 );

@@ -96,6 +96,13 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [x] CURRENT-SYSTEM-STATE-RECENCY — Stop the canonical system-state record from passing documentation checks while omitting the newest completed tranche. Spec: `specs/features/current-system-state-recency.md`.
+  - [x] Add `docs/SYSTEM_STATE.md` to the current-documentation surface and enforce newest-completed versus latest-shipped identifier parity.
+  - [x] Record the focus/motion/divergent-Council shipment and this recency correction with real benefits, boundaries, and proof.
+  - [x] Run focused documentation, handoff, publication, diff, and zero-phone/PWA/RPG path proof.
+  - Guardrail: no route, runtime, dependency, provider, phone/PWA, RPG, historical-entry rewrite, or completion inference from unchecked/nested tasks.
+  - Progress: complete. The current-documentation gate now selects only top-level completed `Next Up` work, requires exact first-entry parity in `Latest Shipped`, audits `SYSTEM_STATE.md` for framework drift, and proves unchecked/nested tasks cannot become release evidence. The omitted focus/motion/divergent-Council shipment and this guard are now canonical. Focused checks and the 195.2-second canonical verifier passed; no application, route, runtime, dependency, provider, phone/PWA, or RPG path changed.
+
 - [x] FOCUS-MOTION-DIVERGENT-COUNCIL — Assimilate three supplied skill repositories into existing Nexus design and HQ assistant behavior without adding plugins, dependencies, diagnosis claims, or expensive defaults. Spec: `specs/features/focus-motion-divergent-council.md`.
   - Value thesis: improve interface restraint and operator follow-through while making wider ideation an explicit, capped choice instead of a silent model-usage multiplier.
   - [x] Encode and enforce a project-owned motion decision contract; remove active property-agnostic transition drift.

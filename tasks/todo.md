@@ -96,6 +96,13 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [x] RETIRED-DESKTOP-PACKAGED-RUNTIME-SNAPSHOT — Remove the unreferenced tracked desktop build snapshot and make the root standalone runtime contract authoritative. Spec: `specs/features/retired-desktop-packaged-runtime-snapshot.md`.
+  - [x] Inspect and retire all eighteen tracked snapshot files without deleting ignored local build caches.
+  - [x] Ignore future generated snapshot output and validate the active Tauri/root-standalone contract.
+  - [x] Prove canonical verification, production build, handoff freshness, and zero phone/PWA/RPG changed implementation paths.
+  - Guardrail: no Tauri behavior change, dependency/signing/provider action, local ignored-cache deletion, phone/PWA implementation, or RPG implementation.
+  - Progress: complete. The unused tracked `desktop/packaged-runtime/` snapshot is retired and ignored while its local `.next` and `node_modules` caches remain untouched. Fifteen snapshot files were exact duplicates of current project-owned files; the remaining legacy username dataset had no caller, the stale second manifest advertised missing/deprecated commands, and the generated server embedded a local absolute path. Toolchain validation now proves the authoritative root manifest, `../../.next/standalone` Tauri frontend, root desktop build command, current runbook, ignore boundary, and absence of the retired manifest/server. Focused toolchain/docs/instruction/type/lint/format/publication checks passed, canonical verification passed in 200.5 seconds, and `build:verified` passed in 289.1 seconds with a 33.3-second optimized compile, all 39 static pages, and performance budgets green. No phone/PWA or RPG implementation path changed.
+
 - [x] MAINTAINED-SCRIPT-REACHABILITY — Reconcile non-RPG scripts against real package/runtime ownership, remove broken or proof-only files, and prevent background Git mutation from surviving as unowned tooling. Spec: `specs/features/maintained-script-reachability.md`.
   - [x] Add deterministic package/live-root reachability with exact phone/RPG exclusions.
   - [x] Expose the useful Homefront generation and desktop-signing operator scripts through stable package commands.

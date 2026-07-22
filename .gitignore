@@ -48,6 +48,7 @@ __pycache__/
 .env.local
 temp-*.html
 desktop/src-tauri/target/
+desktop/packaged-runtime/
 playwright-report/
 test-results/
 *.pem

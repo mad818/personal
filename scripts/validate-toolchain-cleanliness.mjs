@@ -29,6 +29,7 @@ function readRequired(...parts) {
 }
 
 const npmConfig = readRequired(".npmrc");
+const gitignore = readRequired(".gitignore");
 if (/^\s*production\s*=/m.test(npmConfig)) {
   fail(".npmrc still uses deprecated production=; use include=dev");
 }
@@ -39,9 +40,10 @@ if (!/^\s*include\s*=\s*dev\s*$/m.test(npmConfig)) {
 const packageJson = JSON.parse(readRequired("package.json"));
 const packageLock = JSON.parse(readRequired("package-lock.json"));
 const nextConfig = readRequired("next.config.js");
-const desktopPackageJson = JSON.parse(
-  readRequired("desktop", "packaged-runtime", "package.json"),
+const desktopConfig = JSON.parse(
+  readRequired("desktop", "src-tauri", "tauri.conf.json"),
 );
+const desktopReadme = readRequired("desktop", "README.md");
 const supportedNodeRange = ">=24 <25";
 const supportedNpmRange = ">=11 <12";
 
@@ -61,7 +63,6 @@ function assertNpmManifest(manifest, label) {
 }
 
 assertNpmManifest(packageJson, "package.json");
-assertNpmManifest(desktopPackageJson, "desktop packaged runtime");
 if (!/webpackBuildWorker:\s*false/.test(nextConfig)) {
   fail("next.config.js must keep Windows webpack compilation in-process");
 }
@@ -70,8 +71,32 @@ if (!/serverMinification:\s*false/.test(nextConfig)) {
     "next.config.js must retain the proven Windows prerender worker stability setting",
   );
 }
-if (desktopPackageJson.packageManager !== packageJson.packageManager) {
-  fail("desktop packaged runtime packageManager must match package.json");
+if (!/^desktop\/packaged-runtime\/$/m.test(gitignore)) {
+  fail("generated desktop/packaged-runtime must remain ignored");
+}
+for (const retiredSnapshotFile of ["package.json", "server.js"]) {
+  if (
+    fs.existsSync(
+      path.join(root, "desktop", "packaged-runtime", retiredSnapshotFile),
+    )
+  ) {
+    fail(`retired desktop packaged snapshot returned: ${retiredSnapshotFile}`);
+  }
+}
+if (desktopConfig.build?.frontendDist !== "../../.next/standalone") {
+  fail("Tauri frontendDist must use the repo-root standalone runtime");
+}
+if (
+  desktopConfig.build?.beforeBuildCommand !==
+  "npm run desktop:build-runtime"
+) {
+  fail("Tauri builds must delegate to desktop:build-runtime");
+}
+if (
+  !desktopReadme.includes(".next/standalone/server.js") ||
+  !desktopReadme.includes("../../.next/standalone")
+) {
+  fail("desktop runbook must describe the active root standalone runtime");
 }
 if (!fs.existsSync(path.join(root, "package-lock.json"))) {
   fail("package-lock.json must remain the active root lockfile");
@@ -422,5 +447,5 @@ if (
 }
 
 console.log(
-  `ok toolchain-cleanliness (npm 11 + Node 24 + stable Windows Next build workers + npm include=dev + ESLint parser ${parserManifest.version} for TypeScript ${lockedTypeScriptVersion} + Prettier ${activeSourceInventory.length}-file non-RPG scope + truthful full audit)`,
+  `ok toolchain-cleanliness (npm 11 + Node 24 + root-standalone desktop runtime + retired packaged snapshot + stable Windows Next build workers + npm include=dev + ESLint parser ${parserManifest.version} for TypeScript ${lockedTypeScriptVersion} + Prettier ${activeSourceInventory.length}-file non-RPG scope + truthful full audit)`,
 );

@@ -22,16 +22,13 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { buildOrbitQueue } = require("./orbit.js");
 
 function parseTodoItem(line) {
   const normalized = line.trim().replace("- [ ] ", "");
   const match = normalized.match(/^([^—]+?)\s+—\s+(.+)$/);
   if (!match) return { id: normalized, text: "" };
   return { id: match[1].trim(), text: match[2].trim() };
-}
-
-function getTodoRoot(id) {
-  return id.match(/^[A-Z]+\d+/)?.[0] ?? id;
 }
 
 function formatTodoItem(item) {
@@ -42,6 +39,37 @@ function formatTodoItem(item) {
       ? `${item.text.slice(0, maxLength).replace(/\s+\S*$/, "")}...`
       : item.text;
   return `- ${item.id} — ${text}`;
+}
+
+function getHandoffQueueLines(raw) {
+  const queue = buildOrbitQueue(raw);
+  const actionable = queue.tasks.filter(
+    (task) => task.classification === "actionable",
+  );
+  const lines = [];
+
+  if (actionable.length > 0) {
+    lines.push(
+      ...actionable
+        .slice(0, 3)
+        .map((task) => formatTodoItem(parseTodoItem(task.task))),
+    );
+    if (actionable.length > 3) {
+      lines.push(
+        `- Additional actionable work — ${actionable.length - 3} more locally ready top-level tasks are classified in \`tasks/todo.md\`.`,
+      );
+    }
+  } else {
+    lines.push("- No locally actionable non-RPG task is currently proven.");
+  }
+
+  lines.push(
+    `- Queue posture: ${queue.counts.actionable} actionable, ${queue.counts.blockedOrManual} blocked/manual tasks remain context-only, and ${queue.counts.excludedRpg} RPG tasks are excluded from handoff task selection.`,
+    "- Review the full classified queue only when prerequisites change: `npm run orbit:next -- --all`.",
+    "- Canonical task evidence: `tasks/todo.md` → `## Next Up`.",
+  );
+
+  return lines;
 }
 
 function getMajorVersion(version, dependencyName) {
@@ -56,37 +84,7 @@ function getMajorVersion(version, dependencyName) {
 
 function getTopTodoLines(todoPathAbs) {
   const raw = fs.readFileSync(todoPathAbs, "utf8");
-  const lines = raw.split(/\r?\n/);
-  const start = lines.findIndex((l) => l.trim() === "## Next Up");
-  if (start === -1) return [];
-  const items = [];
-  for (let i = start + 1; i < lines.length; i++) {
-    const l = lines[i];
-    if (l.startsWith("## ")) break;
-    if (l.trim().startsWith("- [ ] ")) items.push(parseTodoItem(l));
-  }
-
-  if (!items.length) return [];
-
-  const [first, ...rest] = items;
-  const firstRoot = getTodoRoot(first.id);
-  const childCount = rest.filter(
-    (item) => getTodoRoot(item.id) === firstRoot,
-  ).length;
-  const distinctNext = rest
-    .filter((item) => getTodoRoot(item.id) !== firstRoot)
-    .slice(0, 2);
-
-  const out = [formatTodoItem(first)];
-  if (childCount > 0) {
-    out.push(
-      `- ${firstRoot} child tracks — ${childCount} follow-up tracks are queued in \`tasks/todo.md\`; expand there when implementing.`,
-    );
-  }
-  out.push(...distinctNext.map(formatTodoItem));
-  out.push("- Full queue: `tasks/todo.md` -> `## Next Up`.");
-
-  return out;
+  return getHandoffQueueLines(raw);
 }
 
 function buildHandoff() {
@@ -249,4 +247,11 @@ function main() {
   }
 }
 
-main();
+module.exports = {
+  buildHandoff,
+  getHandoffOutputs,
+  getHandoffQueueLines,
+  getTopTodoLines,
+};
+
+if (require.main === module) main();

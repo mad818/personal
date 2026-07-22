@@ -13,6 +13,7 @@ Make `npm run orbit:next` select the next locally actionable, non-RPG top-level 
 - Print the first actionable task plus queue counts in human mode.
 - Support `--json` for a bounded machine-readable classification receipt and `--all` for a human review list.
 - When no actionable task exists, report that truthfully and show the first blocker instead of claiming the backlog is clear.
+- Generated restart guidance must reuse the same classifier, list only bounded actionable task titles, and reduce blocked/manual or RPG-excluded work to counts rather than promoting those titles as next work.
 
 ## Classification contract
 
@@ -28,6 +29,7 @@ Make `npm run orbit:next` select the next locally actionable, non-RPG top-level 
 - Do not edit, execute, validate, or reprioritize RPG implementation work.
 - Do not treat completed tasks, nested checklists, historical numbered lists, or generated prose as active top-level work.
 - Do not mutate `tasks/todo.md`, create branches, launch services, call GitHub, or infer that a blocker is complete.
+- Keep `scripts/generate-handoff.js` a read-only consumer of this classification contract; do not add a second unchecked-task selection algorithm.
 - Preserve the existing `orbit:next` command name and Windows-compatible Node runtime.
 
 ## Verification

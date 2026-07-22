@@ -35,10 +35,10 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 
 ### What’s next (from `tasks/todo.md`)
 
-- FREE-LOCAL-PHONE-ACCEPTANCE — Desktop LAN runtime proof, the phone checklist, the protected receipt lane, assistant receipt bridge, live receipt status, capture-status artifact, direct-HQ QR handoff, `npm run ops:preflight`, `npm run...
-- LOCAL-AI-OFFLINE-OPERATIONS — Authenticated desktop proof remains captured from the local session: Free Local Readiness returned `ready`, `isolated`, paid APIs `blocked`, Ollama `reachable`, resolved model `gemma4:latest`, agent health `100%`,...
-- DEPENDABOT-SECURITY-AUDIT — Triage the GitHub Dependabot alert set without broad package churn. Latest sanitized paginated imported-alert artifact `docs/metrics/dependabot-security-audit-2026-05-25T05-52-26-760Z.json` classified 108 exported...
-- Full queue: `tasks/todo.md` -> `## Next Up`.
+- No locally actionable non-RPG task is currently proven.
+- Queue posture: 0 actionable, 7 blocked/manual tasks remain context-only, and 11 RPG tasks are excluded from handoff task selection.
+- Review the full classified queue only when prerequisites change: `npm run orbit:next -- --all`.
+- Canonical task evidence: `tasks/todo.md` → `## Next Up`.
 
 ### Where to look
 

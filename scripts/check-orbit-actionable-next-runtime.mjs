@@ -14,6 +14,7 @@ const {
   parseArgs,
   parseTopLevelPendingTaskBlocks,
 } = require("./orbit.js");
+const { getHandoffQueueLines } = require("./generate-handoff.js");
 
 const fixture = `# Tasks
 
@@ -107,6 +108,13 @@ assert.ok(
   "receipt task labels must stay bounded",
 );
 
+const mixedHandoff = getHandoffQueueLines(fixture).join("\n");
+assert.match(mixedHandoff, /LOCAL-USEFUL/);
+assert.doesNotMatch(mixedHandoff, /REMOTE-CI|PHONE-PROOF|MW6-ARPG-WORK/);
+assert.match(mixedHandoff, /1 actionable, 3 blocked\/manual tasks/);
+assert.match(mixedHandoff, /1 RPG tasks are excluded/);
+assert.match(mixedHandoff, /npm run orbit:next -- --all/);
+
 const noActionable = buildOrbitQueue(`## Next Up
 - [ ] PHONE — Remaining manual acceptance is required.
 - [ ] SANDBOX — Execute the approved experiment.
@@ -129,6 +137,29 @@ assert.match(
   formatOrbitQueue(noActionable),
   /No locally actionable non-RPG task is currently proven/,
 );
+const blockedHandoff = getHandoffQueueLines(`## Next Up
+- [ ] PHONE — Remaining manual acceptance is required.
+- [ ] MW6-ARPG — Aether Reliquary production work.
+`).join("\n");
+assert.match(
+  blockedHandoff,
+  /No locally actionable non-RPG task is currently proven/,
+);
+assert.match(blockedHandoff, /0 actionable, 1 blocked\/manual tasks/);
+assert.match(blockedHandoff, /1 RPG tasks are excluded/);
+assert.doesNotMatch(blockedHandoff, /PHONE —|MW6-ARPG/);
+
+const cappedHandoff = getHandoffQueueLines(`## Next Up
+- [ ] LOCAL-ONE — First actionable task.
+- [ ] LOCAL-TWO — Second actionable task.
+- [ ] LOCAL-THREE — Third actionable task.
+- [ ] LOCAL-FOUR — Fourth actionable task.
+`).join("\n");
+assert.match(cappedHandoff, /LOCAL-ONE/);
+assert.match(cappedHandoff, /LOCAL-TWO/);
+assert.match(cappedHandoff, /LOCAL-THREE/);
+assert.doesNotMatch(cappedHandoff, /LOCAL-FOUR/);
+assert.match(cappedHandoff, /Additional actionable work — 1 more/);
 
 const inProgressFallback = buildOrbitQueue(`## Next Up
 - [ ] PHONE — Remaining manual acceptance is required.

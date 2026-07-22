@@ -96,6 +96,13 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [x] HANDOFF-ACTIONABLE-QUEUE-TRUTH — Stop the canonical restart handoff from presenting blocked/manual or excluded work as the next task when ORBIT proves there is no locally actionable non-RPG work. Spec: `specs/features/handoff-actionable-queue-truth.md`.
+  - [x] Reuse the existing ORBIT queue classifier instead of independently parsing unchecked tasks.
+  - [x] Show at most three actionable tasks, or a truthful zero-actionable posture with bounded blocker/exclusion counts and no promoted blocker titles.
+  - [x] Add runtime fixtures, regenerate the handoff, and prove instruction/docs/publication/canonical/boundary checks.
+  - Guardrail: no task completion inference, queue reprioritization, route, API/runtime behavior, provider, dependency, phone/PWA implementation, RPG implementation, deployment, or external write.
+  - Progress: complete. The generator now consumes ORBIT's classified queue, caps ready titles at three, and keeps blocked/manual plus RPG-excluded work to bounded counts and review guidance. Mixed, zero-actionable, capped, and real-queue fixtures protect ordering, title suppression, and truthful empty posture. Focused ORBIT, handoff, documentation, instruction, format, publication, and diff checks passed, followed by the canonical verifier in 210.1 seconds; final proof is recorded in `docs/SYSTEM_STATE.md`.
+
 - [x] SYSTEM-STATE-LATEST-COMPACTION — Stop the canonical latest-shipped context from carrying a 203-entry, 243,475-character historical log. Spec: `specs/features/system-state-latest-compaction.md`.
   - [x] Retain a bounded newest-first window of current non-RPG shipments without creating a second live historical dump.
   - [x] Enforce top-level entry and character budgets through the existing documentation gate.

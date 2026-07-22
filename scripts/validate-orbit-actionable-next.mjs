@@ -21,7 +21,13 @@ function requireText(source, needle, label) {
 }
 
 const orbit = readRequired("scripts", "orbit.js");
+const handoffGenerator = readRequired("scripts", "generate-handoff.js");
 const spec = readRequired("specs", "features", "orbit-actionable-next.md");
+const handoffSpec = readRequired(
+  "specs",
+  "features",
+  "handoff-actionable-queue-truth.md",
+);
 const todo = readRequired("tasks", "todo.md");
 const packageJson = JSON.parse(readRequired("package.json"));
 
@@ -67,6 +73,24 @@ for (const forbidden of [
   }
 }
 
+for (const needle of [
+  'require("./orbit.js")',
+  "buildOrbitQueue(raw)",
+  "getHandoffQueueLines",
+  "No locally actionable non-RPG task is currently proven.",
+  "blocked/manual tasks remain context-only",
+  "RPG tasks are excluded from handoff task selection",
+  "npm run orbit:next -- --all",
+  "if (require.main === module) main();",
+]) {
+  requireText(handoffGenerator, needle, "handoff queue consumer");
+}
+for (const forbidden of ["getTodoRoot", '.startsWith("- [ ] ")']) {
+  if (handoffGenerator.includes(forbidden)) {
+    fail(`handoff generator retains independent queue selector ${forbidden}`);
+  }
+}
+
 for (const guardrail of [
   "locally actionable, non-RPG top-level task",
   "fall through to `## In Progress`",
@@ -81,6 +105,14 @@ for (const guardrail of [
   "Do not mutate `tasks/todo.md`",
 ]) {
   requireText(spec, guardrail, "feature contract");
+}
+for (const guardrail of [
+  "must reuse `buildOrbitQueue()`",
+  "at most the first three locally actionable top-level tasks",
+  "blocked/manual and RPG-excluded work may appear only as bounded counts",
+  "No task is completed, reprioritized, or made actionable",
+]) {
+  requireText(handoffSpec, guardrail, "handoff feature contract");
 }
 
 if (

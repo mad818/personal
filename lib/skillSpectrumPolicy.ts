@@ -19,7 +19,7 @@ export interface SkillCapabilityPolicy {
 
 /**
  * Capability-level risk posture for skills declared in .claude/skills/.
- * Evaluated by CyberGovernanceCards and agent pre-tool-use hook.
+ * Evaluated by AiExposureReviewCard and the agent pre-tool-use hook.
  */
 export const SKILL_CAPABILITY_POLICIES: SkillCapabilityPolicy[] = [
   {

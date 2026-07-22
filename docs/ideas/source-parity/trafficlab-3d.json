@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "trafficlab-3d",
   "name": "TrafficLab-3D",
-  "status": "complete",
+  "status": "in_progress",
   "source": {
     "url": "https://github.com/duy-phamduc68/TrafficLab-3D",
     "version": "main",
@@ -18,23 +18,19 @@
       "id": "dual-view-movement-panel",
       "title": "Show overview and tactical movement panels on the INTEL map lane",
       "sourceEvidence": "README dual-panel CCTV + satellite synchronized views",
-      "disposition": "adapted",
-      "proof": [
-        "components/ops/OpsDualViewPanel.tsx",
-        "components/intel/IntelDeferredSegment.tsx",
-        "scripts/validate-trafficlab-assimilation.mjs"
-      ],
-      "adaptationNotes": "Read-only overview + trajectory tactical panel using live flight tracks; no CCTV/YOLO homography pipeline."
+      "disposition": "pending",
+      "reason": "The detached synthetic dual-view panel was retired because it had no reachable host. Nexus keeps the truthful live map but does not claim a synchronized overview/tactical view."
     },
     {
       "id": "trajectory-speed-heading-metrics",
-      "title": "Expose speed, heading, and short trajectory vectors for live tracks",
+      "title": "Expose speed and heading metrics for live tracks",
       "sourceEvidence": "TrafficLab movement metrics and trajectory visualization",
       "disposition": "adapted",
       "proof": [
-        "lib/trafficlabTrajectory.ts",
-        "components/ops/OpsDualViewPanel.tsx"
-      ]
+        "components/ops/OpsMap.tsx",
+        "scripts/validate-trafficlab-assimilation.mjs"
+      ],
+      "adaptationNotes": "The existing free-flight layer rotates markers by heading and shows live speed and heading in the map tooltip."
     },
     {
       "id": "cctv-yolo-homography-runtime",
@@ -42,7 +38,7 @@
       "sourceEvidence": "Upstream 3D dual-panel video + satellite homography stack",
       "disposition": "excluded",
       "conflict": "product_purpose",
-      "reason": "Nexus adopts only the dual-view and trajectory metrics pattern on existing free flight layers."
+      "reason": "Nexus adopts only truthful speed and heading metrics on the existing free flight layer."
     }
   ]
 }

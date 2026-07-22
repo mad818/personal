@@ -45,7 +45,11 @@ const codegraph = readRequired("lib", "codegraphIndex.ts");
 const feynmanFilters = readRequired("lib", "feynmanAcademicFilters.ts");
 const feynmanResearch = readRequired("lib", "feynmanResearch.ts");
 const skillSummary = readRequired("lib", "skillSpectrumSummary.ts");
-const cyber = readRequired("components", "cyber", "CyberGovernanceCards.tsx");
+const skillValidator = readRequired(
+  "components",
+  "skills",
+  "SkillSpectrumValidatorStrip.tsx",
+);
 const officePostRun = readRequired(
   "components",
   "home",
@@ -54,13 +58,33 @@ const officePostRun = readRequired(
 );
 
 requireText(episodic, "EPISODIC_MEMORY_MAX_ENTRIES", "episodicMemoryStore.ts");
-requireText(episodic, "buildEpisodicMemoryPromptBlock", "episodicMemoryStore.ts");
+requireText(
+  episodic,
+  "buildEpisodicMemoryPromptBlock",
+  "episodicMemoryStore.ts",
+);
 requireText(codegraph, "buildCodegraphSnapshot", "codegraphIndex.ts");
-requireText(feynmanFilters, "applyFeynmanPaperSearchFilters", "feynmanAcademicFilters.ts");
+requireText(
+  feynmanFilters,
+  "applyFeynmanPaperSearchFilters",
+  "feynmanAcademicFilters.ts",
+);
 requireText(feynmanResearch, "feynmanAcademicFilters", "feynmanResearch.ts");
-requireText(skillSummary, "summarizeSkillSpectrumPolicies", "skillSpectrumSummary.ts");
-requireText(cyber, "SkillSpector policy", "CyberGovernanceCards.tsx");
-requireText(officePostRun, "appendEpisodicMemory", "officeCommandCenterPostRun.ts");
+requireText(
+  skillSummary,
+  "summarizeSkillSpectrumPolicies",
+  "skillSpectrumSummary.ts",
+);
+requireText(
+  skillValidator,
+  "SkillSpector policy",
+  "SkillSpectrumValidatorStrip.tsx",
+);
+requireText(
+  officePostRun,
+  "appendEpisodicMemory",
+  "officeCommandCenterPostRun.ts",
+);
 requireText(agent, "YAGNI_MAX_TOOL_CALLS_PER_RUN", "lib/agent.ts");
 
 for (const skill of ["review", "refactor", "optimize", "architect"]) {
@@ -73,4 +97,6 @@ if (!batch.assimilationStatus?.all_github_repos_triaged) {
   fail("batch manifest missing triaged github repos flag");
 }
 
-console.log("ok assimilation-wave23 (YAGNI + SkillSpector wiring + batch enriched)");
+console.log(
+  "ok assimilation-wave23 (YAGNI + SkillSpector wiring + batch enriched)",
+);

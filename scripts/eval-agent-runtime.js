@@ -58,7 +58,6 @@ function main() {
   const opts = parseArgs()
   const agent = read('lib/agent.ts')
   const verifyRoute = read('app/api/verify/route.ts')
-  const hud = read('components/ui/TelemetryHUD.tsx')
   const statusRoute = read('app/api/status/route.ts')
   const toolsRoute = read('app/api/tools/route.ts')
   const routePolicy = read('lib/security/routePolicy.ts')
@@ -67,7 +66,6 @@ function main() {
   const assistantTurnReceipt = read('components/assistant/AssistantTurnReceipt.tsx')
   const assistantOperatorWorkflow = read('lib/assistantOperatorWorkflow.ts')
   const assistantOperatorWorkflowPanel = read('components/assistant/AssistantOperatorWorkflowPanel.tsx')
-  const homeChat = read('components/home/HomeChat.tsx')
   const commandBar = read('components/ui/CommandBar.tsx')
   const officeCommandCenter = read('components/home/office/OfficeCommandCenter.tsx')
   const hqTerminalSection = read('components/home/office/HQTerminalSection.tsx')
@@ -109,9 +107,11 @@ function main() {
       3,
     ),
     check(
-      'runtime status chip',
-      /label="RUN"/.test(hud) && /agentRuntime\.status/.test(hud),
-      'Telemetry HUD surfaces run status',
+      'runtime activity trace',
+      /agentRuntime\.startedAt/.test(hqTerminalSection) &&
+        /liveExecutionElapsedMs/.test(hqTerminalSection) &&
+        /Run trace/.test(hqTerminalSection),
+      'HQ chronicle surfaces agent runtime activity and run trace',
       'ux',
       2,
     ),
@@ -193,29 +193,24 @@ function main() {
     ),
     check(
       'chat surfaces share dispatch',
-      /resolveAssistantDispatch/.test(homeChat) &&
-        /resolveAssistantDispatch/.test(commandBar) &&
+      /resolveAssistantDispatch/.test(commandBar) &&
         /resolveAssistantDispatch/.test(officeCommandCenter) &&
-        /localReply/.test(homeChat) &&
         /localReply/.test(commandBar) &&
         /localReply/.test(officeCommandCenter) &&
-        /normalizeAssistantFailureMessage/.test(homeChat) &&
         /normalizeAssistantFailureMessage/.test(commandBar) &&
         /normalizeAssistantFailureMessage/.test(officeCommandCenter),
-      'Home chat, CommandBar, and HQ chronicle use the same dispatch, local fast reply, and recovery layer',
+      'CommandBar and HQ chronicle use the same dispatch, local fast reply, and recovery layer',
       'ux',
       3,
     ),
     check(
       'chat action affordances',
-      /actionModel/.test(homeChat) &&
-        /handleChatAction/.test(homeChat) &&
-        /actionModel/.test(commandBar) &&
+      /actionModel/.test(commandBar) &&
         /handleChatAction/.test(commandBar) &&
         /actionModel/.test(officeCommandCenter) &&
         /onAssistantAction/.test(hqTerminalSection) &&
         /nexus-hq-chronicle__assistantAction/.test(hqTerminalSection),
-      'Home chat, CommandBar, and HQ chronicle render shared route/recovery action buttons',
+      'CommandBar and HQ chronicle render shared route/recovery action buttons',
       'ux',
       3,
     ),
@@ -322,13 +317,11 @@ function main() {
     ),
     check(
       'assistant workflow surfaces',
-      /AssistantOperatorWorkflowPanel/.test(homeChat) &&
-        /operatorWorkflow/.test(homeChat) &&
-        /AssistantOperatorWorkflowPanel/.test(commandBar) &&
+      /AssistantOperatorWorkflowPanel/.test(commandBar) &&
         /operatorWorkflow/.test(commandBar) &&
         /AssistantOperatorWorkflowPanel/.test(hqTerminalSection) &&
         /operatorWorkflow/.test(hqTerminalSection),
-      'Home chat, CommandBar, and HQ chronicle render the shared operator workflow panel',
+      'CommandBar and HQ chronicle render the shared operator workflow panel',
       'ux',
       3,
     ),
@@ -367,10 +360,9 @@ function main() {
         /receiptItems/.test(assistantChatActions) &&
         /changedFiles/.test(assistantChatActions) &&
         /assistant-turn-receipt/.test(assistantTurnReceipt) &&
-        /AssistantTurnReceipt/.test(homeChat) &&
         /AssistantTurnReceipt/.test(commandBar) &&
         /AssistantTurnReceipt/.test(hqTerminalSection),
-      'Home chat, CommandBar, and HQ chronicle render shared turn receipts with mode, tools, recovery, and file-change posture',
+      'CommandBar and HQ chronicle render shared turn receipts with mode, tools, recovery, and file-change posture',
       'observability',
       3,
     ),

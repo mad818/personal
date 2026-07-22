@@ -22,7 +22,7 @@
       "proof": [
         "lib/assimilation/reconCodeIntelBridge.ts"
       ],
-      "adaptationNotes": "CODEGRAPH_NEXUS_ROUTES documents RepoAssimilationQueueCard and agent.ts as the integration surface."
+      "adaptationNotes": "CODEGRAPH_NEXUS_ROUTES documents RepoIntelPanel and agent.ts as the integration surface."
     },
     {
       "id": "static-call-graph-export",

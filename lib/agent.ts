@@ -575,14 +575,14 @@ export const AGENT_TOOLS = [
   {
     name: "read_project_file",
     description:
-      'Read a source file from the Homefront project. Use this to understand the codebase before making changes — always read a file before editing it. Examples: "app/home/page.tsx", "components/home/HomeChat.tsx", "lib/agent.ts", "store/useStore.ts".',
+      'Read a source file from the Homefront project. Use this to understand the codebase before making changes — always read a file before editing it. Examples: "app/home/page.tsx", "components/home/office/HQTerminalSection.tsx", "lib/agent.ts", "store/useStore.ts".',
     input_schema: {
       type: "object",
       properties: {
         path: {
           type: "string",
           description:
-            'Relative path from project root, e.g. "components/home/HomeChat.tsx"',
+            'Relative path from project root, e.g. "components/home/office/HQTerminalSection.tsx"',
         },
       },
       required: ["path"],
@@ -614,7 +614,7 @@ export const AGENT_TOOLS = [
         path: {
           type: "string",
           description:
-            'Relative path to the file, e.g. "components/home/HomeChat.tsx"',
+            'Relative path to the file, e.g. "components/home/office/HQTerminalSection.tsx"',
         },
         old_string: {
           type: "string",

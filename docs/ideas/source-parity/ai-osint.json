@@ -21,10 +21,9 @@
       "disposition": "adapted",
       "proof": [
         "lib/aiExposureReview.ts",
-        "lib/vulnerabilityReview.ts",
         "scripts/validate-ai-exposure-assimilation.mjs"
       ],
-      "adaptationNotes": "Five passive-first exposure packs plus vulnerability-review knowledge card; no offensive automation."
+      "adaptationNotes": "Five passive-first exposure packs with bounded advisory framing; no offensive automation."
     },
     {
       "id": "passive-review-pack-generation",

@@ -22,6 +22,14 @@ export function AgentPlatformReadinessBadges({
   readiness: AgentPlatformReadinessSnapshot | null;
   compact?: boolean;
 }) {
+  if (!readiness) {
+    return (
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+        <ShellBadge tone="muted">Platform readiness unknown</ShellBadge>
+      </div>
+    );
+  }
+
   const timesfmReady = readiness?.timesfm?.available ?? false;
   const firecrawlReady = readiness?.firecrawl ?? false;
   const markitdownReady = readiness?.markitdown ?? false;

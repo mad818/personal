@@ -193,17 +193,27 @@ assert.deepEqual(parseArgs(["--all", "--json"]), {
 assert.throws(() => parseArgs(["--unknown"]));
 
 const currentQueue = buildOrbitQueue(fs.readFileSync("tasks/todo.md", "utf8"));
-assert.equal(
-  currentQueue.next,
-  null,
-  "the current queue must not invent local work while every non-RPG task is blocked",
+const currentReconciliation = currentQueue.tasks.find(
+  (task) => task.key === "DETACHED-COMPONENT-RECONCILIATION",
 );
+if (currentReconciliation) {
+  assert.equal(currentReconciliation.classification, "actionable");
+  assert.equal(currentReconciliation.reason, "local_ready");
+  assert.equal(currentQueue.next?.key, "DETACHED-COMPONENT-RECONCILIATION");
+  assert.equal(currentQueue.counts.actionable, 1);
+} else {
+  assert.equal(
+    currentQueue.next,
+    null,
+    "the current queue must not invent local work after the reconciliation task closes",
+  );
+  assert.equal(currentQueue.counts.actionable, 0);
+}
 const currentFeynman = currentQueue.tasks.find(
   (task) => task.key === "FEYNMAN-SOURCE-PARITY",
 );
 assert.equal(currentFeynman?.classification, "blocked_or_manual");
 assert.equal(currentFeynman?.reason, "declared_external_prerequisite");
-assert.equal(currentQueue.counts.actionable, 0);
 assert.ok(currentQueue.counts.blockedOrManual >= 1);
 assert.ok(currentQueue.counts.excludedRpg >= 1);
 

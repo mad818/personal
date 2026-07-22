@@ -20,10 +20,12 @@ export default function PapersResearchPanel() {
   const [query, setQuery] = useState("");
   const [papers, setPapers] = useState<PaperResearchHit[]>([]);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [running, setRunning] = useState(false);
 
   const runSearch = useCallback(async () => {
     setRunning(true);
+    setError("");
     try {
       const suffix = query.trim()
         ? `?q=${encodeURIComponent(query.trim())}`
@@ -31,19 +33,29 @@ export default function PapersResearchPanel() {
       const response = await apiFetch(`/api/papers${suffix}`, {
         signal: AbortSignal.timeout(12_000),
       });
+      if (!response.ok) {
+        throw new Error("papers_http_failure");
+      }
       const payload = (await response.json()) as {
         papers?: PaperResearchHit[];
         message?: string;
+        status?: "ok" | "empty" | "error";
       };
-      setPapers(payload.papers ?? []);
+      if (payload.status === "error" || !Array.isArray(payload.papers)) {
+        throw new Error("papers_payload_failure");
+      }
+      setPapers(payload.papers);
       setMessage(payload.message ?? "");
     } catch {
-      setPapers([]);
-      setMessage("Papers lookup failed.");
+      setError(
+        papers.length
+          ? "Papers lookup failed; the previous verified results are retained."
+          : "Papers lookup failed. Try again when the research feed is available.",
+      );
     } finally {
       setRunning(false);
     }
-  }, [query]);
+  }, [papers.length, query]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -81,6 +93,11 @@ export default function PapersResearchPanel() {
       {message ? (
         <div role="status" style={{ fontSize: "10px", color: "var(--text3)" }}>
           {message}
+        </div>
+      ) : null}
+      {error ? (
+        <div role="alert" style={{ fontSize: "10px", color: "var(--text3)" }}>
+          {error}
         </div>
       ) : null}
       {papers.length > 0 ? (

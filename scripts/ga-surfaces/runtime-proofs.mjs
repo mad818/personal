@@ -49,11 +49,17 @@ const SURFACE_RUNTIME_PROOFS = [
         "office",
         "HQTerminalSection.tsx",
       );
-      requireText(hqTerminal, "MementoCycleStrip", "HQTerminalSection.tsx");
+      requireText(hqTerminal, "pendingLesson", "HQTerminalSection.tsx");
+      requireText(hqTerminal, "pendingCorrection", "HQTerminalSection.tsx");
+      const memorySpine = readRequired(
+        "components",
+        "command",
+        "MemorySpineStatusCard.tsx",
+      );
       requireText(
-        hqTerminal,
-        "CorrectionMemoryProvenanceStrip",
-        "HQTerminalSection.tsx",
+        memorySpine,
+        "Approved correction memory",
+        "MemorySpineStatusCard.tsx",
       );
       const chrome = readRequired("components", "ui", "RootLayoutChrome.tsx");
       requireText(chrome, "AuthGate", "RootLayoutChrome.tsx");
@@ -73,10 +79,14 @@ const SURFACE_RUNTIME_PROOFS = [
     run() {
       const page = readRequired("app", "command", "page.tsx");
       requireText(page, "LazyNetworkHealth", "command/page.tsx");
-      requireText(page, "LazyPrivacyShieldReceiptCard", "command/page.tsx");
-      requireText(page, "LazyOvernightMissionCard", "command/page.tsx");
+      requireText(page, "TrustOperationsRail", "command/page.tsx");
+      requireText(page, "LazyOperatorReadinessLane", "command/page.tsx");
       requireText(page, "ShellPage", "command/page.tsx");
-      const network = readRequired("components", "command", "NetworkHealth.tsx");
+      const network = readRequired(
+        "components",
+        "command",
+        "NetworkHealth.tsx",
+      );
       requireText(network, "AbortSignal.timeout", "NetworkHealth.tsx");
       requireText(network, "try {", "NetworkHealth.tsx");
       requireText(network, "catch", "NetworkHealth.tsx");
@@ -88,14 +98,9 @@ const SURFACE_RUNTIME_PROOFS = [
     run() {
       const page = readRequired("app", "intel", "page.tsx");
       requireText(page, "LazyIntelDeferredSegment", "intel/page.tsx");
+      requireText(page, "LazyPapersResearchPanel", "intel/page.tsx");
+      requireText(page, "LazyForecastLabReadinessPanel", "intel/page.tsx");
       requireText(page, "ShellPage", "intel/page.tsx");
-      const deferred = readRequired(
-        "components",
-        "intel",
-        "IntelDeferredSegment.tsx",
-      );
-      requireText(deferred, "OpsDensityAlertStrip", "IntelDeferredSegment.tsx");
-      requireText(deferred, "PapersResearchPanel", "IntelDeferredSegment.tsx");
       const loader = readRequired("components", "ui", "DataLoader.tsx");
       requireText(loader, "fg:", "DataLoader.tsx");
       requireText(loader, "value:", "DataLoader.tsx");
@@ -108,6 +113,8 @@ const SURFACE_RUNTIME_PROOFS = [
       );
       requireText(papers, "try {", "PapersResearchPanel.tsx");
       requireText(papers, "catch", "PapersResearchPanel.tsx");
+      requireText(papers, "response.ok", "PapersResearchPanel.tsx");
+      requireText(papers, "payload.status", "PapersResearchPanel.tsx");
     },
   },
   {
@@ -119,7 +126,11 @@ const SURFACE_RUNTIME_PROOFS = [
       requireText(page, "ShellPage", "alpha/page.tsx");
       const buyBot = readRequired("components", "alpha", "BuyBot.tsx");
       requireText(buyBot, "unavailable", "BuyBot.tsx");
-      const forecast = readRequired("components", "alpha", "ForecastLabCard.tsx");
+      const forecast = readRequired(
+        "components",
+        "alpha",
+        "ForecastLabCard.tsx",
+      );
       requireText(forecast, "degraded", "ForecastLabCard.tsx");
     },
   },
@@ -145,7 +156,7 @@ const SURFACE_RUNTIME_PROOFS = [
       requireText(page, "LazyReconLookup", "recon/page.tsx");
       requireText(page, "LazyPassiveDns", "recon/page.tsx");
       requireText(page, "LazyGeocodingPlaygroundCard", "recon/page.tsx");
-      requireText(page, "LazyRepoAssimilationQueueCard", "recon/page.tsx");
+      requireText(page, "LazyRepoIntelPanel", "recon/page.tsx");
       requireText(page, "ShellPage", "recon/page.tsx");
       const lookup = readRequired("components", "recon", "ReconLookup.tsx");
       requireText(lookup, "BYOK", "ReconLookup.tsx");
@@ -209,5 +220,7 @@ export function runGaSurfaceRuntimeProofs() {
 
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   const count = runGaSurfaceRuntimeProofs();
-  console.log(`ok ga-surfaces-runtime (${count} GA surfaces structurally proven)`);
+  console.log(
+    `ok ga-surfaces-runtime (${count} GA surfaces structurally proven)`,
+  );
 }

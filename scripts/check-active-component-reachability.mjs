@@ -11,32 +11,7 @@ const codeExtensions = new Set([".ts", ".tsx", ".js", ".jsx"]);
 const resolvedExtensions = [".ts", ".tsx", ".js", ".jsx", ".css", ".json"];
 
 const reviewedDetachedComponents = new Set([
-  "components/alpha/TradeThesisPanel.tsx",
-  "components/command/McpBridgeStatusCard.tsx",
-  "components/command/NetworkTopologyPanel.tsx",
-  "components/command/OvernightMissionCard.tsx",
-  "components/command/PrivacyShieldReceiptCard.tsx",
-  "components/command/SecurityPostureStrip.tsx",
-  "components/cyber/CyberGovernanceCards.tsx",
-  "components/home/HomeAmbient.tsx",
-  "components/home/HomeChat.tsx",
-  "components/home/office/AgentPlatformStrip.tsx",
-  "components/home/office/CorrectionMemoryProvenanceStrip.tsx",
-  "components/home/office/MementoCycleStrip.tsx",
-  "components/home/office/animations.css",
-  "components/intel/ForecastLabReadinessPanel.tsx",
-  "components/intel/PapersResearchPanel.tsx",
-  "components/ops/OpsDensityAlertStrip.tsx",
-  "components/ops/OpsDualViewPanel.tsx",
-  "components/recon/GeocodingPlaygroundCard.tsx",
-  "components/recon/RepoAssimilationQueueCard.tsx",
-  "components/system/HealthMonitor.tsx",
-  "components/ui/AgentPlatformReadinessBadges.tsx",
-  "components/ui/AgentStatusBar.tsx",
-  "components/ui/EvolutionImproverActions.tsx",
-  "components/ui/SystemStatusFooter.tsx",
-  "components/ui/TelemetryHUD.tsx",
-  "components/vault/VaultSearch.tsx",
+  // Intentionally empty: current component source must be reachable or retired.
 ]);
 
 const exactScopeExclusions = new Set([

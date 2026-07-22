@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "openevolve",
   "name": "OpenEvolve",
-  "status": "complete",
+  "status": "in_progress",
   "source": {
     "url": "https://github.com/algorithmicsuperintelligence/openevolve",
     "version": "main",
@@ -18,14 +18,8 @@
       "id": "benchmark-gated-variant-review",
       "title": "Review runtime experiment variants with keep/reject/defer operator gates",
       "sourceEvidence": "AlphaEvolve-style search loops with benchmark-gated promotion",
-      "disposition": "adapted",
-      "proof": [
-        "lib/evolutionImprover.ts",
-        "components/ui/EvolutionImproverActions.tsx",
-        "components/ui/RuntimeEvalTrend.tsx",
-        "scripts/validate-openevolve-assimilation.mjs"
-      ],
-      "adaptationNotes": "Bounded to existing runtime experiment lane; no autonomous self-modifying production runtime."
+      "disposition": "pending",
+      "reason": "The detached keep/reject/defer action surface was retired because it had no reachable product host. Baseline-versus-variant evidence remains live, but explicit operator promotion controls need a deliberate active seam before this capability can be claimed."
     },
     {
       "id": "runtime-experiment-comparison",
@@ -35,6 +29,8 @@
       "proof": [
         "lib/runtimeExperimentContracts.ts",
         "lib/runtimeExperimentLedger.ts",
+        "components/ui/RuntimeEvalTrend.tsx",
+        "scripts/validate-openevolve-assimilation.mjs",
         "scripts/validate-runtime-experiment-improver.mjs"
       ]
     },

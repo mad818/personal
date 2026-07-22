@@ -19,7 +19,7 @@
       "title": "Username OSINT across 3000+ sites: check profile existence and extract public metadata",
       "sourceEvidence": "Maigret core: username search across a curated 3000+ site database",
       "disposition": "pending",
-      "reason": "Nexus RECON has GeocodingPlaygroundCard and RepoAssimilationQueueCard; username OSINT multi-site sweep is not yet implemented."
+      "reason": "Nexus RECON has bounded coordinate lookup and repository intelligence, but a username OSINT multi-site sweep is not implemented."
     },
     {
       "id": "person-report-generation",

@@ -20,12 +20,13 @@
       "sourceEvidence": "README good-night-have-fun autonomous continuation pattern",
       "disposition": "adapted",
       "proof": [
-        "lib/overnightMissionHandoff.ts",
-        "components/command/OvernightMissionCard.tsx",
+        "lib/schedulerGovernance.ts",
+        "components/ui/OperatorReadinessLane.tsx",
+        "components/ui/CronSchedulerComposerSection.tsx",
         "app/command/page.tsx",
         "scripts/validate-gnhf-assimilation.mjs"
       ],
-      "adaptationNotes": "Requires bounded mission review contracts from scheduler governance; no unbounded daemon."
+      "adaptationNotes": "COMMAND summarizes scheduled mission readiness while the scheduler contract preserves scope, expiry, and re-entry guidance; no unbounded daemon."
     },
     {
       "id": "mission-review-reentry-summary",

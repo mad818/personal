@@ -66,6 +66,10 @@ const LazyAiExposureReviewCard = dynamic(
   () => import("@/components/recon/AiExposureReviewCard"),
   { ssr: false },
 );
+const LazyGeocodingPlaygroundCard = dynamic(
+  () => import("@/components/recon/GeocodingPlaygroundCard"),
+  { ssr: false },
+);
 
 type View = "osint" | "pdns" | "headers" | "metadata" | "binary" | "opsec";
 
@@ -271,6 +275,19 @@ export default function ReconPage() {
                 compact
               >
                 <LazyIdeaLinkIntakePanel />
+              </OpsField>
+              <OpsField
+                title="Coordinate lookup"
+                detail="Bounded place search and reverse geocoding"
+                tone="muted"
+                compact
+              >
+                <details className="nexus-surface-disclosure">
+                  <summary>Open geocoding tools</summary>
+                  <div className="nexus-surface-disclosure__body">
+                    <LazyGeocodingPlaygroundCard />
+                  </div>
+                </details>
               </OpsField>
             </OpsWorkplane>
           </div>

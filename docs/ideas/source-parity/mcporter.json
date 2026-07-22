@@ -32,10 +32,12 @@
       "sourceEvidence": "Operator needs visibility into MCP adapter posture before enabling tools",
       "disposition": "adapted",
       "proof": [
-        "components/command/McpBridgeStatusCard.tsx",
+        "components/ui/TrustOperationsRail.tsx",
+        "lib/trustPostureDescriptor.ts",
         "app/command/page.tsx",
         "scripts/validate-mcporter-assimilation.mjs"
-      ]
+      ],
+      "adaptationNotes": "The shared trust rail reports protected MCP bridge posture without adding a second status card or generic execution surface."
     },
     {
       "id": "bundled-mcporter-cli-runtime",

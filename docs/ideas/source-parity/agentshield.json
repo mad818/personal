@@ -21,7 +21,7 @@
       "disposition": "adapted",
       "proof": [
         "lib/agentShieldPosture.ts",
-        "components/cyber/CyberGovernanceCards.tsx",
+        "lib/homefrontSourceIntelligence.ts",
         "scripts/validate-ai-exposure-assimilation.mjs"
       ],
       "adaptationNotes": "Operator checklist for tool scope, secrets, mutation gates, and audit trail — no bundled scanner runtime."
@@ -33,9 +33,10 @@
       "disposition": "adapted",
       "proof": [
         "lib/agentShieldPosture.ts",
-        "components/cyber/CyberGovernanceCards.tsx"
+        "components/ui/TrustOperationsRail.tsx",
+        "lib/trustPostureDescriptor.ts"
       ],
-      "adaptationNotes": "MCP origin trust and connector opt-in items surface in CYBER governance cards."
+      "adaptationNotes": "The checklist contract defines MCP origin and connector opt-in review; the shared trust rail reports current external-tool posture."
     },
     {
       "id": "runtime-scanner-dependency",

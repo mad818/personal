@@ -6,63 +6,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import NetworkTopologyPanel from "@/components/command/NetworkTopologyPanel";
+import {
+  DEFAULT_NETWORK_HEALTH_TARGETS,
+  type NetworkHealthResult,
+  type NetworkHealthTarget,
+} from "@/lib/networkHealthTargets";
 
-interface HealthTarget {
-  id: string;
-  label: string;
-  url: string;
-  method: "http" | "https" | "health";
-}
-
-interface HealthResult {
-  id: string;
-  status: "ok" | "warn" | "fail" | "checking" | "idle";
-  code: number | null;
-  ms: number | null;
-  lastSeen: string;
-  checkedAt: number | null;
-}
-
-const DEFAULT_TARGETS: HealthTarget[] = [
-  {
-    id: "nexus",
-    label: "Nexus HQ",
-    url: "/api/health",
-    method: "health",
-  },
-  {
-    id: "prices",
-    label: "Market data route",
-    url: "/api/prices?mode=markets&coins=bitcoin,ethereum,solana",
-    method: "health",
-  },
-  {
-    id: "risk",
-    label: "Conflict monitor",
-    url: "/api/conflict",
-    method: "health",
-  },
-  {
-    id: "cves",
-    label: "Cyber feed",
-    url: "/api/cves",
-    method: "health",
-  },
-  {
-    id: "sentiment",
-    label: "Fear & Greed route",
-    url: "/api/fear-greed",
-    method: "health",
-  },
-  {
-    id: "seismic",
-    label: "Earthquake route",
-    url: "/api/earthquakes",
-    method: "health",
-  },
-];
-
-function StatusDot({ status }: { status: HealthResult["status"] }) {
+function StatusDot({ status }: { status: NetworkHealthResult["status"] }) {
   const col =
     status === "ok"
       ? "#10b981"
@@ -91,28 +42,35 @@ function StatusDot({ status }: { status: HealthResult["status"] }) {
 }
 
 export default function NetworkHealth() {
-  const [targets, setTargets] = useState<HealthTarget[]>(DEFAULT_TARGETS);
-  const [results, setResults] = useState<Record<string, HealthResult>>({});
+  const [targets, setTargets] = useState<NetworkHealthTarget[]>(() => [
+    ...DEFAULT_NETWORK_HEALTH_TARGETS,
+  ]);
+  const [results, setResults] = useState<Record<string, NetworkHealthResult>>(
+    {},
+  );
   const [running, setRunning] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newUrl, setNewUrl] = useState("");
   const [expanded, setExpanded] = useState(false);
 
-  const setResult = useCallback((id: string, patch: Partial<HealthResult>) => {
-    setResults((r) => {
-      const prev = r[id] ?? {
-        id,
-        status: "idle" as const,
-        code: null,
-        ms: null,
-        lastSeen: "",
-        checkedAt: null,
-      };
-      return { ...r, [id]: { ...prev, ...patch } };
-    });
-  }, []);
+  const setResult = useCallback(
+    (id: string, patch: Partial<NetworkHealthResult>) => {
+      setResults((r) => {
+        const prev = r[id] ?? {
+          id,
+          status: "idle" as const,
+          code: null,
+          ms: null,
+          lastSeen: "",
+          checkedAt: null,
+        };
+        return { ...r, [id]: { ...prev, ...patch } };
+      });
+    },
+    [],
+  );
 
-  async function checkOne(t: HealthTarget) {
+  async function checkOne(t: NetworkHealthTarget) {
     setResult(t.id, { status: "checking" });
     const start = Date.now();
     try {
@@ -502,6 +460,11 @@ export default function NetworkHealth() {
               );
             })}
           </div>
+
+          <NetworkTopologyPanel
+            targets={targets.filter((target) => target.id !== "nexus")}
+            results={results}
+          />
 
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
             <input

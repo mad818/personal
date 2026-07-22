@@ -21,7 +21,6 @@
       "disposition": "adapted",
       "proof": [
         "lib/agentAutonomyGovernance.ts",
-        "components/cyber/CyberGovernanceCards.tsx",
         "lib/homefrontSourceIntelligence.ts",
         "scripts/validate-ai-exposure-assimilation.mjs"
       ],

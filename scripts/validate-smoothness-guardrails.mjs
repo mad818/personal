@@ -2,7 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 
 function read(file) {
   return fs.readFileSync(path.join(repoRoot, file), "utf8");
@@ -48,20 +51,20 @@ const requiredSnippets = [
   {
     file: "components/ui/OperationalLightGrid.tsx",
     snippets: [
-      "data-testid=\"operational-light-grid\"",
+      'data-testid="operational-light-grid"',
       "aria-label",
       "title={title}",
     ],
   },
   {
     file: "components/nav/Nav.tsx",
-    snippets: ["useOperationalLights", "variant=\"toprail\"", "maxLights={10}"],
+    snippets: ["useOperationalLights", 'variant="toprail"', "maxLights={10}"],
   },
   {
     file: "components/ui/FreeLocalReadinessPanel.tsx",
     snippets: [
       "buildOperationalLightGrid",
-      "variant={compact ? \"compact\" : \"panel\"}",
+      'variant={compact ? "compact" : "panel"}',
       "document.hidden",
     ],
   },
@@ -87,7 +90,9 @@ for (const check of requiredSnippets) {
   const source = read(check.file);
   for (const snippet of check.snippets) {
     if (!source.includes(snippet)) {
-      errors.push(`${check.file}: missing smoothness proof snippet "${snippet}"`);
+      errors.push(
+        `${check.file}: missing smoothness proof snippet "${snippet}"`,
+      );
     }
   }
 }
@@ -104,7 +109,14 @@ const tsxFiles = [
 ];
 
 for (const legacyName of legacyStatusSurfaces) {
-  const owningFile = tsxFiles.find((file) => file.endsWith(`${legacyName}.tsx`));
+  const owningFile = tsxFiles.find((file) =>
+    file.endsWith(`${legacyName}.tsx`),
+  );
+  if (owningFile) {
+    errors.push(
+      `${owningFile}: ${legacyName} must remain retired; use OperationalLightGrid instead.`,
+    );
+  }
   for (const file of tsxFiles) {
     if (file === owningFile) continue;
     const source = read(file);
@@ -127,7 +139,10 @@ if (!toprailPolling.includes("document.hidden")) {
 }
 
 const forbiddenNetworkIdleFiles = [
-  ...listFiles("tests", (file) => file.endsWith(".ts") || file.endsWith(".tsx")),
+  ...listFiles(
+    "tests",
+    (file) => file.endsWith(".ts") || file.endsWith(".tsx"),
+  ),
 ];
 for (const file of forbiddenNetworkIdleFiles) {
   const source = read(file);
@@ -145,5 +160,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Smoothness guardrails OK (operational lights, visibility-aware polling, and legacy status surfaces are constrained).",
+  "Smoothness guardrails OK (operational lights, visibility-aware polling, and legacy status surfaces are retired).",
 );

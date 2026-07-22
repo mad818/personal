@@ -43,6 +43,14 @@ const LazyLiveEventFusionStrip = dynamic(
   () => import("@/components/intel/LiveEventFusionStrip"),
   { ssr: false },
 );
+const LazyPapersResearchPanel = dynamic(
+  () => import("@/components/intel/PapersResearchPanel"),
+  { ssr: false },
+);
+const LazyForecastLabReadinessPanel = dynamic(
+  () => import("@/components/intel/ForecastLabReadinessPanel"),
+  { ssr: false },
+);
 
 type Segment = "news" | "world" | "markets" | "sweeps";
 const SEGMENTS: { id: Segment; label: string }[] = [
@@ -274,6 +282,30 @@ export default function IntelPage() {
                   </OpsField>
                 </OpsRail>
               </ShellGrid>
+              <details className="nexus-surface-disclosure">
+                <summary>Open research sources</summary>
+                <div className="nexus-surface-disclosure__body">
+                  <ShellGrid
+                    columns="minmax(0, 1.1fr) minmax(280px, 0.9fr)"
+                    align="start"
+                    gap="12px"
+                  >
+                    <OpsField
+                      title="Daily papers"
+                      detail="Bounded HuggingFace research discovery"
+                    >
+                      <LazyPapersResearchPanel />
+                    </OpsField>
+                    <OpsField
+                      title="Forecast lab readiness"
+                      detail="Optional research and forecasting lanes"
+                      tone="muted"
+                    >
+                      <LazyForecastLabReadinessPanel />
+                    </OpsField>
+                  </ShellGrid>
+                </div>
+              </details>
             </OpsWorkplane>
           </div>
         )}

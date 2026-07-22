@@ -24,18 +24,26 @@ function requireText(source, needle, label) {
   }
 }
 
-const lib = readRequired("lib", "trafficlabTrajectory.ts");
-const panel = readRequired("components", "ops", "OpsDualViewPanel.tsx");
-const intel = readRequired("components", "intel", "IntelDeferredSegment.tsx");
-const parity = JSON.parse(readRequired("docs", "ideas", "source-parity", "trafficlab-3d.json"));
+const map = readRequired("components", "ops", "OpsMap.tsx");
+const parity = JSON.parse(
+  readRequired("docs", "ideas", "source-parity", "trafficlab-3d.json"),
+);
 
-requireText(lib, "buildTrajectoryTracksFromFlights", "trafficlabTrajectory.ts");
-requireText(lib, "buildDualViewSyncState", "trafficlabTrajectory.ts");
-requireText(panel, "Tactical trajectories", "OpsDualViewPanel.tsx");
-requireText(intel, "OpsDualViewPanel", "IntelDeferredSegment.tsx");
+requireText(map, 'apiFetch("/api/flights"', "OpsMap.tsx");
+requireText(map, "velocity_ms", "OpsMap.tsx");
+requireText(map, "true_track", "OpsMap.tsx");
+requireText(map, "Hdg ${Math.round(f.hdg)} deg", "OpsMap.tsx");
 
-if (parity.status !== "complete") {
-  fail("trafficlab-3d.json status must be complete");
+if (parity.status !== "in_progress") {
+  fail("trafficlab-3d.json status must be in_progress");
+}
+if (
+  parity.capabilities?.find((item) => item.id === "dual-view-movement-panel")
+    ?.disposition !== "pending"
+) {
+  fail("trafficlab dual-view map must remain pending");
 }
 
-console.log("ok trafficlab-assimilation (dual-view trajectory panel wired)");
+console.log(
+  "ok trafficlab-assimilation (heading/speed map retained; dual view pending)",
+);

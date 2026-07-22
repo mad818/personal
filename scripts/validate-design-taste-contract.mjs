@@ -46,12 +46,6 @@ requireText(tokens, "assimilationDecisionColor", "designTokens.ts");
 requireText(tokens, "networkHealthStatusColor", "designTokens.ts");
 
 const watchedFiles = [
-  "components/ops/OpsDensityAlertStrip.tsx",
-  "components/ops/OpsDualViewPanel.tsx",
-  "components/home/office/MementoCycleStrip.tsx",
-  "components/recon/RepoAssimilationQueueCard.tsx",
-  "components/command/PrivacyShieldReceiptCard.tsx",
-  "components/command/OvernightMissionCard.tsx",
   "components/command/NetworkTopologyPanel.tsx",
   "components/intel/PapersResearchPanel.tsx",
   "components/recon/GeocodingPlaygroundCard.tsx",

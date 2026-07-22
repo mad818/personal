@@ -1,33 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
 import {
   AgentPlatformReadinessBadges,
   type AgentPlatformReadinessSnapshot,
 } from "@/components/ui/AgentPlatformReadinessBadges";
-import { ShellStack } from "@/components/ui/shell";
+import { ShellButton, ShellStack } from "@/components/ui/shell";
 
 export default function ForecastLabReadinessPanel() {
   const [readiness, setReadiness] =
     useState<AgentPlatformReadinessSnapshot | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadReadiness = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await apiFetch("/api/status", {
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!response.ok) {
+        throw new Error("status_unavailable");
+      }
+      const payload = (await response.json()) as {
+        readiness?: { agentPlatform?: AgentPlatformReadinessSnapshot };
+      };
+      if (!payload.readiness?.agentPlatform) {
+        throw new Error("readiness_missing");
+      }
+      setReadiness(payload.readiness.agentPlatform);
+    } catch {
+      setError(
+        "Platform readiness refresh failed; the last verified posture, if any, is retained and configuration is not inferred.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    void (async () => {
-      try {
-        const response = await apiFetch("/api/status", {
-          signal: AbortSignal.timeout(10_000),
-        });
-        if (!response.ok) return;
-        const payload = (await response.json()) as {
-          readiness?: { agentPlatform?: AgentPlatformReadinessSnapshot };
-        };
-        setReadiness(payload.readiness?.agentPlatform ?? null);
-      } catch {
-        /* silent failure */
-      }
-    })();
-  }, []);
+    void loadReadiness();
+  }, [loadReadiness]);
 
   return (
     <ShellStack gap="8px">
@@ -35,11 +50,26 @@ export default function ForecastLabReadinessPanel() {
         Advisory forecasting and research enrichment — activate via env vars in
         `.env.example`.
       </div>
+      {loading && !readiness ? (
+        <div role="status" style={{ fontSize: "10px", color: "var(--text3)" }}>
+          Checking platform readiness…
+        </div>
+      ) : null}
       <AgentPlatformReadinessBadges readiness={readiness} />
-      {!readiness?.timesfm?.available ? (
+      {readiness && !readiness.timesfm?.available ? (
         <div style={{ fontSize: "10px", color: "var(--text3)" }}>
           Set `TIMESFM_ENDPOINT` for `timesfm_forecast`. World Bank macro works
           with no key via `world_bank_macro`.
+        </div>
+      ) : null}
+      {error ? (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div role="alert" style={{ fontSize: "10px", color: "var(--text3)" }}>
+            {error}
+          </div>
+          <ShellButton onClick={loadReadiness} disabled={loading}>
+            Retry
+          </ShellButton>
         </div>
       ) : null}
     </ShellStack>

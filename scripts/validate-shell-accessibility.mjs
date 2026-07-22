@@ -118,7 +118,6 @@ const toast = read("components/ui/Toast.tsx");
 const notificationToastBridge = read(
   "components/ui/NotificationToastBridge.tsx",
 );
-const homeChat = read("components/home/HomeChat.tsx");
 const actionDialogHook = read("hooks/useActionDialog.ts");
 const actionDialog = read("components/ui/ActionDialog.tsx");
 const trustOperations = read("components/ui/TrustOperationsRail.tsx");
@@ -177,11 +176,10 @@ const routeEntryControls = [
   ],
   [
     "VAULT search entry",
-    read("components/vault/VaultSearch.tsx"),
+    read("components/vault/SavedArticles.tsx"),
     [
-      'aria-label="Search vault"',
-      'aria-label="Vault category"',
-      'aria-label="Vault sort order"',
+      'aria-label="Search saved articles"',
+      'aria-label="Saved article sort order"',
     ],
   ],
   [
@@ -197,7 +195,7 @@ const routeEntryControls = [
   [
     "IOT device entry",
     read("components/iot/DeviceRegistry.tsx"),
-    ['aria-label={field.label}', 'aria-label="Device protocol"'],
+    ["aria-label={field.label}", 'aria-label="Device protocol"'],
   ],
   [
     "VEHICLE control entry",
@@ -398,18 +396,6 @@ if (
   errors.push(
     "notification toast hydration: persisted IDs must seed before new notifications emit",
   );
-}
-
-for (const text of [
-  'import { toast } from "@/components/ui/Toast"',
-  'const response = await fetch("/api/tools", {',
-  "if (!response.ok)",
-  'title: "Claude key required"',
-  'title: "Draft finalized"',
-  'title: "Draft not finalized"',
-  "disabled={finalizingId === d.id}",
-]) {
-  requireText(homeChat, text, "HomeChat draft finalization feedback");
 }
 
 for (const text of [

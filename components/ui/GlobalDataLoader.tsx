@@ -21,23 +21,5 @@ export default function GlobalDataLoader() {
     });
   }, [fetchAll]);
 
-  // Manual refresh trigger from SystemStatusFooter
-  useEffect(() => {
-    const handler = async () => {
-      try {
-        await fetchAll();
-      } finally {
-        // Notify footer + any listeners that data refresh completed
-        window.dispatchEvent(new CustomEvent("nexus-data-refreshed"));
-      }
-    };
-    window.addEventListener("nexus-refresh-trigger", handler as EventListener);
-    return () =>
-      window.removeEventListener(
-        "nexus-refresh-trigger",
-        handler as EventListener,
-      );
-  }, [fetchAll]);
-
   return null;
 }

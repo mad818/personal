@@ -24,7 +24,7 @@
  */
 export const CODEGRAPH_NEXUS_ROUTES = {
   recon: "app/recon/page.tsx",
-  assimilationQueue: "components/recon/RepoAssimilationQueueCard.tsx",
+  assimilationQueue: "components/recon/RepoIntelPanel.tsx",
   agentBridge: "lib/agent.ts",
 } as const;
 
@@ -34,7 +34,7 @@ export const CODEGRAPH_NEXUS_ROUTES = {
 export const AGENTMEMORY_NEXUS_ROUTES = {
   memoryStore: "lib/memoryPagesStore.ts",
   claudeMem: "docs/ideas/source-parity/claude-mem.json",
-  passiveTrail: "components/home/office/MementoCycleStrip.tsx",
+  passiveTrail: "components/home/office/officeCommandCenterPostRun.ts",
 } as const;
 
 /**

@@ -36,10 +36,19 @@ requireText(route, "/api/geocode", "geocode route");
 requireText(route, "nominatim", "geocode route");
 requireText(lib, "parseNominatimSearchResults", "geoCoordinateLookup.ts");
 requireText(card, "/api/geocode", "GeocodingPlaygroundCard.tsx");
-requireText(recon, "GeocodingPlaygroundCard", "recon page");
+requireText(card, "response.ok", "GeocodingPlaygroundCard.tsx");
+requireText(card, "payload.status", "GeocodingPlaygroundCard.tsx");
+requireText(
+  card,
+  "previous verified results are retained",
+  "GeocodingPlaygroundCard.tsx",
+);
+requireText(recon, "LazyGeocodingPlaygroundCard", "recon page");
 
 if (parity.status !== "complete") {
   fail("geocoding-playground.json status must be complete");
 }
 
-console.log("ok geocoding-playground-assimilation (geocode proxy + RECON playground wired)");
+console.log(
+  "ok geocoding-playground-assimilation (geocode proxy + RECON playground wired)",
+);

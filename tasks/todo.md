@@ -96,6 +96,13 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [x] SYSTEM-STATE-LATEST-COMPACTION — Stop the canonical latest-shipped context from carrying a 203-entry, 243,475-character historical log. Spec: `specs/features/system-state-latest-compaction.md`.
+  - [x] Retain a bounded newest-first window of current non-RPG shipments without creating a second live historical dump.
+  - [x] Enforce top-level entry and character budgets through the existing documentation gate.
+  - [x] Prove compact context extraction, recency parity, handoff/publication safety, and zero-phone/PWA/RPG changed paths.
+  - Guardrail: no route, API/runtime behavior, provider, dependency, phone/PWA, RPG implementation, blocker/release/environment section loss, or replacement historical log.
+  - Progress: complete. `Latest Shipped` fell from 203 entries and 243,475 characters to 12 entries and 16,843 extracted characters; the full canonical state fell from 267,715 to 41,103 characters, an 84.6% reduction. Its first identifier still matches the newest completed top-level task, older detail remains in Git instead of a second context-bearing archive, and the documentation gate rejects count or character regressions. The real `readMarkdownSection` path returns the compact slice, while current blockers, release posture, environment issues, verification, Next Up, and compatibility sections remain intact. Focused documentation, extraction, handoff, publication, and boundary checks passed, and the canonical verifier passed in 188.8 seconds.
+
 - [x] CURRENT-SYSTEM-STATE-RECENCY — Stop the canonical system-state record from passing documentation checks while omitting the newest completed tranche. Spec: `specs/features/current-system-state-recency.md`.
   - [x] Add `docs/SYSTEM_STATE.md` to the current-documentation surface and enforce newest-completed versus latest-shipped identifier parity.
   - [x] Record the focus/motion/divergent-Council shipment and this recency correction with real benefits, boundaries, and proof.

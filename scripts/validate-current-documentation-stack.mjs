@@ -192,11 +192,26 @@ const newestCompletedTaskId = firstTopLevelCompletedTaskId(
 if (!newestCompletedTaskId) {
   fail("tasks/todo.md Next Up has no completed top-level shipment");
 }
-const latestShippedTaskId = firstShippedTaskId(
-  markdownSection(systemState, "Latest Shipped"),
+const latestShippedSection = markdownSection(systemState, "Latest Shipped");
+const latestShippedTaskIds = Array.from(
+  latestShippedSection.matchAll(/^- ([A-Z][A-Z0-9-]*)\b/gm),
+  (match) => match[1],
 );
+const latestShippedTaskId = firstShippedTaskId(latestShippedSection);
 if (!latestShippedTaskId) {
   fail("docs/SYSTEM_STATE.md Latest Shipped has no task bullet");
+}
+const latestShippedEntryLimit = 12;
+const latestShippedCharacterLimit = 24_000;
+if (latestShippedTaskIds.length > latestShippedEntryLimit) {
+  fail(
+    `docs/SYSTEM_STATE.md Latest Shipped has ${latestShippedTaskIds.length} entries; limit is ${latestShippedEntryLimit}`,
+  );
+}
+if (latestShippedSection.length > latestShippedCharacterLimit) {
+  fail(
+    `docs/SYSTEM_STATE.md Latest Shipped has ${latestShippedSection.length} characters; limit is ${latestShippedCharacterLimit}`,
+  );
 }
 if (latestShippedTaskId !== newestCompletedTaskId) {
   fail(
@@ -217,5 +232,5 @@ requireText(
 );
 
 console.log(
-  `ok current-documentation-stack (latest=${latestShippedTaskId}; manifest, README/SVGs, system state, architecture, design, operator, and historical boundaries)`,
+  `ok current-documentation-stack (latest=${latestShippedTaskId}; ${latestShippedTaskIds.length} shipped entries; ${latestShippedSection.length} chars; manifest, README/SVGs, system state, architecture, design, operator, and historical boundaries)`,
 );

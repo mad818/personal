@@ -217,7 +217,7 @@ const LAYER_META: Record<
   quakes: { label: "Quakes", icon: "Q" },
   flights: { label: "Flights", icon: "F" },
   fires: { label: "Fires", icon: "H" },
-  geodep: { label: "AI Scan", icon: "AI", serviceRequired: true },
+  geodep: { label: "Feature Scan", icon: "FS", serviceRequired: true },
 };
 
 export default function OpsMap() {
@@ -371,7 +371,7 @@ export default function OpsMap() {
         })
           .addTo(group)
           .bindPopup(
-            `<b>${d.label}</b><br>Confidence: ${Math.round(d.confidence * 100)}%`,
+            `<b>${d.label}</b><br>Contrast strength: ${Math.round(d.confidence * 100)}%`,
           );
       });
       if (layerRefs.current.geodep) {
@@ -490,7 +490,7 @@ export default function OpsMap() {
     };
   }, [activeLayers, mapReady, paintFlightsLayer]);
 
-  // Geodep: load once when layer turns on - no auto-refresh (expensive ML call, manual only)
+  // GeoDeep: load once when the layer turns on; the external tile scan is manual only.
   useEffect(() => {
     if (!mapReady || !activeLayers.has("geodep")) return;
     void refreshGeodep();
@@ -625,7 +625,7 @@ export default function OpsMap() {
           const loading = layerLoading[key];
           const locked = meta.needsKey === "firmsKey" && !firmsKey;
           const svcHint = meta.serviceRequired
-            ? "Requires local GeoDeep AI service - see docs/deployment/geodep.md"
+            ? "Requires local GeoDeep feature-scan service - see docs/deployment/geodep.md"
             : undefined;
           return (
             <button
@@ -774,7 +774,7 @@ export default function OpsMap() {
           {activeLayers.has("geodep") && (
             <button
               type="button"
-              aria-label="Run AI object detection via local GeoDeep service"
+              aria-label="Run local GeoDeep contrast feature scan"
               onClick={() => void refreshGeodep()}
               disabled={!!layerLoading.geodep}
               style={{
@@ -789,7 +789,7 @@ export default function OpsMap() {
                 cursor: layerLoading.geodep ? "wait" : "pointer",
               }}
             >
-              {layerLoading.geodep ? "..." : "Run AI scan"}
+              {layerLoading.geodep ? "..." : "Run feature scan"}
             </button>
           )}
         </div>
@@ -909,7 +909,7 @@ export default function OpsMap() {
                   display: "inline-block",
                 }}
               />
-              AI detections - local service - manual refresh only
+              Contrast features - local service - manual refresh only
             </span>
           )}
           {showDensity && (
@@ -972,7 +972,7 @@ export default function OpsMap() {
         <div
           style={{ marginTop: "6px", fontSize: "10px", color: "var(--text3)" }}
         >
-          AI Scan uses a local GeoDeep service. See{" "}
+          Feature Scan uses a local GeoDeep contrast service. See{" "}
           <code style={{ fontFamily: "monospace", fontSize: "9px" }}>
             docs/deployment/geodep.md
           </code>{" "}

@@ -486,6 +486,11 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] GEODEP-SCAN-TRUTH — Finish the optional local geospatial scan without fabricated fallback detections or coordinate-derived confidence.
+  - [x] Replace placeholder confidence with a bounded score derived from measured image contrast.
+  - [x] Return honest unavailable/empty results when the local sidecar cannot provide verified detections, and align map labels with the non-model feature scan.
+  - [x] Update operator documentation and source-parity proof, then run Python, TypeScript, focused, canonical, handoff, and diff checks.
+  - Progress: the optional sidecar now clusters measured RGB contrast, derives the public score from that evidence, and uses generic high-contrast labels. `/api/geo-scan` returns HTTP 503 with an empty result set instead of invented sample detections when the service is unavailable; OPS labels and operator docs identify the scanner as a non-model feature scan. Synthetic Python runtime proof, Python compilation, `npm run source:parity:check`, `npm run type-check`, `npm run lint`, and `npm run verify` passed.
 - [x] CURRENT-DOC-STACK-TRUTH — Reconcile public and operator-facing framework, route, and active-surface claims with current repository authority.
   - Current pass: update README text/graphics, canonical architecture/design/operator docs, and current backlog wording; label dated roadmaps as historical; add one focused manifest/release-matrix regression gate.
   - Guardrail: no runtime, dependency, component, API, provider, state, `.agents`, `.claude`, historical-body rewrite, visual redesign, raster generation, or RPG file change.

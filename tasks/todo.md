@@ -486,6 +486,13 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] OPS-MAP-SYNCHRONIZED-FLIGHT-VIEW — Complete the feasible TrafficLab dual-view pattern through the active INTEL Ops Map.
+  - [x] Add pure bounded overview/tactical viewport translation and focused runtime fixtures.
+  - [x] Add an optional synchronized tactical flight map that reuses the exact overview flight snapshot and cleans up listeners/maps.
+  - [x] Replace stale detached proof, complete TrafficLab source parity, and run focused/canonical/handoff/diff checks.
+  - Design: `specs/features/ops-map-synchronized-flight-view.md`.
+  - Guardrail: no second flight-data fetch, fabricated tracks, CCTV/YOLO/homography runtime, 3D claim, provider/dependency expansion, phone/PWA work, or RPG work.
+  - Progress: complete. The active INTEL Ops Map now enables an optional Dual flight view only while Flights is active. The overview retains every active layer, the tactical map renders the exact same bounded OpenSky snapshot with the same heading-aware markers and speed/heading tooltips, and center/zoom changes synchronize in both directions without animation at up to a two-level detail offset. Turning off the view or Flights removes the tactical map, shared layer, timers, and both listeners. The retired synthetic panel stays retired, TrafficLab parity is complete, and CCTV/YOLO/homography/3D runtime remains excluded. Focused translation/normalization/bounds fixtures, TypeScript, lint, source parity, component/script reachability, detached replacement proof, the 203-second canonical verifier, and an 83-second production build with all 39 pages passed. Browser acceptance was not feasible because the browser controller policy rejected the local `127.0.0.1:3000` target; no workaround was attempted. No phone/PWA or RPG implementation path changed.
 - [x] RUNTIME-EXPERIMENT-OPERATOR-REVIEW — Complete the feasible OpenEvolve review pattern through the active Blacksite runtime-variant ledger.
   - [x] Add validated keep/reject/defer decision contracts, benchmark-gate logic, and append-only local audit persistence.
   - [x] Expose protected decision recording and a reachable Blacksite operator surface with rationale and gate feedback.

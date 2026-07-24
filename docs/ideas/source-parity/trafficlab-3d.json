@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "trafficlab-3d",
   "name": "TrafficLab-3D",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/duy-phamduc68/TrafficLab-3D",
     "version": "main",
@@ -18,17 +18,20 @@
       "id": "dual-view-movement-panel",
       "title": "Show overview and tactical movement panels on the INTEL map lane",
       "sourceEvidence": "README dual-panel CCTV + satellite synchronized views",
-      "disposition": "pending",
-      "reason": "The detached synthetic dual-view panel was retired because it had no reachable host. Nexus keeps the truthful live map but does not claim a synchronized overview/tactical view."
+      "disposition": "adapted",
+      "proof": [
+        "components/ops/OpsMap.tsx",
+        "lib/opsMapSynchronizedView.ts",
+        "scripts/check-ops-map-synchronized-view-runtime.mjs"
+      ],
+      "reason": "The reachable INTEL Ops Map now offers an optional synchronized 2D overview/tactical flight view. Both panels reuse one bounded OpenSky snapshot, preserve heading/speed evidence, and synchronize center and zoom without animation."
     },
     {
       "id": "trajectory-speed-heading-metrics",
       "title": "Expose speed and heading metrics for live tracks",
       "sourceEvidence": "TrafficLab movement metrics and trajectory visualization",
       "disposition": "adapted",
-      "proof": [
-        "components/ops/OpsMap.tsx"
-      ],
+      "proof": ["components/ops/OpsMap.tsx"],
       "adaptationNotes": "The existing free-flight layer rotates markers by heading and shows live speed and heading in the map tooltip."
     },
     {

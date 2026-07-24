@@ -215,19 +215,27 @@ for (const needle of [
 const trafficLabMatrix = JSON.parse(
   read("docs/ideas/source-parity/trafficlab-3d.json"),
 );
-if (trafficLabMatrix.status !== "in_progress") {
+if (trafficLabMatrix.status !== "complete") {
   failures.push(
-    "docs/ideas/source-parity/trafficlab-3d.json: detached-only capability must keep matrix in_progress",
+    "docs/ideas/source-parity/trafficlab-3d.json: reachable replacement capability must complete the matrix",
   );
 }
 if (
-  !trafficLabMatrix.capabilities?.some(
+  trafficLabMatrix.capabilities?.some(
     (capability) => capability.disposition === "pending",
   )
 ) {
   failures.push(
-    "docs/ideas/source-parity/trafficlab-3d.json: expected an explicit pending capability",
+    "docs/ideas/source-parity/trafficlab-3d.json: reachable replacement capability must clear pending debt",
   );
+}
+const opsMap = read("components/ops/OpsMap.tsx");
+for (const needle of [
+  "Dual flight view",
+  "Synchronized 2D views share one OpenSky snapshot",
+  "flightSnapshotRef",
+]) {
+  requireText(opsMap, needle, "TrafficLab active replacement");
 }
 
 if (failures.length > 0) {

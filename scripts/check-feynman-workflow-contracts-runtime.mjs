@@ -154,6 +154,31 @@ for (const workflow of ["replicate", "recipe", "autoresearch", "watch"]) {
   );
 }
 
+const literatureGapContract = getFeynmanWorkflowContract("lit-review");
+assert.ok(
+  literatureGapContract.requiredSections.includes("Literature gap map"),
+);
+assert.ok(
+  literatureGapContract.writerInstructions.some((instruction) =>
+    /observed coverage gap or possible research opportunity/i.test(instruction),
+  ),
+);
+assert.ok(
+  literatureGapContract.verifierChecks.some((check) =>
+    /directly read source cluster/i.test(check),
+  ),
+);
+assert.ok(
+  literatureGapContract.reviewerChecks.some((check) =>
+    /novelty overreach/i.test(check),
+  ),
+);
+assert.ok(
+  literatureGapContract.acceptanceChecks.some((check) =>
+    /competing explanation/i.test(check),
+  ),
+);
+
 assert.equal(seenWriterContracts.size, workflows.length);
 assert.equal(seenVerifierContracts.size, workflows.length);
 assert.equal(seenReviewerContracts.size, workflows.length);
@@ -176,6 +201,28 @@ assert.match(degraded.report, /## Workflow Contract/);
 assert.match(degraded.report, /Replication readiness/);
 assert.match(degraded.report, /Explicit operator approval is required/);
 
+const degradedGapMap = await runFeynmanResearch(
+  "lit-review",
+  "fallback gap map",
+  {
+    searchPapers: async () => "No papers found today.",
+    webSearch: async () => "No results found.",
+    fetchUrl: async () => "Could not fetch that URL.",
+    write: async () => {
+      throw new Error("offline");
+    },
+    verify: async () => {
+      throw new Error("offline");
+    },
+    review: async () => {
+      throw new Error("offline");
+    },
+  },
+);
+assert.match(degradedGapMap.report, /Literature gap map/);
+assert.match(degradedGapMap.report, /observed coverage gap/i);
+assert.match(degradedGapMap.report, /competing explanation/i);
+
 console.log(
-  "ok feynman-workflow-contracts-runtime (ten distinct contracts, three-stage injection, visible receipt, degraded fallback, explicit approval)",
+  "ok feynman-workflow-contracts-runtime (ten distinct contracts, evidence-audited literature gap map, three-stage injection, visible receipt, degraded fallback, explicit approval)",
 );

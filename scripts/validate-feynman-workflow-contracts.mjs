@@ -25,6 +25,11 @@ const spec = readRequired(
   "features",
   "feynman-workflow-output-contracts.md",
 );
+const gapSpec = readRequired(
+  "specs",
+  "features",
+  "feynman-literature-gap-map.md",
+);
 const contracts = readRequired("lib", "feynmanWorkflowContracts.ts");
 const research = readRequired("lib", "feynmanResearch.ts");
 const runtime = readRequired(
@@ -34,6 +39,14 @@ const runtime = readRequired(
 const packageJson = JSON.parse(readRequired("package.json"));
 const parity = JSON.parse(
   readRequired("docs", "ideas", "source-parity", "feynman.json"),
+);
+const academicParity = JSON.parse(
+  readRequired(
+    "docs",
+    "ideas",
+    "source-parity",
+    "imbad0202-academic-research-skills.json",
+  ),
 );
 
 for (const needle of [
@@ -86,8 +99,22 @@ for (const phrase of [
   "Experiment loop proposal",
   "Watch cadence",
   "Explicit operator approval is required",
+  "Literature gap map",
+  "observed coverage gap or possible research opportunity",
+  "directly read source cluster",
+  "novelty overreach",
+  "competing explanation",
 ]) {
   requireText(contracts, phrase, "contract section vocabulary");
+}
+
+for (const phrase of [
+  "Feynman literature gap map",
+  "CC BY-NC 4.0",
+  "No upstream prompt",
+  "No autonomous novelty determination",
+]) {
+  requireText(gapSpec, phrase, "literature gap-map spec");
 }
 
 for (const needle of [
@@ -111,6 +138,7 @@ requireText(runtime, "getFeynmanWorkflowContract", "runtime check");
 requireText(runtime, "runFeynmanResearch", "runtime check");
 requireText(runtime, "seenWriterContracts", "three-stage runtime proof");
 requireText(runtime, "degraded.report", "degraded fallback proof");
+requireText(runtime, "degradedGapMap.report", "gap-map fallback proof");
 
 const contractCapability = parity.capabilities?.find(
   (capability) => capability.id === "workflow-specific-output-contracts",
@@ -131,6 +159,41 @@ for (const proof of [
 }
 if (parity.status !== "in_progress") {
   fail("broader Feynman source parity must remain in_progress");
+}
+
+if (
+  academicParity.source?.version !==
+    "v3.19.0 at 1788e08155d24da729233e3e4b480ffb53d799c6" ||
+  academicParity.source?.license !== "CC-BY-NC-4.0"
+) {
+  fail(
+    "academic-research-skills source version and license evidence are stale",
+  );
+}
+const gapCapability = academicParity.capabilities?.find(
+  (capability) => capability.id === "literature-gap-analysis-skill",
+);
+if (gapCapability?.disposition !== "adapted") {
+  fail("literature-gap-analysis-skill must be adapted");
+}
+for (const proof of [
+  "lib/feynmanWorkflowContracts.ts",
+  "lib/feynmanResearch.ts",
+  "scripts/check-feynman-workflow-contracts-runtime.mjs",
+  "specs/features/feynman-literature-gap-map.md",
+]) {
+  if (!gapCapability.proof?.includes(proof)) {
+    fail(`literature gap-map proof is missing ${proof}`);
+  }
+}
+const suiteReview = academicParity.capabilities?.find(
+  (capability) => capability.id === "current-suite-expansion-review",
+);
+if (
+  academicParity.status !== "in_progress" ||
+  suiteReview?.disposition !== "pending"
+) {
+  fail("current academic-research-skills suite expansion must remain pending");
 }
 
 if (

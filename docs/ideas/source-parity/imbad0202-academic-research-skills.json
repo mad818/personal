@@ -5,12 +5,16 @@
   "status": "in_progress",
   "source": {
     "url": "https://github.com/Imbad0202/academic-research-skills",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
-    "license": "MIT",
+    "version": "v3.19.0 at 1788e08155d24da729233e3e4b480ffb53d799c6",
+    "reviewedAt": "2026-07-23",
+    "license": "CC-BY-NC-4.0",
     "primaryEvidence": [
       "https://github.com/Imbad0202/academic-research-skills",
-      "https://github.com/Imbad0202/academic-research-skills/blob/main/README.md"
+      "https://github.com/Imbad0202/academic-research-skills/blob/1788e08155d24da729233e3e4b480ffb53d799c6/README.md",
+      "https://github.com/Imbad0202/academic-research-skills/blob/1788e08155d24da729233e3e4b480ffb53d799c6/LICENSE",
+      "https://github.com/Imbad0202/academic-research-skills/blob/1788e08155d24da729233e3e4b480ffb53d799c6/deep-research/references/mode_selection_guide.md",
+      "https://github.com/Imbad0202/academic-research-skills/blob/1788e08155d24da729233e3e4b480ffb53d799c6/deep-research/agents/research_question_agent.md",
+      "https://github.com/Imbad0202/academic-research-skills/blob/1788e08155d24da729233e3e4b480ffb53d799c6/academic-paper/templates/literature_review_template.md"
     ]
   },
   "capabilities": [
@@ -31,10 +35,7 @@
       "title": "Structured paper search skill with field, date, citation-count, and methodology filters",
       "sourceEvidence": "academic-research-skills paper-search SKILL.md",
       "disposition": "adapted",
-      "proof": [
-        "lib/feynmanAcademicFilters.ts",
-        "lib/feynmanResearch.ts"
-      ],
+      "proof": ["lib/feynmanAcademicFilters.ts", "lib/feynmanResearch.ts"],
       "adaptationNotes": "parseFeynmanPaperSearchFilters + applyFeynmanPaperSearchFilters in buildFeynmanQueries."
     },
     {
@@ -42,10 +43,7 @@
       "title": "Automated citation extraction from paper body text and reference sections",
       "sourceEvidence": "academic-research-skills citation-extraction SKILL.md",
       "disposition": "adapted",
-      "proof": [
-        "lib/feynmanAcademicFilters.ts",
-        "lib/feynmanResearch.ts"
-      ],
+      "proof": ["lib/feynmanAcademicFilters.ts", "lib/feynmanResearch.ts"],
       "adaptationNotes": "extractCitationsFromText wired into buildSourceLedger URL harvest."
     },
     {
@@ -53,10 +51,7 @@
       "title": "Skill to critique experimental methodology: sample size, confounds, statistical validity",
       "sourceEvidence": "academic-research-skills methodology-critique SKILL.md",
       "disposition": "adapted",
-      "proof": [
-        "lib/feynmanAcademicFilters.ts",
-        "lib/feynmanResearch.ts"
-      ],
+      "proof": ["lib/feynmanAcademicFilters.ts", "lib/feynmanResearch.ts"],
       "adaptationNotes": "buildMethodologyCritiqueHints injected into Feynman verifier prompt."
     },
     {
@@ -64,18 +59,28 @@
       "title": "Reproducibility assessment: does the paper provide enough detail to replicate?",
       "sourceEvidence": "academic-research-skills reproducibility-check SKILL.md",
       "disposition": "adapted",
-      "proof": [
-        "lib/feynmanAcademicFilters.ts",
-        "lib/feynmanResearch.ts"
-      ],
+      "proof": ["lib/feynmanAcademicFilters.ts", "lib/feynmanResearch.ts"],
       "adaptationNotes": "scoreReproducibilityPosture surfaced in verifier stage notes."
     },
     {
       "id": "literature-gap-analysis-skill",
       "title": "Literature gap analysis: identify unexplored problem areas relative to a paper cluster",
-      "sourceEvidence": "academic-research-skills gap-analysis SKILL.md",
+      "sourceEvidence": "v3.19.0 lit-review mode, research-question novelty guidance, and literature-review gap/future-direction structure",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanWorkflowContracts.ts",
+        "lib/feynmanResearch.ts",
+        "scripts/check-feynman-workflow-contracts-runtime.mjs",
+        "specs/features/feynman-literature-gap-map.md"
+      ],
+      "adaptationNotes": "The existing lit-review contract now requires an evidence-backed gap map that separates observed coverage gaps from possible research opportunities, records competing explanations, and proposes bounded next-study guidance without claiming novelty."
+    },
+    {
+      "id": "current-suite-expansion-review",
+      "title": "Review the broader v3.19.0 research, writing, review, integrity, provenance, and cross-model suite for additional Nexus-native gaps",
+      "sourceEvidence": "v3.19.0 README architecture, feature inventory, pipeline, and mode registry",
       "disposition": "pending",
-      "reason": "Nexus literature review synthesizes findings but does not produce a formal gap map."
+      "reason": "The current upstream suite is substantially broader than the 2026-06-21 six-capability snapshot; any further adaptation needs capability-by-capability product, license, provider, and duplication review."
     }
   ]
 }

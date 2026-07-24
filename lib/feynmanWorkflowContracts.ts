@@ -58,24 +58,32 @@ export const FEYNMAN_WORKFLOW_CONTRACTS: Record<
       "Consensus findings",
       "Disagreements",
       "Methodology quality",
+      "Literature gap map",
       "Open questions",
     ],
     writerInstructions: [
       "Prefer papers, standards, official docs, and benchmarks over commentary.",
       "Group findings by consensus, disagreement, and methodology quality.",
       "State which source families were searched but not read.",
+      "For each gap, name the coverage dimension, directly read source cluster, classification as observed coverage gap or possible research opportunity, competing explanation, and one bounded next-study question.",
+      "Treat incomplete search or retrieval as a competing explanation, not evidence of novelty.",
     ],
     verifierChecks: [
       "Consensus claims require more than one directly read source when available.",
       "Methodology quality notes must cite paper or benchmark evidence.",
+      "Gap claims require a directly read source cluster and cannot rely only on an unread source, missing search result, or one paper's future-work language.",
+      "Observed coverage gaps and possible research opportunities must remain visibly distinct.",
     ],
     reviewerChecks: [
       "Flag single-paper conclusions as fragile.",
       "Flag missing methodology discussion as a major issue.",
+      "Flag novelty overreach, duplicate gap rows, and gaps that may reflect incomplete retrieval.",
+      "Check that every proposed next study follows from the evidence map and names a competing explanation.",
     ],
     acceptanceChecks: [
       "Contains a literature evidence map.",
       "Names methodology quality and open questions separately.",
+      "Contains a literature gap map with evidence basis, coverage dimension, observed coverage gap versus possible research opportunity classification, competing explanation, and bounded next-study guidance.",
     ],
     approvalBoundary:
       "Read-only literature review. Scheduling future sweeps remains human-gated.",

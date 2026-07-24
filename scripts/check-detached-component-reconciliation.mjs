@@ -186,23 +186,48 @@ if (!reviewedSet) {
     failures.push("active reachability: reviewed-detached set must stay empty");
 }
 
-for (const relativePath of [
-  "docs/ideas/source-parity/openevolve.json",
-  "docs/ideas/source-parity/trafficlab-3d.json",
+const openEvolveMatrix = JSON.parse(
+  read("docs/ideas/source-parity/openevolve.json"),
+);
+if (openEvolveMatrix.status !== "complete") {
+  failures.push(
+    "docs/ideas/source-parity/openevolve.json: reachable replacement capability must complete the matrix",
+  );
+}
+if (
+  openEvolveMatrix.capabilities?.some(
+    (capability) => capability.disposition === "pending",
+  )
+) {
+  failures.push(
+    "docs/ideas/source-parity/openevolve.json: reachable replacement capability must clear pending debt",
+  );
+}
+const blacksiteLab = read("components/skills/BlacksiteLab.tsx");
+for (const needle of [
+  "Operator disposition",
+  "Keep candidate",
+  "recordRuntimeExperimentDecision",
 ]) {
-  const matrix = JSON.parse(read(relativePath));
-  if (matrix.status !== "in_progress") {
-    failures.push(
-      `${relativePath}: detached-only capability must keep matrix in_progress`,
-    );
-  }
-  if (
-    !matrix.capabilities?.some(
-      (capability) => capability.disposition === "pending",
-    )
-  ) {
-    failures.push(`${relativePath}: expected an explicit pending capability`);
-  }
+  requireText(blacksiteLab, needle, "OpenEvolve active replacement");
+}
+
+const trafficLabMatrix = JSON.parse(
+  read("docs/ideas/source-parity/trafficlab-3d.json"),
+);
+if (trafficLabMatrix.status !== "in_progress") {
+  failures.push(
+    "docs/ideas/source-parity/trafficlab-3d.json: detached-only capability must keep matrix in_progress",
+  );
+}
+if (
+  !trafficLabMatrix.capabilities?.some(
+    (capability) => capability.disposition === "pending",
+  )
+) {
+  failures.push(
+    "docs/ideas/source-parity/trafficlab-3d.json: expected an explicit pending capability",
+  );
 }
 
 if (failures.length > 0) {

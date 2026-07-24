@@ -14,9 +14,11 @@ import { apiFetch } from "@/lib/apiFetch";
 import type { ModelLabRun } from "@/lib/assimilation/types";
 import type { InternalWorkbenchMeta } from "@/lib/assimilation/contracts";
 import {
+  evaluateRuntimeExperimentKeepGate,
   parseRuntimeExperimentPayload,
   summarizeRuntimeExperiment,
   type RuntimeExperimentCategory,
+  type RuntimeExperimentDecisionValue,
   type RuntimeExperimentPayload,
   type RuntimeExperimentRun,
   type RuntimeExperimentVariantKind,
@@ -99,6 +101,8 @@ export default function BlacksiteLab() {
       latest: null,
       history: [],
       definitions: [],
+      decisions: [],
+      latestDecision: null,
       points: 0,
       summary: null,
     });
@@ -140,6 +144,9 @@ export default function BlacksiteLab() {
   );
   const [experimentBusy, setExperimentBusy] = useState(false);
   const [experimentError, setExperimentError] = useState("");
+  const [reviewRationale, setReviewRationale] = useState("");
+  const [reviewBusy, setReviewBusy] = useState(false);
+  const [reviewMessage, setReviewMessage] = useState("");
   const deferredFilter = useDeferredValue(filter);
 
   useEffect(() => {
@@ -192,6 +199,10 @@ export default function BlacksiteLab() {
   const latestRun = visibleRuns[0] ?? null;
   const latestExperiment = experimentData.latest ?? null;
   const latestExperimentSummary = summarizeRuntimeExperiment(latestExperiment);
+  const latestExperimentDecision = experimentData.latestDecision ?? null;
+  const latestKeepGate = latestExperiment
+    ? evaluateRuntimeExperimentKeepGate(latestExperiment)
+    : null;
   const experimentHistory = latestExperiment
     ? experimentData.history.filter((run) => run.id !== latestExperiment.id)
     : experimentData.history;
@@ -281,6 +292,51 @@ export default function BlacksiteLab() {
       );
     } finally {
       setExperimentBusy(false);
+    }
+  }
+
+  async function recordRuntimeExperimentDecision(
+    decision: RuntimeExperimentDecisionValue,
+  ) {
+    if (!latestExperiment || !reviewRationale.trim()) return;
+    setReviewBusy(true);
+    setReviewMessage("");
+    try {
+      const response = await apiFetch("/api/metrics/runtime-experiments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          runId: latestExperiment.id,
+          decision,
+          rationale: reviewRationale,
+        }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+        reasons?: string[];
+        meta?: InternalWorkbenchMeta | null;
+      };
+      if (!response.ok || !payload.ok) {
+        const gateReason = payload.reasons?.[0];
+        setReviewMessage(
+          gateReason ?? payload.error ?? "Decision could not be recorded.",
+        );
+        return;
+      }
+      const refreshed = await loadRuntimeExperiments();
+      setExperimentData(refreshed.data);
+      setExperimentMeta(refreshed.meta ?? payload.meta ?? null);
+      setReviewRationale("");
+      setReviewMessage(
+        `${decision[0].toUpperCase()}${decision.slice(1)} recorded. The live runtime was not changed.`,
+      );
+    } catch {
+      setReviewMessage(
+        "Decision could not be recorded. Existing experiment evidence was preserved.",
+      );
+    } finally {
+      setReviewBusy(false);
     }
   }
 
@@ -851,6 +907,165 @@ export default function BlacksiteLab() {
                   ))}
                 </div>
               ) : null}
+
+              <div
+                style={{
+                  marginTop: "14px",
+                  padding: "12px",
+                  borderRadius: "12px",
+                  border: "1px solid rgba(96, 165, 250, 0.2)",
+                  background: "rgba(8, 12, 22, 0.82)",
+                  display: "grid",
+                  gap: "10px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "8px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: "12px", fontWeight: 800 }}>
+                      Operator disposition
+                    </div>
+                    <div
+                      style={{
+                        marginTop: "3px",
+                        fontSize: "10px",
+                        color: "var(--text3)",
+                      }}
+                    >
+                      Keep preserves a candidate for manual follow-up only. It
+                      never changes the live runtime.
+                    </div>
+                  </div>
+                  {latestExperimentDecision ? (
+                    <ShellBadge
+                      tone={
+                        latestExperimentDecision.decision === "keep"
+                          ? "success"
+                          : latestExperimentDecision.decision === "defer"
+                            ? "accent"
+                            : "muted"
+                      }
+                      role="status"
+                    >
+                      {latestExperimentDecision.decision}
+                    </ShellBadge>
+                  ) : (
+                    <ShellBadge tone="muted">unreviewed</ShellBadge>
+                  )}
+                </div>
+
+                {latestExperimentDecision ? (
+                  <div
+                    style={{
+                      padding: "9px 10px",
+                      borderRadius: "10px",
+                      border: "1px solid var(--border)",
+                      color: "var(--text2)",
+                      fontSize: "11px",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {latestExperimentDecision.rationale}
+                  </div>
+                ) : null}
+
+                <label style={{ display: "grid", gap: "6px" }}>
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      color: "var(--text3)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                    }}
+                  >
+                    Decision rationale
+                  </span>
+                  <textarea
+                    value={reviewRationale}
+                    onChange={(event) => setReviewRationale(event.target.value)}
+                    rows={2}
+                    maxLength={600}
+                    placeholder="Why should this candidate be kept, rejected, or deferred?"
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      border: "1px solid rgba(59, 130, 246, 0.32)",
+                      background: "rgba(10, 14, 28, 0.94)",
+                      color: "var(--text)",
+                      resize: "vertical",
+                    }}
+                  />
+                </label>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <ShellButton
+                    disabled={
+                      reviewBusy ||
+                      !reviewRationale.trim() ||
+                      !latestKeepGate?.eligible
+                    }
+                    title={
+                      latestKeepGate?.eligible
+                        ? "Record this benchmark-qualified candidate for manual follow-up"
+                        : latestKeepGate?.reasons[0]
+                    }
+                    onClick={() => void recordRuntimeExperimentDecision("keep")}
+                  >
+                    Keep candidate
+                  </ShellButton>
+                  <ShellButton
+                    disabled={reviewBusy || !reviewRationale.trim()}
+                    onClick={() =>
+                      void recordRuntimeExperimentDecision("reject")
+                    }
+                  >
+                    Reject
+                  </ShellButton>
+                  <ShellButton
+                    disabled={reviewBusy || !reviewRationale.trim()}
+                    onClick={() =>
+                      void recordRuntimeExperimentDecision("defer")
+                    }
+                  >
+                    Defer
+                  </ShellButton>
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      color: latestKeepGate?.eligible
+                        ? "#10b981"
+                        : "var(--text3)",
+                    }}
+                  >
+                    {latestKeepGate?.eligible
+                      ? "Benchmark gate passed"
+                      : (latestKeepGate?.reasons[0] ??
+                        "Benchmark evidence unavailable")}
+                  </span>
+                </div>
+                {reviewMessage ? (
+                  <div
+                    role="status"
+                    style={{ fontSize: "10px", color: "var(--text2)" }}
+                  >
+                    {reviewMessage}
+                  </div>
+                ) : null}
+              </div>
             </div>
           ) : (
             <div style={{ marginTop: "14px" }}>

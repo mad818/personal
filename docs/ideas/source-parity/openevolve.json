@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "openevolve",
   "name": "OpenEvolve",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/algorithmicsuperintelligence/openevolve",
     "version": "main",
@@ -18,8 +18,15 @@
       "id": "benchmark-gated-variant-review",
       "title": "Review runtime experiment variants with keep/reject/defer operator gates",
       "sourceEvidence": "AlphaEvolve-style search loops with benchmark-gated promotion",
-      "disposition": "pending",
-      "reason": "The detached keep/reject/defer action surface was retired because it had no reachable product host. Baseline-versus-variant evidence remains live, but explicit operator promotion controls need a deliberate active seam before this capability can be claimed."
+      "disposition": "adapted",
+      "proof": [
+        "lib/runtimeExperimentContracts.ts",
+        "lib/runtimeExperimentLedger.ts",
+        "app/api/metrics/runtime-experiments/route.ts",
+        "components/skills/BlacksiteLab.tsx",
+        "scripts/check-runtime-experiment-review-runtime.mjs"
+      ],
+      "reason": "The reachable Blacksite ledger now records keep, reject, or defer with an operator rationale. Keep is benchmark-gated to clean candidate wins and records manual follow-up intent only; it never mutates or deploys runtime behavior."
     },
     {
       "id": "runtime-experiment-comparison",

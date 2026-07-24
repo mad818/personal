@@ -486,6 +486,13 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] RUNTIME-EXPERIMENT-OPERATOR-REVIEW — Complete the feasible OpenEvolve review pattern through the active Blacksite runtime-variant ledger.
+  - [x] Add validated keep/reject/defer decision contracts, benchmark-gate logic, and append-only local audit persistence.
+  - [x] Expose protected decision recording and a reachable Blacksite operator surface with rationale and gate feedback.
+  - [x] Add focused runtime/static regression proof, complete source parity, and run canonical/handoff/diff checks.
+  - Design: `specs/features/runtime-experiment-operator-review.md`.
+  - Guardrail: keep is a recorded candidate disposition only; no autonomous code/prompt/tool mutation, live-runtime promotion, deployment, provider/dependency expansion, phone/PWA work, or RPG work.
+  - Progress: complete. SKILLS → Blacksite now records keep, reject, or defer against a real runtime-experiment run with a required operator rationale and an append-only local audit record. Keep fails closed unless the evidence is an improved `candidate_win` with a positive score delta and zero new, check, or category failures; it preserves a candidate for manual follow-up and never changes the live runtime. Unknown runs and malformed decisions fail without a ledger write, the retired detached-component proof now requires this reachable replacement, and OpenEvolve source parity is complete with autonomous mutation still excluded. Focused keep/reject/defer/blocked/invalid fixtures, TypeScript, lint, source parity, component/script reachability, security boundaries, formatting, and the 208-second canonical verifier passed. No phone/PWA or RPG implementation path changed.
 - [x] SKILL-DEPENDENCY-PRIVILEGE-GRAPH — Complete the final pending NVIDIA SkillSpector capability through Nexus's existing local skill-security lane.
   - [x] Add a pure dependency graph analyzer for unresolved references, cycles, and transitive review/blocked capability escalation.
   - [x] Extend the repository skill scanner and focused fixtures, resolve current local skill references through the approved compatibility alias, and wire the gate into AgentShield.

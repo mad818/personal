@@ -6,6 +6,7 @@ import {
   listBlockedSkillCapabilities,
   summarizeSkillSpectrumPolicies,
 } from "@/lib/skillSpectrumSummary";
+import { SKILL_DEPENDENCY_GRAPH_GUARDRAILS } from "@/lib/skillDependencyGraph";
 import { SKILL_CAPABILITY_POLICIES } from "@/lib/skillSpectrumPolicy";
 
 export default function SkillSpectrumValidatorStrip() {
@@ -33,6 +34,7 @@ export default function SkillSpectrumValidatorStrip() {
       <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
         <ShellBadge tone="accent">SkillSpector policy</ShellBadge>
         <ShellBadge tone="muted">Read-only validator</ShellBadge>
+        <ShellBadge tone="muted">Dependency graph gated</ShellBadge>
         {reviewCount > 0 ? (
           <ShellBadge tone="muted">{reviewCount} review gates</ShellBadge>
         ) : null}
@@ -51,6 +53,12 @@ export default function SkillSpectrumValidatorStrip() {
           <code>npm run agentshield:check</code> against skill markdown.
         </div>
       ) : null}
+      <div
+        style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}
+      >
+        CI resolves local skill references and blocks{" "}
+        {SKILL_DEPENDENCY_GRAPH_GUARDRAILS.join(", ")}.
+      </div>
     </div>
   );
 }

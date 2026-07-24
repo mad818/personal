@@ -7,6 +7,7 @@ import {
   detectUnicodeHiddenPromptSmuggling,
   evaluateSkillCapabilities,
 } from "../lib/skillSpectrumPolicy.ts";
+import { analyzeSkillDependencyGraph } from "../lib/skillDependencyGraph.ts";
 
 const root = process.cwd();
 const skillRoots = [
@@ -35,6 +36,22 @@ function walk(dir, output = []) {
 
 const capabilityRe =
   /\b(?:filesystem|network|process|secrets|agent|memory|tool):[a-z_]+\b/g;
+const skillReferenceRe = /@([A-Za-z0-9._/\\-]+\/SKILL\.md)\b/g;
+
+function toRepoRelative(filePath) {
+  return path.relative(root, filePath).split(path.sep).join("/");
+}
+
+function resolveSkillReference(sourceFile, reference) {
+  const normalized = reference
+    .replaceAll("\\", "/")
+    .replace(/^\.Codex\/skills\//, ".agents/skills/");
+  const repoRelative = /^(?:\.agents|\.claude|docs)\//.test(normalized);
+  const absolute = repoRelative
+    ? path.resolve(root, normalized)
+    : path.resolve(path.dirname(sourceFile), normalized);
+  return toRepoRelative(absolute);
+}
 
 let scanned = 0;
 let blocked = 0;
@@ -47,6 +64,28 @@ for (const skillRoot of skillRoots) {
 }
 
 const skillFiles = skillRoots.flatMap((skillRoot) => walk(skillRoot)).sort();
+const skillEntryFiles = skillFiles.filter(
+  (skillFile) => path.basename(skillFile) === "SKILL.md",
+);
+const nodeIdByEntryFile = new Map(
+  skillEntryFiles.map((skillFile) => {
+    const relative = toRepoRelative(skillFile);
+    return [relative, relative.slice(0, -"/SKILL.md".length)];
+  }),
+);
+const graphNodeByDirectory = new Map(
+  skillEntryFiles.map((skillFile) => {
+    const id = nodeIdByEntryFile.get(toRepoRelative(skillFile));
+    return [
+      path.dirname(skillFile),
+      {
+        id,
+        capabilities: [],
+        dependencies: [],
+      },
+    ];
+  }),
+);
 
 for (const skillFile of skillFiles) {
   const text = fs.readFileSync(skillFile, "utf8");
@@ -65,6 +104,16 @@ for (const skillFile of skillFiles) {
     );
   }
   const declared = [...new Set(text.match(capabilityRe) ?? [])];
+  const graphNode = graphNodeByDirectory.get(path.dirname(skillFile));
+  if (graphNode) {
+    graphNode.capabilities.push(...declared);
+    for (const match of text.matchAll(skillReferenceRe)) {
+      const targetFile = resolveSkillReference(skillFile, match[1]);
+      graphNode.dependencies.push(
+        nodeIdByEntryFile.get(targetFile) ?? `unresolved:${targetFile}`,
+      );
+    }
+  }
   if (!declared.length) continue;
   scanned += 1;
   const { violations } = evaluateSkillCapabilities(declared);
@@ -78,6 +127,32 @@ for (const skillFile of skillFiles) {
   }
 }
 
+const graphReport = analyzeSkillDependencyGraph([
+  ...graphNodeByDirectory.values(),
+]);
+if (graphReport.unresolved.length > 0) {
+  const finding = graphReport.unresolved[0];
+  fail(
+    `${finding.from} has unresolved skill dependency ${finding.dependency.replace(/^unresolved:/, "")}`,
+  );
+}
+if (graphReport.cycles.length > 0) {
+  fail(
+    `skill dependency cycle detected: ${graphReport.cycles[0].path.join(" -> ")}`,
+  );
+}
+const blockedEscalation = graphReport.escalations.find(
+  (finding) => finding.inheritedRisk === "blocked",
+);
+if (blockedEscalation) {
+  fail(
+    `${blockedEscalation.skillId} inherits blocked capabilities through ${blockedEscalation.via.join(" -> ")}: ${blockedEscalation.capabilities.join(", ")}`,
+  );
+}
+const reviewEscalations = graphReport.escalations.filter(
+  (finding) => finding.inheritedRisk === "review",
+);
+
 console.log(
-  `ok skill-capabilities (${skillRoots.length} roots, ${contentScanned} skill markdown file(s) CSS/Unicode-scanned, ${scanned} with capability declarations, ${blocked} blocked)`,
+  `ok skill-capabilities (${skillRoots.length} roots, ${contentScanned} skill markdown file(s) CSS/Unicode-scanned, ${scanned} with capability declarations, ${blocked} blocked; dependency graph ${graphReport.nodeCount} nodes/${graphReport.edgeCount} edges, ${reviewEscalations.length} review escalation(s))`,
 );

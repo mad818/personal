@@ -486,6 +486,12 @@ Blocked or manual watchlist, not the active queue:
 
 ## In Progress
 
+- [x] SKILL-DEPENDENCY-PRIVILEGE-GRAPH — Complete the final pending NVIDIA SkillSpector capability through Nexus's existing local skill-security lane.
+  - [x] Add a pure dependency graph analyzer for unresolved references, cycles, and transitive review/blocked capability escalation.
+  - [x] Extend the repository skill scanner and focused fixtures, resolve current local skill references through the approved compatibility alias, and wire the gate into AgentShield.
+  - [x] Surface the dependency posture in Workflow Forge, complete source parity, and run focused/canonical/handoff/diff proof.
+  - Design: `specs/features/skill-dependency-privilege-graph.md`.
+  - Progress: the approved skill roots now resolve to a deterministic 17-node/4-edge graph. The scanner rejects missing references and cycles, fails transitive blocked-capability chains, reports review-level escalation, and retains one explicit `.Codex/skills` compatibility alias for the read-only legacy reference. Workflow Forge consumes the shared guardrail inventory, NVIDIA SkillSpector parity is complete, focused clean/unresolved/cycle/review/blocked fixtures pass, and `npm run agentshield:check`, `npm run source:reachability:check`, `npm run source:parity:check`, `npm run type-check`, `npm run lint`, and `npm run verify` pass.
 - [x] GEODEP-SCAN-TRUTH — Finish the optional local geospatial scan without fabricated fallback detections or coordinate-derived confidence.
   - [x] Replace placeholder confidence with a bounded score derived from measured image contrast.
   - [x] Return honest unavailable/empty results when the local sidecar cannot provide verified detections, and align map labels with the non-model feature scan.

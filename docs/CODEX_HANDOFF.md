@@ -36,7 +36,7 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 ### What’s next (from `tasks/todo.md`)
 
 - No locally actionable non-RPG task is currently proven.
-- Queue posture: 0 actionable, 7 blocked/manual tasks remain context-only, and 11 RPG tasks are excluded from handoff task selection.
+- Queue posture: 0 actionable, 7 blocked/manual tasks remain context-only, and 10 RPG tasks are excluded from handoff task selection.
 - Review the full classified queue only when prerequisites change: `npm run orbit:next -- --all`.
 - Canonical task evidence: `tasks/todo.md` → `## Next Up`.
 

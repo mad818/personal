@@ -1,7 +1,7 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:f1db8ea7-2a6c-eb6b-4813-3915553ca33a",
+  "serialNumber": "urn:uuid:128c3740-913a-4792-8c79-3b61d4326c8e",
   "version": 1,
   "metadata": {
     "component": {
@@ -13,7 +13,7 @@
     "properties": [
       {
         "name": "nexus:component-count",
-        "value": "1256"
+        "value": "1259"
       },
       {
         "name": "nexus:generator",
@@ -21,7 +21,7 @@
       },
       {
         "name": "nexus:lock-digest-sha256",
-        "value": "f1db8ea72a6ceb6b48133915553ca33a7576af74ca053d57b41355249e580229"
+        "value": "128c3740913a47928c793b61d4326c8ee28b685889ac2c0f4c1f287bccd4f8fc"
       },
       {
         "name": "nexus:network-required",
@@ -491,6 +491,29 @@
         {
           "alg": "SHA-256",
           "content": "4bd8b9603c7aa97359dbd97ecf258968c95f3adddd6db2f7e7a5bef101c84560"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/bs58@0.5.1",
+      "name": "bs58",
+      "version": "0.5.1",
+      "purl": "pkg:cargo/bs58@0.5.1",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bf88ba1141d185c399bee5288d850d63b8369520c1eafc32a0430b5b6c287bf4"
         }
       ]
     },
@@ -6033,10 +6056,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/serde_with_macros@3.18.0",
+      "bom-ref": "pkg:cargo/serde_with_macros@3.21.0",
       "name": "serde_with_macros",
-      "version": "3.18.0",
-      "purl": "pkg:cargo/serde_with_macros@3.18.0",
+      "version": "3.21.0",
+      "purl": "pkg:cargo/serde_with_macros@3.21.0",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -6050,16 +6073,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3db8978e608f1fe7357e211969fd9abdcae80bac1ba7a3369bb7eb6b404eb65"
+          "content": "84d57bc0c8b9a17920c178daa6bb924850d54a9c97ab45194bb8c17ad66bb660"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/serde_with@3.18.0",
+      "bom-ref": "pkg:cargo/serde_with@3.21.0",
       "name": "serde_with",
-      "version": "3.18.0",
-      "purl": "pkg:cargo/serde_with@3.18.0",
+      "version": "3.21.0",
+      "purl": "pkg:cargo/serde_with@3.21.0",
       "properties": [
         {
           "name": "nexus:cargo-source",
@@ -6073,7 +6096,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dd5414fad8e6907dbdd5bc441a50ae8d6e26151a03b1de04d89a5576de61d01f"
+          "content": "76a5c54c7310e7b8b9577c286d7e399ddd876c3e12b3ed917a8aabc4b96e9e8c"
         }
       ]
     },
@@ -7109,6 +7132,52 @@
         {
           "alg": "SHA-256",
           "content": "42d3e9c45c09de15d06dd8acf5f4e0e399e85927b7f00711024eb7ae10fa4869"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/tinyvec_macros@0.1.1",
+      "name": "tinyvec_macros",
+      "version": "0.1.1",
+      "purl": "pkg:cargo/tinyvec_macros@0.1.1",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/tinyvec@1.11.0",
+      "name": "tinyvec",
+      "version": "1.11.0",
+      "purl": "pkg:cargo/tinyvec@1.11.0",
+      "properties": [
+        {
+          "name": "nexus:cargo-source",
+          "value": "registry+https://github.com/rust-lang/crates.io-index"
+        },
+        {
+          "name": "nexus:ecosystem",
+          "value": "cargo"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3e61e67053d25a4e82c844e8424039d9745781b3fc4f32b8d55ed50f5f667ef3"
         }
       ]
     },
@@ -16210,10 +16279,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/brace-expansion@1.1.13",
+      "bom-ref": "pkg:npm/brace-expansion@1.1.16",
       "name": "brace-expansion",
-      "version": "1.1.13",
-      "purl": "pkg:npm/brace-expansion@1.1.13",
+      "version": "1.1.16",
+      "purl": "pkg:npm/brace-expansion@1.1.16",
       "properties": [
         {
           "name": "nexus:ecosystem",
@@ -16227,7 +16296,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "f592e9ad64ba1043668443a98c2616d9cf159263af72420965f92beeb056e9d39b99f809fcbd46a52616e47a68f650f3e03d7e9f40a4cfcad4ec5c070d0886ff"
+          "content": "203c38f0adbfda446483d2dd271babbeade557768182ad11118f3d76e12a151b618e53dd5c728c8fb12740e5d5724c73822b229dfde71dfadc13616e7c52d733"
         }
       ],
       "licenses": [
@@ -16238,10 +16307,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/brace-expansion@5.0.6",
+      "bom-ref": "pkg:npm/brace-expansion@5.0.7",
       "name": "brace-expansion",
-      "version": "5.0.6",
-      "purl": "pkg:npm/brace-expansion@5.0.6",
+      "version": "5.0.7",
+      "purl": "pkg:npm/brace-expansion@5.0.7",
       "properties": [
         {
           "name": "nexus:ecosystem",
@@ -16255,7 +16324,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "90ba71bab638678afdb2032cc86d19f6ecec06582253f1052a18ff87dd7ff321eed1e768ed7ba2c4e207dd5709f24931b3afe33f3a08e94f558f75aa6cc43de2"
+          "content": "ee8172ef4dddc5f637fcd2f10b57e1d925024341fdae6018fb91290d57d78d44d3b3e1c4c11da761aa8bbfe196713b2e9b0c4f7e2cfa0b308d9305f0054c2a08"
         }
       ],
       "licenses": [
@@ -23009,10 +23078,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/js-yaml@4.1.1",
+      "bom-ref": "pkg:npm/js-yaml@4.2.0",
       "name": "js-yaml",
-      "version": "4.1.1",
-      "purl": "pkg:npm/js-yaml@4.1.1",
+      "version": "4.2.0",
+      "purl": "pkg:npm/js-yaml@4.2.0",
       "properties": [
         {
           "name": "nexus:ecosystem",
@@ -23026,7 +23095,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "a90293e334315e5f252f006d1cc5b06937067c5399be23897addcecbfc661a4da0647ebbec224cf44bed7dd4a48167004d9863ff9e49674ae6cb79b2093e65b0"
+          "content": "78f5acbda9efd035ae0d1b16f1d9edf91e23437d52091090ee184d70f5d93eca016627a6b9935819feda75976a5f60fcea3eabbcaa774690b155349bf164253b"
         }
       ],
       "licenses": [
@@ -32748,10 +32817,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/ws@8.20.0",
+      "bom-ref": "pkg:npm/ws@8.21.0",
       "name": "ws",
-      "version": "8.20.0",
-      "purl": "pkg:npm/ws@8.20.0",
+      "version": "8.21.0",
+      "purl": "pkg:npm/ws@8.21.0",
       "properties": [
         {
           "name": "nexus:ecosystem",
@@ -32765,7 +32834,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "b00b7c06180d6f30ad8066edd8ec66a6eaf23badd9a0393fb2a681ff39d09bde13e1f084b32ff257eec2742d64261394f656e800453b47792abaec9c0e889b54"
+          "content": "56ca76f1bec345c8a6150bebaaed967a4df3d626310c25aa1d807c42c9e4fd2e117da090ccf18fc8136e563255ddc77a5222ad52da7ab0d33bee05afcdc087fa"
         }
       ],
       "licenses": [

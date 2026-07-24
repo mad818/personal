@@ -47,15 +47,35 @@ if (packageJson?.overrides?.postcss !== "$postcss") {
 if (packageJson?.overrides?.prismjs !== "1.30.0") {
   fail("package.json must override transitive prismjs to 1.30.0");
 }
+if (packageJson?.overrides?.ws !== "8.21.0") {
+  fail("package.json must override transitive ws to 8.21.0");
+}
+if (packageJson?.overrides?.["js-yaml"] !== "4.2.0") {
+  fail("package.json must override transitive js-yaml to 4.2.0");
+}
+if (packageJson?.overrides?.["brace-expansion@1.x"] !== "1.1.16") {
+  fail("package.json must override brace-expansion 1.x to 1.1.16");
+}
+if (packageJson?.overrides?.["brace-expansion@2.x"] !== "2.1.2") {
+  fail("package.json must override brace-expansion 2.x to 2.1.2");
+}
 if (
-  packageJson?.overrides?.["minimatch@10.2.5"]?.["brace-expansion"] !== "5.0.6"
+  packageJson?.overrides?.["minimatch@10.2.5"]?.["brace-expansion"] !== "5.0.7"
 ) {
-  fail("package.json must override minimatch@10.2.5 brace-expansion to 5.0.6");
+  fail("package.json must override minimatch@10.2.5 brace-expansion to 5.0.7");
 }
 
 const npmFloors = new Map([
   ["postcss", "8.5.10"],
   ["prismjs", "1.30.0"],
+  ["ws", "8.21.0"],
+  ["js-yaml", "4.2.0"],
+]);
+
+const braceExpansionFloors = new Map([
+  ["1", "1.1.16"],
+  ["2", "2.1.2"],
+  ["5", "5.0.7"],
 ]);
 
 for (const [path, metadata] of Object.entries(packages)) {
@@ -68,12 +88,18 @@ for (const [path, metadata] of Object.entries(packages)) {
     fail(`${path || "<root>"} uses ${name}@${version}; required floor is ${floor}`);
   }
 
-  if (
-    name === "brace-expansion" &&
-    version.startsWith("5.") &&
-    compareVersions(version, "5.0.6") < 0
-  ) {
-    fail(`${path} uses brace-expansion@${version}; required 5.x floor is 5.0.6`);
+  if (name === "brace-expansion") {
+    const major = version.split(".")[0];
+    if (major === "3" || major === "4") {
+      fail(`${path} uses unpatched brace-expansion major ${major}; required 5.x floor is 5.0.7`);
+      continue;
+    }
+    const braceFloor = braceExpansionFloors.get(major);
+    if (braceFloor && compareVersions(version, braceFloor) < 0) {
+      fail(
+        `${path} uses brace-expansion@${version}; required ${major}.x floor is ${braceFloor}`,
+      );
+    }
   }
 }
 
@@ -96,6 +122,10 @@ const cargoPackages = Array.from(
 for (const pkg of cargoPackages) {
   if (pkg.name === "tauri" && compareVersions(pkg.version, "2.11.1") < 0) {
     fail(`Cargo.lock uses tauri@${pkg.version}; required floor is 2.11.1`);
+  }
+
+  if (pkg.name === "serde_with" && compareVersions(pkg.version, "3.21.0") < 0) {
+    fail(`Cargo.lock uses serde_with@${pkg.version}; required floor is 3.21.0`);
   }
 
   if (
@@ -128,7 +158,7 @@ if (process.exitCode) {
 }
 
 console.log(
-  `ok active-dependency-security (postcss>=8.5.10, prismjs>=1.30.0, brace-expansion 5.x>=5.0.6, tauri>=2.11.1${
+  `ok active-dependency-security (postcss>=8.5.10, prismjs>=1.30.0, ws>=8.21.0, js-yaml>=4.2.0, brace-expansion floors 1.x>=1.1.16/2.x>=2.1.2/5.x>=5.0.7 with 3.x/4.x rejected, tauri>=2.11.1, serde_with>=3.21.0${
     glib ? `; Linux-only non-release glib=${glib.version}` : ""
   })`,
 );

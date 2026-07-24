@@ -172,7 +172,7 @@ assert.ok(
 const plinySources = COMPANY_SKILL_SOURCES.filter((source) =>
   source.id.startsWith("pliny-"),
 );
-assert.equal(plinySources.length, 7);
+assert.equal(plinySources.length, 8);
 assert.ok(plinySources.every((source) => source.kind === "reference"));
 assert.match(
   COMPANY_SKILL_SOURCES.find((source) => source.id === "pliny-autotemp")
@@ -204,6 +204,14 @@ assert.match(
     ?.codexPath ?? "",
   /no autonomous self-modification/i,
 );
+const naturalisFutura = COMPANY_SKILL_SOURCES.find(
+  (source) => source.id === "pliny-naturalis-futura",
+);
+assert.ok(naturalisFutura);
+assert.equal(naturalisFutura.posture, "adapted");
+assert.match(naturalisFutura.purpose, /technical threat/i);
+assert.match(naturalisFutura.codexPath, /analogies are explanation aids/i);
+assert.match(naturalisFutura.codexPath, /no LICENSE file/i);
 assert.ok(
   NEXUS_COMPANY_DEPARTMENTS.find(
     (department) => department.id === "marketing-social",
@@ -223,6 +231,16 @@ assert.ok(
   NEXUS_COMPANY_DEPARTMENTS.find(
     (department) => department.id === "legal-trust",
   )?.sourceIds.includes("pliny-st3gg"),
+);
+assert.ok(
+  NEXUS_COMPANY_DEPARTMENTS.find(
+    (department) => department.id === "research-knowledge",
+  )?.sourceIds.includes(naturalisFutura.id),
+);
+assert.ok(
+  NEXUS_COMPANY_DEPARTMENTS.find(
+    (department) => department.id === "legal-trust",
+  )?.sourceIds.includes(naturalisFutura.id),
 );
 
 const summary = getCompanyMapSummary();

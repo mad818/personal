@@ -5,12 +5,14 @@
 **Intent detected:** both
 
 **Plan headline:**
-Adapt seven product-safe patterns through Nexus's existing Company Map, AI boundary, eval gates, evidence model, AgentShield scanner, local binary triage, and human review surfaces. Keep offensive, jailbreak, direct-provider, unlicensed, and copyleft implementation outside the runtime.
+The current 45-repository portfolio now has an individual evidence note, benefit, boundary, and final disposition. Adapt eight product-safe patterns through Nexus's existing Company Map, AI boundary, eval gates, evidence model, AgentShield scanner, local binary triage, and human review surfaces. The newest fit is NATURALIS FUTURA's evidence-first AI-risk briefing structure; its unlicensed code, prose, names, game, map, art, and assets remain external.
 
 **Files created:**
+
 - REPO_CONTEXT.md
 - AGENTS.md
 - .cursorrules
 - response.md
+- portfolio-inventory.json
 
-**Open questions:** Six strong fits were reviewed deeply; the remaining portfolio stays unimplemented unless a future bounded need justifies deeper review.
+**Outcome:** No catch-all portfolio item remains. Offensive, jailbreak, prompt-exfiltration, direct-provider, autonomous, physical-actuation, financial, unlicensed, and copyleft implementations remain outside the runtime.

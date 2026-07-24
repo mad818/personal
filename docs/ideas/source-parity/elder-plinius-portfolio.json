@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "elder-plinius-portfolio",
   "name": "elder-plinius public repository portfolio",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/elder-plinius?tab=repositories",
-    "version": "profile, GLOSSOPETRAE 3.1.0, and ST3GG 3.0.0 reviewed 2026-07-18",
-    "reviewedAt": "2026-07-18",
+    "version": "45-repository profile, GLOSSOPETRAE 3.1.0, ST3GG 3.0.0, and NATURALIS FUTURA 1.0.0 reviewed 2026-07-23",
+    "reviewedAt": "2026-07-23",
     "license": "mixed",
     "primaryEvidence": [
       "https://github.com/elder-plinius/AutoTemp",
@@ -21,7 +21,10 @@
       "https://github.com/elder-plinius/ST3GG",
       "https://github.com/elder-plinius/ST3GG/blob/main/README.md",
       "https://github.com/elder-plinius/ST3GG/blob/main/pyproject.toml",
-      "https://github.com/elder-plinius/ST3GG/blob/main/analysis_tools.py"
+      "https://github.com/elder-plinius/ST3GG/blob/main/analysis_tools.py",
+      "https://github.com/elder-plinius/NATURALIS-FUTURA",
+      "https://github.com/elder-plinius/NATURALIS-FUTURA/blob/claude/improve-readme-design-YYXQ9/README.md",
+      "https://github.com/elder-plinius/NATURALIS-FUTURA/blob/claude/improve-readme-design-YYXQ9/package.json"
     ]
   },
   "capabilities": [
@@ -107,6 +110,18 @@
       ]
     },
     {
+      "id": "explainable-ai-risk-countermeasures",
+      "title": "Explain an abstract AI risk with a memorable analogy while preserving the technical threat, mitigation, uncertainty, and verification evidence",
+      "sourceEvidence": "NATURALIS FUTURA 1.0.0 README premise, map, threat, and countermeasure sections",
+      "disposition": "adapted",
+      "reason": "Research and Trust can now use the evidence-first briefing pattern through the existing Company Map without importing the upstream application or unlicensed material.",
+      "proof": [
+        "lib/nexusCompanyMap.ts",
+        "scripts/check-nexus-company-map-runtime.mjs",
+        "specs/features/elder-plinius-portfolio-completion.md"
+      ]
+    },
+    {
       "id": "direct-provider-clients",
       "title": "Call model providers directly from each standalone application",
       "sourceEvidence": "AutoTemp, AutoStoryGen, and ourobopus setup and file inventories",
@@ -158,8 +173,12 @@
       "id": "remaining-portfolio",
       "title": "Assess the remaining public repositories individually for additional product-safe capabilities",
       "sourceEvidence": "elder-plinius repository profile reporting 45 public repositories",
-      "disposition": "pending",
-      "reason": "This bounded pass reviewed the seven strongest fits; further implementation requires a concrete Nexus need plus repository-specific license and security review."
+      "disposition": "implemented",
+      "reason": "The current 45-repository profile now has a unique evidence note, benefit, boundary, and final disposition for every repository.",
+      "proof": [
+        "docs/ideas/repo-analysis/elder-plinius/portfolio-inventory.json",
+        "scripts/validate-elder-plinius-portfolio-completion.mjs"
+      ]
     }
   ]
 }

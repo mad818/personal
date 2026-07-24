@@ -358,6 +358,19 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
       "Return improvement proposals with evidence and rollback criteria; never claim that a chat changed its own runtime.",
   },
   {
+    id: "pliny-naturalis-futura",
+    label: "NATURALIS FUTURA risk-briefing pattern",
+    url: "https://github.com/elder-plinius/NATURALIS-FUTURA",
+    kind: "reference",
+    posture: "adapted",
+    purpose:
+      "Explain an abstract AI risk with one memorable cross-domain analogy, then pair it with the technical threat, concrete mitigations, uncertainty, and verification evidence.",
+    codexPath:
+      "Use only the evidence-first briefing structure; analogies are explanation aids, never proof. The reviewed branch exposes no LICENSE file, so do not copy its code, prose, creature names, game, map, art, or assets.",
+    chatgptPath:
+      "Frame the technical threat first, label one analogy as illustrative, and finish with mitigations, evidence, uncertainty, and a professional-review handoff where needed.",
+  },
+  {
     id: "marketing-skills",
     label: "Marketing Skills",
     url: "https://github.com/coreyhaines31/marketingskills",
@@ -491,6 +504,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "pliny-parseltongue",
       "pliny-glossopetrae",
       "pliny-st3gg",
+      "pliny-naturalis-futura",
     ],
     boundary:
       "Graphify is optional repo intelligence; durable knowledge follows Nexus source and retention controls.",
@@ -552,6 +566,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "pliny-parseltongue",
       "pliny-glossopetrae",
       "pliny-st3gg",
+      "pliny-naturalis-futura",
     ],
     boundary:
       "Nexus can organize issues and evidence but cannot replace qualified legal or compliance counsel.",

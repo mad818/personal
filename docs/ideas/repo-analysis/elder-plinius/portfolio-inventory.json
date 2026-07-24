@@ -1,0 +1,375 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-07-23",
+  "source": "https://github.com/elder-plinius?tab=repositories",
+  "repositoryCount": 45,
+  "dispositions": [
+    "implemented",
+    "adapted",
+    "already_covered",
+    "excluded",
+    "insufficient_evidence"
+  ],
+  "repositories": [
+    {
+      "name": "CL4R1T4S",
+      "url": "https://github.com/elder-plinius/CL4R1T4S",
+      "evidence": "README presents a collection of extracted model and agent system prompts.",
+      "disposition": "excluded",
+      "benefit": "No additional Nexus capability beyond the existing provenance and verification pattern.",
+      "boundary": "Prompt extraction, leaked instructions, and contribution of confidential material stay outside Nexus."
+    },
+    {
+      "name": "L1B3RT4S",
+      "url": "https://github.com/elder-plinius/L1B3RT4S",
+      "evidence": "README presents jailbreaks and obfuscated prompt payloads for flagship models.",
+      "disposition": "excluded",
+      "benefit": "Existing hidden-channel and instruction-boundary defenses already cover the safe lesson.",
+      "boundary": "Jailbreak payloads and guardrail bypass stay outside Nexus."
+    },
+    {
+      "name": "G0DM0D3",
+      "url": "https://github.com/elder-plinius/G0DM0D3",
+      "evidence": "README presents a multi-provider chat, red-team perturbations, adaptive sampling, and large model races.",
+      "disposition": "already_covered",
+      "benefit": "Nexus already records it as a defensive prompt-security reference and has governed routing and evaluation seams.",
+      "boundary": "No jailbreak runtime, direct provider client, telemetry, or duplicate chat application."
+    },
+    {
+      "name": "OBLITERATUS",
+      "url": "https://github.com/elder-plinius/OBLITERATUS",
+      "evidence": "README presents model refusal removal, mechanistic analysis, and a chat playground.",
+      "disposition": "already_covered",
+      "benefit": "The separate complete OBLITERATUS matrix already adapts passive safety evaluation and result review.",
+      "boundary": "No model-weight modification, safeguard removal, steering vectors, or AGPL code."
+    },
+    {
+      "name": "T3MP3ST",
+      "url": "https://github.com/elder-plinius/T3MP3ST",
+      "evidence": "README presents an autonomous offensive-security kill chain and exploit framework.",
+      "disposition": "excluded",
+      "benefit": "Nexus already has read-only threat intelligence and defensive review workflows.",
+      "boundary": "Automated reconnaissance, exploitation, zero-day hunting, and offensive agents stay outside Nexus."
+    },
+    {
+      "name": "ST3GG",
+      "url": "https://github.com/elder-plinius/ST3GG",
+      "evidence": "README and analysis module present a broad dual-use steganography suite.",
+      "disposition": "implemented",
+      "benefit": "Nexus independently implements browser-local PNG, JPEG, and PDF trailing-data indicators.",
+      "boundary": "No payload creation, extraction, decoding, brute force, covert channels, dependencies, or AGPL code."
+    },
+    {
+      "name": "V3SP3R",
+      "url": "https://github.com/elder-plinius/V3SP3R",
+      "evidence": "README presents AI and voice control for Flipper Zero hardware and RF workflows.",
+      "disposition": "excluded",
+      "benefit": "No safe incremental benefit beyond existing advisory security surfaces.",
+      "boundary": "Hardware control, RF generation, hacking automation, smart-glasses control, and direct provider access stay outside Nexus."
+    },
+    {
+      "name": "P4RS3LT0NGV3",
+      "url": "https://github.com/elder-plinius/P4RS3LT0NGV3",
+      "evidence": "README presents a taxonomy of encodings, ciphers, Unicode transforms, and steganography.",
+      "disposition": "adapted",
+      "benefit": "Nexus uses the taxonomy as a defensive text-normalization and hidden-channel review reference.",
+      "boundary": "No hidden-message generator, bypass tooling, direct providers, or copied AGPL implementation."
+    },
+    {
+      "name": "GLOSSOPETRAE",
+      "url": "https://github.com/elder-plinius/GLOSSOPETRAE",
+      "evidence": "README and validation material document tokenizer and monitor visibility gaps.",
+      "disposition": "implemented",
+      "benefit": "Nexus independently scans tracked skill instructions for Unicode hidden channels.",
+      "boundary": "No generator, decoder, covert channel, provider experiment, or AGPL code."
+    },
+    {
+      "name": "CLAUDE-CODE-SYSTEM-PROMPT",
+      "url": "https://github.com/elder-plinius/CLAUDE-CODE-SYSTEM-PROMPT",
+      "evidence": "README identifies the repository as a living Claude Code system-prompt document.",
+      "disposition": "excluded",
+      "benefit": "No product-safe capability beyond existing provenance rules.",
+      "boundary": "Leaked or extracted system instructions are not collected, reproduced, or operationalized."
+    },
+    {
+      "name": "Google-Gemini-System-Prompt",
+      "url": "https://github.com/elder-plinius/Google-Gemini-System-Prompt",
+      "evidence": "Repository name and contents identify a system-prompt artifact; no root README was available.",
+      "disposition": "excluded",
+      "benefit": "No new Nexus capability.",
+      "boundary": "Prompt-exfiltration artifacts remain external."
+    },
+    {
+      "name": "elder-plinius.github.io",
+      "url": "https://github.com/elder-plinius/elder-plinius.github.io",
+      "evidence": "Root README only identifies the profile site.",
+      "disposition": "insufficient_evidence",
+      "benefit": "No discrete product capability was documented.",
+      "boundary": "A portfolio website is not vendored or treated as a Nexus feature."
+    },
+    {
+      "name": "ENTHEA",
+      "url": "https://github.com/elder-plinius/ENTHEA",
+      "evidence": "README presents a WebGL2 psychedelic visual synthesizer and music visualizer.",
+      "disposition": "excluded",
+      "benefit": "Its generative-art work does not improve a current Nexus intelligence workflow.",
+      "boundary": "No altered-state claims, audio visualizer, shaders, assets, medical framing, or AGPL code."
+    },
+    {
+      "name": "AutoTemp",
+      "url": "https://github.com/elder-plinius/AutoTemp",
+      "evidence": "README presents multi-temperature candidate generation, rubric judging, variance, and cost comparison.",
+      "disposition": "adapted",
+      "benefit": "Nexus maps explicit candidate comparison and operator selection to existing evaluation gates.",
+      "boundary": "No direct provider client or unlicensed source code."
+    },
+    {
+      "name": "LEAKHUB",
+      "url": "https://github.com/elder-plinius/LEAKHUB",
+      "evidence": "README and project structure present prompt submissions, provenance, corroboration, and rewards.",
+      "disposition": "adapted",
+      "benefit": "Nexus adopts provenance and verification-state cues for defensive evidence reviews.",
+      "boundary": "No leak marketplace, submission rewards, OAuth, database, or confidential prompt publication."
+    },
+    {
+      "name": "ImageDefender",
+      "url": "https://github.com/elder-plinius/ImageDefender",
+      "evidence": "README claims adversarial watermarks can neutralize AI photo modification.",
+      "disposition": "excluded",
+      "benefit": "No validated, current Nexus image-publishing seam needs adversarial perturbation.",
+      "boundary": "No adversarial image generator, efficacy claim, file mutation, or copied implementation."
+    },
+    {
+      "name": "Leda",
+      "url": "https://github.com/elder-plinius/Leda",
+      "evidence": "README presents Gemini-driven generation of agent teams and executable Python scripts.",
+      "disposition": "already_covered",
+      "benefit": "Nexus already has a bounded MAX-led orchestrator with typed handoffs and review gates.",
+      "boundary": "No autonomous script generation, direct Gemini client, or unreviewed agent creation."
+    },
+    {
+      "name": "FABLE-SHOWCASE",
+      "url": "https://github.com/elder-plinius/FABLE-SHOWCASE",
+      "evidence": "README catalogs 57 standalone generative-art, simulation, game, and music demos.",
+      "disposition": "excluded",
+      "benefit": "Nexus already has design and visual-quality contracts; the demo collection is not an intelligence capability.",
+      "boundary": "No copied demos, assets, games, audio instruments, or broad showcase dependency."
+    },
+    {
+      "name": "anthropic-quickstarts",
+      "url": "https://github.com/elder-plinius/anthropic-quickstarts",
+      "evidence": "README presents Anthropic API quickstarts for support, finance, and computer use.",
+      "disposition": "already_covered",
+      "benefit": "Nexus already routes approved AI calls through lib/ai.ts and has domain-specific surfaces.",
+      "boundary": "No direct Anthropic client, duplicate starter app, computer-use runtime, or provider credential."
+    },
+    {
+      "name": "Grok-System-Prompt-Leak",
+      "url": "https://github.com/elder-plinius/Grok-System-Prompt-Leak",
+      "evidence": "Repository name and contents identify a system-prompt leak; no root README was available.",
+      "disposition": "excluded",
+      "benefit": "No new Nexus capability.",
+      "boundary": "Leaked or extracted system prompts remain external."
+    },
+    {
+      "name": "NATURALIS-FUTURA",
+      "url": "https://github.com/elder-plinius/NATURALIS-FUTURA",
+      "evidence": "README and package version 1.0.0 present an explainable AI-risk bestiary pairing threats with countermeasures.",
+      "disposition": "adapted",
+      "benefit": "Nexus adds an evidence-first threat, analogy, mitigation, and verification briefing pattern to its Company Map.",
+      "boundary": "No code, prose, creature names, game, map, art, assets, or other material is copied; no LICENSE file was visible on the reviewed branch."
+    },
+    {
+      "name": "Misc.-Prompt-Hacks",
+      "url": "https://github.com/elder-plinius/Misc.-Prompt-Hacks",
+      "evidence": "README identifies prompt-hacking game solutions and screenshots.",
+      "disposition": "excluded",
+      "benefit": "Existing defensive prompt-boundary tests cover the safe lesson.",
+      "boundary": "Prompt-hacking solutions and extraction recipes stay outside Nexus."
+    },
+    {
+      "name": "Gandalf-Solutions",
+      "url": "https://github.com/elder-plinius/Gandalf-Solutions",
+      "evidence": "README documents prompt-injection and prompt-leak solutions for a red-team game.",
+      "disposition": "excluded",
+      "benefit": "No new capability beyond existing prompt-injection defenses.",
+      "boundary": "Extraction prompts and challenge solutions stay external."
+    },
+    {
+      "name": "Dioscuri",
+      "url": "https://github.com/elder-plinius/Dioscuri",
+      "evidence": "README presents a liberated Gemini chat application using Python and Streamlit.",
+      "disposition": "excluded",
+      "benefit": "Nexus already has governed chat and model-provider routing.",
+      "boundary": "No safety-bypass client, duplicate chat app, or direct provider path."
+    },
+    {
+      "name": "AutoRedTeam",
+      "url": "https://github.com/elder-plinius/AutoRedTeam",
+      "evidence": "README presents automated prompt injection through Selenium and external model services.",
+      "disposition": "excluded",
+      "benefit": "Nexus has static and bounded defensive security checks.",
+      "boundary": "No automated prompt attack, browser injection, direct provider client, or external telemetry."
+    },
+    {
+      "name": "AutoStoryGen",
+      "url": "https://github.com/elder-plinius/AutoStoryGen",
+      "evidence": "README and entry point present staged story planning, drafting, critique, and revision.",
+      "disposition": "adapted",
+      "benefit": "Nexus maps the staged drafting pattern to human-gated creative workflows.",
+      "boundary": "No direct provider client, duplicate app, or automatic publication."
+    },
+    {
+      "name": "Bing-Prompt-Leak",
+      "url": "https://github.com/elder-plinius/Bing-Prompt-Leak",
+      "evidence": "README presents instructions and artifacts for extracting a Bing system prompt.",
+      "disposition": "excluded",
+      "benefit": "No new Nexus capability.",
+      "boundary": "Prompt extraction, leaked instructions, and decoder workflow stay external."
+    },
+    {
+      "name": "ourobopus",
+      "url": "https://github.com/elder-plinius/ourobopus",
+      "evidence": "README and entry point present a generate, inspect, measure, and improve loop.",
+      "disposition": "adapted",
+      "benefit": "Nexus maps measured improvement proposals to existing evals, lessons, and review gates.",
+      "boundary": "No autonomous self-modification or direct provider client."
+    },
+    {
+      "name": "R00TS",
+      "url": "https://github.com/elder-plinius/R00TS",
+      "evidence": "README presents a community word-submission garden with local storage and a MongoDB backend.",
+      "disposition": "excluded",
+      "benefit": "No current Nexus need for public vocabulary submissions.",
+      "boundary": "No crowd-sourced influence campaign, account system, remote database, or public telemetry."
+    },
+    {
+      "name": "I-LLM",
+      "url": "https://github.com/elder-plinius/I-LLM",
+      "evidence": "README presents movie, screenplay, dialogue, and voice generation using several providers.",
+      "disposition": "excluded",
+      "benefit": "Staged creative drafting is already covered without a movie-production subsystem.",
+      "boundary": "No direct OpenAI, Gemini, or ElevenLabs client; no voice-generation or duplicate Streamlit app."
+    },
+    {
+      "name": "Eos",
+      "url": "https://github.com/elder-plinius/Eos",
+      "evidence": "README presents a Discord bot for profiles, peer ratings, projects, and cross-server task assignment.",
+      "disposition": "excluded",
+      "benefit": "Nexus already has local agent roles, task planning, and operator-owned assignment.",
+      "boundary": "No Discord bot, public profiles, peer ranking, multi-server identity, or external community database."
+    },
+    {
+      "name": "GitGPT",
+      "url": "https://github.com/elder-plinius/GitGPT",
+      "evidence": "README is an older ChatGPT todo-plugin quickstart.",
+      "disposition": "excluded",
+      "benefit": "Nexus already has current project-native task and tool surfaces.",
+      "boundary": "No deprecated plugin runtime, duplicate todo service, or direct ChatGPT integration."
+    },
+    {
+      "name": "Mixtral-System-Prompt-Leak",
+      "url": "https://github.com/elder-plinius/Mixtral-System-Prompt-Leak",
+      "evidence": "Repository name and contents identify a system-prompt leak; no root README was available.",
+      "disposition": "excluded",
+      "benefit": "No new Nexus capability.",
+      "boundary": "Leaked or extracted system prompts remain external."
+    },
+    {
+      "name": "V3R1T4S",
+      "url": "https://github.com/elder-plinius/V3R1T4S",
+      "evidence": "Root README contains only the repository name.",
+      "disposition": "insufficient_evidence",
+      "benefit": "No concrete capability can be assessed from current primary evidence.",
+      "boundary": "Nothing is integrated without an identifiable function and license review."
+    },
+    {
+      "name": "binaural-beats-generator",
+      "url": "https://github.com/elder-plinius/binaural-beats-generator",
+      "evidence": "No root README was available in the reviewed repository.",
+      "disposition": "excluded",
+      "benefit": "An audio entrainment generator does not serve a current Nexus intelligence workflow.",
+      "boundary": "No health or cognition claim, audio generator, or media-player subsystem."
+    },
+    {
+      "name": "BasiliskToken",
+      "url": "https://github.com/elder-plinius/BasiliskToken",
+      "evidence": "README presents an Ethereum token and fundraising mechanism for AI research.",
+      "disposition": "excluded",
+      "benefit": "No benefit compatible with Nexus's free, no-billing product invariant.",
+      "boundary": "No token, cryptocurrency, fundraising, wallet, transaction, or financial promotion."
+    },
+    {
+      "name": "AlmechE",
+      "url": "https://github.com/elder-plinius/AlmechE",
+      "evidence": "README presents speech-to-CAD, slicing, and automated 3D-printer control.",
+      "disposition": "excluded",
+      "benefit": "No current Nexus workflow needs physical manufacturing control.",
+      "boundary": "No microphone capture, CAD generation, slicer, printer control, or physical-world actuation."
+    },
+    {
+      "name": "Gitty",
+      "url": "https://github.com/elder-plinius/Gitty",
+      "evidence": "Root README says only that it is a template for AI projects.",
+      "disposition": "insufficient_evidence",
+      "benefit": "No distinct capability is documented.",
+      "boundary": "A generic template is not integrated without a specific product need."
+    },
+    {
+      "name": "juice-69",
+      "url": "https://github.com/elder-plinius/juice-69",
+      "evidence": "Root README contains only the project name.",
+      "disposition": "insufficient_evidence",
+      "benefit": "No concrete capability can be assessed.",
+      "boundary": "Nothing is integrated without identifiable behavior and licensing evidence."
+    },
+    {
+      "name": "Google-Bard-System-Prompt",
+      "url": "https://github.com/elder-plinius/Google-Bard-System-Prompt",
+      "evidence": "README presents claimed Bard internal prompts and instructions.",
+      "disposition": "excluded",
+      "benefit": "No new Nexus capability.",
+      "boundary": "Leaked or extracted system instructions remain external."
+    },
+    {
+      "name": "Anomalous-Outputs",
+      "url": "https://github.com/elder-plinius/Anomalous-Outputs",
+      "evidence": "No root README was available in the reviewed repository.",
+      "disposition": "insufficient_evidence",
+      "benefit": "No repository-level product capability is documented.",
+      "boundary": "Unverified model-output artifacts are not ingested or treated as evidence."
+    },
+    {
+      "name": "new-repository",
+      "url": "https://github.com/elder-plinius/new-repository",
+      "evidence": "The repository has no root README and only minimal repository content.",
+      "disposition": "insufficient_evidence",
+      "benefit": "No concrete capability can be assessed.",
+      "boundary": "Placeholder repositories are not integrated."
+    },
+    {
+      "name": "goal-decomposition",
+      "url": "https://github.com/elder-plinius/goal-decomposition",
+      "evidence": "GitHub reports the repository as empty.",
+      "disposition": "insufficient_evidence",
+      "benefit": "No implementation or documented pattern exists to assess.",
+      "boundary": "An empty repository cannot support an integration claim."
+    },
+    {
+      "name": "new-repository-1693784228",
+      "url": "https://github.com/elder-plinius/new-repository-1693784228",
+      "evidence": "GitHub reports the repository as empty.",
+      "disposition": "insufficient_evidence",
+      "benefit": "No implementation or documented pattern exists to assess.",
+      "boundary": "An empty repository cannot support an integration claim."
+    },
+    {
+      "name": "new-repository-1693784186",
+      "url": "https://github.com/elder-plinius/new-repository-1693784186",
+      "evidence": "GitHub reports the repository as empty.",
+      "disposition": "insufficient_evidence",
+      "benefit": "No implementation or documented pattern exists to assess.",
+      "boundary": "An empty repository cannot support an integration claim."
+    }
+  ]
+}

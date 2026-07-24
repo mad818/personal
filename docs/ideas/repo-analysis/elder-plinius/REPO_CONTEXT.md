@@ -2,7 +2,7 @@
 
 ## What this is
 
-`elder-plinius` is a public GitHub portfolio of AI experiments, prompt-transparency projects, text utilities, red-team tools, and agent prototypes. Nexus reviewed the portfolio as an idea source, then selected seven patterns that fit existing product boundaries without vendoring an upstream application.
+`elder-plinius` is a public GitHub portfolio of AI experiments, prompt-transparency projects, text utilities, red-team tools, and agent prototypes. Nexus reviewed the current 45-repository portfolio as an idea source, then selected eight patterns that fit existing product boundaries without vendoring an upstream application.
 
 ## Stack
 
@@ -24,6 +24,8 @@ The repositories are independent experiments, not one composable platform. Nexus
 - `ourobopus/ouro.py` — small self-review and improvement-loop prototype.
 - `GLOSSOPETRAE/README.md` and `experiments/` — model/monitor Unicode visibility-gap evidence used only for defensive skill inspection.
 - `ST3GG/README.md`, `pyproject.toml`, and `analysis_tools.py` — dual-use steganography suite reviewed only for bounded post-terminator media indicators.
+- `NATURALIS-FUTURA/README.md` and `package.json` — AI-risk and countermeasure teaching pattern reviewed only at the explanatory-structure level.
+- `portfolio-inventory.json` — current repository-by-repository evidence, benefit, boundary, and final disposition for all 45 public repositories.
 
 ## Entry points
 
@@ -47,13 +49,14 @@ Start with each repository README and license. In Nexus, the entry point is `lib
 5. Surface ourobopus's measure/propose/review loop in Operations and Engineering without autonomous self-modification.
 6. Apply GLOSSOPETRAE's tokenizer-visibility lesson as a local Unicode hidden-channel scan in the existing AgentShield skill-review lane.
 7. Apply ST3GG's format-terminator lesson as a browser-local PNG/JPEG/PDF trailing-data indicator in existing RECON binary triage.
+8. Apply NATURALIS FUTURA's evidence-first risk-briefing structure in Research and Legal & Trust: technical threat, one illustrative analogy, mitigations, uncertainty, and verification evidence.
 
 ### To extend / modify
 
 Add future capabilities only through existing Nexus routes, `lib/ai.ts`, protected storage, explicit approval, and focused verification. Re-review the exact upstream version and license before translating any implementation detail.
 
-## Open questions
+## Portfolio closure
 
-- The profile reports 45 repositories, but this work goes deep only on the seven strongest product-safe patterns reviewed so far.
-- AutoTemp shows no license on the reviewed repository page, so it remains an idea-only reference.
-- Offensive red-team, jailbreak, prompt-exfiltration, Flipper-control, and adversarial-image projects are not runtime candidates for Nexus.
+- `portfolio-inventory.json` reconciles the 45 public repositories reported by GitHub on 2026-07-23; there is no remaining catch-all portfolio item.
+- AutoTemp and NATURALIS FUTURA expose no visible license in the reviewed primary evidence, so both remain idea-only references and no source material is copied.
+- Offensive red-team, jailbreak, prompt-exfiltration, model-safeguard removal, Flipper-control, adversarial-image, cryptocurrency, physical-actuation, and empty or undocumented projects are individually excluded or marked as insufficient evidence.

@@ -64,6 +64,7 @@ for (const source of [
   "ST3GG media-tail defense",
   "AutoStoryGen staged drafting pattern",
   "Ourobopus review loop",
+  "NATURALIS FUTURA risk-briefing pattern",
   "Marketing Skills",
   "Social Media Skills",
 ])
@@ -135,8 +136,13 @@ requireText(
 );
 requireText(
   read("docs/ideas/repo-analysis/elder-plinius/REPO_CONTEXT.md"),
-  "selected seven patterns",
+  "selected eight patterns",
   "elder-plinius portfolio boundary",
+);
+requireText(
+  read("docs/ideas/repo-analysis/elder-plinius/portfolio-inventory.json"),
+  '"repositoryCount": 45',
+  "elder-plinius portfolio inventory",
 );
 requireText(
   read("docs/ideas/repo-analysis/elder-plinius/glossopetrae/REPO_CONTEXT.md"),

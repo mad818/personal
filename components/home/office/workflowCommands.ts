@@ -175,7 +175,8 @@ Use feynman_outputs. Return only real local continuity sessions and VAULT artifa
 [WORKFLOW DIRECTIVE — FEYNMAN ${input.label.toUpperCase()}]
 Use feynman_research with workflow "${input.id}".
 The shared engine must run Researcher, Writer, Verifier, and Reviewer stages.
-Preserve direct source URLs, claim-level verdicts, severity-graded review findings, provenance, coverage gaps, and execution gates.
+Preserve direct source URLs, claim-level verdicts, severity-graded review findings, the deterministic research-integrity passport, provenance, coverage gaps, and execution gates.
+Pass experiment_intake_declaration and experiment_provenance_json only when the operator explicitly supplied them; otherwise leave intake undeclared.
 ${input.id === "replicate" || input.id === "autoresearch" || input.id === "watch" ? "Do not execute, install, train, spend, write externally, or enable recurring work without explicit operator approval." : ""}
 [END WORKFLOW DIRECTIVE]
 `,

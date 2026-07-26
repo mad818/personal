@@ -10,6 +10,7 @@ import {
   runFeynmanResearch,
   type FeynmanWorkflowId,
 } from "@/lib/feynmanResearch";
+import { parseFeynmanResearchIntegrityInput } from "@/lib/feynmanResearchIntegrity";
 import {
   formatFeynmanPaperRank,
   parseFeynmanPaperRankInput,
@@ -1017,6 +1018,8 @@ async function feynmanResearch(
   rawWorkflow: string,
   topic: string,
   origin: string,
+  rawExperimentIntakeDeclaration: string,
+  rawExperimentProvenanceJson: string,
 ): Promise<ToolResult> {
   const workflow = rawWorkflow.trim().toLowerCase() as FeynmanWorkflowId;
   if (!FEYNMAN_WORKFLOWS.has(workflow)) {
@@ -1026,6 +1029,17 @@ async function feynmanResearch(
   }
   if (!topic.trim()) {
     return withToolResult("feynman_research: topic or artifact is required.");
+  }
+  let integrityInput;
+  try {
+    integrityInput = parseFeynmanResearchIntegrityInput({
+      experimentIntakeDeclaration: rawExperimentIntakeDeclaration,
+      experimentProvenanceJson: rawExperimentProvenanceJson,
+    });
+  } catch {
+    return withToolResult(
+      "feynman_research: experiment integrity input is invalid.",
+    );
   }
 
   let continuitySession: FeynmanContinuitySession | null = null;
@@ -1039,25 +1053,30 @@ async function feynmanResearch(
   }
 
   try {
-    const result = await runFeynmanResearch(workflow, topic, {
-      searchPapers: hfPapersSearch,
-      webSearch,
-      fetchUrl,
-      inspectHuggingFace: inspectHuggingFaceTopic,
-      write: (prompt) =>
-        callFeynmanStage(origin, "feynman_writer", prompt, 1_800),
-      verify: (prompt) =>
-        callFeynmanStage(origin, "feynman_verifier", prompt, 1_300),
-      review: (prompt) =>
-        callFeynmanStage(origin, "feynman_reviewer", prompt, 1_100),
-      progress: continuitySession
-        ? (event) =>
-            appendFeynmanNotebookEntry(continuitySession.id, {
-              ...event,
-              at: new Date().toISOString(),
-            })
-        : undefined,
-    });
+    const result = await runFeynmanResearch(
+      workflow,
+      topic,
+      {
+        searchPapers: hfPapersSearch,
+        webSearch,
+        fetchUrl,
+        inspectHuggingFace: inspectHuggingFaceTopic,
+        write: (prompt) =>
+          callFeynmanStage(origin, "feynman_writer", prompt, 1_800),
+        verify: (prompt) =>
+          callFeynmanStage(origin, "feynman_verifier", prompt, 1_300),
+        review: (prompt) =>
+          callFeynmanStage(origin, "feynman_reviewer", prompt, 1_100),
+        progress: continuitySession
+          ? (event) =>
+              appendFeynmanNotebookEntry(continuitySession.id, {
+                ...event,
+                at: new Date().toISOString(),
+              })
+          : undefined,
+      },
+      integrityInput,
+    );
     let completedSession: FeynmanContinuitySession | null = null;
     if (continuitySession) {
       try {
@@ -1250,7 +1269,7 @@ async function deepResearch(
   topic: string,
   origin: string,
 ): Promise<ToolResult> {
-  return feynmanResearch("deepresearch", topic, origin);
+  return feynmanResearch("deepresearch", topic, origin, "", "");
 }
 
 function formatFeynmanSessionIndex(sessions: FeynmanContinuitySession[]) {
@@ -1987,6 +2006,8 @@ export async function POST(req: NextRequest) {
             input.workflow ?? "deepresearch",
             input.topic ?? input.question ?? input.artifact ?? "",
             resolveInternalServiceOrigin(),
+            input.experiment_intake_declaration ?? "",
+            input.experiment_provenance_json ?? "",
           );
           result = toolResult.result;
           meta = toolResult.meta;

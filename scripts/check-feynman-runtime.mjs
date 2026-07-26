@@ -17,8 +17,7 @@ const workflows = [
 ];
 
 const fixtureDeps = {
-  searchPapers: async () =>
-    "Primary paper https://arxiv.org/abs/2602.13855",
+  searchPapers: async () => "Primary paper https://arxiv.org/abs/2602.13855",
   webSearch: async () =>
     "Official documentation https://example.com/docs and repository https://github.com/example/research",
   fetchUrl: async (url) =>
@@ -74,11 +73,15 @@ for (const workflow of workflows) {
     "## Evidence Ledger",
     "## Claim Audit",
     "## Reviewer Findings",
+    "## Research Integrity Passport",
     "## Coverage Status",
     "## Provenance",
     "## Execution Gate",
   ]) {
-    assert.ok(result.report.includes(heading), `${workflow} missing ${heading}`);
+    assert.ok(
+      result.report.includes(heading),
+      `${workflow} missing ${heading}`,
+    );
   }
   assert.equal(result.claims[0]?.verdict, "supported");
   assert.ok(result.report.includes("- Query waves:"));
@@ -117,6 +120,7 @@ assert.equal(degraded.stageStatus.writer, "degraded");
 assert.equal(degraded.stageStatus.verifier, "degraded");
 assert.equal(degraded.stageStatus.reviewer, "degraded");
 assert.equal(degraded.coverage.sufficient, false);
+assert.equal(degraded.integrityPassport.status, "blocked");
 assert.ok(degraded.report.includes("No directly read source was available"));
 assert.match(degraded.report, /explicit operator approval/i);
 

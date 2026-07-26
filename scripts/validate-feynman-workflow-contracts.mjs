@@ -123,7 +123,7 @@ for (const needle of [
   "renderFeynmanWorkflowContractForReport",
   "WORKFLOW OUTPUT CONTRACT",
   "## Workflow Contract",
-  "buildFeynmanVerificationPrompt(workflow",
+  "buildFeynmanVerificationPrompt(",
 ]) {
   requireText(research, needle, "research runtime");
 }
@@ -162,8 +162,10 @@ if (parity.status !== "in_progress") {
 }
 
 if (
-  academicParity.source?.version !==
-    "v3.19.0 at 1788e08155d24da729233e3e4b480ffb53d799c6" ||
+  !academicParity.source?.version?.includes("v3.19.0") ||
+  !academicParity.source?.version?.includes(
+    "1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279",
+  ) ||
   academicParity.source?.license !== "CC-BY-NC-4.0"
 ) {
   fail(
@@ -186,14 +188,27 @@ for (const proof of [
     fail(`literature gap-map proof is missing ${proof}`);
   }
 }
-const suiteReview = academicParity.capabilities?.find(
-  (capability) => capability.id === "current-suite-expansion-review",
-);
+if (academicParity.status !== "in_progress") {
+  fail("current academic-research-skills suite must remain in_progress");
+}
 if (
-  academicParity.status !== "in_progress" ||
-  suiteReview?.disposition !== "pending"
+  academicParity.capabilities?.some(
+    (capability) => capability.id === "current-suite-expansion-review",
+  )
 ) {
-  fail("current academic-research-skills suite expansion must remain pending");
+  fail("broad academic suite placeholder must be replaced by capability rows");
+}
+for (const id of [
+  "prisma-systematic-review",
+  "reviewer-panel-calibration-rereview",
+  "citation-locator-faithfulness-audit",
+]) {
+  if (
+    academicParity.capabilities?.find((capability) => capability.id === id)
+      ?.disposition !== "pending"
+  ) {
+    fail(`academic suite must honestly retain pending capability ${id}`);
+  }
 }
 
 if (

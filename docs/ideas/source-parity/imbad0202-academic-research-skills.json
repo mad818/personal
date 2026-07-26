@@ -5,67 +5,76 @@
   "status": "in_progress",
   "source": {
     "url": "https://github.com/Imbad0202/academic-research-skills",
-    "version": "v3.19.0 at 1788e08155d24da729233e3e4b480ffb53d799c6",
-    "reviewedAt": "2026-07-23",
+    "version": "v3.19.0 release surface at main commit 1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279; unreleased reviewer updates present",
+    "reviewedAt": "2026-07-26",
     "license": "CC-BY-NC-4.0",
     "primaryEvidence": [
-      "https://github.com/Imbad0202/academic-research-skills",
-      "https://github.com/Imbad0202/academic-research-skills/blob/1788e08155d24da729233e3e4b480ffb53d799c6/README.md",
-      "https://github.com/Imbad0202/academic-research-skills/blob/1788e08155d24da729233e3e4b480ffb53d799c6/LICENSE",
-      "https://github.com/Imbad0202/academic-research-skills/blob/1788e08155d24da729233e3e4b480ffb53d799c6/deep-research/references/mode_selection_guide.md",
-      "https://github.com/Imbad0202/academic-research-skills/blob/1788e08155d24da729233e3e4b480ffb53d799c6/deep-research/agents/research_question_agent.md",
-      "https://github.com/Imbad0202/academic-research-skills/blob/1788e08155d24da729233e3e4b480ffb53d799c6/academic-paper/templates/literature_review_template.md"
+      "https://github.com/Imbad0202/academic-research-skills/blob/1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279/README.md",
+      "https://github.com/Imbad0202/academic-research-skills/blob/1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279/LICENSE",
+      "https://github.com/Imbad0202/academic-research-skills/blob/1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279/docs/ARCHITECTURE.md",
+      "https://github.com/Imbad0202/academic-research-skills/blob/1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279/MODE_REGISTRY.md",
+      "https://github.com/Imbad0202/academic-research-skills/blob/1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279/shared/handoff_schemas.md",
+      "https://github.com/Imbad0202/academic-research-skills/blob/1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279/shared/artifact_reproducibility_pattern.md",
+      "https://github.com/Imbad0202/academic-research-skills/blob/1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279/shared/cross_model_verification.md",
+      "https://github.com/Imbad0202/academic-research-skills/blob/1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279/academic-paper-reviewer/references/calibration_mode_protocol.md"
     ]
   },
   "capabilities": [
     {
       "id": "nexus-route-reference",
-      "title": "Nexus routing reference for academic research skills integration points",
-      "sourceEvidence": "academic-research-skills: structured paper search, citation extraction, methodology critique, reproducibility checks",
+      "title": "Reachable Nexus research routing and INTEL paper surface",
+      "sourceEvidence": "README architecture and four-skill pipeline",
       "disposition": "adapted",
       "proof": [
         "lib/feynmanResearch.ts",
         "lib/feynmanWorkflowContracts.ts",
         "components/intel/PapersResearchPanel.tsx"
       ],
-      "adaptationNotes": "Proof points directly to the reachable research workflow and INTEL panel instead of a detached route-reference object."
+      "adaptationNotes": "The integration stays inside the protected Feynman tool and reachable INTEL/VAULT surfaces instead of importing a second Claude-specific host runtime."
     },
     {
       "id": "structured-paper-search-skill",
-      "title": "Structured paper search skill with field, date, citation-count, and methodology filters",
-      "sourceEvidence": "academic-research-skills paper-search SKILL.md",
+      "title": "Structured paper search with field, date, citation-count, and methodology filters",
+      "sourceEvidence": "Deep Research search and literature modes",
       "disposition": "adapted",
-      "proof": ["lib/feynmanAcademicFilters.ts", "lib/feynmanResearch.ts"],
-      "adaptationNotes": "parseFeynmanPaperSearchFilters + applyFeynmanPaperSearchFilters in buildFeynmanQueries."
+      "proof": [
+        "lib/feynmanAcademicFilters.ts",
+        "lib/feynmanResearch.ts",
+        "lib/feynmanProgressiveResearch.ts"
+      ]
     },
     {
       "id": "citation-extraction-skill",
-      "title": "Automated citation extraction from paper body text and reference sections",
-      "sourceEvidence": "academic-research-skills citation-extraction SKILL.md",
+      "title": "Citation and URL extraction into a bounded evidence ledger",
+      "sourceEvidence": "Citation verification and reference-management workflow",
       "disposition": "adapted",
-      "proof": ["lib/feynmanAcademicFilters.ts", "lib/feynmanResearch.ts"],
-      "adaptationNotes": "extractCitationsFromText wired into buildSourceLedger URL harvest."
+      "proof": ["lib/feynmanAcademicFilters.ts", "lib/feynmanResearch.ts"]
     },
     {
       "id": "methodology-critique-skill",
-      "title": "Skill to critique experimental methodology: sample size, confounds, statistical validity",
-      "sourceEvidence": "academic-research-skills methodology-critique SKILL.md",
+      "title": "Methodology critique covering sample size, confounds, statistics, and replication posture",
+      "sourceEvidence": "Deep Research review mode and Academic Paper Reviewer methodology mode",
       "disposition": "adapted",
-      "proof": ["lib/feynmanAcademicFilters.ts", "lib/feynmanResearch.ts"],
-      "adaptationNotes": "buildMethodologyCritiqueHints injected into Feynman verifier prompt."
+      "proof": [
+        "lib/feynmanAcademicFilters.ts",
+        "lib/feynmanResearch.ts",
+        "lib/feynmanWorkflowContracts.ts"
+      ]
     },
     {
       "id": "reproducibility-check-skill",
-      "title": "Reproducibility assessment: does the paper provide enough detail to replicate?",
-      "sourceEvidence": "academic-research-skills reproducibility-check SKILL.md",
+      "title": "Evidence-based reproducibility posture without claiming an experiment was replayed",
+      "sourceEvidence": "Artifact reproducibility lock and methodology review",
       "disposition": "adapted",
-      "proof": ["lib/feynmanAcademicFilters.ts", "lib/feynmanResearch.ts"],
-      "adaptationNotes": "scoreReproducibilityPosture surfaced in verifier stage notes."
+      "proof": [
+        "lib/feynmanAcademicFilters.ts",
+        "lib/feynmanResearchIntegrity.ts"
+      ]
     },
     {
       "id": "literature-gap-analysis-skill",
-      "title": "Literature gap analysis: identify unexplored problem areas relative to a paper cluster",
-      "sourceEvidence": "v3.19.0 lit-review mode, research-question novelty guidance, and literature-review gap/future-direction structure",
+      "title": "Evidence-audited literature gap analysis",
+      "sourceEvidence": "Lit-review mode, novelty guidance, and literature-review gap/future-direction structure",
       "disposition": "adapted",
       "proof": [
         "lib/feynmanWorkflowContracts.ts",
@@ -73,14 +82,215 @@
         "scripts/check-feynman-workflow-contracts-runtime.mjs",
         "specs/features/feynman-literature-gap-map.md"
       ],
-      "adaptationNotes": "The existing lit-review contract now requires an evidence-backed gap map that separates observed coverage gaps from possible research opportunities, records competing explanations, and proposes bounded next-study guidance without claiming novelty."
+      "adaptationNotes": "Observed coverage gaps remain distinct from possible research opportunities and include competing explanations rather than automatic novelty claims."
     },
     {
-      "id": "current-suite-expansion-review",
-      "title": "Review the broader v3.19.0 research, writing, review, integrity, provenance, and cross-model suite for additional Nexus-native gaps",
-      "sourceEvidence": "v3.19.0 README architecture, feature inventory, pipeline, and mode registry",
+      "id": "research-mode-family",
+      "title": "Deep research, literature review, fact-oriented audit, comparison, review, draft, recipe, and watch modes",
+      "sourceEvidence": "README operational modes and MODE_REGISTRY.md",
+      "disposition": "adapted",
+      "proof": [
+        "components/home/office/workflowCommands.ts",
+        "lib/feynmanWorkflowContracts.ts",
+        "scripts/check-feynman-runtime.mjs"
+      ],
+      "adaptationNotes": "Nexus maps compatible modes into ten protected Feynman workflows; exact upstream mode parity remains split into the pending rows below."
+    },
+    {
+      "id": "claim-level-source-audit",
+      "title": "Claim-level support verdicts tied to directly read source IDs",
+      "sourceEvidence": "Claim verification, citation risk, and integrity-gate behavior",
+      "disposition": "adapted",
+      "proof": ["lib/feynmanResearch.ts", "scripts/check-feynman-runtime.mjs"]
+    },
+    {
+      "id": "research-integrity-passport",
+      "title": "Deterministic research-integrity passport on every workflow result",
+      "sourceEvidence": "Material Passport, integrity gates, data-access metadata, and process receipts",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanResearchIntegrity.ts",
+        "lib/feynmanResearch.ts",
+        "scripts/check-feynman-research-integrity-runtime.mjs",
+        "specs/features/feynman-research-integrity-passport.md"
+      ]
+    },
+    {
+      "id": "experiment-provenance-intake",
+      "title": "Fail-closed experiment declaration and bounded provenance intake",
+      "sourceEvidence": "README Experiment Provenance Intake and shared/handoff_schemas.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanResearchIntegrity.ts",
+        "app/api/tools/route.ts",
+        "lib/agent.ts",
+        "scripts/check-feynman-research-integrity-runtime.mjs"
+      ],
+      "adaptationNotes": "Nexus records operator-supplied evidence only. It never runs or validates the experiment itself, and mismatched experiment-backed claims become unverifiable."
+    },
+    {
+      "id": "reproducibility-metadata",
+      "title": "Reproducibility metadata with an explicit no-replay guarantee",
+      "sourceEvidence": "README Artifact Reproducibility Lockfile and shared/artifact_reproducibility_pattern.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanResearchIntegrity.ts",
+        "lib/feynmanContinuityStore.ts"
+      ]
+    },
+    {
+      "id": "data-access-and-task-type",
+      "title": "Visible data-access and task-type annotation",
+      "sourceEvidence": "README Data Access Level Metadata and Task Type Annotation",
+      "disposition": "adapted",
+      "proof": ["lib/feynmanResearchIntegrity.ts", "lib/feynmanResearch.ts"],
+      "adaptationNotes": "Feynman stages disclose raw operator/source input while deterministic support policy permits only directly read evidence to support a claim; outcome-gradable workflows remain distinct from open-ended synthesis."
+    },
+    {
+      "id": "cross-model-posture-receipt",
+      "title": "Cross-model posture receipt without false independent-verification claims",
+      "sourceEvidence": "README Canonical Cross-Model Handoff Envelope",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanResearchIntegrity.ts",
+        "scripts/check-feynman-research-integrity-runtime.mjs"
+      ],
+      "adaptationNotes": "The current passport truthfully reports not_run and independentVerification false. The actual blind handoff envelope remains pending."
+    },
+    {
+      "id": "human-in-loop-approval-gates",
+      "title": "Human approval gates before execution, recurrence, publication, or external writes",
+      "sourceEvidence": "README human-in-the-loop stance and Architecture checkpoints",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanWorkflowContracts.ts",
+        "lib/feynmanResearch.ts",
+        "components/home/office/workflowCommands.ts"
+      ]
+    },
+    {
+      "id": "benchmark-report-schema",
+      "title": "Measured variant, threshold, evidence, and operator-decision contracts for runtime experiments",
+      "sourceEvidence": "README Benchmark Report Schema",
+      "disposition": "adapted",
+      "proof": [
+        "lib/runtimeExperimentContracts.ts",
+        "lib/runtimeExperimentLedger.ts",
+        "scripts/check-runtime-experiment-review-runtime.mjs"
+      ]
+    },
+    {
+      "id": "local-artifact-preview-export",
+      "title": "Local report, provenance, preview, and PDF artifacts",
+      "sourceEvidence": "Academic Paper formatting/export and pipeline artifact output",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanContinuity.ts",
+        "lib/feynmanContinuityStore.ts",
+        "app/api/feynman/artifacts/route.ts",
+        "scripts/check-feynman-continuity-runtime.mjs"
+      ]
+    },
+    {
+      "id": "prisma-systematic-review",
+      "title": "PRISMA systematic-review protocol with screening flow and exclusion receipts",
+      "sourceEvidence": "README Deep Research systematic-review mode",
       "disposition": "pending",
-      "reason": "The current upstream suite is substantially broader than the 2026-06-21 six-capability snapshot; any further adaptation needs capability-by-capability product, license, provider, and duplication review."
+      "reason": "Nexus has literature review and source coverage receipts but no PRISMA-specific protocol, screening ledger, or flow artifact."
+    },
+    {
+      "id": "socratic-guided-research",
+      "title": "Socratic research-question and writing-plan dialogue",
+      "sourceEvidence": "README Deep Research socratic mode and Academic Paper plan mode",
+      "disposition": "pending",
+      "reason": "Current Feynman commands accept a bounded topic directly and do not run a dedicated question-refinement dialogue with resumable decisions."
+    },
+    {
+      "id": "specialist-academic-agent-team",
+      "title": "Role-specialized academic research and writing agent team",
+      "sourceEvidence": "README 13-agent Deep Research and 12-agent Academic Paper teams",
+      "disposition": "pending",
+      "reason": "Nexus uses four auditable stages and a separate bounded central orchestrator; it does not yet expose the useful academic role specializations or their artifact handoffs."
+    },
+    {
+      "id": "writing-style-calibration-and-quality",
+      "title": "Operator-authored style calibration and academic writing-quality checks",
+      "sourceEvidence": "README Academic Paper Style Calibration and Writing Quality Check",
+      "disposition": "pending",
+      "reason": "The Feynman draft contract preserves evidence and uncertainty but does not learn an operator's academic style profile or run a dedicated writing-quality rubric."
+    },
+    {
+      "id": "revision-format-submission-pipeline",
+      "title": "Traceable revision, citation-format conversion, rebuttal audit, disclosure, and submission-package checks",
+      "sourceEvidence": "README Academic Paper eleven-mode inventory",
+      "disposition": "pending",
+      "reason": "Nexus produces drafts and revision checklists but lacks deterministic patch application, citation-style conversion, rebuttal traceability, disclosure generation, and submission-package verification."
+    },
+    {
+      "id": "multimodal-figure-verification",
+      "title": "Visualization generation and VLM-backed figure verification",
+      "sourceEvidence": "README Academic Paper visualization and VLM figure verification",
+      "disposition": "pending",
+      "reason": "The current Feynman workflow does not generate or independently inspect paper figures; adding it requires an explicit image/model boundary and rendered evidence tests."
+    },
+    {
+      "id": "reviewer-panel-calibration-rereview",
+      "title": "Multi-perspective reviewer panel, re-review traceability, and measured FNR/FPR calibration",
+      "sourceEvidence": "README Academic Paper Reviewer six modes and calibration protocol",
+      "disposition": "pending",
+      "reason": "Nexus has one Reviewer stage with severity findings but no isolated reviewer panel, gold-set calibration, repeated scoring, or round-to-round traceability matrix."
+    },
+    {
+      "id": "citation-locator-faithfulness-audit",
+      "title": "Three-layer citation locators and claim-to-passage faithfulness audit",
+      "sourceEvidence": "README v3.7-v3.8 locator and claim-audit behavior",
+      "disposition": "pending",
+      "reason": "Nexus verifies claims against directly read source IDs but does not yet retain passage-level locator anchors or refetch them for claim-faithfulness adjudication."
+    },
+    {
+      "id": "ten-stage-publication-pipeline",
+      "title": "Ten-stage research-to-publication pipeline with adaptive checkpoints, score trajectory, and process summary",
+      "sourceEvidence": "README Academic Pipeline and docs/ARCHITECTURE.md",
+      "disposition": "pending",
+      "reason": "The protected Feynman engine has four research stages and local artifacts, not the full research, write, integrity, review, revision, finalization, and collaboration-quality pipeline."
+    },
+    {
+      "id": "model-tiering",
+      "title": "Per-stage economy and quality-boost model tiering",
+      "sourceEvidence": "README Model Tiering",
+      "disposition": "pending",
+      "reason": "Feynman stages use the existing Nexus AI spine but do not yet choose lower or frontier tiers by execution-versus-judgment role with a visible routing receipt."
+    },
+    {
+      "id": "cross-model-blind-handoff-envelope",
+      "title": "Machine-stable blind cross-model handoff with divergence and malformed-result routing",
+      "sourceEvidence": "README Canonical Cross-Model Handoff Envelope and shared/cross_model_verification.md",
+      "disposition": "pending",
+      "reason": "The integrity passport reports that independent verification did not run. Nexus does not yet have a Feynman-specific blind external-model handoff envelope or consent boundary."
+    },
+    {
+      "id": "claude-plugin-runtime",
+      "title": "Claude Code plugin installer, slash-command host, hooks, and provider-specific dispatch runtime",
+      "sourceEvidence": "README installation and .claude-plugin packaging",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is the host application and already owns protected tool routing, provider access, local continuity, and approval policy. Importing a second Claude-specific host runtime would fragment those controls."
+    },
+    {
+      "id": "copy-cc-by-nc-prompts-and-templates",
+      "title": "Copy upstream prompts, templates, schemas, and agent files into Nexus MIT source",
+      "sourceEvidence": "LICENSE and repository prompt/template trees",
+      "disposition": "excluded",
+      "conflict": "license",
+      "reason": "The source is CC BY-NC 4.0 while Nexus is MIT and free for unrestricted use. Nexus independently implements general workflow ideas without copying licensed expression."
+    },
+    {
+      "id": "required-paid-provider-runtime",
+      "title": "Require Anthropic or another paid cloud model as the academic workflow runtime",
+      "sourceEvidence": "README prerequisites and performance/cost guidance",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "Nexus preserves local-first and BYOK operation through its existing AI spine and cannot make a paid provider mandatory."
     }
   ]
 }

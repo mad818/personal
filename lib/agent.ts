@@ -218,6 +218,17 @@ export const AGENT_TOOLS = [
           type: "string",
           description: "The topic, claim, paper, artifact, or experiment idea.",
         },
+        experiment_intake_declaration: {
+          type: "string",
+          enum: ["no_experiments_declared", "experiments_declared"],
+          description:
+            "Optional explicit operator declaration for whether prior experiment evidence supports this research run. Omit when the operator has not declared it.",
+        },
+        experiment_provenance_json: {
+          type: "string",
+          description:
+            "Optional JSON array of bounded experiment provenance records. Each record uses experimentId, objective, evidenceRefs, plannedVsExecuted, negativeResults, and knownLimitations.",
+        },
       },
       required: ["workflow", "topic"],
     },

@@ -238,6 +238,7 @@ export async function completeFeynmanContinuitySession(
     stageStatus: result.stageStatus,
     coverage: result.coverage,
     approvalRequired: result.approvalRequired,
+    integrityPassport: result.integrityPassport,
     failures: result.failures,
     sources: result.sources,
     claimVerdicts: result.claims.map((claim) => ({

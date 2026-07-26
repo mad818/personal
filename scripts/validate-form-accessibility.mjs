@@ -8,7 +8,6 @@ const repoRoot = path.resolve(
   "..",
 );
 const formControlTags = new Set(["input", "textarea", "select"]);
-const privateRpgPrefix = "components/home/arpg/";
 
 function collectTsxFiles(relativeDirectory) {
   const files = [];
@@ -25,9 +24,7 @@ function collectTsxFiles(relativeDirectory) {
         .replaceAll("\\", "/");
 
       if (entry.isDirectory()) {
-        if (!`${relativePath}/`.startsWith(privateRpgPrefix)) {
-          pending.push(absolutePath);
-        }
+        pending.push(absolutePath);
       } else if (entry.isFile() && entry.name.endsWith(".tsx")) {
         files.push({ absolutePath, relativePath });
       }
@@ -194,10 +191,7 @@ if (
   process.exit(1);
 }
 
-const files = [
-  ...collectTsxFiles("app"),
-  ...collectTsxFiles("components"),
-];
+const files = [...collectTsxFiles("app"), ...collectTsxFiles("components")];
 const violations = [];
 let namedCount = 0;
 let hiddenCount = 0;
@@ -224,5 +218,5 @@ if (violations.length > 0) {
 }
 
 console.log(
-  `Form accessibility OK (${namedCount} controls named, ${hiddenCount} hidden inputs excluded, private RPG lane excluded).`,
+  `Form accessibility OK (${namedCount} controls named, ${hiddenCount} hidden inputs excluded).`,
 );

@@ -16,8 +16,8 @@ export async function seedAuthenticatedShell(page: Page) {
   expect(response.ok(), "seedAuthenticatedShell should mint a valid local session").toBe(true);
 }
 
-/** HQ e2e that exercises the RPG playfield needs full layout, not compact chat-first. */
-export async function seedFullHqLayout(page: Page) {
+/** HQ e2e uses the expanded command workspace instead of compact chat-first. */
+export async function seedExpandedHqLayout(page: Page) {
   await page.addInitScript(() => {
     try {
       const raw = window.localStorage.getItem("nexus-settings");
@@ -26,7 +26,7 @@ export async function seedFullHqLayout(page: Page) {
       state.settings = {
         ...(state.settings && typeof state.settings === "object" ? state.settings : {}),
         hqCompactOperatorLayout: false,
-        hqConsoleFocusMode: "game",
+        hqConsoleFocusMode: "command",
       };
       parsed.state = state;
       window.localStorage.setItem("nexus-settings", JSON.stringify(parsed));

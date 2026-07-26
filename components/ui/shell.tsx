@@ -512,9 +512,9 @@ function resolveHomefrontVisionItems({
     },
     {
       label: "Boundary",
-      value: "RPG separate",
+      value: "Local first",
       detail:
-        "Aether Reliquary stays private in /hq while this surface carries Homefront operations.",
+        "Protected routes and local continuity stay inside the Nexus operating boundary.",
     },
   ];
 }

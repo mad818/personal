@@ -79,14 +79,12 @@ requireDecision(
 );
 
 const sourceExtensions = new Set([".css", ".ts", ".tsx"]);
-const ignoredSegments = ["/components/home/arpg/", "/lib/arpg"];
 const findings = [];
 
 function walk(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     const absolute = path.join(directory, entry.name);
     const relative = `/${path.relative(root, absolute).replaceAll("\\", "/")}`;
-    if (ignoredSegments.some((segment) => relative.includes(segment))) continue;
     if (entry.isDirectory()) {
       walk(absolute);
       continue;
@@ -125,4 +123,4 @@ if (!tasteContract.includes("## Motion Decision Gate")) {
   fail("docs/NEXUS_TASTE_CONTRACT.md is missing the motion decision gate");
 }
 
-console.log("Nexus motion taste contract and active non-RPG source scan OK.");
+console.log("Nexus motion taste contract and active source scan OK.");

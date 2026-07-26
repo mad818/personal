@@ -775,7 +775,7 @@ export const ENGINEERING_PLAYBOOKS: EngineeringPlaybook[] = [
     startSurface: "Resources → Playbooks",
     steps: [
       "Run type-check first and fix every TypeScript error before trusting browser behavior.",
-      "Run verify so design, ARPG content, lint, path safety, security, and Tauri posture are checked together.",
+      "Run verify so design, source integrity, lint, path safety, security, and Tauri posture are checked together.",
       "Stop the live dev runtime before a production build so `.next` is not being mutated by two processes.",
       "Run build, then restart the direct `3100` runtime and confirm `/api/health` returns 200.",
       "Check the affected routes with HTTP status probes, including the public landing and any protected redirect path.",

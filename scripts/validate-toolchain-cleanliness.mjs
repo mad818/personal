@@ -10,9 +10,6 @@ const activeSourceExtensions = new Set([".ts", ".tsx", ".mdx"]);
 const activeSourceScopes = [
   "{app,lib,components}/**/*.{ts,tsx,mdx}",
   "!app/hq/**/*.{ts,tsx,mdx}",
-  "!components/home/arpg/**/*.{ts,tsx,mdx}",
-  "!lib/arpg*.{ts,tsx,mdx}",
-  "!lib/arpg*/**/*.{ts,tsx,mdx}",
 ];
 
 function fail(message) {
@@ -87,8 +84,7 @@ if (desktopConfig.build?.frontendDist !== "../../.next/standalone") {
   fail("Tauri frontendDist must use the repo-root standalone runtime");
 }
 if (
-  desktopConfig.build?.beforeBuildCommand !==
-  "npm run desktop:build-runtime"
+  desktopConfig.build?.beforeBuildCommand !== "npm run desktop:build-runtime"
 ) {
   fail("Tauri builds must delegate to desktop:build-runtime");
 }
@@ -178,7 +174,7 @@ function inspectFormatterCommand(command, expectedMode) {
   const expectedCommand = `prettier --${expectedMode} ${quotedScopes} --cache`;
   if (command !== expectedCommand) {
     return {
-      error: `must use the exact cached non-RPG active-source scopes: ${activeSourceScopes.join(", ")}`,
+      error: `must use the exact cached active-source scopes: ${activeSourceScopes.join(", ")}`,
       scopes: [],
     };
   }
@@ -192,7 +188,7 @@ for (const fixture of [
     mode: "check",
   },
   {
-    label: "missing RPG exclusions",
+    label: "missing HQ exclusion",
     command:
       'prettier --check "{app,lib,components}/**/*.{ts,tsx,mdx}" --cache',
     mode: "check",
@@ -227,12 +223,8 @@ if (
   fail("format:write and format:check must resolve the same source scope");
 }
 
-function isDirectRpgSource(relativePath) {
-  return (
-    relativePath.startsWith("app/hq/") ||
-    relativePath.startsWith("components/home/arpg/") ||
-    relativePath.startsWith("lib/arpg")
-  );
+function isFormatterExcludedSource(relativePath) {
+  return relativePath.startsWith("app/hq/");
 }
 
 function collectActiveSources(directory) {
@@ -255,7 +247,7 @@ function collectActiveSources(directory) {
         const relativePath = path
           .relative(root, entryPath)
           .replaceAll(path.sep, "/");
-        if (!isDirectRpgSource(relativePath)) {
+        if (!isFormatterExcludedSource(relativePath)) {
           files.push(relativePath);
         }
       }
@@ -447,5 +439,5 @@ if (
 }
 
 console.log(
-  `ok toolchain-cleanliness (npm 11 + Node 24 + root-standalone desktop runtime + retired packaged snapshot + stable Windows Next build workers + npm include=dev + ESLint parser ${parserManifest.version} for TypeScript ${lockedTypeScriptVersion} + Prettier ${activeSourceInventory.length}-file non-RPG scope + truthful full audit)`,
+  `ok toolchain-cleanliness (npm 11 + Node 24 + root-standalone desktop runtime + retired packaged snapshot + stable Windows Next build workers + npm include=dev + ESLint parser ${parserManifest.version} for TypeScript ${lockedTypeScriptVersion} + Prettier ${activeSourceInventory.length}-file active scope + truthful full audit)`,
 );

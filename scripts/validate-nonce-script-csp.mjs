@@ -33,10 +33,7 @@ function listTsxFiles(directory) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name);
     const relativePath = relative(root, path).replaceAll("\\", "/");
-    if (
-      entry.isDirectory() &&
-      (relativePath === "app/hq" || relativePath === "components/home/arpg")
-    ) {
+    if (entry.isDirectory() && relativePath === "app/hq") {
       continue;
     }
     if (entry.isDirectory()) files.push(...listTsxFiles(path));

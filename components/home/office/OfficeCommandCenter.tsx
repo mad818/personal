@@ -73,7 +73,7 @@ import {
   type CouncilMember,
 } from "@/lib/personaEngine";
 import { getCouncilIdeationFrameLabel } from "@/lib/councilDivergence";
-import { useStore } from "@/store/useStore";
+import { useStore, type HqConsoleFocusMode } from "@/store/useStore";
 import {
   buildCorrectionMemoryPromptBlock,
   buildCapabilitiesBlock,
@@ -2229,7 +2229,7 @@ export default function OfficeCommandCenter() {
       setSplitDragLocked,
     });
   const setHqConsoleFocusMode = useCallback(
-    (mode: "game" | "chat") => {
+    (mode: HqConsoleFocusMode) => {
       updateSettings({ hqConsoleFocusMode: mode });
       setShowSplitMore(false);
     },

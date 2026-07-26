@@ -37,7 +37,6 @@ const interactiveRoles = new Set([
   "switch",
   "tab",
 ]);
-const privateRpgPrefix = "components/home/arpg/";
 const meaningfulTextPattern = /[\p{L}\p{N}]/u;
 const feedbackIdentifierPattern = /(?:error|message|msg|status)$/i;
 
@@ -56,9 +55,7 @@ function collectTsxFiles(relativeDirectory) {
         .replaceAll("\\", "/");
 
       if (entry.isDirectory()) {
-        if (!`${relativePath}/`.startsWith(privateRpgPrefix)) {
-          pending.push(absolutePath);
-        }
+        pending.push(absolutePath);
       } else if (entry.isFile() && entry.name.endsWith(".tsx")) {
         files.push({ absolutePath, relativePath });
       }
@@ -892,5 +889,5 @@ if (violations.length > 0) {
 }
 
 console.log(
-  `Interactive accessibility OK (${namedCount} controls named, ${fileInputCount} file inputs retryable, ${feedbackCount} live feedback branches announced, no definite pointer-only containers or dead button actions, private RPG lane excluded).`,
+  `Interactive accessibility OK (${namedCount} controls named, ${fileInputCount} file inputs retryable, ${feedbackCount} live feedback branches announced, no definite pointer-only containers or dead button actions).`,
 );

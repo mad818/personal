@@ -19,26 +19,14 @@ const referencedScriptPattern =
   /(?:scripts[\\/]|\.\.?[\\/])?[A-Za-z0-9._-]+(?:[\\/][A-Za-z0-9._-]+)*\.(?:mjs|cjs|js|ps1|bat|vbs)/g;
 
 const runtimeOwnedScripts = new Map([
-  [
-    "scripts/tool-isolation-runner.mjs",
-    "lib/security/toolIsolationRunner.ts",
-  ],
+  ["scripts/tool-isolation-runner.mjs", "lib/security/toolIsolationRunner.ts"],
   [
     "scripts/windows-optimization-snapshot.ps1",
     "lib/windowsOptimizationAdvisorServer.ts",
   ],
 ]);
 
-const exactPrivateExclusions = new Set([
-  "scripts/generate-arpg-prologue-hifi.mjs",
-  "scripts/promote-arpg-prologue-hifi.mjs",
-  "scripts/validate-arpg-asset-pipeline.mjs",
-  "scripts/validate-arpg-browser-proof.mjs",
-  "scripts/validate-arpg-intake-bridge.mjs",
-  "scripts/validate-arpg-prologue-hifi-pipeline.mjs",
-  "scripts/validate-arpg-prologue-hifi-promote.mjs",
-  "scripts/validate-arpg-visual-replacement-runtime.mjs",
-  "scripts/validate-hq-game-focus-layout.mjs",
+const exactDeferredExclusions = new Set([
   "scripts/validate-phone-acceptance-code-lane.mjs",
 ]);
 const reachabilityMetadataScript =
@@ -60,7 +48,9 @@ function walk(relativeDirectory, output) {
   })) {
     const relativePath = toRepoPath(path.join(relativeDirectory, entry.name));
     if (entry.isSymbolicLink()) {
-      fail(`symbolic link is outside the static graph contract: ${relativePath}`);
+      fail(
+        `symbolic link is outside the static graph contract: ${relativePath}`,
+      );
     }
     if (entry.isDirectory()) {
       walk(relativePath, output);
@@ -78,7 +68,9 @@ function collectScriptReferences(fromFile, source, availableScripts) {
     const match = toRepoPath(rawMatch);
     const candidate = match.startsWith("scripts/")
       ? path.posix.normalize(match)
-      : path.posix.normalize(path.posix.join(path.posix.dirname(fromFile), match));
+      : path.posix.normalize(
+          path.posix.join(path.posix.dirname(fromFile), match),
+        );
     if (availableScripts.has(candidate) && candidate !== fromFile) {
       references.add(candidate);
     }
@@ -153,12 +145,12 @@ for (const [script, importer] of runtimeOwnedScripts) {
   }
 }
 
-for (const script of exactPrivateExclusions) {
+for (const script of exactDeferredExclusions) {
   if (!scriptSet.has(script)) {
-    fail(`exact private exclusion is missing: ${script}`);
+    fail(`exact deferred exclusion is missing: ${script}`);
   }
   if (packageRoots.has(script) || runtimeOwnedScripts.has(script)) {
-    fail(`${script} is now maintained and must leave the private inventory`);
+    fail(`${script} is now maintained and must leave the deferred inventory`);
   }
 }
 
@@ -171,14 +163,14 @@ while (pending.length > 0) {
   for (const dependency of edges.get(script) ?? []) pending.push(dependency);
 }
 
-for (const script of exactPrivateExclusions) {
+for (const script of exactDeferredExclusions) {
   if (reachable.has(script)) {
-    fail(`${script} became reachable and must leave the private inventory`);
+    fail(`${script} became reachable and must leave the deferred inventory`);
   }
 }
 
 const unreviewed = scripts.filter(
-  (script) => !reachable.has(script) && !exactPrivateExclusions.has(script),
+  (script) => !reachable.has(script) && !exactDeferredExclusions.has(script),
 );
 if (unreviewed.length > 0) {
   fail(
@@ -189,5 +181,5 @@ if (unreviewed.length > 0) {
 }
 
 console.log(
-  `ok maintained-script-reachability (scripts=${scripts.length}; package-roots=${packageRoots.size}; runtime-owned=${runtimeOwnedScripts.size}; private-exclusions=${exactPrivateExclusions.size}; unreviewed=0)`,
+  `ok maintained-script-reachability (scripts=${scripts.length}; package-roots=${packageRoots.size}; runtime-owned=${runtimeOwnedScripts.size}; deferred-exclusions=${exactDeferredExclusions.size}; unreviewed=0)`,
 );

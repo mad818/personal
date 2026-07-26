@@ -39,19 +39,17 @@ for (const needle of [
   "formatOrbitQueue",
   'classification: "actionable"',
   'classification: "blocked_or_manual"',
-  'classification: "excluded_rpg"',
   'reason: "physical_or_manual_proof"',
   'reason: "remote_state_required"',
   'reason: "external_prerequisite"',
   '"declared_external_prerequisite"',
   '"declared_manual_prerequisite"',
-  'reason: "rpg_scope"',
   'reason: "local_ready"',
   "MAX_CLASSIFIED_TASKS = 200",
   "MAX_RECEIPT_TASK_CHARS = 500",
   'IN_PROGRESS_HEADING = "## In Progress"',
   "ORBIT NEXT ACTIONABLE TASK",
-  "No locally actionable non-RPG task is currently proven.",
+  "No locally actionable task is currently proven.",
   'new Set(["--all", "--json"])',
   "if (require.main === module) main();",
   "module.exports",
@@ -77,9 +75,8 @@ for (const needle of [
   'require("./orbit.js")',
   "buildOrbitQueue(raw)",
   "getHandoffQueueLines",
-  "No locally actionable non-RPG task is currently proven.",
+  "No locally actionable task is currently proven.",
   "blocked/manual tasks remain context-only",
-  "RPG tasks are excluded from handoff task selection",
   "npm run orbit:next -- --all",
   "if (require.main === module) main();",
 ]) {
@@ -92,11 +89,10 @@ for (const forbidden of ["getTodoRoot", '.startsWith("- [ ] ")']) {
 }
 
 for (const guardrail of [
-  "locally actionable, non-RPG top-level task",
+  "locally actionable top-level task",
   "fall through to `## In Progress`",
   "do not promote nested checklist steps",
   "blocked_or_manual",
-  "excluded_rpg",
   "--json",
   "--all",
   "General words such as `external`, `approval`, `review`, or `local` do not block a task",
@@ -109,7 +105,7 @@ for (const guardrail of [
 for (const guardrail of [
   "must reuse `buildOrbitQueue()`",
   "at most the first three locally actionable top-level tasks",
-  "blocked/manual and RPG-excluded work may appear only as bounded counts",
+  "blocked/manual work may appear only as bounded counts",
   "No task is completed, reprioritized, or made actionable",
 ]) {
   requireText(handoffSpec, guardrail, "handoff feature contract");
@@ -152,5 +148,5 @@ requireText(
 );
 
 console.log(
-  "ok orbit-actionable-next (top-level queue, blocked/manual receipts, RPG exclusion, read-only CLI)",
+  "ok orbit-actionable-next (top-level queue, blocked/manual receipts, read-only CLI)",
 );

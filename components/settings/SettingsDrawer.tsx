@@ -1415,9 +1415,9 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                         lineHeight: 1.45,
                       }}
                     >
-                      Compact HQ (chat-first) — hide RPG playfield, sector rail,
-                      strategium deck, and full readiness checklists. Phone
-                      always uses compact layout.
+                      Compact HQ (chat-first) — reduce the command workspace,
+                      sector rail, strategium deck, and full readiness
+                      checklists. Phone always uses compact layout.
                     </span>
                   </label>
                 </label>

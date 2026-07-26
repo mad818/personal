@@ -62,11 +62,7 @@ export interface HomefrontVisualSurfaceSpec {
   excludedSelectors: string[];
 }
 
-const RPG_EXCLUSION_SELECTORS = [
-  "[data-testid='arpg-room']",
-  "[data-testid='arpg-hud']",
-  "[data-testid='arpg-playfield-frame']",
-];
+const NO_EXCLUDED_SELECTORS: string[] = [];
 
 export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
   HomefrontVisualSurfaceId,
@@ -79,16 +75,16 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
     primaryActionLabel: "Open chronicle",
     interiorPolish: {
       leadIntent:
-        "Keep command chrome premium while the private RPG stays isolated.",
+        "Keep command chrome premium while the operational workspace stays legible.",
       staleInfoPolicy:
-        "Show assistant readiness and shell posture without injecting route polish into the RPG playfield.",
+        "Show assistant readiness and shell posture without obscuring the active command workspace.",
       mediaMoment:
-        "Guardian media stays in HQ chrome only; ARPG presentation remains private and separate.",
+        "Guardian media stays in HQ chrome and yields to live operator state.",
       activeStateLabel: "HQ chrome active",
       supportDensity: "balanced",
     },
-    proofChips: ["assistant ready", "RPG isolated", "local session"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    proofChips: ["assistant ready", "command workspace", "local session"],
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   command: {
     surfaceId: "command",
@@ -114,7 +110,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
         "Provider health, agent health, and runtime efficiency stay visible before execution.",
     },
     proofChips: ["provider health", "agent health", "runtime efficiency"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   intel: {
     surfaceId: "intel",
@@ -141,7 +137,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
         "Source proof, freshness, and world posture stay ahead of interpretation.",
     },
     proofChips: ["source proof", "freshness", "world posture"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   alpha: {
     surfaceId: "alpha",
@@ -168,7 +164,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
         "Watchlist, signals, and sizing cues stay visible without autonomous trading.",
     },
     proofChips: ["watchlist", "signals", "position sizing"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   cyber: {
     surfaceId: "cyber",
@@ -194,7 +190,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
         "CVE posture, review gates, and compliance notes stay advisory-first.",
     },
     proofChips: ["CVE posture", "review gates", "drone compliance"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   recon: {
     surfaceId: "recon",
@@ -220,7 +216,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
         "Passive-first evidence and source boundaries stay visible before escalation.",
     },
     proofChips: ["passive-first", "case evidence", "repo exposure"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   vault: {
     surfaceId: "vault",
@@ -246,7 +242,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
         "Compiled pages, memory graph, and continuity state stay recoverable.",
     },
     proofChips: ["memory graph", "compiled pages", "continuity"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   resources: {
     surfaceId: "resources",
@@ -273,7 +269,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
         "Source intake, playbooks, and surface audit keep outside ideas governed.",
     },
     proofChips: ["playbooks", "surface audit", "source intake"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   security: {
     surfaceId: "security",
@@ -291,7 +287,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
       supportDensity: "compact",
     },
     proofChips: ["trust posture", "AI surface", "physical ops"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   skills: {
     surfaceId: "skills",
@@ -309,7 +305,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
       supportDensity: "compact",
     },
     proofChips: ["workflow forge", "blacksite isolated", "library"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   vehicle: {
     surfaceId: "vehicle",
@@ -331,7 +327,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
       "passive bridge",
       "no flight-critical control",
     ],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   iot: {
     surfaceId: "iot",
@@ -349,7 +345,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
       supportDensity: "compact",
     },
     proofChips: ["sensor grid", "MQTT posture", "automation review"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   signals: {
     surfaceId: "signals",
@@ -367,7 +363,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
       supportDensity: "compact",
     },
     proofChips: ["redirected to INTEL", "source proof", "freshness"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
   ops: {
     surfaceId: "ops",
@@ -385,7 +381,7 @@ export const HOMEFRONT_VISUAL_SURFACE_SPECS: Record<
       supportDensity: "compact",
     },
     proofChips: ["redirected to INTEL", "ops map", "world posture"],
-    excludedSelectors: RPG_EXCLUSION_SELECTORS,
+    excludedSelectors: NO_EXCLUDED_SELECTORS,
   },
 };
 

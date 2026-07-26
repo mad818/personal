@@ -162,12 +162,14 @@ function lineNumberForOffset(src, offset) {
 const textRules = [
   {
     id: "private-lan-ip",
-    message: "Private LAN IP literal must be replaced with <LAN-IP> before publishing.",
+    message:
+      "Private LAN IP literal must be replaced with <LAN-IP> before publishing.",
     re: /\b(?:10(?:\.\d{1,3}){3}|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2}|192\.168(?:\.\d{1,3}){2})\b/g,
   },
   {
     id: "windows-home-path",
-    message: "Windows home path must be replaced with <repo-root> or a relative path.",
+    message:
+      "Windows home path must be replaced with <repo-root> or a relative path.",
     re: /\b[A-Za-z]:\\Users\\[^\\\s`"']+(?:\\[^\s`"']*)?/g,
   },
   {
@@ -296,16 +298,6 @@ function scanPath(file, findings, contract) {
     );
   }
 
-  if (/^assets\/arpg\/intake\/(?:raw|work)\//i.test(normalized)) {
-    addFinding(
-      findings,
-      normalized,
-      1,
-      "raw-asset-intake",
-      "Raw/work intake assets stay local until optimized and manifest-tracked.",
-    );
-  }
-
   if (/\.(?:pem|key|p12|pfx)$/i.test(extension)) {
     addFinding(
       findings,
@@ -397,13 +389,17 @@ function main() {
     return;
   }
 
-  console.log(`\nPublication safety found ${findings.length} blocking item(s):\n`);
+  console.log(
+    `\nPublication safety found ${findings.length} blocking item(s):\n`,
+  );
   for (const finding of findings) {
     console.log(
       `- ${finding.file}:${finding.line} [${finding.rule}] ${finding.message}`,
     );
   }
-  console.log("\nReplace sensitive values with placeholders before publishing.");
+  console.log(
+    "\nReplace sensitive values with placeholders before publishing.",
+  );
   process.exit(1);
 }
 

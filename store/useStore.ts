@@ -35,60 +35,6 @@ import type { ContextLoadReport } from '@/lib/contextPolicy'
 import type { ArticleReasoningIndex } from '@/lib/articleReasoning'
 import type { VoiceProfile, VoiceProject } from '@/lib/voiceLab'
 import type { RuntimeContinuityReceipt } from '@/lib/runtimeAuthority'
-import {
-  advanceArpgStory as advanceArpgStoryState,
-  acceptArpgQuest as acceptArpgQuestState,
-  advanceArpgQuest as advanceArpgQuestState,
-  beginArpgTravel as beginArpgTravelState,
-  claimArpgCosmeticReward as claimArpgCosmeticRewardState,
-  claimArpgTreasureMap as claimArpgTreasureMapState,
-  collectArpgItem as collectArpgItemState,
-  completeArpgArenaChallenge as completeArpgArenaChallengeState,
-  completeArpgBossRematch as completeArpgBossRematchState,
-  completeArpgEndgameDungeon as completeArpgEndgameDungeonState,
-  completeArpgRelicTrial as completeArpgRelicTrialState,
-  completeArpgTreasureMap as completeArpgTreasureMapState,
-  createArpgCharacter as createArpgCharacterState,
-  createDefaultArpgSave,
-  craftArpgRecipe as craftArpgRecipeState,
-  dodgeArpgPlayer as dodgeArpgPlayerState,
-  equipArpgItem as equipArpgItemState,
-  recruitArpgCompanion as recruitArpgCompanionState,
-  recordArpgReputation as recordArpgReputationState,
-  respecArpgCharacter as respecArpgCharacterState,
-  resolveArpgTravelEvent as resolveArpgTravelEventState,
-  salvageArpgItem as salvageArpgItemState,
-  selectArpgEndgameDifficulty as selectArpgEndgameDifficultyState,
-  selectArpgRegion as selectArpgRegionState,
-  setArpgCharacterCosmetic as setArpgCharacterCosmeticState,
-  startArpgArenaChallenge as startArpgArenaChallengeState,
-  startArpgBossRematch as startArpgBossRematchState,
-  startArpgEndgameDungeon as startArpgEndgameDungeonState,
-  startArpgRelicTrial as startArpgRelicTrialState,
-  targetArpgEnemy as targetArpgEnemyState,
-  unlockArpgSkill as unlockArpgSkillState,
-  moveArpgPlayer as moveArpgPlayerState,
-  normalizeArpgSave,
-  resetArpgSave as resetArpgSaveState,
-  strikeArpgEnemy as strikeArpgEnemyState,
-  upgradeArpgItem as upgradeArpgItemState,
-  useArpgSkill as useArpgSkillState,
-  useArpgConsumable as useArpgConsumableState,
-  type ArpgMoveVector,
-  type ArpgRoomMode,
-  type ArpgSaveState,
-  type ArpgCharacterSelection,
-} from '@/lib/arpgGame'
-import {
-  ARPG_AUTOSAVE_SLOT_ID,
-  ARPG_MANUAL_SLOT_ID,
-  createArpgSaveSlotSet,
-  normalizeArpgSaveSlots,
-  syncArpgAutosaveSlot,
-  upsertArpgSaveSlot,
-  type ArpgSaveSlot,
-} from '@/lib/arpgSaveEnvelope'
-
 // ── Lessons engine types ──────────────────────────────────────────────────────
 export interface Lesson {
   id:               number
@@ -389,27 +335,14 @@ export interface ModeBriefing {
 }
 
 // ── Default settings (mirrors DEFAULT_CFG from nexus-final.html) ──────────────
-export type ArpgViewportSize = 'compact' | 'standard' | 'large' | 'focus'
-export type HqConsoleFocusMode = 'game' | 'chat'
+export type HqConsoleFocusMode = 'command' | 'chat'
 
-const ARPG_VIEWPORT_SIZE_IDS: ArpgViewportSize[] = [
-  'compact',
-  'standard',
-  'large',
-  'focus',
-]
-const HQ_CONSOLE_FOCUS_MODE_IDS: HqConsoleFocusMode[] = ['game', 'chat']
-
-function normalizeArpgViewportSize(value: unknown): ArpgViewportSize {
-  return ARPG_VIEWPORT_SIZE_IDS.includes(value as ArpgViewportSize)
-    ? (value as ArpgViewportSize)
-    : 'standard'
-}
+const HQ_CONSOLE_FOCUS_MODE_IDS: HqConsoleFocusMode[] = ['command', 'chat']
 
 function normalizeHqConsoleFocusMode(value: unknown): HqConsoleFocusMode {
   return HQ_CONSOLE_FOCUS_MODE_IDS.includes(value as HqConsoleFocusMode)
     ? (value as HqConsoleFocusMode)
-    : 'game'
+    : 'command'
 }
 
 export const DEFAULT_SETTINGS = {
@@ -456,8 +389,7 @@ export const DEFAULT_SETTINGS = {
   surfaceMotionProfile: 'flagship' as 'reduced' | 'standard' | 'flagship',
   officeMotion: 1,
   officeSplitHeightPx: 0,
-  arpgViewportSize: 'standard' as ArpgViewportSize,
-  hqConsoleFocusMode: 'game' as HqConsoleFocusMode,
+  hqConsoleFocusMode: 'command' as HqConsoleFocusMode,
   hqCompactOperatorLayout: true,
   officeCameraPreset: 'cinematic' as 'cinematic' | 'closeOps' | 'wallReadability',
   officeOperationalMode: 'normal' as 'normal' | 'war' | 'nightOps',
@@ -612,9 +544,6 @@ function normalizeSettingsPatch(patch: Partial<Settings>): Partial<Settings> {
   }
   if (Object.prototype.hasOwnProperty.call(nextPatch, 'scheduledJobs')) {
     nextPatch.scheduledJobs = normalizeScheduledJobs(nextPatch.scheduledJobs)
-  }
-  if (Object.prototype.hasOwnProperty.call(nextPatch, 'arpgViewportSize')) {
-    nextPatch.arpgViewportSize = normalizeArpgViewportSize(nextPatch.arpgViewportSize)
   }
   if (Object.prototype.hasOwnProperty.call(nextPatch, 'hqConsoleFocusMode')) {
     nextPatch.hqConsoleFocusMode = normalizeHqConsoleFocusMode(
@@ -901,58 +830,6 @@ interface NexusState {
   setOfficeObjectPos:  (id: OfficeObjectId, pos: OfficeObjectPos) => void
   resetOfficeLayout:   () => void
 
-  // Aether Reliquary ARPG room
-  hqRoomMode:          ArpgRoomMode
-  setHqRoomMode:       (mode: ArpgRoomMode) => void
-  arpgSave:            ArpgSaveState
-  arpgSaveSlots:       ArpgSaveSlot[]
-  arpgActiveSaveSlotId: string
-  setArpgSave:         (
-    save: Partial<ArpgSaveState> | null | undefined,
-    slots?: ArpgSaveSlot[],
-    activeSlotId?: string
-  ) => void
-  resetArpgSave:       () => void
-  confirmResetArpgSave: () => void
-  saveArpgManualSlot:  () => void
-  saveArpgCheckpointSlot: () => void
-  loadArpgSaveSlot:    (slotId: string) => void
-  moveArpgPlayer:      (vector: ArpgMoveVector) => void
-  collectArpgItem:     (itemId: string, sourceId?: string) => void
-  equipArpgItem:       (itemId: string) => void
-  upgradeArpgItem:     (itemOrInstanceId?: string | null) => void
-  unlockArpgSkill:     (skillId: string) => void
-  createArpgCharacter: (selection: ArpgCharacterSelection) => void
-  respecArpgCharacter: (selection: ArpgCharacterSelection) => void
-  setArpgCharacterCosmetic: (selection: Pick<ArpgCharacterSelection, 'paletteId' | 'portraitId'>) => void
-  useArpgConsumable:   (itemId: string) => void
-  strikeArpgEnemy:     (enemyId: string) => void
-  targetArpgEnemy:     (enemyId: string | null) => void
-  useArpgSkill:        (skillId?: string | null, enemyId?: string | null) => void
-  dodgeArpgPlayer:     (vector?: ArpgMoveVector | null) => void
-  advanceArpgStory:    (storyFlag: string) => void
-  selectArpgRegion:    (cityId: string, subCityId?: string | null) => void
-  beginArpgTravel:     (routeId: string) => void
-  resolveArpgTravelEvent: (choiceId: string) => void
-  acceptArpgQuest:     (questId: string) => void
-  advanceArpgQuest:    (questId: string, storyFlag?: string) => void
-  recruitArpgCompanion:(companionId: string) => void
-  craftArpgRecipe:     (recipeId: string) => void
-  salvageArpgItem:     (itemOrInstanceId?: string | null) => void
-  recordArpgReputation:(factionOrCityId: string, delta: number) => void
-  selectArpgEndgameDifficulty: (difficultyTierId: string) => void
-  startArpgEndgameDungeon: (dungeonId: string) => void
-  completeArpgEndgameDungeon: (dungeonId?: string | null) => void
-  startArpgRelicTrial: (trialId: string) => void
-  completeArpgRelicTrial: (trialId?: string | null) => void
-  startArpgBossRematch: (rematchId: string) => void
-  completeArpgBossRematch: (rematchId?: string | null) => void
-  claimArpgTreasureMap: (mapId: string) => void
-  completeArpgTreasureMap: (mapId: string) => void
-  startArpgArenaChallenge: (challengeId: string) => void
-  completeArpgArenaChallenge: (challengeId?: string | null) => void
-  claimArpgCosmeticReward: (rewardId: string) => void
-
   // Activity log
   activityLog: LogEntry[]
   addLog:      (entry: Omit<LogEntry, 'id' | 'time'>) => void
@@ -1083,50 +960,6 @@ const DEFAULT_PM_CHECKLIST: PMChecklistItem[] = [
   { id: 'post-retest',    label: 'Regression path manually retested',             category: 'post-incident', checked: false },
 ]
 
-type ArpgStoreSavePatch = {
-  arpgSave: ArpgSaveState
-  arpgSaveSlots: ArpgSaveSlot[]
-  arpgActiveSaveSlotId: string
-}
-
-function createArpgStoreSavePatch(
-  saveInput: Partial<ArpgSaveState> | null | undefined,
-  slotsInput?: ArpgSaveSlot[] | null,
-  activeSlotId = ARPG_AUTOSAVE_SLOT_ID,
-  options: { syncAutosave?: boolean } = {},
-): ArpgStoreSavePatch {
-  const arpgSave = normalizeArpgSave(saveInput)
-  const arpgSaveSlots =
-    options.syncAutosave === false
-      ? normalizeArpgSaveSlots(slotsInput, arpgSave)
-      : syncArpgAutosaveSlot(arpgSave, slotsInput)
-  const slotIds = new Set(arpgSaveSlots.map((slot) => slot.id))
-
-  return {
-    arpgSave,
-    arpgSaveSlots,
-    arpgActiveSaveSlotId: slotIds.has(activeSlotId) ? activeSlotId : ARPG_AUTOSAVE_SLOT_ID,
-  }
-}
-
-function createDefaultArpgStoreSavePatch(): ArpgStoreSavePatch {
-  const arpgSave = createDefaultArpgSave()
-
-  return {
-    arpgSave,
-    arpgSaveSlots: createArpgSaveSlotSet(arpgSave),
-    arpgActiveSaveSlotId: ARPG_AUTOSAVE_SLOT_ID,
-  }
-}
-
-function stampArpgSaveEvent(save: ArpgSaveState, lastEvent: string): ArpgSaveState {
-  return {
-    ...normalizeArpgSave(save),
-    lastEvent,
-    lastSavedAt: Date.now(),
-  }
-}
-
 function normalizePersistedNexusState(persisted: unknown): Partial<NexusState> {
   const next =
     persisted && typeof persisted === 'object'
@@ -1138,7 +971,6 @@ function normalizePersistedNexusState(persisted: unknown): Partial<NexusState> {
     ...(next.settings ?? {}),
   })
   next.settings.aiProvider = normalizePreferredAIProvider(next.settings.aiProvider)
-  next.settings.arpgViewportSize = normalizeArpgViewportSize(next.settings.arpgViewportSize)
   next.settings.hqConsoleFocusMode = normalizeHqConsoleFocusMode(
     next.settings.hqConsoleFocusMode,
   )
@@ -1149,16 +981,6 @@ function normalizePersistedNexusState(persisted: unknown): Partial<NexusState> {
   if (!next.skillsWorkbenchView) next.skillsWorkbenchView = 'forge'
   if (!next.resourcesWorkbenchView) next.resourcesWorkbenchView = 'manual'
   if (!next.securityWorkbenchView) next.securityWorkbenchView = 'doctrine'
-  next.hqRoomMode = next.hqRoomMode === 'command-room' ? 'command-room' : 'arpg'
-  next.arpgSave = normalizeArpgSave(next.arpgSave)
-  next.arpgSaveSlots = syncArpgAutosaveSlot(next.arpgSave, next.arpgSaveSlots)
-  {
-    const slotIds = new Set(next.arpgSaveSlots.map((slot) => slot.id))
-    next.arpgActiveSaveSlotId =
-      typeof next.arpgActiveSaveSlotId === 'string' && slotIds.has(next.arpgActiveSaveSlotId)
-        ? next.arpgActiveSaveSlotId
-        : ARPG_AUTOSAVE_SLOT_ID
-  }
   if (!Array.isArray(next.voiceProfiles)) next.voiceProfiles = []
   if (!Array.isArray(next.voiceProjects)) next.voiceProjects = []
   if (!next.activeVoiceProjectId) next.activeVoiceProjectId = null
@@ -1519,174 +1341,6 @@ export const useStore = create<NexusState>()(
         })),
       resetOfficeLayout: () => set({ officeLayout: { ...OFFICE_OBJECT_DEFAULTS } }),
 
-      // Aether Reliquary ARPG room
-      hqRoomMode: 'arpg',
-      setHqRoomMode: (hqRoomMode) => set({ hqRoomMode }),
-      ...createDefaultArpgStoreSavePatch(),
-      setArpgSave: (arpgSave, arpgSaveSlots, arpgActiveSaveSlotId) =>
-        set((s) =>
-          createArpgStoreSavePatch(
-            arpgSave,
-            arpgSaveSlots ?? s.arpgSaveSlots,
-            arpgActiveSaveSlotId ?? s.arpgActiveSaveSlotId,
-            { syncAutosave: !arpgSaveSlots },
-          ),
-        ),
-      resetArpgSave: () => set(createArpgStoreSavePatch(resetArpgSaveState())),
-      confirmResetArpgSave: () => set(createArpgStoreSavePatch(resetArpgSaveState())),
-      saveArpgManualSlot: () =>
-        set((s) => {
-          const saved = stampArpgSaveEvent(s.arpgSave, 'Manual save recorded.')
-          const syncedSlots = syncArpgAutosaveSlot(saved, s.arpgSaveSlots)
-          return {
-            arpgSave: saved,
-            arpgSaveSlots: upsertArpgSaveSlot(syncedSlots, saved, 'manual', ARPG_MANUAL_SLOT_ID),
-            arpgActiveSaveSlotId: ARPG_MANUAL_SLOT_ID,
-          }
-        }),
-      saveArpgCheckpointSlot: () =>
-        set((s) => {
-          const saved = stampArpgSaveEvent(s.arpgSave, 'Checkpoint save recorded.')
-          const syncedSlots = syncArpgAutosaveSlot(saved, s.arpgSaveSlots)
-          const arpgSaveSlots = upsertArpgSaveSlot(syncedSlots, saved, 'checkpoint')
-          const checkpointSlot = arpgSaveSlots.find((slot) => slot.kind === 'checkpoint')
-          return {
-            arpgSave: saved,
-            arpgSaveSlots,
-            arpgActiveSaveSlotId: checkpointSlot?.id ?? s.arpgActiveSaveSlotId,
-          }
-        }),
-      loadArpgSaveSlot: (slotId) =>
-        set((s) => {
-          const arpgSaveSlots = normalizeArpgSaveSlots(s.arpgSaveSlots, s.arpgSave)
-          const slot = arpgSaveSlots.find((entry) => entry.id === slotId || entry.kind === slotId)
-          if (!slot) return { arpgSaveSlots }
-
-          return createArpgStoreSavePatch(
-            stampArpgSaveEvent(slot.save, `Loaded ${slot.label}.`),
-            arpgSaveSlots,
-            slot.id,
-          )
-        }),
-      moveArpgPlayer: (vector) =>
-        set((s) => createArpgStoreSavePatch(moveArpgPlayerState(s.arpgSave, vector), s.arpgSaveSlots)),
-      collectArpgItem: (itemId, sourceId) =>
-        set((s) =>
-          createArpgStoreSavePatch(collectArpgItemState(s.arpgSave, itemId, sourceId), s.arpgSaveSlots),
-        ),
-      equipArpgItem: (itemId) =>
-        set((s) => createArpgStoreSavePatch(equipArpgItemState(s.arpgSave, itemId), s.arpgSaveSlots)),
-      upgradeArpgItem: (itemOrInstanceId) =>
-        set((s) =>
-          createArpgStoreSavePatch(upgradeArpgItemState(s.arpgSave, itemOrInstanceId), s.arpgSaveSlots),
-        ),
-      unlockArpgSkill: (skillId) =>
-        set((s) => createArpgStoreSavePatch(unlockArpgSkillState(s.arpgSave, skillId), s.arpgSaveSlots)),
-      createArpgCharacter: (selection) =>
-        set((s) =>
-          createArpgStoreSavePatch(createArpgCharacterState(s.arpgSave, selection), s.arpgSaveSlots),
-        ),
-      respecArpgCharacter: (selection) =>
-        set((s) =>
-          createArpgStoreSavePatch(respecArpgCharacterState(s.arpgSave, selection), s.arpgSaveSlots),
-        ),
-      setArpgCharacterCosmetic: (selection) =>
-        set((s) =>
-          createArpgStoreSavePatch(setArpgCharacterCosmeticState(s.arpgSave, selection), s.arpgSaveSlots),
-        ),
-      useArpgConsumable: (itemId) =>
-        set((s) => createArpgStoreSavePatch(useArpgConsumableState(s.arpgSave, itemId), s.arpgSaveSlots)),
-      strikeArpgEnemy: (enemyId) =>
-        set((s) => createArpgStoreSavePatch(strikeArpgEnemyState(s.arpgSave, enemyId), s.arpgSaveSlots)),
-      targetArpgEnemy: (enemyId) =>
-        set((s) => createArpgStoreSavePatch(targetArpgEnemyState(s.arpgSave, enemyId), s.arpgSaveSlots)),
-      useArpgSkill: (skillId, enemyId) =>
-        set((s) =>
-          createArpgStoreSavePatch(useArpgSkillState(s.arpgSave, skillId, enemyId), s.arpgSaveSlots),
-        ),
-      dodgeArpgPlayer: (vector) =>
-        set((s) => createArpgStoreSavePatch(dodgeArpgPlayerState(s.arpgSave, vector), s.arpgSaveSlots)),
-      advanceArpgStory: (storyFlag) =>
-        set((s) => createArpgStoreSavePatch(advanceArpgStoryState(s.arpgSave, storyFlag), s.arpgSaveSlots)),
-      selectArpgRegion: (cityId, subCityId) =>
-        set((s) =>
-          createArpgStoreSavePatch(selectArpgRegionState(s.arpgSave, cityId, subCityId), s.arpgSaveSlots),
-        ),
-      beginArpgTravel: (routeId) =>
-        set((s) => createArpgStoreSavePatch(beginArpgTravelState(s.arpgSave, routeId), s.arpgSaveSlots)),
-      resolveArpgTravelEvent: (choiceId) =>
-        set((s) =>
-          createArpgStoreSavePatch(resolveArpgTravelEventState(s.arpgSave, choiceId), s.arpgSaveSlots),
-        ),
-      acceptArpgQuest: (questId) =>
-        set((s) => createArpgStoreSavePatch(acceptArpgQuestState(s.arpgSave, questId), s.arpgSaveSlots)),
-      advanceArpgQuest: (questId, storyFlag) =>
-        set((s) =>
-          createArpgStoreSavePatch(advanceArpgQuestState(s.arpgSave, questId, storyFlag), s.arpgSaveSlots),
-        ),
-      recruitArpgCompanion: (companionId) =>
-        set((s) =>
-          createArpgStoreSavePatch(recruitArpgCompanionState(s.arpgSave, companionId), s.arpgSaveSlots),
-        ),
-      craftArpgRecipe: (recipeId) =>
-        set((s) => createArpgStoreSavePatch(craftArpgRecipeState(s.arpgSave, recipeId), s.arpgSaveSlots)),
-      salvageArpgItem: (itemOrInstanceId) =>
-        set((s) =>
-          createArpgStoreSavePatch(salvageArpgItemState(s.arpgSave, itemOrInstanceId), s.arpgSaveSlots),
-        ),
-      recordArpgReputation: (factionOrCityId, delta) =>
-        set((s) =>
-          createArpgStoreSavePatch(recordArpgReputationState(s.arpgSave, factionOrCityId, delta), s.arpgSaveSlots),
-        ),
-      selectArpgEndgameDifficulty: (difficultyTierId) =>
-        set((s) =>
-          createArpgStoreSavePatch(selectArpgEndgameDifficultyState(s.arpgSave, difficultyTierId), s.arpgSaveSlots),
-        ),
-      startArpgEndgameDungeon: (dungeonId) =>
-        set((s) =>
-          createArpgStoreSavePatch(startArpgEndgameDungeonState(s.arpgSave, dungeonId), s.arpgSaveSlots),
-        ),
-      completeArpgEndgameDungeon: (dungeonId) =>
-        set((s) =>
-          createArpgStoreSavePatch(completeArpgEndgameDungeonState(s.arpgSave, dungeonId), s.arpgSaveSlots),
-        ),
-      startArpgRelicTrial: (trialId) =>
-        set((s) =>
-          createArpgStoreSavePatch(startArpgRelicTrialState(s.arpgSave, trialId), s.arpgSaveSlots),
-        ),
-      completeArpgRelicTrial: (trialId) =>
-        set((s) =>
-          createArpgStoreSavePatch(completeArpgRelicTrialState(s.arpgSave, trialId), s.arpgSaveSlots),
-        ),
-      startArpgBossRematch: (rematchId) =>
-        set((s) =>
-          createArpgStoreSavePatch(startArpgBossRematchState(s.arpgSave, rematchId), s.arpgSaveSlots),
-        ),
-      completeArpgBossRematch: (rematchId) =>
-        set((s) =>
-          createArpgStoreSavePatch(completeArpgBossRematchState(s.arpgSave, rematchId), s.arpgSaveSlots),
-        ),
-      claimArpgTreasureMap: (mapId) =>
-        set((s) =>
-          createArpgStoreSavePatch(claimArpgTreasureMapState(s.arpgSave, mapId), s.arpgSaveSlots),
-        ),
-      completeArpgTreasureMap: (mapId) =>
-        set((s) =>
-          createArpgStoreSavePatch(completeArpgTreasureMapState(s.arpgSave, mapId), s.arpgSaveSlots),
-        ),
-      startArpgArenaChallenge: (challengeId) =>
-        set((s) =>
-          createArpgStoreSavePatch(startArpgArenaChallengeState(s.arpgSave, challengeId), s.arpgSaveSlots),
-        ),
-      completeArpgArenaChallenge: (challengeId) =>
-        set((s) =>
-          createArpgStoreSavePatch(completeArpgArenaChallengeState(s.arpgSave, challengeId), s.arpgSaveSlots),
-        ),
-      claimArpgCosmeticReward: (rewardId) =>
-        set((s) =>
-          createArpgStoreSavePatch(claimArpgCosmeticRewardState(s.arpgSave, rewardId), s.arpgSaveSlots),
-        ),
-
       // Activity log defaults
       activityLog: [],
       addLog: (entry) =>
@@ -1961,10 +1615,6 @@ export const useStore = create<NexusState>()(
         pendingDrafts: s.pendingDrafts,
         aiMode:        s.aiMode,
         officeLayout:  s.officeLayout,
-        hqRoomMode:    s.hqRoomMode,
-        arpgSave:      s.arpgSave,
-        arpgSaveSlots: s.arpgSaveSlots,
-        arpgActiveSaveSlotId: s.arpgActiveSaveSlotId,
         intelView:     s.intelView,
         marketsView:   s.marketsView,
         cyberView:     s.cyberView,

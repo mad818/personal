@@ -242,7 +242,6 @@ function collectTsxSources(relativeDirectory) {
         .relative(repoRoot, absolutePath)
         .replaceAll("\\", "/");
       if (entry.isDirectory()) {
-        if (relativePath === "components/home/arpg") continue;
         pending.push(absolutePath);
       } else if (entry.isFile() && entry.name.endsWith(".tsx")) {
         sources.push({

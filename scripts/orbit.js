@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // scripts/orbit.js — npm run orbit:next
-// Reads the canonical task queue and reports the next locally actionable,
-// non-RPG top-level task without mutating project state.
+// Reads the canonical task queue and reports the next locally actionable
+// top-level task without mutating project state.
 
 const fs = require("fs");
 const path = require("path");
@@ -63,16 +63,7 @@ function parseTopLevelPendingTaskBlocks(lines) {
 }
 
 function classifyPendingTask(task) {
-  const key = task.key.toUpperCase();
   const context = task.context;
-
-  if (
-    key.startsWith("MW6") ||
-    /(?:^|[-/])ARPG(?:$|[-/])/.test(key) ||
-    /\bAether Reliquary\b/i.test(context)
-  ) {
-    return { ...task, classification: "excluded_rpg", reason: "rpg_scope" };
-  }
 
   const declaredPosture = context.match(
     /^\s*-\s+Queue posture:\s+`?(blocked_external|blocked_manual)`?\b/im,
@@ -163,9 +154,6 @@ function buildOrbitQueue(content) {
   const blockedOrManual = tasks.filter(
     (task) => task.classification === "blocked_or_manual",
   );
-  const excludedRpg = tasks.filter(
-    (task) => task.classification === "excluded_rpg",
-  );
   return {
     source:
       next?.section ??
@@ -177,7 +165,6 @@ function buildOrbitQueue(content) {
       total: tasks.length,
       actionable: actionable.length,
       blockedOrManual: blockedOrManual.length,
-      excludedRpg: excludedRpg.length,
     },
   };
 }
@@ -231,7 +218,7 @@ function formatOrbitQueue(queue, options = {}) {
   } else {
     lines.push("ORBIT ACTIONABLE QUEUE");
     lines.push("─────────────────────────────────────────");
-    lines.push("No locally actionable non-RPG task is currently proven.");
+    lines.push("No locally actionable task is currently proven.");
     if (queue.firstBlocker) {
       lines.push("");
       lines.push(`First blocker: ${queue.firstBlocker.task}`);
@@ -240,7 +227,7 @@ function formatOrbitQueue(queue, options = {}) {
   }
   lines.push("");
   lines.push(
-    `${queue.counts.total} top-level pending: ${queue.counts.actionable} actionable, ${queue.counts.blockedOrManual} blocked/manual, ${queue.counts.excludedRpg} RPG-excluded`,
+    `${queue.counts.total} top-level pending: ${queue.counts.actionable} actionable, ${queue.counts.blockedOrManual} blocked/manual`,
   );
 
   if (options.all) {

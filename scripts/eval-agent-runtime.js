@@ -373,7 +373,6 @@ function main() {
         /candidate/.test(homefrontSourceIntelligence) &&
         /blocked/.test(homefrontSourceIntelligence) &&
         /rejected/.test(homefrontSourceIntelligence) &&
-        /private-lane/.test(homefrontSourceIntelligence) &&
         /resources-source-ledger/.test(sourceIntelligenceConsole) &&
         /File to VAULT/.test(sourceIntelligenceConsole),
       'External GitHub/X resources are classified into governed source statuses and shown in RESOURCES with VAULT filing actions',

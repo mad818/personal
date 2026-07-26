@@ -1,7 +1,7 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:128c3740-913a-4792-8c79-3b61d4326c8e",
+  "serialNumber": "urn:uuid:5c53debd-2d1e-db11-038e-ce3c089a3ceb",
   "version": 1,
   "metadata": {
     "component": {
@@ -13,7 +13,7 @@
     "properties": [
       {
         "name": "nexus:component-count",
-        "value": "1259"
+        "value": "1258"
       },
       {
         "name": "nexus:generator",
@@ -21,7 +21,7 @@
       },
       {
         "name": "nexus:lock-digest-sha256",
-        "value": "128c3740913a47928c793b61d4326c8ee28b685889ac2c0f4c1f287bccd4f8fc"
+        "value": "5c53debd2d1edb11038ece3c089a3ceb3596865158ae1df6a1a8563f4bfda1eb"
       },
       {
         "name": "nexus:network-required",
@@ -27352,34 +27352,6 @@
         {
           "alg": "SHA-512",
           "content": "2c32733d510410f47ecb8f33f7703411dd325dbf29001c865a8fe4e5861d620a58dbfd84b0eb24b09aeaee5387c6bcab54e9f57a31baa00a7c6a1bce2100fcb3"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/phaser@4.0.0",
-      "name": "phaser",
-      "version": "4.0.0",
-      "purl": "pkg:npm/phaser@4.0.0",
-      "properties": [
-        {
-          "name": "nexus:ecosystem",
-          "value": "npm"
-        },
-        {
-          "name": "nexus:npm-scope",
-          "value": "runtime"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "7fda18a6edff532981e49243651a8eb0d426e4590c302eeef1e2fcc90baa1806b9e304db804d906d33a7ef4be0be5395b98790730da6390e763e92470520647d"
         }
       ],
       "licenses": [

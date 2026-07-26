@@ -60,11 +60,11 @@ function getHandoffQueueLines(raw) {
       );
     }
   } else {
-    lines.push("- No locally actionable non-RPG task is currently proven.");
+    lines.push("- No locally actionable task is currently proven.");
   }
 
   lines.push(
-    `- Queue posture: ${queue.counts.actionable} actionable, ${queue.counts.blockedOrManual} blocked/manual tasks remain context-only, and ${queue.counts.excludedRpg} RPG tasks are excluded from handoff task selection.`,
+    `- Queue posture: ${queue.counts.actionable} actionable and ${queue.counts.blockedOrManual} blocked/manual tasks remain context-only.`,
     "- Review the full classified queue only when prerequisites change: `npm run orbit:next -- --all`.",
     "- Canonical task evidence: `tasks/todo.md` → `## Next Up`.",
   );

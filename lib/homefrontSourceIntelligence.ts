@@ -25,14 +25,12 @@ export type HomefrontSourceSurface =
   | "CYBER"
   | "COMMAND"
   | "SKILLS"
-  | "VAULT"
-  | "private ARPG";
+  | "VAULT";
 export type HomefrontSourceLedgerStatus =
   | "mapped"
   | "candidate"
   | "blocked"
-  | "rejected"
-  | "private-lane";
+  | "rejected";
 
 export type HomefrontSourceLedgerItem = {
   label: string;
@@ -73,13 +71,6 @@ export const HOMEFRONT_SOURCE_INTELLIGENCE_LANES: HomefrontSourceIntelligenceLan
       body: "Design-system specs and taste skills turn the premium language into durable constraints so future screens keep the same command-room voice.",
       posture: "Design contract",
       references: ["design.md", "taste-skill"],
-    },
-    {
-      label: "Tooling",
-      title: "Private lanes stay guarded",
-      body: "Sprite and asset tooling can inform private production workflows later, but public Homefront remains command intelligence and source discipline.",
-      posture: "Private tooling",
-      references: ["sprite forge", "pixel snapper"],
     },
   ];
 
@@ -195,29 +186,6 @@ export const HOMEFRONT_SOURCE_LEDGER: HomefrontSourceLedgerItem[] = [
     vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
   },
   {
-    label: "sprite-sheet-creator",
-    href: "https://github.com/blendi-remade/sprite-sheet-creator",
-    sourceType: "github",
-    surface: "private ARPG",
-    status: "private-lane",
-    decisionReason:
-      "Potentially useful for private game asset workflow, not public Homefront positioning.",
-    nextAction:
-      "Consider only inside the ARPG asset-pipeline ledger after licensing review.",
-    vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
-  },
-  {
-    label: "agent-sprite-forge",
-    href: "https://github.com/0x0funky/agent-sprite-forge",
-    sourceType: "github",
-    surface: "private ARPG",
-    status: "private-lane",
-    decisionReason:
-      "Sprite generation workflow belongs to the private Aether Reliquary lane if provenance is clean.",
-    nextAction: "Review later against ARPG asset ledger rules.",
-    vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
-  },
-  {
     label: "awesome-osint-arsenal",
     href: "https://github.com/rawfilejson/awesome-osint-arsenal",
     sourceType: "github",
@@ -226,17 +194,6 @@ export const HOMEFRONT_SOURCE_LEDGER: HomefrontSourceLedgerItem[] = [
     decisionReason:
       "Curated OSINT categories fit RECON as passive source taxonomy, not automated probing.",
     nextAction: "Translate useful categories into RECON source/evidence lanes.",
-    vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
-  },
-  {
-    label: "spritefusion pixel snapper",
-    href: "https://github.com/Hugo-Dz/spritefusion-pixel-snapper",
-    sourceType: "github",
-    surface: "private ARPG",
-    status: "private-lane",
-    decisionReason:
-      "Pixel tooling may help private game production but should not affect Homefront routes.",
-    nextAction: "Hold for ARPG asset-pipeline planning.",
     vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
   },
   {
@@ -365,17 +322,6 @@ export const HOMEFRONT_SOURCE_LEDGER: HomefrontSourceLedgerItem[] = [
       "Map to COMMAND only if it improves route actions or proof receipts.",
     vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
   },
-  {
-    label: "0x0funky X sprite post",
-    href: "https://x.com/0x0funky/status/2048433528162193854",
-    sourceType: "x-post",
-    surface: "private ARPG",
-    status: "private-lane",
-    decisionReason:
-      "Sprite/asset ideas belong to the private RPG lane and require provenance checks.",
-    nextAction: "Hold for ARPG asset-pipeline review, not Homefront copy.",
-    vaultHref: "/vault?focus=vault-compiled-pages&workflowId=source-intel",
-  },
 ];
 
 export const HOMEFRONT_SOURCE_INTAKE: HomefrontSourceIntakeItem[] = [
@@ -392,13 +338,13 @@ export const HOMEFRONT_SOURCE_INTAKE: HomefrontSourceIntakeItem[] = [
   {
     label: "Approval posture",
     value: "Operator approved",
-    detail: "Risky actions, new tools, and private-lane changes stay gated.",
+    detail: "Risky actions, new tools, and sensitive changes stay gated.",
   },
 ];
 
 export const HOMEFRONT_SOURCE_OPERATOR_GUARDRAILS = [
   "No new runtime dependency without local value, license clarity, and rollback plan.",
   "No offensive automation enters RECON/CYBER without explicit scope and operator approval.",
-  "No private RPG or art-tooling lane becomes public Homefront positioning.",
+  "No unrelated entertainment or art-tooling lane becomes public Homefront positioning.",
   "No X post becomes implementation until the underlying idea is read and mapped.",
 ] as const;

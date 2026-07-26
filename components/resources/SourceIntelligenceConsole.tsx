@@ -26,7 +26,6 @@ const LEDGER_STATUS_LABELS: Record<
   candidate: "Candidate",
   blocked: "Blocked",
   rejected: "Rejected",
-  "private-lane": "Private lane",
 };
 
 export default function SourceIntelligenceConsole() {
@@ -37,7 +36,7 @@ export default function SourceIntelligenceConsole() {
     (item) => item.status === "mapped",
   ).length;
   const gatedCount = HOMEFRONT_SOURCE_LEDGER.filter((item) =>
-    ["blocked", "rejected", "private-lane"].includes(item.status),
+    ["blocked", "rejected"].includes(item.status),
   ).length;
 
   return (

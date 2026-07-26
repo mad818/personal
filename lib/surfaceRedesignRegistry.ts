@@ -1257,7 +1257,7 @@ export const RESOURCES_WORKBENCH_VIEW_SPECS: Record<
     panelTitle: "Source intelligence",
     panelDetail: "External idea intake, lane mapping, and guardrails",
     panelSummary:
-      "Source intelligence should keep outside inspiration useful without vendoring code, weakening security posture, or exposing private RPG work.",
+      "Source intelligence should keep outside inspiration useful without vendoring code or weakening security posture.",
   },
   study: {
     view: "study",

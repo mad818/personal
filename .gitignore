@@ -69,7 +69,3 @@ git-path.txt
 kill-git.bat
 kill-log.txt
 push.sh
-
-# Aether Reliquary raw asset intake stays local until optimized and manifest-tracked
-assets/arpg/intake/raw/
-assets/arpg/intake/work/

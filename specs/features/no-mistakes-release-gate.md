@@ -24,7 +24,7 @@ The intent is used only for the current process, is never printed verbatim in JS
 
 ## Source assimilation boundary
 
-The feature adapts the useful release-discipline patterns from `kunchenguid/no-mistakes` at release `v1.34.0`: intent-aware validation, ordered gates, human control, deterministic commands, and explicit outcomes. Nexus does not install the upstream Go daemon, add a Git proxy remote, create disposable worktrees, invoke external coding agents, auto-fix code, push branches, create pull requests, monitor CI, rebase, or merge.
+The feature adapts the useful release-discipline patterns from `kunchenguid/no-mistakes` at release `v1.34.0`: intent-aware validation, ordered gates, human control, deterministic commands, and explicit outcomes. This read-only gate does not create disposable worktrees; the separate `npm run verify:isolated` command owns that bounded behavior. Nexus does not install the upstream Go daemon, add a Git proxy remote, invoke external coding agents, auto-fix code, push branches, create pull requests, monitor CI, rebase, or merge.
 
 ## State
 

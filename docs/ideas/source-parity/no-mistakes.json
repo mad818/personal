@@ -82,8 +82,12 @@
       "id": "disposable-worktree-isolation",
       "title": "Run validation in a disposable worktree without disrupting the active checkout",
       "sourceEvidence": "README.md How it works",
-      "disposition": "pending",
-      "reason": "The first Nexus tranche is read-only in the current checkout; a later reviewed tranche may add bounded disposable-worktree execution compatible with the Git ACL wrapper."
+      "disposition": "adapted",
+      "proof": [
+        "scripts/isolated-verify.mjs",
+        "scripts/check-isolated-verification-runtime.mjs",
+        "specs/features/no-mistakes-isolated-verification.md"
+      ]
     },
     {
       "id": "safe-mechanical-auto-fixes",
@@ -96,8 +100,12 @@
       "id": "durable-run-evidence",
       "title": "Persist gate runs, findings, step logs, and evidence for later inspection",
       "sourceEvidence": ".no-mistakes/evidence, SQLite run state, and AXI status/logs",
-      "disposition": "pending",
-      "reason": "The first tranche writes nothing. A later local-only ignored evidence record may be useful after its privacy and retention shape is reviewed."
+      "disposition": "adapted",
+      "proof": [
+        "scripts/isolated-verify.mjs",
+        "scripts/check-isolated-verification-runtime.mjs",
+        "specs/features/no-mistakes-isolated-verification.md"
+      ]
     },
     {
       "id": "git-proxy-daemon-and-tui",

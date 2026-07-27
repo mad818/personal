@@ -1030,7 +1030,7 @@ ${NEXUS_AGENT_NO_BILLING_RULE}
 
 You have full access to the Homefront project source code through these tools:
 - list_project_files(directory) — explore the project structure
-- read_project_file(path) — read any source file before editing
+- read_project_file(path, focus?, chunk?) — read exact small files or bounded semantic context from large files before editing
 - patch_project_file(path, old_string, new_string) — make targeted edits to components, pages, or library files
 - fetch_url('/api/project') — read the canonical context spine (AGENTS, SYSTEM_STATE, STANDARDS, PROJECT_BIBLE)
 

@@ -2,6 +2,7 @@
 // Tools API: dynamic tool discovery and execution framework.
 
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { getBrandServiceName } from "@/lib/brand";
@@ -101,6 +102,7 @@ import {
 import { formatRepoIntelToolResult } from "@/lib/repoIntel";
 import { getRepoIntelProfile, RepoIntelError } from "@/lib/serverRepoIntel";
 import { loadSavedRepoAssimilationBrief } from "@/lib/serverRepoCompare";
+import { buildProjectFileContext } from "@/lib/projectFileContext";
 import {
   buildExternalToolResultEnvelope,
   type ExternalToolResultEnvelope,
@@ -620,7 +622,7 @@ async function calculate(expression: string): Promise<string> {
 //  - .env* files always blocked
 //  - node_modules, .git, .next, archive blocked
 //  - Write only allowed inside safe source dirs
-//  - Max read: 60,000 chars (~1,500 lines)
+//  - Max response: 60,000 chars with semantic selection for larger files
 
 const PROJECT_ROOT = process.cwd();
 
@@ -691,6 +693,8 @@ function normalizeProjectPathKey(relPath: string): string {
 async function readProjectFile(
   relPath: string,
   runId: string,
+  rawFocus = "",
+  rawChunk = "",
 ): Promise<ToolResult> {
   const { safe, blocked } = resolveProjectPath(relPath);
   if (blocked) return withToolResult(`Blocked: ${blocked}`);
@@ -708,28 +712,41 @@ async function readProjectFile(
       },
     );
   }
+  const selectorKey = createHash("sha256")
+    .update(`${rawChunk.trim()}\0${rawFocus.trim().toLowerCase()}`)
+    .digest("hex")
+    .slice(0, 24);
   const duplicateRead = recordDuplicateRead(
     runId,
     "read_project_file",
-    normalizedPath,
+    `${normalizedPath}|${selectorKey}`,
   );
-  const cacheKey = `read_project_file:${normalizedPath}`;
+  const cacheKey = `read_project_file:${normalizedPath}:${selectorKey}`;
   const cached = cacheGet(cacheKey);
   if (cached !== null) {
     return withToolResult(cached, { cacheHit: true, duplicateRead });
   }
+  let content: string;
   try {
-    const content = await fs.readFile(safe, "utf-8");
-    const preview = content.slice(0, 60_000);
-    const truncated =
-      content.length > 60_000
-        ? `\n\n[Truncated — showing first 60,000 of ${content.length} chars]`
-        : "";
-    const result = preview + truncated;
-    cachePut(cacheKey, result);
-    return withToolResult(result, { duplicateRead });
+    content = await fs.readFile(safe, "utf-8");
   } catch {
     return withToolResult(`File not found: ${relPath}`, { duplicateRead });
+  }
+  try {
+    const result = buildProjectFileContext(content, {
+      extension: ext,
+      focus: rawFocus,
+      chunk: rawChunk,
+    }).text;
+    cachePut(cacheKey, result);
+    return withToolResult(result, { duplicateRead });
+  } catch (error) {
+    return withToolResult(
+      error instanceof Error
+        ? error.message
+        : "Could not build bounded project-file context.",
+      { duplicateRead },
+    );
   }
 }
 
@@ -1903,7 +1920,12 @@ export async function POST(req: NextRequest) {
         break;
       case "read_project_file":
         {
-          const toolResult = await readProjectFile(input.path ?? "", runId);
+          const toolResult = await readProjectFile(
+            input.path ?? "",
+            runId,
+            input.focus ?? "",
+            input.chunk ?? "",
+          );
           result = toolResult.result;
           meta = toolResult.meta;
         }

@@ -586,7 +586,7 @@ export const AGENT_TOOLS = [
   {
     name: "read_project_file",
     description:
-      'Read a source file from the Homefront project. Use this to understand the codebase before making changes — always read a file before editing it. Examples: "app/home/page.tsx", "components/home/office/HQTerminalSection.tsx", "lib/agent.ts", "store/useStore.ts".',
+      'Read a source file from the Homefront project. Small files return exactly as stored. Large files return bounded semantic chunks; use focus to retrieve declarations related to a topic or chunk to request one exact 1-based manifest entry. Always read the relevant file context before editing it. Examples: "app/home/page.tsx", "components/home/office/HQTerminalSection.tsx", "lib/agent.ts", "store/useStore.ts".',
     input_schema: {
       type: "object",
       properties: {
@@ -594,6 +594,16 @@ export const AGENT_TOOLS = [
           type: "string",
           description:
             'Relative path from project root, e.g. "components/home/office/HQTerminalSection.tsx"',
+        },
+        focus: {
+          type: "string",
+          description:
+            "Optional plain-text hint (max 200 characters) used to rank semantic chunks in a large file.",
+        },
+        chunk: {
+          type: "string",
+          description:
+            "Optional exact 1-based chunk number from a prior large-file manifest. Takes precedence over focus.",
         },
       },
       required: ["path"],

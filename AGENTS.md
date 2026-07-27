@@ -106,6 +106,7 @@ app/api/                  ← Next.js server routes
 | `.agents/skills/add-api/SKILL.md`     | New external data source or API key      |
 | `.agents/skills/fix-bug/SKILL.md`     | React/Next.js or active app bug          |
 | `docs/ideas/skills/production-engineering/using-agent-skills/SKILL.md` | Select or chain production-engineering workflows |
+| `docs/ideas/skills/mattpocock-engineering/ask-matt/SKILL.md` | Explicit engineering workflow routing |
 
 Resolve a selected skill's supporting guide relative to its own directory; the sibling `GUIDE.md` is the authoritative deep guide.
 

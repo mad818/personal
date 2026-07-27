@@ -1,0 +1,6 @@
+interface:
+  display_name: "Writing Great Skills"
+  short_description: "Design predictable concise project skills and metadata."
+  default_prompt: "Use $writing-great-skills to create or revise a predictable project skill."
+policy:
+  allow_implicit_invocation: false

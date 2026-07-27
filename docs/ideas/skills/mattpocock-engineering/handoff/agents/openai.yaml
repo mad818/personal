@@ -1,0 +1,6 @@
+interface:
+  display_name: "Handoff"
+  short_description: "Create a compact repository-grounded continuation brief."
+  default_prompt: "Use $handoff to prepare a compact continuation brief for a fresh session."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Triage"
+  short_description: "Classify incoming issues through a bounded local workflow."
+  default_prompt: "Use $triage to classify these incoming issues into actionable next states."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Wayfinder"
+  short_description: "Map a multi-session effort through decision tasks."
+  default_prompt: "Use $wayfinder to map this large effort into decision tasks before building."
+policy:
+  allow_implicit_invocation: false

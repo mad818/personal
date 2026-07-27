@@ -7,6 +7,7 @@ import type {
   SecurityScenario,
   WorkflowDefinition,
 } from "@/lib/assimilation/types";
+import { CAMPAIGN_DRAFT_WORKFLOW } from "@/lib/campaignDraftWorkflow";
 import { buildPassiveModelSafetyRun } from "@/lib/modelSafetyEvaluation";
 
 const ISO_NOW = "2026-04-02T12:00:00.000Z";
@@ -202,6 +203,7 @@ export const DEFAULT_WORKFLOWS: WorkflowDefinition[] = [
       },
     ],
   },
+  CAMPAIGN_DRAFT_WORKFLOW,
 ];
 
 export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [

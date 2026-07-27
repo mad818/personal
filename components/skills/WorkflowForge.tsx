@@ -21,6 +21,13 @@ import {
   analyzeScheduledJobs,
   getScheduledMissionReviewSummary,
 } from "@/lib/schedulerGovernance";
+import {
+  buildLinearWorkflowEdges,
+  moveWorkflowNode,
+  moveWorkflowNodeTo,
+  normalizeWorkflowNodeOrder,
+  WORKFLOW_NODE_TYPES,
+} from "@/lib/workflowDefinition";
 
 const NODE_TONE: Record<WorkflowNode["type"], string> = {
   source: "#4fd1c5",
@@ -62,6 +69,9 @@ export default function WorkflowForge() {
   const [draftDescription, setDraftDescription] = useState("");
   const [draftApprovalMode, setDraftApprovalMode] =
     useState<WorkflowDefinition["approvalMode"]>("human_gate");
+  const [draftNodes, setDraftNodes] = useState<WorkflowNode[]>([]);
+  const [draftEdges, setDraftEdges] = useState<WorkflowDefinition["edges"]>([]);
+  const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     "loading",
   );
@@ -126,7 +136,141 @@ export default function WorkflowForge() {
     if (!selectedWorkflow) return;
     setDraftDescription(selectedWorkflow.description);
     setDraftApprovalMode(selectedWorkflow.approvalMode);
+    setDraftNodes(normalizeWorkflowNodeOrder(selectedWorkflow.nodes));
+    setDraftEdges(selectedWorkflow.edges);
+    setDraggingNodeId(null);
   }, [selectedWorkflow]);
+
+  const draftWorkflow = useMemo<WorkflowDefinition | null>(
+    () =>
+      selectedWorkflow
+        ? {
+            ...selectedWorkflow,
+            description: draftDescription.trim(),
+            approvalMode: draftApprovalMode,
+            nodes: draftNodes,
+            edges: draftEdges,
+          }
+        : null,
+    [
+      draftApprovalMode,
+      draftDescription,
+      draftEdges,
+      draftNodes,
+      selectedWorkflow,
+    ],
+  );
+
+  const hasUnsavedChanges = useMemo(() => {
+    if (!selectedWorkflow || !draftWorkflow) return false;
+    return (
+      JSON.stringify({
+        description: selectedWorkflow.description,
+        approvalMode: selectedWorkflow.approvalMode,
+        nodes: normalizeWorkflowNodeOrder(selectedWorkflow.nodes),
+        edges: selectedWorkflow.edges,
+      }) !==
+      JSON.stringify({
+        description: draftWorkflow.description,
+        approvalMode: draftWorkflow.approvalMode,
+        nodes: draftWorkflow.nodes,
+        edges: draftWorkflow.edges,
+      })
+    );
+  }, [draftWorkflow, selectedWorkflow]);
+
+  function applyStructuralNodes(nodes: WorkflowNode[]) {
+    const normalized = normalizeWorkflowNodeOrder(nodes);
+    setDraftNodes(normalized);
+    setDraftEdges(buildLinearWorkflowEdges(normalized));
+  }
+
+  function moveNode(nodeId: string, direction: -1 | 1) {
+    const currentIndex = draftNodes.findIndex((node) => node.id === nodeId);
+    if (currentIndex === -1) return;
+    applyStructuralNodes(
+      moveWorkflowNode(draftNodes, nodeId, currentIndex + direction),
+    );
+  }
+
+  function moveNodeTo(nodeId: string, targetNodeId: string) {
+    applyStructuralNodes(moveWorkflowNodeTo(draftNodes, nodeId, targetNodeId));
+  }
+
+  function updateNode(
+    nodeId: string,
+    update: Partial<Pick<WorkflowNode, "type" | "title" | "detail">>,
+  ) {
+    setDraftNodes((current) =>
+      current.map((node) =>
+        node.id === nodeId ? { ...node, ...update } : node,
+      ),
+    );
+  }
+
+  function uniqueNodeId(prefix: string) {
+    const safePrefix =
+      prefix
+        .replace(/[^a-zA-Z0-9._-]+/g, "-")
+        .replace(/^-+/, "")
+        .slice(0, 70) || "draft-step";
+    const base = `${safePrefix}-${Date.now().toString(36)}`;
+    let candidate = base;
+    let suffix = 1;
+    while (draftNodes.some((node) => node.id === candidate)) {
+      candidate = `${base}-${suffix}`;
+      suffix += 1;
+    }
+    return candidate;
+  }
+
+  function addNode() {
+    applyStructuralNodes([
+      ...draftNodes,
+      {
+        id: uniqueNodeId("draft-step"),
+        type: "transform",
+        title: `Draft step ${draftNodes.length + 1}`,
+        detail:
+          "Define the evidence, transformation, review, or output contract for this step.",
+        x: draftNodes.length,
+        y: 0,
+      },
+    ]);
+  }
+
+  function duplicateNode(nodeId: string) {
+    const sourceIndex = draftNodes.findIndex((node) => node.id === nodeId);
+    if (sourceIndex === -1) return;
+    const source = draftNodes[sourceIndex];
+    const next = [...draftNodes];
+    next.splice(sourceIndex + 1, 0, {
+      ...source,
+      id: uniqueNodeId(`${source.id}-copy`),
+      title: `${source.title.slice(0, 95)} Copy`,
+    });
+    applyStructuralNodes(next);
+  }
+
+  function removeNode(nodeId: string) {
+    if (draftNodes.length <= 1) return;
+    const node = draftNodes.find((entry) => entry.id === nodeId);
+    const isLastCampaignApproval =
+      node?.type === "approval" &&
+      selectedWorkflow?.tags.includes("campaign") &&
+      draftApprovalMode === "human_gate" &&
+      draftNodes.filter((entry) => entry.type === "approval").length === 1;
+    if (isLastCampaignApproval) {
+      toast({
+        title: "Approval step retained",
+        message:
+          "A human-gated campaign draft must keep at least one approval step.",
+        severity: "medium",
+      });
+      return;
+    }
+    applyStructuralNodes(draftNodes.filter((node) => node.id !== nodeId));
+  }
 
   async function refreshRuns() {
     const runPayload = await loadJson<{ runs: WorkflowRun[] }>(
@@ -136,16 +280,14 @@ export default function WorkflowForge() {
   }
 
   async function saveDraft() {
-    if (!selectedWorkflow) return;
+    if (!selectedWorkflow || !draftWorkflow) return;
     setBusyAction("save");
     try {
       const response = await fetch("/api/workflows", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...selectedWorkflow,
-          description: draftDescription.trim(),
-          approvalMode: draftApprovalMode,
+          ...draftWorkflow,
           version: selectedWorkflow.version + 1,
         } satisfies WorkflowDefinition),
       });
@@ -176,11 +318,11 @@ export default function WorkflowForge() {
   }
 
   async function cloneTemplate() {
-    if (!selectedWorkflow) return;
+    if (!selectedWorkflow || !draftWorkflow) return;
     const next: WorkflowDefinition = {
-      ...selectedWorkflow,
-      id: `${selectedWorkflow.id}-clone-${Date.now()}`,
-      name: `${selectedWorkflow.name} Copy`,
+      ...draftWorkflow,
+      id: `wf-clone-${Date.now().toString(36)}`,
+      name: `${selectedWorkflow.name.slice(0, 115)} Copy`,
       version: 1,
       updatedAt: new Date().toISOString(),
     };
@@ -243,15 +385,15 @@ export default function WorkflowForge() {
   }
 
   async function exportWorkflow() {
-    if (!selectedWorkflow || typeof navigator === "undefined") return;
+    if (!draftWorkflow || typeof navigator === "undefined") return;
     setBusyAction("copy");
     try {
       await navigator.clipboard.writeText(
-        JSON.stringify(selectedWorkflow, null, 2),
+        JSON.stringify(draftWorkflow, null, 2),
       );
       toast({
         title: "Workflow JSON copied",
-        message: `${selectedWorkflow.name} is on the clipboard.`,
+        message: `${draftWorkflow.name} is on the clipboard.`,
         severity: "low",
       });
     } catch {
@@ -408,81 +550,276 @@ export default function WorkflowForge() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <ShellBadge tone="accent">
-                  {selectedWorkflow.approvalMode}
-                </ShellBadge>
+                <ShellBadge tone="accent">{draftApprovalMode}</ShellBadge>
                 <ShellBadge tone="success">
-                  {selectedWorkflow.nodes.length} nodes
+                  {draftNodes.length} nodes
                 </ShellBadge>
+                {hasUnsavedChanges ? (
+                  <ShellBadge tone="muted" role="status">
+                    Unsaved draft
+                  </ShellBadge>
+                ) : null}
               </div>
             </div>
 
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${selectedWorkflow.nodes.length}, minmax(120px, 1fr))`,
+                display: "flex",
+                justifyContent: "space-between",
                 gap: "12px",
-                marginTop: "18px",
                 alignItems: "center",
+                flexWrap: "wrap",
+                marginTop: "14px",
               }}
             >
-              {selectedWorkflow.nodes.map((node, index) => (
-                <div
-                  key={node.id}
-                  style={{
-                    position: "relative",
-                    padding: "12px",
-                    borderRadius: "14px",
-                    border: `1px solid ${NODE_TONE[node.type]}55`,
-                    background: "rgba(4, 8, 17, 0.86)",
-                    minHeight: "140px",
-                  }}
-                >
-                  {index < selectedWorkflow.nodes.length - 1 && (
+              <p
+                style={{
+                  margin: 0,
+                  color: "var(--text3)",
+                  fontSize: "11px",
+                  lineHeight: 1.55,
+                }}
+              >
+                Drag a step handle or use its arrow controls. Structural edits
+                rebuild the visible sequence; nothing runs until the graph is
+                saved.
+              </p>
+              <ShellButton
+                onClick={addNode}
+                disabled={Boolean(busyAction) || draftNodes.length >= 24}
+                title={
+                  draftNodes.length >= 24
+                    ? "Workflow graphs are limited to 24 steps"
+                    : "Add a new editable draft step"
+                }
+              >
+                Add step
+              </ShellButton>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridAutoFlow: "column",
+                gridAutoColumns: "minmax(220px, 1fr)",
+                gap: "12px",
+                marginTop: "12px",
+                alignItems: "stretch",
+                overflowX: "auto",
+                paddingBottom: "8px",
+              }}
+            >
+              {draftNodes.map((node, index) => {
+                const locksApprovalType =
+                  node.type === "approval" &&
+                  selectedWorkflow.tags.includes("campaign") &&
+                  draftApprovalMode === "human_gate" &&
+                  draftNodes.filter((entry) => entry.type === "approval")
+                    .length === 1;
+                return (
+                  <div
+                    key={node.id}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = "move";
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      const sourceId =
+                        draggingNodeId ||
+                        event.dataTransfer.getData("text/plain");
+                      if (sourceId) moveNodeTo(sourceId, node.id);
+                      setDraggingNodeId(null);
+                    }}
+                    style={{
+                      position: "relative",
+                      padding: "12px",
+                      borderRadius: "14px",
+                      border: `1px solid ${NODE_TONE[node.type]}55`,
+                      background:
+                        draggingNodeId === node.id
+                          ? "rgba(79, 110, 247, 0.18)"
+                          : "rgba(4, 8, 17, 0.86)",
+                      minHeight: "270px",
+                      display: "grid",
+                      alignContent: "start",
+                      gap: "10px",
+                    }}
+                  >
+                    {index < draftNodes.length - 1 && (
+                      <div
+                        aria-hidden="true"
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          right: "-12px",
+                          width: "12px",
+                          height: "1px",
+                          background:
+                            "linear-gradient(to right, rgba(214, 165, 109, 0.55), rgba(214, 165, 109, 0.15))",
+                        }}
+                      />
+                    )}
                     <div
                       style={{
-                        position: "absolute",
-                        top: "50%",
-                        right: "-12px",
-                        width: "12px",
-                        height: "1px",
-                        background:
-                          "linear-gradient(to right, rgba(214, 165, 109, 0.55), rgba(214, 165, 109, 0.15))",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "8px",
                       }}
-                    />
-                  )}
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      color: NODE_TONE[node.type],
-                      fontWeight: 700,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {nodeLabel(node.type)}
+                    >
+                      <span
+                        draggable
+                        title="Drag to reorder"
+                        onDragStart={(event) => {
+                          setDraggingNodeId(node.id);
+                          event.dataTransfer.effectAllowed = "move";
+                          event.dataTransfer.setData("text/plain", node.id);
+                        }}
+                        onDragEnd={() => setDraggingNodeId(null)}
+                        style={{
+                          border: 0,
+                          background: "transparent",
+                          padding: 0,
+                          color: NODE_TONE[node.type],
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                          cursor: "grab",
+                        }}
+                      >
+                        {nodeLabel(node.type)} · drag
+                      </span>
+                      <span style={{ fontSize: "10px", color: "var(--text3)" }}>
+                        {index + 1}/{draftNodes.length}
+                      </span>
+                    </div>
+                    <label style={{ display: "grid", gap: "5px" }}>
+                      <span style={{ fontSize: "10px", color: "var(--text3)" }}>
+                        Type
+                      </span>
+                      <select
+                        aria-label={`Type for ${node.title}`}
+                        value={node.type}
+                        onChange={(event) =>
+                          updateNode(node.id, {
+                            type: event.target.value as WorkflowNode["type"],
+                          })
+                        }
+                        style={{
+                          padding: "8px",
+                          borderRadius: "9px",
+                          border: "1px solid var(--border)",
+                          background: "var(--surf2)",
+                          color: "var(--text)",
+                        }}
+                      >
+                        {WORKFLOW_NODE_TYPES.map((type) => (
+                          <option
+                            key={type}
+                            value={type}
+                            disabled={locksApprovalType && type !== "approval"}
+                          >
+                            {nodeLabel(type)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label style={{ display: "grid", gap: "5px" }}>
+                      <span style={{ fontSize: "10px", color: "var(--text3)" }}>
+                        Step title
+                      </span>
+                      <input
+                        aria-label={`Title for step ${index + 1}`}
+                        value={node.title}
+                        maxLength={100}
+                        onChange={(event) =>
+                          updateNode(node.id, { title: event.target.value })
+                        }
+                        style={{
+                          padding: "8px",
+                          borderRadius: "9px",
+                          border: "1px solid var(--border)",
+                          background: "var(--surf2)",
+                          color: "var(--text)",
+                        }}
+                      />
+                    </label>
+                    <label style={{ display: "grid", gap: "5px" }}>
+                      <span style={{ fontSize: "10px", color: "var(--text3)" }}>
+                        Step contract
+                      </span>
+                      <textarea
+                        aria-label={`Contract for ${node.title}`}
+                        value={node.detail}
+                        rows={4}
+                        maxLength={500}
+                        onChange={(event) =>
+                          updateNode(node.id, { detail: event.target.value })
+                        }
+                        style={{
+                          padding: "8px",
+                          borderRadius: "9px",
+                          border: "1px solid var(--border)",
+                          background: "var(--surf2)",
+                          color: "var(--text)",
+                          resize: "vertical",
+                        }}
+                      />
+                    </label>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "6px",
+                        flexWrap: "wrap",
+                        marginTop: "auto",
+                      }}
+                    >
+                      <ShellButton
+                        onClick={() => moveNode(node.id, -1)}
+                        disabled={Boolean(busyAction) || index === 0}
+                        title={`Move ${node.title} left`}
+                      >
+                        Move left
+                      </ShellButton>
+                      <ShellButton
+                        onClick={() => moveNode(node.id, 1)}
+                        disabled={
+                          Boolean(busyAction) || index === draftNodes.length - 1
+                        }
+                        title={`Move ${node.title} right`}
+                      >
+                        Move right
+                      </ShellButton>
+                      <ShellButton
+                        onClick={() => duplicateNode(node.id)}
+                        disabled={
+                          Boolean(busyAction) || draftNodes.length >= 24
+                        }
+                        title={`Duplicate ${node.title}`}
+                      >
+                        Duplicate
+                      </ShellButton>
+                      <ShellButton
+                        onClick={() => removeNode(node.id)}
+                        disabled={
+                          Boolean(busyAction) ||
+                          draftNodes.length <= 1 ||
+                          locksApprovalType
+                        }
+                        title={
+                          locksApprovalType
+                            ? "Human-gated campaigns must keep an approval step"
+                            : `Remove ${node.title}`
+                        }
+                      >
+                        Remove
+                      </ShellButton>
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      marginTop: "8px",
-                      fontSize: "14px",
-                      fontWeight: 800,
-                    }}
-                  >
-                    {node.title}
-                  </div>
-                  <p
-                    style={{
-                      margin: "8px 0 0",
-                      fontSize: "11px",
-                      lineHeight: 1.55,
-                      color: "var(--text2)",
-                    }}
-                  >
-                    {node.detail}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div style={{ marginTop: "18px", display: "grid", gap: "12px" }}>
@@ -501,6 +838,7 @@ export default function WorkflowForge() {
                   value={draftDescription}
                   onChange={(event) => setDraftDescription(event.target.value)}
                   rows={3}
+                  maxLength={1200}
                   style={{
                     width: "100%",
                     padding: "10px 12px",
@@ -538,7 +876,15 @@ export default function WorkflowForge() {
                     color: "var(--text)",
                   }}
                 >
-                  <option value="human_gate">Human gate</option>
+                  <option
+                    value="human_gate"
+                    disabled={
+                      selectedWorkflow.tags.includes("campaign") &&
+                      !draftNodes.some((node) => node.type === "approval")
+                    }
+                  >
+                    Human gate
+                  </option>
                   <option value="approve_on_write">Approve on write</option>
                   <option value="observe">Observe only</option>
                 </select>
@@ -555,7 +901,12 @@ export default function WorkflowForge() {
             >
               <ShellButton
                 onClick={() => void saveDraft()}
-                disabled={Boolean(busyAction)}
+                disabled={Boolean(busyAction) || !hasUnsavedChanges}
+                title={
+                  hasUnsavedChanges
+                    ? "Validate and save the current graph draft"
+                    : "The graph matches its saved version"
+                }
               >
                 {busyAction === "save" ? "Saving…" : "Save graph"}
               </ShellButton>
@@ -567,7 +918,12 @@ export default function WorkflowForge() {
               </ShellButton>
               <ShellButton
                 onClick={() => void runWorkflow()}
-                disabled={Boolean(busyAction)}
+                disabled={Boolean(busyAction) || hasUnsavedChanges}
+                title={
+                  hasUnsavedChanges
+                    ? "Save the current graph before staging a local run"
+                    : "Stage a reviewed local workflow run"
+                }
               >
                 {busyAction === "run" ? "Running…" : "Run workflow"}
               </ShellButton>

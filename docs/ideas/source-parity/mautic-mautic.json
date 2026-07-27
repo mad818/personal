@@ -2,15 +2,17 @@
   "schemaVersion": 1,
   "id": "mautic-mautic",
   "name": "Mautic",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/mautic/mautic",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "7.x-readme-5bdf397ee9bb394b70590369b9e757fdd681f8a0",
+    "reviewedAt": "2026-07-26",
     "license": "GPL-3.0",
     "primaryEvidence": [
-      "https://github.com/mautic/mautic",
-      "https://github.com/mautic/mautic/blob/main/README.md"
+      "https://github.com/mautic/mautic/blob/7.x/README.md",
+      "https://github.com/mautic/mautic/blob/7.x/composer.json",
+      "https://github.com/mautic/mautic/blob/7.x/LICENSE.txt",
+      "https://docs.mautic.org/en/7.2/campaigns/campaign_builder.html"
     ]
   },
   "capabilities": [
@@ -20,14 +22,24 @@
       "sourceEvidence": "Mautic: open-source HubSpot alternative with full marketing automation",
       "disposition": "excluded",
       "conflict": "product_purpose",
-      "reason": "Nexus is not a marketing automation platform. Mautic's core product is outside scope."
+      "reason": "Nexus is not a marketing automation platform. Mautic's CRM, tracking, messaging, integration, scheduling, and campaign-execution runtime remain outside scope."
     },
     {
       "id": "campaign-workflow-builder",
       "title": "Visual campaign workflow builder: drag-drop multi-step automation canvas",
-      "sourceEvidence": "Mautic campaign builder: visual node-based workflow design",
-      "disposition": "pending",
-      "reason": "Nexus could reference Mautic's visual workflow canvas pattern for an agent orchestration visual builder in COMMAND."
+      "sourceEvidence": "Official Mautic documentation describes a drag-and-drop Campaign Builder canvas with sources, events, actions, decisions, conditions, cloning, and explicit triggering.",
+      "disposition": "adapted",
+      "proof": [
+        "components/skills/WorkflowForge.tsx",
+        "lib/campaignDraftWorkflow.ts",
+        "lib/workflowDefinition.ts",
+        "lib/assimilation/seeds.ts",
+        "lib/assimilation/storage.ts",
+        "app/api/workflows/route.ts",
+        "scripts/check-mautic-campaign-builder-runtime.mjs",
+        "scripts/validate-mautic-campaign-builder.mjs"
+      ],
+      "notes": "Nexus completes its own local linear workflow editor: built-in campaign draft, safe default merging, node edit/add/duplicate/remove, drag and keyboard ordering, deterministic edges, save/clone/export, server validation, dirty-state run gating, and human approval. CRM/contact branching and external execution are deliberately not part of this product-native capability."
     },
     {
       "id": "contact-segmentation",
@@ -35,15 +47,15 @@
       "sourceEvidence": "Mautic segments: rules-based contact grouping",
       "disposition": "excluded",
       "conflict": "product_purpose",
-      "reason": "Nexus has no CRM or contact management; contact segmentation is outside scope."
+      "reason": "Nexus has no CRM or contact management. Behavioral grouping, profiling, tracking, and contact segmentation remain outside scope."
     },
     {
       "id": "php-symfony-architecture",
-      "title": "PHP/Symfony architecture for large-scale web application",
-      "sourceEvidence": "Mautic: Symfony 5 PHP backend",
+      "title": "PHP/Symfony architecture for a large web application",
+      "sourceEvidence": "The current Composer workspace is a PHP project built from Mautic packages and Symfony components.",
       "disposition": "excluded",
       "conflict": "product_purpose",
-      "reason": "Nexus is a TypeScript/Next.js app; PHP/Symfony infrastructure is not applicable."
+      "reason": "Nexus is a TypeScript/Next.js app; PHP/Symfony infrastructure and the GPL runtime are not applicable and are not copied."
     }
   ]
 }

@@ -241,6 +241,19 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
       "Share or retrieve the resolved procedure as conversation context; live sources, connectors, host tools, and external actions still require the corresponding connected surface and explicit user authority.",
   },
   {
+    id: "mautic-campaign-builder",
+    label: "Mautic Campaign Builder Pattern",
+    url: "https://github.com/mautic/mautic",
+    kind: "reference",
+    posture: "adapted",
+    purpose:
+      "Visual campaign-workflow editing adapted into a local draft studio; the benefit is a complete reviewable graph lifecycle without importing CRM, tracking, or outbound automation.",
+    codexPath:
+      "Open /skills?view=workflow-forge, select Campaign Draft Studio, edit and order its steps, then save before staging a local draft run.",
+    chatgptPath:
+      "Use the saved workflow JSON or draft artifact as conversation context; normal chat gains no contact, sending, scheduling, or campaign-activation authority.",
+  },
+  {
     id: "ayghri-focus-output",
     label: "ayghri/i-have-adhd Focus Output",
     url: "https://github.com/ayghri/i-have-adhd",
@@ -551,6 +564,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "marketing-skills",
       "social-media-skills",
       "opendirectory-gtm-skills",
+      "mautic-campaign-builder",
       "anthropic-skills",
       "pliny-autostorygen",
     ],

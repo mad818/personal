@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listWorkflows, saveWorkflow } from "@/lib/assimilation/storage";
-import type { WorkflowDefinition } from "@/lib/assimilation/types";
+import { parseWorkflowDefinition } from "@/lib/workflowDefinition";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,17 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const workflow = (await req.json()) as WorkflowDefinition;
-  const saved = await saveWorkflow(workflow);
-  return NextResponse.json({ workflow: saved });
+  try {
+    const workflow = parseWorkflowDefinition(await req.json());
+    const saved = await saveWorkflow(workflow);
+    return NextResponse.json({ workflow: saved });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Workflow payload invalid.",
+      },
+      { status: 400 },
+    );
+  }
 }

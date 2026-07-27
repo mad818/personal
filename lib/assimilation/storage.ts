@@ -20,6 +20,7 @@ import type {
   WorkflowDefinition,
   WorkflowRun,
 } from "@/lib/assimilation/types";
+import { mergeMissingWorkflowDefinitions } from "@/lib/workflowDefinition";
 
 const DATA_DIR =
   process.env.NEXUS_DATA_DIR ??
@@ -39,6 +40,12 @@ function defaultState(): AssimilationState {
     modelLabRuns: DEFAULT_MODEL_LAB_RUNS,
     geoDeltaSnapshots: DEFAULT_GEO_DELTA_SNAPSHOTS,
   };
+}
+
+export function mergeMissingDefaultWorkflows(
+  workflows: WorkflowDefinition[],
+): WorkflowDefinition[] {
+  return mergeMissingWorkflowDefinitions(workflows, DEFAULT_WORKFLOWS);
 }
 
 async function ensureStateFile() {
@@ -63,7 +70,9 @@ export async function readAssimilationState(): Promise<AssimilationState> {
     return {
       version: parsed.version ?? fallback.version,
       updatedAt: parsed.updatedAt ?? fallback.updatedAt,
-      workflows: parsed.workflows ?? fallback.workflows,
+      workflows: mergeMissingDefaultWorkflows(
+        parsed.workflows ?? fallback.workflows,
+      ),
       workflowRuns: parsed.workflowRuns ?? fallback.workflowRuns,
       registryItems: parsed.registryItems ?? fallback.registryItems,
       assetKits: parsed.assetKits ?? fallback.assetKits,

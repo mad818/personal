@@ -54,6 +54,7 @@ for (const source of [
   "Taste Skill",
   "Emil's Design Engineering Skills",
   "OpenDirectory GTM Skill Atlas",
+  "Mautic Campaign Builder Pattern",
   "ayghri/i-have-adhd Focus Output",
   "UditAkhourii/adhd Capped Divergence",
   "Frontend Slides",
@@ -134,6 +135,11 @@ requireText(
   read("docs/ideas/repo-analysis/varnan-tech-opendirectory/REPO_CONTEXT.md"),
   "current `main` README lists 62 skills",
   "OpenDirectory current inventory",
+);
+requireText(
+  read("docs/ideas/repo-analysis/mautic-mautic/REPO_CONTEXT.md"),
+  "not into a marketing automation service",
+  "Mautic product boundary",
 );
 requireText(
   read("docs/ideas/repo-analysis/davidondrej-skills/REPO_CONTEXT.md"),

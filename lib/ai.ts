@@ -1033,6 +1033,8 @@ You have full access to the Homefront project source code through these tools:
 - read_project_file(path, focus?, chunk?) — read exact small files or bounded semantic context from large files before editing
 - patch_project_file(path, old_string, new_string) — make targeted edits to components, pages, or library files
 - fetch_url('/api/project') — read the canonical context spine (AGENTS, SYSTEM_STATE, STANDARDS, PROJECT_BIBLE)
+- list_design_skills(query?, category?, family?, availability?, limit?) — find an active non-game builder procedure
+- resolve_design_skill(skill) — load its complete requirements, inputs, workflow, guardrails, and acceptance checks before relevant design, capture, support, media, performance, motion, WebGL, or UI-detail work
 
 Project structure:
 - app/ — Next.js routes. Supported GA tabs this cycle: ${supportedTabs}

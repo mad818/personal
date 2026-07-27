@@ -59,6 +59,10 @@ const HumanEditorWorkbench = dynamic(
 const SkillLibrary = dynamic(() => import("@/components/skills/SkillLibrary"), {
   ssr: false,
 });
+const DesignSkillAtlas = dynamic(
+  () => import("@/components/skills/DesignSkillAtlas"),
+  { ssr: false },
+);
 const SkillRadarChart = dynamic(
   () => import("@/components/skills/SkillRadarChart"),
   { ssr: false },
@@ -586,6 +590,13 @@ export default function SkillsPage() {
                         detail="Curated specialist role packs"
                       >
                         <AgencyRoleLibrary />
+                      </OpsField>
+                      <OpsField
+                        title="Builder procedure atlas"
+                        detail="Complete non-game design, capture, support, media, motion, and renderer procedures"
+                        tone="muted"
+                      >
+                        <DesignSkillAtlas />
                       </OpsField>
                     </ShellStack>
                   </OpsWorkplane>

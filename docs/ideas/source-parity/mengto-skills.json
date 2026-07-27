@@ -1,0 +1,1295 @@
+{
+  "schemaVersion": 1,
+  "id": "mengto-skills",
+  "name": "MengTo/Skills",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/MengTo/Skills",
+    "version": "main snapshot reviewed 2026-07-26; README blob 55b0459d263ecfb29a8bde7031910669b9f1e16d",
+    "reviewedAt": "2026-07-26",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/MengTo/Skills/blob/main/README.md",
+      "https://github.com/MengTo/Skills/tree/main/agent-skills/codex",
+      "https://github.com/MengTo/Skills/tree/main/agent-skills/customer-support",
+      "https://github.com/MengTo/Skills/tree/main/agent-skills/game-development",
+      "https://github.com/MengTo/Skills/tree/main/agent-skills/media",
+      "https://github.com/MengTo/Skills/tree/main/agent-skills/ui",
+      "https://github.com/MengTo/Skills/tree/main/agent-skills/web-design",
+      "https://github.com/MengTo/Skills/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "article-prompts-to-skills",
+      "title": "Article Prompts To Skills operating procedure",
+      "sourceEvidence": "agent-skills/codex/article-prompts-to-skills/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "audit-reference-originality",
+      "title": "Audit Reference Originality operating procedure",
+      "sourceEvidence": "agent-skills/codex/audit-reference-originality/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "audit-verify-explain-grade-5",
+      "title": "Audit Verify Explain Grade 5 operating procedure",
+      "sourceEvidence": "agent-skills/codex/audit-verify-explain-grade-5/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "browser-video-recording",
+      "title": "Browser Video Recording operating procedure",
+      "sourceEvidence": "agent-skills/codex/browser-video-recording/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "build-daily-inspiration-sites",
+      "title": "Build Daily Inspiration Sites operating procedure",
+      "sourceEvidence": "agent-skills/codex/build-daily-inspiration-sites/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "customer-email-draft-threads",
+      "title": "Customer Email Draft Threads operating procedure",
+      "sourceEvidence": "agent-skills/codex/customer-email-draft-threads/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "customer-support-verification",
+      "title": "Customer Support Verification operating procedure",
+      "sourceEvidence": "agent-skills/codex/customer-support-verification/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "daily-ui-inspiration-capture",
+      "title": "Daily UI Inspiration Capture operating procedure",
+      "sourceEvidence": "agent-skills/codex/daily-ui-inspiration-capture/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "elevenlabs-tts",
+      "title": "Elevenlabs TTS operating procedure",
+      "sourceEvidence": "agent-skills/codex/elevenlabs-tts/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "generate-reference-inspired-brand-worlds",
+      "title": "Generate Reference Inspired Brand Worlds operating procedure",
+      "sourceEvidence": "agent-skills/codex/generate-reference-inspired-brand-worlds/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "html-to-interaction-prompts",
+      "title": "HTML To Interaction Prompts operating procedure",
+      "sourceEvidence": "agent-skills/codex/html-to-interaction-prompts/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "optimize-web-animations",
+      "title": "Optimize Web Animations operating procedure",
+      "sourceEvidence": "agent-skills/codex/optimize-web-animations/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "performance-profiling",
+      "title": "Performance Profiling operating procedure",
+      "sourceEvidence": "agent-skills/codex/performance-profiling/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "stitched-full-page-capture",
+      "title": "Stitched Full Page Capture operating procedure",
+      "sourceEvidence": "agent-skills/codex/stitched-full-page-capture/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "video-to-superprompt",
+      "title": "Video To Superprompt operating procedure",
+      "sourceEvidence": "agent-skills/codex/video-to-superprompt/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "write-like-meng-on-x",
+      "title": "Write Like Meng On X operating procedure",
+      "sourceEvidence": "agent-skills/codex/write-like-meng-on-x/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "x-bookmark-quote-posts",
+      "title": "X Bookmark Quote Posts operating procedure",
+      "sourceEvidence": "agent-skills/codex/x-bookmark-quote-posts/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "handle-saas-account-cases",
+      "title": "Handle SaaS Account Cases operating procedure",
+      "sourceEvidence": "agent-skills/customer-support/handle-saas-account-cases/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "handle-saas-billing-cases",
+      "title": "Handle SaaS Billing Cases operating procedure",
+      "sourceEvidence": "agent-skills/customer-support/handle-saas-billing-cases/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "aura-asset-images",
+      "title": "Aura Asset Images operating procedure",
+      "sourceEvidence": "agent-skills/media/aura-asset-images/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "unsplash-asset-images",
+      "title": "Unsplash Asset Images operating procedure",
+      "sourceEvidence": "agent-skills/media/unsplash-asset-images/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "design-first-ui-prompting",
+      "title": "Design First UI Prompting operating procedure",
+      "sourceEvidence": "agent-skills/ui/design-first-ui-prompting/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "add-shader-cursor-trail",
+      "title": "Add Shader Cursor Trail operating procedure",
+      "sourceEvidence": "agent-skills/web-design/add-shader-cursor-trail/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "agency-grid-layout-minimal",
+      "title": "Agency Grid Layout Minimal operating procedure",
+      "sourceEvidence": "agent-skills/web-design/agency-grid-layout-minimal/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "ambient-section-particles",
+      "title": "Ambient Section Particles operating procedure",
+      "sourceEvidence": "agent-skills/web-design/ambient-section-particles/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "animation-on-scroll",
+      "title": "Animation On Scroll operating procedure",
+      "sourceEvidence": "agent-skills/web-design/animation-on-scroll/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "animation-systems",
+      "title": "Animation Systems operating procedure",
+      "sourceEvidence": "agent-skills/web-design/animation-systems/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "atmosphere-background",
+      "title": "Atmosphere Background operating procedure",
+      "sourceEvidence": "agent-skills/web-design/atmosphere-background/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "background-grid-webgl",
+      "title": "Background Grid WebGL operating procedure",
+      "sourceEvidence": "agent-skills/web-design/background-grid-webgl/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "beam-glow-states",
+      "title": "Beam Glow States operating procedure",
+      "sourceEvidence": "agent-skills/web-design/beam-glow-states/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "beautiful-shadows",
+      "title": "Beautiful Shadows operating procedure",
+      "sourceEvidence": "agent-skills/web-design/beautiful-shadows/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "blue-cloudy-clean-modern",
+      "title": "Blue Cloudy Clean Modern operating procedure",
+      "sourceEvidence": "agent-skills/web-design/blue-cloudy-clean-modern/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "blue-laser-clean-glass-layout",
+      "title": "Blue Laser Clean Glass Layout operating procedure",
+      "sourceEvidence": "agent-skills/web-design/blue-laser-clean-glass-layout/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "book-serif-index",
+      "title": "Book Serif Index operating procedure",
+      "sourceEvidence": "agent-skills/web-design/book-serif-index/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "bright-green-tech-system-webgl",
+      "title": "Bright Green Tech System WebGL operating procedure",
+      "sourceEvidence": "agent-skills/web-design/bright-green-tech-system-webgl/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "build-awwwards-quality-sites",
+      "title": "Build Awwwards Quality Sites operating procedure",
+      "sourceEvidence": "agent-skills/web-design/build-awwwards-quality-sites/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "cinematic-gsap-lenis-motion-system",
+      "title": "Cinematic GSAP Lenis Motion System operating procedure",
+      "sourceEvidence": "agent-skills/web-design/cinematic-gsap-lenis-motion-system/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "cinematic-scroll-storytelling",
+      "title": "Cinematic Scroll Storytelling operating procedure",
+      "sourceEvidence": "agent-skills/web-design/cinematic-scroll-storytelling/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "clean-minimal-beige-light-mode",
+      "title": "Clean Minimal Beige Light Mode operating procedure",
+      "sourceEvidence": "agent-skills/web-design/clean-minimal-beige-light-mode/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "cobejs",
+      "title": "Cobejs operating procedure",
+      "sourceEvidence": "agent-skills/web-design/cobejs/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "company-logos",
+      "title": "Company Logos operating procedure",
+      "sourceEvidence": "agent-skills/web-design/company-logos/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "container-lines",
+      "title": "Container Lines operating procedure",
+      "sourceEvidence": "agent-skills/web-design/container-lines/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "corner-diagonals",
+      "title": "Corner Diagonals operating procedure",
+      "sourceEvidence": "agent-skills/web-design/corner-diagonals/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "corner-lasers",
+      "title": "Corner Lasers operating procedure",
+      "sourceEvidence": "agent-skills/web-design/corner-lasers/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "css-alpha-masking",
+      "title": "CSS Alpha Masking operating procedure",
+      "sourceEvidence": "agent-skills/web-design/css-alpha-masking/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "css-border-gradient",
+      "title": "CSS Border Gradient operating procedure",
+      "sourceEvidence": "agent-skills/web-design/css-border-gradient/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "dark-blue-contrasting-clean",
+      "title": "Dark Blue Contrasting Clean operating procedure",
+      "sourceEvidence": "agent-skills/web-design/dark-blue-contrasting-clean/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "dark-glass-clean-layout",
+      "title": "Dark Glass Clean Layout operating procedure",
+      "sourceEvidence": "agent-skills/web-design/dark-glass-clean-layout/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "dither-background",
+      "title": "Dither Background operating procedure",
+      "sourceEvidence": "agent-skills/web-design/dither-background/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "dither-laser-dark-mode",
+      "title": "Dither Laser Dark Mode operating procedure",
+      "sourceEvidence": "agent-skills/web-design/dither-laser-dark-mode/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "documentary-brutalist-agency",
+      "title": "Documentary Brutalist Agency operating procedure",
+      "sourceEvidence": "agent-skills/web-design/documentary-brutalist-agency/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "editorial-portfolio-chapters",
+      "title": "Editorial Portfolio Chapters operating procedure",
+      "sourceEvidence": "agent-skills/web-design/editorial-portfolio-chapters/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "editorial-service-booking",
+      "title": "Editorial Service Booking operating procedure",
+      "sourceEvidence": "agent-skills/web-design/editorial-service-booking/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "editorial-tech",
+      "title": "Editorial Tech operating procedure",
+      "sourceEvidence": "agent-skills/web-design/editorial-tech/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "framed-grid-layout",
+      "title": "Framed Grid Layout operating procedure",
+      "sourceEvidence": "agent-skills/web-design/framed-grid-layout/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "framed-tech-dark-border-gradient",
+      "title": "Framed Tech Dark Border Gradient operating procedure",
+      "sourceEvidence": "agent-skills/web-design/framed-tech-dark-border-gradient/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "funky-purple-container-tech",
+      "title": "Funky Purple Container Tech operating procedure",
+      "sourceEvidence": "agent-skills/web-design/funky-purple-container-tech/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "glass-dark-mode-clock",
+      "title": "Glass Dark Mode Clock operating procedure",
+      "sourceEvidence": "agent-skills/web-design/glass-dark-mode-clock/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "glass-dark-ui",
+      "title": "Glass Dark UI operating procedure",
+      "sourceEvidence": "agent-skills/web-design/glass-dark-ui/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "globe-gl",
+      "title": "Globe Gl operating procedure",
+      "sourceEvidence": "agent-skills/web-design/globe-gl/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "globe-particles",
+      "title": "Globe Particles operating procedure",
+      "sourceEvidence": "agent-skills/web-design/globe-particles/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "gooey-blob-system",
+      "title": "Gooey Blob System operating procedure",
+      "sourceEvidence": "agent-skills/web-design/gooey-blob-system/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "gsap-scrolltrigger-storytelling",
+      "title": "GSAP Scrolltrigger Storytelling operating procedure",
+      "sourceEvidence": "agent-skills/web-design/gsap-scrolltrigger-storytelling/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "gsap",
+      "title": "GSAP operating procedure",
+      "sourceEvidence": "agent-skills/web-design/gsap/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "high-contrast-skeuomorphic-clean",
+      "title": "High Contrast Skeuomorphic Clean operating procedure",
+      "sourceEvidence": "agent-skills/web-design/high-contrast-skeuomorphic-clean/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "image-first-grid-layout",
+      "title": "Image First Grid Layout operating procedure",
+      "sourceEvidence": "agent-skills/web-design/image-first-grid-layout/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "landing-page",
+      "title": "Landing Page operating procedure",
+      "sourceEvidence": "agent-skills/web-design/landing-page/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "light-mode-paper-technical",
+      "title": "Light Mode Paper Technical operating procedure",
+      "sourceEvidence": "agent-skills/web-design/light-mode-paper-technical/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "liquid-metal-border",
+      "title": "Liquid Metal Border operating procedure",
+      "sourceEvidence": "agent-skills/web-design/liquid-metal-border/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "marquee-loop",
+      "title": "Marquee Loop operating procedure",
+      "sourceEvidence": "agent-skills/web-design/marquee-loop/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "masked-reveal",
+      "title": "Masked Reveal operating procedure",
+      "sourceEvidence": "agent-skills/web-design/masked-reveal/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "matterjs",
+      "title": "Matterjs operating procedure",
+      "sourceEvidence": "agent-skills/web-design/matterjs/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "mesh-gradient-dark-blue-clean",
+      "title": "Mesh Gradient Dark Blue Clean operating procedure",
+      "sourceEvidence": "agent-skills/web-design/mesh-gradient-dark-blue-clean/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "nested-container-clean-agency",
+      "title": "Nested Container Clean Agency operating procedure",
+      "sourceEvidence": "agent-skills/web-design/nested-container-clean-agency/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "nested-container-frames",
+      "title": "Nested Container Frames operating procedure",
+      "sourceEvidence": "agent-skills/web-design/nested-container-frames/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "number-details",
+      "title": "Number Details operating procedure",
+      "sourceEvidence": "agent-skills/web-design/number-details/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "operational-enterprise-ai",
+      "title": "Operational Enterprise AI operating procedure",
+      "sourceEvidence": "agent-skills/web-design/operational-enterprise-ai/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "orange-clean-paper-saas",
+      "title": "Orange Clean Paper SaaS operating procedure",
+      "sourceEvidence": "agent-skills/web-design/orange-clean-paper-saas/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "pricing-page",
+      "title": "Pricing Page operating procedure",
+      "sourceEvidence": "agent-skills/web-design/pricing-page/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "product-proof-saas",
+      "title": "Product Proof SaaS operating procedure",
+      "sourceEvidence": "agent-skills/web-design/product-proof-saas/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "progressive-blur",
+      "title": "Progressive Blur operating procedure",
+      "sourceEvidence": "agent-skills/web-design/progressive-blur/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "reveal-hover-effect",
+      "title": "Reveal Hover Effect operating procedure",
+      "sourceEvidence": "agent-skills/web-design/reveal-hover-effect/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "scroll-progress-timeline",
+      "title": "Scroll Progress Timeline operating procedure",
+      "sourceEvidence": "agent-skills/web-design/scroll-progress-timeline/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "scroll-scrubbed-visual-sequence",
+      "title": "Scroll Scrubbed Visual Sequence operating procedure",
+      "sourceEvidence": "agent-skills/web-design/scroll-scrubbed-visual-sequence/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "scroll-scrubbed-word-reveal",
+      "title": "Scroll Scrubbed Word Reveal operating procedure",
+      "sourceEvidence": "agent-skills/web-design/scroll-scrubbed-word-reveal/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "scroll-world-storytelling",
+      "title": "Scroll World Storytelling operating procedure",
+      "sourceEvidence": "agent-skills/web-design/scroll-world-storytelling/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "shaders-cursor-ripples",
+      "title": "Shaders Cursor Ripples operating procedure",
+      "sourceEvidence": "agent-skills/web-design/shaders-cursor-ripples/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "skeuomorphic-ui",
+      "title": "Skeuomorphic UI operating procedure",
+      "sourceEvidence": "agent-skills/web-design/skeuomorphic-ui/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "solar-duotone-bold",
+      "title": "Solar Duotone Bold operating procedure",
+      "sourceEvidence": "agent-skills/web-design/solar-duotone-bold/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "split-layout-technical",
+      "title": "Split Layout Technical operating procedure",
+      "sourceEvidence": "agent-skills/web-design/split-layout-technical/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "staggered-word-reveal",
+      "title": "Staggered Word Reveal operating procedure",
+      "sourceEvidence": "agent-skills/web-design/staggered-word-reveal/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "tailwindcss",
+      "title": "Tailwindcss operating procedure",
+      "sourceEvidence": "agent-skills/web-design/tailwindcss/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "tech-green-dark-mode-modern",
+      "title": "Tech Green Dark Mode Modern operating procedure",
+      "sourceEvidence": "agent-skills/web-design/tech-green-dark-mode-modern/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "technical-wireframe-info-layout",
+      "title": "Technical Wireframe Info Layout operating procedure",
+      "sourceEvidence": "agent-skills/web-design/technical-wireframe-info-layout/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "thinking-orbs",
+      "title": "Thinking Orbs operating procedure",
+      "sourceEvidence": "agent-skills/web-design/thinking-orbs/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "threejs",
+      "title": "Threejs operating procedure",
+      "sourceEvidence": "agent-skills/web-design/threejs/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "unicorn-studio",
+      "title": "Unicorn Studio operating procedure",
+      "sourceEvidence": "agent-skills/web-design/unicorn-studio/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "vantajs",
+      "title": "Vantajs operating procedure",
+      "sourceEvidence": "agent-skills/web-design/vantajs/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "webgl-3d-object",
+      "title": "WebGL 3d Object operating procedure",
+      "sourceEvidence": "agent-skills/web-design/webgl-3d-object/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "webgl-landing-steering",
+      "title": "WebGL Landing Steering operating procedure",
+      "sourceEvidence": "agent-skills/web-design/webgl-landing-steering/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "webgl-laser",
+      "title": "WebGL Laser operating procedure",
+      "sourceEvidence": "agent-skills/web-design/webgl-laser/SKILL.md",
+      "disposition": "adapted",
+      "proof": [
+        "lib/designSkillAtlas.ts",
+        "components/skills/DesignSkillAtlas.tsx",
+        "npm run mengto:skills:check"
+      ]
+    },
+    {
+      "id": "implement-fog-of-war",
+      "title": "Implement Fog Of War game procedure",
+      "sourceEvidence": "agent-skills/codex/implement-fog-of-war/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "author-game-levels",
+      "title": "Author Game Levels game procedure",
+      "sourceEvidence": "agent-skills/game-development/author-game-levels/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "build-game-audio-feedback",
+      "title": "Build Game Audio Feedback game procedure",
+      "sourceEvidence": "agent-skills/game-development/build-game-audio-feedback/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "build-game-camera-controls",
+      "title": "Build Game Camera Controls game procedure",
+      "sourceEvidence": "agent-skills/game-development/build-game-camera-controls/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "build-game-changelog",
+      "title": "Build Game Changelog game procedure",
+      "sourceEvidence": "agent-skills/game-development/build-game-changelog/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "build-game-inventory",
+      "title": "Build Game Inventory game procedure",
+      "sourceEvidence": "agent-skills/game-development/build-game-inventory/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "build-game-map-editor",
+      "title": "Build Game Map Editor game procedure",
+      "sourceEvidence": "agent-skills/game-development/build-game-map-editor/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "build-game-monster-system",
+      "title": "Build Game Monster System game procedure",
+      "sourceEvidence": "agent-skills/game-development/build-game-monster-system/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "build-hybrid-game-assets",
+      "title": "Build Hybrid Game Assets game procedure",
+      "sourceEvidence": "agent-skills/game-development/build-hybrid-game-assets/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "build-isometric-arpg",
+      "title": "Build Isometric ARPG game procedure",
+      "sourceEvidence": "agent-skills/game-development/build-isometric-arpg/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "build-mobile-threejs-games",
+      "title": "Build Mobile Threejs Games game procedure",
+      "sourceEvidence": "agent-skills/game-development/build-mobile-threejs-games/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "build-threejs-enemy-systems",
+      "title": "Build Threejs Enemy Systems game procedure",
+      "sourceEvidence": "agent-skills/game-development/build-threejs-enemy-systems/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "build-vesperfall-review-assets",
+      "title": "Build Vesperfall Review Assets game procedure",
+      "sourceEvidence": "agent-skills/game-development/build-vesperfall-review-assets/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "create-game-vfx",
+      "title": "Create Game VFX game procedure",
+      "sourceEvidence": "agent-skills/game-development/create-game-vfx/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "design-action-combat",
+      "title": "Design Action Combat game procedure",
+      "sourceEvidence": "agent-skills/game-development/design-action-combat/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "design-game-encounters",
+      "title": "Design Game Encounters game procedure",
+      "sourceEvidence": "agent-skills/game-development/design-game-encounters/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "optimize-threejs-games",
+      "title": "Optimize Threejs Games game procedure",
+      "sourceEvidence": "agent-skills/game-development/optimize-threejs-games/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "ship-web-games",
+      "title": "Ship Web Games game procedure",
+      "sourceEvidence": "agent-skills/game-development/ship-web-games/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "test-playable-web-games",
+      "title": "Test Playable Web Games game procedure",
+      "sourceEvidence": "agent-skills/game-development/test-playable-web-games/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    },
+    {
+      "id": "tune-enemy-ai",
+      "title": "Tune Enemy AI game procedure",
+      "sourceEvidence": "agent-skills/game-development/tune-enemy-ai/SKILL.md",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current Nexus goal explicitly retires game and RPG capabilities; this source entry remains audit-only and is rejected from the active registry."
+    }
+  ]
+}

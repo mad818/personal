@@ -97,6 +97,8 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   list_files: "tier0",
   read_project_file: "tier0",
   list_project_files: "tier0",
+  list_design_skills: "tier0",
+  resolve_design_skill: "tier0",
   calculate: "tier0",
   recall: "tier0",
   read_current_tab: "tier0",
@@ -582,6 +584,78 @@ export const AGENT_TOOLS = [
     },
   },
 
+  // ── Project-owned builder procedures ─────────────────────────────────────
+  {
+    name: "list_design_skills",
+    description:
+      "Search the complete project-owned non-game builder procedure atlas adapted from MengTo/Skills. Returns bounded IDs, families, availability, and purpose. Use before design, marketing, capture, customer support, media sourcing, animation, WebGL, or UI-detail work when the exact procedure is not already known. Game capabilities are excluded.",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description:
+            "Optional search text such as pricing, GSAP, capture, audit, support, WebGL, or shadows.",
+        },
+        category: {
+          type: "string",
+          enum: ["codex", "customer-support", "media", "ui", "web-design"],
+          description: "Optional exact upstream source category.",
+        },
+        family: {
+          type: "string",
+          enum: [
+            "workflow-extraction",
+            "evidence-audit",
+            "capture",
+            "support",
+            "voice-social",
+            "performance",
+            "media-sourcing",
+            "design-brief",
+            "marketing-system",
+            "visual-system",
+            "motion",
+            "webgl",
+            "ui-detail",
+          ],
+          description: "Optional exact project-owned procedure family.",
+        },
+        availability: {
+          type: "string",
+          enum: [
+            "native",
+            "connector_required",
+            "host_required",
+            "dependency_review",
+          ],
+          description: "Optional execution-prerequisite filter.",
+        },
+        limit: {
+          type: "string",
+          description: "Optional result limit from 1 to 100; defaults to 40.",
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "resolve_design_skill",
+    description:
+      "Resolve one exact active non-game builder skill ID into its full read-only operating contract: purpose, requirements, inputs, ordered workflow, guardrails, acceptance checks, availability, and primary source. Call this before executing a matching design, capture, support, media, performance, animation, WebGL, or UI-detail task. The contract does not authorize installs or external actions.",
+    input_schema: {
+      type: "object",
+      properties: {
+        skill: {
+          type: "string",
+          description:
+            "Exact ID returned by list_design_skills, for example pricing-page, optimize-web-animations, or css-border-gradient.",
+        },
+      },
+      required: ["skill"],
+    },
+  },
+
   // ── Project source code access ─────────────────────────────────────────────
   {
     name: "read_project_file",
@@ -824,6 +898,8 @@ const FEYNMAN_OUTPUTS_INTENT_RE =
   /\bfeynman_outputs\b|(?:^|\s)\/outputs\b|\bfeynman outputs\b|\b(?:search|find|resume|continue|preview|export|pdf)\b.{0,40}\b(?:feynman|research session|research output)\b|\b(?:feynman|research session|research output)\b.{0,40}\b(?:search|find|resume|continue|preview|export|pdf)\b/i;
 const HUGGING_FACE_INTENT_RE =
   /\bhugging\s*face\b|\bhuggingface_inspect\b|https:\/\/huggingface\.co\/(?:datasets\/)?[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)?/i;
+const DESIGN_SKILL_INTENT_RE =
+  /\b(?:design|landing page|pricing page|marketing page|ui|ux|animation|motion|scroll|gsap|three\.?js|webgl|shader|canvas|capture|screenshot|screen recording|customer support|billing case|account case|tts|voiceover|unsplash|aura assets|originality audit|performance profiling|instruments)\b/i;
 
 function pickAgentTools(names: Iterable<string>): AgentToolDefinition[] {
   return Array.from(names)
@@ -878,6 +954,7 @@ export function getAgentToolCatalog(
     FEYNMAN_PAPER_CODE_AUDIT_INTENT_RE.test(userMessage);
   const feynmanOutputsIntent = FEYNMAN_OUTPUTS_INTENT_RE.test(userMessage);
   const huggingFaceIntent = HUGGING_FACE_INTENT_RE.test(userMessage);
+  const designSkillIntent = DESIGN_SKILL_INTENT_RE.test(userMessage);
   const repoCompareIntent = hasRepoCompareSignal(userMessage);
   const repoAssimilationIntent = hasRepoAssimilationSignal(userMessage);
   const delegateIntent = DELEGATE_INTENT_RE.test(userMessage);
@@ -987,6 +1064,12 @@ export function getAgentToolCatalog(
   if (repoIntelIntent) {
     groups.add("repo_intel");
     names.add("analyze_repo");
+  }
+
+  if (designSkillIntent) {
+    groups.add("design_skills");
+    names.add("list_design_skills");
+    names.add("resolve_design_skill");
   }
 
   if (workspaceReadIntent) {

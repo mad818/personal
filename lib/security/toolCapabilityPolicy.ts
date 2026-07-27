@@ -62,6 +62,8 @@ const TOOL_CAPABILITY_REGISTRY: Record<string, ToolCapabilityClass> = {
   delegate_specialist: "analyze",
   read_project_file: "read",
   list_project_files: "read",
+  list_design_skills: "read",
+  resolve_design_skill: "read",
   patch_project_file: "mutate",
   create_project_file: "mutate",
   reddit_search: "networked",

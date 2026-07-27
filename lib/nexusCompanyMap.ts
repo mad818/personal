@@ -215,6 +215,19 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
       "Use the project-owned motion decision brief in a design conversation; normal chat does not inherit the local validator.",
   },
   {
+    id: "mengto-skills",
+    label: "MengTo Builder Skills",
+    url: "https://github.com/MengTo/Skills",
+    kind: "codex_skill",
+    posture: "adapted",
+    purpose:
+      "A complete 101-procedure non-game atlas for evidence-led design, capture, support, media, marketing, motion, WebGL, visual systems, and UI details; the benefit is repeatable execution with prerequisites and acceptance visible before action.",
+    codexPath:
+      "Open /skills?view=library&focus=skills-library or use list_design_skills then resolve_design_skill; every actual install, file, browser, connector, deployment, or account action remains separately protected.",
+    chatgptPath:
+      "Share or retrieve the resolved procedure as conversation context; external account, host, and dependency requirements still need the corresponding connected surface and user authority.",
+  },
+  {
     id: "ayghri-focus-output",
     label: "ayghri/i-have-adhd Focus Output",
     url: "https://github.com/ayghri/i-have-adhd",

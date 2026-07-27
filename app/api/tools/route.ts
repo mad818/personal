@@ -104,6 +104,10 @@ import { getRepoIntelProfile, RepoIntelError } from "@/lib/serverRepoIntel";
 import { loadSavedRepoAssimilationBrief } from "@/lib/serverRepoCompare";
 import { buildProjectFileContext } from "@/lib/projectFileContext";
 import {
+  formatDesignSkillContract,
+  formatDesignSkillList,
+} from "@/lib/designSkillAtlas";
+import {
   buildExternalToolResultEnvelope,
   type ExternalToolResultEnvelope,
 } from "@/lib/externalToolBridge";
@@ -1917,6 +1921,18 @@ export async function POST(req: NextRequest) {
         break;
       case "delegate_specialist":
         result = await delegateSpecialist(input, runId);
+        break;
+      case "list_design_skills":
+        result = formatDesignSkillList({
+          query: input.query ?? "",
+          sourceCategory: input.category ?? "",
+          family: input.family ?? "",
+          availability: input.availability ?? "",
+          limit: Number(input.limit),
+        });
+        break;
+      case "resolve_design_skill":
+        result = formatDesignSkillContract(input.skill ?? "");
         break;
       case "read_project_file":
         {

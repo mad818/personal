@@ -94,13 +94,26 @@ requireText(todo, "NO-MISTAKES-RELEASE-GATE", "todo queue");
 requireText(prePush, "npm run release:gate:check", "pre-push hook");
 forbidText(runner, 'command: "npm.cmd"', "release gate runner");
 
-if (matrix.status !== "in_progress") fail("source parity status must remain in_progress");
-if (matrix.source?.version !== "v1.34.0") fail("source parity must pin v1.34.0");
-if (!matrix.capabilities?.some((item) => item.disposition === "pending")) {
-  fail("source parity must preserve useful pending capabilities");
+if (matrix.status !== "complete") fail("source parity status must be complete");
+if (matrix.source?.version !== "v1.34.0")
+  fail("source parity must pin v1.34.0");
+if (matrix.capabilities?.some((item) => item.disposition === "pending")) {
+  fail("source parity must not retain useful pending capabilities");
+}
+const safeFixCapability = matrix.capabilities?.find(
+  (item) => item.id === "safe-mechanical-auto-fixes",
+);
+if (
+  safeFixCapability?.disposition !== "adapted" ||
+  !safeFixCapability.proof?.includes("scripts/isolated-safe-fix.mjs")
+) {
+  fail("source parity must prove the isolated safe-fix adaptation");
 }
 
-if (packageJson.scripts?.["release:gate"] !== "node scripts/nexus-release-gate.mjs") {
+if (
+  packageJson.scripts?.["release:gate"] !==
+  "node scripts/nexus-release-gate.mjs"
+) {
   fail("package.json is missing release:gate");
 }
 if (

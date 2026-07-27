@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "no-mistakes",
   "name": "no-mistakes",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/kunchenguid/no-mistakes",
     "version": "v1.34.0",
@@ -93,8 +93,12 @@
       "id": "safe-mechanical-auto-fixes",
       "title": "Apply bounded mechanical fixes and re-run affected gates",
       "sourceEvidence": "README.md and SKILL.md auto-fix findings",
-      "disposition": "pending",
-      "reason": "The release gate reports failures but deliberately performs no edits; any future auto-fix lane needs its own approval and rollback contract."
+      "disposition": "adapted",
+      "proof": [
+        "scripts/isolated-safe-fix.mjs",
+        "scripts/check-isolated-safe-fix-runtime.mjs",
+        "specs/features/no-mistakes-isolated-safe-fixes.md"
+      ]
     },
     {
       "id": "durable-run-evidence",

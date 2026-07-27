@@ -44,6 +44,7 @@ for (const department of [
 for (const source of [
   "Graphify",
   "Superpowers",
+  "12-Factor Agent Runtime",
   "Matt Pocock's Engineering Skills",
   "TypeScript Deep Modules (PR #505)",
   "David Ondrej's Agent Skills",
@@ -146,6 +147,11 @@ requireText(
   read("docs/ideas/repo-analysis/dani-garcia-vaultwarden/REPO_CONTEXT.md"),
   "encryption is performed by the clients",
   "Vaultwarden responsibility boundary",
+);
+requireText(
+  read("docs/ideas/repo-analysis/humanlayer-12-factor-agents/REPO_CONTEXT.md"),
+  "mostly deterministic software",
+  "12-Factor Agent Runtime architecture boundary",
 );
 requireText(
   read("docs/ideas/repo-analysis/davidondrej-skills/REPO_CONTEXT.md"),

@@ -86,6 +86,19 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
       "Carry the workflow in the department brief or build a focused app workflow.",
   },
   {
+    id: "humanlayer-12-factor-runtime",
+    label: "12-Factor Agent Runtime",
+    url: "https://github.com/humanlayer/12-factor-agents",
+    kind: "reference",
+    posture: "adapted",
+    purpose:
+      "Project-owned prompts, bounded context, validated structured tool calls, compacted results, deterministic control flow, and metadata-only execution state; the benefit is a more predictable active agent loop without importing another framework.",
+    codexPath:
+      "Use the existing Nexus agent runtime and its 64k context ceiling, declared tool schemas, pure execution reducer, approval seams, and persisted run summary.",
+    chatgptPath:
+      "Use the twelve factors as an architecture brief; normal chat cannot launch Nexus tools, resume persisted runs, or gain channels and permissions the project does not own.",
+  },
+  {
     id: "mattpocock-skills",
     label: "Matt Pocock's Engineering Skills",
     url: "https://github.com/mattpocock/skills",
@@ -497,6 +510,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "Build a Nexus feature with current documentation, tests, security review, and proof before completion.",
     sourceIds: [
       "superpowers",
+      "humanlayer-12-factor-runtime",
       "mattpocock-skills",
       "mattpocock-deep-modules-pr",
       "davidondrej-skills",

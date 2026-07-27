@@ -76,6 +76,16 @@ import {
   shouldAllowCloudEscalation,
 } from "@/lib/localInferencePosture";
 import { detectTeamOrchestrationNeed } from "@/lib/teamOrchestration";
+import {
+  compactAgentToolResult,
+  createAgentExecutionState,
+  normalizeAgentToolInputForTransport,
+  prepareAgentContext,
+  reduceAgentExecutionState,
+  summarizeAgentExecutionState,
+  validateAgentToolInput,
+  type AgentExecutionAction,
+} from "@/lib/agentExecutionContract";
 
 type ToolRiskTier = "tier0" | "tier1" | "tier2";
 
@@ -152,6 +162,15 @@ function syncPrivacyShieldStatus(response: Response) {
   } catch {
     // local UI posture only
   }
+}
+
+function readAgentToolString(
+  input: Readonly<Record<string, unknown>>,
+  key: string,
+  fallback = "",
+): string {
+  const value = input[key];
+  return typeof value === "string" ? value : fallback;
 }
 
 // ── Tool definitions (shown to the model) ────────────────────────────────────
@@ -1223,7 +1242,7 @@ const DRAFT_FILE_TOOL = {
 export interface ToolCall {
   id: string;
   name: string;
-  input: Record<string, string>;
+  input: Record<string, unknown>;
 }
 
 export interface AgentStep {
@@ -1369,6 +1388,7 @@ export interface AgentOptions {
   toolCatalog?: AgentToolCatalog;
   efficiencyHint?: Partial<AgentEfficiencyMetrics>;
   onToolMetric?: (metric: ToolExecutionMeta) => void;
+  onExecutionAction?: (action: AgentExecutionAction) => void;
 }
 
 export type AgentRuntimeEngine = "nexus" | "claudeCode";
@@ -1524,8 +1544,17 @@ function emptyToolExecutionMeta(): ToolExecutionMeta {
 
 async function executeToolDetailed(
   name: string,
-  input: Record<string, string>,
+  input: Record<string, unknown>,
 ): Promise<ToolExecutionResult> {
+  const validation = validateAgentToolInput(AGENT_TOOLS, name, input);
+  if (!validation.ok) {
+    return {
+      result: `Tool "${name}" rejected before execution: ${
+        validation.error ?? "invalid structured input"
+      }`,
+      meta: emptyToolExecutionMeta(),
+    };
+  }
   const risk = getToolRisk(name);
 
   // High-risk write operations require explicit proposal/approval flow by default.
@@ -1534,7 +1563,10 @@ async function executeToolDetailed(
     const requireApproval =
       store.settings.agentHighRiskWritesRequireApproval ?? true;
     if (requireApproval) {
-      const pathOrFile = input.path ?? input.filename ?? name;
+      const pathOrFile =
+        readAgentToolString(input, "path") ||
+        readAgentToolString(input, "filename") ||
+        name;
       const blocked = `🔒 Blocked ${name} (${risk}). Use propose_project_edit first so the user can review and approve the change.`;
       store.addChangeEntry({
         path: pathOrFile,
@@ -1551,9 +1583,9 @@ async function executeToolDetailed(
   // ── Browser tools — run entirely in the user's browser window ──────────────
   if (typeof window !== "undefined") {
     if (name === "navigate_to") {
-      const newTab = (input.new_tab ?? "true") !== "false";
+      const newTab = readAgentToolString(input, "new_tab", "true") !== "false";
       return {
-        result: browserNavigate(input.url ?? "", newTab),
+        result: browserNavigate(readAgentToolString(input, "url"), newTab),
         meta: emptyToolExecutionMeta(),
       };
     }
@@ -1565,13 +1597,16 @@ async function executeToolDetailed(
     }
     if (name === "click_element") {
       return {
-        result: browserClick(input.selector ?? ""),
+        result: browserClick(readAgentToolString(input, "selector")),
         meta: emptyToolExecutionMeta(),
       };
     }
     if (name === "type_text")
       return {
-        result: browserType(input.selector ?? "", input.text ?? ""),
+        result: browserType(
+          readAgentToolString(input, "selector"),
+          readAgentToolString(input, "text"),
+        ),
         meta: emptyToolExecutionMeta(),
       };
   }
@@ -1579,13 +1614,16 @@ async function executeToolDetailed(
   // Intercept memory tools client-side — IndexedDB, no server round-trip
   if (name === "remember") {
     return {
-      result: await handleRemember(input.note ?? ""),
+      result: await handleRemember(readAgentToolString(input, "note")),
       meta: emptyToolExecutionMeta(),
     };
   }
   if (name === "recall") {
     return {
-      result: await handleRecall(input.query ?? input.note ?? ""),
+      result: await handleRecall(
+        readAgentToolString(input, "query") ||
+          readAgentToolString(input, "note"),
+      ),
       meta: emptyToolExecutionMeta(),
     };
   }
@@ -1595,15 +1633,18 @@ async function executeToolDetailed(
     try {
       const store = useStore.getState();
       store.addPendingEdit({
-        path: input.path ?? "unknown",
-        old_string: input.old_string ?? "",
-        new_string: input.new_string ?? "",
-        reason: input.reason ?? "No reason provided.",
-        risk: (input.risk ?? "medium") as "low" | "medium" | "high",
+        path: readAgentToolString(input, "path", "unknown"),
+        old_string: readAgentToolString(input, "old_string"),
+        new_string: readAgentToolString(input, "new_string"),
+        reason: readAgentToolString(input, "reason", "No reason provided."),
+        risk: readAgentToolString(input, "risk", "medium") as
+          | "low"
+          | "medium"
+          | "high",
         agentId: "orbit",
       });
       return {
-        result: `⏳ Edit proposed for "${input.path}". User will see a diff and must approve before the file is changed.`,
+        result: `⏳ Edit proposed for "${readAgentToolString(input, "path")}". User will see a diff and must approve before the file is changed.`,
         meta: emptyToolExecutionMeta(),
       };
     } catch {
@@ -1618,7 +1659,10 @@ async function executeToolDetailed(
     const runId = useStore.getState().agentRuntime.runId || "interactive";
     const r = await apiFetch("/api/tools", {
       method: "POST",
-      body: JSON.stringify({ tool: name, input }),
+      body: JSON.stringify({
+        tool: name,
+        input: normalizeAgentToolInputForTransport(input),
+      }),
       headers: { "X-Nexus-Run-Id": runId },
       signal: AbortSignal.timeout(TOOL_TIMEOUT_MS),
     });
@@ -1643,7 +1687,7 @@ async function executeToolDetailed(
 
 async function executeTool(
   name: string,
-  input: Record<string, string>,
+  input: Record<string, unknown>,
 ): Promise<string> {
   const { result } = await executeToolDetailed(name, input);
   return result;
@@ -1945,6 +1989,7 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     agentId,
     toolCatalog,
     onToolMetric,
+    onExecutionAction,
   } = opts;
   const endpoint =
     s.localEndpoint || "http://localhost:11434/v1/chat/completions";
@@ -2014,6 +2059,11 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
   let finalAnswer = "";
 
   for (let iter = 0; iter < maxIterations; iter++) {
+    onExecutionAction?.({
+      type: "iteration",
+      now: Date.now(),
+      iteration: iter + 1,
+    });
     let res: Response;
     try {
       res = await postOllamaProxy(
@@ -2138,7 +2188,7 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     // Execute tool calls sequentially
     for (const tc of msg.tool_calls) {
       const name = tc.function.name;
-      let input: Record<string, string> = {};
+      let input: Record<string, unknown> = {};
       try {
         input = JSON.parse(tc.function.arguments);
       } catch {
@@ -2146,6 +2196,18 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
       }
 
       const risk = getToolRisk(name);
+      onExecutionAction?.({
+        type: "tool_started",
+        now: Date.now(),
+        tool: name,
+      });
+      if (name === "propose_project_edit") {
+        onExecutionAction?.({
+          type: "human_wait",
+          now: Date.now(),
+          tool: name,
+        });
+      }
       onStep({
         type: "tool_call",
         content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
@@ -2155,23 +2217,44 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
       let result: string;
 
       if (name === "draft_file" && draftMode) {
-        // Queue as a pending draft instead of writing to disk
-        const store = useStore.getState();
-        store.addPendingDraft({
-          filename: input.filename ?? "draft.md",
-          content: input.content ?? "",
-          model: activeModel,
-          prompt: messages.at(-1)?.content ?? "",
-        });
-        result = `📝 Draft saved: "${input.filename ?? "draft.md"}" — queued for Claude to finalize.`;
+        const validation = validateAgentToolInput(
+          [DRAFT_FILE_TOOL],
+          name,
+          input,
+        );
+        if (!validation.ok) {
+          result = `Tool "${name}" rejected before execution: ${
+            validation.error ?? "invalid structured input"
+          }`;
+        } else {
+          // Queue as a pending draft instead of writing to disk
+          const store = useStore.getState();
+          store.addPendingDraft({
+            filename: readAgentToolString(input, "filename", "draft.md"),
+            content: readAgentToolString(input, "content"),
+            model: activeModel,
+            prompt: messages.at(-1)?.content ?? "",
+          });
+          result = `📝 Draft saved: "${readAgentToolString(input, "filename", "draft.md")}" — queued for Claude to finalize.`;
+        }
       } else {
         const exec = await executeToolDetailed(name, input);
         result = exec.result;
         onToolMetric?.(exec.meta);
       }
 
+      onExecutionAction?.({
+        type: "tool_finished",
+        now: Date.now(),
+        tool: name,
+      });
       onStep({ type: "tool_result", content: result, tool: name });
-      conv.push({ role: "tool", tool_call_id: tc.id, name, content: result });
+      conv.push({
+        role: "tool",
+        tool_call_id: tc.id,
+        name,
+        content: compactAgentToolResult(result).content,
+      });
     }
 
     if (stopReason === "stop") break;
@@ -2191,6 +2274,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
     agentId,
     toolCatalog,
     onToolMetric,
+    onExecutionAction,
   } = opts;
   const model = MINIMAX_DEFAULT_AGENT_MODEL;
   const selectedCatalog =
@@ -2221,6 +2305,11 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
   let finalAnswer = "";
 
   for (let iter = 0; iter < maxIterations; iter++) {
+    onExecutionAction?.({
+      type: "iteration",
+      now: Date.now(),
+      iteration: iter + 1,
+    });
     const systemOut =
       conv[0]?.role === "system" ? String(conv[0].content ?? "") : undefined;
     const msgs = conv[0]?.role === "system" ? conv.slice(1) : [...conv];
@@ -2297,7 +2386,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
 
     for (const tc of msg.tool_calls) {
       const name = tc.function.name;
-      let input: Record<string, string> = {};
+      let input: Record<string, unknown> = {};
       try {
         input = JSON.parse(tc.function.arguments);
       } catch {
@@ -2305,6 +2394,18 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
       }
 
       const risk = getToolRisk(name);
+      onExecutionAction?.({
+        type: "tool_started",
+        now: Date.now(),
+        tool: name,
+      });
+      if (name === "propose_project_edit") {
+        onExecutionAction?.({
+          type: "human_wait",
+          now: Date.now(),
+          tool: name,
+        });
+      }
       onStep({
         type: "tool_call",
         content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
@@ -2314,8 +2415,18 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
       const exec = await executeToolDetailed(name, input);
       const result = exec.result;
       onToolMetric?.(exec.meta);
+      onExecutionAction?.({
+        type: "tool_finished",
+        now: Date.now(),
+        tool: name,
+      });
       onStep({ type: "tool_result", content: result, tool: name });
-      conv.push({ role: "tool", tool_call_id: tc.id, name, content: result });
+      conv.push({
+        role: "tool",
+        tool_call_id: tc.id,
+        name,
+        content: compactAgentToolResult(result).content,
+      });
     }
 
     if (stopReason === "stop") break;
@@ -2333,7 +2444,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   const {
     settings,
     systemPrompt,
-    messages,
+    messages: incomingMessages,
     onStep,
     maxIterations = 8,
     onToken,
@@ -2344,6 +2455,19 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   const s = settings ?? getSettings();
   const runId = `run_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
   const runStartedAt = Date.now();
+  const userMessage =
+    incomingMessages.findLast((message) => message.role === "user")?.content ??
+    "";
+  let executionState = reduceAgentExecutionState(createAgentExecutionState(), {
+    type: "launch",
+    now: runStartedAt,
+    runId,
+    objectiveChars: userMessage.length,
+    maxIterations,
+  });
+  const recordExecutionAction = (action: AgentExecutionAction) => {
+    executionState = reduceAgentExecutionState(executionState, action);
+  };
   const toolTraces: {
     tool: string;
     risk: ToolRiskTier;
@@ -2367,6 +2491,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
         Math.max(0, now - (phaseStart.get(current) ?? now));
     }
     phaseStart.set(phase, now);
+    recordExecutionAction({ type: "phase", now, phase });
     if (typeof window !== "undefined") {
       const st = useStore.getState();
       st.setCurrentPhase(phase);
@@ -2378,8 +2503,6 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   if (typeof window !== "undefined") useStore.getState().beginAgentRun(runId);
 
   // ── Phase: interpreting ───────────────────────────────────────────────────
-  const userMessage =
-    messages.findLast((m) => m.role === "user")?.content ?? "";
   markPhase("interpreting");
 
   // ── Task plan: heuristic decomposition ───────────────────────────────────
@@ -2392,18 +2515,33 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
 
   // ── Auto-recall: inject relevant memories into system prompt ─────────────
   const memoryContext = await buildMemoryContext(userMessage);
-  const enrichedPrompt =
+  const unboundedPrompt =
     systemPrompt +
     buildRuntimeAuthorityPromptBlock() +
     memoryContext +
     `\n\n${YAGNI_AGENT_DIRECTIVE}\n\nTool budget: aim to complete this run in ${YAGNI_MAX_TOOL_CALLS_PER_RUN} tool calls or fewer.`;
-  const contextChars = enrichedPrompt.length;
-  const contextCompacted =
-    Boolean(efficiencyHint?.liveContextCompacted) ||
-    memoryContext.includes("[CONTEXT COMPACTED");
   const runtimeEngine = getRuntimeEngine(s);
   const selectedToolCatalog =
     opts.toolCatalog ?? getAgentToolCatalog(agentId, userMessage);
+  const preparedContext = prepareAgentContext({
+    systemPrompt: unboundedPrompt,
+    messages: incomingMessages,
+  });
+  const enrichedPrompt = preparedContext.systemPrompt;
+  const messages = preparedContext.messages;
+  const contextChars = preparedContext.outputChars;
+  const contextCompacted =
+    preparedContext.compacted ||
+    Boolean(efficiencyHint?.liveContextCompacted) ||
+    memoryContext.includes("[CONTEXT COMPACTED");
+  recordExecutionAction({
+    type: "context_prepared",
+    now: Date.now(),
+    inputChars: preparedContext.inputChars,
+    outputChars: preparedContext.outputChars,
+    compacted: contextCompacted,
+    omittedMessageCount: preparedContext.omittedMessageCount,
+  });
   const toolCatalogChars = estimateToolCatalogChars(selectedToolCatalog.tools);
   const recordToolMetric = (metric: ToolExecutionMeta) => {
     if (metric.cacheHit) readCacheHits += 1;
@@ -2420,6 +2558,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     agentId,
     toolCatalog: selectedToolCatalog,
     onToolMetric: recordToolMetric,
+    onExecutionAction: recordExecutionAction,
   };
 
   const finalizeRunState = (ok: boolean) => {
@@ -2446,6 +2585,20 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     verification?: VerificationPayload;
     finalAnswer?: string;
   }) => {
+    if (
+      executionState.status !== "completed" &&
+      executionState.status !== "failed"
+    ) {
+      recordExecutionAction(
+        args.ok
+          ? { type: "complete", now: Date.now() }
+          : {
+              type: "fail",
+              now: Date.now(),
+              errorCode: args.failureCause ? "agent_run_failed" : "no_answer",
+            },
+      );
+    }
     if (typeof window === "undefined") return;
     const v = args.verification;
     const verification = v
@@ -2546,6 +2699,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       providerUsed,
       contextChars,
       contextCompacted,
+      executionContract: summarizeAgentExecutionState(executionState),
       toolTraces,
       efficiency,
       continuity,
@@ -2706,6 +2860,11 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   let finalAnswer = "";
 
   for (let iter = 0; iter < maxIterations; iter++) {
+    recordExecutionAction({
+      type: "iteration",
+      now: Date.now(),
+      iteration: iter + 1,
+    });
     let res: Response;
     try {
       res = await apiFetch("/api/ai", {
@@ -2797,7 +2956,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       text?: string;
       id?: string;
       name?: string;
-      input?: Record<string, string>;
+      input?: Record<string, unknown>;
     }[];
 
     const textBlocks = content
@@ -2860,8 +3019,20 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     await Promise.all(
       toolUseBlocks.map(async (b) => {
         const name = b.name ?? "";
-        const input = (b.input ?? {}) as Record<string, string>;
+        const input = (b.input ?? {}) as Record<string, unknown>;
         const risk = getToolRisk(name);
+        recordExecutionAction({
+          type: "tool_started",
+          now: Date.now(),
+          tool: name,
+        });
+        if (name === "propose_project_edit") {
+          recordExecutionAction({
+            type: "human_wait",
+            now: Date.now(),
+            tool: name,
+          });
+        }
         const trace: {
           tool: string;
           risk: ToolRiskTier;
@@ -2882,11 +3053,16 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
         const result = exec.result;
         recordToolMetric(exec.meta);
         trace.output = result;
+        recordExecutionAction({
+          type: "tool_finished",
+          now: Date.now(),
+          tool: name,
+        });
         onStep({ type: "tool_result", content: result, tool: name });
         toolResults.push({
           type: "tool_result",
           tool_use_id: b.id,
-          content: result,
+          content: compactAgentToolResult(result).content,
         });
       }),
     );

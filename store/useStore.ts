@@ -35,6 +35,7 @@ import type { ContextLoadReport } from '@/lib/contextPolicy'
 import type { ArticleReasoningIndex } from '@/lib/articleReasoning'
 import type { VoiceProfile, VoiceProject } from '@/lib/voiceLab'
 import type { RuntimeContinuityReceipt } from '@/lib/runtimeAuthority'
+import type { AgentExecutionSummary } from '@/lib/agentExecutionContract'
 // ── Lessons engine types ──────────────────────────────────────────────────────
 export interface Lesson {
   id:               number
@@ -260,6 +261,7 @@ export interface AgentRunArtifact {
   providerUsed?: string
   contextChars: number
   contextCompacted: boolean
+  executionContract?: AgentExecutionSummary
   toolTraces: AgentToolTrace[]
   efficiency: AgentEfficiencyMetrics
   continuity: RuntimeContinuityReceipt

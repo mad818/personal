@@ -1,0 +1,4 @@
+interface:
+  display_name: "Documentation And ADRs"
+  short_description: "Record durable Nexus decisions and contracts."
+  default_prompt: "Use $documentation-and-adrs to record the why and operating contract for this Nexus change."

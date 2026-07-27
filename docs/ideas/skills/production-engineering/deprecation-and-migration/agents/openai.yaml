@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deprecation And Migration"
+  short_description: "Retire Nexus behavior with migration and proof."
+  default_prompt: "Use $deprecation-and-migration to retire this Nexus path without losing required behavior."

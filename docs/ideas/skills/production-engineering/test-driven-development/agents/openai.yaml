@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test Driven Development"
+  short_description: "Prove behavior with focused tests and gates."
+  default_prompt: "Use $test-driven-development to define failing proof and implement the smallest passing change."

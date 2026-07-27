@@ -1,0 +1,4 @@
+interface:
+  display_name: "Source Driven Development"
+  short_description: "Ground unstable implementation choices in sources."
+  default_prompt: "Use $source-driven-development to verify this implementation against primary current sources."

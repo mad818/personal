@@ -1,0 +1,4 @@
+interface:
+  display_name: "Incremental Implementation"
+  short_description: "Build a Nexus change in complete vertical slices."
+  default_prompt: "Use $incremental-implementation to deliver this Nexus change in verified vertical slices."

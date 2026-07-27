@@ -2,59 +2,312 @@
   "schemaVersion": 1,
   "id": "addyosmani-agent-skills",
   "name": "addyosmani/agent-skills",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/addyosmani/agent-skills",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-26",
+    "reviewedAt": "2026-07-26",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/addyosmani/agent-skills",
-      "https://github.com/addyosmani/agent-skills/blob/main/README.md"
+      "https://github.com/addyosmani/agent-skills/blob/main/README.md",
+      "https://github.com/addyosmani/agent-skills/blob/main/LICENSE",
+      "https://github.com/addyosmani/agent-skills/blob/main/.codex-plugin/plugin.json",
+      "https://github.com/addyosmani/agent-skills/blob/main/docs/skill-anatomy.md",
+      "https://github.com/addyosmani/agent-skills/blob/main/skills/using-agent-skills/SKILL.md",
+      "https://github.com/addyosmani/agent-skills/blob/main/skills/code-review-and-quality/SKILL.md",
+      "https://github.com/addyosmani/agent-skills/blob/main/skills/test-driven-development/SKILL.md",
+      "https://github.com/addyosmani/agent-skills/blob/main/skills/performance-optimization/SKILL.md",
+      "https://github.com/addyosmani/agent-skills/blob/main/skills/documentation-and-adrs/SKILL.md"
     ]
   },
   "capabilities": [
     {
-      "id": "production-skill-catalog-reference",
-      "title": "Production engineering skill catalog: review, refactor, debug, test, document, optimize, architect",
-      "sourceEvidence": "README skills list covering real engineering workflows used by Google engineers",
-      "disposition": "pending",
-      "reason": "Nexus .claude/skills/ covers add-feature, add-api, add-tab, fix-bug, analyze-new-repo; gap exists for dedicated review, refactor, optimize, and architect skills."
+      "id": "skill-using-agent-skills",
+      "title": "Route incoming engineering work to the smallest complete lifecycle skill chain",
+      "sourceEvidence": "README meta-skill inventory and using-agent-skills lifecycle router",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/using-agent-skills/SKILL.md",
+        "AGENTS.md"
+      ]
     },
     {
-      "id": "skill-definition-format",
-      "title": "Structured SKILL.md format with trigger conditions, steps, and success criteria",
-      "sourceEvidence": "agent-skills SKILL.md template with explicit trigger/step/success structure",
-      "disposition": "pending",
-      "reason": "Nexus skills have SKILL.md files but lack explicit trigger-condition, step-by-step, and success-criteria sections. Format alignment pending."
+      "id": "skill-interview-me",
+      "title": "Resolve consequential requirement ambiguity one decision at a time",
+      "sourceEvidence": "README Define phase: interview-me",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/interview-me/SKILL.md"
+      ]
     },
     {
-      "id": "code-review-skill",
-      "title": "Structured code review skill covering correctness, performance, security, and maintainability",
-      "sourceEvidence": "agent-skills/review/ skill definition",
-      "disposition": "pending",
-      "reason": "Nexus has bugbot and security-review subagents but no reusable SKILL.md-format review skill for ORBIT use."
+      "id": "skill-idea-refine",
+      "title": "Explore and converge rough ideas into bounded proposals",
+      "sourceEvidence": "README Define phase: idea-refine",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/idea-refine/SKILL.md"
+      ]
     },
     {
-      "id": "refactor-skill",
-      "title": "Guided refactor skill with scope boundaries and rollback checkpoints",
-      "sourceEvidence": "agent-skills/refactor/ skill definition",
-      "disposition": "pending",
-      "reason": "Nexus has no dedicated refactor skill; ORBIT uses ad-hoc surgical-edit discipline instead."
+      "id": "skill-spec-driven-development",
+      "title": "Write behavior, boundary, and verification contracts before implementation",
+      "sourceEvidence": "README Define phase: spec-driven-development",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/spec-driven-development/SKILL.md"
+      ]
     },
     {
-      "id": "test-generation-skill",
-      "title": "Test-generation skill producing unit, integration, and e2e test scaffolding",
-      "sourceEvidence": "agent-skills/test/ skill definition",
-      "disposition": "pending",
-      "reason": "Nexus has no test-generation skill; type-check and lint are used as acceptance gates instead."
+      "id": "skill-planning-and-task-breakdown",
+      "title": "Decompose approved specs into ordered verifiable slices",
+      "sourceEvidence": "README Plan phase: planning-and-task-breakdown",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/planning-and-task-breakdown/SKILL.md"
+      ]
     },
     {
-      "id": "multi-skill-orchestration",
-      "title": "Skill chaining: compose multiple skills into a single operator workflow",
-      "sourceEvidence": "agent-skills composable skill chains",
-      "disposition": "pending",
-      "reason": "Nexus skills are currently single-step; multi-skill orchestration patterns not yet implemented."
+      "id": "skill-incremental-implementation",
+      "title": "Build complete vertical slices with proof before widening",
+      "sourceEvidence": "README Build phase: incremental-implementation",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/incremental-implementation/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-test-driven-development",
+      "title": "Use failing evidence, smallest passing change, and regression guards",
+      "sourceEvidence": "README and test-driven-development skill",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/test-driven-development/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-context-engineering",
+      "title": "Load the smallest authoritative task context",
+      "sourceEvidence": "README Build phase: context-engineering",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/context-engineering/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-source-driven-development",
+      "title": "Ground unstable implementation decisions in primary current sources",
+      "sourceEvidence": "README Build phase: source-driven-development",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/source-driven-development/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-doubt-driven-development",
+      "title": "Challenge high-impact implementation claims with independent evidence",
+      "sourceEvidence": "README Build phase: doubt-driven-development",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/doubt-driven-development/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-frontend-ui-engineering",
+      "title": "Build accessible responsive UI through existing product seams",
+      "sourceEvidence": "README Build phase: frontend-ui-engineering",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/frontend-ui-engineering/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-api-and-interface-design",
+      "title": "Design stable validated contracts at module, route, and tool boundaries",
+      "sourceEvidence": "README Build phase: api-and-interface-design",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/api-and-interface-design/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-browser-testing-with-devtools",
+      "title": "Collect real browser evidence for reachable UI behavior",
+      "sourceEvidence": "README Verify phase: browser-testing-with-devtools",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/browser-testing-with-devtools/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-debugging-and-error-recovery",
+      "title": "Reproduce, localize, reduce, fix, and guard exact failures",
+      "sourceEvidence": "README Verify phase: debugging-and-error-recovery",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/debugging-and-error-recovery/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-code-review-and-quality",
+      "title": "Review correctness, clarity, architecture, security, and performance",
+      "sourceEvidence": "README and code-review-and-quality skill",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/code-review-and-quality/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-code-simplification",
+      "title": "Reduce concepts and moving parts while preserving behavior",
+      "sourceEvidence": "README Review phase: code-simplification",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/code-simplification/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-security-and-hardening",
+      "title": "Threat-model and harden trust boundaries with adversarial proof",
+      "sourceEvidence": "README Review phase: security-and-hardening",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/security-and-hardening/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-performance-optimization",
+      "title": "Measure and improve one demonstrated bottleneck",
+      "sourceEvidence": "README and performance-optimization skill",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/performance-optimization/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-git-workflow-and-versioning",
+      "title": "Package authorized changes into intentional reversible history",
+      "sourceEvidence": "README Ship phase: git-workflow-and-versioning",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/git-workflow-and-versioning/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-ci-cd-and-automation",
+      "title": "Build deterministic fail-closed delivery automation",
+      "sourceEvidence": "README Ship phase: ci-cd-and-automation",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/ci-cd-and-automation/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-deprecation-and-migration",
+      "title": "Retire behavior with migration, reachability removal, and rollback proof",
+      "sourceEvidence": "README Ship phase: deprecation-and-migration",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/deprecation-and-migration/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-documentation-and-adrs",
+      "title": "Record durable decisions, contracts, and operating context",
+      "sourceEvidence": "README and documentation-and-adrs skill",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/documentation-and-adrs/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-observability-and-instrumentation",
+      "title": "Add bounded privacy-safe diagnostic evidence",
+      "sourceEvidence": "README Ship phase: observability-and-instrumentation",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/observability-and-instrumentation/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-shipping-and-launch",
+      "title": "Gate release readiness, staged rollout, monitoring, and rollback",
+      "sourceEvidence": "README Ship phase: shipping-and-launch",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/shipping-and-launch/SKILL.md"
+      ]
+    },
+    {
+      "id": "structured-skill-anatomy",
+      "title": "Structured skill metadata, triggers, workflow, stop conditions, and evidence criteria",
+      "sourceEvidence": "docs/skill-anatomy.md and README How Skills Work",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/validate-production-skill-lifecycle.mjs",
+        "specs/features/addy-production-skill-lifecycle.md"
+      ]
+    },
+    {
+      "id": "lifecycle-command-routing",
+      "title": "Lifecycle entrypoints that compose the applicable skills in order",
+      "sourceEvidence": "README Commands and using-agent-skills routing",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/using-agent-skills/SKILL.md",
+        "AGENTS.md"
+      ]
+    },
+    {
+      "id": "specialist-review-perspectives",
+      "title": "Specialist code, test, security, and web-performance review perspectives",
+      "sourceEvidence": "README Agent Personas",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/code-review-and-quality/SKILL.md",
+        "docs/ideas/skills/production-engineering/test-driven-development/SKILL.md",
+        "docs/ideas/skills/production-engineering/security-and-hardening/SKILL.md",
+        "docs/ideas/skills/production-engineering/performance-optimization/SKILL.md"
+      ]
+    },
+    {
+      "id": "shared-quality-checklists",
+      "title": "Reusable completion, testing, security, performance, accessibility, observability, and orchestration checks",
+      "sourceEvidence": "README Reference Checklists",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/using-agent-skills/SKILL.md",
+        "scripts/validate-production-skill-lifecycle.mjs",
+        "package.json"
+      ]
+    },
+    {
+      "id": "evaluation-and-quality-gates",
+      "title": "Automated structure, metadata, dependency, and completion evaluation",
+      "sourceEvidence": "Repository evals and verification-first skill design",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/validate-production-skill-lifecycle.mjs",
+        "scripts/validate-skill-capabilities.mjs",
+        "package.json"
+      ]
+    },
+    {
+      "id": "multi-host-plugin-installers",
+      "title": "Install and adapt the skill pack across many third-party agent hosts",
+      "sourceEvidence": "README Quick Start host-specific setup sections",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus needs one tracked project-owned workflow pack, not installers and mutable configuration for unrelated agent hosts."
+    },
+    {
+      "id": "upstream-session-hooks",
+      "title": "Host-specific session lifecycle hooks bundled with the upstream distribution",
+      "sourceEvidence": "README project structure hooks directory",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus already owns startup, handoff, verification, and Git-hook behavior through repository instructions and scripts; an additional upstream hook runtime would create competing authority."
     }
   ]
 }

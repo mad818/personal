@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spec Driven Development"
+  short_description: "Define acceptance and boundaries before coding."
+  default_prompt: "Use $spec-driven-development to write a bounded Nexus feature contract before coding."

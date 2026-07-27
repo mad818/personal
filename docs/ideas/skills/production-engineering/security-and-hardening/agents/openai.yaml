@@ -1,0 +1,4 @@
+interface:
+  display_name: "Security And Hardening"
+  short_description: "Threat-model and harden Nexus trust boundaries."
+  default_prompt: "Use $security-and-hardening to assess and harden this Nexus trust boundary."

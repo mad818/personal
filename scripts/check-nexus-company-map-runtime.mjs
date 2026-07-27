@@ -88,6 +88,18 @@ assert.equal(
   1,
 );
 
+const openDirectorySkills = COMPANY_SKILL_SOURCES.find(
+  (source) => source.id === "opendirectory-gtm-skills",
+);
+assert.ok(openDirectorySkills);
+assert.equal(openDirectorySkills.posture, "adapted");
+assert.match(openDirectorySkills.codexPath, /list_go_to_market_skills/i);
+assert.ok(
+  NEXUS_COMPANY_DEPARTMENTS.find(
+    (department) => department.id === "marketing-social",
+  )?.sourceIds.includes(openDirectorySkills.id),
+);
+
 const focusOutput = COMPANY_SKILL_SOURCES.find(
   (source) => source.id === "ayghri-focus-output",
 );

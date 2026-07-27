@@ -249,6 +249,8 @@ const TOOL_TO_ROUTE: Record<string, NexusRoute | null> = {
   list_project_files: "/internal/skills",
   list_design_skills: "/internal/skills",
   resolve_design_skill: "/internal/skills",
+  list_go_to_market_skills: "/internal/skills",
+  resolve_go_to_market_skill: "/internal/skills",
   patch_project_file: "/internal/skills",
   create_project_file: "/internal/skills",
   propose_project_edit: "/internal/skills",

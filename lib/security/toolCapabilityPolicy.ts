@@ -64,6 +64,8 @@ const TOOL_CAPABILITY_REGISTRY: Record<string, ToolCapabilityClass> = {
   list_project_files: "read",
   list_design_skills: "read",
   resolve_design_skill: "read",
+  list_go_to_market_skills: "read",
+  resolve_go_to_market_skill: "read",
   patch_project_file: "mutate",
   create_project_file: "mutate",
   reddit_search: "networked",

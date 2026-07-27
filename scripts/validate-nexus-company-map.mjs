@@ -53,6 +53,7 @@ for (const source of [
   "UI/UX Pro Max",
   "Taste Skill",
   "Emil's Design Engineering Skills",
+  "OpenDirectory GTM Skill Atlas",
   "ayghri/i-have-adhd Focus Output",
   "UditAkhourii/adhd Capped Divergence",
   "Frontend Slides",
@@ -128,6 +129,11 @@ requireText(
   read("docs/ideas/repo-analysis/mattpocock-skills/REPO_CONTEXT.md"),
   "intentionally remains outside the released plugin/router surface",
   "Matt Pocock PR boundary",
+);
+requireText(
+  read("docs/ideas/repo-analysis/varnan-tech-opendirectory/REPO_CONTEXT.md"),
+  "current `main` README lists 62 skills",
+  "OpenDirectory current inventory",
 );
 requireText(
   read("docs/ideas/repo-analysis/davidondrej-skills/REPO_CONTEXT.md"),

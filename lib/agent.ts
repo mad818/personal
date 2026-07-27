@@ -99,6 +99,8 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   list_project_files: "tier0",
   list_design_skills: "tier0",
   resolve_design_skill: "tier0",
+  list_go_to_market_skills: "tier0",
+  resolve_go_to_market_skill: "tier0",
   calculate: "tier0",
   recall: "tier0",
   read_current_tab: "tier0",
@@ -655,6 +657,81 @@ export const AGENT_TOOLS = [
       required: ["skill"],
     },
   },
+  {
+    name: "list_go_to_market_skills",
+    description:
+      "Search the complete guarded go-to-market procedure atlas adapted from the current Varnan-Tech/OpenDirectory portfolio. Returns bounded active IDs, families, availability, and purpose. Use before visual production, content packaging, launch, market intelligence, respectful outreach drafting, buyer research, or developer communications when the exact procedure is not already known. High-risk scraping, contact harvesting, and competing authority files are excluded.",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description:
+            "Optional search text such as launch, pricing, newsletter, market, community, PR, or schema.",
+        },
+        category: {
+          type: "string",
+          enum: [
+            "visual-media",
+            "content",
+            "launch",
+            "gtm-intelligence",
+            "outreach",
+            "research",
+            "developer-tools",
+            "other",
+          ],
+          description: "Optional exact upstream source category.",
+        },
+        family: {
+          type: "string",
+          enum: [
+            "visual-production",
+            "content-packaging",
+            "launch-communications",
+            "market-intelligence",
+            "outreach-drafting",
+            "buyer-research",
+            "developer-communications",
+            "opportunity-research",
+          ],
+          description: "Optional exact project-owned procedure family.",
+        },
+        availability: {
+          type: "string",
+          enum: [
+            "native",
+            "source_required",
+            "connector_required",
+            "host_required",
+            "dependency_review",
+          ],
+          description: "Optional execution-prerequisite filter.",
+        },
+        limit: {
+          type: "string",
+          description: "Optional result limit from 1 to 62; defaults to 40.",
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "resolve_go_to_market_skill",
+    description:
+      "Resolve one exact active go-to-market skill ID into its complete read-only operating contract: purpose, requirements, inputs, ordered workflow, guardrails, acceptance checks, availability, and primary source. Call before executing matching visual, content, launch, market, outreach, buyer-research, or developer-communication work. The contract does not authorize collection, accounts, installs, providers, messages, ads, posts, PRs, dependencies, or publication.",
+    input_schema: {
+      type: "object",
+      properties: {
+        skill: {
+          type: "string",
+          description:
+            "Exact ID returned by list_go_to_market_skills, for example producthunt-launch-kit, pricing-finder, or pr-description-writer.",
+        },
+      },
+      required: ["skill"],
+    },
+  },
 
   // ── Project source code access ─────────────────────────────────────────────
   {
@@ -900,6 +977,8 @@ const HUGGING_FACE_INTENT_RE =
   /\bhugging\s*face\b|\bhuggingface_inspect\b|https:\/\/huggingface\.co\/(?:datasets\/)?[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)?/i;
 const DESIGN_SKILL_INTENT_RE =
   /\b(?:design|landing page|pricing page|marketing page|ui|ux|animation|motion|scroll|gsap|three\.?js|webgl|shader|canvas|capture|screenshot|screen recording|customer support|billing case|account case|tts|voiceover|unsplash|aura assets|originality audit|performance profiling|instruments)\b/i;
+const GO_TO_MARKET_SKILL_INTENT_RE =
+  /\b(?:go[- ]to[- ]market|gtm|launch kit|product hunt|show hn|newsletter|linkedin post|tweet thread|content repurpos|market map|market research|competitor pricing|pricing audit|buyer pain|meeting brief|investor fit|vc match|community research|developer relations|devrel|pull request description|pr description|standup update|llms\.txt|schema markup)\b/i;
 
 function pickAgentTools(names: Iterable<string>): AgentToolDefinition[] {
   return Array.from(names)
@@ -955,6 +1034,7 @@ export function getAgentToolCatalog(
   const feynmanOutputsIntent = FEYNMAN_OUTPUTS_INTENT_RE.test(userMessage);
   const huggingFaceIntent = HUGGING_FACE_INTENT_RE.test(userMessage);
   const designSkillIntent = DESIGN_SKILL_INTENT_RE.test(userMessage);
+  const goToMarketSkillIntent = GO_TO_MARKET_SKILL_INTENT_RE.test(userMessage);
   const repoCompareIntent = hasRepoCompareSignal(userMessage);
   const repoAssimilationIntent = hasRepoAssimilationSignal(userMessage);
   const delegateIntent = DELEGATE_INTENT_RE.test(userMessage);
@@ -1070,6 +1150,12 @@ export function getAgentToolCatalog(
     groups.add("design_skills");
     names.add("list_design_skills");
     names.add("resolve_design_skill");
+  }
+
+  if (goToMarketSkillIntent) {
+    groups.add("go_to_market_skills");
+    names.add("list_go_to_market_skills");
+    names.add("resolve_go_to_market_skill");
   }
 
   if (workspaceReadIntent) {

@@ -108,6 +108,10 @@ import {
   formatDesignSkillList,
 } from "@/lib/designSkillAtlas";
 import {
+  formatGoToMarketSkillContract,
+  formatGoToMarketSkillList,
+} from "@/lib/goToMarketSkillAtlas";
+import {
   buildExternalToolResultEnvelope,
   type ExternalToolResultEnvelope,
 } from "@/lib/externalToolBridge";
@@ -1933,6 +1937,18 @@ export async function POST(req: NextRequest) {
         break;
       case "resolve_design_skill":
         result = formatDesignSkillContract(input.skill ?? "");
+        break;
+      case "list_go_to_market_skills":
+        result = formatGoToMarketSkillList({
+          query: input.query ?? "",
+          sourceCategory: input.category ?? "",
+          family: input.family ?? "",
+          availability: input.availability ?? "",
+          limit: Number(input.limit),
+        });
+        break;
+      case "resolve_go_to_market_skill":
+        result = formatGoToMarketSkillContract(input.skill ?? "");
         break;
       case "read_project_file":
         {

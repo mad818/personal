@@ -63,6 +63,10 @@ const DesignSkillAtlas = dynamic(
   () => import("@/components/skills/DesignSkillAtlas"),
   { ssr: false },
 );
+const GoToMarketSkillAtlas = dynamic(
+  () => import("@/components/skills/GoToMarketSkillAtlas"),
+  { ssr: false },
+);
 const SkillRadarChart = dynamic(
   () => import("@/components/skills/SkillRadarChart"),
   { ssr: false },
@@ -597,6 +601,13 @@ export default function SkillsPage() {
                         tone="muted"
                       >
                         <DesignSkillAtlas />
+                      </OpsField>
+                      <OpsField
+                        title="Go-to-market procedure atlas"
+                        detail="Complete guarded visual, content, launch, market, research, and developer-communication procedures"
+                        tone="muted"
+                      >
+                        <GoToMarketSkillAtlas />
                       </OpsField>
                     </ShellStack>
                   </OpsWorkplane>

@@ -228,6 +228,19 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
       "Share or retrieve the resolved procedure as conversation context; external account, host, and dependency requirements still need the corresponding connected surface and user authority.",
   },
   {
+    id: "opendirectory-gtm-skills",
+    label: "OpenDirectory GTM Skill Atlas",
+    url: "https://github.com/Varnan-Tech/OpenDirectory",
+    kind: "codex_skill",
+    posture: "adapted",
+    purpose:
+      "A complete guarded atlas of 58 visual, content, launch, market, outreach, buyer-research, and developer-communication procedures; the benefit is source-backed GTM work with prerequisites and external-action boundaries visible before execution.",
+    codexPath:
+      "Open /skills?view=library&focus=skills-library or use list_go_to_market_skills then resolve_go_to_market_skill; external research, media, account, message, ad, post, PR, dependency, purchase, and publication actions remain separately protected.",
+    chatgptPath:
+      "Share or retrieve the resolved procedure as conversation context; live sources, connectors, host tools, and external actions still require the corresponding connected surface and explicit user authority.",
+  },
+  {
     id: "ayghri-focus-output",
     label: "ayghri/i-have-adhd Focus Output",
     url: "https://github.com/ayghri/i-have-adhd",
@@ -537,6 +550,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "frontend-slides",
       "marketing-skills",
       "social-media-skills",
+      "opendirectory-gtm-skills",
       "anthropic-skills",
       "pliny-autostorygen",
     ],

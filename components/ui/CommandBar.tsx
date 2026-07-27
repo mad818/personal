@@ -31,6 +31,7 @@ import AssistantTurnReceipt from "@/components/assistant/AssistantTurnReceipt";
 import IntelOnlyAgentGate from "@/components/ui/IntelOnlyAgentGate";
 import { usePhonePosture } from "@/hooks/usePhonePosture";
 import ClientStyleMount from "@/components/ui/ClientStyleMount";
+import CommandPalette from "@/components/ui/CommandPalette";
 import { buildSystemPrompt } from "@/lib/ai";
 import { runAgent, type AgentStep } from "@/lib/agent";
 import {
@@ -51,6 +52,7 @@ import {
 import { loadAssistantRuntimeReceipt } from "@/lib/assistantRuntimeReceipt";
 import { getTabFromHref } from "@/lib/missionHandoff";
 import { normalizeSurfaceHref } from "@/lib/releaseMatrix";
+import type { NexusCommand } from "@/lib/commandPalette";
 import type { OperationalPhase } from "@/store/useStore";
 
 // ── Palette (mirrors the current HQ agent palette) ────────────────────────────
@@ -658,6 +660,7 @@ export default function CommandBar() {
   const [statusLine, setStatusLine] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [visible, setVisible] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const chatRef = useRef<HTMLDivElement>(null);
   const feedRef = useRef<HTMLDivElement>(null);
@@ -681,20 +684,44 @@ export default function CommandBar() {
       feedRef.current.scrollTop = feedRef.current.scrollHeight;
   }, [activityLog]);
 
-  // Escape closes the panel
+  // Global command discovery mirrors platform command-palette conventions.
   useEffect(() => {
-    if (!expanded) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setExpanded(false);
+    const handler = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      const macShortcut = event.metaKey && !event.ctrlKey && key === "p";
+      const windowsShortcut =
+        event.ctrlKey && event.shiftKey && !event.metaKey && key === "p";
+      if (event.altKey || (!macShortcut && !windowsShortcut)) return;
+      event.preventDefault();
+      setExpanded(true);
+      setPaletteOpen(true);
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // Escape closes the palette first, then the surrounding panel.
+  useEffect(() => {
+    if (!expanded) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (paletteOpen) setPaletteOpen(false);
+      else setExpanded(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [expanded, paletteOpen]);
+
+  useEffect(() => {
+    if (!expanded) setPaletteOpen(false);
   }, [expanded]);
 
   // Focus input when panel opens
   useEffect(() => {
-    if (expanded) setTimeout(() => inputRef.current?.focus(), 60);
-  }, [expanded]);
+    if (expanded && !paletteOpen) {
+      setTimeout(() => inputRef.current?.focus(), 60);
+    }
+  }, [expanded, paletteOpen]);
 
   const canonicalPath = normalizeSurfaceHref(pathname);
   const dutyAgent = ROUTE_AGENT[canonicalPath] ?? "jansky";
@@ -1093,6 +1120,16 @@ export default function CommandBar() {
     [router, send, setTab],
   );
 
+  const handlePaletteActivate = useCallback(
+    (command: NexusCommand) => {
+      setTab(getTabFromHref(command.href));
+      router.push(command.href);
+      setPaletteOpen(false);
+      setExpanded(false);
+    },
+    [router, setTab],
+  );
+
   const handleKey = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -1132,6 +1169,7 @@ export default function CommandBar() {
             boxShadow: `0 -4px 32px rgba(0,0,0,.55), 0 0 20px ${accentColor}18`,
             display: "flex",
             flexDirection: "column",
+            position: "relative",
             maxHeight: "420px",
             pointerEvents: "auto",
             animation: "cbPanelIn .18s ease",
@@ -1219,12 +1257,34 @@ export default function CommandBar() {
               </span>
             )}
 
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={paletteOpen}
+              style={{
+                marginLeft: "auto",
+                minHeight: "22px",
+                padding: "2px 7px",
+                borderRadius: "5px",
+                border: `1px solid ${accentColor}33`,
+                background: "rgba(255,255,255,0.025)",
+                color: accentColor,
+                cursor: "pointer",
+                fontSize: "7px",
+                fontWeight: 900,
+                letterSpacing: ".08em",
+              }}
+              title="Open command palette (Ctrl+Shift+P or Cmd+P)"
+            >
+              PALETTE
+            </button>
+
             {/* Clear chat */}
             <button
               type="button"
               onClick={() => setMessages([])}
               style={{
-                marginLeft: "auto",
                 fontSize: "8px",
                 color: "var(--text3)",
                 background: "none",
@@ -1257,6 +1317,13 @@ export default function CommandBar() {
               ✕
             </button>
           </div>
+
+          <CommandPalette
+            open={paletteOpen}
+            accentColor={accentColor}
+            onClose={() => setPaletteOpen(false)}
+            onActivate={handlePaletteActivate}
+          />
 
           <div
             style={{

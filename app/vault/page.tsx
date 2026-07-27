@@ -72,6 +72,10 @@ const LazyDocumentIntakePanel = dynamic(
   () => import("@/components/vault/DocumentIntakePanel"),
   { ssr: false },
 );
+const LazySealedVaultPanel = dynamic(
+  () => import("@/components/vault/SealedVaultPanel"),
+  { ssr: false },
+);
 const LazySavedArticles = dynamic(
   () => import("@/components/vault/SavedArticles"),
   { ssr: false },
@@ -98,7 +102,7 @@ type MemoryBriefView =
   | "study"
   | "stewardship";
 
-type ArchiveLaneView = "intake" | "clips" | "papers" | "ask";
+type ArchiveLaneView = "intake" | "sealed" | "clips" | "papers" | "ask";
 
 const CHAMBERS: Array<{ id: VaultChamberId; label: string }> = [
   { id: "archive", label: "Archive" },
@@ -118,6 +122,7 @@ const MEMORY_VIEWS: Array<{ id: MemoryBriefView; label: string }> = [
 
 const ARCHIVE_LANE_VIEWS: Array<{ id: ArchiveLaneView; label: string }> = [
   { id: "intake", label: "Intake" },
+  { id: "sealed", label: "Sealed notes" },
   { id: "clips", label: "Saved clips" },
   { id: "papers", label: "Papers" },
   { id: "ask", label: "Ask memory" },
@@ -232,6 +237,7 @@ export default function VaultPage() {
 
   const focusChamber = useMemo(() => {
     if (focus === "vault-graph-focus") return "relations";
+    if (focus === "vault-sealed") return "archive";
     if (
       focus === "vault-compiled-pages" ||
       focus === "vault-export-second-brain"
@@ -256,6 +262,12 @@ export default function VaultPage() {
     const nextMemoryView = focusToMemoryView(focus);
     if (nextMemoryView) {
       setMemoryView(nextMemoryView);
+    }
+  }, [focus]);
+
+  useEffect(() => {
+    if (focus === "vault-sealed") {
+      setArchiveLane("sealed");
     }
   }, [focus]);
 
@@ -459,12 +471,14 @@ export default function VaultPage() {
   const focusTargetId =
     focus === "vault-graph-focus"
       ? "vault-relations"
-      : focus === "vault-compiled-pages" ||
-          focus === "vault-export-second-brain"
-        ? "vault-publish"
-        : focusToMemoryView(focus)
-          ? "vault-memory-brief"
-          : null;
+      : focus === "vault-sealed"
+        ? "vault-sealed"
+        : focus === "vault-compiled-pages" ||
+            focus === "vault-export-second-brain"
+          ? "vault-publish"
+          : focusToMemoryView(focus)
+            ? "vault-memory-brief"
+            : null;
 
   useSurfaceFocusScroll(focusTargetId);
 
@@ -593,6 +607,13 @@ export default function VaultPage() {
           <SurfaceFocusStrip
             title="Focused session: vault stewardship"
             description="Stewardship opens first."
+          />
+        ) : null}
+
+        {focus === "vault-sealed" ? (
+          <SurfaceFocusStrip
+            title="Focused session: sealed notes"
+            description="The browser-local encrypted envelope opens first and remains locked until its passphrase is entered."
           />
         ) : null}
 
@@ -748,6 +769,16 @@ export default function VaultPage() {
                           detail="Bring new local material into the archive"
                         >
                           <LazyDocumentIntakePanel />
+                        </OpsField>
+                      ) : null}
+                      {archiveLane === "sealed" ? (
+                        <OpsField
+                          title="Sealed notes"
+                          detail="Browser-local encrypted private notes with explicit lock and backup controls"
+                        >
+                          <div id="vault-sealed">
+                            <LazySealedVaultPanel />
+                          </div>
                         </OpsField>
                       ) : null}
                       {archiveLane === "clips" ? (

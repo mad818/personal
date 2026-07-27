@@ -55,6 +55,7 @@ for (const source of [
   "Emil's Design Engineering Skills",
   "OpenDirectory GTM Skill Atlas",
   "Mautic Campaign Builder Pattern",
+  "Vaultwarden-Informed Sealed Vault",
   "ayghri/i-have-adhd Focus Output",
   "UditAkhourii/adhd Capped Divergence",
   "Frontend Slides",
@@ -140,6 +141,11 @@ requireText(
   read("docs/ideas/repo-analysis/mautic-mautic/REPO_CONTEXT.md"),
   "not into a marketing automation service",
   "Mautic product boundary",
+);
+requireText(
+  read("docs/ideas/repo-analysis/dani-garcia-vaultwarden/REPO_CONTEXT.md"),
+  "encryption is performed by the clients",
+  "Vaultwarden responsibility boundary",
 );
 requireText(
   read("docs/ideas/repo-analysis/davidondrej-skills/REPO_CONTEXT.md"),

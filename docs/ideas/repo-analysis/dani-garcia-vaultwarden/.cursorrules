@@ -1,0 +1,5 @@
+Use REPO_CONTEXT.md for strategic orientation only.
+Keep the adaptation inside the existing Nexus VAULT Archive chamber.
+Preserve Web Crypto, local-only persistence, strict validation, automatic locking, and explicit recovery limits.
+Do not install, import, or reproduce Vaultwarden, Bitwarden clients, or their server and sync protocols.
+Do not copy AGPL code, assets, schemas, interface text, or runtime dependencies.

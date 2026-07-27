@@ -254,6 +254,19 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
       "Use the saved workflow JSON or draft artifact as conversation context; normal chat gains no contact, sending, scheduling, or campaign-activation authority.",
   },
   {
+    id: "vaultwarden-sealed-vault",
+    label: "Vaultwarden-Informed Sealed Vault",
+    url: "https://github.com/dani-garcia/vaultwarden",
+    kind: "reference",
+    posture: "adapted",
+    purpose:
+      "Client-side encryption lessons adapted into browser-local sealed notes; the benefit is encrypted persistence, strict imports, explicit backups, and automatic locking without importing a password-server product.",
+    codexPath:
+      "Open /vault?view=archive&focus=vault-sealed, keep the passphrase outside persisted state, and use encrypted exports as the only recovery path.",
+    chatgptPath:
+      "Share only excerpts intentionally decrypted by the operator; normal chat cannot unlock the local envelope, recover its passphrase, or provide Bitwarden/Vaultwarden interoperability.",
+  },
+  {
     id: "ayghri-focus-output",
     label: "ayghri/i-have-adhd Focus Output",
     url: "https://github.com/ayghri/i-have-adhd",
@@ -603,6 +616,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "claude-business-plugins",
       "anthropic-skills",
       "nexus-native",
+      "vaultwarden-sealed-vault",
       "pliny-leakhub",
       "pliny-parseltongue",
       "pliny-glossopetrae",

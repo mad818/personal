@@ -280,6 +280,19 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
       "Share only excerpts intentionally decrypted by the operator; normal chat cannot unlock the local envelope, recover its passphrase, or provide Bitwarden/Vaultwarden interoperability.",
   },
   {
+    id: "keepassxc-local-generator",
+    label: "KeePassXC-Informed Local Generator",
+    url: "https://github.com/keepassxreboot/keepassxc",
+    kind: "reference",
+    posture: "adapted",
+    purpose:
+      "Configurable password and passphrase generation adapted into a memory-only VAULT utility; the benefit is unbiased local generation, complete operator controls, custom word-list support, and visible lifecycle limits without importing a password manager.",
+    codexPath:
+      "Open /vault?view=archive&focus=vault-credential-generator, configure one local value, copy it intentionally, and clear it; generated values and custom lists never enter project context or persisted state.",
+    chatgptPath:
+      "Use the source pattern as security guidance only; normal chat cannot see the generated value, access the browser clipboard, store credentials, or provide KeePassXC/KDBX compatibility.",
+  },
+  {
     id: "ayghri-focus-output",
     label: "ayghri/i-have-adhd Focus Output",
     url: "https://github.com/ayghri/i-have-adhd",
@@ -631,6 +644,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "anthropic-skills",
       "nexus-native",
       "vaultwarden-sealed-vault",
+      "keepassxc-local-generator",
       "pliny-leakhub",
       "pliny-parseltongue",
       "pliny-glossopetrae",

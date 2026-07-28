@@ -57,6 +57,7 @@ for (const source of [
   "OpenDirectory GTM Skill Atlas",
   "Mautic Campaign Builder Pattern",
   "Vaultwarden-Informed Sealed Vault",
+  "KeePassXC-Informed Local Generator",
   "ayghri/i-have-adhd Focus Output",
   "UditAkhourii/adhd Capped Divergence",
   "Frontend Slides",
@@ -147,6 +148,11 @@ requireText(
   read("docs/ideas/repo-analysis/dani-garcia-vaultwarden/REPO_CONTEXT.md"),
   "encryption is performed by the clients",
   "Vaultwarden responsibility boundary",
+);
+requireText(
+  read("docs/ideas/repo-analysis/keepassxreboot-keepassxc/REPO_CONTEXT.md"),
+  "4,980 commits",
+  "KeePassXC current source boundary",
 );
 requireText(
   read("docs/ideas/repo-analysis/humanlayer-12-factor-agents/REPO_CONTEXT.md"),

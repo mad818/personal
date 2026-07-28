@@ -95,6 +95,14 @@ Active open-ready queue:
 
 Use `npm run ops:first-three` for the current combined status of the first three non-RPG operational lanes before opening individual JSON artifacts: `postcss` runtime patch, phone/iPad acceptance, and local AI offline proof. Use `npm run phone:acceptance:guide` for the plain phone/iPad checklist and LAN HQ URL candidates. The first-three command also points GitHub/X/YouTube idea pressure back to the existing source-intake docs rather than adding surprise scope.
 
+- [ ] KEEPASSXC-LOCAL-CREDENTIAL-GENERATOR — Complete KeePassXC's feasible password/passphrase generation pattern as an original browser-local VAULT utility. Spec: `specs/features/keepassxc-local-credential-generator.md`.
+  - [ ] Refresh default branch, revision posture, guide version, mixed repository license boundary, and strategic source analysis from current primary evidence.
+  - [ ] Add dependency-free Web Crypto password generation with bounded length, selectable sets, required-set coverage, ambiguous/custom exclusions, and conservative entropy estimates.
+  - [ ] Add built-in and bounded custom-list passphrases with word count, separator, case, local file/paste intake, complete clear/reveal/regenerate/copy lifecycle, and no persistence.
+  - [ ] Wire a reachable VAULT Archive lane plus focused route, source parity, benefits, Company Map, focused proof, exact isolated verification, and an isolated commit.
+  - Guardrail: no copied GPL code/UI/assets/word lists, password manager, credential store, KDBX, autofill, browser extension, sync, recovery, account, breach lookup, provider/network/API route, dependency, clipboard-clear guarantee, phone/PWA work, game/RPG work, or staging of the unrelated redesign.
+  - Progress: source-reviewed and specified; clean-room implementation in progress.
+
 - [x] HUMANLAYER-12-FACTOR-AGENT-RUNTIME — Correct the stale HumanLayer source contract and complete all twelve current factors through the active Nexus runtime rather than a detached architecture note. Spec: `specs/features/humanlayer-12-factor-agent-runtime.md`.
   - [x] Refresh the current factor names, mixed content/code license, strategic analysis, and exact capability matrix from primary evidence.
   - [x] Add a hard deterministic context budget, schema-backed tool-input validation, bounded result/error compaction, and a pure execution-state reducer.

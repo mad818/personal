@@ -5,12 +5,14 @@
   "status": "in_progress",
   "source": {
     "url": "https://github.com/keepassxreboot/keepassxc",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
-    "license": "GPL-2.0",
+    "version": "develop-4980-commits-2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "GPL-2.0-or-GPL-3.0-with-third-party-notices",
     "primaryEvidence": [
       "https://github.com/keepassxreboot/keepassxc",
-      "https://github.com/keepassxreboot/keepassxc/blob/main/README.md"
+      "https://github.com/keepassxreboot/keepassxc/blob/develop/README.md",
+      "https://github.com/keepassxreboot/keepassxc/blob/develop/COPYING",
+      "https://keepassxc.org/docs/KeePassXC_GettingStarted#_password_generator"
     ]
   },
   "capabilities": [
@@ -40,9 +42,15 @@
     {
       "id": "secure-password-generator",
       "title": "Configurable password generator: length, character sets, wordlist-based passphrases",
-      "sourceEvidence": "KeePassXC password generator: full-featured entropy-controlled generation",
-      "disposition": "pending",
-      "reason": "Nexus VAULT could expose a secure password/passphrase generator utility; pending VAULT feature planning."
+      "sourceEvidence": "The current 2.7.11 guide documents password length, selectable character sets, advanced conditions, regeneration/copy, and passphrase word count, separator, case, and optional custom word lists.",
+      "disposition": "adapted",
+      "reason": "VAULT now exposes a clean-room browser-local generator with the complete documented configuration surface, unbiased Web Crypto selection, a 1,024-entry project-owned compound-word source, bounded pasted/file word lists, conservative configuration estimates, explicit reveal/regenerate/copy/clear controls, visible clipboard failure, and automatic in-memory clearing.",
+      "proof": [
+        "lib/localCredentialGenerator.ts",
+        "components/vault/LocalCredentialGeneratorPanel.tsx",
+        "app/vault/page.tsx",
+        "scripts/check-local-credential-generator-runtime.mjs"
+      ]
     },
     {
       "id": "browser-extension-autofill",

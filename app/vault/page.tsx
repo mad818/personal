@@ -76,6 +76,10 @@ const LazySealedVaultPanel = dynamic(
   () => import("@/components/vault/SealedVaultPanel"),
   { ssr: false },
 );
+const LazyLocalCredentialGeneratorPanel = dynamic(
+  () => import("@/components/vault/LocalCredentialGeneratorPanel"),
+  { ssr: false },
+);
 const LazySavedArticles = dynamic(
   () => import("@/components/vault/SavedArticles"),
   { ssr: false },
@@ -102,7 +106,13 @@ type MemoryBriefView =
   | "study"
   | "stewardship";
 
-type ArchiveLaneView = "intake" | "sealed" | "clips" | "papers" | "ask";
+type ArchiveLaneView =
+  | "intake"
+  | "sealed"
+  | "generator"
+  | "clips"
+  | "papers"
+  | "ask";
 
 const CHAMBERS: Array<{ id: VaultChamberId; label: string }> = [
   { id: "archive", label: "Archive" },
@@ -123,6 +133,7 @@ const MEMORY_VIEWS: Array<{ id: MemoryBriefView; label: string }> = [
 const ARCHIVE_LANE_VIEWS: Array<{ id: ArchiveLaneView; label: string }> = [
   { id: "intake", label: "Intake" },
   { id: "sealed", label: "Sealed notes" },
+  { id: "generator", label: "Generator" },
   { id: "clips", label: "Saved clips" },
   { id: "papers", label: "Papers" },
   { id: "ask", label: "Ask memory" },
@@ -237,7 +248,9 @@ export default function VaultPage() {
 
   const focusChamber = useMemo(() => {
     if (focus === "vault-graph-focus") return "relations";
-    if (focus === "vault-sealed") return "archive";
+    if (focus === "vault-sealed" || focus === "vault-credential-generator") {
+      return "archive";
+    }
     if (
       focus === "vault-compiled-pages" ||
       focus === "vault-export-second-brain"
@@ -268,6 +281,8 @@ export default function VaultPage() {
   useEffect(() => {
     if (focus === "vault-sealed") {
       setArchiveLane("sealed");
+    } else if (focus === "vault-credential-generator") {
+      setArchiveLane("generator");
     }
   }, [focus]);
 
@@ -473,12 +488,14 @@ export default function VaultPage() {
       ? "vault-relations"
       : focus === "vault-sealed"
         ? "vault-sealed"
-        : focus === "vault-compiled-pages" ||
-            focus === "vault-export-second-brain"
-          ? "vault-publish"
-          : focusToMemoryView(focus)
-            ? "vault-memory-brief"
-            : null;
+        : focus === "vault-credential-generator"
+          ? "vault-credential-generator"
+          : focus === "vault-compiled-pages" ||
+              focus === "vault-export-second-brain"
+            ? "vault-publish"
+            : focusToMemoryView(focus)
+              ? "vault-memory-brief"
+              : null;
 
   useSurfaceFocusScroll(focusTargetId);
 
@@ -614,6 +631,13 @@ export default function VaultPage() {
           <SurfaceFocusStrip
             title="Focused session: sealed notes"
             description="The browser-local encrypted envelope opens first and remains locked until its passphrase is entered."
+          />
+        ) : null}
+
+        {focus === "vault-credential-generator" ? (
+          <SurfaceFocusStrip
+            title="Focused session: local credential generator"
+            description="The in-memory password and passphrase generator opens first without storing or sending generated values."
           />
         ) : null}
 
@@ -778,6 +802,16 @@ export default function VaultPage() {
                         >
                           <div id="vault-sealed">
                             <LazySealedVaultPanel />
+                          </div>
+                        </OpsField>
+                      ) : null}
+                      {archiveLane === "generator" ? (
+                        <OpsField
+                          title="Local credential generator"
+                          detail="Cryptographically random passwords and memorable passphrases without persistence"
+                        >
+                          <div id="vault-credential-generator">
+                            <LazyLocalCredentialGeneratorPanel />
                           </div>
                         </OpsField>
                       ) : null}

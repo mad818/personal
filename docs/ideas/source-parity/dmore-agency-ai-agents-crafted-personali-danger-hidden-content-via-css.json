@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "dmore-agency-ai-agents-crafted-personali-danger-hidden-content-via-css",
   "name": "dmore/agency-ai-agents-crafted-personali-danger-hidden-content-via-CSS",
-  "status": "foundation",
+  "status": "complete",
   "source": {
     "url": "https://github.com/dmore/agency-ai-agents-crafted-personali-danger-hidden-content-via-CSS",
-    "version": "main-2026-06-22",
-    "reviewedAt": "2026-06-22",
+    "version": "main re-reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "unknown",
     "primaryEvidence": [
       "https://github.com/dmore/agency-ai-agents-crafted-personali-danger-hidden-content-via-CSS",
@@ -18,8 +18,12 @@
       "id": "agency-role-catalog",
       "title": "Multi-role agency agent catalog with specialized personas and workflows",
       "sourceEvidence": "Repository positions itself as a complete AI agency with crafted agent roles",
-      "disposition": "pending",
-      "reason": "Nexus has lib/agentRoleTaxonomy.ts and ORBIT routing; exhaustive role mapping from this pack not inventoried yet."
+      "disposition": "adapted",
+      "proof": [
+        "lib/agentRoleTaxonomy.ts",
+        "lib/centralOrchestrator.ts",
+        "lib/nexusCompanyMap.ts"
+      ]
     },
     {
       "id": "css-hidden-prompt-injection",
@@ -45,8 +49,13 @@
       "id": "agency-workflow-decomposition",
       "title": "Decompose operator goals into agency-style specialist handoffs",
       "sourceEvidence": "Agency framing implies multi-agent specialization by function",
-      "disposition": "pending",
-      "reason": "HQ dispatch and assistantOperatorWorkflow cover partial handoffs; agency-scale orchestration not implemented."
+      "disposition": "implemented",
+      "proof": [
+        "lib/centralOrchestrator.ts",
+        "lib/assistantOperatorWorkflow.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-central-orchestrator-runtime.mjs"
+      ]
     }
   ]
 }

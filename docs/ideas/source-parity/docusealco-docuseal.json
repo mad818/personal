@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "docusealco-docuseal",
   "name": "DocuSeal",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/docusealco/docuseal",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "master-2836-commits-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "AGPL-3.0",
     "primaryEvidence": [
       "https://github.com/docusealco/docuseal",
@@ -34,8 +34,9 @@
       "id": "pdf-field-extraction-pattern",
       "title": "PDF field extraction: parse form fields and metadata from PDF documents",
       "sourceEvidence": "DocuSeal PDF processing pipeline: field extraction for template mapping",
-      "disposition": "pending",
-      "reason": "Nexus VAULT could benefit from PDF field extraction patterns for document intelligence; adaptation deferred pending VAULT document feature."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "PDF form extraction requires an untrusted-binary parser, strict resource limits, and a document-intelligence retention boundary. Nexus keeps local manual extracted-text intake rather than presenting a partial parser as safe."
     },
     {
       "id": "self-hosted-document-server",

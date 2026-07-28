@@ -8,6 +8,7 @@ export const AGENT_EXECUTION_EVENT_LIMIT = 48;
 export const AGENT_TOOL_INPUT_MAX_CHARS = 64_000;
 export const AGENT_TOOL_STRING_MAX_CHARS = 20_000;
 export const AGENT_TOOL_ARRAY_MAX_ITEMS = 100;
+export const AGENT_MAX_ITERATIONS = 12;
 
 export interface AgentContextMessage {
   role: string;
@@ -44,6 +45,15 @@ export interface AgentToolDefinitionLike {
 export interface AgentToolInputValidation {
   ok: boolean;
   error?: string;
+}
+
+export function normalizeAgentIterationBudget(
+  requested: number | undefined,
+  fallback: number,
+): number {
+  const value = requested ?? fallback;
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(Math.max(Math.trunc(value), 1), AGENT_MAX_ITERATIONS);
 }
 
 export type AgentExecutionStatus =

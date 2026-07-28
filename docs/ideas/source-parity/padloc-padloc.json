@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "padloc-padloc",
   "name": "Padloc",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/padloc/padloc",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "AGPL-3.0",
     "primaryEvidence": [
       "https://github.com/padloc/padloc",
@@ -26,15 +26,17 @@
       "id": "srp-authentication",
       "title": "Secure Remote Password (SRP) authentication: authenticate without sending password",
       "sourceEvidence": "Padloc: SRP for zero-knowledge auth to self-hosted server",
-      "disposition": "pending",
-      "reason": "SRP is a useful authentication pattern reference for Nexus if a server-authenticated mode is added; deferred pending auth feature."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus has no remote password-authenticated vault server. Adding SRP without that product mode would create unused authentication infrastructure and a misleading security surface."
     },
     {
       "id": "pwa-with-offline",
       "title": "PWA with full offline capability and background sync",
       "sourceEvidence": "Padloc PWA: offline-first with background sync on reconnect",
-      "disposition": "pending",
-      "reason": "Nexus is a PWA; Padloc's offline+background sync implementation is a reference for improving Nexus offline resilience."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Background synchronization of protected data requires authenticated remote storage, conflict resolution, and recovery guarantees that Nexus does not provide. PWA/mobile expansion is explicitly deferred."
     },
     {
       "id": "rich-vault-item-types",

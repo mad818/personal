@@ -28,6 +28,28 @@ export interface ProjectGraphNode {
 export interface ProjectGraphEdge {
   source: string;
   target: string;
+  provenance: "extracted";
+}
+
+export interface ProjectGraphCommunity {
+  id: string;
+  members: string[];
+}
+
+export interface ProjectGraphPathResult {
+  from: string;
+  to: string;
+  found: boolean;
+  path: string[];
+}
+
+export interface ProjectGraphExplanation {
+  path: string;
+  directImports: string[];
+  importers: string[];
+  coupling: number;
+  artifactClassification: ArtifactClassification;
+  reviewPack: string[];
 }
 
 export interface ProjectGraphResult {
@@ -37,6 +59,8 @@ export interface ProjectGraphResult {
   circularDependencies: string[][];
   isolatedFiles: string[];
   highCouplingFiles: string[];
+  communities: ProjectGraphCommunity[];
+  centralFiles: string[];
   reviewPack: string[];
   stats: {
     scannedFiles: number;
@@ -398,9 +422,75 @@ function buildGraphNodes(
 function buildGraphEdges(index: ProjectImportIndex) {
   return Array.from(index.outgoing.entries())
     .flatMap(([source, targets]) =>
-      targets.map((target) => ({ source, target })),
+      targets.map((target) => ({
+        source,
+        target,
+        provenance: "extracted" as const,
+      })),
     )
     .slice(0, 320);
+}
+
+function buildGraphCommunities(index: ProjectImportIndex) {
+  const adjacency = new Map<string, Set<string>>();
+  for (const file of index.sourceFiles) adjacency.set(file, new Set());
+  for (const [source, targets] of index.outgoing.entries()) {
+    for (const target of targets) {
+      adjacency.get(source)?.add(target);
+      adjacency.get(target)?.add(source);
+    }
+  }
+
+  const visited = new Set<string>();
+  const groups: string[][] = [];
+  for (const file of index.sourceFiles) {
+    if (visited.has(file)) continue;
+    const stack = [file];
+    const members: string[] = [];
+    visited.add(file);
+    while (stack.length > 0) {
+      const current = stack.pop();
+      if (!current) continue;
+      members.push(current);
+      for (const neighbor of adjacency.get(current) ?? []) {
+        if (visited.has(neighbor)) continue;
+        visited.add(neighbor);
+        stack.push(neighbor);
+      }
+    }
+    groups.push(members.sort((left, right) => left.localeCompare(right)));
+  }
+
+  return groups
+    .sort(
+      (left, right) =>
+        right.length - left.length || left[0].localeCompare(right[0]),
+    )
+    .slice(0, 12)
+    .map((members, index) => ({
+      id: `import-community-${index + 1}`,
+      members,
+    }));
+}
+
+function findDirectedPath(index: ProjectImportIndex, from: string, to: string) {
+  if (from === to) return [from];
+  const queue: string[][] = [[from]];
+  const visited = new Set<string>([from]);
+
+  while (queue.length > 0) {
+    const currentPath = queue.shift();
+    if (!currentPath) continue;
+    const current = currentPath[currentPath.length - 1];
+    for (const neighbor of index.outgoing.get(current) ?? []) {
+      if (visited.has(neighbor)) continue;
+      const nextPath = [...currentPath, neighbor];
+      if (neighbor === to) return nextPath;
+      visited.add(neighbor);
+      queue.push(nextPath);
+    }
+  }
+  return [];
 }
 
 function buildGitActivity(root: string, sourceFiles: string[]): GitActivity {
@@ -566,6 +656,7 @@ export function getProjectGraph(
   const circularDependencies = detectCircularDependencies(index);
   const isolatedFiles = detectIsolatedFiles(index);
   const highCouplingFiles = detectHighCouplingFiles(index);
+  const communities = buildGraphCommunities(index);
   const nodes = buildGraphNodes(index, classifications)
     .sort(
       (left, right) =>
@@ -581,6 +672,8 @@ export function getProjectGraph(
     circularDependencies,
     isolatedFiles: isolatedFiles.slice(0, 24),
     highCouplingFiles,
+    communities,
+    centralFiles: highCouplingFiles,
     reviewPack: buildReviewPack(index, target),
     stats: {
       scannedFiles: index.sourceFiles.length,
@@ -588,6 +681,46 @@ export function getProjectGraph(
       edgeCount: edges.length,
       cycleCount: circularDependencies.length,
     },
+  };
+}
+
+export function explainProjectGraphFile(
+  root: string,
+  file: string,
+): ProjectGraphExplanation | null {
+  const index = buildProjectImportIndex(root);
+  const target = resolveRequestedFile(file, index.fileSet);
+  if (!target) return null;
+  return {
+    path: target,
+    directImports: [...(index.outgoing.get(target) ?? [])],
+    importers: Array.from(index.incoming.get(target) ?? []).sort(
+      (left, right) => left.localeCompare(right),
+    ),
+    coupling: couplingForPath(index, target),
+    artifactClassification: classifyProjectArtifact(
+      target,
+      safeRead(root, target),
+    ),
+    reviewPack: buildReviewPack(index, target),
+  };
+}
+
+export function findProjectGraphPath(
+  root: string,
+  from: string,
+  to: string,
+): ProjectGraphPathResult | null {
+  const index = buildProjectImportIndex(root);
+  const resolvedFrom = resolveRequestedFile(from, index.fileSet);
+  const resolvedTo = resolveRequestedFile(to, index.fileSet);
+  if (!resolvedFrom || !resolvedTo) return null;
+  const path = findDirectedPath(index, resolvedFrom, resolvedTo);
+  return {
+    from: resolvedFrom,
+    to: resolvedTo,
+    found: path.length > 0,
+    path,
   };
 }
 

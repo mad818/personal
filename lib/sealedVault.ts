@@ -2,6 +2,8 @@ export const SEALED_VAULT_STORAGE_KEY = "nexus.sealed-vault.envelope.v1";
 export const SEALED_VAULT_KDF_ITERATIONS = 600_000;
 export const SEALED_VAULT_AUTO_LOCK_MS = 5 * 60 * 1_000;
 export const SEALED_VAULT_MAX_RECORDS = 100;
+export const SEALED_VAULT_MAX_RECORD_HISTORY = 12;
+export const SEALED_VAULT_MAX_EVENTS = 200;
 
 const SEALED_VAULT_ADDITIONAL_DATA = "nexus-sealed-vault-envelope:v1";
 const MAX_PLAINTEXT_BYTES = 256 * 1024;
@@ -13,14 +15,39 @@ export interface SealedVaultRecord {
   title: string;
   body: string;
   tags: string[];
+  path: string;
+  history: SealedVaultRecordRevision[];
   createdAt: string;
   updatedAt: string;
 }
 
+export interface SealedVaultRecordRevision {
+  title: string;
+  body: string;
+  tags: string[];
+  path: string;
+  savedAt: string;
+}
+
+export type SealedVaultEventAction =
+  | "create"
+  | "update"
+  | "undo"
+  | "delete"
+  | "rekey";
+
+export interface SealedVaultEvent {
+  id: string;
+  action: SealedVaultEventAction;
+  recordId?: string;
+  at: string;
+}
+
 export interface SealedVaultPayload {
-  schemaVersion: 1;
+  schemaVersion: 2;
   updatedAt: string;
   records: SealedVaultRecord[];
+  events: SealedVaultEvent[];
 }
 
 export interface SealedVaultEnvelope {
@@ -43,6 +70,7 @@ export interface SealedVaultRecordInput {
   title: string;
   body: string;
   tags: string[];
+  path?: string;
 }
 
 type VaultCrypto = Pick<Crypto, "getRandomValues" | "randomUUID" | "subtle">;
@@ -82,6 +110,25 @@ function boundedId(value: unknown, label: string): string {
     throw new Error(`${label} contains unsupported characters.`);
   }
   return id;
+}
+
+function boundedPath(value: unknown, label: string): string {
+  const path = boundedText(value, label, 1, 160);
+  const segments = path.split("/").map((segment) => segment.trim());
+  if (
+    segments.length > 8 ||
+    segments.some(
+      (segment) =>
+        segment.length === 0 ||
+        segment.length > 60 ||
+        segment === "." ||
+        segment === ".." ||
+        /[\u0000-\u001f\u007f]/.test(segment),
+    )
+  ) {
+    throw new Error(`${label} must contain 1-8 safe slash-separated segments.`);
+  }
+  return segments.join("/");
 }
 
 function assertPassphrase(passphrase: string) {
@@ -128,24 +175,64 @@ function base64ToBytes(
   return bytes;
 }
 
-function parseRecord(value: unknown, index: number): SealedVaultRecord {
+function parseTags(value: unknown, label: string): string[] {
+  if (!Array.isArray(value) || value.length > 12) {
+    throw new Error(`${label} has invalid tags.`);
+  }
+  const tags = value.map((tag, tagIndex) =>
+    boundedText(tag, `${label} tag ${tagIndex + 1}`, 1, 40),
+  );
+  if (new Set(tags).size !== tags.length) {
+    throw new Error(`${label} tags must be unique.`);
+  }
+  return tags;
+}
+
+function parseRevision(
+  value: unknown,
+  recordIndex: number,
+  revisionIndex: number,
+): SealedVaultRecordRevision {
+  const label = `Sealed record ${recordIndex + 1} revision ${revisionIndex + 1}`;
+  if (!isRecord(value)) throw new Error(`${label} is invalid.`);
+  return {
+    title: boundedText(value.title, `${label} title`, 1, 120),
+    body: boundedText(value.body, `${label} body`, 1, 10_000),
+    tags: parseTags(value.tags, label),
+    path: boundedPath(value.path, `${label} path`),
+    savedAt: isoTimestamp(value.savedAt, `${label} saved timestamp`),
+  };
+}
+
+function parseRecord(
+  value: unknown,
+  index: number,
+  schemaVersion: 1 | 2,
+): SealedVaultRecord {
   if (!isRecord(value)) {
     throw new Error(`Sealed record ${index + 1} is invalid.`);
   }
-  if (!Array.isArray(value.tags) || value.tags.length > 12) {
-    throw new Error(`Sealed record ${index + 1} has invalid tags.`);
-  }
-  const tags = value.tags.map((tag, tagIndex) =>
-    boundedText(tag, `Sealed record ${index + 1} tag ${tagIndex + 1}`, 1, 40),
-  );
-  if (new Set(tags).size !== tags.length) {
-    throw new Error(`Sealed record ${index + 1} tags must be unique.`);
+  const historyValue = schemaVersion === 2 ? value.history : [];
+  if (
+    !Array.isArray(historyValue) ||
+    historyValue.length > SEALED_VAULT_MAX_RECORD_HISTORY
+  ) {
+    throw new Error(
+      `Sealed record ${index + 1} must contain 0-${SEALED_VAULT_MAX_RECORD_HISTORY} revisions.`,
+    );
   }
   return {
     id: boundedId(value.id, `Sealed record ${index + 1} id`),
     title: boundedText(value.title, `Sealed record ${index + 1} title`, 1, 120),
     body: boundedText(value.body, `Sealed record ${index + 1} body`, 1, 10_000),
-    tags,
+    tags: parseTags(value.tags, `Sealed record ${index + 1}`),
+    path: boundedPath(
+      schemaVersion === 2 ? value.path : "General",
+      `Sealed record ${index + 1} path`,
+    ),
+    history: historyValue.map((revision, revisionIndex) =>
+      parseRevision(revision, index, revisionIndex),
+    ),
     createdAt: isoTimestamp(
       value.createdAt,
       `Sealed record ${index + 1} created timestamp`,
@@ -155,6 +242,40 @@ function parseRecord(value: unknown, index: number): SealedVaultRecord {
       `Sealed record ${index + 1} updated timestamp`,
     ),
   };
+}
+
+const SEALED_VAULT_EVENT_ACTIONS = new Set<SealedVaultEventAction>([
+  "create",
+  "update",
+  "undo",
+  "delete",
+  "rekey",
+]);
+
+function parseEvent(value: unknown, index: number): SealedVaultEvent {
+  const label = `Sealed vault event ${index + 1}`;
+  if (!isRecord(value)) throw new Error(`${label} is invalid.`);
+  if (
+    typeof value.action !== "string" ||
+    !SEALED_VAULT_EVENT_ACTIONS.has(value.action as SealedVaultEventAction)
+  ) {
+    throw new Error(`${label} action is unsupported.`);
+  }
+  const event: SealedVaultEvent = {
+    id: boundedId(value.id, `${label} id`),
+    action: value.action as SealedVaultEventAction,
+    at: isoTimestamp(value.at, `${label} timestamp`),
+  };
+  if (value.recordId !== undefined) {
+    event.recordId = boundedId(value.recordId, `${label} record id`);
+  }
+  if (event.action !== "rekey" && !event.recordId) {
+    throw new Error(`${label} must reference a record.`);
+  }
+  if (event.action === "rekey" && event.recordId) {
+    throw new Error(`${label} rekey action cannot reference a record.`);
+  }
+  return event;
 }
 
 function requireCrypto(provider?: VaultCrypto): VaultCrypto {
@@ -196,14 +317,18 @@ export function createSealedVaultPayload(
   now = new Date().toISOString(),
 ): SealedVaultPayload {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     updatedAt: isoTimestamp(now, "Vault timestamp"),
     records: [],
+    events: [],
   };
 }
 
 export function validateSealedVaultPayload(input: unknown): SealedVaultPayload {
-  if (!isRecord(input) || input.schemaVersion !== 1) {
+  if (
+    !isRecord(input) ||
+    (input.schemaVersion !== 1 && input.schemaVersion !== 2)
+  ) {
     throw new Error("Sealed vault payload version is unsupported.");
   }
   if (
@@ -214,14 +339,31 @@ export function validateSealedVaultPayload(input: unknown): SealedVaultPayload {
       `Sealed vault must contain 0-${SEALED_VAULT_MAX_RECORDS} records.`,
     );
   }
-  const records = input.records.map(parseRecord);
+  const schemaVersion = input.schemaVersion;
+  const records = input.records.map((record, index) =>
+    parseRecord(record, index, schemaVersion),
+  );
   if (new Set(records.map((record) => record.id)).size !== records.length) {
     throw new Error("Sealed vault record IDs must be unique.");
   }
+  const eventValues = schemaVersion === 2 ? input.events : [];
+  if (
+    !Array.isArray(eventValues) ||
+    eventValues.length > SEALED_VAULT_MAX_EVENTS
+  ) {
+    throw new Error(
+      `Sealed vault must contain 0-${SEALED_VAULT_MAX_EVENTS} events.`,
+    );
+  }
+  const events = eventValues.map(parseEvent);
+  if (new Set(events.map((event) => event.id)).size !== events.length) {
+    throw new Error("Sealed vault event IDs must be unique.");
+  }
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     updatedAt: isoTimestamp(input.updatedAt, "Vault updated timestamp"),
     records,
+    events,
   };
 }
 
@@ -378,6 +520,61 @@ export function createSealedVaultRecordId(providerInput?: VaultCrypto): string {
   return `sealed-${provider.randomUUID()}`;
 }
 
+export function createSealedVaultEventId(providerInput?: VaultCrypto): string {
+  const provider = requireCrypto(providerInput);
+  return `event-${provider.randomUUID()}`;
+}
+
+function createSealedVaultEvent(
+  action: SealedVaultEventAction,
+  at: string,
+  recordId?: string,
+  providerInput?: VaultCrypto,
+): SealedVaultEvent {
+  const event: SealedVaultEvent = {
+    id: createSealedVaultEventId(providerInput),
+    action,
+    at: isoTimestamp(at, "Vault event timestamp"),
+  };
+  if (recordId) event.recordId = boundedId(recordId, "Vault event record id");
+  return parseEvent(event, 0);
+}
+
+export function appendSealedVaultEvent(
+  input: SealedVaultPayload,
+  action: SealedVaultEventAction,
+  now = new Date().toISOString(),
+  recordId?: string,
+  providerInput?: VaultCrypto,
+): SealedVaultPayload {
+  const payload = validateSealedVaultPayload(input);
+  const updatedAt = isoTimestamp(now, "Vault updated timestamp");
+  const event = createSealedVaultEvent(
+    action,
+    updatedAt,
+    recordId,
+    providerInput,
+  );
+  return validateSealedVaultPayload({
+    schemaVersion: 2,
+    updatedAt,
+    records: payload.records,
+    events: [event, ...payload.events].slice(0, SEALED_VAULT_MAX_EVENTS),
+  });
+}
+
+function revisionFromRecord(
+  record: SealedVaultRecord,
+): SealedVaultRecordRevision {
+  return {
+    title: record.title,
+    body: record.body,
+    tags: record.tags,
+    path: record.path,
+    savedAt: record.updatedAt,
+  };
+}
+
 export function upsertSealedVaultRecord(
   input: SealedVaultPayload,
   recordInput: SealedVaultRecordInput,
@@ -398,6 +595,13 @@ export function upsertSealedVaultRecord(
     tags: recordInput.tags.map((tag, index) =>
       boundedText(tag, `Sealed record tag ${index + 1}`, 1, 40),
     ),
+    path: boundedPath(recordInput.path ?? "General", "Sealed record path"),
+    history: existing
+      ? [revisionFromRecord(existing), ...existing.history].slice(
+          0,
+          SEALED_VAULT_MAX_RECORD_HISTORY,
+        )
+      : [],
     createdAt: existing?.createdAt ?? updatedAt,
     updatedAt,
   };
@@ -415,26 +619,81 @@ export function upsertSealedVaultRecord(
       `Sealed vault supports at most ${SEALED_VAULT_MAX_RECORDS} records.`,
     );
   }
-  return validateSealedVaultPayload({
-    schemaVersion: 1,
+  return appendSealedVaultEvent(
+    validateSealedVaultPayload({
+      schemaVersion: 2,
+      updatedAt,
+      records,
+      events: payload.events,
+    }),
+    existing ? "update" : "create",
     updatedAt,
-    records,
-  });
+    record.id,
+    providerInput,
+  );
+}
+
+export function undoSealedVaultRecord(
+  input: SealedVaultPayload,
+  recordId: string,
+  now = new Date().toISOString(),
+  providerInput?: VaultCrypto,
+): SealedVaultPayload {
+  const payload = validateSealedVaultPayload(input);
+  const id = boundedId(recordId, "Sealed record id");
+  const existing = payload.records.find((record) => record.id === id);
+  const revision = existing?.history[0];
+  if (!existing || !revision) {
+    throw new Error("Sealed record has no revision to restore.");
+  }
+  const updatedAt = isoTimestamp(now, "Record restored timestamp");
+  const restored: SealedVaultRecord = {
+    ...existing,
+    title: revision.title,
+    body: revision.body,
+    tags: revision.tags,
+    path: revision.path,
+    history: existing.history.slice(1),
+    updatedAt,
+  };
+  return appendSealedVaultEvent(
+    validateSealedVaultPayload({
+      schemaVersion: 2,
+      updatedAt,
+      records: payload.records.map((record) =>
+        record.id === id ? restored : record,
+      ),
+      events: payload.events,
+    }),
+    "undo",
+    updatedAt,
+    id,
+    providerInput,
+  );
 }
 
 export function deleteSealedVaultRecord(
   input: SealedVaultPayload,
   recordId: string,
   now = new Date().toISOString(),
+  providerInput?: VaultCrypto,
 ): SealedVaultPayload {
   const payload = validateSealedVaultPayload(input);
   const id = boundedId(recordId, "Sealed record id");
   if (!payload.records.some((record) => record.id === id)) {
     throw new Error("Sealed record was not found.");
   }
-  return {
-    schemaVersion: 1,
-    updatedAt: isoTimestamp(now, "Vault updated timestamp"),
-    records: payload.records.filter((record) => record.id !== id),
-  };
+  const updatedAt = isoTimestamp(now, "Vault updated timestamp");
+  return appendSealedVaultEvent(
+    validateSealedVaultPayload({
+      schemaVersion: 2,
+      updatedAt,
+      records: payload.records.filter((record) => record.id !== id),
+      events: payload.events,
+    }),
+    "delete",
+    updatedAt,
+    id,
+    providerInput,
+  );
 }

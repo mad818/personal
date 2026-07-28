@@ -105,8 +105,8 @@ for (const needle of [
 ])
   requireText(vaultPage, needle, "VAULT reachability");
 
-if (matrix.status !== "in_progress") {
-  fail("KeePassXC matrix must remain in progress while Argon2 is pending");
+if (matrix.status !== "complete") {
+  fail("KeePassXC matrix must be complete after Argon2 exclusion review");
 }
 if (matrix.source.version !== "develop-4980-commits-2026-07-27") {
   fail("KeePassXC source revision is stale");
@@ -120,12 +120,21 @@ const generatorCapability = matrix.capabilities.find(
 if (generatorCapability?.disposition !== "adapted") {
   fail("secure password generator capability must be adapted");
 }
+const argonCapability = matrix.capabilities.find(
+  (capability) => capability.id === "argon2-key-derivation",
+);
 if (
-  matrix.capabilities.filter(
-    (capability) => capability.disposition === "pending",
-  ).length !== 1
+  argonCapability?.disposition !== "excluded" ||
+  argonCapability?.conflict !== "security"
 ) {
-  fail("only the separately blocked Argon2 capability should remain pending");
+  fail("Argon2 must remain explicitly excluded until an audited migration");
+}
+if (
+  matrix.capabilities.some(
+    (capability) => capability.disposition === "pending",
+  )
+) {
+  fail("KeePassXC matrix must not retain pending capabilities");
 }
 
 requireText(analysis, "4,980 commits", "current source analysis");

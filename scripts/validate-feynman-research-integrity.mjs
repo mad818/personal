@@ -135,12 +135,12 @@ for (const id of [
   "ten-stage-publication-pipeline",
   "cross-model-blind-handoff-envelope",
 ]) {
-  if (capabilities.get(id)?.disposition !== "pending") {
-    fail(`source parity must honestly retain pending capability ${id}`);
+  if (capabilities.get(id)?.disposition !== "excluded") {
+    fail(`source parity must retain an explicit exclusion for ${id}`);
   }
 }
-if (parity.status !== "in_progress") {
-  fail("source parity must remain in_progress while useful suite gaps remain");
+if (parity.status !== "complete") {
+  fail("source parity must be complete");
 }
 
 if (

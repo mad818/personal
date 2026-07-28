@@ -61,11 +61,11 @@ const CINEMATIC_IA_SURFACES: Record<
     shellContract:
       "HQ owns the flagship stage while preserving command input, chronicle focus, and fallback room access.",
     controlContract:
-      "Command controls, room toggles, and game HUD actions stay keyboard-safe and non-overlapping.",
+      "Command controls, focus toggles, and operator actions stay keyboard-safe and non-overlapping.",
     stateContract:
-      "Hydration, auth, reduced motion, and room/game states render without shell drift.",
+      "Hydration, auth, reduced motion, and workspace states render without shell drift.",
     gracefulDegradation:
-      "If optional runtime/game layers fail, the command composer and fallback shell remain available.",
+      "If optional runtime layers fail, the command composer and fallback shell remain available.",
     visualGuardrail:
       "HQ can be bolder than the rest of the app, but must not clip, overlap, or bury the command input.",
   },

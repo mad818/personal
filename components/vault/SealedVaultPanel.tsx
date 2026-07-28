@@ -6,6 +6,7 @@ import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import { takeSelectedFile } from "@/components/ui/fileInput";
 import {
+  appendSealedVaultEvent,
   createSealedVaultRecordId,
   createSealedVaultPayload,
   deleteSealedVaultRecord,
@@ -13,10 +14,13 @@ import {
   parseSealedVaultEnvelopeJson,
   sealVaultPayload,
   SEALED_VAULT_AUTO_LOCK_MS,
+  SEALED_VAULT_MAX_EVENTS,
+  SEALED_VAULT_MAX_RECORD_HISTORY,
   SEALED_VAULT_KDF_ITERATIONS,
   SEALED_VAULT_MAX_RECORDS,
   SEALED_VAULT_STORAGE_KEY,
   serializeSealedVaultEnvelope,
+  undoSealedVaultRecord,
   upsertSealedVaultRecord,
   type SealedVaultEnvelope,
   type SealedVaultPayload,
@@ -26,6 +30,7 @@ type BusyAction =
   | "create"
   | "unlock"
   | "save"
+  | "undo"
   | "delete"
   | "rekey"
   | "import"
@@ -92,6 +97,7 @@ export default function SealedVaultPanel() {
   const [draftTitle, setDraftTitle] = useState("");
   const [draftBody, setDraftBody] = useState("");
   const [draftTags, setDraftTags] = useState("");
+  const [draftPath, setDraftPath] = useState("General");
   const [busyAction, setBusyAction] = useState<BusyAction | null>(null);
   const [statusMessage, setStatusMessage] = useState(
     "Checking browser-local sealed storage.",
@@ -112,6 +118,7 @@ export default function SealedVaultPanel() {
     setDraftTitle("");
     setDraftBody("");
     setDraftTags("");
+    setDraftPath("General");
     setStatusMessage(message);
   }, []);
 
@@ -178,6 +185,7 @@ export default function SealedVaultPanel() {
     setDraftTitle(selectedRecord.title);
     setDraftBody(selectedRecord.body);
     setDraftTags(selectedRecord.tags.join(", "));
+    setDraftPath(selectedRecord.path);
   }, [selectedRecord]);
 
   async function persistPayload(
@@ -268,6 +276,7 @@ export default function SealedVaultPanel() {
         title: draftTitle,
         body: draftBody,
         tags: normalizedTags(draftTags),
+        path: draftPath,
       });
       await persistPayload(nextPayload);
       setSelectedId(recordId);
@@ -279,6 +288,26 @@ export default function SealedVaultPanel() {
         error instanceof Error
           ? error.message
           : "Record could not be encrypted and saved.",
+      );
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
+  async function restorePreviousRevision() {
+    if (!payload || !selectedRecord) return;
+    setBusyAction("undo");
+    try {
+      const nextPayload = undoSealedVaultRecord(payload, selectedRecord.id);
+      await persistPayload(nextPayload);
+      setStatusMessage(
+        "Previous encrypted revision restored and the vault resealed.",
+      );
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "Previous revision could not be restored.",
       );
     } finally {
       setBusyAction(null);
@@ -321,12 +350,14 @@ export default function SealedVaultPanel() {
       if (newPassphrase !== confirmNewPassphrase) {
         throw new Error("New passphrase confirmation does not match.");
       }
-      const nextEnvelope = await sealVaultPayload(payload, newPassphrase);
+      const nextPayload = appendSealedVaultEvent(payload, "rekey");
+      const nextEnvelope = await sealVaultPayload(nextPayload, newPassphrase);
       window.localStorage.setItem(
         SEALED_VAULT_STORAGE_KEY,
         serializeSealedVaultEnvelope(nextEnvelope),
       );
       setEnvelope(nextEnvelope);
+      setPayload(nextPayload);
       setSessionPassphrase(newPassphrase);
       setNewPassphrase("");
       setConfirmNewPassphrase("");
@@ -477,6 +508,7 @@ export default function SealedVaultPanel() {
     setDraftTitle("");
     setDraftBody("");
     setDraftTags("");
+    setDraftPath("General");
   }
 
   if (!storageReady) {
@@ -758,8 +790,27 @@ export default function SealedVaultPanel() {
                   <strong style={{ display: "block", fontSize: "12px" }}>
                     {record.title}
                   </strong>
-                  <span style={{ fontSize: "10px", color: "var(--text3)" }}>
-                    {record.tags.join(" · ") || "untagged"}
+                  <span
+                    style={{
+                      display: "block",
+                      marginTop: "3px",
+                      fontSize: "10px",
+                      color: "var(--text2)",
+                    }}
+                  >
+                    {record.path}
+                  </span>
+                  <span
+                    style={{
+                      display: "block",
+                      marginTop: "2px",
+                      fontSize: "10px",
+                      color: "var(--text3)",
+                    }}
+                  >
+                    {record.tags.join(" · ") || "untagged"} ·{" "}
+                    {record.history.length} revision
+                    {record.history.length === 1 ? "" : "s"}
                   </span>
                 </button>
               ))}
@@ -805,6 +856,18 @@ export default function SealedVaultPanel() {
               </label>
               <label style={{ display: "grid", gap: "6px" }}>
                 <span style={{ fontSize: "11px", color: "var(--text3)" }}>
+                  Private path (slash-separated)
+                </span>
+                <input
+                  value={draftPath}
+                  maxLength={160}
+                  placeholder="General or Work/Projects"
+                  onChange={(event) => setDraftPath(event.target.value)}
+                  style={FIELD_STYLE}
+                />
+              </label>
+              <label style={{ display: "grid", gap: "6px" }}>
+                <span style={{ fontSize: "11px", color: "var(--text3)" }}>
                   Private note
                 </span>
                 <textarea
@@ -836,16 +899,103 @@ export default function SealedVaultPanel() {
                     : "Seal note"}
                 </ShellButton>
                 {selectedRecord ? (
-                  <ShellButton
-                    onClick={requestRecordRemoval}
-                    disabled={controlsDisabled}
-                  >
-                    Delete note
-                  </ShellButton>
+                  <>
+                    {selectedRecord.history.length > 0 ? (
+                      <ShellButton
+                        onClick={() => void restorePreviousRevision()}
+                        disabled={controlsDisabled}
+                      >
+                        {busyAction === "undo"
+                          ? "Restoring revision…"
+                          : "Restore previous revision"}
+                      </ShellButton>
+                    ) : null}
+                    <ShellButton
+                      onClick={requestRecordRemoval}
+                      disabled={controlsDisabled}
+                    >
+                      Delete note
+                    </ShellButton>
+                  </>
                 ) : null}
               </div>
+              {selectedRecord ? (
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "10px",
+                    lineHeight: 1.55,
+                    color: "var(--text3)",
+                  }}
+                >
+                  Up to {SEALED_VAULT_MAX_RECORD_HISTORY} prior encrypted
+                  revisions are retained. Restore consumes the newest retained
+                  revision; encrypted exports remain the recovery path for
+                  deleted notes.
+                </p>
+              ) : null}
             </section>
           </div>
+
+          <section
+            style={{
+              display: "grid",
+              gap: "10px",
+              padding: "14px",
+              border: "1px solid var(--border)",
+              borderRadius: "14px",
+              background: "rgba(7, 10, 18, 0.72)",
+            }}
+          >
+            <SectionLabel
+              detail={`${payload.events.length}/${SEALED_VAULT_MAX_EVENTS} encrypted receipts`}
+            >
+              Mutation receipts
+            </SectionLabel>
+            <p
+              style={{
+                margin: 0,
+                color: "var(--text3)",
+                fontSize: "11px",
+                lineHeight: 1.55,
+              }}
+            >
+              Content-free create, update, restore, delete, and re-key receipts
+              are stored inside the encrypted envelope. This bounded local log
+              is useful history, not a tamper-proof external audit service.
+            </p>
+            <div style={{ display: "grid", gap: "6px" }}>
+              {payload.events.slice(0, 8).map((event) => (
+                <div
+                  key={event.id}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "10px",
+                    padding: "8px 10px",
+                    borderRadius: "9px",
+                    border: "1px solid var(--border)",
+                    color: "var(--text2)",
+                    fontSize: "10px",
+                  }}
+                >
+                  <span>
+                    {event.action.toUpperCase()}
+                    {event.recordId ? ` · ${event.recordId}` : ""}
+                  </span>
+                  <time dateTime={event.at}>
+                    {new Date(event.at).toLocaleString()}
+                  </time>
+                </div>
+              ))}
+              {payload.events.length === 0 ? (
+                <span style={{ color: "var(--text3)", fontSize: "10px" }}>
+                  No mutations recorded yet. Legacy payloads begin here after
+                  migration.
+                </span>
+              ) : null}
+            </div>
+          </section>
 
           <section
             style={{

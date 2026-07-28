@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "keepassxreboot-keepassxc",
   "name": "KeePassXC",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/keepassxreboot/keepassxc",
     "version": "develop-4980-commits-2026-07-27",
@@ -28,8 +28,9 @@
       "id": "argon2-key-derivation",
       "title": "Argon2 memory-hard key derivation for master password protection",
       "sourceEvidence": "KeePassXC: Argon2d/Argon2id support for KDBX4",
-      "disposition": "pending",
-      "reason": "Nexus VAULT stores API keys; Argon2-based key derivation for local credential protection is a security pattern worth adapting."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Replacing the current browser-native PBKDF2 boundary would require a new native or WebAssembly cryptography dependency and an audited migration/recovery design. Nexus keeps the verified 600,000-iteration Web Crypto contract rather than introducing an unaudited KDF swap."
     },
     {
       "id": "yubikey-totp-integration",

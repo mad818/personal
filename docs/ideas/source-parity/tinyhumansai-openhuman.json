@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "tinyhumansai-openhuman",
   "name": "tinyhumansai/OpenHuman",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/tinyhumansai/openhuman",
-    "version": "main-2026-07-13",
-    "reviewedAt": "2026-07-13",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "GPL-3.0",
     "primaryEvidence": [
       "https://github.com/tinyhumansai/openhuman/blob/main/README.md",
@@ -20,15 +20,21 @@
       "id": "persistent-local-memory-tree",
       "title": "Compress personal data into scored local memory trees backed by durable storage",
       "sourceEvidence": "README.md The brain and Context in minutes sections",
-      "disposition": "pending",
-      "reason": "Nexus has durable memory records and compiled pages but not a scored hierarchical memory tree with explicit compression and lineage."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Automatically compressing all personal data into a new scored tree would create derived sensitive records and obscure source-level review. Nexus keeps bounded, source-traced memory records and human-approved compilation."
     },
     {
       "id": "operator-editable-memory-wiki",
       "title": "Mirror durable memory into an operator-editable Markdown wiki",
       "sourceEvidence": "README.md Memory Tree plus Obsidian Wiki description",
-      "disposition": "pending",
-      "reason": "VAULT exposes compiled memory pages, but an editable bidirectional Markdown wiki with conflict handling is not yet present."
+      "disposition": "adapted",
+      "reason": "Nexus uses a human-owned, operator-editable Markdown second-brain index and immutable source lanes; derived work is staged and promoted only after explicit approval rather than silently bidirectionally syncing AI memory.",
+      "proof": [
+        "SECOND_BRAIN.md",
+        "docs/ideas/skills/night-shift-second-brain/SKILL.md",
+        "docs/ideas/second-brain-night-shift/house-rules.md"
+      ]
     },
     {
       "id": "explicit-personal-ai-profile",
@@ -84,8 +90,9 @@
       "id": "tool-output-compression",
       "title": "Compress tool output before model ingestion while preserving useful information",
       "sourceEvidence": "README.md TokenJuice",
-      "disposition": "pending",
-      "reason": "Nexus bounds context and tool output, but a measured semantic compression stage with quality acceptance is not yet proven."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Semantic compression before model ingestion can silently remove caveats, provenance, or adversarial indicators. Nexus keeps typed limits and source-linked excerpts until a gold-set faithfulness gate exists."
     },
     {
       "id": "agent-proposed-review-gated-workflows",
@@ -102,8 +109,9 @@
       "id": "checkpointed-resumable-agent-graphs",
       "title": "Persist graph runs so they pause for humans, survive restarts, resume, and expose root causes",
       "sourceEvidence": "README.md orchestrator and harness sections",
-      "disposition": "pending",
-      "reason": "The Nexus runtime records artifacts and bounded handoffs but does not yet resume an interrupted multi-agent graph from a durable checkpoint."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Automatically resuming stale multi-agent mutations after restart can bypass fresh authorization, changed inputs, and current policy. Nexus keeps review-gated workflow proposals and bounded new runs."
     },
     {
       "id": "fast-reflex-and-deep-reasoning-routing",
@@ -172,22 +180,25 @@
       "id": "meeting-participant-agents",
       "title": "Join video meetings, transcribe live speech, answer by name, and file action items",
       "sourceEvidence": "README.md Meeting agents",
-      "disposition": "pending",
-      "reason": "Nexus has voice tooling but no consent-aware meeting attendance, calendar join, participant disclosure, or transcript retention workflow."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Meeting attendance and transcription require participant disclosure, recording consent, identity, calendar authorization, and transcript retention controls that Nexus does not provide."
     },
     {
       "id": "multi-channel-messaging-and-email",
       "title": "Reach the operator through many messaging channels and native email",
       "sourceEvidence": "README.md messaging channels",
-      "disposition": "pending",
-      "reason": "Nexus has bounded channel integrations but not a unified consent, identity, delivery, and retention layer for the claimed channel breadth."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Proactive multi-channel messaging and email require per-recipient identity, consent, delivery authorization, and retention rules. Nexus will not infer authority to contact people."
     },
     {
       "id": "native-media-generation",
       "title": "Generate and edit images and videos directly into the workspace",
       "sourceEvidence": "README.md Image and video generation",
-      "disposition": "pending",
-      "reason": "Nexus has governed asset-generation workflows, but a unified in-app image and video generation surface is not proven as part of the AI runtime."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "A unified media-generation and editing workspace is a separate authoring product; Nexus has no governed video artifact lifecycle and does not claim one."
     },
     {
       "id": "ui-first-desktop-app",
@@ -204,8 +215,9 @@
       "id": "encrypted-local-store-and-os-keyring",
       "title": "Encrypt local personal data and keep secrets in the operating-system keyring",
       "sourceEvidence": "README.md Privacy and security",
-      "disposition": "pending",
-      "reason": "Nexus protects secrets and local access, but comprehensive at-rest encryption plus OS-keyring proof for every personal-memory record is not yet documented."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus proves encryption for its sealed-vault envelope, not every personal-memory store or operating-system keyring. Claiming comprehensive coverage without a full migration and recovery audit would be unsafe."
     },
     {
       "id": "one-switch-local-only-privacy-mode",
@@ -230,15 +242,22 @@
       "id": "theme-studio-json-export",
       "title": "Edit visual themes and export them as reusable JSON",
       "sourceEvidence": "README.md Themes and Theme Studio",
-      "disposition": "pending",
-      "reason": "Nexus supports theme preferences but does not expose a full token editor with validated JSON import and export."
+      "disposition": "adapted",
+      "reason": "The operator edits the canonical DESIGN.md source, regenerates runtime CSS, and can export the complete categorized token set as JSON. Nexus does not add an in-app theme marketplace or arbitrary token import.",
+      "proof": [
+        "DESIGN.md",
+        "app/design-md.generated.css",
+        "scripts/export-design-tokens.mjs",
+        "npm run design:tokens:check"
+      ]
     },
     {
       "id": "replayable-run-journal-and-costs",
       "title": "Replay agent runs and inspect per-call cost accounting",
       "sourceEvidence": "README.md comparison table Observability row",
-      "disposition": "pending",
-      "reason": "Nexus captures run artifacts and evaluation history, but deterministic replay and complete per-call cost journals are not yet proven."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Deterministic replay of agent tool effects can repeat stale mutations, and complete cost reconstruction is not reliable across local and BYOK providers. Nexus keeps non-replayable artifacts and current provider receipts."
     },
     {
       "id": "gpl-runtime-vendoring",

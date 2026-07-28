@@ -339,14 +339,4 @@ export const DEVELOPER_RESOURCES: DeveloperResource[] = [
     licenseHint: "CC BY-SA 4.0",
     tags: ["security", "wstg", "doctrine"],
   },
-  {
-    title: "GameDev Resources",
-    href: "https://github.com/Kavex/GameDev-Resources",
-    description:
-      "Curated catalog reference for free/open assets, tools, tutorials, and license posture that informed Field Manual 2.0.",
-    category: "tooling",
-    costTier: "free",
-    licenseHint: "Reference list — inspect individual licenses",
-    tags: ["manual", "catalog", "free"],
-  },
 ];

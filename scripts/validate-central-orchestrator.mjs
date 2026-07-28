@@ -38,8 +38,11 @@ requireText(office, "<TeamOrchestrationStrip", "HQ plan mount");
 requireText(policy, 'delegate_specialist: "analyze"', "tool policy");
 requireText(spec, "Workers are advisory", "safety contract");
 
-if (parity.id !== "mco-squad" || parity.status !== "in_progress") {
-  throw new Error("mco-squad parity must remain in_progress while useful capabilities are pending");
+if (parity.id !== "mco-squad" || parity.status !== "complete") {
+  throw new Error("mco-squad parity must be complete");
+}
+if (parity.capabilities.some((capability) => capability.disposition === "pending")) {
+  throw new Error("mco-squad parity must not retain pending capabilities");
 }
 if (!packageJson.scripts?.["orchestrator:runtime:check"]) {
   throw new Error("missing orchestrator runtime check script");

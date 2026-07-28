@@ -310,23 +310,6 @@ export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
     lastReviewedAt: ISO_NOW,
   },
   {
-    id: "reg-gamedev",
-    title: "GameDev Resources",
-    type: "external_link",
-    summary:
-      "Curated free/open registry reference for tools, assets, tutorials, and license posture.",
-    owner: "Field Manual",
-    custody: "Resources",
-    costTier: "free",
-    status: "ready",
-    sourceUrl: "https://github.com/Kavex/GameDev-Resources",
-    license: "Reference list - always inspect individual item licenses",
-    tags: ["resources", "free", "catalog"],
-    reminder: "Every promoted link needs explicit license posture in Nexus.",
-    savedFilter: "manual",
-    lastReviewedAt: ISO_NOW,
-  },
-  {
     id: "reg-wstg",
     title: "OWASP WSTG",
     type: "playbook",
@@ -367,7 +350,7 @@ export const DEFAULT_ASSET_KITS: AssetKit[] = [
     title: "Operator Onboarding Kit",
     summary:
       "Manual, doctrine, workflow, and blacksite references for first-session setup.",
-    itemIds: ["reg-flowise", "reg-g0d", "reg-wstg", "reg-gamedev"],
+    itemIds: ["reg-flowise", "reg-g0d", "reg-wstg"],
     owner: "HQ",
     status: "ready",
     reminder: "Review after any new surface ships.",

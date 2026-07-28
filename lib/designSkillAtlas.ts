@@ -626,29 +626,6 @@ const SEED_GROUPS: readonly DesignSkillSeedGroup[] = [
   },
 ] as const;
 
-export const EXCLUDED_GAME_SKILL_IDS = [
-  "implement-fog-of-war",
-  "author-game-levels",
-  "build-game-audio-feedback",
-  "build-game-camera-controls",
-  "build-game-changelog",
-  "build-game-inventory",
-  "build-game-map-editor",
-  "build-game-monster-system",
-  "build-hybrid-game-assets",
-  "build-isometric-arpg",
-  "build-mobile-threejs-games",
-  "build-threejs-enemy-systems",
-  "build-vesperfall-review-assets",
-  "create-game-vfx",
-  "design-action-combat",
-  "design-game-encounters",
-  "optimize-threejs-games",
-  "ship-web-games",
-  "test-playable-web-games",
-  "tune-enemy-ai",
-] as const;
-
 const CONNECTOR_REQUIRED_IDS = new Set([
   "browser-video-recording",
   "build-daily-inspiration-sites",
@@ -739,7 +716,6 @@ const SPECIAL_PURPOSES: Record<string, string> = {
 
 const ACRONYMS: Record<string, string> = {
   ai: "AI",
-  arpg: "ARPG",
   css: "CSS",
   gsap: "GSAP",
   html: "HTML",
@@ -903,7 +879,6 @@ export function listDesignSkills(
     total: DESIGN_SKILLS.length,
     matched: matches.length,
     returned: Math.min(matches.length, limit),
-    excludedGameCount: EXCLUDED_GAME_SKILL_IDS.length,
     skills: matches.slice(0, limit),
   };
 }
@@ -931,7 +906,7 @@ export function formatDesignSkillList(
 ) {
   const result = listDesignSkills(options);
   const lines = [
-    `Design skill atlas: ${result.returned} of ${result.matched} matching; ${result.total} active non-game; ${result.excludedGameCount} game capabilities excluded.`,
+    `Design skill atlas: ${result.returned} of ${result.matched} matching; ${result.total} active project-owned procedures.`,
   ];
   for (const skill of result.skills) {
     lines.push(
@@ -961,7 +936,7 @@ export function formatDesignSkillContract(
 ): string {
   const skill = resolveDesignSkill(id);
   if (!skill) {
-    return `Unknown design skill "${(id ?? "").trim()}". Use list_design_skills to find an exact active non-game ID.`;
+    return `Unknown design skill "${(id ?? "").trim()}". Use list_design_skills to find an exact active project-owned ID.`;
   }
   return [
     `${skill.title} (${skill.id})`,

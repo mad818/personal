@@ -1,8 +1,8 @@
-# MengTo Non-Game Skill Atlas
+# MengTo Skill Atlas
 
 ## Goal
 
-Adapt the complete feasible non-game capability portfolio currently published in `MengTo/Skills` into project-owned Nexus operating contracts. Every accepted capability must be discoverable, resolvable, and honest about the tools or environment required to execute it. Every game capability must remain outside the active registry.
+Adapt every product-aligned capability currently published in `MengTo/Skills` into project-owned Nexus operating contracts. Every accepted capability must be discoverable, resolvable, and honest about the tools or environment required to execute it. Source rows outside Nexus Prime's intelligence-dashboard purpose remain evidence-only.
 
 ## Source inventory
 
@@ -10,21 +10,21 @@ Adapt the complete feasible non-game capability portfolio currently published in
 - Reviewed branch: `main`
 - Reviewed: 2026-07-26
 - License: MIT
-- Current folder inventory: 121 skills
+- Current folder inventory: 121 source skills
   - 18 Codex
   - 2 customer support
-  - 19 game development
+  - 19 source-specific interactive-world procedures
   - 2 media
   - 1 UI
   - 79 web design
-- Active non-game target: 101
-- Excluded game target: 20, comprising all 19 `game-development` skills plus `codex/implement-fog-of-war`
+- Active project target: 101
+- Evidence-only source target: 20
 
 The current folder inventory is authoritative because the README summary still reports 118.
 
 ## Product behavior
 
-1. A project-owned atlas registers exactly 101 non-game capability IDs.
+1. A project-owned atlas registers exactly 101 product-aligned capability IDs.
 2. Every entry resolves to:
    - its source category and capability family;
    - a plain-language purpose;
@@ -37,7 +37,7 @@ The current folder inventory is authoritative because the README summary still r
 3. The existing `/skills` Skill Library renders search and category/family filtering plus the full selected contract.
 4. Read-only `list_design_skills` and `resolve_design_skill` tools give ORBIT/JANSKY the same bounded contract before relevant design, capture, support, media, or performance work.
 5. External-account and platform-specific workflows remain usable procedures but report their prerequisite instead of pretending the current host or account is ready.
-6. No game capability enters the active registry, tool output, or Skill Library.
+6. Evidence-only source rows cannot enter the active registry, tool output, or Skill Library.
 
 ## Safety and truth boundaries
 
@@ -51,7 +51,7 @@ The current folder inventory is authoritative because the README summary still r
 
 ## Verification
 
-- Deterministic runtime proof for exact counts, unique IDs, family resolution, filters, availability, game exclusion, bounded formatting, and source URLs.
+- Deterministic runtime proof for exact counts, unique IDs, family resolution, filters, availability, bounded formatting, and source URLs.
 - Static proof for UI reachability, protected tools, risk/capability registration, routing, system prompt, Company Map, source parity, repo-analysis artifacts, package wiring, and canonical verify inclusion.
 - Source parity must contain exactly 121 rows: 101 adapted and 20 excluded, with zero pending rows.
 - `npm run type-check`
@@ -66,7 +66,7 @@ The current folder inventory is authoritative because the README summary still r
 - Design and builder work begins from a complete, searchable procedure instead of a remembered repo title.
 - Nexus gains reusable capture, audit, support, media, marketing, motion, WebGL, visual-system, and UI-detail contracts without vendoring a second framework.
 - Third-party requirements stay explicit, so “available as a procedure” cannot be confused with “authorized and connected right now.”
-- Game removal becomes provable at the capability-registry boundary, not just a one-time source deletion.
+- Product-purpose filtering becomes provable at the capability-registry boundary.
 
 ## Non-goals
 
@@ -74,4 +74,4 @@ The current folder inventory is authoritative because the README summary still r
 - Add a new route or detached skill runner.
 - Promise one-click execution for external accounts or unavailable host tools.
 - Replace Nexus design authority with the upstream visual identity.
-- Restore any RPG, ARPG, gameplay, enemy, combat, inventory, map-editor, or fog-of-war feature.
+- Expand Nexus into source-specific product domains outside its intelligence-dashboard mission.

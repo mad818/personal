@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "pear-devs-pear-desktop",
   "name": "pear-devs/pear-desktop",
-  "status": "foundation",
+  "status": "complete",
   "source": {
     "url": "https://github.com/pear-devs/pear-desktop",
-    "version": "master-2026-06-22",
-    "reviewedAt": "2026-06-22",
+    "version": "master-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/pear-devs/pear-desktop",
@@ -26,8 +26,9 @@
       "id": "music-library-local-playback",
       "title": "Local library scanning, playlists, and playback controls",
       "sourceEvidence": "pear-desktop music player extension model",
-      "disposition": "pending",
-      "reason": "Resources subscription-escape covers books/movies/music metadata; Pear-style playback engine not integrated."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus Resources may organize lawful media references, but local library scanning, playlist state, codecs, and playback controls would turn it into a music client."
     },
     {
       "id": "desktop-electron-patterns",

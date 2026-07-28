@@ -124,19 +124,19 @@ requireText(toolPolicy, 'feynman_paper_rank: "analyze"', "local rank policy");
 requireText(toolPolicy, 'feynman_outputs: "read"', "local output policy");
 requireText(toolPolicy, 'huggingface_inspect: "networked"', "network policy");
 requireText(spec, "No silent execution", "feature guardrail");
-if (parity.status !== "in_progress") {
+if (parity.status !== "complete") {
   console.error(
-    "x feynman-native: source parity must remain in_progress while useful capabilities are pending",
+    "x feynman-native: source parity must be complete",
   );
   process.exit(1);
 }
 if (
-  !parity.capabilities?.some(
+  parity.capabilities?.some(
     (capability) => capability.disposition === "pending",
   )
 ) {
   console.error(
-    "x feynman-native: source parity matrix must honestly track pending capabilities",
+    "x feynman-native: source parity matrix must not retain pending capabilities",
   );
   process.exit(1);
 }
@@ -169,5 +169,5 @@ requireText(
 );
 
 console.log(
-  "ok feynman-native-foundation (workflow family, audit contract, tool and Vault wiring; source parity remains open)",
+  "ok feynman-native (workflow family, audit contract, tool and Vault wiring; source parity complete)",
 );

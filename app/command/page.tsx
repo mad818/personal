@@ -128,6 +128,10 @@ const LazyOperatorStatusCard = dynamic(
   () => import("@/components/home/office/OperatorStatusCard"),
   { ssr: false },
 );
+const LazyLocalUsageMetricsPanel = dynamic(
+  () => import("@/components/command/LocalUsageMetricsPanel"),
+  { ssr: false },
+);
 
 type CommandBriefView = "brief" | "pressure" | "world";
 type CommandDispatchView = "dispatch" | "programs";
@@ -840,6 +844,14 @@ export default function CommandPage() {
                       />
                     </div>
                   </details>
+                </OpsField>
+                <OpsField
+                  title="Private usage pulse"
+                  detail="Browser-local aggregate route counts with no identifiers or external analytics"
+                  tone="muted"
+                  compact
+                >
+                  <LazyLocalUsageMetricsPanel />
                 </OpsField>
               </div>
             </OpsStrip>

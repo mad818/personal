@@ -7,9 +7,12 @@ import {
   parseSealedVaultEnvelopeJson,
   sealVaultPayload,
   SEALED_VAULT_AUTO_LOCK_MS,
+  SEALED_VAULT_MAX_EVENTS,
+  SEALED_VAULT_MAX_RECORD_HISTORY,
   SEALED_VAULT_KDF_ITERATIONS,
   SEALED_VAULT_MAX_RECORDS,
   serializeSealedVaultEnvelope,
+  undoSealedVaultRecord,
   upsertSealedVaultRecord,
   validateSealedVaultPayload,
 } from "../lib/sealedVault.ts";
@@ -31,10 +34,15 @@ const withRecord = upsertSealedVaultRecord(
     title: "Private launch constraints",
     body: "Evidence and operator-only constraints stay inside this envelope.",
     tags: ["private", "launch"],
+    path: "Work/Launch",
   },
   updatedAt,
 );
 assert.equal(withRecord.records.length, 1);
+assert.equal(withRecord.records[0].path, "Work/Launch");
+assert.equal(withRecord.records[0].history.length, 0);
+assert.equal(withRecord.events[0].action, "create");
+assert.equal(withRecord.events[0].recordId, recordId);
 
 const firstEnvelope = await sealVaultPayload(withRecord, passphrase, {
   now: "2026-07-26T12:06:00.000Z",
@@ -54,6 +62,7 @@ for (const secret of [
   passphrase,
   "Private launch constraints",
   "Evidence and operator-only constraints",
+  "Work/Launch",
 ]) {
   assert.ok(
     !serialized.includes(secret),
@@ -89,17 +98,74 @@ const changed = upsertSealedVaultRecord(
     title: "Updated private launch constraints",
     body: "Updated evidence remains sealed.",
     tags: ["private"],
+    path: "Work/Archive",
   },
   "2026-07-26T12:10:00.000Z",
 );
 assert.equal(changed.records[0].createdAt, updatedAt);
 assert.equal(changed.records[0].updatedAt, "2026-07-26T12:10:00.000Z");
-const deleted = deleteSealedVaultRecord(
+assert.equal(changed.records[0].path, "Work/Archive");
+assert.equal(changed.records[0].history.length, 1);
+assert.equal(changed.records[0].history[0].title, "Private launch constraints");
+assert.equal(changed.events[0].action, "update");
+
+const restored = undoSealedVaultRecord(
   changed,
+  recordId,
+  "2026-07-26T12:10:30.000Z",
+);
+assert.equal(restored.records[0].title, "Private launch constraints");
+assert.equal(restored.records[0].path, "Work/Launch");
+assert.equal(restored.records[0].history.length, 0);
+assert.equal(restored.events[0].action, "undo");
+
+const deleted = deleteSealedVaultRecord(
+  restored,
   recordId,
   "2026-07-26T12:11:00.000Z",
 );
 assert.equal(deleted.records.length, 0);
+assert.equal(deleted.events[0].action, "delete");
+assert.equal(deleted.events[0].recordId, recordId);
+
+const migrated = validateSealedVaultPayload({
+  schemaVersion: 1,
+  updatedAt,
+  records: [
+    {
+      id: "sealed-legacy",
+      title: "Legacy private note",
+      body: "Old inner payloads remain readable.",
+      tags: ["legacy"],
+      createdAt,
+      updatedAt,
+    },
+  ],
+});
+assert.equal(migrated.schemaVersion, 2);
+assert.equal(migrated.records[0].path, "General");
+assert.deepEqual(migrated.records[0].history, []);
+assert.deepEqual(migrated.events, []);
+
+let bounded = withRecord;
+for (let index = 0; index < SEALED_VAULT_MAX_EVENTS + 5; index += 1) {
+  bounded = upsertSealedVaultRecord(
+    bounded,
+    {
+      id: recordId,
+      title: `Private revision ${index}`,
+      body: `Bounded encrypted revision body ${index}.`,
+      tags: ["private"],
+      path: "Work/History",
+    },
+    new Date(Date.parse(updatedAt) + (index + 1) * 1_000).toISOString(),
+  );
+}
+assert.equal(
+  bounded.records[0].history.length,
+  SEALED_VAULT_MAX_RECORD_HISTORY,
+);
+assert.equal(bounded.events.length, SEALED_VAULT_MAX_EVENTS);
 
 assert.throws(
   () =>
@@ -165,6 +231,8 @@ assert.throws(
 assert.equal(SEALED_VAULT_KDF_ITERATIONS, 600_000);
 assert.equal(SEALED_VAULT_AUTO_LOCK_MS, 300_000);
 assert.equal(SEALED_VAULT_MAX_RECORDS, 100);
+assert.equal(SEALED_VAULT_MAX_RECORD_HISTORY, 12);
+assert.equal(SEALED_VAULT_MAX_EVENTS, 200);
 
 const companySource = COMPANY_SKILL_SOURCES.find(
   (source) => source.id === "vaultwarden-sealed-vault",
@@ -179,5 +247,5 @@ assert.ok(
 );
 
 console.log(
-  "ok sealed-vault-runtime (real Web Crypto round-trip, random reseal, tamper/wrong-passphrase rejection, bounded payload, mutation, deletion, import/export)",
+  "ok sealed-vault-runtime (real Web Crypto round-trip, legacy migration, encrypted hierarchy, bounded revisions/undo, mutation receipts, tamper/wrong-passphrase rejection, deletion, import/export)",
 );

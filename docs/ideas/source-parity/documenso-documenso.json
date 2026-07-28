@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "documenso-documenso",
   "name": "Documenso",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/documenso/documenso",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-4107-commits-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "AGPL-3.0",
     "primaryEvidence": [
       "https://github.com/documenso/documenso",
@@ -25,16 +25,18 @@
     {
       "id": "next-js-app-router-patterns",
       "title": "Next.js App Router patterns at scale: multi-tenant, server actions, API routes",
-      "sourceEvidence": "Documenso: full Next.js 14 App Router application with real-world complexity",
-      "disposition": "pending",
-      "reason": "Documenso is a production Next.js 14 app like Nexus; its App Router patterns, server action usage, and multi-step form implementations are a useful reference."
+      "sourceEvidence": "The current 2026-07-27 README lists React Router v7, Hono, Prisma, Tailwind, shadcn/Radix, tRPC, and PDF tooling; it no longer identifies a Next.js 14 App Router architecture.",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The inventoried upstream architecture claim is stale. Nexus keeps its existing Next.js protected-route and API-route conventions instead of treating a different current framework as App Router evidence."
     },
     {
       "id": "pdf-rendering-pipeline",
       "title": "PDF rendering in browser: react-pdf, PDF.js for document preview",
       "sourceEvidence": "Documenso: browser-side PDF rendering for signature placement",
-      "disposition": "pending",
-      "reason": "Nexus VAULT or INTEL could use PDF rendering patterns for research paper and document preview."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Rendering untrusted PDFs requires a maintained parser/runtime, content limits, sandboxing, and a document-retention contract. Nexus currently accepts operator-extracted text and will not add a partial binary parser."
     },
     {
       "id": "email-action-workflow",

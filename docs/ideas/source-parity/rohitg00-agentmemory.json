@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "rohitg00-agentmemory",
   "name": "agentmemory",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/rohitg00/agentmemory",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/rohitg00/agentmemory",
@@ -41,8 +41,9 @@
       "id": "semantic-memory-retrieval",
       "title": "Semantic similarity retrieval over past agent sessions using embedding vectors",
       "sourceEvidence": "agentmemory retrieval: vector similarity search over episodic store",
-      "disposition": "pending",
-      "reason": "Nexus feynmanContinuity.ts supports session resume by keyword; semantic vector retrieval over all past sessions is not implemented."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Embedding every personal session would create a second durable representation of sensitive operator text and may require an external embedding provider. Nexus keeps transparent keyword-plus-recency retrieval until an explicit encrypted vector lifecycle exists."
     },
     {
       "id": "recency-decay-weighting",
@@ -58,8 +59,13 @@
       "id": "memory-benchmark-harness",
       "title": "Benchmark harness comparing memory strategies across diverse agent workloads",
       "sourceEvidence": "agentmemory benchmark suite: episodic vs semantic vs hybrid retrieval comparison",
-      "disposition": "pending",
-      "reason": "Nexus has no memory benchmark harness; memory strategy comparison deferred pending episodic store implementation."
+      "disposition": "implemented",
+      "reason": "A deterministic harness now compares recency-only, keyword-only, and hybrid retrieval across five agent workloads and asserts the expected top memory for every hybrid case.",
+      "proof": [
+        "lib/episodicMemoryBenchmark.ts",
+        "scripts/check-episodic-memory-benchmark.mjs",
+        "lib/episodicMemoryStore.ts"
+      ]
     },
     {
       "id": "cross-session-fact-deduplication",

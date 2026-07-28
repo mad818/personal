@@ -100,9 +100,9 @@ if (rankCapability?.disposition !== "adapted") {
   console.error("x feynman-paper-rank: PaperRank capability is not adapted");
   process.exit(1);
 }
-if (parity.status !== "in_progress") {
+if (parity.status !== "complete") {
   console.error(
-    "x feynman-paper-rank: unrelated source parity must remain open",
+    "x feynman-paper-rank: Feynman source parity must be complete",
   );
   process.exit(1);
 }

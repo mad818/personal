@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "bitwarden-server",
   "name": "Bitwarden Server",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/bitwarden/server",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "AGPL-3.0",
     "primaryEvidence": [
       "https://github.com/bitwarden/server",
@@ -26,15 +26,22 @@
       "id": "send-feature",
       "title": "Bitwarden Send: end-to-end encrypted file and text sharing with expiration",
       "sourceEvidence": "Bitwarden Send: ephemeral encrypted sharing links",
-      "disposition": "pending",
-      "reason": "Encrypted ephemeral sharing links are a useful security pattern; could be adapted for Nexus research artifact sharing. Pending."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus has no authenticated recipient, key-distribution, revocation, or expiry service. A partial sharing-link implementation would create a false confidentiality boundary for private artifacts."
     },
     {
       "id": "event-log-api",
       "title": "Event log API: structured audit trail for all vault operations",
       "sourceEvidence": "Bitwarden server event log: structured JSONL per-action audit",
-      "disposition": "pending",
-      "reason": "Nexus CYBER governance patterns could adapt a structured event log API; pending CYBER audit trail implementation."
+      "disposition": "adapted",
+      "reason": "The sealed VAULT keeps bounded, content-free create, update, restore, delete, and re-key receipts inside its encrypted payload, while explicitly avoiding an immutable or server-wide audit claim.",
+      "proof": [
+        "lib/sealedVault.ts",
+        "components/vault/SealedVaultPanel.tsx",
+        "scripts/check-sealed-vault-runtime.mjs",
+        "specs/features/password-privacy-platform-closure.md"
+      ]
     },
     {
       "id": "saas-licensing",

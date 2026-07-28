@@ -18,6 +18,10 @@ const exactScopeExclusions = new Set([]);
 
 const scriptOnlyRuntimeFiles = new Map([
   [
+    "lib/episodicMemoryBenchmark.ts",
+    "scripts/check-episodic-memory-benchmark.mjs",
+  ],
+  [
     "lib/localAccelerationAcceptance.ts",
     "scripts/check-local-acceleration-acceptance.mjs",
   ],

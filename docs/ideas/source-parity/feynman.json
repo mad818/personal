@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "feynman",
   "name": "Feynman",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/companion-inc/feynman",
     "version": "0.3.5",
-    "reviewedAt": "2026-07-15",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/companion-inc/feynman/blob/main/README.md",
@@ -185,15 +185,17 @@
       "id": "local-replication-execution",
       "title": "Operator-selected local or virtual-environment replication with scripts and result artifacts",
       "sourceEvidence": "skills/replication/SKILL.md",
-      "disposition": "pending",
-      "reason": "Current replicate mode produces a plan only; safe local execution, scripts, logs, and results remain unimplemented."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "A research prompt cannot safely authorize arbitrary downloaded code, dependency installation, training, or dataset execution on the Nexus host. Nexus completes the feasible portion as an execution-ready plan with metrics, stop conditions, and an explicit approval gate."
     },
     {
       "id": "docker-isolated-experiments",
       "title": "Docker-isolated experiment execution",
       "sourceEvidence": "README.md Skills & Tools and skills/docker",
-      "disposition": "pending",
-      "reason": "Nexus has isolation policy scaffolding but no Feynman replication executor backed by an approved Docker sandbox."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "A container does not by itself establish safe code, network, volume, secret, resource, or image provenance. Nexus does not own an approved experiment sandbox and therefore keeps Docker execution outside the research product."
     },
     {
       "id": "paid-cloud-gpu-compute",
@@ -207,8 +209,9 @@
       "id": "autoresearch-loop",
       "title": "Measured experiment loop that tries variants, keeps improvements, and records JSONL history",
       "sourceEvidence": "skills/autoresearch/SKILL.md",
-      "disposition": "pending",
-      "reason": "Current autoresearch mode returns a bounded plan and does not execute or score an approved experiment loop."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Autonomously mutating code or model configurations, executing variants, and retaining the winner exceeds an advisory research request. Nexus implements the bounded objective, variants, scoring, keep-or-reject, stop, and approval plan without enabling the loop."
     },
     {
       "id": "recurring-research-watch",

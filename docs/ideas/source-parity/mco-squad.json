@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "mco-squad",
   "name": "mco-org/squad",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/mco-org/squad",
-    "version": "v0.7.6",
-    "reviewedAt": "2026-07-13",
+    "version": "main-97-commits-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/mco-org/squad/blob/main/README.md",
@@ -104,29 +104,33 @@
       "id": "durable-message-and-task-history",
       "title": "Persist messages, task state, results, and timestamps for later history inspection",
       "sourceEvidence": "README.md How It Works, Message Flow, pending, and history commands",
-      "disposition": "pending",
-      "reason": "This tranche keeps worker output inside the existing runtime trace. A durable local receipt needs an explicit retention, privacy, and cleanup policy before it is useful as project history."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus deliberately keeps specialist context inside the bounded operator-visible runtime trace. Persisting worker messages would duplicate potentially sensitive prompt and evidence content without a separate retention and deletion contract."
     },
     {
       "id": "task-ack-requeue-and-reassignment",
       "title": "Let workers acknowledge leases and let the manager requeue or reassign interrupted tasks",
       "sourceEvidence": "README.md task ack, complete, requeue, and list commands",
-      "disposition": "pending",
-      "reason": "Nexus currently runs short-lived advisory workers. Durable leases and reassignment become useful only with resumable long-running worker sessions."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus specialists are short-lived advisory calls, not durable background workers. Lease ownership, requeue, and reassignment would require a second resumable worker platform rather than improving the bounded in-app orchestrator."
     },
     {
       "id": "heartbeat-session-replacement-and-doctor",
       "title": "Track worker liveness, replaced sessions, protocol compatibility, and recovery diagnostics",
       "sourceEvidence": "src/main.rs session token checks and doctor command",
-      "disposition": "pending",
-      "reason": "The first tranche has bounded request timeouts and failed handoffs but no durable workers. A later lifecycle tranche can add cancellation, heartbeat, and recovery receipts."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "There are no persistent Nexus worker processes or sessions to heartbeat or replace. Request timeouts and typed failed handoffs are the complete lifecycle for the existing advisory-worker model."
     },
     {
       "id": "freeform-agent-messaging-and-broadcast",
       "title": "Support replies, direct notes, broadcast messages, and task-linked discussion between workers",
       "sourceEvidence": "README.md send, receive, --reply-to, --task-id, and @all broadcast",
-      "disposition": "pending",
-      "reason": "Typed return-to-MAX handoffs are safer for the initial product slice. Cross-worker messaging may be useful later when conflict resolution and context budgets are defined."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Workers are intentionally isolated and can return only typed handoffs to MAX. Freeform cross-worker messaging would create an unreviewed prompt-propagation channel and bypass the central synthesis boundary."
     },
     {
       "id": "custom-role-and-team-templates",

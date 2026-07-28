@@ -7,7 +7,6 @@ import {
   DESIGN_SKILL_SOURCE,
   DESIGN_SKILL_SOURCE_CATEGORIES,
   DESIGN_SKILLS,
-  EXCLUDED_GAME_SKILL_IDS,
   resolveDesignSkill,
   type DesignSkillAvailability,
   type DesignSkillFamilyId,
@@ -184,9 +183,9 @@ export default function DesignSkillAtlas() {
               lineHeight: 1.55,
             }}
           >
-            {DESIGN_SKILLS.length} project-owned non-game procedures adapted
-            from {DESIGN_SKILL_SOURCE.label}. Every selection resolves to
-            inputs, workflow, guardrails, acceptance, and honest prerequisites.
+            {DESIGN_SKILLS.length} project-owned procedures adapted from{" "}
+            {DESIGN_SKILL_SOURCE.label}. Every selection resolves to inputs,
+            workflow, guardrails, acceptance, and honest prerequisites.
           </p>
         </div>
         <div
@@ -195,9 +194,6 @@ export default function DesignSkillAtlas() {
         >
           <span className="nexus-shell-badge nexus-shell-badge--success">
             {DESIGN_SKILLS.length} active
-          </span>
-          <span className="nexus-shell-badge nexus-shell-badge--muted">
-            {EXCLUDED_GAME_SKILL_IDS.length} game entries excluded
           </span>
           <a
             href={DESIGN_SKILL_SOURCE.repositoryUrl}
@@ -361,7 +357,7 @@ export default function DesignSkillAtlas() {
                   lineHeight: 1.5,
                 }}
               >
-                No active non-game procedure matches these filters.
+                No active procedure matches these filters.
               </p>
             )}
           </div>

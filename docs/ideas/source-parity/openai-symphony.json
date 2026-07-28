@@ -2,53 +2,64 @@
   "schemaVersion": 1,
   "id": "openai-symphony",
   "name": "OpenAI Symphony",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/openai/symphony",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
-    "license": "MIT",
+    "version": "main-43-commits-2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "Apache-2.0",
     "primaryEvidence": [
       "https://github.com/openai/symphony",
-      "https://github.com/openai/symphony/blob/main/README.md"
+      "https://github.com/openai/symphony/blob/main/README.md",
+      "https://github.com/openai/symphony/blob/main/SPEC.md",
+      "https://github.com/openai/symphony/blob/main/LICENSE"
     ]
   },
   "capabilities": [
     {
       "id": "agent-orchestration-framework",
-      "title": "Declarative agent orchestration: define multi-agent pipelines in composable YAML/JSON configs",
-      "sourceEvidence": "Symphony: OpenAI's composable multi-agent orchestration framework",
-      "disposition": "pending",
-      "reason": "Nexus uses lib/agent.ts for single-agent coordination; a declarative multi-agent pipeline config format is not yet implemented."
+      "title": "Poll a project tracker and run autonomous implementation work in isolated issue workspaces",
+      "sourceEvidence": "README.md describes polling Linear, creating one workspace per issue, and running an agent until the issue reaches a terminal state",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus does not autonomously claim external issues, edit repositories, or advance tracker state. Those actions require an operator-owned development workflow and explicit mutation authority."
     },
     {
       "id": "agent-handoff-contracts",
-      "title": "Typed handoff contracts between agents: typed input/output schemas enforced at agent boundaries",
-      "sourceEvidence": "Symphony: typed agent interfaces for safe inter-agent handoffs",
-      "disposition": "pending",
-      "reason": "Nexus agent handoffs are prose-based; typed input/output schemas at agent boundaries not yet enforced."
+      "title": "Require proof-of-work handoff details such as tests, review feedback, complexity, and walkthrough evidence",
+      "sourceEvidence": "README.md proof-of-work guidance and SPEC.md run lifecycle and observability contracts",
+      "disposition": "adapted",
+      "proof": [
+        "lib/centralOrchestrator.ts",
+        "scripts/check-central-orchestrator-runtime.mjs",
+        "lib/agentExecutionContract.ts"
+      ]
     },
     {
       "id": "parallel-agent-execution",
-      "title": "Parallel agent execution: run multiple agents concurrently with synchronized result merging",
-      "sourceEvidence": "Symphony: fan-out/fan-in parallel agent patterns",
-      "disposition": "pending",
-      "reason": "Nexus agents run serially; parallel execution with synchronized result merging is pending."
+      "title": "Run multiple isolated issue implementations concurrently under explicit concurrency limits",
+      "sourceEvidence": "SPEC.md worker orchestration and configurable maximum concurrent agents",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus permits only bounded, non-mutating advisory specialists inside one MAX-controlled request. Concurrent autonomous repository mutation and synchronized landing are outside the product's authority boundary."
     },
     {
       "id": "agent-memory-sharing",
-      "title": "Shared memory between agents in a pipeline: read/write to a common context store",
-      "sourceEvidence": "Symphony: pipeline-scoped shared memory for agent coordination",
-      "disposition": "pending",
-      "reason": "Nexus agents have isolated memory; cross-agent shared context store not yet implemented."
+      "title": "Isolate each work item in its own workspace and supply only the context required for that run",
+      "sourceEvidence": "README.md isolated workspace per issue and SPEC.md workspace lifecycle",
+      "disposition": "adapted",
+      "proof": [
+        "lib/centralOrchestrator.ts",
+        "app/api/tools/route.ts"
+      ]
     },
     {
       "id": "openai-cloud-only-runtime",
-      "title": "Cloud-only OpenAI API runtime for agent execution",
-      "sourceEvidence": "Symphony: designed around OpenAI API for LLM calls",
+      "title": "Use Codex as the autonomous implementation runner behind a tracker-driven service",
+      "sourceEvidence": "README.md positions Symphony as a Codex orchestration service and engineering preview for trusted environments",
       "disposition": "excluded",
       "conflict": "free_local",
-      "reason": "Nexus is free/local-first with BYOK; all AI calls go through lib/ai.ts supporting multiple providers including Ollama. OpenAI-locked runtime excluded."
+      "reason": "Nexus remains provider-neutral and local-first. All model traffic must stay behind lib/ai.ts with Ollama and optional BYOK providers rather than requiring a Codex-only autonomous service."
     }
   ]
 }

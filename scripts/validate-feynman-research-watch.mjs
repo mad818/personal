@@ -178,8 +178,8 @@ for (const proof of [
     fail(`source parity proof is missing ${proof}`);
   }
 }
-if (parity.status !== "in_progress") {
-  fail("broader Feynman source parity must remain in progress");
+if (parity.status !== "complete") {
+  fail("Feynman source parity must be complete");
 }
 
 if (

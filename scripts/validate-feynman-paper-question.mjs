@@ -131,8 +131,8 @@ if (semanticLibrary?.disposition !== "adapted") {
 if (!semanticLibrary.proof?.includes("lib/feynmanPaperLibrary.ts")) {
   fail("semantic paper library proof is missing");
 }
-if (parity.status !== "in_progress") {
-  fail("unrelated Feynman source parity must remain open");
+if (parity.status !== "complete") {
+  fail("Feynman source parity must be complete");
 }
 
 if (

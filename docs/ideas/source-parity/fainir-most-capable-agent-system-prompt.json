@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "fainir-most-capable-agent-system-prompt",
   "name": "fainir/most-capable-agent-system-prompt",
-  "status": "foundation",
+  "status": "complete",
   "source": {
     "url": "https://github.com/fainir/most-capable-agent-system-prompt",
-    "version": "main-2026-06-22",
-    "reviewedAt": "2026-06-22",
+    "version": "main re-reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "unknown",
     "primaryEvidence": [
       "https://github.com/fainir/most-capable-agent-system-prompt",
@@ -61,8 +61,9 @@
       "id": "multi-surface-computer-automation",
       "title": "Unified loop for browser, desktop, research, and long-horizon projects",
       "sourceEvidence": "README target task list spanning browser, desktop, research, and operations",
-      "disposition": "pending",
-      "reason": "Nexus covers intel tabs + local agent tools; full desktop/browser company-ops automation is out of current scope."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is the intelligence workspace itself, not a general-purpose desktop-control or browser-control operating system; research and protected project tools remain bounded native capabilities."
     }
   ]
 }

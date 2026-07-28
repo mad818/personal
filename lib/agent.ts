@@ -79,6 +79,7 @@ import { detectTeamOrchestrationNeed } from "@/lib/teamOrchestration";
 import {
   compactAgentToolResult,
   createAgentExecutionState,
+  normalizeAgentIterationBudget,
   normalizeAgentToolInputForTransport,
   prepareAgentContext,
   reduceAgentExecutionState,
@@ -609,7 +610,7 @@ export const AGENT_TOOLS = [
   {
     name: "list_design_skills",
     description:
-      "Search the complete project-owned non-game builder procedure atlas adapted from MengTo/Skills. Returns bounded IDs, families, availability, and purpose. Use before design, marketing, capture, customer support, media sourcing, animation, WebGL, or UI-detail work when the exact procedure is not already known. Game capabilities are excluded.",
+      "Search the complete project-owned builder procedure atlas adapted from MengTo/Skills. Returns bounded IDs, families, availability, and purpose. Use before design, marketing, capture, customer support, media sourcing, animation, WebGL, or UI-detail work when the exact procedure is not already known.",
     input_schema: {
       type: "object",
       properties: {
@@ -663,7 +664,7 @@ export const AGENT_TOOLS = [
   {
     name: "resolve_design_skill",
     description:
-      "Resolve one exact active non-game builder skill ID into its full read-only operating contract: purpose, requirements, inputs, ordered workflow, guardrails, acceptance checks, availability, and primary source. Call this before executing a matching design, capture, support, media, performance, animation, WebGL, or UI-detail task. The contract does not authorize installs or external actions.",
+      "Resolve one exact active builder skill ID into its full read-only operating contract: purpose, requirements, inputs, ordered workflow, guardrails, acceptance checks, availability, and primary source. Call this before executing a matching design, capture, support, media, performance, animation, WebGL, or UI-detail task. The contract does not authorize installs or external actions.",
     input_schema: {
       type: "object",
       properties: {
@@ -1990,13 +1991,17 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     systemPrompt,
     messages,
     onStep,
-    maxIterations = 6,
+    maxIterations: requestedMaxIterations,
     draftMode = false,
     agentId,
     toolCatalog,
     onToolMetric,
     onExecutionAction,
   } = opts;
+  const maxIterations = normalizeAgentIterationBudget(
+    requestedMaxIterations,
+    6,
+  );
   const endpoint =
     s.localEndpoint || "http://localhost:11434/v1/chat/completions";
   const configuredModel = s.localModel || DEFAULT_LOCAL_MODEL;
@@ -2286,12 +2291,16 @@ async function runOpenAICompatibleCloudAgent(
     systemPrompt,
     messages,
     onStep,
-    maxIterations = 6,
+    maxIterations: requestedMaxIterations,
     agentId,
     toolCatalog,
     onToolMetric,
     onExecutionAction,
   } = opts;
+  const maxIterations = normalizeAgentIterationBudget(
+    requestedMaxIterations,
+    6,
+  );
   const { provider, label, model, timeoutMs, missingConfigMessage } = config;
   const modelLabel = model ?? "configured deployment";
   const selectedCatalog =
@@ -2483,11 +2492,15 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     systemPrompt,
     messages: incomingMessages,
     onStep,
-    maxIterations = 8,
+    maxIterations: requestedMaxIterations,
     onToken,
     agentId,
     efficiencyHint,
   } = opts;
+  const maxIterations = normalizeAgentIterationBudget(
+    requestedMaxIterations,
+    8,
+  );
   void onToken; // referenced via opts.onToken in loop body
   const s = settings ?? getSettings();
   const runId = `run_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;

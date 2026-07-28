@@ -5,7 +5,6 @@ import {
   DESIGN_SKILL_FAMILY_IDS,
   DESIGN_SKILL_SOURCE_CATEGORIES,
   DESIGN_SKILLS,
-  EXCLUDED_GAME_SKILL_IDS,
   formatDesignSkillContract,
   formatDesignSkillList,
   listDesignSkills,
@@ -13,18 +12,7 @@ import {
 } from "../lib/designSkillAtlas.ts";
 
 assert.equal(DESIGN_SKILLS.length, 101);
-assert.equal(EXCLUDED_GAME_SKILL_IDS.length, 20);
 assert.equal(new Set(DESIGN_SKILLS.map((skill) => skill.id)).size, 101);
-assert.equal(new Set(EXCLUDED_GAME_SKILL_IDS).size, 20);
-
-const activeIds = new Set(DESIGN_SKILLS.map((skill) => skill.id));
-for (const id of EXCLUDED_GAME_SKILL_IDS) {
-  assert.equal(
-    activeIds.has(id),
-    false,
-    `${id} must stay out of active skills`,
-  );
-}
 
 const categoryCounts = Object.fromEntries(
   DESIGN_SKILL_SOURCE_CATEGORIES.map((category) => [
@@ -73,7 +61,6 @@ for (const definition of DESIGN_SKILLS) {
 const pricing = listDesignSkills({ query: "pricing" });
 assert.ok(pricing.skills.some((skill) => skill.id === "pricing-page"));
 assert.equal(pricing.total, 101);
-assert.equal(pricing.excludedGameCount, 20);
 
 const connectorSupport = listDesignSkills({
   family: "support",
@@ -92,11 +79,8 @@ assert.equal(bounded.returned, 100);
 assert.equal(bounded.skills.length, 100);
 
 const listText = formatDesignSkillList({ query: "webgl", limit: 3 });
-assert.match(listText, /101 active non-game; 20 game capabilities excluded/);
+assert.match(listText, /101 active project-owned procedures/);
 assert.match(listText, /resolve_design_skill/);
-for (const id of EXCLUDED_GAME_SKILL_IDS) {
-  assert.doesNotMatch(listText, new RegExp(id));
-}
 
 const pricingContract = formatDesignSkillContract("pricing-page");
 assert.match(pricingContract, /Pricing Page/);
@@ -108,12 +92,11 @@ assert.match(pricingContract, /Acceptance checks:/);
 assert.match(pricingContract, /does not authorize installs/i);
 
 assert.match(
-  formatDesignSkillContract("implement-fog-of-war"),
+  formatDesignSkillContract("source-only-capability"),
   /Unknown design skill/,
 );
-assert.equal(resolveDesignSkill("build-isometric-arpg"), null);
 assert.equal(resolveDesignSkill("missing-skill"), null);
 
 console.log(
-  `ok mengto-skill-atlas-runtime (active=${DESIGN_SKILLS.length}; excluded-game=${EXCLUDED_GAME_SKILL_IDS.length}; families=${DESIGN_SKILL_FAMILY_IDS.length})`,
+  `ok mengto-skill-atlas-runtime (active=${DESIGN_SKILLS.length}; families=${DESIGN_SKILL_FAMILY_IDS.length})`,
 );

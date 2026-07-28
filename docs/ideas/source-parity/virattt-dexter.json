@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "virattt-dexter",
   "name": "Dexter",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/virattt/dexter",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "v2026.5.24-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/virattt/dexter",
@@ -18,36 +18,56 @@
       "id": "autonomous-financial-research-agent",
       "title": "Autonomous financial research agent: given a ticker, produce a structured investment thesis",
       "sourceEvidence": "Dexter: multi-step autonomous agent that researches a security end-to-end",
-      "disposition": "pending",
-      "reason": "Nexus ALPHA has TradeThesisPanel for single-query analysis; a fully autonomous end-to-end research loop (multiple tool calls, evidence synthesis, structured output) is pending."
+      "disposition": "adapted",
+      "proof": [
+        "components/alpha/TradeThesisPanel.tsx",
+        "lib/alphaTradeThesis.ts",
+        "lib/ai.ts"
+      ],
+      "adaptationNotes": "A ticker thesis now gathers bounded SEC facts and already-loaded public news, builds typed research-lens handoffs, and produces one evidence-separated synthesis through Nexus's canonical AI router. It stays user-triggered and capped rather than autonomously expanding tools or acting on markets."
     },
     {
       "id": "sec-filing-reader",
       "title": "SEC filing reader: parse 10-K and 10-Q for key financials, risk factors, and MD&A",
       "sourceEvidence": "Dexter SEC tool: retrieves and parses EDGAR filings",
-      "disposition": "pending",
-      "reason": "Nexus ALPHA uses price and basic company data; SEC filing ingestion for structured financial extraction is pending."
+      "disposition": "adapted",
+      "proof": [
+        "lib/secCompanyFacts.ts",
+        "app/api/sec-filings/route.ts",
+        "components/alpha/TradeThesisPanel.tsx"
+      ],
+      "adaptationNotes": "The protected EDGAR route now returns filing metadata plus current primary-source XBRL company facts for a valid ticker. Risk factors and MD&A remain linked primary-reading tasks rather than model-invented extracts."
     },
     {
       "id": "earnings-call-transcript-analysis",
       "title": "Earnings call transcript analysis: extract guidance, concerns, and tone shifts",
       "sourceEvidence": "Dexter earnings tool: transcript ingestion and NLP extraction",
-      "disposition": "pending",
-      "reason": "Nexus does not yet ingest earnings call transcripts."
+      "disposition": "excluded",
+      "conflict": "legal",
+      "reason": "Earnings-call transcript redistribution and automated ingestion have provider-specific copyright, access, and retention terms. Nexus does not scrape or warehouse transcripts without a reviewed source contract."
     },
     {
       "id": "financial-news-synthesis",
       "title": "Financial news synthesis: aggregate and summarize recent material news for a ticker",
       "sourceEvidence": "Dexter news tool: multi-source news aggregation for a given symbol",
-      "disposition": "pending",
-      "reason": "Nexus INTEL surfaces market news but does not have a per-ticker news synthesis agent."
+      "disposition": "adapted",
+      "proof": [
+        "app/api/news/route.ts",
+        "lib/alphaTradeThesis.ts",
+        "components/alpha/TradeThesisPanel.tsx"
+      ],
+      "adaptationNotes": "The thesis council filters the already-loaded public markets and crypto feed to bounded symbol or company matches, preserves source and date, and treats titles as untrusted evidence data."
     },
     {
       "id": "structured-thesis-output",
       "title": "Structured investment thesis output: bull case, bear case, valuation, risk factors, conviction score",
       "sourceEvidence": "Dexter output schema: structured JSON thesis with scored sections",
-      "disposition": "pending",
-      "reason": "Nexus ALPHA thesis panel produces prose analysis; a structured JSON output contract with scored sections is pending."
+      "disposition": "implemented",
+      "proof": [
+        "lib/alphaTradeThesis.ts",
+        "components/alpha/TradeThesisPanel.tsx"
+      ],
+      "adaptationNotes": "The validated contract includes observed facts, four analyst handoffs, bull and bear cases, valuation context, risks, verify-next checks, entry/invalidation fields, and an evidence-completeness conviction score that is explicitly not a return probability."
     },
     {
       "id": "paid-data-provider-integration",

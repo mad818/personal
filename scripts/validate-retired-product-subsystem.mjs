@@ -36,6 +36,43 @@ function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), "utf8");
 }
 
+function listActiveTextFiles(relativeRoot) {
+  const absoluteRoot = path.join(root, relativeRoot);
+  if (!fs.existsSync(absoluteRoot)) return [];
+  const textExtensions = new Set([
+    ".cjs",
+    ".css",
+    ".html",
+    ".js",
+    ".jsx",
+    ".json",
+    ".md",
+    ".mjs",
+    ".svg",
+    ".ts",
+    ".tsx",
+    ".txt",
+    ".webmanifest",
+  ]);
+  const results = [];
+  const pending = [absoluteRoot];
+  while (pending.length > 0) {
+    const directory = pending.pop();
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const absolutePath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        pending.push(absolutePath);
+      } else if (
+        entry.isFile() &&
+        textExtensions.has(path.extname(entry.name).toLowerCase())
+      ) {
+        results.push(toRepoPath(path.relative(root, absolutePath)));
+      }
+    }
+  }
+  return results.sort();
+}
+
 const retiredPaths = [
   "assets/arpg",
   "components/home/arpg",
@@ -71,47 +108,42 @@ for (const [name, command] of Object.entries(packageScripts)) {
   }
 }
 if (
-  packageScripts["rpg:retirement:check"] !==
-  "node scripts/validate-retired-rpg-subsystem.mjs"
+  packageScripts["retired-product:check"] !==
+  "node scripts/validate-retired-product-subsystem.mjs"
 ) {
-  fail("package.json must retain the RPG retirement check command");
+  fail("package.json must retain the retired-product check command");
 }
-if (!packageScripts.verify?.includes("npm run rpg:retirement:check")) {
-  fail("canonical verify must run the RPG retirement check");
+if (!packageScripts.verify?.includes("npm run retired-product:check")) {
+  fail("canonical verify must run the retired-product check");
 }
 
 const activeFiles = [
-  "components/home/office/HQConsoleShellSection.tsx",
-  "components/settings/SettingsDrawer.tsx",
-  "docs/handoff-supplement.md",
-  "lib/homefrontSourceIntelligence.ts",
-  "lib/homefrontVisualParity.ts",
-  "lib/massiveWinPlan.ts",
-  "scripts/generate-handoff.js",
-  "scripts/orbit.js",
-  "store/useStore.ts",
-  "tests/e2e/hq-shell.spec.ts",
-  "tests/e2e/support/authenticatedShell.ts",
-  "tests/e2e/tab-surfaces.spec.ts",
+  ...new Set(
+    ["app", "components", "lib", "public", "store"].flatMap(
+      listActiveTextFiles,
+    ),
+  ),
 ];
 const retiredTokens = [
   /\barpg\b/i,
-  /aether reliquary/i,
-  /excluded_rpg/i,
-  /hqRoomMode/,
-  /hq-focus-game/,
+  /\brpg\b/i,
+  /aether[ -]reliquary/i,
+  /\breliquary\b/i,
+  /GameDev(?:-Resources|\s+Resources)/i,
+  /EXCLUDED_GAME_SKILL_IDS|excludedGameCount/,
+  /\bgame (?:HUD|runtime|layer|state|mode|capabilities?|entries?|skills?|development)\b/i,
+  /hq-focus-game|data-(?:hq-)?focus-mode=["']game/i,
 ];
 
 for (const file of activeFiles) {
-  if (!exists(file)) {
-    fail(`active retirement proof file is missing: ${file}`);
-    continue;
-  }
   const source = read(file);
   for (const token of retiredTokens) {
     if (token.test(source)) {
-      fail(`${file} still contains retired runtime token ${token}`);
+      fail(`${file} still contains retired product content ${token}`);
     }
+  }
+  if (/hqConsoleFocusMode[^;\n]*(?:\?\?|:|=)\s*["']game["']/i.test(source)) {
+    fail(`${file} still contains a retired HQ focus default`);
   }
 }
 
@@ -148,5 +180,5 @@ if (findings.length > 0) {
 }
 
 console.log(
-  `ok rpg-retirement (paths=${retiredPaths.length}; active-files=${activeFiles.length}; package-commands=${Object.keys(packageScripts).length}; retained-focus=command,chat)`,
+  `ok retired-product (paths=${retiredPaths.length}; scanned-active-files=${activeFiles.length}; package-commands=${Object.keys(packageScripts).length}; retained-focus=command,chat)`,
 );

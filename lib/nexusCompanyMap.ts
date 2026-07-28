@@ -234,7 +234,7 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
     kind: "codex_skill",
     posture: "adapted",
     purpose:
-      "A complete 101-procedure non-game atlas for evidence-led design, capture, support, media, marketing, motion, WebGL, visual systems, and UI details; the benefit is repeatable execution with prerequisites and acceptance visible before action.",
+      "A complete 101-procedure builder atlas for evidence-led design, capture, support, media, marketing, motion, WebGL, visual systems, and UI details; the benefit is repeatable execution with prerequisites and acceptance visible before action.",
     codexPath:
       "Open /skills?view=library&focus=skills-library or use list_design_skills then resolve_design_skill; every actual install, file, browser, connector, deployment, or account action remains separately protected.",
     chatgptPath:
@@ -444,7 +444,7 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
     purpose:
       "Explain an abstract AI risk with one memorable cross-domain analogy, then pair it with the technical threat, concrete mitigations, uncertainty, and verification evidence.",
     codexPath:
-      "Use only the evidence-first briefing structure; analogies are explanation aids, never proof. The reviewed branch exposes no LICENSE file, so do not copy its code, prose, creature names, game, map, art, or assets.",
+      "Use only the evidence-first briefing structure; analogies are explanation aids, never proof. The reviewed branch exposes no LICENSE file, so do not copy its code, prose, source-specific names, scenarios, maps, art, or assets.",
     chatgptPath:
       "Frame the technical threat first, label one analogy as illustrative, and finish with mitigations, evidence, uncertainty, and a professional-review handoff where needed.",
   },

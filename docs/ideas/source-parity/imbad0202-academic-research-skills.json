@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "imbad0202-academic-research-skills",
   "name": "academic-research-skills",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/Imbad0202/academic-research-skills",
     "version": "v3.19.0 release surface at main commit 1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279; unreleased reviewer updates present",
-    "reviewedAt": "2026-07-26",
+    "reviewedAt": "2026-07-27",
     "license": "CC-BY-NC-4.0",
     "primaryEvidence": [
       "https://github.com/Imbad0202/academic-research-skills/blob/1faf13affb74fb9b1c8598b0ad0cf3a2d7fc4279/README.md",
@@ -195,78 +195,93 @@
       "id": "prisma-systematic-review",
       "title": "PRISMA systematic-review protocol with screening flow and exclusion receipts",
       "sourceEvidence": "README Deep Research systematic-review mode",
-      "disposition": "pending",
-      "reason": "Nexus has literature review and source coverage receipts but no PRISMA-specific protocol, screening ledger, or flow artifact."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus provides bounded literature synthesis, not a standards-conformant systematic-review authoring system. Claiming PRISMA support without protocol registration, exhaustive database strategy, duplicate screening, and human adjudication would be misleading."
     },
     {
       "id": "socratic-guided-research",
       "title": "Socratic research-question and writing-plan dialogue",
       "sourceEvidence": "README Deep Research socratic mode and Academic Paper plan mode",
-      "disposition": "pending",
-      "reason": "Current Feynman commands accept a bounded topic directly and do not run a dedicated question-refinement dialogue with resumable decisions."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus keeps research operator-led: the user supplies or revises the question through the normal assistant conversation. A hidden multi-round convergence controller and separate resumable dialogue state would duplicate the assistant rather than improve the evidence engine."
     },
     {
       "id": "specialist-academic-agent-team",
       "title": "Role-specialized academic research and writing agent team",
       "sourceEvidence": "README 13-agent Deep Research and 12-agent Academic Paper teams",
-      "disposition": "pending",
-      "reason": "Nexus uses four auditable stages and a separate bounded central orchestrator; it does not yet expose the useful academic role specializations or their artifact handoffs."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanResearch.ts",
+        "lib/feynmanResearchIntegrity.ts",
+        "scripts/check-feynman-runtime.mjs"
+      ],
+      "adaptationNotes": "Nexus uses the smallest complete academic role set: Researcher, Writer, Verifier, and Reviewer, with typed results, progress status, degraded fallbacks, claim audits, and an integrity passport."
     },
     {
       "id": "writing-style-calibration-and-quality",
       "title": "Operator-authored style calibration and academic writing-quality checks",
       "sourceEvidence": "README Academic Paper Style Calibration and Writing Quality Check",
-      "disposition": "pending",
-      "reason": "The Feynman draft contract preserves evidence and uncertainty but does not learn an operator's academic style profile or run a dedicated writing-quality rubric."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Learning a personal writing fingerprint requires retaining a corpus of the operator's prior work and introduces privacy and authorship risks. Nexus instead applies a transparent draft contract that preserves evidence, uncertainty, limitations, and revision checks without impersonating the operator."
     },
     {
       "id": "revision-format-submission-pipeline",
       "title": "Traceable revision, citation-format conversion, rebuttal audit, disclosure, and submission-package checks",
       "sourceEvidence": "README Academic Paper eleven-mode inventory",
-      "disposition": "pending",
-      "reason": "Nexus produces drafts and revision checklists but lacks deterministic patch application, citation-style conversion, rebuttal traceability, disclosure generation, and submission-package verification."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Feynman is a read-only research and draft surface. Editing manuscripts, converting publisher formats, generating disclosures, packaging submissions, and writing to external venues belong to an operator-owned document workflow with venue-specific requirements."
     },
     {
       "id": "multimodal-figure-verification",
       "title": "Visualization generation and VLM-backed figure verification",
       "sourceEvidence": "README Academic Paper visualization and VLM figure verification",
-      "disposition": "pending",
-      "reason": "The current Feynman workflow does not generate or independently inspect paper figures; adding it requires an explicit image/model boundary and rendered evidence tests."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus does not generate publication figures from research results and therefore has no figure artifact, rendering specification, or ground-truth data to verify. General image generation would not establish scientific correctness."
     },
     {
       "id": "reviewer-panel-calibration-rereview",
       "title": "Multi-perspective reviewer panel, re-review traceability, and measured FNR/FPR calibration",
       "sourceEvidence": "README Academic Paper Reviewer six modes and calibration protocol",
-      "disposition": "pending",
-      "reason": "Nexus has one Reviewer stage with severity findings but no isolated reviewer panel, gold-set calibration, repeated scoring, or round-to-round traceability matrix."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "A calibrated reviewer panel requires a user-supplied gold set, repeated independent model runs, and stable venue rubrics. Nexus supplies one severity-graded adversarial review and does not manufacture FNR/FPR claims without that evaluation program."
     },
     {
       "id": "citation-locator-faithfulness-audit",
       "title": "Three-layer citation locators and claim-to-passage faithfulness audit",
       "sourceEvidence": "README v3.7-v3.8 locator and claim-audit behavior",
-      "disposition": "pending",
-      "reason": "Nexus verifies claims against directly read source IDs but does not yet retain passage-level locator anchors or refetch them for claim-faithfulness adjudication."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "General web evidence does not provide stable page, paragraph, and line anchors across formats. Nexus truthfully audits directly read source IDs and section-bounded paper citations, but will not label that as passage-level semantic faithfulness without stable full-text locators and re-fetch adjudication."
     },
     {
       "id": "ten-stage-publication-pipeline",
       "title": "Ten-stage research-to-publication pipeline with adaptive checkpoints, score trajectory, and process summary",
       "sourceEvidence": "README Academic Pipeline and docs/ARCHITECTURE.md",
-      "disposition": "pending",
-      "reason": "The protected Feynman engine has four research stages and local artifacts, not the full research, write, integrity, review, revision, finalization, and collaboration-quality pipeline."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus intentionally stops at research, draft, verification, review, and local artifacts. Revision ownership, finalization, collaboration scoring, and publication are human and venue workflows rather than additional agent stages."
     },
     {
       "id": "model-tiering",
       "title": "Per-stage economy and quality-boost model tiering",
       "sourceEvidence": "README Model Tiering",
-      "disposition": "pending",
-      "reason": "Feynman stages use the existing Nexus AI spine but do not yet choose lower or frontier tiers by execution-versus-judgment role with a visible routing receipt."
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "Automatic tier escalation could silently consume paid BYOK credit and would make identical research requests provider-dependent. Feynman uses the operator-selected Nexus provider lane for every stage with no hidden model or cost upgrade."
     },
     {
       "id": "cross-model-blind-handoff-envelope",
       "title": "Machine-stable blind cross-model handoff with divergence and malformed-result routing",
       "sourceEvidence": "README Canonical Cross-Model Handoff Envelope and shared/cross_model_verification.md",
-      "disposition": "pending",
-      "reason": "The integrity passport reports that independent verification did not run. Nexus does not yet have a Feynman-specific blind external-model handoff envelope or consent boundary."
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "Blind cross-model verification requires a second independently configured provider and additional data disclosure and cost. Nexus records cross-model posture as not_run and independentVerification false rather than silently invoking another service."
     },
     {
       "id": "claude-plugin-runtime",

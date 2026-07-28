@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "frappe-erpnext",
   "name": "ERPNext",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/frappe/erpnext",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main re-reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "GPL-3.0",
     "primaryEvidence": [
       "https://github.com/frappe/erpnext",
@@ -26,8 +26,12 @@
       "id": "doctype-driven-form-builder",
       "title": "DocType-driven form and data model builder: define entities and get CRUD UI automatically",
       "sourceEvidence": "Frappe framework: DocType system generates forms, APIs, and reports",
-      "disposition": "pending",
-      "reason": "ERPNext's DocType pattern (schema → auto-generated UI) is a useful reference for Nexus settings/configuration form generation."
+      "disposition": "adapted",
+      "proof": [
+        "lib/workflowDefinition.ts",
+        "components/skills/WorkflowForge.tsx",
+        "app/api/workflows/route.ts"
+      ]
     },
     {
       "id": "double-entry-accounting",
@@ -41,8 +45,12 @@
       "id": "report-builder-pattern",
       "title": "Dynamic report builder: define report columns, filters, and charts without code",
       "sourceEvidence": "ERPNext report builder: query reports and script reports",
-      "disposition": "pending",
-      "reason": "Nexus INTEL dashboard building could reference ERPNext's dynamic report builder UX for configurable metric views."
+      "disposition": "adapted",
+      "proof": [
+        "components/resources/RegistryConsole.tsx",
+        "lib/schedulerGovernance.ts",
+        "components/ui/CronSchedulerAuditFiltersSection.tsx"
+      ]
     }
   ]
 }

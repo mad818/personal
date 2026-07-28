@@ -3,6 +3,7 @@
 import type { ScheduledJob } from "@/store/useStore";
 import CompactOperatorNote from "@/components/ui/CompactOperatorNote";
 import CronSchedulerWorkflowTemplatesSection from "@/components/ui/CronSchedulerWorkflowTemplatesSection";
+import SchedulerAvailabilityPlanner from "@/components/ui/SchedulerAvailabilityPlanner";
 import type {
   HQWorkflowCatalogItem,
   HQWorkflowCommandId,
@@ -362,6 +363,7 @@ export default function CronSchedulerComposerSection({
         reviewOnlyWorkflows={reviewOnlyWorkflows}
         onApplyWorkflowTemplate={onApplyWorkflowTemplate}
       />
+      <SchedulerAvailabilityPlanner onCronChange={onCronChange} />
       <input
         aria-label="Cron expression"
         value={cron}

@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "simplifaisoul-osiris",
   "name": "simplifaisoul/osiris",
-  "status": "foundation",
+  "status": "complete",
   "source": {
     "url": "https://github.com/simplifaisoul/osiris",
-    "version": "master-2026-06-22",
-    "reviewedAt": "2026-06-22",
+    "version": "master-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/simplifaisoul/osiris",
@@ -18,8 +18,14 @@
       "id": "global-osint-dashboard",
       "title": "Real-time global OSINT dashboard with multi-source intelligence panels",
       "sourceEvidence": "Repository description: Open Source Global Intelligence Platform / Real-Time OSINT Dashboard",
-      "disposition": "pending",
-      "reason": "Nexus INTEL/RECON/OPS tabs overlap conceptually; connector-level parity not inventoried against Osiris modules."
+      "disposition": "adapted",
+      "proof": [
+        "app/intel/page.tsx",
+        "app/recon/page.tsx",
+        "app/command/page.tsx",
+        "components/intel/LiveEventFusionStrip.tsx"
+      ],
+      "adaptationNotes": "Nexus preserves the multi-domain situational-awareness pattern across governed INTEL, RECON, and COMMAND surfaces instead of copying one unrestricted scanner dashboard. The INTEL fusion strip links significant events to regions and reviewed operational follow-up."
     },
     {
       "id": "unified-map-and-event-layers",
@@ -36,8 +42,13 @@
       "id": "palantir-style-workbench",
       "title": "Analyst workbench for linking entities, timelines, and investigations",
       "sourceEvidence": "Positioned as a Palantir alternative in repository metadata",
-      "disposition": "pending",
-      "reason": "RECON casefile and VAULT hooks are partial; full analyst graph workbench not built."
+      "disposition": "adapted",
+      "proof": [
+        "components/recon/OsintCasefileCard.tsx",
+        "lib/xr1Workflows.ts",
+        "app/recon/page.tsx"
+      ],
+      "adaptationNotes": "The passive-first RECON casefile links subjects, goals, evidence, pivots, gaps, reviewed next moves, and prior case continuity into a durable VAULT record. Nexus does not claim Palantir graph parity; it adapts the investigation workbench pattern with visible evidence and human review."
     },
     {
       "id": "vendoring-osiris-runtime",

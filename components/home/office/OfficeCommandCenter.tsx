@@ -393,7 +393,7 @@ export default function OfficeCommandCenter() {
   const officeCameraPreset = (settings.officeCameraPreset ??
     "cinematic") as OfficeCameraPreset;
   const officeSplitHeightPx = settings.officeSplitHeightPx ?? 0;
-  const hqConsoleFocusMode = settings.hqConsoleFocusMode ?? "game";
+  const hqConsoleFocusMode = settings.hqConsoleFocusMode ?? "command";
   const phonePosture = usePhonePosture();
   const hqCompactOperator = resolveHqCompactOperator({
     phonePosture,

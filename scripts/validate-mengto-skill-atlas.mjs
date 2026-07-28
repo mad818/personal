@@ -32,7 +32,7 @@ const chatRouting = read("lib/chatCapabilityRouting.ts");
 const ai = read("lib/ai.ts");
 const companyMap = read("lib/nexusCompanyMap.ts");
 const ecosystem = read("docs/ideas/assimilated-ecosystem.md");
-const spec = read("specs/features/mengto-non-game-skill-atlas.md");
+const spec = read("specs/features/mengto-skill-atlas.md");
 const tasks = read("tasks/todo.md");
 const packageJson = read("package.json");
 
@@ -47,7 +47,6 @@ for (const relativePath of [
 
 requireAll(atlas, "atlas", [
   "DESIGN_SKILLS",
-  "EXCLUDED_GAME_SKILL_IDS",
   "listDesignSkills",
   "resolveDesignSkill",
   "formatDesignSkillList",
@@ -60,7 +59,7 @@ requireAll(atlas, "atlas", [
 requireAll(component, "Skill Library atlas", [
   'data-testid="design-skill-atlas"',
   "Builder procedure atlas",
-  "game entries excluded",
+  "project-owned procedures",
   "Requirements",
   "Inputs",
   "Workflow",
@@ -79,7 +78,7 @@ requireAll(agent, "agent catalog", [
   'names.add("list_design_skills")',
   'names.add("resolve_design_skill")',
   "DESIGN_SKILL_INTENT_RE",
-  "Game capabilities are excluded.",
+  "complete project-owned builder procedure atlas",
 ]);
 requireAll(toolsRoute, "protected tools route", [
   "formatDesignSkillList",
@@ -98,29 +97,29 @@ requireAll(chatRouting, "tool route mapping", [
 requireAll(ai, "assistant prompt", [
   "list_design_skills(query?, category?, family?, availability?, limit?)",
   "resolve_design_skill(skill)",
-  "active non-game builder procedure",
+  "active project-owned builder procedure",
 ]);
 requireAll(companyMap, "Company Map", [
   'id: "mengto-skills"',
   'label: "MengTo Builder Skills"',
-  "complete 101-procedure non-game atlas",
+  "complete 101-procedure builder atlas",
   "list_design_skills then resolve_design_skill",
 ]);
 requireAll(ecosystem, "ecosystem benefits", [
   "[MengTo/Skills](https://github.com/MengTo/Skills)",
-  "101 complete project-owned non-game operating contracts",
-  "20 game capabilities remain excluded",
+  "101 complete project-owned operating contracts",
+  "20 source-specific capabilities remain evidence-only",
 ]);
 requireAll(spec, "feature spec", [
-  "Current folder inventory: 121 skills",
-  "Active non-game target: 101",
-  "Excluded game target: 20",
+  "Current folder inventory: 121 source skills",
+  "Active project target: 101",
+  "Evidence-only source target: 20",
   "External-account and platform-specific workflows",
 ]);
 requireAll(tasks, "task plan", [
-  "MENGTO-NON-GAME-SKILL-ATLAS",
+  "MENGTO-SKILL-ATLAS",
   "Inventory all 121 current upstream skill folders",
-  "Exclude all 20 game capabilities",
+  "Keep all 20 source-specific capabilities evidence-only",
 ]);
 requireAll(packageJson, "package wiring", [
   '"mengto:skills:runtime:check"',
@@ -149,16 +148,16 @@ if (adapted.length !== 101) fail("source parity must adapt exactly 101 rows");
 if (excluded.length !== 20) fail("source parity must exclude exactly 20 rows");
 if (pending.length !== 0) fail("source parity must have zero pending rows");
 if (excluded.some((capability) => capability.conflict !== "product_purpose")) {
-  fail("every game exclusion must use product_purpose");
+  fail("every evidence-only source row must use product_purpose");
 }
 if (
   adapted.some((capability) =>
     /(?:^|-)game(?:-|$)|arpg|fog-of-war/i.test(capability.id),
   )
 ) {
-  fail("adapted source parity must not include game or RPG IDs");
+  fail("product-purpose source IDs must remain evidence-only");
 }
 
 console.log(
-  `ok mengto-skill-atlas-static (source=${parity.capabilities.length}; adapted=${adapted.length}; excluded-game=${excluded.length})`,
+  `ok mengto-skill-atlas-static (source=${parity.capabilities.length}; adapted=${adapted.length}; evidence-only=${excluded.length})`,
 );

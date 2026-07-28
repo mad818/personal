@@ -130,16 +130,19 @@ for (const proof of [
     fail(`paper-code audit proof is missing ${proof}`);
   }
 }
-for (const pendingId of [
+for (const excludedId of [
   "local-replication-execution",
   "docker-isolated-experiments",
   "autoresearch-loop",
 ]) {
-  const pending = parity.capabilities?.find(
-    (capability) => capability.id === pendingId,
+  const excluded = parity.capabilities?.find(
+    (capability) => capability.id === excludedId,
   );
-  if (pending?.disposition !== "pending") {
-    fail(`${pendingId} must remain pending`);
+  if (
+    excluded?.disposition !== "excluded" ||
+    excluded.conflict !== "security"
+  ) {
+    fail(`${excludedId} must remain an explicit security exclusion`);
   }
 }
 const recurringWatch = parity.capabilities?.find(
@@ -160,8 +163,8 @@ if (
 ) {
   fail("semantic paper library must remain adapted with direct proof");
 }
-if (parity.status !== "in_progress") {
-  fail("unrelated Feynman source parity must remain open");
+if (parity.status !== "complete") {
+  fail("Feynman source parity must be complete");
 }
 
 if (

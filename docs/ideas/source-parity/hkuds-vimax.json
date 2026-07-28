@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "hkuds-vimax",
   "name": "ViMax",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/HKUDS/ViMax",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/HKUDS/ViMax",
@@ -17,7 +17,7 @@
     {
       "id": "video-multimodal-reasoning",
       "title": "Video-grounded multimodal reasoning: answer questions with evidence from video frames",
-      "sourceEvidence": "ViMax: video-language model for fine-grained video understanding and Q&A",
+      "sourceEvidence": "The current README describes agentic end-to-end video generation with director, screenwriter, producer, and generation roles, not a fine-grained video Q&A model.",
       "disposition": "excluded",
       "conflict": "free_local",
       "reason": "ViMax requires GPU-accelerated video model inference; Nexus free/local invariant and no video intelligence lane currently."
@@ -25,7 +25,7 @@
     {
       "id": "fine-grained-temporal-understanding",
       "title": "Fine-grained temporal reasoning: locate specific events within video timelines",
-      "sourceEvidence": "ViMax temporal grounding: pinpoint event timestamps in long videos",
+      "sourceEvidence": "The current README describes generation workflows and does not substantiate long-video temporal grounding as an exposed product capability.",
       "disposition": "excluded",
       "conflict": "free_local",
       "reason": "GPU-dependent model; excluded pending a local video model lane."
@@ -33,9 +33,10 @@
     {
       "id": "multimodal-context-patterns",
       "title": "Multimodal context fusion patterns: combine video, audio, and text signals for reasoning",
-      "sourceEvidence": "ViMax multimodal fusion architecture",
-      "disposition": "pending",
-      "reason": "If Nexus adds multimodal intelligence beyond images, ViMax fusion architecture patterns are a useful reference."
+      "sourceEvidence": "ViMax combines scripts, storyboards, character assets, audio, and generated video within an agentic creation workflow.",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "A multi-model video production pipeline is a separate media-authoring product and requires GPU/model dependencies outside the Nexus intelligence dashboard."
     }
   ]
 }

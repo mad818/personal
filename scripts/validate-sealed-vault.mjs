@@ -47,6 +47,8 @@ for (const needle of [
   "SEALED_VAULT_KDF_ITERATIONS = 600_000",
   "SEALED_VAULT_AUTO_LOCK_MS = 5 * 60 * 1_000",
   "SEALED_VAULT_MAX_RECORDS = 100",
+  "SEALED_VAULT_MAX_RECORD_HISTORY = 12",
+  "SEALED_VAULT_MAX_EVENTS = 200",
   'name: "PBKDF2"',
   'hash: "SHA-256"',
   '{ name: "AES-GCM", length: 256 }',
@@ -59,6 +61,8 @@ for (const needle of [
   "sealVaultPayload",
   "openSealedVault",
   "upsertSealedVaultRecord",
+  "undoSealedVaultRecord",
+  "appendSealedVaultEvent",
   "deleteSealedVaultRecord",
 ])
   requireText(library, needle, "crypto contract");
@@ -70,6 +74,9 @@ for (const needle of [
   "New sealed note",
   "Seal note",
   "Delete note",
+  "Private path (slash-separated)",
+  "Restore previous revision",
+  "Mutation receipts",
   "Change passphrase",
   "Download encrypted backup",
   "Import encrypted backup",

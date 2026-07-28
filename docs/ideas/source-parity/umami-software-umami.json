@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "umami-software-umami",
   "name": "Umami",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/umami-software/umami",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "master-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/umami-software/umami",
@@ -26,15 +26,17 @@
       "id": "next-js-prisma-pattern",
       "title": "Next.js + Prisma ORM pattern for production-grade data layer",
       "sourceEvidence": "Umami: Next.js App Router + Prisma with multi-database support",
-      "disposition": "pending",
-      "reason": "Nexus does not yet use an ORM; Umami's Prisma integration pattern is a reference for a future structured data persistence layer."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus's single-user local/file stores do not require a multi-database ORM. Adding Prisma and migrations without a relational product requirement would duplicate persistence and enlarge deployment."
     },
     {
       "id": "real-time-event-pipeline",
       "title": "Real-time event ingestion pipeline: high-throughput write path with buffering",
       "sourceEvidence": "Umami: high-frequency event collection optimized for low latency",
-      "disposition": "pending",
-      "reason": "If Nexus adds real-time telemetry, Umami's event ingestion pipeline pattern is a reference."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "A single-user dashboard does not need a high-throughput buffered ingestion service. Nexus aggregates bounded local route events synchronously and stores no individual event stream."
     }
   ]
 }

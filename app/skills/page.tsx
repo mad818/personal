@@ -597,7 +597,7 @@ export default function SkillsPage() {
                       </OpsField>
                       <OpsField
                         title="Builder procedure atlas"
-                        detail="Complete non-game design, capture, support, media, motion, and renderer procedures"
+                        detail="Complete design, capture, support, media, motion, and renderer procedures"
                         tone="muted"
                       >
                         <DesignSkillAtlas />

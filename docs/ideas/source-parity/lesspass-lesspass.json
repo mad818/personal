@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "lesspass-lesspass",
   "name": "LessPass",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/lesspass/lesspass",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "GPL-3.0",
     "primaryEvidence": [
       "https://github.com/lesspass/lesspass",
@@ -18,22 +18,34 @@
       "id": "stateless-password-derivation",
       "title": "Stateless password derivation: generate passwords deterministically from site+login+master",
       "sourceEvidence": "LessPass core algorithm: PBKDF2 over site+login+counter+master → password, no storage needed",
-      "disposition": "pending",
-      "reason": "Nexus VAULT could offer a stateless passphrase generator using the LessPass algorithm for sites where users don't want to store credentials."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Deterministically deriving many credentials from one master secret creates cross-site correlation and master-compromise blast radius. Nexus keeps its unbiased Web Crypto generator independent and ephemeral."
     },
     {
       "id": "no-sync-no-storage",
       "title": "Zero storage/sync: no database, no cloud sync, passwords reconstructed on demand",
       "sourceEvidence": "LessPass design: passwords are computed, never stored",
-      "disposition": "pending",
-      "reason": "The zero-storage credential pattern is a useful reference for Nexus API key handling; implement with care around key rotation."
+      "disposition": "adapted",
+      "reason": "Generated credentials remain in component memory only, are never persisted or sent to a provider, and clear automatically. Nexus adopts zero-storage generation without deterministic reconstruction.",
+      "proof": [
+        "lib/localCredentialGenerator.ts",
+        "components/vault/LocalCredentialGeneratorPanel.tsx",
+        "scripts/check-local-credential-generator-runtime.mjs"
+      ]
     },
     {
       "id": "open-algorithm-specification",
       "title": "Open algorithm specification: any client can reproduce the derivation with the same inputs",
       "sourceEvidence": "LessPass open spec: published algorithm and test vectors",
-      "disposition": "pending",
-      "reason": "A published open algorithm for credential derivation is a good practice to document for any Nexus VAULT crypto feature."
+      "disposition": "adapted",
+      "reason": "Nexus's project-owned generator and sealed-envelope algorithms are readable, validated, and covered by executable test vectors; reproducible deterministic credential derivation itself remains excluded.",
+      "proof": [
+        "lib/localCredentialGenerator.ts",
+        "lib/sealedVault.ts",
+        "scripts/check-local-credential-generator-runtime.mjs",
+        "scripts/check-sealed-vault-runtime.mjs"
+      ]
     }
   ]
 }

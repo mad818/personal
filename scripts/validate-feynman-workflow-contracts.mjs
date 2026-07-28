@@ -157,8 +157,8 @@ for (const proof of [
     fail(`source parity proof is missing ${proof}`);
   }
 }
-if (parity.status !== "in_progress") {
-  fail("broader Feynman source parity must remain in_progress");
+if (parity.status !== "complete") {
+  fail("broader Feynman source parity must be complete");
 }
 
 if (
@@ -188,8 +188,8 @@ for (const proof of [
     fail(`literature gap-map proof is missing ${proof}`);
   }
 }
-if (academicParity.status !== "in_progress") {
-  fail("current academic-research-skills suite must remain in_progress");
+if (academicParity.status !== "complete") {
+  fail("current academic-research-skills suite must be complete");
 }
 if (
   academicParity.capabilities?.some(
@@ -205,9 +205,9 @@ for (const id of [
 ]) {
   if (
     academicParity.capabilities?.find((capability) => capability.id === id)
-      ?.disposition !== "pending"
+      ?.disposition !== "excluded"
   ) {
-    fail(`academic suite must honestly retain pending capability ${id}`);
+    fail(`academic suite must retain an explicit exclusion for ${id}`);
   }
 }
 

@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "cloakhq-cloakbrowser",
   "name": "CloakBrowser",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/CloakHQ/CloakBrowser",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/CloakHQ/CloakBrowser",
@@ -26,22 +26,30 @@
       "id": "browser-fingerprint-concepts",
       "title": "Browser fingerprint randomization concepts: canvas, WebGL, audio, font fingerprint spoofing",
       "sourceEvidence": "CloakBrowser fingerprinting docs: entropy reduction techniques",
-      "disposition": "pending",
-      "reason": "Nexus CYBER lane could document fingerprint threat models; a reference on fingerprint entropy reduction patterns is a useful addition."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Canvas, WebGL, audio, and font spoofing require control of a browser runtime. Nexus is an application inside the user's browser and cannot honestly provide fingerprint randomization."
     },
     {
       "id": "tracker-blocking-list",
       "title": "Curated tracker blocking list for OSINT requests",
       "sourceEvidence": "CloakBrowser tracker block list: maintained deny-list of tracking scripts",
-      "disposition": "pending",
-      "reason": "Nexus RECON OSINT requests could benefit from tracker blocking guidance; reference to be incorporated into privacy model documentation."
+      "disposition": "adapted",
+      "reason": "Nexus uses server-side connector boundaries, private-network rejection, explicit host/protocol validation, and curated source registries so RECON does not execute arbitrary third-party tracking scripts in the client.",
+      "proof": [
+        "lib/security/networkGuards.ts",
+        "lib/security/connectorPolicy.ts",
+        "lib/researchSources.ts",
+        "scripts/check-network-source-integrations.mjs"
+      ]
     },
     {
       "id": "proxy-rotation-for-osint",
       "title": "Proxy rotation integrated with browser requests for OSINT anonymity",
       "sourceEvidence": "CloakBrowser proxy rotation: per-session proxy assignment",
-      "disposition": "pending",
-      "reason": "Nexus RECON OSINT requests run directly; proxy rotation for anonymity is pending alongside maigret integration."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Proxy rotation would add an unaudited traffic-interception dependency and can facilitate evasion. Nexus keeps attributable, policy-guarded connector requests instead."
     }
   ]
 }

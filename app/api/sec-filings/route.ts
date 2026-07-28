@@ -2,6 +2,11 @@
 // SEC filings API: 10-K, 10-Q, 8-K documents and corporate disclosures.
 
 import { NextRequest, NextResponse } from "next/server";
+import {
+  extractSecCompanyFacts,
+  findSecCompanyIdentity,
+  type SecCompanyFactsSummary,
+} from "@/lib/secCompanyFacts";
 
 export const dynamic = "force-dynamic";
 
@@ -140,9 +145,41 @@ async function searchEDGAR(query: string): Promise<Filing[]> {
   });
 }
 
+async function fetchCompanyFacts(
+  ticker: string,
+): Promise<SecCompanyFactsSummary | null> {
+  try {
+    const tickerResponse = await fetch(
+      "https://www.sec.gov/files/company_tickers.json",
+      {
+        signal: AbortSignal.timeout(8000),
+        headers: SEC_HEADERS,
+        next: { revalidate: 86_400 },
+      },
+    );
+    if (!tickerResponse.ok) return null;
+    const company = findSecCompanyIdentity(await tickerResponse.json(), ticker);
+    if (!company) return null;
+
+    const factsResponse = await fetch(
+      `https://data.sec.gov/api/xbrl/companyfacts/CIK${company.cik}.json`,
+      {
+        signal: AbortSignal.timeout(10_000),
+        headers: SEC_HEADERS,
+        next: { revalidate: 3_600 },
+      },
+    );
+    if (!factsResponse.ok) return null;
+    return extractSecCompanyFacts(await factsResponse.json(), company);
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("query") ?? "";
+  const ticker = searchParams.get("ticker")?.trim().toUpperCase() ?? "";
 
   if (!query.trim()) {
     return NextResponse.json(
@@ -153,20 +190,32 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   try {
     let filings: Filing[] = [];
+    let companyFacts: SecCompanyFactsSummary | null = null;
 
-    try {
-      filings = await searchEFTS(query);
-    } catch {
-      // Fallback to simpler EDGAR endpoint
-      filings = await searchEDGAR(query);
+    const [filingResult, factsResult] = await Promise.allSettled([
+      searchEFTS(query),
+      ticker ? fetchCompanyFacts(ticker) : Promise.resolve(null),
+    ]);
+    if (filingResult.status === "fulfilled") {
+      filings = filingResult.value;
+    } else {
+      try {
+        filings = await searchEDGAR(query);
+      } catch {
+        filings = [];
+      }
+    }
+    if (factsResult.status === "fulfilled") {
+      companyFacts = factsResult.value;
     }
 
     return NextResponse.json({
       query,
       count: filings.length,
       filings,
+      companyFacts,
       timestamp: new Date().toISOString(),
-      source: "SEC EDGAR EFTS",
+      source: "SEC EDGAR EFTS + Companyfacts",
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Unknown error";

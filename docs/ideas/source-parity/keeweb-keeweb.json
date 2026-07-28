@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "keeweb-keeweb",
   "name": "KeeWeb",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/keeweb/keeweb",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/keeweb/keeweb",
@@ -26,8 +26,9 @@
       "id": "offline-first-pwa-pattern",
       "title": "Offline-first PWA pattern: full functionality without network access, local-first sync",
       "sourceEvidence": "KeeWeb offline-first design: works fully in airplane mode, syncs opportunistically",
-      "disposition": "pending",
-      "reason": "Nexus is a PWA; KeeWeb's offline-first sync pattern (service worker + indexed DB caching) is a useful reference for improving Nexus offline capability."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Protected VAULT data must not be cached or background-synchronized by a service worker without an authenticated remote, conflict handling, and recovery design. PWA/mobile expansion is also explicitly deferred."
     },
     {
       "id": "webdav-dropbox-sync",
@@ -41,8 +42,13 @@
       "id": "plugin-architecture",
       "title": "Plugin architecture for extending KeeWeb with custom features",
       "sourceEvidence": "KeeWeb plugins: community-authored capability extensions",
-      "disposition": "pending",
-      "reason": "Nexus skills system is the extension point; a formal plugin architecture with versioned API is pending."
+      "disposition": "adapted",
+      "reason": "Nexus uses its curated Skills catalog, capability registry, routing contracts, and validators as the controlled extension surface. It intentionally does not execute arbitrary community plugin code inside the trusted dashboard.",
+      "proof": [
+        "app/skills/page.tsx",
+        "lib/assistantCapabilityRegistry.ts",
+        "lib/chatCapabilityRouting.ts"
+      ]
     }
   ]
 }

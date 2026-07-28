@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "greensock-gsap-skills",
+  "name": "GSAP AI Skills",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/greensock/gsap-skills",
+    "version": "main reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/greensock/gsap-skills",
+      "https://github.com/greensock/gsap-skills/blob/main/README.md",
+      "https://github.com/greensock/gsap-skills/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "core-tweens-and-timelines",
+      "title": "Core tweens, easing, sequencing, labels, nesting, and playback guidance",
+      "sourceEvidence": "README gsap-core and gsap-timeline skill inventory",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/frontend-ui-engineering/SKILL.md",
+        "docs/ideas/skills/deterministic-media-production/SKILL.md"
+      ]
+    },
+    {
+      "id": "scroll-and-plugin-guidance",
+      "title": "ScrollTrigger, plugin, utility, and seekable animation guidance",
+      "sourceEvidence": "README ScrollTrigger, plugins, and utils inventory",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/deterministic-media-production/SKILL.md"
+      ],
+      "adaptationNotes": "Use only when the project deliberately selects GSAP; no blanket recommendation or dependency is added."
+    },
+    {
+      "id": "react-lifecycle-and-performance",
+      "title": "React scoping, cleanup, SSR, transforms, batching, and performance",
+      "sourceEvidence": "README gsap-react, gsap-frameworks, and gsap-performance skills",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/frontend-ui-engineering/SKILL.md"
+      ]
+    },
+    {
+      "id": "cross-host-skill-install",
+      "title": "Skills CLI, Claude plugin, Cursor rule, and copied host folders",
+      "sourceEvidence": "README installation sections",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus owns the few relevant motion constraints and does not need to install eight upstream skill folders."
+    },
+    {
+      "id": "implicit-gsap-dependency",
+      "title": "Defaulting all unspecified animation work to GSAP",
+      "sourceEvidence": "README recommendation guidance",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Existing dependencies and the smallest suitable browser primitive remain authoritative for Nexus."
+    }
+  ]
+}

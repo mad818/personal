@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "openai-codex-plugin-cc",
+  "name": "Codex plugin for Claude Code",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/openai/codex-plugin-cc",
+    "version": "default branch reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "Apache-2.0",
+    "primaryEvidence": [
+      "https://github.com/openai/codex-plugin-cc",
+      "https://github.com/openai/codex-plugin-cc/blob/main/README.md",
+      "https://github.com/openai/codex-plugin-cc/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "read-only-and-adversarial-review",
+      "title": "Read-only code review and steerable adversarial review",
+      "sourceEvidence": "README codex:review and codex:adversarial-review commands",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/code-review-and-quality/SKILL.md",
+        "docs/ideas/skills/production-engineering/doubt-driven-development/SKILL.md"
+      ],
+      "adaptationNotes": "Project-aware Codex can perform these workflows natively without a Claude-to-Codex bridge."
+    },
+    {
+      "id": "job-status-result-cancel",
+      "title": "Background job status, result, cancellation, and continuation",
+      "sourceEvidence": "README status, result, cancel, rescue resume, and background flags",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/run-status-summary/SKILL.md"
+      ],
+      "adaptationNotes": "The skill reports only host/tool state actually exposed in the current ChatGPT/Codex session."
+    },
+    {
+      "id": "claude-to-codex-rescue-agent",
+      "title": "Claude subagent delegation into Codex rescue work",
+      "sourceEvidence": "README codex:rescue subagent behavior",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Codex is already the active host and source review does not authorize automatic subagents."
+    },
+    {
+      "id": "claude-transcript-transfer",
+      "title": "Import Claude project transcripts into a persistent Codex thread",
+      "sourceEvidence": "README codex:transfer and Claude projects path",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Transcript import is host-specific and may expose private conversation data; no equivalent transfer is needed for an active Codex task."
+    },
+    {
+      "id": "claude-stop-hook-review-gate",
+      "title": "Claude Stop hook that can loop through Codex review",
+      "sourceEvidence": "README optional review gate and usage-loop warning",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Automatic cross-host loops can consume usage and block termination without current operator control."
+    },
+    {
+      "id": "claude-plugin-setup",
+      "title": "Claude marketplace, plugin, and Codex binary setup",
+      "sourceEvidence": "README install and setup commands",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The current project already runs in Codex; installing a reverse bridge provides no Nexus capability."
+    }
+  ]
+}

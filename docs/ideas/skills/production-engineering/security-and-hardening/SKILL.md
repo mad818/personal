@@ -20,10 +20,14 @@ Identify assets, actors, entry points, and trust transitions; then fail closed a
 1. Map protected assets, trusted actors, untrusted inputs, and side effects.
 2. Trace authentication, authorization, validation, normalization, and output encoding at each boundary.
 3. Enumerate plausible abuse cases for path traversal, injection, request forgery, privilege escalation, hidden channels, secret leakage, and denial of service.
-4. Rank by likelihood and impact.
-5. Add a failing adversarial fixture for the highest relevant risk.
-6. Enforce validation and least privilege at the owning boundary.
-7. Run focused security, dependency, publication, and canonical gates.
+4. For agent skills, plugins, MCP manifests, hooks, or command packs, also
+   inspect install/update scripts, generated files, auto-run behavior,
+   permissions, dependencies, network destinations, credential access,
+   instruction overrides, CSS-hidden text, and invisible Unicode.
+5. Rank by likelihood and impact.
+6. Add a failing adversarial fixture for the highest relevant risk.
+7. Enforce validation and least privilege at the owning boundary.
+8. Run focused security, dependency, publication, and canonical gates.
 
 ## Stop conditions
 

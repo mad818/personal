@@ -34,6 +34,29 @@ Select only the workflows the current request needs, keep their order explicit, 
 4. Complete one phase's exit criteria before advancing.
 5. If a phase reveals a missing decision or authority, stop and ask rather than widening the chain.
 
+## Product sprint route
+
+For a substantial product change, use the smallest applicable subsequence of:
+
+1. `interview-me` or `idea-refine` — establish the real pain, user, and narrow
+   wedge.
+2. `spec-driven-development` — challenge scope and write the observable
+   contract.
+3. `planning-and-task-breakdown` plus `api-and-interface-design` or
+   `frontend-ui-engineering` — lock data flow, failure states, design, and
+   developer experience before implementation.
+4. `incremental-implementation` and `test-driven-development` — build one
+   verified slice at a time.
+5. `code-review-and-quality`, `security-and-hardening`, and
+   `browser-testing-with-devtools` — challenge assumptions and collect runtime
+   evidence.
+6. `shipping-and-launch` and, when useful,
+   `observability-and-instrumentation` — package proof, rollout, rollback, and
+   the next retrospective input.
+
+Do not run every phase mechanically. A typo does not need a virtual company, and
+a review request does not authorize implementation or shipping.
+
 ## Skill references
 
 - @docs/ideas/skills/production-engineering/interview-me/SKILL.md

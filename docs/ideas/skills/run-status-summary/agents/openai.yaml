@@ -1,0 +1,4 @@
+interface:
+  display_name: "Run Status Summary"
+  short_description: "Report compact evidence-backed project status"
+  default_prompt: "Use $run-status-summary to show current progress, blockers, and next action."

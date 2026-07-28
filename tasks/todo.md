@@ -95,6 +95,14 @@ Active open-ready queue:
 
 Phone/iPad acceptance is intentionally deferred until Mario has time to focus on it. Do not reopen that lane from this queue.
 
+- [x] GITHUB-SKILL-INTAKE-2026-07 — Deduplicate Mario's 19-repository skill intake and adapt the ten new or incomplete sources into project-native ChatGPT/Codex workflows. Spec: `specs/features/github-skill-intake-2026-07.md`.
+  - [x] Record current primary evidence, strategic analyses, complete capability matrices, and the nine already-adapted sources.
+  - [x] Add four validated project-local skills for concise output, deterministic media production, external-skill review, and content-minimal run status.
+  - [x] Extend existing product, design, browser-QA, observability, and security workflows without copying or installing external runtimes.
+  - [x] Add truthful Company Map ownership/benefits plus focused and canonical verification.
+  - Guardrail: no upstream prompt/code/asset vendoring, installer execution, new dependency, auto-update, automatic subagent, credential/session import, offensive action, Claude-only parity claim, phone/PWA work, or staging of the unrelated redesign.
+  - Progress: complete. Nine previously adapted sources remain deduplicated, while ten new or incomplete repositories now have current strategic analyses and complete capability matrices. Four project-local ChatGPT/Codex skills cover concise technical output, deterministic media production, external agent-skill intake, and content-minimal run status; existing production workflows now carry the gstack product-sprint, Impeccable design, GSAP lifecycle, agent-browser evidence, HUD, and AI-security review patterns. The Company Map exposes 44 sources with explicit benefits and honest host limits. No upstream installer, dependency, prompt/code/asset pack, browser state, transcript, cloud renderer, status-line hook, security tool, or automatic subagent was added. Proof: all four Skill Creator validations, `npm run github-skill-intake:check`, `npm run skill:dependency-graph:check`, `npm run source:parity:check` (93 complete matrices; 552 implemented/adapted; 322 excluded; zero pending), `npm run company-map:check`, `npm run type-check`, `npm run lint`, `git diff --check`, and canonical `npm run verify` passed with exit code 0.
+
 - [x] GITHUB-X-SOURCE-CAPABILITY-CLOSURE — Complete every feasible GitHub/X-introduced capability as reachable Nexus behavior, resolve every source-parity row, and keep the obsolete interactive-simulation product surface fully retired. Spec: `specs/features/github-x-source-capability-closure.md`.
   - [x] Replace the stale retirement allowlist with a complete active-application scan and remove every remaining runtime, state, style, resource, skill-UI, and current-product reference.
   - [x] Add deterministic unfinished-capability reporting for all 83 source matrices and reconcile all 178 starting pending rows from verified primary evidence.

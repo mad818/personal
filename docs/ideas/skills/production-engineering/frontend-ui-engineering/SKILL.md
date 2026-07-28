@@ -18,12 +18,20 @@ Deliver one reachable interface state machine that matches Nexus visual contract
 ## Workflow
 
 1. Read the parent route, neighboring components, design tokens, and relevant feature spec.
-2. Define states: idle, loading, success, empty, invalid, degraded, and error as applicable.
-3. Map keyboard, focus, pointer, and responsive behavior before JSX.
-4. Implement the smallest component and connect it through the existing reachable parent.
-5. Wrap asynchronous fetches in `try/catch` and surface useful failure state.
-6. Verify semantic roles, labels, focus order, contrast, motion preferences, and viewport behavior.
-7. Run focused runtime, accessibility, reachability, type-check, lint, and performance gates.
+2. Shape the interface before JSX: audience, primary job, hierarchy, content,
+   and the one interaction that must feel effortless.
+3. Define states: idle, loading, success, empty, invalid, degraded, and error as applicable.
+4. Map keyboard, focus, pointer, and responsive behavior before JSX.
+5. Critique hierarchy, clarity, density, brand fit, and avoidable template
+   patterns against `DESIGN.md` and `docs/NEXUS_TASTE_CONTRACT.md`.
+6. Implement the smallest component and connect it through the existing reachable parent.
+7. Wrap asynchronous fetches in `try/catch` and surface useful failure state.
+8. Harden overflow, long text, localization pressure, missing data, slow
+   responses, reduced motion, and narrow viewports.
+9. Polish only after behavior is correct. Use purposeful motion; when GSAP is
+   already selected, scope selectors, clean up timelines on unmount, favor
+   transforms and opacity, and never add it as an implicit dependency.
+10. Run focused runtime, accessibility, reachability, type-check, lint, and performance gates.
 
 ## Stop conditions
 
@@ -37,3 +45,5 @@ Deliver one reachable interface state machine that matches Nexus visual contract
 - [ ] Keyboard and pointer flows are equivalent.
 - [ ] Empty, loading, and failure behavior are truthful.
 - [ ] Responsive and reduced-motion behavior pass.
+- [ ] Visual polish follows the project design authority instead of importing
+  an external style pack.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Concise Technical Output"
+  short_description: "Compress replies without losing technical truth"
+  default_prompt: "Use $concise-technical-output to answer with only the necessary technical detail."

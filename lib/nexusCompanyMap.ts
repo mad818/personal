@@ -228,6 +228,136 @@ export const COMPANY_SKILL_SOURCES: readonly CompanySkillSource[] = [
       "Use the project-owned motion decision brief in a design conversation; normal chat does not inherit the local validator.",
   },
   {
+    id: "garrytan-gstack",
+    label: "gstack Product Sprint",
+    url: "https://github.com/garrytan/gstack",
+    kind: "codex_skill",
+    posture: "adapted",
+    purpose:
+      "A gated discovery-to-retrospective product sprint; the benefit is stronger scope, architecture, design, QA, and shipping evidence without importing a second agent company.",
+    codexPath:
+      "Use the project production-engineering router and select only the necessary interview, spec, plan, build, review, browser-QA, ship, and observability phases.",
+    chatgptPath:
+      "Use the same phased brief in project-aware chat; browser actions, subagents, commits, deployment, and publication still need the corresponding connected tool and authority.",
+  },
+  {
+    id: "juliusbrussee-caveman",
+    label: "Concise Technical Output",
+    url: "https://github.com/JuliusBrussee/caveman",
+    kind: "codex_skill",
+    posture: "adapted",
+    purpose:
+      "Optional low-friction technical communication; the benefit is shorter replies without losing exact code, commands, errors, uncertainty, verification, or safety detail.",
+    codexPath:
+      "Invoke docs/ideas/skills/concise-technical-output/SKILL.md at lite, full, or ultra level; no installer, middleware, status line, or memory rewrite is required.",
+    chatgptPath:
+      "Ask for the named concise level in a project-aware conversation; the mode changes response shape, not model reasoning, host telemetry, or permanent memory.",
+  },
+  {
+    id: "openai-codex-plugin-cc",
+    label: "OpenAI Codex Review Bridge",
+    url: "https://github.com/openai/codex-plugin-cc",
+    kind: "reference",
+    posture: "adapted",
+    purpose:
+      "Read-only and adversarial review plus task-status patterns; the benefit is already native on the Codex side without a Claude-to-Codex transport.",
+    codexPath:
+      "Use current Codex review, task continuation, and run-status workflows directly; the Claude plugin, transcript transfer, and stop hook are unnecessary.",
+    chatgptPath:
+      "Use project-aware review and task tools when available; normal chat cannot claim Claude transcript import, hooks, or background-job transport.",
+  },
+  {
+    id: "pbakaus-impeccable",
+    label: "Impeccable Design Pass",
+    url: "https://github.com/pbakaus/impeccable",
+    kind: "codex_skill",
+    posture: "adapted",
+    purpose:
+      "Shape, critique, audit, harden, and polish discipline; the benefit is deliberate interface quality without replacing Nexus design authority or installing hooks.",
+    codexPath:
+      "Use frontend-ui-engineering with DESIGN.md and the Nexus taste contract; existing accessibility, motion, and performance gates provide deterministic proof.",
+    chatgptPath:
+      "Use the phased design vocabulary with the current project context; normal chat does not inherit the source CLI, browser extension, or generated authority files.",
+  },
+  {
+    id: "heygen-hyperframes",
+    label: "Deterministic Media Production",
+    url: "https://github.com/heygen-com/hyperframes",
+    kind: "codex_skill",
+    posture: "adapted",
+    purpose:
+      "Timed storyboards, frozen asset ledgers, seekable motion, and repeatable render evidence; the benefit is trustworthy media planning without bundling a video renderer.",
+    codexPath:
+      "Invoke docs/ideas/skills/deterministic-media-production/SKILL.md; install HyperFrames, FFmpeg, browsers, or cloud renderers only under a separate approved media task.",
+    chatgptPath:
+      "Use the brief and beat-sheet workflow in chat; actual generation, local rendering, uploads, or cloud infrastructure require the matching connected tool and explicit authority.",
+  },
+  {
+    id: "greensock-gsap-skills",
+    label: "Official GSAP Skills",
+    url: "https://github.com/greensock/gsap-skills",
+    kind: "reference",
+    posture: "adapted",
+    purpose:
+      "Scoped timelines, lifecycle cleanup, transforms, and performance guidance; the benefit is safer deliberate motion when GSAP is already the chosen runtime.",
+    codexPath:
+      "Use the frontend and deterministic-media skills; do not add GSAP implicitly or replace simpler existing browser primitives.",
+    chatgptPath:
+      "Use the motion constraints as design and review context; normal chat cannot install the package or prove browser cleanup without a code/runtime tool.",
+  },
+  {
+    id: "vercel-agent-browser",
+    label: "Agent Browser Evidence Pattern",
+    url: "https://github.com/vercel-labs/agent-browser",
+    kind: "reference",
+    posture: "adapted",
+    purpose:
+      "Semantic snapshots, console/network/error review, accessibility, Web Vitals, and trace evidence; the benefit is repeatable browser QA without a duplicate browser daemon.",
+    codexPath:
+      "Use existing Browser or Playwright capabilities through browser-testing-with-devtools; saved auth state, arbitrary eval, uploads, and routing remain separately authorized.",
+    chatgptPath:
+      "Use a connected browser for measured evidence; normal chat alone cannot inspect a page, persist a session, or claim accessibility/performance results.",
+  },
+  {
+    id: "vercel-skills",
+    label: "External Skill Intake",
+    url: "https://github.com/vercel-labs/skills",
+    kind: "codex_skill",
+    posture: "adapted",
+    purpose:
+      "Cross-host skill discovery with a missing trust gate added; the benefit is portable ChatGPT/Codex adaptation after source, license, permissions, hooks, and dependency review.",
+    codexPath:
+      "Invoke docs/ideas/skills/review-external-agent-skill/SKILL.md before any separate approved skill install, update, removal, symlink, or agent launch.",
+    chatgptPath:
+      "Review and translate the selected workflow in project-aware chat; normal chat cannot mutate local agent directories or launch another harness.",
+  },
+  {
+    id: "jarrodwatts-claude-hud",
+    label: "Content-Minimal Run Status",
+    url: "https://github.com/jarrodwatts/claude-hud",
+    kind: "reference",
+    posture: "adapted",
+    purpose:
+      "Compact Now, Done, Checks, Blocked, and Next reporting; the benefit is clear operator progress without estimating context, cost, agents, or host-only telemetry.",
+    codexPath:
+      "Invoke docs/ideas/skills/run-status-summary/SKILL.md and use current task, git, check, and tool evidence.",
+    chatgptPath:
+      "Use commentary for live progress and a self-contained final status; Claude's terminal status line and transcript parser are not ChatGPT features.",
+  },
+  {
+    id: "awesome-ai-security-tools",
+    label: "AI Security Tool Atlas",
+    url: "https://github.com/scadastrangelove/awesome-ai-security-tools",
+    kind: "reference",
+    posture: "review_first",
+    purpose:
+      "License- and caveat-aware discovery across agent security, supply chain, SAST, fuzzing, threat intelligence, SOC, guardrails, and research; the benefit is safer defensive tool selection.",
+    codexPath:
+      "Use as current CYBER research, then run the external-skill intake for one named source; catalog inclusion never authorizes installation or testing.",
+    chatgptPath:
+      "Use the catalog for cited defensive research; any connector, model, scanner, target, credential, or offensive test needs separate verification and authority.",
+  },
+  {
     id: "mengto-skills",
     label: "MengTo Builder Skills",
     url: "https://github.com/MengTo/Skills",
@@ -501,6 +631,9 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
     sourceIds: [
       "nexus-native",
       "superpowers",
+      "garrytan-gstack",
+      "juliusbrussee-caveman",
+      "jarrodwatts-claude-hud",
       "mattpocock-skills",
       "davidondrej-skills",
       "pliny-autotemp",
@@ -523,6 +656,11 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "Build a Nexus feature with current documentation, tests, security review, and proof before completion.",
     sourceIds: [
       "superpowers",
+      "garrytan-gstack",
+      "openai-codex-plugin-cc",
+      "vercel-agent-browser",
+      "vercel-skills",
+      "jarrodwatts-claude-hud",
       "humanlayer-12-factor-runtime",
       "mattpocock-skills",
       "mattpocock-deep-modules-pr",
@@ -556,6 +694,10 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "taste-skill",
       "transitions",
       "emilkowalski-skills",
+      "pbakaus-impeccable",
+      "heygen-hyperframes",
+      "greensock-gsap-skills",
+      "vercel-agent-browser",
       "frontend-slides",
       "anthropic-skills",
     ],
@@ -605,6 +747,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "social-media-skills",
       "opendirectory-gtm-skills",
       "mautic-campaign-builder",
+      "heygen-hyperframes",
       "anthropic-skills",
       "pliny-autostorygen",
     ],
@@ -650,6 +793,7 @@ export const NEXUS_COMPANY_DEPARTMENTS: readonly NexusCompanyDepartment[] = [
       "pliny-glossopetrae",
       "pliny-st3gg",
       "pliny-naturalis-futura",
+      "awesome-ai-security-tools",
     ],
     boundary:
       "Nexus can organize issues and evidence but cannot replace qualified legal or compliance counsel.",

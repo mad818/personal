@@ -54,6 +54,16 @@ for (const source of [
   "UI/UX Pro Max",
   "Taste Skill",
   "Emil's Design Engineering Skills",
+  "gstack Product Sprint",
+  "Concise Technical Output",
+  "OpenAI Codex Review Bridge",
+  "Impeccable Design Pass",
+  "Deterministic Media Production",
+  "Official GSAP Skills",
+  "Agent Browser Evidence Pattern",
+  "External Skill Intake",
+  "Content-Minimal Run Status",
+  "AI Security Tool Atlas",
   "OpenDirectory GTM Skill Atlas",
   "Mautic Campaign Builder Pattern",
   "Vaultwarden-Informed Sealed Vault",
@@ -114,6 +124,27 @@ requireText(
   "not an application runtime or a replacement",
   "design skills analysis boundary",
 );
+for (const [source, proof] of [
+  ["garrytan/gstack", "garrytan-gstack"],
+  ["JuliusBrussee/caveman", "juliusbrussee-caveman"],
+  ["openai/codex-plugin-cc", "openai-codex-plugin-cc"],
+  ["pbakaus/impeccable", "pbakaus-impeccable"],
+  ["heygen-com/hyperframes", "heygen-com-hyperframes"],
+  ["greensock/gsap-skills", "greensock-gsap-skills"],
+  ["vercel-labs/agent-browser", "vercel-labs-agent-browser"],
+  ["vercel-labs/skills", "vercel-labs-skills"],
+  ["jarrodwatts/claude-hud", "jarrodwatts-claude-hud"],
+  [
+    "scadastrangelove/awesome-ai-security-tools",
+    "scadastrangelove-awesome-ai-security-tools",
+  ],
+]) {
+  requireText(
+    read(`docs/ideas/repo-analysis/${proof}/REPO_CONTEXT.md`),
+    source,
+    `${source} analysis boundary`,
+  );
+}
 requireText(
   read("docs/ideas/repo-analysis/ayghri-i-have-adhd/REPO_CONTEXT.md"),
   "response-shaping skill",

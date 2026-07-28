@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "id": "pbakaus-impeccable",
+  "name": "Impeccable",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/pbakaus/impeccable",
+    "version": "main reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "Apache-2.0",
+    "primaryEvidence": [
+      "https://github.com/pbakaus/impeccable",
+      "https://github.com/pbakaus/impeccable/blob/main/README.md",
+      "https://github.com/pbakaus/impeccable/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "project-design-context",
+      "title": "Product and design context before visual work",
+      "sourceEvidence": "README init and document workflows",
+      "disposition": "adapted",
+      "proof": [
+        "DESIGN.md",
+        "docs/NEXUS_TASTE_CONTRACT.md",
+        "docs/ideas/skills/production-engineering/frontend-ui-engineering/SKILL.md"
+      ],
+      "adaptationNotes": "Existing Nexus authority files are read, never overwritten by an external initializer."
+    },
+    {
+      "id": "shape-critique-audit-harden-polish",
+      "title": "Phased shaping, critique, technical audit, hardening, and polish",
+      "sourceEvidence": "README 23-command design vocabulary",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/frontend-ui-engineering/SKILL.md"
+      ]
+    },
+    {
+      "id": "deterministic-ui-detectors",
+      "title": "Deterministic accessibility, responsiveness, performance, and taste checks",
+      "sourceEvidence": "README detector-rule and audit descriptions",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/validate-design-taste-contract.mjs",
+        "scripts/validate-shell-accessibility.mjs",
+        "scripts/validate-smoothness-guardrails.mjs"
+      ]
+    },
+    {
+      "id": "purposeful-motion",
+      "title": "Purposeful motion with reduced-motion and lifecycle discipline",
+      "sourceEvidence": "README animate, polish, and anti-pattern guidance",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/frontend-ui-engineering/SKILL.md",
+        "docs/ideas/skills/deterministic-media-production/SKILL.md"
+      ]
+    },
+    {
+      "id": "live-browser-variant-extension",
+      "title": "Browser extension and live visual variant mode",
+      "sourceEvidence": "README live command and extension behavior",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Existing browser QA and project design workflows provide the needed evidence without a separate live editor."
+    },
+    {
+      "id": "installer-hooks-and-generated-authority",
+      "title": "Cross-host installer, hooks, submodule, and generated root design files",
+      "sourceEvidence": "README CLI, hook, plugin, submodule, and init sections",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus will not mutate host configuration or let an upstream initializer overwrite project authority."
+    }
+  ]
+}

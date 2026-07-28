@@ -25,6 +25,11 @@ Instrument operator questions and failure symptoms with the minimum structured d
 6. Add healthy, degraded, failed, recovery, and cleanup fixtures.
 7. Connect diagnostics to an existing status or receipt surface.
 
+For conversation-visible run status, prefer the compact fields `Now`, `Done`,
+`Checks`, `Blocked`, and `Next`. Show branch, dirty state, context, usage, cost,
+agents, or tool activity only when a current trusted source exposes them; never
+estimate a host-specific HUD field.
+
 ## Stop conditions
 
 - A field has no diagnostic consumer.

@@ -88,6 +88,23 @@ We **do not** vendor these codebases. This document **formats ideas** from each 
 
 ---
 
+## July 2026 skill intake
+
+| Source | Nexus adaptation | Benefit | Boundary |
+| --- | --- | --- | --- |
+| [gstack](https://github.com/garrytan/gstack) | Existing production-engineering router gains a bounded product-sprint route. | Discovery, architecture, design, QA, shipping, and retrospective share evidence without a second agent company. | No installer, updater, cookie import, deployment, or automatic subagents. |
+| [caveman](https://github.com/JuliusBrussee/caveman) | `concise-technical-output` supplies optional lite/full/ultra reply shaping. | Less reading friction while preserving exact technical strings and material nuance. | No token-savings claim, memory rewrite, middleware, status line, or persona lock-in. |
+| [codex-plugin-cc](https://github.com/openai/codex-plugin-cc) | Native Codex review/task behavior plus `run-status-summary`. | Read-only/adversarial review and job-state discipline without a reverse bridge. | Claude plugin, transcript transfer, stop hook, and cross-host rescue are host-specific. |
+| [Impeccable](https://github.com/pbakaus/impeccable) | Frontend workflow now shapes, critiques, audits, hardens, and polishes against Nexus authority. | Visual work becomes deliberate before cosmetic iteration. | No generated authority file, hook, extension, or external design-system replacement. |
+| [HyperFrames](https://github.com/heygen-com/hyperframes) | `deterministic-media-production` captures beats, assets, seekable timing, and render proof. | Media work is reproducible and honest when a renderer is unavailable. | No bundled renderer, FFmpeg/browser install, upload, cloud, or Lambda deployment. |
+| [GSAP Skills](https://github.com/greensock/gsap-skills) | Frontend/media skills add scoped lifecycle, timeline, transform, and reduced-motion rules. | Safer high-quality motion when GSAP is already selected. | No implicit GSAP dependency or tool monoculture. |
+| [agent-browser](https://github.com/vercel-labs/agent-browser) | Browser QA adds semantic inspection, console/network/errors, a11y, performance, and trace evidence. | Repeatable runtime proof through existing Browser/Playwright paths. | No second daemon, downloaded browser, saved auth, arbitrary eval, upload, or MCP install. |
+| [skills CLI](https://github.com/vercel-labs/skills) | `review-external-agent-skill` adds source, license, hook, dependency, permission, and rollback review. | Claude-oriented skills can be translated honestly for ChatGPT/Codex before distribution. | Install/update/remove/symlink and agent launch remain separate operator actions. |
+| [Claude HUD](https://github.com/jarrodwatts/claude-hud) | `run-status-summary` uses Now/Done/Checks/Blocked/Next from current evidence. | Compact progress without hidden transcript or account data. | No claim of Claude status-line, native usage, context, cost, or transcript parity. |
+| [Awesome AI Security Tools](https://github.com/scadastrangelove/awesome-ai-security-tools) | Review-first CYBER atlas and stricter external-skill security intake. | License-, access-, maturity-, and risk-aware defensive tool selection. | No catalog auto-import, scanner install, target action, or offensive autonomy. |
+
+---
+
 ## Principles (how this repo uses the list)
 
 1. **Nexus stays one app** — intelligence dashboard + local agent; we don’t bundle a second chat server (Onyx) or a full pentest suite (Deep Eye) inside the same deployable.

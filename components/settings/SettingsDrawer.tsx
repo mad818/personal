@@ -30,7 +30,7 @@ const LOCAL_FIELDS: {
   {
     key: "aiProvider",
     label:
-      "Preferred AI lane (ollama | groq | google | anthropic | openai | minimax)",
+      "Preferred AI lane (ollama | groq | google | anthropic | azure | openai | minimax)",
   },
   {
     key: "localEndpoint",
@@ -64,6 +64,12 @@ const SENSITIVE_FIELDS: {
     label: "OpenAI API Key",
     envKey: "OPENAI_API_KEY",
     placeholder: "sk-...",
+  },
+  {
+    key: "azureOpenAiKey",
+    label: "Azure OpenAI API Key",
+    envKey: "AZURE_OPENAI_API_KEY",
+    placeholder: "Stored in the Azure resource",
   },
   {
     key: "groqKey",
@@ -470,9 +476,14 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
               </div>
               <div style={{ display: "grid", gap: 8 }}>
                 {[...primaryProviders, ...advancedProviders].map((provider) => {
-                  const configured = provider.envKey
-                    ? keyStatus[provider.envKey] === true
-                    : true;
+                  const requiredEnvKeys =
+                    provider.requiredEnvKeys ??
+                    (provider.envKey ? [provider.envKey] : []);
+                  const configured =
+                    requiredEnvKeys.length === 0 ||
+                    requiredEnvKeys.every(
+                      (envKey) => keyStatus[envKey] === true,
+                    );
                   const advancedLocked =
                     provider.surface === "advanced" &&
                     securityConfig.NEXUS_ALLOW_PAID_APIS !== "true";
@@ -868,10 +879,10 @@ const SettingsDrawer = memo(function SettingsDrawer({ open, onClose }: Props) {
                       lineHeight: 1.45,
                     }}
                   >
-                    Paid-compatible providers (Groq, OpenAI, Anthropic, Google,
-                    MiniMax) stay off by default. Enabling them routes inference
-                    to third-party APIs using your BYOK keys — Nexus never
-                    charges you.
+                    Paid-compatible providers (Groq, Azure OpenAI, OpenAI,
+                    Anthropic, Google, MiniMax) stay off by default. Enabling
+                    them routes inference to third-party APIs using your BYOK
+                    keys — Nexus never charges you.
                   </span>
                   <button
                     type="button"

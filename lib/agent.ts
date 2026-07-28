@@ -1910,12 +1910,18 @@ Example: ["User is analyzing BTC/USD 4h chart", "User prefers RSI(14) over MACD 
         const match = raw.match(/\[[\s\S]*\]/);
         extracted = match ? JSON.parse(match[0]) : [];
       }
-    } else if (settings.aiProvider === "minimax") {
+    } else if (
+      settings.aiProvider === "minimax" ||
+      settings.aiProvider === "azure"
+    ) {
+      const provider = settings.aiProvider;
       const res = await apiFetch("/api/ai", {
         method: "POST",
         body: JSON.stringify({
-          provider: "minimax",
-          model: MINIMAX_DEFAULT_AGENT_MODEL,
+          provider,
+          ...(provider === "minimax"
+            ? { model: MINIMAX_DEFAULT_AGENT_MODEL }
+            : {}),
           max_tokens: 256,
           messages: [{ role: "user", content: prompt }],
           task: "fast",
@@ -2263,10 +2269,20 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
   return finalAnswer;
 }
 
-// ── MiniMax agent loop (OpenAI-compat tools via /api/ai — key server-side) ────
-async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
+interface OpenAICompatibleCloudAgentConfig {
+  provider: "minimax" | "azure";
+  label: string;
+  model?: string;
+  timeoutMs: number;
+  missingConfigMessage: string;
+}
+
+// ── OpenAI-compatible cloud agent loop (keys stay behind /api/ai) ─────────────
+async function runOpenAICompatibleCloudAgent(
+  opts: AgentOptions,
+  config: OpenAICompatibleCloudAgentConfig,
+): Promise<string> {
   const {
-    settings: s,
     systemPrompt,
     messages,
     onStep,
@@ -2276,7 +2292,8 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
     onToolMetric,
     onExecutionAction,
   } = opts;
-  const model = MINIMAX_DEFAULT_AGENT_MODEL;
+  const { provider, label, model, timeoutMs, missingConfigMessage } = config;
+  const modelLabel = model ?? "configured deployment";
   const selectedCatalog =
     toolCatalog ?? getAgentToolCatalog(agentId, messages.at(-1)?.content ?? "");
   const tools = selectedCatalog.tools;
@@ -2286,7 +2303,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
   onStep({ type: "phase", content: "executing", phase: "executing" });
   onStep({
     type: "thinking",
-    content: `Using MiniMax (${model}) via server proxy…`,
+    content: `Using ${label} (${modelLabel}) via server proxy…`,
   });
 
   type OAIMsg = {
@@ -2319,22 +2336,22 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
       res = await apiFetch("/api/ai", {
         method: "POST",
         body: JSON.stringify({
-          provider: "minimax",
-          model,
+          provider,
+          ...(model ? { model } : {}),
           max_tokens: 4096,
           system: systemOut,
           messages: msgs,
           tools: toOAITools(tools),
           tool_choice: "auto",
         }),
-        signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
+        signal: AbortSignal.timeout(timeoutMs),
       });
       syncPrivacyShieldStatus(res);
     } catch (e) {
       const isTimeout = e instanceof Error && e.name === "TimeoutError";
       finalAnswer = isTimeout
-        ? `MiniMax took too long (${OLLAMA_TIMEOUT_MS / 1000}s). Try again or switch provider.`
-        : "Network error reaching MiniMax via /api/ai.";
+        ? `${label} took too long (${timeoutMs / 1000}s). Try again or switch provider.`
+        : `Network error reaching ${label} via /api/ai.`;
       onStep({ type: "answer", content: finalAnswer });
       break;
     }
@@ -2343,7 +2360,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
     try {
       data = await res.json();
     } catch {
-      finalAnswer = "MiniMax returned an unreadable response.";
+      finalAnswer = `${label} returned an unreadable response.`;
       onStep({ type: "answer", content: finalAnswer });
       break;
     }
@@ -2352,7 +2369,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
       const msg =
         (data?.error as { message?: string })?.message ??
         (typeof data?.message === "string" ? data.message : null) ??
-        `MiniMax error (HTTP ${res.status}). Is MINIMAX_API_KEY set?`;
+        `${label} error (HTTP ${res.status}). ${missingConfigMessage}`;
       finalAnswer = msg;
       onStep({ type: "answer", content: finalAnswer });
       break;
@@ -2433,6 +2450,26 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
   }
 
   return finalAnswer;
+}
+
+function runMiniMaxAgent(opts: AgentOptions) {
+  return runOpenAICompatibleCloudAgent(opts, {
+    provider: "minimax",
+    label: "MiniMax",
+    model: MINIMAX_DEFAULT_AGENT_MODEL,
+    timeoutMs: OLLAMA_TIMEOUT_MS,
+    missingConfigMessage: "Is MINIMAX_API_KEY set?",
+  });
+}
+
+function runAzureAgent(opts: AgentOptions) {
+  return runOpenAICompatibleCloudAgent(opts, {
+    provider: "azure",
+    label: "Azure OpenAI",
+    timeoutMs: OLLAMA_TIMEOUT_MS,
+    missingConfigMessage:
+      "Check AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, and AZURE_OPENAI_DEPLOYMENT.",
+  });
 }
 
 function getRuntimeEngine(settings: Settings): AgentRuntimeEngine {
@@ -2707,8 +2744,13 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   };
 
   // No API key in settings — try Ollama first, then fall through to free cloud auto-chain.
-  // Anthropic / MiniMax always try /api/ai (keys in .env). OpenAI path uses legacy apiKey or auto chain.
-  if (s.aiProvider !== "anthropic" && s.aiProvider !== "minimax" && !s.apiKey) {
+  // Server-routed cloud providers use /api/ai (keys in .env). OpenAI still uses the legacy apiKey path.
+  if (
+    s.aiProvider !== "anthropic" &&
+    s.aiProvider !== "minimax" &&
+    s.aiProvider !== "azure" &&
+    !s.apiKey
+  ) {
     try {
       const answer = await runOllamaAgent({
         ...enrichedOpts,
@@ -2831,18 +2873,24 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     }
   }
 
-  // ── MiniMax — OpenAI-format tool loop (server-side MINIMAX_API_KEY)
-  if (s.aiProvider === "minimax") {
+  // ── OpenAI-compatible cloud tool loops (server-side keys)
+  if (s.aiProvider === "minimax" || s.aiProvider === "azure") {
+    const provider = s.aiProvider;
     try {
-      const answer = await runMiniMaxAgent(enrichedOpts);
-      providerUsed = "minimax";
+      const answer =
+        provider === "azure"
+          ? await runAzureAgent(enrichedOpts)
+          : await runMiniMaxAgent(enrichedOpts);
+      providerUsed = provider;
       finalizeRunState(Boolean(answer));
       finishDiagnostics({ ok: Boolean(answer), finalAnswer: answer });
       void autoLearn(userMessage, answer, s);
       return answer;
     } catch {
       const err =
-        "MiniMax agent failed. Set MINIMAX_API_KEY in Settings, save, then restart `npm run dev`.";
+        provider === "azure"
+          ? "Azure OpenAI agent failed. Check the Azure key, endpoint, deployment, and paid-provider opt-in in `.env.local`."
+          : "MiniMax agent failed. Set MINIMAX_API_KEY in Settings, save, then restart `npm run dev`.";
       finalizeRunState(false);
       finishDiagnostics({ ok: false, failureCause: err, finalAnswer: err });
       onStep({ type: "answer", content: err });

@@ -32,6 +32,7 @@ import {
 } from "@/lib/security/rateLimit";
 import { protectedJson } from "@/lib/protectedApi";
 import { isConfiguredSecretValue } from "@/lib/secretReadiness";
+import { readAzureOpenAIConfig } from "@/lib/azureOpenAI";
 
 // Import provider registry + chain from the AI route
 // We duplicate the constants here rather than re-exporting from the route
@@ -85,8 +86,14 @@ const ALL_PROVIDERS_ORDER = [
   "google",
   "minimax",
   "anthropic",
+  "azure",
   "openai",
 ];
+
+function readAzureDeployment() {
+  const result = readAzureOpenAIConfig();
+  return result.configured ? result.config.deployment : "—";
+}
 
 const PROVIDER_DEFAULT_MODELS: Record<string, string> = {
   ollama: "local",
@@ -113,6 +120,7 @@ const PROVIDER_DEFAULT_MODELS: Record<string, string> = {
   google: "gemini-2.0-flash",
   minimax: MINIMAX_DEFAULT_CHAT_MODEL,
   anthropic: ANTHROPIC_DEFAULT_CHAT_MODEL,
+  azure: "—",
   openai: OPENAI_DEFAULT_CHAT_MODEL,
 };
 
@@ -141,6 +149,7 @@ const SWE_SCORES: Record<string, string> = {
   google: "—",
   minimax: "—",
   anthropic: "S+ 75.0%",
+  azure: "—",
   openai: "—",
 };
 
@@ -201,6 +210,8 @@ function hasKey(provider: string): boolean {
       return isConfiguredSecretValue(process.env.MINIMAX_API_KEY);
     case "anthropic":
       return isConfiguredSecretValue(process.env.ANTHROPIC_API_KEY);
+    case "azure":
+      return readAzureOpenAIConfig().configured;
     case "openai":
       return isConfiguredSecretValue(process.env.OPENAI_API_KEY);
     default:
@@ -280,7 +291,10 @@ export async function GET(req: NextRequest) {
       status,
       free,
       hasKey: keySet,
-      model: PROVIDER_DEFAULT_MODELS[name] ?? "—",
+      model:
+        name === "azure"
+          ? readAzureDeployment()
+          : (PROVIDER_DEFAULT_MODELS[name] ?? "—"),
       sweScore: SWE_SCORES[name] ?? "—",
       score: stats?.score ?? 0.5,
       consecutiveFails: stats?.consecutiveFails ?? 0,

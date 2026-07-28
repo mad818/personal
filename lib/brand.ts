@@ -29,6 +29,7 @@ export interface ProviderBranding {
   id: string;
   label: string;
   envKey: string | null;
+  requiredEnvKeys?: readonly string[];
   billingTier: BillingTier;
   surface: "primary" | "advanced";
   recommended: boolean;
@@ -245,6 +246,21 @@ export const AI_PROVIDER_BRANDING: ProviderBranding[] = [
     description: "Advanced BYOK lane kept out of the primary free-first story.",
   },
   {
+    id: "azure",
+    label: "Azure OpenAI",
+    envKey: "AZURE_OPENAI_API_KEY",
+    requiredEnvKeys: [
+      "AZURE_OPENAI_API_KEY",
+      "AZURE_OPENAI_ENDPOINT",
+      "AZURE_OPENAI_DEPLOYMENT",
+    ],
+    billingTier: "paid_optional_hidden",
+    surface: "advanced",
+    recommended: false,
+    description:
+      "Advanced Microsoft Foundry lane for explicitly using eligible Azure credit.",
+  },
+  {
     id: "openai",
     label: "OpenAI",
     envKey: "OPENAI_API_KEY",
@@ -314,9 +330,12 @@ export function summarizeProviderReadiness(
   const cloudInferenceEnabled = isCloudInferenceAllowedInMode(networkMode);
   const items: ProviderReadinessItem[] = AI_PROVIDER_BRANDING.map(
     (provider) => {
-      const configured = provider.envKey
-        ? isConfiguredSecretValue(env[provider.envKey])
-        : true;
+      const requiredEnvKeys =
+        provider.requiredEnvKeys ??
+        (provider.envKey ? [provider.envKey] : ([] as string[]));
+      const configured =
+        requiredEnvKeys.length === 0 ||
+        requiredEnvKeys.every((key) => isConfiguredSecretValue(env[key]));
       const enabledByPolicy = isCloudInferenceProvider(provider.id)
         ? provider.billingTier === "paid_optional_hidden"
           ? paidApisEnabled && cloudInferenceEnabled

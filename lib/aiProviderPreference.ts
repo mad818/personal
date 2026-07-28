@@ -5,6 +5,7 @@ export const PRIMARY_AI_PROVIDER_OPTIONS = [
 ] as const;
 export const ADVANCED_AI_PROVIDER_OPTIONS = [
   "anthropic",
+  "azure",
   "openai",
   "minimax",
 ] as const;

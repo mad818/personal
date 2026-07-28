@@ -92,6 +92,7 @@ export function resolveInferencePosture(
     input.paidApisAllowed &&
     (input.aiMode === "claude" ||
       input.aiProvider === "anthropic" ||
+      input.aiProvider === "azure" ||
       input.aiProvider === "openai" ||
       input.aiProvider === "minimax");
 

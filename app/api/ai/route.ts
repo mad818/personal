@@ -34,12 +34,13 @@ import {
   isSecondBrainModeReady,
   resolveSecondBrainMode,
 } from "@/lib/secondBrain";
+import { readAzureOpenAIConfig } from "@/lib/azureOpenAI";
 
 /**
  * Multi-provider AI proxy with task-based model routing.
  *
- * Fallback chain (auto mode): Ollama → Groq → OpenRouter → Google → MiniMax → Anthropic → OpenAI
- * Research chain: Anthropic → OpenRouter → Groq → MiniMax → Ollama → OpenAI
+ * Fallback chain (auto mode): Ollama → Groq → OpenRouter → Google → MiniMax → Anthropic → Azure → OpenAI
+ * Research chain: Anthropic → Azure → OpenRouter → Groq → MiniMax → Ollama → OpenAI
  *
  * Task routing maps task hints to the optimal local Ollama model:
  *   chat      → qwen3:8b             (fast, general purpose)
@@ -163,6 +164,20 @@ const PROVIDERS: Record<string, Provider> = {
       Authorization: `Bearer ${key}`,
     }),
   },
+  azure: {
+    name: "azure",
+    url: "",
+    key: () => {
+      const result = readAzureOpenAIConfig();
+      return result.configured ? result.config.apiKey : "";
+    },
+    format: "openai",
+    model: "",
+    headers: (key) => ({
+      "Content-Type": "application/json",
+      "api-key": key,
+    }),
+  },
   /** OpenAI-compatible — https://platform.minimax.io/docs/api-reference/text-openai-api */
   minimax: {
     name: "minimax",
@@ -187,11 +202,13 @@ const AUTO_CHAIN = [
   "google",
   "minimax",
   "anthropic",
+  "azure",
   "openai",
 ];
 // research: cloud-first for depth, local as final fallback
 const RESEARCH_CHAIN = [
   "anthropic",
+  "azure",
   "openrouter",
   "groq",
   "minimax",
@@ -202,6 +219,14 @@ const RESEARCH_CHAIN = [
 
 const FREE_DEFAULT_PROVIDERS = new Set(["ollama", "turboquant"]);
 const ALLOW_PAID_APIS = process.env.NEXUS_ALLOW_PAID_APIS === "true";
+
+function getProviderDefaultModel(providerName: string) {
+  if (providerName === "azure") {
+    const result = readAzureOpenAIConfig();
+    return result.configured ? result.config.deployment : "azure-deployment";
+  }
+  return PROVIDERS[providerName]?.model ?? "";
+}
 
 function providerAllowedByPolicy(providerName: string, localOnlyMode: boolean) {
   if (localOnlyMode)
@@ -226,11 +251,19 @@ async function callProvider(
   },
 ): Promise<Response | null> {
   const p = PROVIDERS[providerName];
-  const key = options?.key ?? p.key();
+  const azureResult = providerName === "azure" ? readAzureOpenAIConfig() : null;
+  const azureConfig =
+    azureResult?.configured === true ? azureResult.config : null;
+  if (providerName === "azure" && !azureConfig) return null;
+
+  const key = options?.key ?? azureConfig?.apiKey ?? p.key();
   if (!key || (key === "ollama" && providerName !== "ollama")) return null;
   if (!key && providerName !== "ollama") return null;
 
-  const resolvedModel = model ?? p.model;
+  const resolvedModel =
+    providerName === "azure"
+      ? (azureConfig?.deployment ?? getProviderDefaultModel(providerName))
+      : (model ?? p.model);
 
   let body: Record<string, unknown>;
 
@@ -252,7 +285,9 @@ async function callProvider(
       : messages;
     body = {
       model: resolvedModel,
-      max_tokens: maxTokens,
+      ...(providerName === "azure"
+        ? { max_completion_tokens: maxTokens }
+        : { max_tokens: maxTokens }),
       messages: msgs,
       ...(tools ? { tools } : {}),
       ...(toolChoice ? { tool_choice: toolChoice } : {}),
@@ -267,7 +302,9 @@ async function callProvider(
             options?.url ?? p.url,
             readLocalAccelerationConfig().allowTailnet,
           ).toString()
-        : (options?.url ?? p.url);
+        : providerName === "azure"
+          ? (azureConfig?.chatCompletionsUrl ?? "")
+          : (options?.url ?? p.url);
     const r = await fetch(requestUrl, {
       method: "POST",
       headers: p.headers(key),
@@ -474,7 +511,10 @@ export async function POST(req: NextRequest) {
       }
       // Explicit provider requested
       chain = [provider];
-      resolvedModel = model ?? PROVIDERS[provider].model;
+      resolvedModel =
+        provider === "azure"
+          ? getProviderDefaultModel(provider)
+          : (model ?? PROVIDERS[provider].model);
     } else {
       chain = resolveProviderChainForTask({
         task: typeof task === "string" ? task : undefined,
@@ -571,7 +611,7 @@ export async function POST(req: NextRequest) {
         response.headers.set("X-Provider", providerName);
         response.headers.set(
           "X-Model",
-          effectiveModel ?? PROVIDERS[providerName].model,
+          effectiveModel ?? getProviderDefaultModel(providerName),
         );
         response.headers.set("X-Second-Brain-Mode", resolvedSecondBrainMode);
         response.headers.set(
@@ -606,7 +646,8 @@ export async function POST(req: NextRequest) {
       );
 
       if (r) {
-        const usedModel = effectiveModel ?? PROVIDERS[providerName].model;
+        const usedModel =
+          effectiveModel ?? getProviderDefaultModel(providerName);
         const response = new NextResponse(r.body, {
           status: r.status,
           headers: {

@@ -88,6 +88,8 @@ function readServerRoutedModel(
       return MINIMAX_DEFAULT_CHAT_MODEL;
     case "openai":
       return OPENAI_DEFAULT_CHAT_MODEL;
+    case "azure":
+      return undefined;
     default:
       return undefined;
   }

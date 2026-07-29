@@ -95,6 +95,14 @@ Active open-ready queue:
 
 Phone/iPad acceptance is intentionally deferred until Mario has time to focus on it. Do not reopen that lane from this queue.
 
+- [ ] SECURITY-AND-GITHUB-TRIAGE-2026-07-29 — Reconcile Mario's eight-current-alert Dependabot screenshot with the active manifests, lockfiles, installed dependency tree, local security lanes, open GitHub work, and the branch/default-branch publication boundary.
+  - [x] Prove which alerts are already patched in the branch lockfiles and which remain actionable.
+  - [x] Repair feasible local dependency/security-tooling drift without inventing live GitHub metadata.
+  - [x] Record current GitHub Issues/PR posture and the exact publication dependency that keeps default-branch alerts open.
+  - [ ] Run focused security validation, type-check, canonical verification, handoff refresh, exact-scope review, commit, and push attempt.
+  - Guardrail: no alert dismissal, PR/issue mutation, dependency downgrade, audit fabrication, unrelated cleanup, phone/PWA work, status-only path staging, `main.bat`, credential output, or claim that GitHub rescanned before a successful merge to `main`.
+  - Progress: eight current alerts are recorded from Mario's screenshot without inferred vulnerable ranges or patched versions. The branch lockfile carries patched `ws`, `brace-expansion`, `js-yaml`, and `serde_with` floors that are still absent from `origin/main`; the installed npm tree remains stale for `ws` and `brace-expansion`. Current `sharp@0.34.5` and `next@15.5.18` alerts remain open pending exact advisory metadata, while `next.config.js` keeps the built-in image optimizer disabled and now explicitly denies SVG optimization under the executable dependency-security gate. GitHub Issues has no open items; PRs 65, 42, 33, and 12 remain open. Focused dependency, audit, infra, security, Tauri, TypeScript, and exact formatting checks pass. The full dirty-worktree canonical run stopped only on 23 pre-existing excluded CRLF/status-only files; exact staged-scope canonical verification passed with seven files, zero overlap, and successful cleanup in run `2026-07-29T12-42-28Z-7049159209`. The optimized 39-page production build also passed. Handoff refresh, exact-scope commit, and push attempt remain.
+
 - [ ] AURORA-WHOLE-PRODUCT-VISUAL-AND-FETCH-RELIABILITY — Sharpen the shared Homefront Aurora system across every GA route and make live-data loading truthful, retained, cancellable, and visible. Spec: `specs/features/aurora-whole-product-visual-and-fetch-reliability.md`.
   - [x] Correct total-upstream-failure versus verified-empty semantics across the active news, CVE, threat, conflict, earthquake, DeFi, Hacker News, and SEC proxy routes.
   - [x] Preserve verified client data, validate response shapes, pass real abort signals, prevent stale completions, and make GET deduplication independently cancellable.

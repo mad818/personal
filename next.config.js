@@ -28,6 +28,7 @@ module.exports = {
   // Air-gapped profile: keep `next/image` rendering without exposing the built-in optimizer.
   images: {
     unoptimized: true,
+    dangerouslyAllowSVG: false,
   },
 
   async redirects() {

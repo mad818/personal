@@ -2,9 +2,11 @@
 /* eslint-disable no-console */
 
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { join } from "node:path";
 
 const root = process.cwd();
+const require = createRequire(import.meta.url);
 
 function fail(message) {
   console.error(`x active-dependency-security: ${message}`);
@@ -38,8 +40,20 @@ function readJson(relativePath) {
 
 const lock = readJson("package-lock.json");
 const packageJson = readJson("package.json");
+const nextConfig = require(join(root, "next.config.js"));
 const packages =
   lock?.packages && typeof lock.packages === "object" ? lock.packages : {};
+
+if (nextConfig?.images?.unoptimized !== true) {
+  fail(
+    "next.config.js must keep the built-in image optimizer disabled while the active Next.js/Sharp image advisories remain unresolved",
+  );
+}
+if (nextConfig?.images?.dangerouslyAllowSVG !== false) {
+  fail(
+    "next.config.js must explicitly deny SVG optimization while the active Next.js image advisory remains unresolved",
+  );
+}
 
 if (packageJson?.overrides?.postcss !== "$postcss") {
   fail("package.json must override transitive postcss through the direct postcss floor");
@@ -158,7 +172,7 @@ if (process.exitCode) {
 }
 
 console.log(
-  `ok active-dependency-security (postcss>=8.5.10, prismjs>=1.30.0, ws>=8.21.0, js-yaml>=4.2.0, brace-expansion floors 1.x>=1.1.16/2.x>=2.1.2/5.x>=5.0.7 with 3.x/4.x rejected, tauri>=2.11.1, serde_with>=3.21.0${
+  `ok active-dependency-security (Next image optimizer disabled and SVG optimization denied; postcss>=8.5.10, prismjs>=1.30.0, ws>=8.21.0, js-yaml>=4.2.0, brace-expansion floors 1.x>=1.1.16/2.x>=2.1.2/5.x>=5.0.7 with 3.x/4.x rejected, tauri>=2.11.1, serde_with>=3.21.0${
     glib ? `; Linux-only non-release glib=${glib.version}` : ""
   })`,
 );

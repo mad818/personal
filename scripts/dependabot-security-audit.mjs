@@ -21,6 +21,8 @@ const dependabotAlertExportCommand =
 const knownWarning = {
   source: "github-push-warning",
   repository: "mad818/personal",
+  historical: true,
+  observedBefore: "2026-05-25T05:52:26.760Z",
   totalAlerts: 75,
   severityCounts: {
     critical: 3,
@@ -29,7 +31,7 @@ const knownWarning = {
     low: 10,
   },
   note:
-    "Push output reported a Dependabot warning on the default branch. Detailed alert metadata was not reachable from this Codex shell.",
+    "Historical push output reported this Dependabot warning. These counts are preserved for audit history and must not be treated as the current open-alert state.",
 };
 
 const severityOrder = {
@@ -237,7 +239,7 @@ function buildKnownWarning(importedMode) {
     ...knownWarning,
     supersededByImportedMetadata: true,
     note:
-      "Initial push-warning counts are preserved for audit history. Imported Dependabot metadata is the current source of truth for this artifact.",
+      "Historical push-warning counts are preserved for audit history. Imported Dependabot metadata is the current source of truth for this artifact.",
   };
 }
 
@@ -451,9 +453,9 @@ function buildPendingClassification() {
     },
     blockedDeferred: {
       status: "blocked",
-      count: knownWarning.totalAlerts,
+      count: null,
       description:
-        "All known alerts remain deferred as a metadata-only audit lane until GitHub Dependabot details are reachable.",
+        "The current open-alert count is unknown until current Dependabot metadata is imported; the historical push-warning count is not reused.",
       blockers: [unavailableReason],
     },
     retiredManifest: {
@@ -577,6 +579,7 @@ function main() {
       githubReachableFromCodex: false,
       upgradesPerformed: false,
       alertImportArtifact: alertImport?.file ?? null,
+      currentAlertCountAvailable: importedMode,
     },
     knownWarning: buildKnownWarning(importedMode),
     importSummary: importedMode
@@ -662,7 +665,7 @@ function main() {
   console.log(
     importedMode
       ? `Imported alerts classified: ${importedRecords.length} (${artifact.importSummary.severityCounts.critical} critical, ${artifact.importSummary.severityCounts.high} high, ${artifact.importSummary.severityCounts.moderate} moderate, ${artifact.importSummary.severityCounts.low} low).`
-      : `Known warning captured: ${knownWarning.totalAlerts} alerts (${knownWarning.severityCounts.critical} critical, ${knownWarning.severityCounts.high} high, ${knownWarning.severityCounts.moderate} moderate, ${knownWarning.severityCounts.low} low).`,
+      : `Historical warning retained: ${knownWarning.totalAlerts} alerts (${knownWarning.severityCounts.critical} critical, ${knownWarning.severityCounts.high} high, ${knownWarning.severityCounts.moderate} moderate, ${knownWarning.severityCounts.low} low); current open-alert count remains unknown without an import.`,
   );
   if (importedMode) {
     console.log(

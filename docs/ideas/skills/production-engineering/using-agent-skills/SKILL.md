@@ -27,6 +27,10 @@ Select only the workflows the current request needs, keep their order explicit, 
    - high-risk assumption: `doubt-driven-development`
    - UI or interface boundary: `frontend-ui-engineering` or `api-and-interface-design`
    - failure: `debugging-and-error-recovery`
+   - requested concise response: `concise-technical-output`
+   - deterministic media work: `deterministic-media-production`
+   - external skill, plugin, hook, or command pack: `review-external-agent-skill`
+   - compact execution status: `run-status-summary`
    - pre-merge quality: `code-review-and-quality`, optionally `code-simplification`, `security-and-hardening`, or `performance-optimization`
    - durable history or delivery: `git-workflow-and-versioning`, `ci-cd-and-automation`, `documentation-and-adrs`, `deprecation-and-migration`, `observability-and-instrumentation`, or `shipping-and-launch`
 2. Announce the minimum selected skill sequence and why it applies.
@@ -82,6 +86,10 @@ a review request does not authorize implementation or shipping.
 - @docs/ideas/skills/production-engineering/documentation-and-adrs/SKILL.md
 - @docs/ideas/skills/production-engineering/observability-and-instrumentation/SKILL.md
 - @docs/ideas/skills/production-engineering/shipping-and-launch/SKILL.md
+- @docs/ideas/skills/concise-technical-output/SKILL.md
+- @docs/ideas/skills/deterministic-media-production/SKILL.md
+- @docs/ideas/skills/review-external-agent-skill/SKILL.md
+- @docs/ideas/skills/run-status-summary/SKILL.md
 
 ## Stop conditions
 

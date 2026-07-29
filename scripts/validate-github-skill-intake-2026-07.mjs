@@ -91,6 +91,35 @@ for (const source of existingSources) {
 }
 
 const companyMap = read("lib/nexusCompanyMap.ts");
+const projectSkillRegistry = read("lib/projectSkillRegistry.ts");
+const liveContext = read("lib/liveContext.ts");
+const agents = read("AGENTS.md");
+const skillRouter = read(
+  "docs/ideas/skills/production-engineering/using-agent-skills/SKILL.md",
+);
+for (const id of skillIds) {
+  requireText(projectSkillRegistry, `id: "${id}"`, "project skill registry");
+  requireText(
+    projectSkillRegistry,
+    `docs/ideas/skills/${id}/SKILL.md`,
+    "project skill registry path",
+  );
+  requireText(
+    agents,
+    `docs/ideas/skills/${id}/SKILL.md`,
+    "AGENTS.md skill routing",
+  );
+  requireText(
+    skillRouter,
+    `@docs/ideas/skills/${id}/SKILL.md`,
+    "production skill router",
+  );
+}
+requireText(
+  liveContext,
+  "buildProjectSkillRoutingBlock",
+  "live assistant skill routing",
+);
 for (const id of [
   "garrytan-gstack",
   "juliusbrussee-caveman",
@@ -112,7 +141,11 @@ for (const id of [
 for (const [relativePath, needles] of [
   [
     "docs/ideas/skills/production-engineering/using-agent-skills/SKILL.md",
-    ["## Product sprint route", "observability-and-instrumentation"],
+    [
+      "## Product sprint route",
+      "observability-and-instrumentation",
+      "review-external-agent-skill",
+    ],
   ],
   [
     "docs/ideas/skills/production-engineering/browser-testing-with-devtools/SKILL.md",

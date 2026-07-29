@@ -204,7 +204,13 @@ GROQ_API_KEY=your-free-or-byok-provider-key
 
 (Use [Local AI](#local-ai-fully-offline) instead of cloud keys if you want fully offline LLM.)
 
-3. **Run** — `npm run dev` → [http://localhost:3000](http://localhost:3000). Missing _data_ keys only quiet that feed.
+3. **Run** — on Windows, double-click **`NexusPrime.bat`**. From any
+   supported terminal, use `npm run operational:start`. The launcher validates
+   Node/npm, local dependencies, `.env.local`, the token, and the port; it
+   opens [HQ](http://localhost:3000/hq) only after `/api/health` returns the
+   exact Homefront runtime contract. Use `npm run operational:start -- --check`
+   for a no-start readiness check or `npm run dev` for the raw developer
+   server. Missing optional _data_ keys only quiet their feed.
 
 4. **Verify** (before PRs) — `npm run verify` (typecheck, lint, path safety).
 

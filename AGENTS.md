@@ -20,6 +20,7 @@ The legacy HTML app (`nexus-final.html`) has been archived to `archive/`. Do not
 ## Commands
 
 ```
+npm run operational:start # health-gated local start; opens HQ only when ready
 npm run dev      # start dev server (localhost:3000)
 npm run verify   # canonical full local verification lane
 npx tsc --noEmit # type-check only
@@ -107,6 +108,10 @@ app/api/                  ← Next.js server routes
 | `.agents/skills/fix-bug/SKILL.md`     | React/Next.js or active app bug          |
 | `docs/ideas/skills/production-engineering/using-agent-skills/SKILL.md` | Select or chain production-engineering workflows |
 | `docs/ideas/skills/mattpocock-engineering/ask-matt/SKILL.md` | Explicit engineering workflow routing |
+| `docs/ideas/skills/concise-technical-output/SKILL.md` | Requested lite/full/ultra technical response shaping |
+| `docs/ideas/skills/deterministic-media-production/SKILL.md` | Reproducible media beats, assets, timing, and render proof |
+| `docs/ideas/skills/review-external-agent-skill/SKILL.md` | Review an external skill/plugin before adapting or installing |
+| `docs/ideas/skills/run-status-summary/SKILL.md` | Compact Now/Done/Checks/Blocked/Next status |
 
 Resolve a selected skill's supporting guide relative to its own directory; the sibling `GUIDE.md` is the authoritative deep guide.
 

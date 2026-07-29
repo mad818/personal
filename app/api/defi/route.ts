@@ -169,8 +169,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         );
       }
     }
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: msg, type }, { status: 200 });
+  } catch {
+    return NextResponse.json(
+      { error: "DeFi data is temporarily unavailable.", type },
+      { status: 502 },
+    );
   }
 }

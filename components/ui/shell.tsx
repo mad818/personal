@@ -1644,6 +1644,8 @@ export function ShellPage({
             "--nexus-ops-pointer-y": "50%",
             "--nexus-ops-parallax-x": "0px",
             "--nexus-ops-parallax-y": "0px",
+            "--nexus-surface-accent-a": branding.accentPalette[0],
+            "--nexus-surface-accent-b": branding.accentPalette[1],
           } as CSSProperties
         }
       >
@@ -1899,6 +1901,8 @@ export function ShellStage({
           "--nexus-ops-pointer-y": "50%",
           "--nexus-ops-parallax-x": "0px",
           "--nexus-ops-parallax-y": "0px",
+          "--nexus-surface-accent-a": branding.accentPalette[0],
+          "--nexus-surface-accent-b": branding.accentPalette[1],
         } as CSSProperties
       }
     >

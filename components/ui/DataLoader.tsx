@@ -9,7 +9,7 @@
  * then components read from the store — no prop drilling.
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePrices } from "@/hooks/usePrices";
 import { useFearGreed } from "@/hooks/useFearGreed";
 import { useArticles } from "@/hooks/useArticles";
@@ -19,6 +19,7 @@ import { useStore } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
 import { subscribeVisiblePolling } from "@/lib/visiblePolling";
 import { ShellButton } from "@/components/ui/shell";
+import { readJsonFeedResponse } from "@/lib/liveFeedReliability";
 
 function startVisiblePolling(
   key: string,
@@ -72,28 +73,44 @@ export function PricesLoader({ showStatus = false }: { showStatus?: boolean }) {
 
 // ── Articles (SIGNALS tab) ────────────────────────────────────────────────────
 export function ArticlesLoader() {
-  const { fetchArticles } = useArticles();
+  const { fetchArticles, cancelArticles } = useArticles();
   useEffect(() => {
-    return startVisiblePolling("articles", fetchArticles, 5 * 60_000);
-  }, [fetchArticles]);
+    const unsubscribe = startVisiblePolling(
+      "articles",
+      fetchArticles,
+      5 * 60_000,
+    );
+    return () => {
+      unsubscribe();
+      cancelArticles();
+    };
+  }, [cancelArticles, fetchArticles]);
   return null;
 }
 
 // ── CVEs (CYBER tab) ──────────────────────────────────────────────────────────
 export function CVEsLoader() {
-  const { fetchCVEs } = useCVEs();
+  const { fetchCVEs, cancelCVEs } = useCVEs();
   useEffect(() => {
-    return startVisiblePolling("cves", fetchCVEs, 15 * 60_000);
-  }, [fetchCVEs]);
+    const unsubscribe = startVisiblePolling("cves", fetchCVEs, 15 * 60_000);
+    return () => {
+      unsubscribe();
+      cancelCVEs();
+    };
+  }, [cancelCVEs, fetchCVEs]);
   return null;
 }
 
 // ── OTX Threat Pulses (CYBER tab) ─────────────────────────────────────────────
 export function OTXLoader() {
-  const { fetchOTX } = useOTX();
+  const { fetchOTX, cancelOTX } = useOTX();
   useEffect(() => {
-    return startVisiblePolling("otx", fetchOTX, 15 * 60_000);
-  }, [fetchOTX]);
+    const unsubscribe = startVisiblePolling("otx", fetchOTX, 15 * 60_000);
+    return () => {
+      unsubscribe();
+      cancelOTX();
+    };
+  }, [cancelOTX, fetchOTX]);
   return null;
 }
 
@@ -101,6 +118,8 @@ export function OTXLoader() {
 // Fetches conflict RSS silently so COMMAND shows worldRisk without needing OPS open
 export function WorldRiskLoader() {
   const setWorldRisk = useStore((s) => s.setWorldRisk);
+  const updateFeedStatus = useStore((s) => s.updateFeedStatus);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     const CONFLICT_KW = [
@@ -122,26 +141,68 @@ export function WorldRiskLoader() {
     ];
 
     async function load() {
+      const requestId = ++requestIdRef.current;
+      updateFeedStatus("conflict", { lastAttemptAt: Date.now() });
       try {
-        const r = await apiFetch("/api/conflict", {
+        const response = await apiFetch("/api/conflict", {
           signal: AbortSignal.timeout(15000),
         });
-        const d = await r.json();
-        const articles = (d.articles ?? []) as {
-          title: string;
-          impact?: string;
-        }[];
+        const payload = await readJsonFeedResponse(
+          response,
+          (
+            value,
+          ): value is {
+            articles: Array<{ title: string; impact?: string }>;
+          } =>
+            Boolean(
+              value &&
+              typeof value === "object" &&
+              Array.isArray(
+                (
+                  value as {
+                    articles?: unknown;
+                  }
+                ).articles,
+              ) &&
+              (
+                value as {
+                  articles: unknown[];
+                }
+              ).articles.every(
+                (article) =>
+                  article !== null &&
+                  typeof article === "object" &&
+                  typeof (article as { title?: unknown }).title === "string",
+              ),
+            ),
+          "Conflict feed is temporarily unavailable.",
+        );
+        if (requestId !== requestIdRef.current) return;
+        const articles = payload.articles;
         const riskCount = articles.filter((a) => {
           const t = a.title.toLowerCase();
           return CONFLICT_KW.some((k) => t.includes(k));
         }).length;
-        if (riskCount > 0) setWorldRisk(riskCount);
+        setWorldRisk(riskCount);
+        updateFeedStatus("conflict", {
+          lastSuccessAt: Date.now(),
+          lastError: null,
+        });
       } catch {
-        /* silent */
+        if (requestId !== requestIdRef.current) return;
+        updateFeedStatus("conflict", {
+          lastFailureAt: Date.now(),
+          lastError:
+            "Conflict refresh failed. Previously verified risk remains displayed.",
+        });
       }
     }
-    return startVisiblePolling("worldRisk", load, 15 * 60_000);
-  }, [setWorldRisk]);
+    const unsubscribe = startVisiblePolling("worldRisk", load, 15 * 60_000);
+    return () => {
+      unsubscribe();
+      requestIdRef.current += 1;
+    };
+  }, [setWorldRisk, updateFeedStatus]);
 
   return null;
 }

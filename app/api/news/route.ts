@@ -10,6 +10,12 @@ interface NewsItem {
   date: string;
   src: string;
   cat: string; // category tag for filtering
+  desc?: string;
+}
+
+interface NewsFetchResult {
+  items: NewsItem[];
+  available: boolean;
 }
 
 /** Strip CDATA wrappers and decode basic HTML entities */
@@ -28,55 +34,64 @@ async function fetchRSS(
   url: string,
   src: string,
   cat: string,
-): Promise<NewsItem[]> {
+): Promise<NewsFetchResult> {
   try {
     const r = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; NexusBot/1.0)" },
       signal: AbortSignal.timeout(9000),
       next: { revalidate: 300 },
     });
-    if (!r.ok) return [];
+    if (!r.ok) return { items: [], available: false };
     const xml = await r.text();
+    if (!/<(?:rss|feed)\b/i.test(xml)) {
+      return { items: [], available: false };
+    }
 
     const re = /<item[^>]*>([\s\S]*?)<\/item>/g;
     const items: RegExpExecArray[] = [];
     let m: RegExpExecArray | null;
     while ((m = re.exec(xml)) !== null) items.push(m);
 
-    return items
-      .slice(0, 12)
-      .map((m) => {
-        const block = m[1];
+    return {
+      available: true,
+      items: items
+        .slice(0, 12)
+        .map((m) => {
+          const block = m[1];
 
-        // Title — strip CDATA
-        const rawTitle =
-          block.match(/<title[^>]*>([\s\S]*?)<\/title>/)?.[1] ?? "";
-        const title = clean(rawTitle);
+          // Title — strip CDATA
+          const rawTitle =
+            block.match(/<title[^>]*>([\s\S]*?)<\/title>/)?.[1] ?? "";
+          const title = clean(rawTitle);
 
-        // Link — try CDATA-wrapped <link>, plain <link>, then <guid>
-        const rawLink =
-          block.match(/<link[^>]*>([\s\S]*?)<\/link>/)?.[1] ??
-          block.match(
-            /<guid[^>]*isPermaLink="true"[^>]*>([\s\S]*?)<\/guid>/,
-          )?.[1] ??
-          block.match(/<guid[^>]*>(https?:\/\/[^\s<]+)<\/guid>/)?.[1] ??
-          "";
-        const link = clean(rawLink);
+          // Link — try CDATA-wrapped <link>, plain <link>, then <guid>
+          const rawLink =
+            block.match(/<link[^>]*>([\s\S]*?)<\/link>/)?.[1] ??
+            block.match(
+              /<guid[^>]*isPermaLink="true"[^>]*>([\s\S]*?)<\/guid>/,
+            )?.[1] ??
+            block.match(/<guid[^>]*>(https?:\/\/[^\s<]+)<\/guid>/)?.[1] ??
+            "";
+          const link = clean(rawLink);
 
-        // Date
-        const date =
-          block.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1]?.trim() ?? "";
+          // Date
+          const date =
+            block.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1]?.trim() ?? "";
 
-        return { title, link, date, src, cat };
-      })
-      .filter((i) => i.title && i.link.startsWith("http"));
+          return { title, link, date, src, cat };
+        })
+        .filter((i) => i.title && i.link.startsWith("http")),
+    };
   } catch {
-    return [];
+    return { items: [], available: false };
   }
 }
 
 /** Fetch a single GDELT query. Returns items silently on failure. */
-async function fetchSingleGDELT(q: string, cat: string): Promise<NewsItem[]> {
+async function fetchSingleGDELT(
+  q: string,
+  cat: string,
+): Promise<NewsFetchResult> {
   try {
     const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(q)}&mode=artlist&timespan=24H&maxrecords=10&format=json`;
     const r = await fetch(url, {
@@ -87,7 +102,7 @@ async function fetchSingleGDELT(q: string, cat: string): Promise<NewsItem[]> {
       signal: AbortSignal.timeout(8000),
       next: { revalidate: 300 },
     });
-    if (!r.ok) return [];
+    if (!r.ok) return { items: [], available: false };
     const d = (await r.json()) as {
       articles?: Array<{ title?: string; url?: string; seendate?: string }>;
     };
@@ -100,15 +115,15 @@ async function fetchSingleGDELT(q: string, cat: string): Promise<NewsItem[]> {
         items.push({ title, link, date, src: "GDELT", cat });
       }
     }
-    return items;
+    return { items, available: true };
   } catch {
-    return [];
+    return { items: [], available: false };
   }
 }
 
 /** GDELT artlist — free, no key; fills gaps when RSS feeds block or return empty.
  *  Runs all 4 category queries in parallel instead of sequentially. */
-async function fetchGDELTFallback(): Promise<NewsItem[]> {
+async function fetchGDELTFallback(): Promise<NewsFetchResult> {
   const queries: { q: string; cat: string }[] = [
     { q: "bitcoin OR ethereum OR cryptocurrency OR blockchain", cat: "crypto" },
     {
@@ -127,10 +142,18 @@ async function fetchGDELTFallback(): Promise<NewsItem[]> {
   const results = await Promise.allSettled(
     queries.map(({ q, cat }) => fetchSingleGDELT(q, cat)),
   );
-  return results.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
+  const attempts = results.map((result) =>
+    result.status === "fulfilled"
+      ? result.value
+      : { items: [], available: false },
+  );
+  return {
+    items: attempts.flatMap((attempt) => attempt.items),
+    available: attempts.some((attempt) => attempt.available),
+  };
 }
 
-async function fetchCryptoCompare(): Promise<NewsItem[]> {
+async function fetchCryptoCompare(): Promise<NewsFetchResult> {
   try {
     const url =
       "https://min-api.cryptocompare.com/data/v2/news/?lang=EN&sortOrder=latest&limit=30";
@@ -139,7 +162,7 @@ async function fetchCryptoCompare(): Promise<NewsItem[]> {
       signal: AbortSignal.timeout(9000),
       next: { revalidate: 300 },
     });
-    if (!r.ok) return [];
+    if (!r.ok) return { items: [], available: false };
     const d = (await r.json()) as any;
     const raw = (d?.Data ?? []) as Array<{
       id: string;
@@ -148,18 +171,70 @@ async function fetchCryptoCompare(): Promise<NewsItem[]> {
       source: string;
       published_on: number;
     }>;
-    return raw
-      .slice(0, 25)
-      .map((a) => ({
-        title: clean(String(a.title ?? "")),
-        link: clean(String(a.url ?? "")),
-        date: new Date(Number(a.published_on ?? 0) * 1000).toISOString(),
-        src: clean(String(a.source ?? "CryptoCompare")),
-        cat: "crypto",
-      }))
-      .filter((i) => i.title && i.link.startsWith("http"));
+    return {
+      available: true,
+      items: raw
+        .slice(0, 25)
+        .map((a) => ({
+          title: clean(String(a.title ?? "")),
+          link: clean(String(a.url ?? "")),
+          date: new Date(Number(a.published_on ?? 0) * 1000).toISOString(),
+          src: clean(String(a.source ?? "CryptoCompare")),
+          cat: "crypto",
+        }))
+        .filter((i) => i.title && i.link.startsWith("http")),
+    };
   } catch {
-    return [];
+    return { items: [], available: false };
+  }
+}
+
+async function fetchGuardian(): Promise<NewsFetchResult> {
+  const apiKey = process.env.GUARDIAN_KEY?.trim();
+  if (!apiKey) return { items: [], available: false };
+
+  try {
+    const params = new URLSearchParams({
+      q: "crypto finance markets",
+      "api-key": apiKey,
+      "show-fields": "trailText",
+      "page-size": "20",
+      "order-by": "newest",
+    });
+    const response = await fetch(
+      `https://content.guardianapis.com/search?${params.toString()}`,
+      {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(8000),
+        next: { revalidate: 300 },
+      },
+    );
+    if (!response.ok) return { items: [], available: false };
+    const data = (await response.json()) as {
+      response?: {
+        results?: Array<{
+          webTitle?: string;
+          webUrl?: string;
+          webPublicationDate?: string;
+          fields?: { trailText?: string };
+        }>;
+      };
+    };
+    return {
+      available: true,
+      items: (data.response?.results ?? [])
+        .map((article) => ({
+          title: clean(String(article.webTitle ?? "")),
+          link: clean(String(article.webUrl ?? "")),
+          date: String(article.webPublicationDate ?? ""),
+          src: "The Guardian",
+          cat: "markets",
+          desc: clean(String(article.fields?.trailText ?? "")),
+        }))
+        .filter((item) => item.title && item.link.startsWith("http")),
+    };
+  } catch {
+    return { items: [], available: false };
   }
 }
 
@@ -243,10 +318,17 @@ export async function GET() {
   const results = await Promise.allSettled([
     ...feeds.map((f) => fetchRSS(f.url, f.src, f.cat)),
     fetchCryptoCompare(),
+    fetchGuardian(),
   ]);
+  const attempts = results.map((result) =>
+    result.status === "fulfilled"
+      ? result.value
+      : { items: [], available: false },
+  );
+  let availableSources = attempts.filter((attempt) => attempt.available).length;
   const items: NewsItem[] = [];
-  for (const r of results) {
-    if (r.status === "fulfilled") items.push(...r.value);
+  for (const attempt of attempts) {
+    items.push(...attempt.items);
   }
 
   // Dedupe by title
@@ -262,7 +344,8 @@ export async function GET() {
   // If RSS/crypto APIs are thin or blocked, merge GDELT (no API key)
   if (deduped.length < 25) {
     const gdelt = await fetchGDELTFallback();
-    for (const it of gdelt) {
+    if (gdelt.available) availableSources += 1;
+    for (const it of gdelt.items) {
       const key = it.title.trim().toLowerCase();
       if (!key || seen.has(key)) continue;
       seen.add(key);
@@ -276,6 +359,13 @@ export async function GET() {
     const db = b.date ? new Date(b.date).getTime() : 0;
     return db - da;
   });
+
+  if (availableSources === 0) {
+    return NextResponse.json(
+      { articles: [], error: "News feeds are temporarily unavailable." },
+      { status: 502 },
+    );
+  }
 
   return NextResponse.json(deduped);
 }

@@ -293,8 +293,13 @@ export type FeedStatusKey =
   | 'prices'
   | 'articles'
   | 'cves'
+  | 'otx'
   | 'threatIntel'
   | 'conflict'
+  | 'earthquakes'
+  | 'gdelt'
+  | 'defi'
+  | 'hackerNews'
   | 'polymarket'
   | 'marketRates'
   | 'fearGreed'
@@ -314,8 +319,13 @@ export const DEFAULT_FEED_STATUS: Record<FeedStatusKey, FeedStatus> = {
   prices:       { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   articles:     { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   cves:         { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  otx:          { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   threatIntel:  { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   conflict:     { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  earthquakes:  { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  gdelt:        { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  defi:         { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
+  hackerNews:   { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   polymarket:   { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   marketRates:  { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },
   fearGreed:    { lastAttemptAt: null, lastSuccessAt: null, lastFailureAt: null, lastError: null },

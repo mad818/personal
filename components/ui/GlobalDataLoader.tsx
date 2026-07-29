@@ -8,18 +8,22 @@ import { useKeywordAlerts } from "@/hooks/useKeywordAlerts";
 import { subscribeVisiblePolling } from "@/lib/visiblePolling";
 
 export default function GlobalDataLoader() {
-  const { fetchAll } = useGlobalData();
+  const { fetchAll, cancelAll } = useGlobalData();
 
   // Keyword alert engine — fires notifications when articles match user keywords
   useKeywordAlerts();
 
   useEffect(() => {
-    return subscribeVisiblePolling({
+    const unsubscribe = subscribeVisiblePolling({
       key: "globalData",
       run: fetchAll,
       intervalMs: 5 * 60_000,
     });
-  }, [fetchAll]);
+    return () => {
+      unsubscribe();
+      cancelAll();
+    };
+  }, [cancelAll, fetchAll]);
 
   return null;
 }

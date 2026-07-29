@@ -94,14 +94,16 @@ export async function GET() {
 
     if (!r.ok) {
       const fallback = await fetchCisaKevFallback();
-      cache.set(CACHE_KEY, fallback);
+      if (fallback.length) cache.set(CACHE_KEY, fallback);
       return NextResponse.json(
         {
           vulnerabilities: fallback,
-          error: `NVD ${r.status}`,
-          source: "cisa-kev-fallback",
+          ...(fallback.length
+            ? { degraded: true }
+            : { error: "Vulnerability feeds are temporarily unavailable." }),
+          source: fallback.length ? "cisa-kev-fallback" : "unavailable",
         },
-        { status: 200 },
+        { status: fallback.length ? 200 : 503 },
       );
     }
 
@@ -109,6 +111,13 @@ export async function GET() {
     const vulns = d.vulnerabilities ?? [];
     if (!vulns.length) {
       const fallback = await fetchCisaKevFallback();
+      if (!fallback.length) {
+        return NextResponse.json({
+          vulnerabilities: [],
+          source: "nvd",
+          verifiedEmpty: true,
+        });
+      }
       cache.set(CACHE_KEY, fallback);
       return NextResponse.json(
         {
@@ -124,17 +133,18 @@ export async function GET() {
       { vulnerabilities: vulns, source: "nvd" },
       { headers: { "Cache-Control": "public, max-age=600, s-maxage=600" } },
     );
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Unknown error";
+  } catch {
     const fallback = await fetchCisaKevFallback().catch(() => []);
-    cache.set(CACHE_KEY, fallback);
+    if (fallback.length) cache.set(CACHE_KEY, fallback);
     return NextResponse.json(
       {
         vulnerabilities: fallback,
-        error: msg,
+        ...(fallback.length
+          ? { degraded: true }
+          : { error: "Vulnerability feeds are temporarily unavailable." }),
         source: fallback.length ? "cisa-kev-fallback" : "unavailable",
       },
-      { status: 200 },
+      { status: fallback.length ? 200 : 503 },
     );
   }
 }

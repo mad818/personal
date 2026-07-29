@@ -75,7 +75,10 @@ async function fetchThreatFoxIOCs(days = 1): Promise<ThreatFoxIOC[]> {
   });
   if (!r.ok) throw new Error(`ThreatFox ${r.status}`);
   const data = (await r.json()) as ThreatFoxResponse;
-  if (data.query_status !== "ok" || !Array.isArray(data.data)) return [];
+  if (data.query_status === "no_result") return [];
+  if (data.query_status !== "ok" || !Array.isArray(data.data)) {
+    throw new Error("ThreatFox returned an invalid payload.");
+  }
   return data.data as ThreatFoxIOC[];
 }
 
@@ -118,7 +121,10 @@ async function fetchOTXPulses(): Promise<OTXPulse[]> {
   );
   if (!r.ok) throw new Error(`OTX ${r.status}`);
   const data = (await r.json()) as OTXResponse;
-  return data.results ?? [];
+  if (!Array.isArray(data.results)) {
+    throw new Error("OTX returned an invalid payload.");
+  }
+  return data.results;
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
@@ -127,7 +133,13 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const ip = searchParams.get("ip")?.trim() ?? null;
-    const days = Math.min(parseInt(searchParams.get("days") ?? "1", 10), 7);
+    const requestedDays = Number(searchParams.get("days") ?? "1");
+    const days =
+      Number.isInteger(requestedDays) &&
+      requestedDays >= 1 &&
+      requestedDays <= 7
+        ? requestedDays
+        : 1;
 
     // Run ThreatFox and OTX in parallel; Shodan only if IP provided
     const [threatFoxResult, otxResult, shodanResult] = await Promise.allSettled(
@@ -140,23 +152,23 @@ export async function GET(req: NextRequest) {
 
     const iocs =
       threatFoxResult.status === "fulfilled" ? threatFoxResult.value : [];
-    const threatfoxError =
-      threatFoxResult.status === "rejected"
-        ? threatFoxResult.reason instanceof Error
-          ? threatFoxResult.reason.message
-          : "ThreatFox failed"
-        : null;
-
     const pulses = otxResult.status === "fulfilled" ? otxResult.value : [];
+    const otxConfigured = Boolean(
+      process.env.OTX_KEY ?? process.env.OTX_API_KEY,
+    );
 
     const shodanData =
       shodanResult.status === "fulfilled" ? shodanResult.value : null;
-    const shodanError =
-      shodanResult.status === "rejected"
-        ? shodanResult.reason instanceof Error
-          ? shodanResult.reason.message
-          : "Shodan lookup failed"
-        : null;
+    const usableSourceCount =
+      Number(threatFoxResult.status === "fulfilled") +
+      Number(otxConfigured && otxResult.status === "fulfilled") +
+      Number(
+        Boolean(
+          ip &&
+          shodanResult.status === "fulfilled" &&
+          shodanResult.value !== null,
+        ),
+      );
 
     const response: Record<string, unknown> = {
       ioc_count: iocs.length,
@@ -164,20 +176,19 @@ export async function GET(req: NextRequest) {
       // Backward-compatible alias used by existing UI store readers.
       threatfox: iocs,
       otx_pulses: pulses,
-      otx_available: Boolean(process.env.OTX_KEY ?? process.env.OTX_API_KEY),
+      otx_available: otxConfigured,
       sources: {
-        threatfox:
-          threatFoxResult.status === "fulfilled" ? "ok" : threatfoxError,
+        threatfox: threatFoxResult.status === "fulfilled" ? "ok" : "error",
         otx:
           otxResult.status === "fulfilled"
-            ? process.env.OTX_KEY || process.env.OTX_API_KEY
+            ? otxConfigured
               ? "ok"
               : "no_key"
             : "error",
         shodan: ip
           ? shodanResult.status === "fulfilled"
             ? "ok"
-            : shodanError
+            : "error"
           : "not_requested",
       },
     };
@@ -186,15 +197,29 @@ export async function GET(req: NextRequest) {
       response.ip_query = ip;
       response.shodan = shodanData;
     }
+    if (usableSourceCount === 0) {
+      response.error = "Threat intelligence feeds are temporarily unavailable.";
+    }
 
-    return NextResponse.json(response, {
-      headers: { "Cache-Control": "public, max-age=900, s-maxage=900" },
-    });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json(
-      { error: `Threat intel fetch failed: ${msg}`, iocs: [], otx_pulses: [] },
-      { status: 500 },
+      response,
+      usableSourceCount > 0
+        ? {
+            status: 200,
+            headers: {
+              "Cache-Control": "public, max-age=900, s-maxage=900",
+            },
+          }
+        : { status: 502 },
+    );
+  } catch {
+    return NextResponse.json(
+      {
+        error: "Threat intelligence feeds are temporarily unavailable.",
+        iocs: [],
+        otx_pulses: [],
+      },
+      { status: 502 },
     );
   }
 }

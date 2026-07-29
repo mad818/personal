@@ -611,6 +611,7 @@ function HeatCell({
 export default function CyberArticleHeatmap() {
   const articles = useStore((s) => s.articles);
   const articlesLoaded = useStore((s) => s.articlesLoaded);
+  const articleStatus = useStore((s) => s.feedStatus.articles);
   const savedArticles = useStore((s) => s.savedArticles);
   const toggleSaveArticle = useStore((s) => s.toggleSaveArticle);
   const [activeTopic, setActiveTopic] = useState<TopicConfig | null>(null);
@@ -654,9 +655,11 @@ export default function CyberArticleHeatmap() {
         }}
       >
         <div style={{ fontSize: "28px", marginBottom: "10px" }}>🔒</div>
-        {articlesLoaded
-          ? "No cyber stories matched the current free news mix."
-          : "Loading threat intelligence feed…"}
+        {articleStatus.lastError && articles.length === 0
+          ? articleStatus.lastError
+          : articlesLoaded
+            ? "No cyber stories matched the current verified news mix."
+            : "Loading threat intelligence feed…"}
       </div>
     );
 

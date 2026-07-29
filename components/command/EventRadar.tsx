@@ -50,6 +50,7 @@ const SEV_LABEL = (n: number) => (n >= 3 ? "HIGH" : n >= 2 ? "MED" : "LOW");
 export default function EventRadar() {
   const articles = useStore((s) => s.articles);
   const articlesLoaded = useStore((s) => s.articlesLoaded);
+  const articleStatus = useStore((s) => s.feedStatus.articles);
 
   const events = articles
     .map((a: Article) => ({ ...a, risk: riskScore(a.title) }))
@@ -80,9 +81,11 @@ export default function EventRadar() {
           ⚡ Event Radar
         </div>
         <div style={{ fontSize: "12px", lineHeight: 1.55 }}>
-          {articlesLoaded
-            ? "No high-risk headlines are spiking in the current free news mix."
-            : "Warming the news radar…"}
+          {articleStatus.lastError && articles.length === 0
+            ? articleStatus.lastError
+            : articlesLoaded
+              ? "No high-risk headlines are spiking in the current verified news mix."
+              : "Warming the news radar…"}
         </div>
       </div>
     );

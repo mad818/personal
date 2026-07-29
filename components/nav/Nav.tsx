@@ -11,6 +11,7 @@ import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import OperationalLightGrid from "@/components/ui/OperationalLightGrid";
+import FeedSignalHorizon from "@/components/ui/FeedSignalHorizon";
 import { useOperationalLights } from "@/hooks/useOperationalLights";
 import { BRAND_NAME, BRAND_TAGLINE, getSurfaceBranding } from "@/lib/brand";
 import { buildSnapshot, resolveActiveUIRules } from "@/lib/uiRules";
@@ -332,6 +333,7 @@ export default function Nav() {
             </button>
           </div>
         </div>
+        <FeedSignalHorizon />
       </nav>
 
       {settingsLoaded ? (

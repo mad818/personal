@@ -109,11 +109,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
       { headers: { "Cache-Control": "public, max-age=600, s-maxage=600" } },
     );
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
+  } catch {
     return NextResponse.json(
-      { type, stories: [], count: 0, error: msg },
-      { status: 200 },
+      {
+        type,
+        stories: [],
+        count: 0,
+        error: "Hacker News is temporarily unavailable.",
+      },
+      { status: 502 },
     );
   }
 }

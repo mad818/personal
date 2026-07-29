@@ -35,8 +35,8 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 
 ### What’s next (from `tasks/todo.md`)
 
-- No locally actionable task is currently proven.
-- Queue posture: 0 actionable and 7 blocked/manual tasks remain context-only.
+- AURORA-WHOLE-PRODUCT-VISUAL-AND-FETCH-RELIABILITY — Sharpen the shared Homefront Aurora system across every GA route and make live-data loading truthful, retained, cancellable, and visible. Spec: `specs/features/aurora-whole-product-visual-and-fetch-reliability.md`.
+- Queue posture: 1 actionable and 7 blocked/manual tasks remain context-only.
 - Review the full classified queue only when prerequisites change: `npm run orbit:next -- --all`.
 - Canonical task evidence: `tasks/todo.md` → `## Next Up`.
 

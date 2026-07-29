@@ -191,6 +191,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     let filings: Filing[] = [];
     let companyFacts: SecCompanyFactsSummary | null = null;
+    let filingsAvailable = false;
 
     const [filingResult, factsResult] = await Promise.allSettled([
       searchEFTS(query),
@@ -198,9 +199,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     ]);
     if (filingResult.status === "fulfilled") {
       filings = filingResult.value;
+      filingsAvailable = true;
     } else {
       try {
         filings = await searchEDGAR(query);
+        filingsAvailable = true;
       } catch {
         filings = [];
       }
@@ -209,19 +212,29 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       companyFacts = factsResult.value;
     }
 
-    return NextResponse.json({
-      query,
-      count: filings.length,
-      filings,
-      companyFacts,
-      timestamp: new Date().toISOString(),
-      source: "SEC EDGAR EFTS + Companyfacts",
-    });
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(
-      { query, filings: [], count: 0, error: msg },
-      { status: 200 },
+      {
+        query,
+        count: filings.length,
+        filings,
+        companyFacts,
+        timestamp: new Date().toISOString(),
+        source: "SEC EDGAR EFTS + Companyfacts",
+        ...(filingsAvailable
+          ? {}
+          : { error: "SEC filings are temporarily unavailable." }),
+      },
+      { status: filingsAvailable ? 200 : 502 },
+    );
+  } catch {
+    return NextResponse.json(
+      {
+        query,
+        filings: [],
+        count: 0,
+        error: "SEC filings are temporarily unavailable.",
+      },
+      { status: 502 },
     );
   }
 }

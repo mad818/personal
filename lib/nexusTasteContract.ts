@@ -16,12 +16,12 @@ export type NexusTasteSurfaceContract = {
 const DEFAULT_CONTRACT: NexusTasteSurfaceContract = {
   surface: "default",
   visualThesis:
-    "One cinematic command plane with a dark holo plate and restrained support rails.",
+    "Obsidian glass and ice-cyan edge light — one workplane, quiet rail, snappy motion.",
   workplaneLabel: "Workplane",
   supportLabel: "Rail",
   continuityLabel: "Continuity",
-  headerNote: "Dark fascia. One loud plane.",
-  routeDirective: "Lead with the workplane. Keep support quiet.",
+  headerNote: "Aurora fascia. Workspace first.",
+  routeDirective: "Lead with the workplane. Keep chrome quiet.",
 };
 
 const CONTRACT_REGISTRY: Record<
@@ -42,12 +42,12 @@ const CONTRACT_REGISTRY: Record<
   command: {
     surface: "command",
     visualThesis:
-      "An execution board with one hot dispatch lane and one compact control rail.",
+      "Ice-lit dispatch plane with proportional modules and a compact control rail.",
     workplaneLabel: "Dispatch",
     supportLabel: "Control rail",
     continuityLabel: "Ops band",
-    headerNote: "Thin fascia over one live grid.",
-    routeDirective: "Make pressure and action readable at a glance.",
+    headerNote: "Thin fascia over one live workplane.",
+    routeDirective: "Pressure and action first; chrome last.",
   },
   intel: {
     surface: "intel",

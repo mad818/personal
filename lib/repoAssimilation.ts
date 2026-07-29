@@ -248,7 +248,7 @@ function inferExtensionPointLines(profile: RepoIntelProfile) {
     /\b(privacy|redaction|anonymization|provider|cloud-bound)\b/i.test(signal)
   ) {
     lines.push(
-      "- Provider-boundary seam: `app/api/ai/route.ts`, `lib/privacyShieldServer.ts`, and `components/ui/TrustPostureStrip.tsx`.",
+      "- Provider-boundary seam: `app/api/ai/route.ts`, `lib/privacyShieldServer.ts`, and `components/ui/TrustOperationsRail.tsx`.",
     );
   }
   if (/\b(sandbox|tool isolation|exec|runner|workflow run)\b/i.test(signal)) {

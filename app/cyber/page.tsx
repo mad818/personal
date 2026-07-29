@@ -201,7 +201,7 @@ export default function CyberPage() {
       surface="cyber"
       eyebrow="Threat containment board"
       title="Threat desk"
-      description="Triage, evidence, and repair on one desk."
+      description="Triage and evidence."
       actions={
         <>
           <ShellBadge tone="accent">Approval-staged triage</ShellBadge>

@@ -246,9 +246,9 @@ export const SURFACE_REDESIGN_REGISTRY: Record<
   },
   command: {
     surfaceId: "command",
-    title: "COMMAND redesign",
+    title: "COMMAND Clearance",
     summary:
-      "Turn the COMMAND page into one operational overview with posture, active programs, and memory-backed follow-through instead of many equal-weight status cards.",
+      "Homefront Clearance: one dominant dispatch workplane that expands with the viewport, a quiet control rail, and continuity below — not equal-weight status tiles.",
     modules: [
       {
         id: "system-posture",

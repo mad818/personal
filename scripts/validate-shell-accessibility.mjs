@@ -121,7 +121,6 @@ const notificationToastBridge = read(
 const actionDialogHook = read("hooks/useActionDialog.ts");
 const actionDialog = read("components/ui/ActionDialog.tsx");
 const trustOperations = read("components/ui/TrustOperationsRail.tsx");
-const trustPosture = read("components/ui/TrustPostureStrip.tsx");
 const actionDialogAdopters = [
   ["secure link removal", read("components/resources/SecureLinkOpenPanel.tsx")],
   [
@@ -223,6 +222,17 @@ for (const text of [
 requireText(landing, 'id="nexus-main-content"', "public landing");
 requireText(landing, "tabIndex={-1}", "public landing");
 requireText(nav, 'aria-label="Primary navigation"', "navigation landmark");
+requireText(nav, 'href="/security"', "global trust operations access");
+requireText(
+  nav,
+  'data-testid="toprail-trust"',
+  "global trust operations access",
+);
+requireText(
+  nav,
+  'aria-label="Open trust operations"',
+  "global trust operations access",
+);
 if (nav.includes('role="tablist"')) {
   errors.push(
     "navigation landmark: route links must not be exposed as an ARIA tablist",
@@ -456,7 +466,6 @@ for (const [label, source, requiredNames] of routeEntryControls) {
 }
 for (const [label, source] of [
   ["trust operations step-up", trustOperations],
-  ["trust posture step-up", trustPosture],
 ]) {
   requireText(source, "<StepUpAccessDialog", label);
   requireText(source, "open={stepUpOpen}", label);

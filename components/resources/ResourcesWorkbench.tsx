@@ -427,7 +427,7 @@ export default function ResourcesWorkbench() {
         ) : null}
       </div>
 
-      <div className="nexus-surface-chamber-shell">
+      <div className="nexus-surface-chamber-shell nexus-resources-workbench">
         <div className="nexus-surface-chamber-shell__body">
           <OpsRail
             className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${resourcesLayout.railClass}`}

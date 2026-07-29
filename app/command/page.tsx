@@ -292,12 +292,12 @@ export default function CommandPage() {
         width="wide"
         surface="command"
         eyebrow="Live operations grid"
-        title="Operations grid"
-        description="Dispatch, runtime, pressure."
+        title="Operations"
+        description="Dispatch and readiness."
         actions={
           <>
-            <ShellBadge tone="accent">Live readiness</ShellBadge>
-            <ShellBadge tone="success">Operator dispatch</ShellBadge>
+            <ShellBadge tone="accent">Live</ShellBadge>
+            <ShellBadge tone="success">Dispatch</ShellBadge>
           </>
         }
       >
@@ -428,8 +428,8 @@ export default function CommandPage() {
 
                     {briefView === "brief" ? (
                       <ShellGrid
-                        columns="repeat(2, minmax(0, 1fr))"
-                        gap="12px"
+                        recipe="primary-secondary"
+                        gap="16px"
                         className="nexus-command-briefGrid"
                       >
                         <OpsField
@@ -437,35 +437,37 @@ export default function CommandPage() {
                           detail="KPI stack plus command status ring"
                           className="nexus-command-gridSpan"
                         >
-                          <div className="nexus-surface-chamber-shell__body">
+                          <ShellGrid recipe="primary-secondary" gap="12px">
                             <div className="nexus-surface-chamber-shell__lead">
                               <LazyKPICards />
                             </div>
                             <div className="nexus-surface-chamber-shell__support">
                               <LazySystemStatusRing />
                             </div>
-                          </div>
+                          </ShellGrid>
                         </OpsField>
-                        <OpsField
-                          title="AI briefing"
-                          detail="Cross-domain summary"
-                        >
-                          <LazyAIBriefing />
-                        </OpsField>
-                        <OpsField
-                          title="Event radar"
-                          detail="What just moved"
-                          tone="muted"
-                        >
-                          <LazyEventRadar />
-                        </OpsField>
+                        <ShellStack gap="12px">
+                          <OpsField
+                            title="AI briefing"
+                            detail="Cross-domain summary"
+                          >
+                            <LazyAIBriefing />
+                          </OpsField>
+                          <OpsField
+                            title="Event radar"
+                            detail="What just moved"
+                            tone="muted"
+                          >
+                            <LazyEventRadar />
+                          </OpsField>
+                        </ShellStack>
                       </ShellGrid>
                     ) : null}
 
                     {briefView === "pressure" ? (
                       <ShellGrid
-                        columns="minmax(0, 1.18fr) minmax(280px, 0.82fr)"
-                        gap="12px"
+                        recipe="primary-secondary"
+                        gap="16px"
                         className="nexus-command-pressureGrid"
                       >
                         <OpsField
@@ -486,8 +488,8 @@ export default function CommandPage() {
 
                     {briefView === "world" ? (
                       <ShellGrid
-                        columns="minmax(280px, 0.82fr) minmax(0, 1.18fr)"
-                        gap="12px"
+                        recipe="primary-secondary"
+                        gap="16px"
                         className="nexus-command-worldGrid"
                       >
                         <OpsField
@@ -586,8 +588,8 @@ export default function CommandPage() {
                       compact
                     />
                     <ShellGrid
-                      columns="repeat(2, minmax(0, 1fr))"
-                      gap="12px"
+                      recipe="split"
+                      gap="16px"
                       className="nexus-command-supportGrid"
                     >
                       <OpsField

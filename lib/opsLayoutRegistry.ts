@@ -28,7 +28,7 @@ const OPS_LAYOUT_REGISTRY: Record<OpsLayoutSurface, OpsLayoutDescriptor> = {
     railClass: "nexus-ops-layout__rail--hq",
     inspectorClass: "nexus-ops-layout__inspector--hq",
     continuityClass: "nexus-ops-layout__continuity--hq",
-    stripLabel: "Command table",
+    stripLabel: "Clearance workplane",
     trustLabel: "HQ trust rail",
   },
   command: {
@@ -37,7 +37,7 @@ const OPS_LAYOUT_REGISTRY: Record<OpsLayoutSurface, OpsLayoutDescriptor> = {
     railClass: "nexus-ops-layout__rail--command",
     inspectorClass: "nexus-ops-layout__inspector--command",
     continuityClass: "nexus-ops-layout__continuity--command",
-    stripLabel: "Operations grid",
+    stripLabel: "Clearance dispatch",
     trustLabel: "Dispatch trust rail",
   },
   intel: {
@@ -46,7 +46,7 @@ const OPS_LAYOUT_REGISTRY: Record<OpsLayoutSurface, OpsLayoutDescriptor> = {
     railClass: "nexus-ops-layout__rail--intel",
     inspectorClass: "nexus-ops-layout__inspector--intel",
     continuityClass: "nexus-ops-layout__continuity--intel",
-    stripLabel: "Signal sweep",
+    stripLabel: "Clearance signal plane",
     trustLabel: "Signal trust rail",
   },
   alpha: {
@@ -55,7 +55,7 @@ const OPS_LAYOUT_REGISTRY: Record<OpsLayoutSurface, OpsLayoutDescriptor> = {
     railClass: "nexus-ops-layout__rail--alpha",
     inspectorClass: "nexus-ops-layout__inspector--alpha",
     continuityClass: "nexus-ops-layout__continuity--alpha",
-    stripLabel: "Decision frame",
+    stripLabel: "Clearance decision plane",
     trustLabel: "Market trust rail",
   },
   cyber: {
@@ -64,7 +64,7 @@ const OPS_LAYOUT_REGISTRY: Record<OpsLayoutSurface, OpsLayoutDescriptor> = {
     railClass: "nexus-ops-layout__rail--cyber",
     inspectorClass: "nexus-ops-layout__inspector--cyber",
     continuityClass: "nexus-ops-layout__continuity--cyber",
-    stripLabel: "Threat picture",
+    stripLabel: "Clearance containment",
     trustLabel: "Containment trust rail",
   },
   recon: {
@@ -73,7 +73,7 @@ const OPS_LAYOUT_REGISTRY: Record<OpsLayoutSurface, OpsLayoutDescriptor> = {
     railClass: "nexus-ops-layout__rail--recon",
     inspectorClass: "nexus-ops-layout__inspector--recon",
     continuityClass: "nexus-ops-layout__continuity--recon",
-    stripLabel: "Collection sweep",
+    stripLabel: "Clearance collection",
     trustLabel: "Collection trust rail",
   },
   vault: {
@@ -82,7 +82,7 @@ const OPS_LAYOUT_REGISTRY: Record<OpsLayoutSurface, OpsLayoutDescriptor> = {
     railClass: "nexus-ops-layout__rail--vault",
     inspectorClass: "nexus-ops-layout__inspector--vault",
     continuityClass: "nexus-ops-layout__continuity--vault",
-    stripLabel: "Archive lattice",
+    stripLabel: "Clearance archive",
     trustLabel: "Archive trust rail",
   },
   resources: {
@@ -91,7 +91,7 @@ const OPS_LAYOUT_REGISTRY: Record<OpsLayoutSurface, OpsLayoutDescriptor> = {
     railClass: "nexus-ops-layout__rail--resources",
     inspectorClass: "nexus-ops-layout__inspector--resources",
     continuityClass: "nexus-ops-layout__continuity--resources",
-    stripLabel: "Reference lattice",
+    stripLabel: "Clearance field manual",
     trustLabel: "Field trust rail",
   },
   security: {

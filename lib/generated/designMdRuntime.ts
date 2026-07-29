@@ -4,23 +4,23 @@
 export const DESIGN_MD_TASTE_PROFILE = {
   designVariance: 7,
   motionIntensity: 6,
-  visualDensity: 7,
+  visualDensity: 4,
 } as const;
 
 export const DESIGN_MD_MOTION = {
   profileDefault: "flagship",
   durations: {
-    fastMs: 180,
-    mediumMs: 280,
-    slowMs: 480,
+    fastMs: 140,
+    mediumMs: 220,
+    slowMs: 360,
     reducedFastMs: 10,
-    fastSec: 0.18,
-    mediumSec: 0.28,
-    slowSec: 0.48,
+    fastSec: 0.14,
+    mediumSec: 0.22,
+    slowSec: 0.36,
   },
   ease: {
     standard: [0.4, 0, 0.2, 1],
-    emphasis: [0.22, 1, 0.36, 1],
+    emphasis: [0.16, 1, 0.3, 1],
   },
 } as const;
 

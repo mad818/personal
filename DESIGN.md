@@ -1,27 +1,27 @@
 ---
 version: alpha
 name: Homefront
-description: Local-first command intelligence dashboard with a cinematic, dense, operator-grade shell.
+description: Local-first command intelligence with Homefront Aurora — ice-cyan instrumentation, glass rails, snappy motion.
 colors:
-  primary: "#05080C"
-  surface: "#0A0F14"
-  surface-2: "#10161D"
-  surface-3: "#171F28"
-  border: "#1F2934"
-  border-strong: "#4B5B6D"
-  text: "#EDF3F8"
-  text-muted: "#BCC7D3"
-  text-subtle: "#738398"
-  accent: "#9FB6C8"
-  accent-strong: "#DDE6EE"
-  signal: "#DFE8EF"
-  ember: "#9FB2C2"
-  steel: "#DBE5EE"
-  critical: "#D66D74"
-  cyan: "#61D8FF"
-  blue: "#79B8FF"
-  warning: "#E7C072"
-  success: "#83EFCB"
+  primary: "#03070B"
+  surface: "#081018"
+  surface-2: "#0D1620"
+  surface-3: "#14202C"
+  border: "#1A2A38"
+  border-strong: "#3D5A72"
+  text: "#F2F7FB"
+  text-muted: "#A8B9C8"
+  text-subtle: "#6B8296"
+  accent: "#5EE1FF"
+  accent-strong: "#E8F7FF"
+  signal: "#D6EEF8"
+  ember: "#7EB8D0"
+  steel: "#C5D8E6"
+  critical: "#FF6B76"
+  cyan: "#5EE1FF"
+  blue: "#6EB8FF"
+  warning: "#F0C05A"
+  success: "#5EF0C0"
 typography:
   display-xl:
     fontFamily: Bahnschrift, Segoe UI, Trebuchet MS, sans-serif
@@ -37,9 +37,9 @@ typography:
     letterSpacing: "-0.02em"
   body-md:
     fontFamily: Bahnschrift, Segoe UI, Trebuchet MS, sans-serif
-    fontSize: 13px
+    fontSize: 14px
     fontWeight: 400
-    lineHeight: 1.5
+    lineHeight: 1.55
   body-sm:
     fontFamily: Bahnschrift, Segoe UI, Trebuchet MS, sans-serif
     fontSize: 12px
@@ -65,7 +65,7 @@ spacing:
   md: 16px
   lg: 20px
   xl: 32px
-  shell-gutter: 20px
+  shell-gutter: 24px
 components:
   shell-panel:
     backgroundColor: "{colors.surface}"
@@ -168,21 +168,21 @@ motion:
       durationScale: 0.82
       vfxQuality: low
     flagship:
-      description: Full cinematic choreography with ambient shell motion and HQ room cues.
-      durationScale: 1
+      description: Present but restrained choreography; clear hierarchy without theatrical loops.
+      durationScale: 0.92
       vfxQuality: high
   durations:
-    fast: 180ms
-    medium: 280ms
-    slow: 480ms
+    fast: 140ms
+    medium: 220ms
+    slow: 360ms
     reduced-fast: 10ms
-    ambient-haze: 18s
-    ambient-grid: 26s
-    ambient-ornament: 24s
-    ambient-sweep: 9.5s
+    ambient-haze: 28s
+    ambient-grid: 40s
+    ambient-ornament: 36s
+    ambient-sweep: 14s
   ease:
     standard: [0.4, 0, 0.2, 1]
-    emphasis: [0.22, 1, 0.36, 1]
+    emphasis: [0.16, 1, 0.3, 1]
   sequence:
     order:
       - environment fade
@@ -190,12 +190,12 @@ motion:
       - workplane reveal
       - support rail arrival
       - continuity pulse
-    heroDelay: 40ms
-    primaryDelay: 110ms
-    supportDelay: 180ms
-    continuityDelay: 250ms
+    heroDelay: 20ms
+    primaryDelay: 70ms
+    supportDelay: 120ms
+    continuityDelay: 170ms
   signal:
-    navBeam: 1600ms
+    navBeam: 1100ms
     alertStamp: 460ms
     ribbonPulse: 1200ms
     doctrineRelight: 2200ms
@@ -386,97 +386,100 @@ accessibility:
 density:
   designVariance: 7
   motionIntensity: 6
-  visualDensity: 7
+  visualDensity: 4
   workplaneRule: one dominant workplane, one support rail, one continuity strip
 cssVariables:
   root:
-    bg: "#05080c"
-    surf: "#0a0f14"
-    surf2: "#10161d"
-    surf3: "#171f28"
-    border: "#1f2934"
-    border2: "#4b5b6d"
-    text: "#edf3f8"
-    text2: "#bcc7d3"
-    text3: "#738398"
-    accent: "#9fb6c8"
-    accent2: "#dde6ee"
-    r: 8px
-    rs: 4px
+    bg: "#03070b"
+    surf: "#081018"
+    surf2: "#0d1620"
+    surf3: "#14202c"
+    border: "#1a2a38"
+    border2: "#3d5a72"
+    text: "#f2f7fb"
+    text2: "#a8b9c8"
+    text3: "#6b8296"
+    accent: "#5ee1ff"
+    accent2: "#e8f7ff"
+    r: 10px
+    rs: 6px
     t: "var(--motion-fast)"
-    fhi: "#d4dee7"
-    fmd: "#92a6b9"
-    flo: "#d66d74"
-    glow-accent: "rgba(159, 182, 200, 0.12)"
-    glow-green: "rgba(160, 183, 201, 0.08)"
-    glow-red: "rgba(214, 109, 116, 0.16)"
-    glow-purple: "rgba(123, 141, 162, 0.12)"
-    signal: "#dfe8ef"
-    ember: "#9fb2c2"
-    violet: "#647688"
-    steel: "#dbe5ee"
+    fhi: "#d4e8f2"
+    fmd: "#7fa3b8"
+    flo: "#ff6b76"
+    glow-accent: "rgba(94, 225, 255, 0.16)"
+    glow-green: "rgba(94, 240, 192, 0.1)"
+    glow-red: "rgba(255, 107, 118, 0.16)"
+    glow-purple: "rgba(110, 184, 255, 0.12)"
+    signal: "#d6eef8"
+    ember: "#7eb8d0"
+    violet: "#5a7a92"
+    steel: "#c5d8e6"
     space-1: 4px
     space-2: 8px
     space-3: 12px
     space-4: 16px
     space-5: 20px
-    radius-sm: 4px
-    radius-md: 8px
-    radius-lg: 12px
+    radius-sm: 6px
+    radius-md: 10px
+    radius-lg: 14px
     radius-pill: 999px
     fs-xs: 10px
     fs-sm: 12px
-    fs-md: 13px
+    fs-md: 14px
     fs-lg: 16px
-    lh-tight: 1.35
-    lh-base: 1.5
-    elev-1: "0 1px 2px rgba(0, 0, 0, 0.18)"
-    elev-2: "0 4px 14px rgba(0, 0, 0, 0.28)"
-    ring-subtle: "0 0 0 1px rgba(103,232,249,.18)"
-    top-rail-height: 108px
-    shell-max-standard: 1220px
-    shell-max-wide: 1440px
-    shell-max-full: "min(1580px, calc(100vw - 24px))"
-    shell-gutter: "clamp(14px, 1.6vw, 20px)"
-    panel: "rgba(7, 12, 17, 0.92)"
-    panel-muted: "rgba(8, 13, 19, 0.82)"
-    panel-hero: "linear-gradient(180deg, rgba(13, 18, 24, 0.94), rgba(7, 10, 14, 0.98))"
-    hairline: "rgba(148, 167, 184, 0.12)"
-    hairline-strong: "rgba(219, 230, 238, 0.18)"
-    text-strong: "#eff5fa"
-    text-muted: "#b9c5d1"
-    text-subtle: "#728297"
-    accent-glow: "0 18px 48px rgba(0, 0, 0, 0.42)"
+    lh-tight: 1.3
+    lh-base: 1.55
+    elev-1: "0 1px 2px rgba(0, 0, 0, 0.22)"
+    elev-2: "0 8px 28px rgba(0, 0, 0, 0.36)"
+    ring-subtle: "0 0 0 1px rgba(94,225,255,.22)"
+    top-rail-height: 64px
+    shell-max-standard: "min(100%, 1600px)"
+    shell-max-wide: "min(100%, 1840px)"
+    shell-max-full: "calc(100vw - (2 * var(--shell-gutter)))"
+    shell-gutter: "clamp(16px, 2.2vw, 28px)"
+    bp-phone: 767px
+    bp-tablet: 1100px
+    bp-desktop: 1440px
+    panel: "rgba(6, 14, 22, 0.88)"
+    panel-muted: "rgba(5, 12, 18, 0.72)"
+    panel-hero: "linear-gradient(180deg, rgba(12, 22, 32, 0.96), rgba(3, 7, 11, 0.98))"
+    hairline: "rgba(94, 225, 255, 0.1)"
+    hairline-strong: "rgba(232, 247, 255, 0.2)"
+    text-strong: "#f5fafc"
+    text-muted: "#a8b9c8"
+    text-subtle: "#6b8296"
+    accent-glow: "0 12px 40px rgba(94, 225, 255, 0.12)"
     ease-standard: "cubic-bezier(.4,0,.2,1)"
-    ease-emphasis: "cubic-bezier(.22,1,.36,1)"
-    motion-fast: ".18s var(--ease-standard)"
-    motion-medium: ".28s var(--ease-emphasis)"
-    motion-slow: ".48s var(--ease-emphasis)"
-    nexus-atmosphere-haze-duration: 18s
-    nexus-atmosphere-grid-duration: 26s
-    nexus-atmosphere-ornament-duration: 24s
-    nexus-atmosphere-sweep-duration: 9.5s
-    nexus-atmosphere-world-opacity: ".28"
-    nexus-atmosphere-veil-opacity: ".96"
-    nexus-atmosphere-frame-opacity: ".42"
-    nexus-atmosphere-focus: "50% 32%"
-    nexus-atmosphere-spotlight: "50% 28%"
-    nexus-sequence-hero-delay: 40ms
-    nexus-sequence-primary-delay: 110ms
-    nexus-sequence-support-delay: 180ms
-    nexus-sequence-continuity-delay: 250ms
-    nexus-signal-nav-beam-duration: 1600ms
-    nexus-signal-alert-stamp-duration: 460ms
-    nexus-signal-ribbon-pulse-duration: 1200ms
-    nexus-signal-doctrine-relight-duration: 2200ms
-    nexus-signal-toast-duration: 280ms
-    nexus-chronicle-order-duration: 320ms
-    nexus-chronicle-continuity-duration: 420ms
-    nexus-chronicle-band-interval: 70ms
-    nexus-chronicle-live-pulse: 1500ms
+    ease-emphasis: "cubic-bezier(.16,1,.3,1)"
+    motion-fast: ".14s var(--ease-standard)"
+    motion-medium: ".22s var(--ease-emphasis)"
+    motion-slow: ".36s var(--ease-emphasis)"
+    nexus-atmosphere-haze-duration: 28s
+    nexus-atmosphere-grid-duration: 40s
+    nexus-atmosphere-ornament-duration: 36s
+    nexus-atmosphere-sweep-duration: 14s
+    nexus-atmosphere-world-opacity: ".18"
+    nexus-atmosphere-veil-opacity: ".9"
+    nexus-atmosphere-frame-opacity: ".32"
+    nexus-atmosphere-focus: "50% 30%"
+    nexus-atmosphere-spotlight: "48% 26%"
+    nexus-sequence-hero-delay: 20ms
+    nexus-sequence-primary-delay: 70ms
+    nexus-sequence-support-delay: 120ms
+    nexus-sequence-continuity-delay: 170ms
+    nexus-signal-nav-beam-duration: 1100ms
+    nexus-signal-alert-stamp-duration: 360ms
+    nexus-signal-ribbon-pulse-duration: 1000ms
+    nexus-signal-doctrine-relight-duration: 1800ms
+    nexus-signal-toast-duration: 220ms
+    nexus-chronicle-order-duration: 240ms
+    nexus-chronicle-continuity-duration: 320ms
+    nexus-chronicle-band-interval: 55ms
+    nexus-chronicle-live-pulse: 1200ms
     nexus-taste-variance: 7
     nexus-taste-motion: 6
-    nexus-taste-density: 7
+    nexus-taste-density: 4
   reducedMotion:
     motion-fast: ".01s linear"
     motion-medium: ".01s linear"
@@ -491,41 +494,39 @@ cssVariables:
     nexus-ux5-signal: "#dfe8ef"
     nexus-ux5-text-soft: "#a7b4bf"
   ux6:
-    nexus-ux6-bg: "#05080b"
-    nexus-ux6-bg-soft: "#0a0f14"
-    nexus-ux6-panel: "rgba(10, 14, 18, 0.82)"
-    nexus-ux6-panel-strong: "rgba(13, 18, 22, 0.92)"
-    nexus-ux6-line: "rgba(166, 183, 195, 0.18)"
-    nexus-ux6-line-strong: "rgba(212, 223, 230, 0.34)"
-    nexus-ux6-line-soft: "rgba(166, 183, 195, 0.09)"
-    nexus-ux6-text: "#e6eef4"
-    nexus-ux6-text-soft: "rgba(220, 231, 239, 0.74)"
-    nexus-ux6-text-muted: "rgba(190, 206, 218, 0.52)"
-    nexus-ux6-accent: "#9cb8c8"
-    nexus-ux6-accent-soft: "rgba(156, 184, 200, 0.24)"
+    nexus-ux6-bg: "#03070b"
+    nexus-ux6-bg-soft: "#081018"
+    nexus-ux6-panel: "rgba(8, 16, 24, 0.82)"
+    nexus-ux6-panel-strong: "rgba(12, 22, 32, 0.94)"
+    nexus-ux6-line: "rgba(94, 225, 255, 0.16)"
+    nexus-ux6-line-strong: "rgba(232, 247, 255, 0.28)"
+    nexus-ux6-line-soft: "rgba(94, 225, 255, 0.08)"
+    nexus-ux6-text: "#f2f7fb"
+    nexus-ux6-text-soft: "rgba(232, 247, 255, 0.74)"
+    nexus-ux6-text-muted: "rgba(168, 185, 200, 0.55)"
+    nexus-ux6-accent: "#5ee1ff"
+    nexus-ux6-accent-soft: "rgba(94, 225, 255, 0.22)"
   ux7:
-    nexus-ux7-surface: "rgba(6, 11, 18, 0.84)"
-    nexus-ux7-surface-strong: "rgba(8, 14, 23, 0.94)"
-    nexus-ux7-surface-soft: "rgba(10, 18, 28, 0.72)"
-    nexus-ux7-line: "rgba(116, 162, 201, 0.16)"
-    nexus-ux7-line-strong: "rgba(150, 197, 236, 0.3)"
-    nexus-ux7-line-faint: "rgba(137, 171, 201, 0.08)"
-    nexus-ux7-text: "#e7f0f9"
-    nexus-ux7-text-soft: "rgba(203, 220, 236, 0.76)"
-    nexus-ux7-text-muted: "rgba(137, 166, 190, 0.82)"
-    nexus-ux7-blue: "#79b8ff"
-    nexus-ux7-cyan: "#61d8ff"
-    nexus-ux7-alert: "#f08a94"
-    nexus-ux7-warn: "#e7c072"
-    nexus-ux7-good: "#83efcb"
+    nexus-ux7-surface: "rgba(6, 14, 22, 0.84)"
+    nexus-ux7-surface-strong: "rgba(8, 18, 28, 0.94)"
+    nexus-ux7-surface-soft: "rgba(10, 22, 34, 0.7)"
+    nexus-ux7-line: "rgba(94, 225, 255, 0.14)"
+    nexus-ux7-line-strong: "rgba(110, 184, 255, 0.32)"
+    nexus-ux7-line-faint: "rgba(94, 225, 255, 0.07)"
+    nexus-ux7-text: "#f2f7fb"
+    nexus-ux7-text-soft: "rgba(200, 224, 238, 0.78)"
+    nexus-ux7-text-muted: "rgba(107, 130, 150, 0.9)"
+    nexus-ux7-blue: "#6eb8ff"
+    nexus-ux7-cyan: "#5ee1ff"
+    nexus-ux7-alert: "#ff6b76"
+    nexus-ux7-warn: "#f0c05a"
+    nexus-ux7-good: "#5ef0c0"
 ---
 
 # Homefront Design System
 
 ## Overview
-Homefront should feel like a local-first command room: obsidian, graphite, smoked glass, liquid chrome, electric cyan, and restrained amber. The interface is dense by intention, but it should feel ordered and operational rather than cluttered. Agents should design for one dominant workplane, one quiet support rail, and one continuity strip before adding any extra chrome.
-
-The visual voice is precise, instrumented, and slightly cinematic. HQ is the flagship 3D surface, but every route belongs to the same command-room family.
+Homefront Aurora is a local-first command room: deep obsidian, ice-cyan instrumentation, soft glass rails, and snappy motion. Content expands with the viewport. One dominant workplane leads; chrome stays quiet. Motion explains hierarchy — never decoration for its own sake.
 
 ## Colors
 The palette is dark and low-glare. `primary` is the effective page base, `surface` and `surface-2` form the shell, `text` and `text-muted` carry operator copy, and `accent` / `accent-strong` provide restrained instrumentation.
@@ -533,14 +534,14 @@ The palette is dark and low-glare. `primary` is the effective page base, `surfac
 Use cyan or blue for live state and exact-session affordances. Use amber only for readiness, warnings, and escalation. Use red only for true critical or unsafe states.
 
 ## Typography
-Typography should read as compressed display plus disciplined operator text. Labels are uppercase, compact, and letter-spaced. Body copy should stay short; a dense interface still needs generous line height when explanatory text is unavoidable.
+Typography should read as clear display plus disciplined operator text. Labels are uppercase, compact, and letter-spaced. Body copy uses a slightly larger desktop scale with generous line height; tighten only on phone.
 
 Use typography hierarchy before adding decorative borders or motion. Route headers can be cinematic, but module labels should feel like instrument cues.
 
 ## Layout
-Use a compact 4px/8px/12px/16px/20px rhythm. Protected routes should present a dominant workplane, a bounded support rail, and a continuity strip. Do not reintroduce equal-weight card mosaics as the first impression.
+Use a 4px/8px/12px/16px/24px rhythm with fluid shell max widths (`--shell-max-standard|wide|full`) and gutter (`--shell-gutter`). Protected routes present a dominant workplane, a bounded support rail, and a continuity strip. Do not reintroduce equal-weight card mosaics as the first impression.
 
-Wide screens may use sticky/capped rails. Narrow screens should prioritize primary controls and collapse secondary actions before the layout crowds horizontally.
+Canonical layout breakpoints live in tokens: `--bp-phone` (767px), `--bp-tablet` (1100px), `--bp-desktop` (1440px). Desktop grows panels with the browser. Tablet collapses the support rail under the workplane. Phone is a dedicated single-focus layout, not a miniaturized desktop. Sticky rails only at desktop and above.
 
 ## Elevation & Depth
 Depth comes from tonal layers, contour lines, gradient plates, and subtle glow rather than heavy drop shadows. Panels should feel embedded into a tactical surface, not stacked as detached cards.

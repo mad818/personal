@@ -104,14 +104,13 @@ export interface SurfaceHeroMediaSpec {
   accentBeam: "cool" | "warm" | "spectral" | "quiet";
   vignette: "command" | "scan" | "sealed" | "manual";
   frameStyle:
-    | "sanctum"
-    | "campaign"
-    | "librarium"
-    | "altar"
-    | "bastion"
-    | "auspex"
-    | "reliquary"
-    | "codex";
+    | "primary"
+    | "operations"
+    | "analysis"
+    | "markets"
+    | "defense"
+    | "archive"
+    | "reference";
 }
 
 export interface ChronicleMotionPreset {
@@ -331,7 +330,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "cool",
     vignette: "command",
-    frameStyle: "sanctum",
+    frameStyle: "primary",
   },
   hq: {
     surface: "hq",
@@ -341,7 +340,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "ceremonial",
     accentBeam: "cool",
     vignette: "command",
-    frameStyle: "sanctum",
+    frameStyle: "primary",
   },
   command: {
     surface: "command",
@@ -351,7 +350,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "warm",
     vignette: "command",
-    frameStyle: "campaign",
+    frameStyle: "operations",
   },
   intel: {
     surface: "intel",
@@ -361,7 +360,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "analysis",
     accentBeam: "spectral",
     vignette: "scan",
-    frameStyle: "librarium",
+    frameStyle: "analysis",
   },
   alpha: {
     surface: "alpha",
@@ -371,7 +370,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "cool",
     vignette: "command",
-    frameStyle: "altar",
+    frameStyle: "markets",
   },
   cyber: {
     surface: "cyber",
@@ -381,7 +380,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "spectral",
     vignette: "sealed",
-    frameStyle: "bastion",
+    frameStyle: "defense",
   },
   recon: {
     surface: "recon",
@@ -391,7 +390,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "analysis",
     accentBeam: "quiet",
     vignette: "scan",
-    frameStyle: "auspex",
+    frameStyle: "analysis",
   },
   vault: {
     surface: "vault",
@@ -401,7 +400,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "analysis",
     accentBeam: "quiet",
     vignette: "sealed",
-    frameStyle: "reliquary",
+    frameStyle: "archive",
   },
   resources: {
     surface: "resources",
@@ -411,7 +410,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "manual",
     accentBeam: "warm",
     vignette: "manual",
-    frameStyle: "codex",
+    frameStyle: "reference",
   },
   vehicle: {
     surface: "vehicle",
@@ -421,7 +420,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "cool",
     vignette: "command",
-    frameStyle: "campaign",
+    frameStyle: "operations",
   },
   iot: {
     surface: "iot",
@@ -431,7 +430,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "cool",
     vignette: "command",
-    frameStyle: "campaign",
+    frameStyle: "operations",
   },
   security: {
     surface: "security",
@@ -441,7 +440,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "manual",
     accentBeam: "quiet",
     vignette: "sealed",
-    frameStyle: "bastion",
+    frameStyle: "defense",
   },
   skills: {
     surface: "skills",
@@ -451,7 +450,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "manual",
     accentBeam: "quiet",
     vignette: "manual",
-    frameStyle: "codex",
+    frameStyle: "reference",
   },
 };
 
@@ -1182,36 +1181,33 @@ export function resolveSurfaceTransitionPreset(
   }
 
   const sequence = resolveSurfaceSequencePreset(surface);
-  const durationScale = profile === "flagship" ? 1 : 0.82;
-  const flagshipDelta = profile === "flagship" ? 1 : 0.68;
+  const durationScale = profile === "flagship" ? 0.85 : 0.7;
+  const flagshipDelta = profile === "flagship" ? 0.55 : 0.4;
   const initial = {
     ...sequence.ingress.initial,
     y:
       typeof sequence.ingress.initial.y === "number"
-        ? sequence.ingress.initial.y * flagshipDelta
+        ? Math.min(12, sequence.ingress.initial.y * flagshipDelta)
         : undefined,
     x:
       typeof sequence.ingress.initial.x === "number"
         ? sequence.ingress.initial.x * flagshipDelta
         : undefined,
-    filter:
-      profile === "standard"
-        ? String(sequence.ingress.initial.filter ?? "").replace(
-            /blur\(([\d.]+)px\)/,
-            (_match, value) => `blur(${Math.max(2, Number(value) * 0.72)}px)`,
-          )
-        : sequence.ingress.initial.filter,
+    scale: undefined,
+    filter: undefined,
   };
   const exit = {
     ...sequence.ingress.exit,
     y:
       typeof sequence.ingress.exit.y === "number"
-        ? sequence.ingress.exit.y * flagshipDelta
+        ? Math.min(8, Math.abs(sequence.ingress.exit.y) * flagshipDelta)
         : undefined,
     x:
       typeof sequence.ingress.exit.x === "number"
         ? sequence.ingress.exit.x * flagshipDelta
         : undefined,
+    scale: undefined,
+    filter: undefined,
   };
 
   return buildTransitionPreset(

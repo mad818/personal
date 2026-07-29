@@ -11,13 +11,8 @@ import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import OperationalLightGrid from "@/components/ui/OperationalLightGrid";
-import TrustPostureStrip from "@/components/ui/TrustPostureStrip";
 import { useOperationalLights } from "@/hooks/useOperationalLights";
 import { BRAND_NAME, BRAND_TAGLINE, getSurfaceBranding } from "@/lib/brand";
-import {
-  formatNexusTasteProfile,
-  getNexusTasteContract,
-} from "@/lib/nexusTasteContract";
 import { buildSnapshot, resolveActiveUIRules } from "@/lib/uiRules";
 import {
   NEXUS_FREE_USE_DESCRIPTION,
@@ -90,7 +85,6 @@ export default function Nav() {
   const previewSurface =
     hoverSurface ?? (activeTab?.id as SurfaceMotionSurface | undefined) ?? "hq";
   const previewBranding = getSurfaceBranding(previewSurface);
-  const previewTaste = getNexusTasteContract(previewSurface);
   const signalSpec = resolveSurfaceSignalMotionSpec(
     (activeTab?.id as SurfaceMotionSurface | undefined) ?? "hq",
   );
@@ -150,7 +144,7 @@ export default function Nav() {
       <nav
         aria-label="Primary navigation"
         ref={toprailRef}
-        className="nexus-toprail nexus-command-header"
+        className="nexus-toprail nexus-command-header nexus-command-header--slim"
         data-overlay-state={activeOverlay ?? "closed"}
       >
         <div
@@ -169,21 +163,15 @@ export default function Nav() {
               href={getDefaultEntrypoint()}
               className="nexus-command-header__brand"
               data-testid="toprail-brand"
+              title={`${BRAND_NAME} · ${BRAND_TAGLINE}`}
             >
               <span className="nexus-command-header__brandLabel">
                 {BRAND_NAME}
               </span>
-              <span className="nexus-command-header__brandTag">
-                {BRAND_TAGLINE}
-              </span>
             </Link>
             <div className="nexus-command-header__context">
-              <span className="nexus-command-header__contextLabel">Sector</span>
               <span className="nexus-command-header__contextValue">
                 {previewBranding.visibleLabel}
-              </span>
-              <span className="nexus-command-header__contextMeta">
-                {previewBranding.functionalLabel}
               </span>
             </div>
           </div>
@@ -192,15 +180,6 @@ export default function Nav() {
             className="nexus-command-header__rail"
             data-surface={activeTab?.id ?? "hq"}
           >
-            <div className="nexus-command-header__railMeta">
-              <span className="nexus-command-header__railLabel">Directive</span>
-              <span className="nexus-command-header__railNote">
-                {previewTaste.routeDirective}
-              </span>
-              <span className="nexus-command-header__railMetaHint">
-                {formatNexusTasteProfile()} · Alt+1-8
-              </span>
-            </div>
             <div className="nexus-command-header__tabs">
               {tabs.map((tab, i) => {
                 const active = activePath === tab.href;
@@ -235,19 +214,9 @@ export default function Nav() {
                       } as CSSProperties
                     }
                   >
-                    <span
-                      className="nexus-command-header__linkIndex"
-                      aria-hidden="true"
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
                     <span className="nexus-command-header__linkLabel">
                       {branding.visibleLabel}
                     </span>
-                    <span
-                      className="nexus-command-header__linkRule"
-                      aria-hidden="true"
-                    />
                   </Link>
                 );
               })}
@@ -257,9 +226,6 @@ export default function Nav() {
           <div className="nexus-command-header__utility">
             <div className="nexus-command-header__utilityCore">
               <div className="nexus-command-header__status">
-                <span className="nexus-command-header__statusLabel">
-                  Posture
-                </span>
                 <span
                   className="nexus-command-header__statusValue"
                   title={NEXUS_FREE_USE_DESCRIPTION}
@@ -283,14 +249,26 @@ export default function Nav() {
               <OperationalLightGrid
                 grid={operationalLights}
                 variant="toprail"
-                maxLights={10}
+                maxLights={6}
                 title="Operational lights"
               />
-              <TrustPostureStrip />
             </div>
-            <span className="nexus-command-header__utilityNote">
-              Exact continuity armed.
-            </span>
+
+            <Link
+              href="/security"
+              className="nexus-toprail__icon-button"
+              data-testid="toprail-trust"
+              aria-label="Open trust operations"
+              aria-current={pathname === "/security" ? "page" : undefined}
+              title="Trust operations"
+            >
+              <span
+                className="nexus-command-header__buttonLabel"
+                aria-hidden="true"
+              >
+                TRST
+              </span>
+            </Link>
 
             <button
               type="button"

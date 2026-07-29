@@ -70,7 +70,6 @@ Important HQ files:
 
 Trust chrome lives in:
 
-- `components/ui/TrustPostureStrip.tsx`
 - `components/ui/TrustOperationsRail.tsx`
 
 There is no Storybook or separate design-system app in this repo. The production app is the component reference surface.

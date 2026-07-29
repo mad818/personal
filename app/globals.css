@@ -1287,13 +1287,22 @@ html[data-nexus-motion-profile="reduced"]
 @keyframes nexus-module-reveal {
   0% {
     opacity: 0;
-    transform: translate3d(0, 18px, 0) scale(0.992);
-    filter: blur(10px);
+    transform: translate3d(0, 8px, 0);
   }
   100% {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0px);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes nexus-chronicle-reveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -1338,18 +1347,7 @@ html[data-nexus-motion-profile="reduced"]
   }
 }
 
-@keyframes nexus-chronicle-reveal {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 14px, 0) scale(0.992);
-    filter: blur(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0px);
-  }
-}
+
 
 @keyframes nexus-chronicle-handoff {
   0% {
@@ -1516,8 +1514,8 @@ html[data-nexus-motion-profile="reduced"]
 }
 
 .nexus-motion-enter {
-  animation: nexus-module-reveal 620ms var(--ease-emphasis) both;
-  will-change: transform, opacity, filter;
+  animation: nexus-module-reveal 300ms var(--ease-emphasis) both;
+  will-change: transform, opacity;
 }
 
 .nexus-motion-enter--hero {
@@ -2133,11 +2131,11 @@ body {
   --nexus-hero-accent-a: var(--nexus-surface-glow-start);
   --nexus-hero-accent-b: var(--nexus-surface-glow-end);
   display: grid;
-  grid-template-columns: minmax(0, 1.34fr) minmax(320px, 0.72fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
   align-items: stretch;
-  gap: 28px;
+  gap: clamp(20px, 2vw, 28px);
   margin-bottom: 26px;
-  min-height: clamp(332px, 40vh, 452px);
+  min-height: clamp(220px, 28vh, 360px);
   padding: 30px 32px 32px;
   border: 1px solid
     color-mix(in srgb, var(--nexus-surface-edge) 94%, rgba(229, 220, 198, 0.08));
@@ -2761,9 +2759,9 @@ body {
   color: rgba(222, 226, 234, 0.82);
 }
 
-.nexus-shell-hero[data-frame-style="sanctum"] .nexus-shell-hero__poster,
-.nexus-shell-hero[data-frame-style="campaign"] .nexus-shell-hero__poster,
-.nexus-shell-hero[data-frame-style="reliquary"] .nexus-shell-hero__poster {
+.nexus-shell-hero[data-frame-style="primary"] .nexus-shell-hero__poster,
+.nexus-shell-hero[data-frame-style="operations"] .nexus-shell-hero__poster,
+.nexus-shell-hero[data-frame-style="archive"] .nexus-shell-hero__poster {
   border-color: color-mix(
     in srgb,
     var(--nexus-hero-accent-b) 28%,
@@ -2771,12 +2769,11 @@ body {
   );
 }
 
-.nexus-shell-hero[data-frame-style="librarium"] .nexus-shell-hero__poster-grid,
-.nexus-shell-hero[data-frame-style="auspex"] .nexus-shell-hero__poster-grid {
+.nexus-shell-hero[data-frame-style="analysis"] .nexus-shell-hero__poster-grid {
   opacity: 0.18;
 }
 
-.nexus-shell-hero__note[data-frame-style="codex"] {
+.nexus-shell-hero__note[data-frame-style="reference"] {
   color: rgba(231, 222, 203, 0.8);
 }
 
@@ -3146,8 +3143,8 @@ body {
 
 .nexus-surface-chamber-shell__body {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: clamp(16px, 1.8vw, 24px);
   align-items: start;
 }
 
@@ -5149,7 +5146,7 @@ body {
 .nexus-hq-console {
   display: flex;
   flex-direction: column;
-  height: clamp(760px, calc(100vh - 232px), 1080px);
+  height: clamp(560px, calc(100vh - var(--top-rail-height, 96px) - 48px), 1200px);
   overflow: hidden;
   border-radius: 18px;
   border: 1px solid
@@ -6280,7 +6277,7 @@ body {
   gap: 4px;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1100px) {
   .nexus-surface-chamber-shell__body {
     grid-template-columns: 1fr;
   }
@@ -7305,7 +7302,11 @@ body {
 
   .nexus-hq-console {
     height: auto;
-    min-height: 760px;
+    min-height: 0;
+  }
+
+  .nexus-hq-commandTable {
+    grid-template-columns: 1fr;
   }
 
   .nexus-hq-lesson-bar {
@@ -11004,13 +11005,13 @@ html[data-nexus-motion-profile="reduced"]
 }
 
 .nexus-shell-opsHead[data-density="compact"] .nexus-shell-title {
-  max-width: 12ch;
+  max-width: min(28ch, 100%);
   font-size: clamp(22px, 3vw, 34px);
   line-height: 0.94;
 }
 
 .nexus-shell-opsHead[data-density="compact"] .nexus-shell-description {
-  max-width: 24ch;
+  max-width: min(52ch, 100%);
   font-size: 10px;
   line-height: 1.35;
 }
@@ -11249,22 +11250,14 @@ html[data-nexus-motion-profile="reduced"]
 
 .nexus-hq-commandTable {
   display: grid;
-  grid-template-columns: minmax(0, 1.78fr) minmax(312px, 0.72fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+  gap: clamp(16px, 1.8vw, 24px);
   align-items: start;
-}
-
-.nexus-hq-commandTable[data-hq-focus-mode="game"] {
-  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
 }
 
 .nexus-hq-commandTable__workspace {
   min-width: 0;
-}
-
-.nexus-hq-commandTable[data-hq-focus-mode="game"]
-  .nexus-hq-commandTable__workspace {
-  width: 100%;
 }
 
 .nexus-hq-console {
@@ -11316,21 +11309,6 @@ html[data-nexus-motion-profile="reduced"]
     );
   pointer-events: none;
   z-index: 3;
-}
-
-.nexus-hq-consoleShell__stage[data-focus-mode="game"]::before {
-  background:
-    radial-gradient(
-      circle at 50% 8%,
-      rgba(255, 184, 94, 0.08),
-      transparent 24%
-    ),
-    linear-gradient(
-      180deg,
-      transparent 0%,
-      rgba(3, 8, 14, 0.12) 62%,
-      rgba(3, 8, 14, 0.38) 100%
-    );
 }
 
 .nexus-hq-consoleShell__stage[data-focus-mode="chat"]::before {
@@ -13217,8 +13195,8 @@ html[data-nexus-motion-profile="reduced"] .nexus-shell-stage__capabilityVideo {
 
 .nexus-surface-chamber-shell__body {
   display: grid;
-  grid-template-columns: minmax(0, 1.14fr) minmax(320px, 0.86fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: clamp(16px, 1.8vw, 24px);
 }
 
 .nexus-surface-chamber-shell__lead,
@@ -13235,8 +13213,8 @@ html[data-nexus-motion-profile="reduced"] .nexus-shell-stage__capabilityVideo {
 
 .nexus-hq-strategium__headerBand {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-  gap: 14px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: clamp(14px, 1.6vw, 20px);
   align-items: start;
 }
 
@@ -13463,7 +13441,7 @@ html[data-nexus-motion-profile="reduced"] .nexus-shell-stage__capabilityVideo {
   }
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1100px) {
   .nexus-mission-handoff,
   .nexus-hq-strategium__headerBand,
   .nexus-hq-strategium__sessionStrip,
@@ -13578,91 +13556,6 @@ html[data-nexus-motion-profile="reduced"] .nexus-shell-stage__capabilityVideo {
   display: grid;
   gap: 8px;
   justify-items: end;
-}
-
-.nexus-trust-strip {
-  min-width: 0;
-  max-width: 252px;
-  border-left: 1px solid rgba(96, 150, 184, 0.18);
-  padding-left: 8px;
-}
-
-.nexus-trust-strip__summary {
-  display: grid;
-  gap: 4px;
-  list-style: none;
-  cursor: pointer;
-}
-
-.nexus-trust-strip__summary::-webkit-details-marker {
-  display: none;
-}
-
-.nexus-trust-strip__label,
-.nexus-trust-strip__rowLabel,
-.nexus-trust-strip__badgeLabel {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(170, 195, 213, 0.48);
-}
-
-.nexus-trust-strip__badges {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 3px;
-}
-
-.nexus-trust-strip__badge {
-  display: grid;
-  gap: 1px;
-  min-width: 0;
-  padding: 4px 6px;
-  border: 1px solid rgba(96, 150, 184, 0.12);
-  background: rgba(9, 14, 21, 0.76);
-}
-
-.nexus-trust-strip__badgeValue,
-.nexus-trust-strip__rowValue {
-  color: rgba(235, 242, 248, 0.92);
-  font-size: 9px;
-  line-height: 1.25;
-}
-
-.nexus-trust-strip__body {
-  display: grid;
-  gap: 6px;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(96, 150, 184, 0.12);
-}
-
-.nexus-trust-strip__row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.nexus-trust-strip__divider {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    rgba(121, 214, 255, 0.24),
-    rgba(121, 214, 255, 0)
-  );
-}
-
-.nexus-trust-strip__actions {
-  display: grid;
-  gap: 6px;
-  padding-top: 2px;
-}
-
-.nexus-trust-strip__note {
-  color: rgba(192, 209, 222, 0.78);
-  font-size: 10px;
-  line-height: 1.4;
 }
 
 .nexus-ops-moduleCard,
@@ -13998,8 +13891,7 @@ html[data-nexus-motion-profile="reduced"] .nexus-shell-stage__capabilityVideo {
     grid-template-columns: 1fr;
   }
 
-  .nexus-shell-page__missionStripReadouts,
-  .nexus-trust-strip__badges {
+  .nexus-shell-page__missionStripReadouts {
     justify-content: flex-start;
   }
 
@@ -14007,13 +13899,6 @@ html[data-nexus-motion-profile="reduced"] .nexus-shell-stage__capabilityVideo {
     justify-items: start;
   }
 
-  .nexus-trust-strip {
-    min-width: 0;
-    max-width: none;
-    width: 100%;
-    border-left: none;
-    padding-left: 0;
-  }
 }
 
 .nexus-landing-header {
@@ -15317,7 +15202,7 @@ html[data-nexus-motion-profile="reduced"] .nexus-landing-proclamation__scan {
   white-space: nowrap;
 }
 
-@media (min-width: 1181px) {
+@media (min-width: 1441px) {
   .nexus-ops-rail--sticky {
     position: sticky;
     top: calc(var(--top-rail-height, 0px) + 16px);
@@ -15329,14 +15214,16 @@ html[data-nexus-motion-profile="reduced"] .nexus-landing-proclamation__scan {
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1440px) {
   .nexus-ops-rail--sticky {
     position: static;
     max-height: none;
     overflow: visible;
     padding-right: 0;
   }
+}
 
+@media (max-width: 1180px) {
   .nexus-command-header__inner {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px 12px;
@@ -15899,38 +15786,6 @@ html[data-nexus-motion-profile="reduced"] .nexus-landing-proclamation__scan {
     letter-spacing: 0.16em;
   }
 
-  .nexus-trust-strip {
-    max-width: none;
-    padding-left: 0;
-    border-left: 0;
-  }
-
-  .nexus-trust-strip__label {
-    display: none;
-  }
-
-  .nexus-trust-strip__summary {
-    gap: 2px;
-  }
-
-  .nexus-trust-strip__badges {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 2px;
-  }
-
-  .nexus-trust-strip__badge {
-    min-width: 0;
-    padding: 3px 4px;
-  }
-
-  .nexus-trust-strip__badgeLabel,
-  .nexus-trust-strip__badgeValue {
-    overflow: hidden;
-    font-size: 7px;
-    line-height: 1.1;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 
   .nexus-shell-stage,
   .nexus-shell-stage:not(.nexus-shell-stage--hq),
@@ -18090,4 +17945,822 @@ html[data-nexus-phone-posture="compact"] .nexus-hq-chronicle__bubble {
 
 html[data-nexus-phone-posture="compact"] .nexus-hq-composer__input {
   font-size: 16px;
+}
+
+
+/* Homefront Clearance: proportional shell + phone grammar */
+
+.nexus-shell-grid--primary-secondary {
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+}
+
+.nexus-shell-grid--split {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nexus-shell-grid--stack {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.nexus-shell-page {
+  width: min(100%, var(--shell-max-wide));
+  max-width: var(--shell-max-wide);
+  margin-inline: auto;
+}
+
+.nexus-shell-page--standard {
+  width: min(100%, var(--shell-max-standard));
+  max-width: var(--shell-max-standard);
+  margin-inline: auto;
+}
+
+.nexus-shell-page--wide {
+  width: min(100%, var(--shell-max-wide));
+  max-width: var(--shell-max-wide);
+  margin-inline: auto;
+}
+
+.nexus-shell-page--full {
+  width: min(100%, var(--shell-max-full));
+  max-width: var(--shell-max-full);
+  margin-inline: auto;
+}
+
+.nexus-shell-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nexus-shell-stage > .nexus-shell-page {
+  align-self: center;
+}
+
+.nexus-hq-shell,
+.nexus-hq-commandTable {
+  width: min(100%, var(--shell-max-wide));
+  max-width: var(--shell-max-wide);
+  margin-inline: auto;
+}
+
+.nexus-command-header__inner {
+  width: min(100%, var(--shell-max-wide));
+  max-width: var(--shell-max-wide);
+  margin-inline: auto;
+}
+
+.nexus-command-header__tabs {
+  flex: 1 1 auto;
+}
+
+.nexus-command-header__link {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.nexus-surface-route-strip__grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+}
+
+.nexus-shell-page__missionStrip--compact,
+.nexus-shell-page__missionStrip {
+  padding: 8px 12px;
+}
+
+@media (max-width: 1100px) {
+  .nexus-shell-grid--primary-secondary,
+  .nexus-shell-grid--split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nexus-surface-chamber-shell__body {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-shell-hero {
+    grid-template-columns: 1fr;
+    min-height: unset;
+  }
+
+  .nexus-surface-route-strip.nexus-command-mission-strip .nexus-surface-route-strip__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .nexus-shell-grid,
+  .nexus-shell-grid--primary-secondary,
+  .nexus-shell-grid--split {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .nexus-surface-route-strip__grid,
+  .nexus-surface-route-strip.nexus-command-mission-strip .nexus-surface-route-strip__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-shell-page {
+    padding: 12px var(--shell-gutter) 72px;
+  }
+
+  .nexus-shell-stage {
+    padding: 10px var(--shell-gutter) 72px;
+  }
+
+  .nexus-shell-hero {
+    padding: 18px 16px 20px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+  }
+
+  .nexus-hq-console,
+  .nexus-hq-command-table {
+    min-height: 0 !important;
+  }
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-shell-page__missionStripReadouts {
+  display: none;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-surface-route-strip.nexus-command-mission-strip {
+  display: none;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-command-header__link {
+  flex: 0 0 auto;
+  min-width: 76px;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-ops-rail {
+  order: 2;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-ops-workplane {
+  order: 1;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-surface-chamber-shell__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-surface-chamber-shell__support {
+  opacity: 0.96;
+}
+
+/* HQ Clearance: chronicle primary, rail secondary, phone chat-first */
+@media (min-width: 1101px) {
+  .nexus-hq-commandTable {
+    grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+  }
+
+  .nexus-hq-chronicle-shell {
+    flex: 1 1 48vh;
+    min-height: 280px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .nexus-hq-commandTable {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-hq-tacticalRail,
+  .nexus-hq-prelude {
+    order: 2;
+  }
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-hq-console {
+  height: auto;
+  min-height: calc(100dvh - var(--top-rail-height, 96px) - 8px);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-hq-chronicle-shell {
+  flex: 1 1 auto;
+  min-height: min(58dvh, 520px);
+  max-height: none;
+}
+
+/* Resources Clearance: console list + full-bleed active console */
+.nexus-resources-workbench .nexus-surface-chamber-shell__body {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.7fr);
+}
+
+@media (max-width: 1100px) {
+  .nexus-resources-workbench .nexus-surface-chamber-shell__body {
+    grid-template-columns: 1fr;
+  }
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-resources-mission-strip__signals {
+  display: none;
+}
+
+
+/* Frontend-skill Clearance polish: workspace-first, calm type, intentional motion */
+
+.nexus-shell-opsHead--clearance,
+.nexus-shell-opsHead[data-density="compact"].nexus-shell-opsHead--clearance {
+  grid-template-columns: minmax(0, 1.7fr) minmax(160px, 0.55fr);
+  gap: clamp(12px, 1.4vw, 20px);
+  align-items: end;
+  padding: 4px 0 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--hairline, rgba(148, 167, 184, 0.12));
+  background: transparent;
+  box-shadow: none;
+}
+
+.nexus-shell-opsHead--clearance .nexus-shell-opsHead__manifest {
+  gap: 8px;
+}
+
+.nexus-shell-opsHead--clearance .nexus-shell-title {
+  max-width: min(28ch, 100%);
+  font-size: clamp(28px, 3.4vw, 42px);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  color: var(--text-strong, #eff5fa);
+}
+
+.nexus-shell-opsHead--clearance .nexus-shell-description {
+  max-width: min(56ch, 100%);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted, #b9c5d1);
+}
+
+.nexus-shell-opsHead--clearance .nexus-shell-eyebrow,
+.nexus-shell-opsHead--clearance .nexus-shell-opsHead__identityLabel {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+
+.nexus-shell-opsHead--clearance .nexus-shell-opsHead__plateFrame {
+  min-height: 96px;
+  max-height: 120px;
+  border-radius: 8px;
+  opacity: 0.92;
+}
+
+.nexus-shell-opsHead--clearance .nexus-shell-opsHead__plateTag {
+  font-size: 9px;
+}
+
+.nexus-shell-stage .nexus-ops-field {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent),
+    rgba(6, 11, 18, 0.28);
+  box-shadow: none;
+}
+
+.nexus-shell-stage .nexus-ops-field__title {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.nexus-ops-workplane.nexus-motion-enter--primary {
+  animation-duration: 280ms;
+}
+
+.nexus-ops-rail.nexus-motion-enter--support {
+  animation-duration: 300ms;
+}
+
+.nexus-shell-segmented__button {
+  transition:
+    background-color 160ms var(--ease-standard, ease),
+    color 160ms var(--ease-standard, ease),
+    box-shadow 160ms var(--ease-standard, ease);
+}
+
+.nexus-shell-segmented__button:hover {
+  color: var(--text-strong, #eff5fa);
+}
+
+.nexus-shell-segmented__button.is-active,
+.nexus-shell-segmented__button[aria-pressed="true"] {
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--cyan, #61d8ff) 70%, transparent);
+}
+
+.nexus-command-header__link {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms var(--ease-emphasis, ease);
+}
+
+.nexus-command-header__link:hover {
+  transform: translateY(-1px);
+}
+
+.nexus-command-header__link.is-active,
+.nexus-command-header__link[aria-current="page"] {
+  color: var(--text-strong, #eff5fa);
+}
+
+@media (max-width: 1100px) {
+  .nexus-shell-opsHead--clearance,
+  .nexus-shell-opsHead[data-density="compact"].nexus-shell-opsHead--clearance {
+    grid-template-columns: 1fr;
+  }
+
+  .nexus-shell-opsHead--clearance .nexus-shell-opsHead__plate {
+    display: none;
+  }
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-shell-opsHead--clearance {
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-shell-opsHead--clearance .nexus-shell-title {
+  font-size: clamp(24px, 7vw, 32px);
+}
+
+html[data-nexus-phone-posture="compact"] .nexus-shell-opsHead--clearance .nexus-shell-opsHead__plate,
+html[data-nexus-phone-posture="compact"] .nexus-shell-opsHead--clearance .nexus-shell-actions--ops {
+  display: none;
+}
+
+/* Clearance centering — balanced column, equal side margins */
+.nexus-root-main {
+  display: block;
+}
+
+.nexus-shell-opsHead--clearance {
+  width: 100%;
+  justify-items: stretch;
+}
+
+.nexus-shell-opsHead--clearance .nexus-shell-opsHead__copyBlock {
+  text-align: left;
+}
+
+.nexus-shell-opsHead--clearance .nexus-shell-actions--ops {
+  justify-content: flex-start;
+}
+
+.nexus-ops-canvas {
+  width: 100%;
+}
+
+.nexus-surface-chamber-shell,
+.nexus-surface-chamber-shell__body,
+.nexus-shell-stack {
+  width: 100%;
+}
+
+/* Slim top rail — single neat bar, not a tall command block */
+.nexus-command-header--slim {
+  padding: 8px var(--shell-gutter) 0;
+}
+
+.nexus-command-header--slim .nexus-command-header__inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 16px;
+  width: min(100%, var(--shell-max-wide));
+  max-width: var(--shell-max-wide);
+  margin-inline: auto;
+  padding: 6px 10px 6px 14px;
+  border-radius: 999px;
+  min-height: 52px;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.12),
+    0 10px 28px rgba(0, 0, 0, 0.28);
+}
+
+.nexus-command-header--slim .nexus-command-header__inner::after {
+  display: none;
+}
+
+.nexus-command-header--slim .nexus-command-header__mission {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.nexus-command-header--slim .nexus-command-header__brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.nexus-command-header--slim .nexus-command-header__brandLabel {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+}
+
+.nexus-command-header--slim .nexus-command-header__context {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+}
+
+.nexus-command-header--slim .nexus-command-header__contextValue {
+  font-family: Bahnschrift, Segoe UI, sans-serif;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: rgba(237, 243, 248, 0.82);
+}
+
+.nexus-command-header--slim .nexus-command-header__rail {
+  min-width: 0;
+}
+
+.nexus-command-header--slim .nexus-command-header__tabs {
+  padding: 3px;
+  gap: 2px;
+}
+
+.nexus-command-header--slim .nexus-command-header__link {
+  min-height: 30px;
+  min-width: 0;
+  padding: 6px 10px;
+}
+
+.nexus-command-header--slim .nexus-command-header__linkLabel {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+.nexus-command-header--slim .nexus-command-header__utility {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.nexus-command-header--slim .nexus-command-header__utilityCore {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nexus-command-header--slim .nexus-command-header__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 110px;
+}
+
+.nexus-command-header--slim .nexus-command-header__statusValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+}
+
+.nexus-command-header--slim .nexus-operational-lights--toprail {
+  max-width: 180px;
+  overflow: hidden;
+}
+
+.nexus-command-header--slim .nexus-toprail__icon-button {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.nexus-command-header--slim .nexus-command-header__buttonLabel {
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 1100px) {
+  .nexus-command-header--slim .nexus-operational-lights--toprail {
+    display: none;
+  }
+
+  .nexus-command-header--slim .nexus-command-header__contextValue {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .nexus-command-header--slim {
+    padding: 6px 10px 0;
+  }
+
+  .nexus-command-header--slim .nexus-command-header__inner {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding: 5px 8px;
+    border-radius: 18px;
+    min-height: 46px;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Homefront Aurora — full visual system pass
+   ═══════════════════════════════════════════════════════════ */
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(94, 225, 255, 0.07), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(110, 184, 255, 0.05), transparent 45%),
+    var(--bg, #03070b);
+  color: var(--text, #f2f7fb);
+}
+
+.nexus-root-main {
+  background:
+    radial-gradient(circle at var(--nexus-ops-pointer-x, 50%) 0%, rgba(94, 225, 255, 0.06), transparent 32rem),
+    linear-gradient(180deg, rgba(3, 7, 11, 0), rgba(3, 7, 11, 0.55));
+}
+
+.nexus-ambient__layer--grid {
+  opacity: 0.08;
+}
+
+.nexus-ambient__layer--ornament,
+.nexus-ambient__layer--sweep {
+  opacity: 0.1;
+}
+
+.nexus-shell-stage__veil {
+  background:
+    linear-gradient(180deg, rgba(3, 7, 11, 0.2), rgba(3, 7, 11, 0.88)),
+    radial-gradient(circle at 18% 12%, rgba(94, 225, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 82% 8%, rgba(110, 184, 255, 0.05), transparent 26%);
+  border-radius: 20px;
+}
+
+.nexus-shell-stage__focus {
+  opacity: 0.18;
+  filter: blur(22px);
+}
+
+/* Buttons & chips */
+.nexus-shell-button,
+.nexus-shell-segmented__button,
+.nexus-toprail__icon-button {
+  border-radius: 999px;
+  border-color: rgba(94, 225, 255, 0.16);
+  background: rgba(8, 16, 24, 0.72);
+  color: var(--text-muted, #a8b9c8);
+  transition:
+    background-color var(--motion-fast),
+    color var(--motion-fast),
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+.nexus-shell-button:hover,
+.nexus-shell-segmented__button:hover,
+.nexus-toprail__icon-button:hover {
+  color: var(--text-strong, #f5fafc);
+  border-color: rgba(94, 225, 255, 0.34);
+  background: rgba(94, 225, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.nexus-shell-button.is-active,
+.nexus-shell-segmented__button.is-active,
+.nexus-shell-segmented__button[aria-pressed="true"],
+.nexus-command-header__link.is-active {
+  color: #03070b;
+  background: linear-gradient(180deg, #e8f7ff, #5ee1ff);
+  border-color: transparent;
+  box-shadow: 0 0 24px rgba(94, 225, 255, 0.28);
+}
+
+.nexus-shell-badge {
+  border-radius: 999px;
+  border: 1px solid rgba(94, 225, 255, 0.18);
+  background: rgba(94, 225, 255, 0.06);
+  letter-spacing: 0.14em;
+}
+
+.nexus-shell-badge--accent {
+  color: #5ee1ff;
+  border-color: rgba(94, 225, 255, 0.35);
+}
+
+.nexus-shell-badge--success {
+  color: #5ef0c0;
+  border-color: rgba(94, 240, 192, 0.3);
+}
+
+/* Slim nav aurora glass */
+.nexus-command-header--slim .nexus-command-header__inner {
+  border: 1px solid rgba(94, 225, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(14, 26, 36, 0.92), rgba(6, 12, 18, 0.88)),
+    rgba(3, 7, 11, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(232, 247, 255, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 12px 36px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.nexus-command-header--slim .nexus-command-header__tabs {
+  border-color: rgba(94, 225, 255, 0.12);
+  background: rgba(3, 7, 11, 0.45);
+}
+
+.nexus-command-header--slim .nexus-command-header__link.is-active {
+  color: #03070b;
+}
+
+.nexus-command-header--slim .nexus-command-header__brandLabel {
+  text-shadow: 0 0 18px rgba(94, 225, 255, 0.35);
+}
+
+/* Ops header / workplane */
+.nexus-shell-opsHead--clearance {
+  border-bottom-color: rgba(94, 225, 255, 0.12);
+}
+
+.nexus-shell-opsHead--clearance .nexus-shell-opsHead__plateFrame {
+  border: 1px solid rgba(94, 225, 255, 0.18);
+  box-shadow: 0 0 32px rgba(94, 225, 255, 0.08);
+  overflow: hidden;
+}
+
+.nexus-shell-opsHead--clearance .nexus-shell-opsHead__plateSweep {
+  background: linear-gradient(90deg, transparent, rgba(94, 225, 255, 0.22), transparent);
+  animation: nexus-hero-sweep var(--nexus-atmosphere-sweep-duration) var(--ease-emphasis) infinite;
+}
+
+.nexus-ops-workplane,
+.nexus-ops-rail {
+  border-radius: 14px;
+}
+
+.nexus-shell-stage .nexus-ops-field {
+  background:
+    linear-gradient(90deg, rgba(94, 225, 255, 0.05), transparent 18%),
+    rgba(6, 14, 22, 0.35);
+  transition: background-color var(--motion-fast), border-color var(--motion-fast);
+}
+
+.nexus-shell-stage .nexus-ops-field:hover {
+  background:
+    linear-gradient(90deg, rgba(94, 225, 255, 0.09), transparent 22%),
+    rgba(8, 18, 28, 0.48);
+}
+
+.nexus-ops-field::before {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(94, 225, 255, 0.55) 20%,
+    rgba(94, 225, 255, 0.2) 80%,
+    transparent
+  );
+}
+
+.nexus-surface-disclosure {
+  border-color: rgba(94, 225, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(6, 14, 22, 0.55);
+  transition:
+    border-color var(--motion-fast),
+    background-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+.nexus-surface-disclosure:hover,
+.nexus-surface-disclosure[open] {
+  border-color: rgba(94, 225, 255, 0.28);
+  box-shadow: 0 0 0 1px rgba(94, 225, 255, 0.08);
+}
+
+.nexus-surface-disclosure summary {
+  cursor: pointer;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted, #a8b9c8);
+}
+
+.nexus-surface-disclosure summary:hover {
+  color: #5ee1ff;
+}
+
+/* HQ Aurora */
+.nexus-hq-console {
+  border: 1px solid rgba(94, 225, 255, 0.12);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(10, 20, 30, 0.96), rgba(3, 7, 11, 1)),
+    radial-gradient(circle at 100% 0%, rgba(94, 225, 255, 0.06), transparent 28%);
+  box-shadow:
+    inset 0 1px 0 rgba(232, 247, 255, 0.05),
+    0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+.nexus-hq-chronicle__bubble {
+  border-radius: 12px;
+  border: 1px solid rgba(94, 225, 255, 0.1);
+  background: rgba(8, 16, 24, 0.72);
+}
+
+.nexus-hq-composer__input,
+.nexus-hq-composer textarea,
+input.nexus-shell-input,
+textarea.nexus-shell-input {
+  border-radius: 12px;
+  border: 1px solid rgba(94, 225, 255, 0.16);
+  background: rgba(3, 7, 11, 0.72);
+  color: var(--text, #f2f7fb);
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+.nexus-hq-composer__input:focus,
+.nexus-hq-composer textarea:focus,
+input.nexus-shell-input:focus,
+textarea.nexus-shell-input:focus {
+  outline: none;
+  border-color: rgba(94, 225, 255, 0.45);
+  box-shadow: 0 0 0 3px rgba(94, 225, 255, 0.12);
+}
+
+/* Continuity / strips */
+.nexus-surface-route-strip,
+.nexus-shell-page__missionStrip {
+  border-color: rgba(94, 225, 255, 0.1);
+  background:
+    linear-gradient(90deg, rgba(94, 225, 255, 0.06), transparent 40%),
+    rgba(6, 14, 22, 0.55);
+  border-radius: 12px;
+}
+
+.nexus-surface-route-strip__cellValue {
+  color: #e8f7ff;
+}
+
+.nexus-surface-route-strip__cellValue[data-tone="success"] {
+  color: #5ef0c0;
+}
+
+.nexus-surface-route-strip__cellValue[data-tone="critical"] {
+  color: #ff6b76;
+}
+
+/* Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(94, 225, 255, 0.28) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(94, 225, 255, 0.22);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(94, 225, 255, 0.4);
+}
+
+/* Focus visible for keyboard */
+:focus-visible {
+  outline: 2px solid rgba(94, 225, 255, 0.55);
+  outline-offset: 2px;
+}
+
+html[data-nexus-motion-profile="reduced"] .nexus-shell-opsHead--clearance .nexus-shell-opsHead__plateSweep,
+html[data-nexus-motion-profile="reduced"] .nexus-ambient__layer--sweep,
+html[data-nexus-motion-profile="reduced"] .nexus-ambient__layer--ornament {
+  animation: none !important;
 }

@@ -40,11 +40,13 @@ export default function TrustOperationsRail({
   const [stepUpOpen, setStepUpOpen] = useState(false);
   const [statusNote, setStatusNote] = useState<string | null>(null);
 
-  const loadDiagnostics = useCallback(async () => {
+  const loadDiagnostics = useCallback(async (signal?: AbortSignal) => {
     try {
       const response = await apiFetch("/api/auth-diagnostics", {
         cache: "no-store",
+        signal,
       });
+      if (signal?.aborted) return;
       if (!response.ok) return;
       const payload = (await response
         .json()
@@ -58,23 +60,34 @@ export default function TrustOperationsRail({
 
   useEffect(() => {
     let active = true;
+    let controller: AbortController | null = null;
     let timer: number | null = null;
 
-    const refresh = async () => {
+    const refresh = () => {
       if (!active) return;
-      await loadDiagnostics();
+      if (typeof document !== "undefined" && document.hidden) return;
+      controller?.abort();
+      controller = new AbortController();
+      void loadDiagnostics(controller.signal);
     };
 
-    void refresh();
+    refresh();
     timer = window.setInterval(() => {
-      void refresh();
+      refresh();
     }, 30000);
+    const handleVisibility = () => {
+      if (document.hidden) return;
+      refresh();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
       active = false;
+      controller?.abort();
       if (timer !== null) {
         window.clearInterval(timer);
       }
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [loadDiagnostics]);
 

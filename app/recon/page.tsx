@@ -166,7 +166,7 @@ export default function ReconPage() {
       surface="recon"
       eyebrow="Collection sweep"
       title="Collection desk"
-      description="OSINT, repo intel, and triage on one collection desk."
+      description="OSINT and triage."
       actions={
         <>
           <ShellBadge tone="success">Free by default</ShellBadge>
@@ -238,58 +238,76 @@ export default function ReconPage() {
 
         {view === "osint" && (
           <div id="recon-lookup" style={{ scrollMarginTop: "120px" }}>
-            <OpsWorkplane className={reconLayout.workplaneClass}>
-              <OpsField
-                title="OSINT lookup"
-                detail="Domain, IP, email, username, and hash"
-              >
-                <LazyReconLookup />
-              </OpsField>
-              <OpsRail className={reconLayout.railClass}>
-                <TrustOperationsRail
-                  title={reconLayout.trustLabel}
-                  detail="Connector posture, step-up state, and protected-action cues stay in the collection lane."
-                  compact
-                />
-                <OpsField
-                  title="AI exposure packs"
-                  detail="Passive AI posture review"
-                  tone="muted"
-                  compact
+            <div className="nexus-surface-chamber-shell">
+              <div className="nexus-surface-chamber-shell__body">
+                <OpsWorkplane
+                  className={`nexus-surface-chamber-shell__lead ${reconLayout.workplaneClass}`}
                 >
-                  <LazyAiExposureReviewCard route="/recon" />
-                </OpsField>
-              </OpsRail>
-              <OpsField
-                id="recon-repo-intel"
-                title="Repo intel"
-                detail="Public GitHub metadata only"
-                compact
-              >
-                <LazyRepoIntelPanel />
-              </OpsField>
-              <OpsField
-                title="Idea link intake"
-                detail="Register GitHub/X links for assimilation triage"
-                tone="muted"
-                compact
-              >
-                <LazyIdeaLinkIntakePanel />
-              </OpsField>
-              <OpsField
-                title="Coordinate lookup"
-                detail="Bounded place search and reverse geocoding"
-                tone="muted"
-                compact
-              >
-                <details className="nexus-surface-disclosure">
-                  <summary>Open geocoding tools</summary>
-                  <div className="nexus-surface-disclosure__body">
-                    <LazyGeocodingPlaygroundCard />
-                  </div>
-                </details>
-              </OpsField>
-            </OpsWorkplane>
+                  <OpsField
+                    title="OSINT lookup"
+                    detail="Domain, IP, email, username, and hash"
+                  >
+                    <LazyReconLookup />
+                  </OpsField>
+                </OpsWorkplane>
+                <OpsRail
+                  className={`nexus-surface-chamber-shell__support ${reconLayout.railClass}`}
+                >
+                  <TrustOperationsRail
+                    title={reconLayout.trustLabel}
+                    detail="Connector posture, step-up state, and protected-action cues stay in the collection lane."
+                    compact
+                  />
+                  <OpsField
+                    title="AI exposure packs"
+                    detail="Passive AI posture review"
+                    tone="muted"
+                    compact
+                  >
+                    <LazyAiExposureReviewCard route="/recon" />
+                  </OpsField>
+                  <details className="nexus-surface-disclosure">
+                    <summary>Open repo intel</summary>
+                    <div className="nexus-surface-disclosure__body">
+                      <OpsField
+                        id="recon-repo-intel"
+                        title="Repo intel"
+                        detail="Public GitHub metadata only"
+                        compact
+                      >
+                        <LazyRepoIntelPanel />
+                      </OpsField>
+                    </div>
+                  </details>
+                  <details className="nexus-surface-disclosure">
+                    <summary>Open idea link intake</summary>
+                    <div className="nexus-surface-disclosure__body">
+                      <OpsField
+                        title="Idea link intake"
+                        detail="Register GitHub/X links for assimilation triage"
+                        tone="muted"
+                        compact
+                      >
+                        <LazyIdeaLinkIntakePanel />
+                      </OpsField>
+                    </div>
+                  </details>
+                  <details className="nexus-surface-disclosure">
+                    <summary>Open geocoding tools</summary>
+                    <div className="nexus-surface-disclosure__body">
+                      <OpsField
+                        title="Coordinate lookup"
+                        detail="Bounded place search and reverse geocoding"
+                        tone="muted"
+                        compact
+                      >
+                        <LazyGeocodingPlaygroundCard />
+                      </OpsField>
+                    </div>
+                  </details>
+                </OpsRail>
+              </div>
+            </div>
           </div>
         )}
 

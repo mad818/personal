@@ -204,14 +204,15 @@ export default function AlphaPage() {
 
   return (
     <ShellPage
+      width="wide"
       surface="alpha"
       eyebrow="Market picture"
       title="Market desk"
-      description="Watchlists, setups, and sizing on one market desk."
+      description="Watchlists, setups, sizing."
       actions={
         <>
-          <ShellBadge tone="accent">Execution support</ShellBadge>
-          <ShellBadge tone="success">Tape continuity</ShellBadge>
+          <ShellBadge tone="accent">Execution</ShellBadge>
+          <ShellBadge tone="success">Tape</ShellBadge>
         </>
       }
     >

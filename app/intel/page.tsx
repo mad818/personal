@@ -157,14 +157,15 @@ export default function IntelPage() {
 
   return (
     <ShellPage
+      width="wide"
       surface="intel"
       eyebrow="World picture"
       title="World picture"
-      description="Signals, geopolitics, and sweeps on one briefing plane."
+      description="Signals and sweeps."
       actions={
         <>
-          <ShellBadge tone="accent">Narrative aware</ShellBadge>
-          <ShellBadge tone="muted">Sweep-ready continuity</ShellBadge>
+          <ShellBadge tone="accent">Signals</ShellBadge>
+          <ShellBadge tone="muted">Sweeps</ShellBadge>
         </>
       }
     >
@@ -261,11 +262,7 @@ export default function IntelPage() {
         {seg === "news" && (
           <div id="intel-news" style={{ scrollMarginTop: "120px" }}>
             <OpsWorkplane className={intelLayout.workplaneClass}>
-              <ShellGrid
-                columns="minmax(0, 1.05fr) minmax(320px, 0.95fr)"
-                align="start"
-                gap="12px"
-              >
+              <ShellGrid recipe="primary-secondary" align="start" gap="16px">
                 <OpsField
                   title="Topic heatmap"
                   detail="What changed across the narrative field"
@@ -286,9 +283,9 @@ export default function IntelPage() {
                 <summary>Open research sources</summary>
                 <div className="nexus-surface-disclosure__body">
                   <ShellGrid
-                    columns="minmax(0, 1.1fr) minmax(280px, 0.9fr)"
+                    recipe="primary-secondary"
                     align="start"
-                    gap="12px"
+                    gap="16px"
                   >
                     <OpsField
                       title="Daily papers"

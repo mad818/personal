@@ -1663,45 +1663,41 @@ export function ShellPage({
               branding={branding}
               atmosphere={atmosphere}
             />
-            {surface !== "default" ? (
-              <SpatialCommandStrip
-                surface={surface}
-                className={
-                  compactChrome ? "nexus-spatial-strip--compact" : undefined
-                }
-              />
+            {surface !== "default" && !compactChrome ? (
+              <SpatialCommandStrip surface={surface} />
             ) : null}
-            <OpsStrip
-              className={cn(
-                "nexus-shell-page__missionStrip",
-                compactChrome && "nexus-shell-page__missionStrip--compact",
-                "nexus-motion-enter",
-                "nexus-motion-enter--continuity",
-              )}
-            >
-              <span className="nexus-shell-page__missionStripLabel">
-                {taste.workplaneLabel || layout.stripLabel}
-              </span>
-              <span className="nexus-shell-page__missionStripCopy">
-                {taste.supportLabel}
-              </span>
-              <div className="nexus-shell-page__missionStripReadouts">
-                {art.readouts.slice(0, 2).map((readout) => (
-                  <span
-                    key={`${surface}-${readout.label}`}
-                    className="nexus-shell-page__missionStripReadout"
-                  >
-                    <span className="nexus-shell-page__missionStripReadoutLabel">
-                      {readout.label}
+            {!compactChrome ? (
+              <OpsStrip
+                className={cn(
+                  "nexus-shell-page__missionStrip",
+                  "nexus-motion-enter",
+                  "nexus-motion-enter--continuity",
+                )}
+              >
+                <span className="nexus-shell-page__missionStripLabel">
+                  {taste.workplaneLabel || layout.stripLabel}
+                </span>
+                <span className="nexus-shell-page__missionStripCopy">
+                  {taste.supportLabel}
+                </span>
+                <div className="nexus-shell-page__missionStripReadouts">
+                  {art.readouts.slice(0, 2).map((readout) => (
+                    <span
+                      key={`${surface}-${readout.label}`}
+                      className="nexus-shell-page__missionStripReadout"
+                    >
+                      <span className="nexus-shell-page__missionStripReadoutLabel">
+                        {readout.label}
+                      </span>
+                      <span className="nexus-shell-page__missionStripReadoutValue">
+                        {readout.value}
+                      </span>
                     </span>
-                    <span className="nexus-shell-page__missionStripReadoutValue">
-                      {readout.value}
-                    </span>
-                  </span>
-                ))}
-              </div>
-            </OpsStrip>
-            {surface !== "default" && surface !== "hq" ? (
+                  ))}
+                </div>
+              </OpsStrip>
+            ) : null}
+            {surface !== "default" && surface !== "hq" && !compactChrome ? (
               <HomefrontWorkplaneSummary surface={surface} />
             ) : null}
             {children}
@@ -1734,6 +1730,7 @@ export function OpsHeader({
   atmosphere: ReturnType<typeof resolveSurfaceAtmosphereSpec>;
 }) {
   const taste = getNexusTasteContract(surface);
+  const clearanceCompact = density === "compact";
   return (
     <header
       className={cn(
@@ -1741,6 +1738,7 @@ export function OpsHeader({
         `nexus-shell-hero--${surface}`,
         "nexus-motion-enter",
         "nexus-motion-enter--hero",
+        clearanceCompact && "nexus-shell-opsHead--clearance",
       )}
       data-surface={surface}
       data-density={density}
@@ -1764,9 +1762,11 @@ export function OpsHeader({
                 <span className="nexus-shell-opsHead__identityLabel">
                   {branding.visibleLabel}
                 </span>
-                <span className="nexus-shell-opsHead__identityNote">
-                  {taste.headerNote}
-                </span>
+                {!clearanceCompact ? (
+                  <span className="nexus-shell-opsHead__identityNote">
+                    {taste.headerNote}
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>
@@ -1775,40 +1775,42 @@ export function OpsHeader({
             <p className="nexus-shell-description">{description}</p>
           ) : null}
         </div>
-        {surface !== "default" ? (
+        {!clearanceCompact && surface !== "default" ? (
           <HomefrontDoctrineRail surface={surface} branding={branding} />
         ) : null}
-        {surface !== "default" && surface !== "hq" ? (
+        {!clearanceCompact && surface !== "default" && surface !== "hq" ? (
           <HomefrontVisualParityBand
             surface={surface}
             art={art}
             branding={branding}
           />
         ) : null}
-        {surface !== "default" && surface !== "hq" ? (
+        {!clearanceCompact && surface !== "default" && surface !== "hq" ? (
           <HomefrontOperatingContractRail
             surface={surface}
             art={art}
             branding={branding}
           />
         ) : null}
-        {surface !== "default" && surface !== "hq" ? (
+        {!clearanceCompact && surface !== "default" && surface !== "hq" ? (
           <HomefrontActionControlRail surface={surface} branding={branding} />
         ) : null}
-        {surface !== "default" && surface !== "hq" ? (
+        {!clearanceCompact && surface !== "default" && surface !== "hq" ? (
           <HomefrontSourceIntakeRail surface={surface} branding={branding} />
         ) : null}
-        {surface !== "default" && surface !== "hq" ? (
+        {!clearanceCompact && surface !== "default" && surface !== "hq" ? (
           <HomefrontCommandThreshold
             surface={surface}
             art={art}
             branding={branding}
           />
         ) : null}
-        <div className="nexus-shell-opsHead__tape" aria-hidden="true">
-          <span>{taste.supportLabel}</span>
-          <span>{taste.continuityLabel}</span>
-        </div>
+        {!clearanceCompact ? (
+          <div className="nexus-shell-opsHead__tape" aria-hidden="true">
+            <span>{taste.supportLabel}</span>
+            <span>{taste.continuityLabel}</span>
+          </div>
+        ) : null}
         {actions ? (
           <div className="nexus-shell-actions nexus-shell-actions--ops">
             {actions}
@@ -1830,21 +1832,23 @@ export function OpsHeader({
           <div className="nexus-shell-opsHead__plateFocus" />
           <div className="nexus-shell-opsHead__plateTag">{art.strap}</div>
         </div>
-        <div className="nexus-shell-opsHead__telemetry">
-          {art.readouts.map((readout) => (
-            <div
-              key={`${surface}-${readout.label}`}
-              className="nexus-shell-opsHead__readout"
-            >
-              <span className="nexus-shell-opsHead__readoutLabel">
-                {readout.label}
-              </span>
-              <span className="nexus-shell-opsHead__readoutValue">
-                {readout.value}
-              </span>
-            </div>
-          ))}
-        </div>
+        {!clearanceCompact ? (
+          <div className="nexus-shell-opsHead__telemetry">
+            {art.readouts.map((readout) => (
+              <div
+                key={`${surface}-${readout.label}`}
+                className="nexus-shell-opsHead__readout"
+              >
+                <span className="nexus-shell-opsHead__readoutLabel">
+                  {readout.label}
+                </span>
+                <span className="nexus-shell-opsHead__readoutValue">
+                  {readout.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
     </header>
   );
@@ -1940,7 +1944,12 @@ export function OpsWorkplane({
 }) {
   return (
     <div
-      className={cn("nexus-ops-workplane", className)}
+      className={cn(
+        "nexus-ops-workplane",
+        "nexus-motion-enter",
+        "nexus-motion-enter--primary",
+        className,
+      )}
       data-cinematic-zone="lead"
     >
       {children}
@@ -1957,7 +1966,12 @@ export function OpsRail({
 }) {
   return (
     <aside
-      className={cn("nexus-ops-rail", className)}
+      className={cn(
+        "nexus-ops-rail",
+        "nexus-motion-enter",
+        "nexus-motion-enter--support",
+        className,
+      )}
       data-cinematic-zone="support"
     >
       {children}
@@ -2099,22 +2113,37 @@ export function ShellStack({
 export function ShellGrid({
   children,
   columns,
+  recipe = "custom",
   className,
   gap = "16px",
   align = "stretch",
 }: {
   children: ReactNode;
-  columns: string;
+  columns?: string;
+  recipe?: "custom" | "primary-secondary" | "split" | "stack";
   className?: string;
   gap?: string;
   align?: CSSProperties["alignItems"];
 }) {
+  const recipeColumns =
+    recipe === "primary-secondary"
+      ? "minmax(0, 1.6fr) minmax(0, 1fr)"
+      : recipe === "split"
+        ? "repeat(2, minmax(0, 1fr))"
+        : recipe === "stack"
+          ? "minmax(0, 1fr)"
+          : (columns ?? "minmax(0, 1fr)");
+
   return (
     <div
-      className={cn("nexus-shell-grid", className)}
+      className={cn(
+        "nexus-shell-grid",
+        recipe !== "custom" && `nexus-shell-grid--${recipe}`,
+        className,
+      )}
       style={
         {
-          "--nexus-grid-columns": columns,
+          "--nexus-grid-columns": recipeColumns,
           "--nexus-grid-gap": gap,
           alignItems: align,
         } as CSSProperties

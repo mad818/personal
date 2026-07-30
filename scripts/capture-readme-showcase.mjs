@@ -105,8 +105,20 @@ async function main() {
     const page = await context.newPage();
 
     await page.addInitScript(() => {
-      window.localStorage.clear();
       window.sessionStorage.clear();
+      window.localStorage.clear();
+      window.localStorage.setItem(
+        "nexus-settings",
+        JSON.stringify({
+          state: {
+            settings: {
+              hqCompactOperatorLayout: false,
+              hqConsoleFocusMode: "command",
+            },
+          },
+          version: 1,
+        }),
+      );
     });
 
     const authResponse = await page.request.post(

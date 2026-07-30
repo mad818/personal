@@ -89,12 +89,17 @@ export function buildIsolatedRunId(now, stagedDiff) {
   return `${stamp}-${digest}`;
 }
 
-export function resolveContainedWorktree(repoRoot, runId) {
+function buildContainedWorktreeRelative(runId) {
   if (!/^[0-9TZ-]+-[a-f0-9]{10}$/.test(runId)) {
     throw new Error("run ID is outside the contained worktree contract");
   }
+  return `${WORKTREE_ROOT}/isolated-verify-${runId}`;
+}
+
+export function resolveContainedWorktree(repoRoot, runId) {
+  const worktreeRelative = buildContainedWorktreeRelative(runId);
   const worktreeRoot = path.resolve(repoRoot, WORKTREE_ROOT);
-  const candidate = path.resolve(worktreeRoot, `isolated-verify-${runId}`);
+  const candidate = path.resolve(repoRoot, ...worktreeRelative.split("/"));
   const relative = path.relative(worktreeRoot, candidate);
   if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
     throw new Error("worktree candidate escapes the contained worktree root");
@@ -274,11 +279,9 @@ async function main() {
   }
   const baseCommit = String(baseResult.stdout).trim();
   const runId = buildIsolatedRunId(new Date(), stagedDiff);
+  const worktreeRelative = buildContainedWorktreeRelative(runId);
   const worktreePath = resolveContainedWorktree(repoRoot, runId);
   const nodeModulesLink = path.join(worktreePath, "node_modules");
-  const worktreeRelative = path
-    .relative(repoRoot, worktreePath)
-    .replaceAll("\\", "/");
   const evidenceDirectory = `${EVIDENCE_ROOT}/${runId}`;
   const evidencePath = path.join(repoRoot, ...evidenceDirectory.split("/"));
   fs.mkdirSync(evidencePath, { recursive: true });

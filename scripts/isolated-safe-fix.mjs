@@ -108,12 +108,17 @@ export function buildSafeFixRunId(now, stagedDiff) {
   return `${stamp}-${digest}`;
 }
 
-export function resolveContainedFixWorktree(repoRoot, runId) {
+function buildContainedFixWorktreeRelative(runId) {
   if (!/^[0-9TZ-]+-[a-f0-9]{10}$/.test(runId)) {
     throw new Error("run ID is outside the contained safe-fix contract");
   }
+  return `${WORKTREE_ROOT}/isolated-fix-${runId}`;
+}
+
+export function resolveContainedFixWorktree(repoRoot, runId) {
+  const worktreeRelative = buildContainedFixWorktreeRelative(runId);
   const worktreeRoot = path.resolve(repoRoot, WORKTREE_ROOT);
-  const candidate = path.resolve(worktreeRoot, `isolated-fix-${runId}`);
+  const candidate = path.resolve(repoRoot, ...worktreeRelative.split("/"));
   const relative = path.relative(worktreeRoot, candidate);
   if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
     throw new Error("safe-fix worktree escapes the contained worktree root");
@@ -568,11 +573,9 @@ async function main() {
   const baseCommit = String(baseResult.stdout).trim();
   const originalStagedSha256 = hashBuffer(stagedDiff);
   const runId = buildSafeFixRunId(new Date(), stagedDiff);
+  const worktreeRelative = buildContainedFixWorktreeRelative(runId);
   const worktreePath = resolveContainedFixWorktree(repoRoot, runId);
   const nodeModulesLink = path.join(worktreePath, "node_modules");
-  const worktreeRelative = path
-    .relative(repoRoot, worktreePath)
-    .replaceAll("\\", "/");
   const evidenceDirectory = `${EVIDENCE_ROOT}/${runId}`;
   const evidencePath = path.join(repoRoot, ...evidenceDirectory.split("/"));
   fs.mkdirSync(evidencePath, { recursive: true });

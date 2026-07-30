@@ -112,7 +112,7 @@ async function main() {
             hqConsoleFocusMode: "command",
           },
         },
-        version: 0,
+        version: 1,
       };
       window.localStorage.setItem("nexus-settings", JSON.stringify(settings));
     });
@@ -135,7 +135,15 @@ async function main() {
       state: "visible",
       timeout: 20_000,
     });
-    await page.getByTestId("hq-console-shell").waitFor({
+
+    const consoleShell = page.locator("#hq-console-shell");
+    if (!(await consoleShell.isVisible().catch(() => false))) {
+      const showFullHq = page.getByRole("button", { name: "Show full HQ" });
+      if (await showFullHq.isVisible().catch(() => false)) {
+        await showFullHq.click();
+      }
+    }
+    await consoleShell.waitFor({
       state: "visible",
       timeout: 20_000,
     });

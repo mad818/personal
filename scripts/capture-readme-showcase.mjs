@@ -107,18 +107,6 @@ async function main() {
     await page.addInitScript(() => {
       window.sessionStorage.clear();
       window.localStorage.clear();
-      window.localStorage.setItem(
-        "nexus-settings",
-        JSON.stringify({
-          state: {
-            settings: {
-              hqCompactOperatorLayout: false,
-              hqConsoleFocusMode: "command",
-            },
-          },
-          version: 1,
-        }),
-      );
     });
 
     const authResponse = await page.request.post(
@@ -140,14 +128,7 @@ async function main() {
       timeout: 20_000,
     });
 
-    const consoleShell = page.locator("#hq-console-shell");
-    if (!(await consoleShell.isVisible().catch(() => false))) {
-      const showFullHq = page.getByRole("button", { name: "Show full HQ" });
-      if (await showFullHq.isVisible().catch(() => false)) {
-        await showFullHq.click();
-      }
-    }
-    await consoleShell.waitFor({
+    await page.getByTestId("hq-chat-panel").waitFor({
       state: "visible",
       timeout: 20_000,
     });

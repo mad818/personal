@@ -375,6 +375,9 @@ function runGit(repoRoot, args, options = {}) {
 }
 
 function runSafeGit(repoRoot, args, options = {}) {
+  if (process.platform !== "win32") {
+    return runProcess("git", args, { cwd: repoRoot, ...options });
+  }
   return runProcess(
     "powershell",
     [

@@ -246,7 +246,11 @@ export class PersistentRateLimitStore {
             ? "persistence_restored"
             : this.event;
     } catch {
-      rmSync(temporaryPath, { force: true });
+      try {
+        rmSync(temporaryPath, { force: true });
+      } catch {
+        // The parent itself may be unavailable or not a directory.
+      }
       this.mode = "memory_degraded";
       this.event = "persistence_unavailable";
     }

@@ -96,7 +96,7 @@ async function main() {
 
   try {
     const context = await browser.newContext({
-      viewport: { width: 1600, height: 720 },
+      viewport: { width: 1600, height: 1000 },
       deviceScaleFactor: 1,
       colorScheme: "dark",
       reducedMotion: "reduce",
@@ -174,7 +174,10 @@ async function main() {
       caret: "hide",
     });
 
-    await sharp(pngPath).webp({ quality: 88, effort: 6 }).toFile(outputPath);
+    await sharp(pngPath)
+      .extract({ left: 0, top: 0, width: 1600, height: 720 })
+      .webp({ quality: 88, effort: 6 })
+      .toFile(outputPath);
     await rm(pngPath, { force: true });
     await context.close();
   } finally {
